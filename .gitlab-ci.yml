@@ -14,7 +14,7 @@ zip:
   artifacts:
     name: "${CI_PROJECT_NAME}_${CI_COMMIT_REF_NAME}_${CI_COMMIT_SHORT_SHA}"
     paths:
-      - stampinfo
+      - shotmanager
     expire_in: 1 week
   tags:
     - linux
