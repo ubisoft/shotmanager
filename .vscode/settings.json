@@ -15,5 +15,5 @@
     "python.linting.flake8Args": [],
     "python.linting.enabled": true,
     "gitlab.instanceUrl": "https://gitlab-ncsa.ubisoft.org/",
-    "blender.addon.sourceDirectory": "./stampinfo"
+    "blender.addon.sourceDirectory": "./shotmanager"
 }
