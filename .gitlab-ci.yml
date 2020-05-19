@@ -1,0 +1,23 @@
+stages:
+  - qa_build
+
+flake8:
+  tags:
+    - linux
+  image: python:3
+  stage: qa_build
+  script:
+    - pip install flake8 flake8-black flake8-bugbear
+    - flake8 -v
+
+zip:
+  artifacts:
+    name: "${CI_PROJECT_NAME}_${CI_COMMIT_REF_NAME}_${CI_COMMIT_SHORT_SHA}"
+    paths:
+      - stampinfo
+    expire_in: 1 week
+  tags:
+    - linux
+  stage: qa_build
+  script: exit 0
+
