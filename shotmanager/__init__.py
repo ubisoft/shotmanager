@@ -30,11 +30,10 @@
 import os
 from pathlib import Path
 import subprocess
-import importlib
 
 import bpy
 import bpy.utils.previews
-from bpy.props import IntProperty, StringProperty, EnumProperty, BoolProperty, FloatVectorProperty
+from bpy.props import BoolProperty
 from bpy.types import Panel, Operator, Menu
 
 try:
@@ -42,8 +41,6 @@ try:
 except ModuleNotFoundError:
     subprocess.run([bpy.app.binary_path_python, "-m", "pip", "install", "opentimelineio==0.11.0"])
     import opentimelineio as otio
-
-import addon_utils
 
 from .ogl_ui import UAS_ShotManager_DrawTimeline, UAS_ShotManager_DrawCameras_UI
 
@@ -70,7 +67,7 @@ bl_info = {
     "author": "Romain Carriquiry Borchiari, Julien Blervaque (aka Werwack)",
     "description": "Manage a sequence of shots and cameras in the 3D View - Ubisoft Animation Studio",
     "blender": (2, 82, 0),
-    "version": (1, 1, 15),
+    "version": (1, 1, 16),
     "location": "View3D > UAS Shot Manager",
     "wiki_url": "https://mdc-web-tomcat17.ubisoft.org/confluence/display/UASTech/UAS+Shot+Manager",
     "warning": "",
@@ -94,8 +91,6 @@ class UAS_PT_ShotManager(Panel):
 
     def draw_header(self, context):
         scene = context.scene
-        render = scene.render
-        props = scene.UAS_shot_manager_props
 
         layout = self.layout
         layout.emboss = "NONE"
