@@ -5,6 +5,7 @@ Draw a timeline in viewport
 
 !!! Very Dirty code.
 """
+
 from collections import defaultdict
 from statistics import mean
 
@@ -18,26 +19,87 @@ import mathutils
 font_info = { "font_id": 0,
               "handler": None }
 
+def remap ( value, old_min, old_max, new_min, new_max ):
+    old_range = old_max - old_min
+    if old_range == 0:
+        new_value = new_min
+    else:
+         new_range = new_max - new_min
+         new_value = ( ( ( value - old_min ) * new_range ) / old_range ) + new_min
+
+    return new_value
+
 #
 # Geometry utils functions
 #
-uniform_shader_2d = gpu.shader.from_builtin ( '2D_UNIFORM_COLOR' )
-def draw_square ( posx, posy, sizex, sizey, color ):
-    vertices = ((-sizex + posx, sizey + posy), (sizex + posx, sizey + posy),
-                (-sizex + posx, -sizey + posy), (sizex + posx, -sizey + posy))
-    # vertices += [ pos_2d.x, pos_2d.y ]
-    indices = (
-        (0, 1, 2), (2, 1, 3))
+class Square:
+    UNIFORM_SHADER_2D = gpu.shader.from_builtin ( '2D_UNIFORM_COLOR' )
+    def __init__ ( self, 
+                   x, y,
+                   sx, sy,
+                   color = ( 1., 1., 1., 1. ) ):
+        self._x = x
+        self._y = y
+        self._sx = sx
+        self._sy = sy
+        self._color = color
 
-    batch = batch_for_shader ( uniform_shader_2d, 'TRIS', { "pos": vertices }, indices = indices )
+    @property
+    def x ( self ):
+        return self._x
 
-    uniform_shader_2d.bind ( )
-    uniform_shader_2d.uniform_float ( "color", color )
-    batch.draw ( uniform_shader_2d )
+    @x.setter
+    def x ( self, value ):
+        self._x = value
+
+    @property
+    def y ( self ):
+        return  self._y
+
+    @y.setter
+    def y ( self, value ):
+        self._y = value
+
+    @property
+    def sx ( self ):
+        return  self._sx
+
+    @sx.setter
+    def sx ( self, value ):
+        self._sx = value
+
+    @property
+    def sy ( self ):
+        return  self._sy
+
+    @sy.setter
+    def sy ( self, value ):
+        self.sy = value
+
+    @property
+    def color ( self ):
+        return  self._color
+
+    @color.setter
+    def color ( self, value ):
+        self._color = value
+        
+    def draw ( self ):
+        vertices = ((-self._sx + self._x, self._sy + self._y), (self._sx + self._x, self._sy + self._y),
+                    (-self._sx + self._x, -self._sy + self._y), (self._sx + self._x, -self._sy + self._y))
+        # vertices += [ pos_2d.x, pos_2d.y ]
+        indices = (
+            (0, 1, 2), (2, 1, 3))
+
+        batch = batch_for_shader ( self.UNIFORM_SHADER_2D, 'TRIS', { "pos": vertices }, indices = indices )
+
+        self.UNIFORM_SHADER_2D.bind ( )
+        self.UNIFORM_SHADER_2D.uniform_float ( "color", self._color )
+        batch.draw ( self.UNIFORM_SHADER_2D )
 
 
-def get_square_bb ( posx, posy, sizex, sizey ):
-    return ( (-sizex + posx, -sizey + posy), (sizex + posx, sizey + posy) )
+    def bbox ( self ):
+        return ( -self._sx + self._x, -self.sy + self._y ), ( self._sx + self._x, self._sy + self._y )
 
 
 #
@@ -69,20 +131,30 @@ def get_region_at_xy ( context, x, y ):
 
 
 class BL_UI_Cursor:
-    def __init__ ( self ):
+    def __init__ ( self, value = "0", move_callback = None ):
         self.context = None
 
-        self.posx = .0
-        self.posy = 0
+        self.posx = 0
+        self.posy = 32
 
-        self.sizex = 8
+        self.sizex = 11
         self.sizey = 8
 
-        self.offsety = 1
+        self.value = value
+
+        self.bbox = Square ( self.posx,
+                             self.posy,
+                             self.sizex,
+                             self.sizey )
 
         self.hightlighted = False
 
+        self._p_mouse_x = 0
+        self._mouse_down = False
+        self._dragable = False
+        self._move_callback = move_callback
         self.__inrect = False
+
 
     def init ( self, context ):
         self.context = context
@@ -95,13 +167,16 @@ class BL_UI_Cursor:
             self.posy = posy
 
     def draw ( self ):
-        color = ( .5, .5, .5, 1 )
+        self.bbox.color = ( .5, .5, .5, 1 )
         if self.hightlighted:
-            color = ( 1, 1, 1, 1 )
-        draw_square ( self.posx, self.posy + self.sizey + 5,
-                      self.sizex, self.sizey,
-                      color )
+            self.bbox.color = ( 1, 1, 1, 1 )
+        self.bbox.draw ( )
 
+        blf.color ( 0, 0, 0, 0, 1  )
+        blf.size ( 0, 12, 72 )
+        font_width, font_height = blf.dimensions ( 0, self.value )
+        blf.position ( 0, self.bbox.x - 0.5 * font_width, self.bbox.y - 0.5 * font_height, 0 )
+        blf.draw ( 0, self.value )
 
     def is_in_rect ( self, x, y ):
         region = get_region_at_xy ( self.context, x, y  )
@@ -109,10 +184,8 @@ class BL_UI_Cursor:
             x -= region.x
             y -= region.y
 
-            bound = get_square_bb ( self.posx, self.posy, self.sizex, self.sizey )
-            print ( "bound", bound )
-            print ( x, y )
-            if bound[ 0 ][ 0 ] <= x < bound[ 1 ][ 0 ] and bound[ 0 ][ 1 ] <= y < bound[ 1 ][ 1 ]:
+            bound_lo, bound_hi = self.bbox.bbox ( )
+            if bound_lo[ 0 ] <= x < bound_hi[ 0 ] and bound_lo[ 1 ] <= y < bound_hi[ 1 ]:
                 return True
 
         return False
@@ -149,19 +222,30 @@ class BL_UI_Cursor:
         return False
 
     def mouse_down ( self, x, y ):
-        return self.is_in_rect ( x, y )
+        if self.is_in_rect ( x, y ):
+            self._p_mouse_x = x
+            self._dragable = True
+            return True
+
+        return False
 
     def mouse_up ( self, x, y ):
-        pass
+        self._dragable = False
+        self.hightlighted = False
 
     def mouse_enter ( self, event, x, y ):
         self.hightlighted = True
 
     def mouse_exit ( self, event, x, y ):
-        self.hightlighted = False
+        pass
 
     def mouse_move ( self, x, y ):
-        pass
+        if self._dragable:
+            self.posx += x - self._p_mouse_x
+            self.bbox.x = self.posx
+            self._p_mouse_x = x
+            if self._move_callback is not None:
+                self._move_callback ( )
 
 
 
@@ -315,8 +399,8 @@ class BL_UI_Timeline:
         self.__inrect = False
         self._mouse_down = False
 
-        self.shots = list ( )
-        self.frame_cursor = BL_UI_Cursor ( )
+        self.ui_shots = list ( )
+        self.frame_cursor = BL_UI_Cursor ( "100", self.frame_cursor_moved )
 
     def set_location ( self, x, y ):
         self.x = x
@@ -335,7 +419,7 @@ class BL_UI_Timeline:
     def init ( self, context ):
         self.context = context
         self.frame_cursor.init ( context )
-        self.frame_cursor.set_position ( posy = self.height )
+        #self.frame_cursor.set_position ( posy = self.height )
 
     def draw_caret ( self, x, color ):
         caret_width = 3
@@ -370,11 +454,13 @@ class BL_UI_Timeline:
         shots = shotmanager_props.getShotsList(ignoreDisabled = not shotmanager_props.display_disabledshots_in_timeline)
         currentShotIndex = shotmanager_props.getCurrentShotIndex(ignoreDisabled = not shotmanager_props.display_disabledshots_in_timeline)
 
+        self.ui_shots.clear ( )
         total_range += sum ( [ s.end + 1 - s.start for s in shots ] )
         offset_x = 0
         for i, shot in enumerate ( shots ):
             size_x = int ( self.width * float ( shot.end + 1 - shot.start ) / total_range )
             s = BL_UI_Shot ( offset_x , self.y, size_x, self.height, shot.name, not shot.enabled )
+            self.ui_shots.append ( s )
             s.init ( self.context )
             s.bg_color =  tuple ( shot.color )
 
@@ -423,7 +509,8 @@ class BL_UI_Timeline:
         self.frame_cursor.draw ( )
 
     def handle_event ( self, event ):
-        self.frame_cursor.handle_event ( event )
+        if self.frame_cursor.handle_event ( event ):
+            return True
 
         x = event.mouse_region_x
         y = event.mouse_region_y
@@ -473,6 +560,27 @@ class BL_UI_Timeline:
 
         return False
 
+    def frame_cursor_moved ( self ):
+        shotmanager_props = self.context.scene.UAS_shot_manager_props
+        shots = shotmanager_props.getShotsList ( ignoreDisabled = not shotmanager_props.display_disabledshots_in_timeline )
+
+        cursor_x = self.frame_cursor.posx
+        sequence_current_frame = 0
+        for ui_shot in self.ui_shots:
+            if ui_shot.x <= cursor_x < ui_shot.x + ui_shot.width:
+                for shot in shots:
+                    if shot.name == ui_shot.label:
+                        self.context.scene.frame_current = round ( remap ( cursor_x,
+                                                                         ui_shot.x, ui_shot.x + ui_shot.width,
+                                                                         shot.start, shot.end ) )
+                        sequence_current_frame += self.context.scene.frame_current - shot.start + 1
+                        break
+
+                    sequence_current_frame += shot.end - shot.start
+
+
+        self.frame_cursor.value = str ( sequence_current_frame )
+
     def mouse_down ( self, x, y ):
         return self.is_in_rect ( x, y )
 
@@ -487,7 +595,6 @@ class BL_UI_Timeline:
 
     def mouse_move ( self, x, y ):
         pass
-
 
 
 class UAS_ShotManager_DrawTimeline ( bpy.types.Operator ):
@@ -667,7 +774,7 @@ class UAS_ShotManager_DrawCameras_UI ( bpy.types.Operator ):
                             blf.color ( 0, .9, .9, .9, .9 )
                         blf.draw ( 0, s.name )
 
-                        draw_square ( pos_2d[ 0 ] + x_offset - 5, pos_2d[ 1 ] + y_offset + 3, 2.5, 2.5, s.color )
+                        Square ( pos_2d[ 0 ] + x_offset - 5, pos_2d[ 1 ] + y_offset + 3, 2.5, 2.5, s.color ).draw ( )
                         y_offset -= font_size # Seems to do the trick for this value
 
                     # Draw ... if we don't display next shots.
