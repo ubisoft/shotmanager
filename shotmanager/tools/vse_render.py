@@ -281,14 +281,14 @@ class UAS_Vse_Render(PropertyGroup):
         if "SOUND" == mediaType:
             newClip = scene.sequence_editor.sequences.new_movie("mySound", mediaPath, channelInd, atFrame)
 
-            newClip.frame_offset_start = offsetStart
-            newClip.frame_offset_end = offsetEnd
+        newClip.frame_offset_start = offsetStart
+        newClip.frame_offset_end = offsetEnd
 
         return newClip
 
-    def compositeVideoInVSE(self, fps, frame_start, frame_end, output_filepath):
+    def compositeVideoInVSE(self, fps, frame_start, frame_end, output_filepath, postfixSceneName=""):
         # Add new scene
-        scene = bpy.data.scenes.new(name="Tmp_VSE_RenderScene")
+        scene = bpy.data.scenes.new(name="Tmp_VSE_RenderScene" + postfixSceneName)
         scene.render.fps = fps
         # Make "My New Scene" the active one
         #    bpy.context.window.scene = scene

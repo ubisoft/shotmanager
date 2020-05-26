@@ -67,7 +67,7 @@ bl_info = {
     "author": "Romain Carriquiry Borchiari, Julien Blervaque (aka Werwack)",
     "description": "Manage a sequence of shots and cameras in the 3D View - Ubisoft Animation Studio",
     "blender": (2, 82, 0),
-    "version": (1, 1, 16),
+    "version": (1, 1, 17),
     "location": "View3D > UAS Shot Manager",
     "wiki_url": "https://mdc-web-tomcat17.ubisoft.org/confluence/display/UASTech/UAS+Shot+Manager",
     "warning": "",
@@ -101,7 +101,7 @@ class UAS_PT_ShotManager(Panel):
             _emboss = True
             row.alert = True
         else:
-            _emboss = False
+            #    _emboss = False
             row.alert = False
 
         row.prop(context.window_manager, "UAS_shot_manager_displayAbout", icon="SETTINGS", icon_only=True)
@@ -281,7 +281,7 @@ class UAS_PT_ShotManager(Panel):
 
 
 #############
-## tools for Takes
+# tools for Takes
 #############
 
 
@@ -328,7 +328,7 @@ class UAS_MT_ShotManager_Takes_ToolsMenu(Menu):
 
 
 #############
-## Shots
+# Shots
 #############
 
 
@@ -337,7 +337,7 @@ class UAS_UL_ShotManager_Items(bpy.types.UIList):
         global icons_col
         props = context.scene.UAS_shot_manager_props
         current_shot_index = props.current_shot_index
-        current_shot = props.getCurrentShot()
+
         cam = "Cam" if current_shot_index == index else ""
         currentFrame = context.scene.frame_current
 

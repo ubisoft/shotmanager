@@ -3,19 +3,31 @@ import json
 
 import bpy
 from bpy.types import PropertyGroup
-from bpy.props import CollectionProperty, IntProperty, StringProperty, EnumProperty, BoolProperty, PointerProperty
+from bpy.props import (
+    CollectionProperty,
+    IntProperty,
+    StringProperty,
+    EnumProperty,
+    BoolProperty,
+    PointerProperty,
+)
 
 from shotmanager.operators import shots
 from .render_settings import UAS_ShotManager_RenderSettings
 from .shot import UAS_ShotManager_Shot
 from .take import UAS_ShotManager_Take
 
-from shotmanager.__init__ import bl_info
-
 
 class UAS_ShotManager_Props(PropertyGroup):
     def version(self):
-        return ".".join(str(v) for v in bl_info["version"])
+        import addon_utils
+
+        versionTupple = [
+            addon.bl_info.get("version", (-1, -1, -1))
+            for addon in addon_utils.modules()
+            if addon.bl_info["name"] == "UAS_StampInfo"
+        ][0]
+        return str(versionTupple[0]) + "." + str(versionTupple[1]) + "." + str(versionTupple[2])
 
     def get_isInitialized(self):
         #    print(" get_isInitialized")
@@ -31,6 +43,17 @@ class UAS_ShotManager_Props(PropertyGroup):
         self["isInitialized"] = value
 
     isInitialized: BoolProperty(get=get_isInitialized, set=set_isInitialized, default=False)
+
+    # edit
+    #############
+
+    editStartFrame: IntProperty(
+        name="Edit Start Frame",
+        description="Index of the first frame of the edit.Default is 0.\nMost editing software start at 0, some at 1. \
+            \nIt is possible to use a custom value when the current scene is not the first one of the edit in this file",
+        default=0,
+        options=set(),
+    )
 
     # render
     #############
@@ -130,6 +153,7 @@ class UAS_ShotManager_Props(PropertyGroup):
         description="Update the content of the Shot Properties panel either on the current shot\nor on the shot seleted in the shots list",
         items=(("CURRENT", "Current Shot", ""), ("SELECTED", "Selected Shot", "")),
         default="SELECTED",
+        options=set(),
     )
 
     highlight_all_shot_frames: BoolProperty(default=True, options=set())
@@ -378,8 +402,8 @@ class UAS_ShotManager_Props(PropertyGroup):
                         frameIndInEdit += shotList[shotInd].getDuration()
                     shotInd += 1
 
-                frameIndInEdit += frameIndexIn3DTime - referenceShot.start + 1
-            # if shotInd == len(shotList): frameIndInEdit = -1
+                frameIndInEdit += frameIndexIn3DTime - referenceShot.start
+                frameIndInEdit += self.editStartFrame
 
         return frameIndInEdit
 
