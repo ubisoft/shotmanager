@@ -19,7 +19,7 @@ def publishRRS(prodFilePath):
     # projProp_fps = json.loads( os.environ['UAS_PROJECT_FRAMERATE'] )
     # wkip beurk pour récuperer le bon contexte de scene
     bpy.context.window.scene = scene
-    renderedOtioFile = renderProps.exportOtio(renderRootFilePath=cacheFilePath)
+    renderedOtioFile = renderProps.exportOtio(scene, renderRootFilePath=cacheFilePath)
 
     renderedFilesList.append(renderedOtioFile)
 
@@ -43,5 +43,5 @@ def publishRRS(prodFilePath):
         print("target: ", target)
         try:
             shutil.copyfile(f, target)
-        except:
-            print("*** File cannot be copied: ", f)
+        except Exception as e:
+            print("*** File cannot be copied: ", e)

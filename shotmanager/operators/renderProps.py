@@ -401,7 +401,11 @@ def launchRenderWithVSEComposite(renderMode, renderRootFilePath="", useStampInfo
 
             compositedMediaPath = shot.getOutputFileName(fullPath=True, rootFilePath=rootPath)
             vse_render.compositeVideoInVSE(
-                projectFps, 1, shot.end - shot.start + 2 * props.handles + 1, compositedMediaPath
+                projectFps,
+                1,
+                shot.end - shot.start + 2 * props.handles + 1,
+                compositedMediaPath,
+                shot.getName_PathCompliant(),
             )
             newMediaFiles.append(compositedMediaPath)
 
@@ -804,12 +808,11 @@ class UAS_PT_ShotManager_Render_StampInfoProperties(Panel):
 ######
 
 # wkip donner en parametre un nom ou indice de take!!!!
-def exportOtio(renderRootFilePath="", fps=-1):
+def exportOtio(scene, renderRootFilePath="", fps=-1):
     """ Create an OpenTimelineIO XML file for the specified take
         Return the file path of the created file
     """
     print("  ** -- ** exportOtio")
-    scene = bpy.context.scene
     props = scene.UAS_shot_manager_props
 
     sceneFps = fps if fps != -1 else scene.render.fps
@@ -818,20 +821,21 @@ def exportOtio(renderRootFilePath="", fps=-1):
 
     take = props.getCurrentTake()
     if take is None:
-        print("   *** No Take found")
+        print("   *** No Take found - Export OTIO aborted")
         return ""
     else:
         take_name = take.getName_PathCompliant()
 
-    shots = props.get_shots()
-    print("   Otio 02")
+    shotList = props.get_shots()
+
     # wkip note: scene.frame_start probablement à remplacer par start du premier shot enabled!!!
+    startFrame = 0
     timeline = otio.schema.Timeline(
-        name=scene.name, global_start_time=otio.opentime.from_frames(scene.frame_start, sceneFps)
+        name=scene.name + "_" + take_name, global_start_time=otio.opentime.from_frames(startFrame, sceneFps)
     )
     track = otio.schema.Track()
     timeline.tracks.append(track)
-    print("   Otio 03")
+
     renderPath = renderRootFilePath if "" != renderRootFilePath else props.renderRootPath
     renderPath += take_name + "\\" + take_name + ".xml"
     if Path(renderPath).suffix == "":
@@ -841,25 +845,35 @@ def exportOtio(renderRootFilePath="", fps=-1):
 
     clips = list()
     playhead = 0
-    for s in shots:
-        if s.enabled:
-            duration = s.end - s.start + 1
+    for shot in shotList:
+        if shot.enabled:
+
+            # media
+            media_duration = shot.end - shot.start + 1 + 2 * props.handles
             start_time, end_time_exclusive = (
-                otio.opentime.from_frames(playhead, sceneFps),
-                otio.opentime.from_frames(playhead + duration, sceneFps),
+                otio.opentime.from_frames(0, sceneFps),
+                otio.opentime.from_frames(media_duration, sceneFps),
             )
-            source_range = otio.opentime.range_from_start_end_time(start_time, end_time_exclusive)
-            playhead += duration
 
-            # shotFilePath = s.getOutputFileName(fullPath=True)
-            shotFilePath = renderPath
-            shotFileName = s.getOutputFileName()
+            available_range = otio.opentime.range_from_start_end_time(start_time, end_time_exclusive)
 
-            media_reference = otio.schema.ExternalReference(target_url=shotFilePath, available_range=source_range)
-            c = otio.schema.Clip(name=shotFileName, source_range=source_range, media_reference=media_reference)
-            c.metadata = {"clip_name": s["name"], "camera_name": s["camera"].name_full}
+            shotFilePath = shot.getOutputFileName(fullPath=True)
+            shotFileName = shot.getOutputFileName()
+            print("    shotFilePath: ", shotFilePath, shotFileName)
 
-            clips.append(c)
+            media_reference = otio.schema.ExternalReference(target_url=shotFilePath, available_range=available_range)
+
+            # clip
+            clip_start_time, clip_end_time_exclusive = (
+                otio.opentime.from_frames(props.handles, sceneFps),
+                otio.opentime.from_frames(shot.end - shot.start + 1 + props.handles, sceneFps),
+            )
+            source_range = otio.opentime.range_from_start_end_time(clip_start_time, clip_end_time_exclusive)
+            newClip = otio.schema.Clip(name=shotFileName, source_range=source_range, media_reference=media_reference)
+            newClip.metadata = {"clip_name": shot["name"], "camera_name": shot["camera"].name_full}
+
+            clips.append(newClip)
+            playhead += media_duration
 
     track.extend(clips)
 
@@ -884,10 +898,8 @@ class UAS_ShotManager_Export_OTIO(Operator):
         props = context.scene.UAS_shot_manager_props
 
         if props.isRenderRootPathValid():
-            print("Here OTIIO")
-            exportOtio(renderRootFilePath=props.renderRootPath, fps=context.scene.render.fps)
+            exportOtio(context.scene, renderRootFilePath=props.renderRootPath, fps=context.scene.render.fps)
         else:
-            print("Here not OTIIO")
             from ..utils.utils import ShowMessageBox
 
             ShowMessageBox("Render root path is invalid", "OpenTimelineIO Export Aborted", "ERROR")

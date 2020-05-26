@@ -69,6 +69,7 @@ class UAS_PT_ShotManagerPref_Timeline(Panel):
     bl_parent_id = "UAS_PT_Shot_Manager_Pref"
 
     def draw(self, context):
+        props = context.scene.UAS_shot_manager_props
         layout = self.layout
         row = layout.row()
 
@@ -77,14 +78,13 @@ class UAS_PT_ShotManagerPref_Timeline(Panel):
         # or
         col = row.column()
         col.use_property_split = True
-        col.prop(context.scene.UAS_shot_manager_props, "change_time", text="Set Current Frame On Shot Selection")
+        col.prop(props, "change_time", text="Set Current Frame On Shot Selection")
         col.prop(
-            context.scene.UAS_shot_manager_props,
-            "display_disabledshots_in_timeline",
-            text="Display Disabled Shots in Timeline",
+            props, "display_disabledshots_in_timeline", text="Display Disabled Shots in Timeline",
         )
+        col.prop(props, "editStartFrame", text="Index of the First Frame in the Edit")
 
-    #    col.prop ( context.scene.UAS_shot_manager_props, "display_prev_next_buttons", text = "Display Previous and Next Frame buttons in the play bar" )
+    #    col.prop ( props, "display_prev_next_buttons", text = "Display Previous and Next Frame buttons in the play bar" )
 
 
 class UAS_PT_ShotManagerPref_Shots(Panel):

@@ -50,8 +50,10 @@ class UAS_ShotManager_Shot(PropertyGroup):
 
     parentTakeIndex: IntProperty(name="Parent Take Index", default=-1)
     name: StringProperty(name="Name", update=_shot_name_changed)
-    start: IntProperty(name="Start", update=_start_frame_changed)
-    end: IntProperty(name="End", update=_end_frame_changed)
+    start: IntProperty(
+        name="Start", description="Index of the first included frame of the shot", update=_start_frame_changed
+    )
+    end: IntProperty(name="End", description="Index of the last included frame of the shot", update=_end_frame_changed)
     enabled: BoolProperty(
         name="Enabled", description="Use - or not - the shot in the edit", update=_enabled_changed, default=True
     )
