@@ -145,7 +145,7 @@ class UAS_compositeVideoInVSE(Operator):
         vse_render = context.window_manager.UAS_vse_render
         scene = context.scene
 
-        scene = context.window_manager.UAS_vse_render.compositeVideoInVSE(20, "c:\\tmp\\MyVSEOutput.mp4")
+        context.window_manager.UAS_vse_render.compositeVideoInVSE(1, 20, "c:\\tmp\\MyVSEOutput.mp4")
 
         return {"FINISHED"}
 
@@ -186,30 +186,113 @@ class UAS_Vse_Render(PropertyGroup):
         from pathlib import Path
 
         mediaExt = Path(filePath.lower()).suffix
-        print("  getMediaType: mediaExt:" + mediaExt)
-        if ".mp4" == mediaExt or ".avi" == mediaExt or ".mov" == mediaExt or ".mkv" == mediaExt:
+        if mediaExt in (".mp4", ".avi", ".mov", ".mkv"):
             mediaType = "MOVIE"
-        elif (
-            ".jpg" == mediaExt
-            or ".jpeg" == mediaExt
-            or ".png" == mediaExt
-            or ".tga" == mediaExt
-            or ".tif" == mediaExt
-            or ".tiff" == mediaExt
-        ):
-            mediaType = "IMAGE"
-        elif ".mp3" == mediaExt or ".wav" == mediaExt:
+        elif mediaExt in (".jpg", ".jpeg", ".png", ".tga", ".tif", ".tiff"):
+            if -1 != filePath.find("###"):
+                mediaType = "SEQUENCE"
+            else:
+                mediaType = "IMAGE"
+        elif mediaExt in (".mp3", ".wav"):
             mediaType = "SOUND"
-
         return mediaType
 
-    def compositeVideoInVSE(self, num_frames, output_filepath):
+    def createNewClip(self, scene, mediaPath, channelInd, atFrame, offsetStart=0, offsetEnd=0):
+        """
+            A strip is placed at a specified time in the edit by putting its media start at the place where
+            it will be, in an absolute approach, and then by changing the handles of the clip with offsetStart
+            and offsetEnd. None of these parameters change the position of the media frames in the edit time (it
+            is like changing the position of the sides of a window, but not what the window sees).
+            Both offsetStart and offsetEnd are relative to the start time of the media.
+        """
+
+        def _new_sequence(scene, seqName, images_path, channelInd, atFrame):
+            import re
+            from pathlib import Path
+
+            seq = None
+            p = Path(images_path)
+            folder, name = p.parent, str(p.name)
+
+            mov_name = ""
+            # Find frame padding. Either using # formating or printf formating
+            file_re = ""
+            padding_match = re.match(".*?(#+).*", name)
+            if not padding_match:
+                padding_match = re.match(".*?%(\d\d)d.*", name)
+                if padding_match:
+                    padding_length = int(padding_match[1])
+                    file_re = re.compile(
+                        r"^{1}({0}){2}$".format(
+                            "\d" * padding_length, name[: padding_match.start(1) - 1], name[padding_match.end(1) + 1 :]
+                        )
+                    )
+                    mov_name = (
+                        str(p.stem)[: padding_match.start(1) - 1] + str(p.stem)[padding_match.end(1) + 1 :]
+                    )  # Removes the % and d which are not captured in the re.
+            else:
+                padding_length = len(padding_match[1])
+                file_re = re.compile(
+                    r"^{1}({0}){2}$".format(
+                        "\d" * padding_length, name[: padding_match.start(1)], name[padding_match.end(1) :]
+                    )
+                )
+                mov_name = str(p.stem)[: padding_match.start(1)] + str(p.stem)[padding_match.end(1) :]
+
+            if padding_match:
+                # scene.render.filepath = str(folder.joinpath(mov_name))
+
+                frames = dict()
+                max_frame = 0
+                min_frame = 999999999
+                for f in sorted(list(folder.glob("*"))):
+                    _folder, _name = f.parent, f.name
+                    re_match = file_re.match(_name)
+                    if re_match:
+                        frame_nb = int(re_match[1])
+                        max_frame = max(max_frame, frame_nb)
+                        min_frame = min(min_frame, frame_nb)
+
+                        frames[frame_nb] = f
+
+                frame_keys = list(frames.keys())  # As of python 3.7 should be in the insertion order.
+                if frames:
+                    seq = scene.sequence_editor.sequences.new_image(
+                        seqName, str(frames[frame_keys[0]]), channelInd, atFrame
+                    )
+
+                    for i in range(min_frame + 1, max_frame + 1):
+                        pp = frames.get(i, Path(""))
+                        seq.elements.append(pp.name)
+
+                #   scene.frame_end = max_frame - min_frame + 1
+
+            return seq
+
+        newClip = None
+        mediaType = self.getMediaType(mediaPath)
+        if "MOVIE" == mediaType:
+            newClip = scene.sequence_editor.sequences.new_movie("myVideo", mediaPath, channelInd, atFrame)
+        if "IMAGE" == mediaType:
+            newClip = scene.sequence_editor.sequences.new_image("myImage", mediaPath, channelInd, atFrame)
+        if "SEQUENCE" == mediaType:
+            newClip = _new_sequence(scene, "mySequence", mediaPath, channelInd, atFrame)
+            # newClip = scene.sequence_editor.sequences.new_image("myVideo", mediaPath, channelInd, atFrame)
+        if "SOUND" == mediaType:
+            newClip = scene.sequence_editor.sequences.new_movie("mySound", mediaPath, channelInd, atFrame)
+
+            newClip.frame_offset_start = offsetStart
+            newClip.frame_offset_end = offsetEnd
+
+        return newClip
+
+    def compositeVideoInVSE(self, fps, frame_start, frame_end, output_filepath):
         # Add new scene
         scene = bpy.data.scenes.new(name="Tmp_VSE_RenderScene")
+        scene.render.fps = fps
         # Make "My New Scene" the active one
-        bpy.context.window.scene = scene
+        #    bpy.context.window.scene = scene
 
-        # créer des clips
         if not scene.sequence_editor:
             scene.sequence_editor_create()
 
@@ -219,27 +302,15 @@ class UAS_Vse_Render(PropertyGroup):
         ### add BG
         scene.render.resolution_x = self.inputBGResolution[0]
         scene.render.resolution_y = self.inputBGResolution[1]
-        scene.frame_start = 1
-        scene.frame_end = num_frames
+        scene.frame_start = frame_start
+        scene.frame_end = frame_end
         scene.render.image_settings.file_format = "FFMPEG"
         scene.render.ffmpeg.format = "MPEG4"
         scene.render.filepath = output_filepath
         # scene.render.ffmpeg.constant_rate_factor = video_quality
 
-        def _createNewClip(mediaPath, channelInd, atFrame):
-            newClip = None
-            mediaType = self.getMediaType(mediaPath)
-            if "MOVIE" == mediaType:
-                newClip = scene.sequence_editor.sequences.new_movie("myVideo", mediaPath, channelInd, atFrame)
-            if "IMAGE" == mediaType:
-                newClip = scene.sequence_editor.sequences.new_image("myVideo", mediaPath, channelInd, atFrame)
-            if "SOUND" == mediaType:
-                newClip = scene.sequence_editor.sequences.new_movie("myVideo", mediaPath, channelInd, atFrame)
-
-            return newClip
-
-        bgClip = _createNewClip(self.inputBGMediaPath, 1, 1)
-        overClip = _createNewClip(self.inputOverMediaPath, 2, 1)
+        bgClip = self.createNewClip(scene, self.inputBGMediaPath, 1, 1)
+        overClip = self.createNewClip(scene, self.inputOverMediaPath, 2, 1)
 
         overClip.use_crop = True
         overClip.crop.min_x = -1 * int((self.inputBGResolution[0] - self.inputOverResolution[0]) / 2)
@@ -253,11 +324,12 @@ class UAS_Vse_Render(PropertyGroup):
         # get res of video: bpy.context.scene.sequence_editor.sequences[1].elements[0].orig_width
         # ne marche que sur vidéos
 
+        # Make "My New Scene" the active one
+        bpy.context.window.scene = scene
         bpy.ops.render.opengl(animation=True, sequencer=True)
 
-        #    bpy.ops.scene.delete()
 
-        return new_scene
+#      bpy.ops.scene.delete()
 
 
 _classes = (UAS_PT_VSERender, UAS_Vse_Render, UAS_compositeVideoInVSE, UAS_VSE_OpenFileBrowser)

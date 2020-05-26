@@ -2,120 +2,21 @@ import os
 import json
 
 import bpy
-from bpy.types import Operator, PropertyGroup
-from bpy.props import (
-    CollectionProperty,
-    IntProperty,
-    StringProperty,
-    EnumProperty,
-    BoolProperty,
-    PointerProperty,
-    FloatVectorProperty,
-)
+from bpy.types import PropertyGroup
+from bpy.props import CollectionProperty, IntProperty, StringProperty, EnumProperty, BoolProperty, PointerProperty
 
-from .operators import shots
-from .operators import takes
+from shotmanager.operators import shots
+from .render_settings import UAS_ShotManager_RenderSettings
+from .shot import UAS_ShotManager_Shot
+from .take import UAS_ShotManager_Take
 
-
-class UAS_ShotManager_Shot(PropertyGroup):
-    def getDuration(self):
-        """ Returns the shot duration in frames
-            in Blender - and in Shot Manager - the last frame of the shot is included in the rendered images
-        """
-        duration = self.end - self.start + 1
-        return duration
-
-    def getOutputFileName(self, frameIndex=-1, fullPath=False, fullPathOnly=False, rootFilePath=""):
-        return bpy.context.scene.UAS_shot_manager_props.getShotOutputFileName(
-            self, frameIndex=frameIndex, fullPath=fullPath, fullPathOnly=fullPathOnly, rootFilePath=rootFilePath
-        )
-
-    def getName_PathCompliant(self):
-        shotName = self.name.replace(" ", "_")
-        return shotName
-
-    def _shot_name_changed(self, context):
-        dup_name = False
-
-        # wkip fix rename
-        # ownerTakeInd = context.scene.UAS_shot_manager_props.getShotOwnerTake(self)  or ownertakeind?
-        shots = context.scene.UAS_shot_manager_props.getShotsList(takeIndex=self.parentTakeIndex)
-
-        for shot in shots:
-            if shot != self and self.name == shot.name:
-                dup_name = True
-
-        if dup_name:
-            self.name = f"{self.name}_1"
-
-    def _start_frame_changed(self, context):
-        if self.start > self.end:
-            self.end = self.start
-
-    def _end_frame_changed(self, context):
-        if self.start > self.end:
-            self.start = self.end
-
-    def _enabled_changed(self, context):
-        context.scene.UAS_shot_manager_props.selected_shot_index = context.scene.UAS_shot_manager_props.getShotIndex(
-            self
-        )
-
-    parentTakeIndex: IntProperty(name="Parent Take Index", default=-1)
-    name: StringProperty(name="Name", update=_shot_name_changed)
-    start: IntProperty(name="Start", update=_start_frame_changed)
-    end: IntProperty(name="End", update=_end_frame_changed)
-    enabled: BoolProperty(
-        name="Enabled", description="Use - or not - the shot in the edit", update=_enabled_changed, default=True
-    )
-
-    camera: PointerProperty(
-        name="Camera",
-        description="Select a Camera",
-        type=bpy.types.Object,
-        poll=lambda self, obj: True if obj.type == "CAMERA" else False,
-    )
-
-    color: FloatVectorProperty(subtype="COLOR", min=0.0, max=1.0, size=4, default=(1.0, 1.0, 1.0, 1.0), options=set())
-
-
-class UAS_ShotManager_Take(PropertyGroup):
-    def getName_PathCompliant(self):
-        takeName = self.name.replace(" ", "_")
-        return takeName
-
-    name: StringProperty(name="Name")
-
-    shots: CollectionProperty(type=UAS_ShotManager_Shot)
-
-
-class UAS_ShotManager_RenderSettings(PropertyGroup):
-
-    name: StringProperty(name="Name", default="Render Settings")
-
-    renderMode: EnumProperty(
-        name="Render Mode",
-        description="Render Mode",
-        items=(("STILL", "Still", ""), ("ANIMATION", "Animation", ""), ("PROJECT", "Project", "")),
-        default="STILL",
-    )
-
-    renderAllTakes: BoolProperty(name="Render All Takes", default=False)
-
-    renderAllShots: BoolProperty(name="Render All Shots", default=False)
-
-    renderAlsoDisabled: BoolProperty(name="Render Also Disabled", default=False)
-
-    renderWithHandles: BoolProperty(name="Render With Handles", default=False)
-
-    writeToDisk: BoolProperty(name="Write to Disk", default=False)
-
-    # file format
-    # image_settings_file_format = 'FFMPEG'
-    # scene.render.ffmpeg.format = 'MPEG4'
+from shotmanager.__init__ import bl_info
 
 
 class UAS_ShotManager_Props(PropertyGroup):
+    def version(self):
+        return ".".join(str(v) for v in bl_info["version"])
+
     def get_isInitialized(self):
         #    print(" get_isInitialized")
         val = self.get("isInitialized", False)
@@ -176,16 +77,16 @@ class UAS_ShotManager_Props(PropertyGroup):
         self["displayAnimationProps"] = False
         self["displayProjectProps"] = True
 
-    displayStillProps: bpy.props.BoolProperty(
+    displayStillProps: BoolProperty(
         name="Display Still Preset Properties", get=get_displayStillProps, set=set_displayStillProps, default=True
     )
-    displayAnimationProps: bpy.props.BoolProperty(
+    displayAnimationProps: BoolProperty(
         name="Display Animation Preset Properties",
         get=get_displayAnimationProps,
         set=set_displayAnimationProps,
         default=False,
     )
-    displayProjectProps: bpy.props.BoolProperty(
+    displayProjectProps: BoolProperty(
         name="Display Project Preset Properties",
         get=get_displayProjectProps,
         set=set_displayProjectProps,
@@ -302,6 +203,15 @@ class UAS_ShotManager_Props(PropertyGroup):
     def getTakes(self):
         return self.takes
 
+    def getTakeByIndex(self, takeIndex):
+        """ Return the take corresponding to the specified index
+        """
+        takeInd = self.getCurrentTakeIndex() if -1 == takeIndex else (takeIndex if 0 < len(self.getTakes()) else -1)
+        take = None
+        if -1 == takeInd:
+            return take
+        return self.takes[takeInd]
+
     def getTakeIndex(self, take):
         #  print("getCurrentTakeIndex")
         takeInd = -1
@@ -342,6 +252,13 @@ class UAS_ShotManager_Props(PropertyGroup):
         else:
             self.current_take_name = ""
 
+    def getCurrentTake(self):
+        #    print("getCurrentTake")
+        currentTakeInd = self.getCurrentTakeIndex()
+        if -1 == currentTakeInd:
+            return None
+        return self.getTakes()[currentTakeInd]
+
     def getCurrentTakeName(self):
         """ Return the name of the current take, 
         """
@@ -363,13 +280,6 @@ class UAS_ShotManager_Props(PropertyGroup):
         takeName = self.takes[takeInd].getName_PathCompliant()
 
         return takeName
-
-    def getCurrentTake(self):
-        #    print("getCurrentTake")
-        currentTakeInd = self.getCurrentTakeIndex()
-        if -1 == currentTakeInd:
-            return None
-        return self.getTakes()[currentTakeInd]
 
     # render
     #############
@@ -396,7 +306,7 @@ class UAS_ShotManager_Props(PropertyGroup):
     #     print("\n*** useStampInfoDuringRendering updated. New state: ", self.useStampInfoDuringRendering)
 
     useStampInfoDuringRendering: BoolProperty(
-        name="Stamp Render Info",
+        name="Stamp Info on Output",
         description="Stamp render information on rendered images thanks to Stamp Info add-on",
         default=True,
         get=get_useStampInfoDuringRendering,  # removed cause the use of Stamp Info in this add-on is independent from the one of Stamp Info add-on itself
@@ -419,7 +329,7 @@ class UAS_ShotManager_Props(PropertyGroup):
     # editing
     ####################
 
-    def getEditDuration(self, ignoreDisabled=False, takeIndex=-1):
+    def getEditDuration(self, ignoreDisabled=True, takeIndex=-1):
         """ Return edit duration in frames
         """
         takeInd = self.getCurrentTakeIndex() if -1 == takeIndex else (takeIndex if 0 < len(self.getTakes()) else -1)
@@ -427,16 +337,53 @@ class UAS_ShotManager_Props(PropertyGroup):
         if -1 == takeInd:
             return -1
 
-        shots = self.getShotsList(ignoreDisabled=ignoreDisabled, takeIndex=takeIndex)
+        shotList = self.getShotsList(ignoreDisabled=ignoreDisabled, takeIndex=takeIndex)
 
-        if 0 < len(shots):
+        if 0 < len(shotList):
             duration = 0
-            for sh in shots:
+            for sh in shotList:
                 duration += sh.getDuration()
 
         return duration
 
-    def getEditCurrentTime(self, ignoreDisabled=False):
+    def getEditTime(self, referenceShot, frameIndexIn3DTime):
+        """ Return edit current time in frames, -1 if no shots or if current shot is disabled
+            Works on the take from which referenceShot is coming from.
+            Disabled shots are always ignored and considered as not belonging to the edit.
+            wkip negative times issues coming here... :/
+        """
+        frameIndInEdit = -1
+        if referenceShot is None:
+            return frameIndInEdit
+
+        takeInd = referenceShot.parentTakeIndex
+        ignoreDisabled = True
+
+        # case where specified shot is disabled -- current shot may not be in the shot list if shotList is not the whole list
+        if ignoreDisabled and not referenceShot.enabled:
+            return -1
+
+        # specified time must be in the range of the specifed shot!!!
+        # get the whole shots list
+        shotList = self.getShotsList(ignoreDisabled=ignoreDisabled, takeIndex=takeInd)
+
+        if 0 < len(shotList):
+            if referenceShot.start <= frameIndexIn3DTime and frameIndexIn3DTime <= referenceShot.end:
+                frameIndInEdit = 0
+                shotInd = 0
+                while shotInd < len(shotList) and referenceShot != shotList[shotInd]:
+                    #         print("    While: shotInd: " + str(shotInd) + ", referenceShot: " + str(referenceShot) + ", shotList[shotInd]: " + str(shots[shotInd]))
+                    #         print("    frameIndInEdit: ", frameIndInEdit)
+                    if not ignoreDisabled or shotList[shotInd].enabled:
+                        frameIndInEdit += shotList[shotInd].getDuration()
+                    shotInd += 1
+
+                frameIndInEdit += frameIndexIn3DTime - referenceShot.start + 1
+            # if shotInd == len(shotList): frameIndInEdit = -1
+
+        return frameIndInEdit
+
+    def getEditCurrentTime(self, ignoreDisabled=True):
         """ Return edit current time in frames, -1 if no shots or if current shot is disabled
             works only on current take
             wkip negative times issues coming here... :/
@@ -449,29 +396,42 @@ class UAS_ShotManager_Props(PropertyGroup):
 
         # current time must be in the range of the current shot!!!
         # get the whole shots list
-        shots = self.getShotsList(ignoreDisabled=False, takeIndex=takeInd)
+        #        shotList = self.getShotsList(ignoreDisabled=ignoreDisabled, takeIndex=takeInd)
+        shot = self.getCurrentShot()
 
-        if 0 < len(shots):
-            # case where current shot is disabled -- current shot may not be in the shot list if shots is not the whole list
-            currentShot = self.getCurrentShot()
+        return self.getEditTime(shot, bpy.context.scene.frame_current)
 
-            if None != currentShot:
-                currentTime = bpy.context.scene.frame_current
+        # # works only on current take
+        # takeInd = self.getCurrentTakeIndex()
+        # editCurrentTime = -1
+        # if -1 == takeInd:
+        #     return editCurrentTime
 
-                if currentShot.enabled and currentShot.start <= currentTime and currentTime <= currentShot.end:
-                    editCurrentTime = 0
-                    shotInd = 0
-                    while shotInd < len(shots) and currentShot != shots[shotInd]:
-                        #         print("    While: shotInd: " + str(shotInd) + ", currentShot: " + str(currentShot) + ", shots[shotInd]: " + str(shots[shotInd]))
-                        #         print("    editCurrentTime: ", editCurrentTime)
-                        if not ignoreDisabled or shots[shotInd].enabled:
-                            editCurrentTime += shots[shotInd].getDuration()
-                        shotInd += 1
+        # # current time must be in the range of the current shot!!!
+        # # get the whole shots list
+        # shotList = self.getShotsList(ignoreDisabled=False, takeIndex=takeInd)
 
-                    editCurrentTime += currentTime - currentShot.start
-                # if shotInd == len(shots): editCurrentTime = -1
+        # if 0 < len(shotList):
+        #     # case where current shot is disabled -- current shot may not be in the shot list if shotList is not the whole list
+        #     currentShot = self.getCurrentShot()
 
-        return editCurrentTime
+        #     if currentShot is not None:
+        #         currentTime = bpy.context.scene.frame_current
+
+        #         if currentShot.enabled and currentShot.start <= currentTime and currentTime <= currentShot.end:
+        #             editCurrentTime = 0
+        #             shotInd = 0
+        #             while shotInd < len(shotList) and currentShot != shotList[shotInd]:
+        #                 #         print("    While: shotInd: " + str(shotInd) + ", currentShot: " + str(currentShot) + ", shotList[shotInd]: " + str(shots[shotInd]))
+        #                 #         print("    editCurrentTime: ", editCurrentTime)
+        #                 if not ignoreDisabled or shotList[shotInd].enabled:
+        #                     editCurrentTime += shotList[shotInd].getDuration()
+        #                 shotInd += 1
+
+        #             editCurrentTime += currentTime - currentShot.start
+        #         # if shotInd == len(shotList): editCurrentTime = -1
+
+        # return editCurrentTime
 
     ####################
     # shots
@@ -483,10 +443,10 @@ class UAS_ShotManager_Props(PropertyGroup):
         if -1 == takeInd:
             return uniqueName
 
-        shots = self.getShotsList(ignoreDisabled=False, takeIndex=takeIndex)
+        shotList = self.getShotsList(ignoreDisabled=False, takeIndex=takeIndex)
 
         dup_name = False
-        for shot in shots:
+        for shot in shotList:
             if uniqueName == shot.name:
                 dup_name = True
         if dup_name:
@@ -517,9 +477,9 @@ class UAS_ShotManager_Props(PropertyGroup):
         if -1 == takeInd:
             return None
 
-        shots = self.get_shots(takeInd)
+        shotList = self.get_shots(takeInd)
 
-        newShot = shots.add()  # shot is added at the end
+        newShot = shotList.add()  # shot is added at the end
         newShot.parentTakeIndex = takeInd
         newShot.name = name
         newShot.enabled = enabled
@@ -529,7 +489,7 @@ class UAS_ShotManager_Props(PropertyGroup):
         newShot.color = color
 
         if -1 != atIndex:  # move shot at specified index
-            shots.move(len(shots) - 1, atIndex)
+            shotList.move(len(shotList) - 1, atIndex)
 
         return newShot
 
@@ -546,7 +506,7 @@ class UAS_ShotManager_Props(PropertyGroup):
         if -1 == takeInd:
             return None
 
-        shots = self.get_shots(takeInd)
+        shotList = self.get_shots(takeInd)
 
         newShot = shots.add()  # shot is added at the end
         newShot.parentTakeIndex = takeInd
@@ -558,8 +518,8 @@ class UAS_ShotManager_Props(PropertyGroup):
         newShot.color = shot.color
 
         if -1 != atIndex:  # move shot at specified index
-            shots.move(len(shots) - 1, atIndex)
-            newShot = shots[atIndex]
+            shotList.move(len(shotList) - 1, atIndex)
+            newShot = shotList[atIndex]
 
         return newShot
 
@@ -570,19 +530,19 @@ class UAS_ShotManager_Props(PropertyGroup):
         scene = bpy.context.scene
         props = scene.UAS_shot_manager_props
 
-        shots = self.get_shots()
+        shotList = self.get_shots()
         self.current_shot_index = currentShotIndex
 
-        if -1 < currentShotIndex and len(shots) > currentShotIndex:
+        if -1 < currentShotIndex and len(shotList) > currentShotIndex:
             if self.change_time:
-                scene.frame_current = shots[currentShotIndex].start
+                scene.frame_current = shotList[currentShotIndex].start
 
             #    print(" Set Current Shot: new shot absolute index: ", currentShotIndex)
 
             #        self.selected_shot_index = currentShotIndex        # removed
 
-            if shots[currentShotIndex].camera is not None:
-                print("    new camera: ", shots[currentShotIndex].camera.name)
+            if shotList[currentShotIndex].camera is not None:
+                print("    new camera: ", shotList[currentShotIndex].camera.name)
 
                 # set the current camera in the 3D view
                 # [‘PERSP’, ‘ORTHO’, ‘CAMERA’]
@@ -590,11 +550,11 @@ class UAS_ShotManager_Props(PropertyGroup):
                 #    area.spaces[0].region_3d.view_perspective = 'PERSP'
 
                 # print("00000")
-                scene.camera = shots[currentShotIndex].camera
+                scene.camera = shotList[currentShotIndex].camera
                 #    bpy.context.scene.camera =  bpy.context.scene.objects["Camera_Sapin"]
                 #    bpy.data.scenes[ "SceneRace" ].camera = bpy.context.scene.objects["Camera_Sapin"]
-                # scene.camera = shots[ currentShotIndex ].camera
-                #   bpy.data.scenes[ scn.name ].camera = shots[ self.index ].camera
+                # scene.camera = shotList[ currentShotIndex ].camera
+                #   bpy.data.scenes[ scn.name ].camera = shotList[ self.index ].camera
 
                 #    print("    new scene camera: ", bpy.context.scene.camera.name)
                 area.spaces[0].region_3d.view_perspective = "CAMERA"
@@ -614,12 +574,12 @@ class UAS_ShotManager_Props(PropertyGroup):
         if -1 == takeInd:
             return shotInd
 
-        shots = self.getShotsList(ignoreDisabled=False, takeIndex=takeIndex)
+        shotList = self.getShotsList(ignoreDisabled=False, takeIndex=takeIndex)
 
         shotInd = 0
-        while shotInd < len(shots) and shot != shots[shotInd]:  # wkip mettre shots[shotInd].name?
+        while shotInd < len(shotList) and shot != shotList[shotInd]:  # wkip mettre shotList[shotInd].name?
             shotInd += 1
-        if shotInd == len(shots):
+        if shotInd == len(shotList):
             shotInd = -1
 
         return shotInd
@@ -630,16 +590,16 @@ class UAS_ShotManager_Props(PropertyGroup):
         if -1 == takeInd:
             return None
 
-        shots = self.getShotsList(ignoreDisabled=ignoreDisabled, takeIndex=takeIndex)
+        shotList = self.getShotsList(ignoreDisabled=ignoreDisabled, takeIndex=takeIndex)
 
         # if ignoreDisabled:
-        #     if 0 < len(shots) and shotIndex < len(shots):
-        #         shot = shots[shotIndex]
+        #     if 0 < len(shotList) and shotIndex < len(shotList):
+        #         shot = shotList[shotIndex]
         # else if 0 < shotNumber and shotIndex < shotNumber:
         #     shot = self.takes[takeIndex].shots[shotIndex]
 
-        if 0 < len(shots) and shotIndex < len(shots):
-            shot = shots[shotIndex]
+        if 0 < len(shotList) and shotIndex < len(shotList):
+            shot = shotList[shotIndex]
 
         return shot
 
@@ -647,26 +607,26 @@ class UAS_ShotManager_Props(PropertyGroup):
         """ Return the actual shots array of the specified take
         """
         takeInd = self.getCurrentTakeIndex() if -1 == takeIndex else (takeIndex if 0 < len(self.getTakes()) else -1)
-        shots = []
+        shotList = []
         if -1 == takeInd:
-            return shots
+            return shotList
 
-        shots = self.takes[takeInd].shots
+        shotList = self.takes[takeInd].shots
 
-        return shots
+        return shotList
 
     def getShotsList(self, ignoreDisabled=False, takeIndex=-1):
         takeInd = self.getCurrentTakeIndex() if -1 == takeIndex else (takeIndex if 0 < len(self.getTakes()) else -1)
-        shots = []
+        shotList = []
         if -1 == takeInd:
-            return shots
+            return shotList
 
         for shot in self.takes[takeInd].shots:
             # if shot.enabled or self.context.scene.UAS_shot_manager_props.display_disabledshots_in_timeline:
             if not ignoreDisabled or shot.enabled:
-                shots.append(shot)
+                shotList.append(shot)
 
-        return shots
+        return shotList
 
     def getCurrentShotIndex(self, ignoreDisabled=False, takeIndex=-1):
         """ Return the index of the current shot in the enabled shot list of the current take
@@ -867,20 +827,17 @@ class UAS_ShotManager_Props(PropertyGroup):
 
         return nextShotInd
 
-    # works only on current take
-    # behavior of this button:
-    #  if current shot is enabled:
-    #   - first click: put current time at the start of the current enabled shot
-    #  else:
-    #   - fisrt click: put current time at the end of the previous enabled shot
-
     # wkip ignoreDisabled pas encore implémenté ici!!!!
     def goToPreviousShot(self, currentFrame, ignoreDisabled=False):
-        """ ouici
-        mon comment wkip
+        """ 
+            works only on current take
+            behavior of this button:
+            if current shot is enabled:
+            - first click: put current time at the start of the current enabled shot
+            else:
+            - fisrt click: put current time at the end of the previous enabled shot
         """
         print(" ** -- ** goToPreviousShot")
-        previousShot = None
         previousShotInd = -1
         newFrame = currentFrame
 
@@ -1076,7 +1033,7 @@ class UAS_ShotManager_Props(PropertyGroup):
         shot = self.getShot(shotIndex=shotIndex, takeIndex=takeIndex)
 
         fileName = ""
-        if None == shot:
+        if shot is None:
             return fileName
 
         fileName = self.getShotOutputFileName(
@@ -1114,6 +1071,7 @@ class UAS_ShotManager_Props(PropertyGroup):
                     filePath += "\\"
 
             filePath += f"{self.getTakeName_PathCompliant(takeIndex = shot.parentTakeIndex)}" + "\\"
+            filePath += f"{shot.getName_PathCompliant()}" + "\\"
 
         #   filePath += f"//{fileName}"
 

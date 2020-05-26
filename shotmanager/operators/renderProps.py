@@ -1,167 +1,159 @@
-#-*- coding: utf-8 -*-
-
 import os
 import json
-import addon_utils
 from pathlib import Path
 
-import subprocess
-
 import bpy
-from bpy.types import Panel, Operator, PropertyGroup
-from bpy.props import IntProperty, StringProperty, EnumProperty, BoolProperty, FloatVectorProperty
+from bpy.types import Panel, Operator
+from bpy.props import StringProperty, EnumProperty, BoolProperty
 
 from ..utils import utils
 
-from ..scripts.RRS_StampInfo import setRRS_StampInfoSettings, set_StampInfoShotSettings
+from ..scripts.RRS_StampInfo import setRRS_StampInfoSettings
 
 # for file browser:
-#from bpy_extras.io_utils import ImportHelper
+# from bpy_extras.io_utils import ImportHelper
 
 
-def get_media_path ( out_path, take_name, shot_name):
-    
-    if out_path.startswith ( "//" ):
-        out_path = str ( Path ( bpy.data.filepath ).parent.absolute ( ) ) + out_path[ 1 : ]
+def get_media_path(out_path, take_name, shot_name):
+
+    if out_path.startswith("//"):
+        out_path = str(Path(bpy.data.filepath).parent.absolute()) + out_path[1:]
     return f"{out_path}/{take_name}/{bpy.context.scene.UAS_shot_manager_props.render_shot_prefix + shot_name}.mp4"
-
 
 
 ##########
 # Render
 ##########
-class UAS_PT_ShotManagerRenderPanel ( Panel ):
+class UAS_PT_ShotManagerRenderPanel(Panel):
     bl_label = "Rendering"
     bl_idname = "UAS_PT_ShotManagerRenderPanel"
     bl_space_type = "VIEW_3D"
     bl_region_type = "UI"
     bl_category = "UAS Shot Man"
-    bl_options = { "DEFAULT_CLOSED" }
+    bl_options = {"DEFAULT_CLOSED"}
 
-
-
-    def draw ( self, context ):
+    def draw(self, context):
         props = context.scene.UAS_shot_manager_props
 
         layout = self.layout
         layout.separator()
         row = layout.row()
-        row.separator( factor = 3 )
+        row.separator(factor=3)
         if not props.useProjectRenderSettings:
             row.alert = True
-        row.prop( props, "useProjectRenderSettings" )
-        row.operator( "uas_shot_manager.render_restore_project_settings" )
-        row.separator( factor = 0.1 )
-        
-        row = layout.row()
-        row.separator( factor = 3 )
-        row.prop ( props, "useStampInfoDuringRendering" )
+        row.prop(props, "useProjectRenderSettings")
+        row.operator("uas_shot_manager.render_restore_project_settings")
+        row.separator(factor=0.1)
 
-        row = layout.row( align = True)
-        row.separator( factor = 3 )
+        row = layout.row()
+        row.separator(factor=3)
+        row.prop(props, "useStampInfoDuringRendering")
+
+        row = layout.row(align=True)
+        row.separator(factor=3)
         if not props.isRenderRootPathValid():
             row.alert = True
-        row.prop ( props, "renderRootPath" )
+        row.prop(props, "renderRootPath")
         row.alert = False
-        row.operator("uas_shot_manager.openpathbrowser", text="", icon='FILEBROWSER', emboss=True)
+        row.operator("uas_shot_manager.openpathbrowser", text="", icon="FILEBROWSER", emboss=True)
         row.separator()
-        row.operator ( "uas_shot_manager.render_openexplorer", text="", icon='FILEBROWSER').path = props.renderRootPath
+        row.operator("uas_shot_manager.render_openexplorer", text="", icon="FILEBROWSER").path = props.renderRootPath
         row.separator()
         layout.separator()
 
-
         box = layout.box()
-        row = box.row( align = True)
+        row = box.row(align=True)
         row.scale_y = 1.6
-        #row.operator ( renderProps.UAS_PT_ShotManager_RenderDialog.bl_idname, text = "Render Active", icon = "RENDER_ANIMATION" ).only_active = True
-        
-        #row.use_property_split = True
-        #row           = layout.row(align=True)
-       # split = row.split ( align = True )
+        # row.operator ( renderProps.UAS_PT_ShotManager_RenderDialog.bl_idname, text = "Render Active", icon = "RENDER_ANIMATION" ).only_active = True
+
+        # row.use_property_split = True
+        # row           = layout.row(align=True)
+        # split = row.split ( align = True )
         row.scale_x = 1.2
-        row.prop( props, "displayStillProps", text = "", icon = "IMAGE_DATA" )
-        row.operator ( "uas_shot_manager.render", text = "Render Image" ).renderMode = 'STILL'
-        row.separator( factor = 2)
+        row.prop(props, "displayStillProps", text="", icon="IMAGE_DATA")
+        row.operator("uas_shot_manager.render", text="Render Image").renderMode = "STILL"
+        row.separator(factor=2)
 
         row.scale_x = 1.2
-        row.prop(  props, "displayAnimationProps", text = "", icon = "RENDER_ANIMATION" )
-        row.operator ( "uas_shot_manager.render", text = "Render Current Shot" ).renderMode = 'ANIMATION'
-        
-        row.separator( factor = 4)
+        row.prop(props, "displayAnimationProps", text="", icon="RENDER_ANIMATION")
+        row.operator("uas_shot_manager.render", text="Render Current Shot").renderMode = "ANIMATION"
+
+        row.separator(factor=4)
         row.scale_x = 1.2
-        row.prop(  props, "displayProjectProps", text = "", icon = "RENDERLAYERS" )
-        row.operator ( "uas_shot_manager.render", text = "Render All").renderMode = 'PROJECT'
+        row.prop(props, "displayProjectProps", text="", icon="RENDERLAYERS")
+        row.operator("uas_shot_manager.render", text="Render All").renderMode = "PROJECT"
 
         row = box.row()
         row.alert = True
-        row.operator ("uas_shot_manager.lauchrrsrender")
-        row.operator ( "uas_shot_manager.export_otio" )
-        
-     ### STILL ###
+        row.operator("uas_shot_manager.lauchrrsrender")
+        row.operator("uas_shot_manager.export_otio")
+
+        ### STILL ###
         if props.displayStillProps:
             row = box.row()
-            row.prop( props.renderSettingsStill, "writeToDisk" )
-            
+            row.prop(props.renderSettingsStill, "writeToDisk")
+
             row = box.row()
-            filePath = props.getCurrentShot().getOutputFileName(    frameIndex = bpy.context.scene.frame_current,
-                                                                    fullPath = True )
-            row.label( text = "Current Image: " + filePath )
-            row.operator ( "uas_shot_manager.render_openexplorer", text="", icon='FILEBROWSER' ).path = filePath
-     
-     ### ANIMATION ###
+            filePath = props.getCurrentShot().getOutputFileName(
+                frameIndex=bpy.context.scene.frame_current, fullPath=True
+            )
+            row.label(text="Current Image: " + filePath)
+            row.operator("uas_shot_manager.render_openexplorer", text="", icon="FILEBROWSER").path = filePath
+
+        ### ANIMATION ###
         elif props.displayAnimationProps:
             row = box.row()
-            row.prop( props.renderSettingsAnim, "renderWithHandles" )
+            row.prop(props.renderSettingsAnim, "renderWithHandles")
 
             row = box.row()
-            filePath = props.getCurrentShot().getOutputFileName(    fullPath = True )
-            row.label( text = "Current Video: " + filePath )
-            row.operator ( "uas_shot_manager.render_openexplorer", text="", icon='FILEBROWSER' ).path = filePath
+            filePath = props.getCurrentShot().getOutputFileName(fullPath=True)
+            row.label(text="Current Video: " + filePath)
+            row.operator("uas_shot_manager.render_openexplorer", text="", icon="FILEBROWSER").path = filePath
 
-     ### PROJECT ###
+        ### PROJECT ###
         elif props.displayProjectProps:
             row = box.row()
             row.prop(props.renderSettingsProject, "renderAllTakes")
             row.prop(props.renderSettingsProject, "renderAlsoDisabled")
-            
+
             pass
 
         # ------------------------
 
         box = self.layout.box()
-       # box.use_property_split = True
-        
+        # box.use_property_split = True
+
         row = box.row()
-        if '' == bpy.data.filepath:
+        if "" == bpy.data.filepath:
             row.alert = True
-            row.label ( text = "*** Save file first ***" )
+            row.label(text="*** Save file first ***")
         # elif None == (props.getInfoFileFullPath(context.scene, -1)[0]):
         #     row.alert = True
         #     row.label ( text = "*** Invalid Output Path ***" )
-        elif '' == props.getRenderFileName():
+        elif "" == props.getRenderFileName():
             row.alert = True
-            row.label ( text = "*** Invalid Output File Name ***" )
+            row.label(text="*** Invalid Output File Name ***")
         else:
-            row.label ( text = "Ready to render" )
+            row.label(text="Ready to render")
 
-        row = box.row ( )
-        row.prop ( context.scene.render, "filepath" )
-        row.operator ( "uas_shot_manager.render_openexplorer", text="", icon="FILEBROWSER" ).path = props.getRenderFileName()
-      
+        row = box.row()
+        row.prop(context.scene.render, "filepath")
+        row.operator(
+            "uas_shot_manager.render_openexplorer", text="", icon="FILEBROWSER"
+        ).path = props.getRenderFileName()
+
         box = self.layout.box()
-        row = box.row ( )
-        #enabled=False 
-        row.prop ( props, "render_shot_prefix" )
-      
+        row = box.row()
+        # enabled=False
+        row.prop(props, "render_shot_prefix")
+
         # row.separator()
         # row.operator("uas_shot_manager.render_openexplorer", emboss=True, icon='FILEBROWSER', text="")
-      
-        row = box.row ( )
-        row.label( text="Handles:")
-        row.prop ( props, "handles", text = "" )
-        self.layout.separator ( factor = 1 )
-        
-        
+
+        row = box.row()
+        row.label(text="Handles:")
+        row.prop(props, "handles", text="")
+        self.layout.separator(factor=1)
 
     def check(self, context):
         # should we redraw when a button is pressed?
@@ -170,52 +162,55 @@ class UAS_PT_ShotManagerRenderPanel ( Panel ):
         return False
 
     @classmethod
-    def poll ( cls, context ):
-        return len ( context.scene.UAS_shot_manager_props.takes ) and context.scene.UAS_shot_manager_props.get_shots()
+    def poll(cls, context):
+        return len(context.scene.UAS_shot_manager_props.takes) and context.scene.UAS_shot_manager_props.get_shots()
 
 
-class UAS_OT_OpenPathBrowser( Operator ):
-    bl_idname   = "uas_shot_manager.openpathbrowser"
-    bl_label    = "Open"
-    bl_description  =   "Open a path browser to define the directory to use to render the images" \
-                        "Relative path must be set directly in the text field and must start with ''//''"
+class UAS_OT_OpenPathBrowser(Operator):
+    bl_idname = "uas_shot_manager.openpathbrowser"
+    bl_label = "Open"
+    bl_description = (
+        "Open a path browser to define the directory to use to render the images"
+        "Relative path must be set directly in the text field and must start with ''//''"
+    )
 
-    #https://docs.blender.org/api/current/bpy.props.html
-  #  filepath = bpy.props.StringProperty(subtype="FILE_PATH") 
-    directory: bpy.props.StringProperty(subtype="DIR_PATH") 
+    # https://docs.blender.org/api/current/bpy.props.html
+    #  filepath = bpy.props.StringProperty(subtype="FILE_PATH")
+    directory: bpy.props.StringProperty(subtype="DIR_PATH")
 
     # filter_glob : StringProperty(
     #     default = '*',
     #     options = {'HIDDEN'} )
-    
+
     def execute(self, context):
         """Open a path browser to define the directory to use to render the images"""
         bpy.context.scene.UAS_shot_manager_props.renderRootPath = self.directory
-        return {'FINISHED'}
+        return {"FINISHED"}
 
-    def invoke(self, context, event): # See comments at end  [1]
-      #  self.filepath = bpy.context.scene.UAS_shot_manager_props.renderRootPath
+    def invoke(self, context, event):  # See comments at end  [1]
+        #  self.filepath = bpy.context.scene.UAS_shot_manager_props.renderRootPath
         # https://docs.blender.org/api/current/bpy.types.WindowManager.html
         self.directory = bpy.context.scene.UAS_shot_manager_props.renderRootPath
-        context.window_manager.fileselect_add(self) 
+        context.window_manager.fileselect_add(self)
 
-        return {'RUNNING_MODAL'}  
+        return {"RUNNING_MODAL"}
 
 
-class UAS_LaunchRRSRender( Operator ):
-    bl_idname   = "uas_shot_manager.lauchrrsrender"
-    bl_label    = "RRS Render Script"
-    bl_description  = "Run the RRS Render Script"
+class UAS_LaunchRRSRender(Operator):
+    bl_idname = "uas_shot_manager.lauchrrsrender"
+    bl_label = "RRS Render Script"
+    bl_description = "Run the RRS Render Script"
 
     def execute(self, context):
         """Use the selected file as a stamped logo"""
         print(" UAS_LaunchRRSRender")
-        
-        from ..scripts import publishRRS
-       # publishRRS.publishRRS( context.scene.UAS_shot_manager_props.renderRootPath )
-        publishRRS.publishRRS( "c:\\tmpRezo\\" )
 
-        return {'FINISHED'}
+        from ..scripts import publishRRS
+
+        # publishRRS.publishRRS( context.scene.UAS_shot_manager_props.renderRootPath )
+        publishRRS.publishRRS("c:\\tmpRezo\\")
+        print("End of POublish")
+        return {"FINISHED"}
 
 
 # class UAS_ShotManager_Explorer ( Operator ):
@@ -239,38 +234,206 @@ class UAS_LaunchRRSRender( Operator ):
 #         return { "FINISHED" }
 
 
-class UAS_PT_ShotManager_Render ( Operator ):
+class UAS_PT_ShotManager_Render(Operator):
     bl_idname = "uas_shot_manager.render"
     bl_label = "Render"
     bl_description = "Render."
-    bl_options = { "INTERNAL" }
+    bl_options = {"INTERNAL"}
 
+    renderMode: bpy.props.EnumProperty(
+        name="Display Shot Properties Mode",
+        description="Update the content of the Shot Properties panel either on the current shot\nor on the shot seleted in the shots list",
+        items=(("STILL", "Still", ""), ("ANIMATION", "Animation", ""), ("PROJECT", "Project", "")),
+        default="STILL",
+    )
 
-    renderMode: bpy.props.EnumProperty (
-        name = "Display Shot Properties Mode",
-        description = "Update the content of the Shot Properties panel either on the current shot\nor on the shot seleted in the shots list",
-        items = (   ('STILL', "Still", ""),
-                    ('ANIMATION', "Animation", ""),
-                    ('PROJECT', "Project", "") ),
-        default = 'STILL' )
-
-    def execute ( self, context ):
+    def execute(self, context):
         props = context.scene.UAS_shot_manager_props
 
         rootPath = props.renderRootPath
         if "" == rootPath:
             rootPath = os.path.dirname(bpy.data.filepath)
         if props.isRenderRootPathValid():
-            launchRender( self.renderMode, renderRootFilePath = rootPath, useStampInfo = props.useStampInfoDuringRendering )
+            launchRender(self.renderMode, renderRootFilePath=rootPath, useStampInfo=props.useStampInfoDuringRendering)
         else:
             from ..utils.utils import ShowMessageBox
-            ShowMessageBox( "Render root path is invalid", "Render Aborted", 'ERROR')
+
+            ShowMessageBox("Render root path is invalid", "Render Aborted", "ERROR")
             print("Render aborted before start: Invalid Root Path")
 
-        return { "FINISHED" }
+        return {"FINISHED"}
 
 
-def launchRender( renderMode, renderRootFilePath = "", useStampInfo = True ):
+def launchRenderWithVSEComposite(renderMode, renderRootFilePath="", useStampInfo=True):
+    """ Generate the media for the specified take
+        Return a list of all the created files
+    """
+    context = bpy.context
+    scene = bpy.context.scene
+    props = scene.UAS_shot_manager_props
+
+    projectFps = scene.render.fps
+
+    newMediaFiles = []
+
+    rootPath = renderRootFilePath if "" != renderRootFilePath else os.path.dirname(bpy.data.filepath)
+    if not rootPath.endswith("\\"):
+        rootPath += "\\"
+
+    preset_useStampInfo = False
+    if "UAS_StampInfo_Settings" in scene:
+        RRS_StampInfo = scene.UAS_StampInfo_Settings
+
+        # remove handlers and compo!!!
+        RRS_StampInfo.clearRenderHandlers()
+        RRS_StampInfo.clearInfoCompoNodes(scene)
+
+        preset_useStampInfo = useStampInfo
+        if not useStampInfo:
+            RRS_StampInfo.stampInfoUsed = False
+        else:
+            RRS_StampInfo.renderRootPathUsed = True
+            RRS_StampInfo.renderRootPath = rootPath
+            setRRS_StampInfoSettings(scene)
+
+    take = props.getCurrentTake()
+    shotList = take.getShotList(ignoreDisabled=True)
+
+    # sequence composite scene
+    sequenceScene = bpy.data.scenes.new(name="VSE_SequenceRenderScene")
+    if not sequenceScene.sequence_editor:
+        sequenceScene.sequence_editor_create()
+    sequenceScene.render.fps = projectFps
+    sequenceScene.render.resolution_x = 1280
+    sequenceScene.render.resolution_y = 960
+    sequenceScene.frame_start = 1
+    sequenceScene.frame_end = props.getEditDuration()
+    sequenceScene.render.image_settings.file_format = "FFMPEG"
+    sequenceScene.render.ffmpeg.format = "MPEG4"
+    sequenceScene.render.filepath = rootPath + props.render_shot_prefix + ".mp4"
+
+    context.window_manager.UAS_shot_manager_handler_toggle = False
+    context.window_manager.UAS_shot_manager_display_timeline = False
+
+    if props.useProjectRenderSettings:
+        props.restoreProjectSettings()
+        scene.render.image_settings.file_format = "PNG"
+
+    if preset_useStampInfo:  # framed output resolution is used only when StampInfo is used
+        if "UAS_PROJECT_RESOLUTIONFRAMED" in os.environ.keys():
+            resolution = json.loads(os.environ["UAS_PROJECT_RESOLUTIONFRAMED"])
+            scene.render.resolution_x = resolution[0]
+            scene.render.resolution_y = resolution[1]
+
+    # if props.useProjectRenderSettings:
+    #     scene.render.image_settings.file_format = "FFMPEG"
+    #     scene.render.ffmpeg.format = "MPEG4"
+    RRS_StampInfo.clearRenderHandlers()
+    for i, shot in enumerate(shotList):
+        if shot.enabled:
+            print("\n----------------------------------------------------")
+            print("\n  Shot rendered: ", shot.name)
+
+            # set scene as current
+            bpy.context.window.scene = scene
+            #     props.setCurrentShotByIndex(i)
+            #     props.setSelectedShotByIndex(i)
+
+            # render stamped info
+            if preset_useStampInfo:
+                RRS_StampInfo.shotName = shot.name
+                RRS_StampInfo.takeName = take.getName_PathCompliant()
+                print("RRS_StampInfo.takeName: ", RRS_StampInfo.takeName)
+            #        print("RRS_StampInfo.renderRootPath: ", RRS_StampInfo.renderRootPath)
+            # RRS_StampInfo.renderRootPath = (
+            #     rootPath + "\\" + take.getName_PathCompliant() + "\\" + shot.getName_PathCompliant() + "\\"
+            # )
+            # newTempRenderPath = (
+            #     rootPath + "\\" + take.getName_PathCompliant() + "\\" + shot.getName_PathCompliant() + "\\"
+            # )
+            # print("newTempRenderPath: ", newTempRenderPath)
+
+            scene.frame_start = shot.start - props.handles
+            scene.frame_end = shot.end + props.handles
+
+            for currentFrame in range(scene.frame_start, scene.frame_end + 1):
+                scene.camera = shot.camera
+                scene.frame_start = shot.start - props.handles
+                scene.frame_end = shot.end + props.handles
+                scene.frame_current = currentFrame
+                scene.render.filepath = shot.getOutputFileName(
+                    frameIndex=scene.frame_current, fullPath=True, rootFilePath=rootPath
+                )
+                print("      ------------------------------------------")
+                print("      \nFrame: ", currentFrame)
+                print("      \nscene.render.filepath: ", scene.render.filepath)
+                print("      Current Scene:", scene.name)
+                if preset_useStampInfo:
+                    RRS_StampInfo.shotName = shot.name
+                    RRS_StampInfo.cameraName = shot.camera.name
+                    scene.render.resolution_x = 1280
+                    scene.render.resolution_y = 960
+                    RRS_StampInfo.edit3DFrame = props.getEditTime(shot, currentFrame)
+
+                    print("RRS_StampInfo.takeName: ", RRS_StampInfo.takeName)
+                    print("RRS_StampInfo.renderRootPath: ", RRS_StampInfo.renderRootPath)
+                    newTempRenderPath = (
+                        rootPath + take.getName_PathCompliant() + "\\" + shot.getName_PathCompliant() + "\\"
+                    )
+                    print("newTempRenderPath: ", newTempRenderPath)
+                    RRS_StampInfo.renderRootPath = newTempRenderPath
+
+                    RRS_StampInfo.renderTmpImageWithStampedInfo(scene, currentFrame)
+
+                # area.spaces[0].region_3d.view_perspective = 'CAMERA'
+
+                scene.render.resolution_x = 1280
+                scene.render.resolution_y = 720
+
+                bpy.ops.render.render(animation=False, write_still=True)
+
+            vse_render = context.window_manager.UAS_vse_render
+            vse_render.inputOverMediaPath = (scene.render.filepath)[0:-8] + "####" + ".png"
+            print("inputOverMediaPath: ", vse_render.inputOverMediaPath)
+            vse_render.inputOverResolution = (1280, 720)
+            vse_render.inputBGMediaPath = newTempRenderPath + "_tmp_StampInfo.####.png"
+            vse_render.inputBGResolution = (1280, 960)
+
+            compositedMediaPath = shot.getOutputFileName(fullPath=True, rootFilePath=rootPath)
+            vse_render.compositeVideoInVSE(
+                projectFps, 1, shot.end - shot.start + 2 * props.handles + 1, compositedMediaPath
+            )
+            newMediaFiles.append(compositedMediaPath)
+
+            # bpy.ops.render.render("INVOKE_DEFAULT", animation=False, write_still=True)
+            # bpy.ops.render.render('INVOKE_DEFAULT', animation = True)
+            # bpy.ops.render.opengl ( animation = True )
+
+            # delete unsused rendered frames
+            files_in_directory = os.listdir(newTempRenderPath)
+            filtered_files = [file for file in files_in_directory if file.endswith(".png")]
+
+            for file in filtered_files:
+                path_to_file = os.path.join(newTempRenderPath, file)
+                os.remove(path_to_file)
+
+            vse_render.createNewClip(
+                sequenceScene,
+                compositedMediaPath,
+                1,
+                shot.getEditStart(scene) - props.handles,
+                offsetStart=props.handles,
+                offsetEnd=props.handles,
+            )
+
+        # render full sequence
+        bpy.context.window.scene = sequenceScene
+        bpy.ops.render.opengl(animation=True, sequencer=True)
+
+    return newMediaFiles
+
+
+def launchRender(renderMode, renderRootFilePath="", useStampInfo=True):
     print("\n\n*** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** ***")
     print("\n*** uas_shot_manager launchRender ***\n")
     context = bpy.context
@@ -280,8 +443,8 @@ def launchRender( renderMode, renderRootFilePath = "", useStampInfo = True ):
     rootPath = renderRootFilePath if "" != renderRootFilePath else os.path.dirname(bpy.data.filepath)
     print("   rootPath: ", rootPath)
 
-    #wkip for debug only:
- #   props.createRenderSettings()
+    # wkip for debug only:
+    #   props.createRenderSettings()
     # tester le chemin
 
     preset_useStampInfo = False
@@ -294,17 +457,15 @@ def launchRender( renderMode, renderRootFilePath = "", useStampInfo = True ):
         #    props.useStampInfoDuringRendering = False
 
     preset = None
-    if 'STILL' == renderMode:
+    if "STILL" == renderMode:
         preset = props.renderSettingsStill
         print("   STILL, preset: ", preset.name)
-    elif 'ANIMATION' == renderMode:
+    elif "ANIMATION" == renderMode:
         preset = props.renderSettingsAnim
         print("   ANIMATION, preset: ", preset.name)
     else:
         preset = props.renderSettingsProject
         print("   PROJECT, preset: ", preset.name)
-
-
 
     # with utils.PropertyRestoreCtx ( (scene.render, "filepath"),
     #                         ( scene, "frame_start"),
@@ -313,7 +474,7 @@ def launchRender( renderMode, renderRootFilePath = "", useStampInfo = True ):
     #                                 ( scene.render.ffmpeg, "format" )
     #                               ):
     if True:
-    # prepare render settings
+        # prepare render settings
         # camera
         # range
         # takes
@@ -324,28 +485,27 @@ def launchRender( renderMode, renderRootFilePath = "", useStampInfo = True ):
         else:
             take_name = take.name
 
-
         context.window_manager.UAS_shot_manager_handler_toggle = False
         context.window_manager.UAS_shot_manager_display_timeline = False
-    
-    #    shot = props.getCurrentShot()
-        #wkip use handles
+
+        #    shot = props.getCurrentShot()
+        # wkip use handles
         # scene.frame_start = shot.start + props.handles
         # scene.frame_end = shot.end + props.handles
 
         if props.useProjectRenderSettings:
             props.restoreProjectSettings()
 
-            if preset_useStampInfo:     # framed output resolution is used only when StampInfo is used
-                if 'UAS_PROJECT_RESOLUTIONFRAMED' in os.environ.keys():
-                    resolution = json.loads( os.environ['UAS_PROJECT_RESOLUTIONFRAMED'] )
-                    scene.render.resolution_x   = resolution[0]
-                    scene.render.resolution_y   = resolution[1]
+            if preset_useStampInfo:  # framed output resolution is used only when StampInfo is used
+                if "UAS_PROJECT_RESOLUTIONFRAMED" in os.environ.keys():
+                    resolution = json.loads(os.environ["UAS_PROJECT_RESOLUTIONFRAMED"])
+                    scene.render.resolution_x = resolution[0]
+                    scene.render.resolution_y = resolution[1]
 
-     #   if preset_useStampInfo:
+        #   if preset_useStampInfo:
         ################
         #     scene.UAS_StampInfo_Settings.clearRenderHandlers()
-    
+
         #     #stamper.clearInfoCompoNodes(context.scene)
         #         ### wkip to remove !!! ###
         #     #clear all nodes
@@ -357,65 +517,60 @@ def launchRender( renderMode, renderRootFilePath = "", useStampInfo = True ):
         #     scene.UAS_StampInfo_Settings.registerRenderHandlers()
         # ################
 
-            #props.useStampInfoDuringRendering = False
+        # props.useStampInfoDuringRendering = False
         #    RRS_StampInfo.stampInfoUsed = False
-      #      RRS_StampInfo.activateStampInfo = False
-            #setRRS_StampInfoSettings(scene, shot.name)
+        #      RRS_StampInfo.activateStampInfo = False
+        # setRRS_StampInfoSettings(scene, shot.name)
         #    RRS_StampInfo.activateStampInfo = True
         #    RRS_StampInfo.stampInfoUsed = True
-            #props.useStampInfoDuringRendering = True
+        # props.useStampInfoDuringRendering = True
 
-       #     RRS_StampInfo.projectName = os.environ['UAS_PROJECT_NAME']  #"RR Special"
-
+        #     RRS_StampInfo.projectName = os.environ['UAS_PROJECT_NAME']  #"RR Special"
 
         print("hEre un 01")
 
         # render window
-        if 'STILL' == preset.renderMode:
+        if "STILL" == preset.renderMode:
             print("hEre un 02 still")
             shot = props.getCurrentShot()
-            #take = props.getCurrentTake()
+            # take = props.getCurrentTake()
 
             if preset_useStampInfo:
-         #       RRS_StampInfo.stampInfoUsed = False
-          #      RRS_StampInfo.activateStampInfo = False
+                #       RRS_StampInfo.stampInfoUsed = False
+                #      RRS_StampInfo.activateStampInfo = False
                 setRRS_StampInfoSettings(scene)
-                
+
                 # set current cam
                 # if None != shot.camera:
             #    props.setCurrentShot(shot)
 
-                # editingCurrentTime = props.getEditCurrentTime( ignoreDisabled = False )
-                # editingDuration = props.getEditDuration( ignoreDisabled = True )
-                # set_StampInfoShotSettings(  scene, shot.name, take.name,
-                #                             #shot.notes,
-                #                             shot.camera.name, scene.camera.data.lens,
-                #                             edit3DFrame = editingCurrentTime,
-                #                             edit3DTotalNumber = editingDuration )
+            # editingCurrentTime = props.getEditCurrentTime( ignoreDisabled = False )
+            # editingDuration = props.getEditDuration( ignoreDisabled = True )
+            # set_StampInfoShotSettings(  scene, shot.name, take.name,
+            #                             #shot.notes,
+            #                             shot.camera.name, scene.camera.data.lens,
+            #                             edit3DFrame = editingCurrentTime,
+            #                             edit3DTotalNumber = editingDuration )
 
-                
-
-        #        RRS_StampInfo.activateStampInfo = True
-          #      RRS_StampInfo.stampInfoUsed = True
-                
+            #        RRS_StampInfo.activateStampInfo = True
+            #      RRS_StampInfo.stampInfoUsed = True
 
             if props.useProjectRenderSettings:
-                scene.render.image_settings.file_format = 'PNG'
-            
+                scene.render.image_settings.file_format = "PNG"
 
             # bpy.ops.render.opengl ( animation = True )
-            scene.render.filepath = shot.getOutputFileName( frameIndex = scene.frame_current,
-                                                            fullPath = True,
-                                                            rootFilePath = renderRootFilePath)
+            scene.render.filepath = shot.getOutputFileName(
+                frameIndex=scene.frame_current, fullPath=True, rootFilePath=rootPath
+            )
 
             print("hEre un 03 still")
 
-            bpy.ops.render.render('INVOKE_DEFAULT',animation = False, write_still = preset.writeToDisk)
-#                bpy.ops.render.view_show()
-#                bpy.ops.render.render(animation=False, use_viewport=True, write_still = preset.writeToDisk)
+            bpy.ops.render.render("INVOKE_DEFAULT", animation=False, write_still=preset.writeToDisk)
+        #                bpy.ops.render.view_show()
+        #                bpy.ops.render.render(animation=False, use_viewport=True, write_still = preset.writeToDisk)
 
-        elif 'ANIMATION' == preset.renderMode:
-            
+        elif "ANIMATION" == preset.renderMode:
+
             shot = props.getCurrentShot()
 
             if props.renderSettingsAnim.renderWithHandles:
@@ -438,20 +593,18 @@ def launchRender( renderMode, renderRootFilePath = "", useStampInfo = True ):
                 RRS_StampInfo.shotName = shot.name
                 RRS_StampInfo.takeName = take_name
 
-
             # wkip
             if props.useProjectRenderSettings:
-                scene.render.image_settings.file_format = 'FFMPEG'
-                scene.render.ffmpeg.format = 'MPEG4'
+                scene.render.image_settings.file_format = "FFMPEG"
+                scene.render.ffmpeg.format = "MPEG4"
 
-                scene.render.filepath = shot.getOutputFileName(fullPath = True, rootFilePath = renderRootFilePath)
+                scene.render.filepath = shot.getOutputFileName(fullPath=True, rootFilePath=rootPath)
                 print("scene.render.filepath: ", scene.render.filepath)
 
-            bpy.ops.render.render('INVOKE_DEFAULT', animation = True)
-
+            bpy.ops.render.render("INVOKE_DEFAULT", animation=True)
 
         else:
-        #   wkip to remove
+            #   wkip to remove
             shot = props.getCurrentShot()
             if preset_useStampInfo:
                 RRS_StampInfo.stampInfoUsed = False
@@ -460,71 +613,58 @@ def launchRender( renderMode, renderRootFilePath = "", useStampInfo = True ):
                 RRS_StampInfo.activateStampInfo = True
                 RRS_StampInfo.stampInfoUsed = True
 
-            
-                        
-            #if preset.render
-        
-                
+            # if preset.render
+
             shots = props.get_shots()
 
             if props.useProjectRenderSettings:
-                scene.render.image_settings.file_format = 'FFMPEG'
-                scene.render.ffmpeg.format = 'MPEG4'
-            
+                scene.render.image_settings.file_format = "FFMPEG"
+                scene.render.ffmpeg.format = "MPEG4"
+
             for i, shot in enumerate(shots):
                 if shot.enabled:
                     print("\n  Shot rendered: ", shot.name)
-                #     props.setCurrentShotByIndex(i)
-                #     props.setSelectedShotByIndex(i)
+                    #     props.setCurrentShotByIndex(i)
+                    #     props.setSelectedShotByIndex(i)
 
                     scene.camera = shot.camera
-                    
+
                     if preset_useStampInfo:
                         RRS_StampInfo.shotName = shot.name
                         RRS_StampInfo.takeName = take_name
                         print("RRS_StampInfo.takeName: ", RRS_StampInfo.takeName)
 
-                    #area.spaces[0].region_3d.view_perspective = 'CAMERA'
+                    # area.spaces[0].region_3d.view_perspective = 'CAMERA'
                     scene.frame_current = shot.start
                     scene.frame_start = shot.start - props.handles
                     scene.frame_end = shot.end + props.handles
-                    scene.render.filepath = shot.getOutputFileName(fullPath = True, rootFilePath = renderRootFilePath)
+                    scene.render.filepath = shot.getOutputFileName(fullPath=True, rootFilePath=rootPath)
                     print("scene.render.filepath: ", scene.render.filepath)
-
-
-                    #bpy.ops.render.render('INVOKE_DEFAULT', animation = True)
-                    bpy.ops.render.render(animation = True)
-                    #bpy.ops.render.opengl ( animation = True )
-
-
-
+                    # bpy.ops.render.render('INVOKE_DEFAULT', animation = True)
+                    bpy.ops.render.render(animation=True)
+                    # bpy.ops.render.opengl ( animation = True )
 
         # xwkip to remove
         if preset_useStampInfo:
-            #scene.UAS_StampInfo_Settings.stampInfoUsed = False
+            # scene.UAS_StampInfo_Settings.stampInfoUsed = False
             #  props.useStampInfoDuringRendering = False
             pass
 
 
-
-
-class UAS_PT_ShotManager_RenderDialog ( Operator ):
+class UAS_PT_ShotManager_RenderDialog(Operator):
     bl_idname = "uas_shot_manager.renderdialog"
     bl_label = "Render"
     bl_description = "Render"
-    bl_options = { "INTERNAL" }
+    bl_options = {"INTERNAL"}
 
-    only_active: BoolProperty ( 
-        name = "Render Only Active",
-        default = False )
+    only_active: BoolProperty(name="Render Only Active", default=False)
 
-    renderer: EnumProperty (
-        items = (   ( "BLENDER_EEVEE", "Eevee", ""),
-                    ( "CYCLES", "Cycles", ""),
-                    ( "OPENGL", "OpenGL", "" ) ),
-        default = 'BLENDER_EEVEE' )
+    renderer: EnumProperty(
+        items=(("BLENDER_EEVEE", "Eevee", ""), ("CYCLES", "Cycles", ""), ("OPENGL", "OpenGL", "")),
+        default="BLENDER_EEVEE",
+    )
 
-    def execute ( self, context ):
+    def execute(self, context):
 
         print("*** uas_shot_manager.renderDialog ***")
 
@@ -533,17 +673,19 @@ class UAS_PT_ShotManager_RenderDialog ( Operator ):
         handles = context.scene.UAS_shot_manager_props.handles
         props = scene.UAS_shot_manager_props
 
-        with utils.PropertyRestoreCtx ( (scene.render, "filepath" ),
-                                 ( scene, "frame_start"),
-                                 ( scene, "frame_end" ),
-                                 ( scene.render.image_settings, "file_format" ),
-                                 ( scene.render.ffmpeg, "format" ),
-                                 ( scene.render, "engine" ),
-                                 ( scene.render, "resolution_x" ),
-                                 ( scene.render, "resolution_y" ) ):
-            
-            scene.render.image_settings.file_format = 'FFMPEG'
-            scene.render.ffmpeg.format = 'MPEG4'
+        with utils.PropertyRestoreCtx(
+            (scene.render, "filepath"),
+            (scene, "frame_start"),
+            (scene, "frame_end"),
+            (scene.render.image_settings, "file_format"),
+            (scene.render.ffmpeg, "format"),
+            (scene.render, "engine"),
+            (scene.render, "resolution_x"),
+            (scene.render, "resolution_y"),
+        ):
+
+            scene.render.image_settings.file_format = "FFMPEG"
+            scene.render.ffmpeg.format = "MPEG4"
 
             if self.renderer != "OPENGL":
                 scene.render.engine = self.renderer
@@ -562,10 +704,10 @@ class UAS_PT_ShotManager_RenderDialog ( Operator ):
             if self.only_active:
                 shot = scene.UAS_shot_manager_props.getCurrentShot()
                 if shot is None:
-                    return { "CANCELLED" }
+                    return {"CANCELLED"}
                 scene.frame_start = shot.start - handles
                 scene.frame_end = shot.end + handles
-                scene.render.filepath = get_media_path ( out_path, take_name, shot.name )
+                scene.render.filepath = get_media_path(out_path, take_name, shot.name)
                 print("      scene.render.filepath: ", scene.render.filepath)
 
                 scene.camera = shot.camera
@@ -573,11 +715,10 @@ class UAS_PT_ShotManager_RenderDialog ( Operator ):
                 if "UAS_StampInfo_Settings" in scene:
                     RRS_StampInfo.setRRS_StampInfoSettings(scene)
 
-
                 if self.renderer == "OPENGL":
-                    bpy.ops.render.opengl ( animation = True )
+                    bpy.ops.render.opengl(animation=True)
                 else:
-                    bpy.ops.render.render ( animation = True )
+                    bpy.ops.render.render(animation=True)
 
                 if "UAS_StampInfo_Settings" in scene:
                     scene.UAS_StampInfo_Settings.stampInfoUsed = False
@@ -586,32 +727,29 @@ class UAS_PT_ShotManager_RenderDialog ( Operator ):
                     if shot.enabled:
                         scene.frame_start = shot.start - handles
                         scene.frame_end = shot.end + handles
-                        scene.render.filepath = get_media_path ( out_path, take_name, shot.name )
+                        scene.render.filepath = get_media_path(out_path, take_name, shot.name)
                         scene.camera = shot.camera
                         if "UAS_StampInfo_Settings" in scene:
                             scene.UAS_StampInfo_Settings.stampInfoUsed = True
                             scene.UAS_StampInfo_Settings.shotName = shot.name
 
                         if self.renderer == "OPENGL":
-                            bpy.ops.render.opengl ( animation = True )
+                            bpy.ops.render.opengl(animation=True)
                         else:
-                            bpy.ops.render.render ( animation = True )
+                            bpy.ops.render.render(animation=True)
 
                         if "UAS_StampInfo_Settings" in scene:
                             scene.UAS_StampInfo_Settings.stampInfoUsed = False
 
-            
             scene.UAS_StampInfo_Settings.restorePreviousValues(scene)
             print(" --- RRS Settings Restored ---")
 
-        return { "FINISHED" }
+        return {"FINISHED"}
 
-
-    def draw ( self, context ):
+    def draw(self, context):
         l = self.layout
-        row = l.row ( )
-        row.prop ( self, "renderer" )
-
+        row = l.row()
+        row.prop(self, "renderer")
 
     # def invoke ( self, context, event ):
     #     wm = context.window_manager
@@ -621,52 +759,44 @@ class UAS_PT_ShotManager_RenderDialog ( Operator ):
 ###########
 # utils
 ###########
-class UAS_ShotManager_Render_RestoreProjectSettings ( Operator ):
+class UAS_ShotManager_Render_RestoreProjectSettings(Operator):
     bl_idname = "uas_shot_manager.render_restore_project_settings"
     bl_label = "Restore Project Settings"
     bl_description = "Restore Project Settings"
-    bl_options = { "INTERNAL" }
+    bl_options = {"INTERNAL"}
 
-    def execute ( self, context ):
+    def execute(self, context):
         context.scene.UAS_shot_manager_props.restoreProjectSettings()
-        return { "FINISHED" }
+        return {"FINISHED"}
 
 
-class UAS_PT_ShotManager_Render_StampInfoProperties ( Panel ):
+class UAS_PT_ShotManager_Render_StampInfoProperties(Panel):
     bl_label = "Stamp Info Properties"
     bl_idname = "UAS_PT_Shot_Manager_StampInfoPrefs"
     bl_space_type = "VIEW_3D"
     bl_region_type = "UI"
     bl_category = "UAS Shot Man"
-    bl_options = { "DEFAULT_CLOSED" }
+    bl_options = {"DEFAULT_CLOSED"}
     bl_parent_id = "UAS_PT_ShotManagerRenderPanel"
-    
+
     def draw_header_preset(self, context):
-        scene  = context.scene
-        render = scene.render
-        
-        layout        = self.layout
-        layout.emboss = 'NONE'
-        row           = layout.row(align=True)
-        
-        if None == context.scene.UAS_StampInfo_Settings:
-            _emboss   = True
+        scene = context.scene
+
+        layout = self.layout
+        layout.emboss = "NONE"
+        row = layout.row(align=True)
+
+        if context.scene.UAS_StampInfo_Settings is None:
             row.alert = True
-            row.label( text="Not found !")
+            row.label(text="Not found !")
         else:
-            _emboss   = False
             row.alert = False
-            versionTupple = [addon.bl_info.get('version', (-1,-1,-1)) for addon in addon_utils.modules() if addon.bl_info['name'] == 'UAS_StampInfo'][0]
-            versionStr = str(versionTupple[0]) + "." + str(versionTupple[1]) + "." + str(versionTupple[2])
-            
-            row.label( text=("Loaded - V." + versionStr))
+        ## wkip    row.label(text="Loaded - V." + context.scene.UAS_StampInfo_Settings.version())
 
-
-    def draw ( self, context ):
-        box = self.layout.box ( )
-        row = box.row ( )
-        row.prop ( context.scene.UAS_shot_manager_props, "useStampInfoDuringRendering" )
-      
+    def draw(self, context):
+        box = self.layout.box()
+        row = box.row()
+        row.prop(context.scene.UAS_shot_manager_props, "useStampInfoDuringRendering")
 
 
 ######
@@ -674,150 +804,149 @@ class UAS_PT_ShotManager_Render_StampInfoProperties ( Panel ):
 ######
 
 # wkip donner en parametre un nom ou indice de take!!!!
-def exportOtio( renderRootFilePath = "", fps = -1 ):
+def exportOtio(renderRootFilePath="", fps=-1):
+    """ Create an OpenTimelineIO XML file for the specified take
+        Return the file path of the created file
+    """
     print("  ** -- ** exportOtio")
     scene = bpy.context.scene
     props = scene.UAS_shot_manager_props
-    
+
     sceneFps = fps if fps != -1 else scene.render.fps
 
     import opentimelineio as otio
 
     take = props.getCurrentTake()
     if take is None:
-
-        print("No Take found")
-        return()
-        take_name = ""
+        print("   *** No Take found")
+        return ""
     else:
         take_name = take.getName_PathCompliant()
 
     shots = props.get_shots()
-
+    print("   Otio 02")
     # wkip note: scene.frame_start probablement à remplacer par start du premier shot enabled!!!
-    timeline = otio.schema.Timeline ( name = scene.name, global_start_time = otio.opentime.from_frames ( scene.frame_start, sceneFps ) )
-    track = otio.schema.Track ( )
-    timeline.tracks.append ( track )
-
-    clips = list ( )
-    playhead = 0
-    for s in shots:
-        if s.enabled:
-            duration = s.end - s.start + 1
-            start_time, end_time_exclusive = ( otio.opentime.from_frames ( playhead, sceneFps ), otio.opentime.from_frames ( playhead + duration, sceneFps ) )
-            source_range = otio.opentime.range_from_start_end_time ( start_time, end_time_exclusive )
-            playhead += duration
-            
-            #shotFilePath = get_media_path ( scene.render.filepath, take_name ,s.name )
-            shotFilePath = s.getOutputFileName(fullPath = True)
-            shotFileName = s.getOutputFileName()
-
-            media_reference = otio.schema.ExternalReference ( target_url = shotFilePath, available_range = source_range )
-            c = otio.schema.Clip ( name = shotFileName,
-                                    source_range = source_range,
-                                    media_reference = media_reference )
-            c.metadata  = {
-                "clip_name":s['name'],
-                "camera_name":s['camera'].name_full
-            }
-
-            clips.append ( c )
-
-    track.extend ( clips )
-
+    timeline = otio.schema.Timeline(
+        name=scene.name, global_start_time=otio.opentime.from_frames(scene.frame_start, sceneFps)
+    )
+    track = otio.schema.Track()
+    timeline.tracks.append(track)
+    print("   Otio 03")
     renderPath = renderRootFilePath if "" != renderRootFilePath else props.renderRootPath
-    renderPath +=  take_name + "\\" + take_name + ".xml"
-    if Path ( renderPath ).suffix == "":
+    renderPath += take_name + "\\" + take_name + ".xml"
+    if Path(renderPath).suffix == "":
         renderPath += ".otio"
 
     print("   OTIO renderPath:", renderPath)
 
-    Path ( renderPath ).parent.mkdir ( parents = True, exist_ok = True )
-    if renderPath.endswith ( ".xml" ):
-        otio.adapters.write_to_file ( timeline, renderPath, adapter_name = "fcp_xml" )
+    clips = list()
+    playhead = 0
+    for s in shots:
+        if s.enabled:
+            duration = s.end - s.start + 1
+            start_time, end_time_exclusive = (
+                otio.opentime.from_frames(playhead, sceneFps),
+                otio.opentime.from_frames(playhead + duration, sceneFps),
+            )
+            source_range = otio.opentime.range_from_start_end_time(start_time, end_time_exclusive)
+            playhead += duration
+
+            # shotFilePath = s.getOutputFileName(fullPath=True)
+            shotFilePath = renderPath
+            shotFileName = s.getOutputFileName()
+
+            media_reference = otio.schema.ExternalReference(target_url=shotFilePath, available_range=source_range)
+            c = otio.schema.Clip(name=shotFileName, source_range=source_range, media_reference=media_reference)
+            c.metadata = {"clip_name": s["name"], "camera_name": s["camera"].name_full}
+
+            clips.append(c)
+
+    track.extend(clips)
+
+    Path(renderPath).parent.mkdir(parents=True, exist_ok=True)
+    if renderPath.endswith(".xml"):
+        otio.adapters.write_to_file(timeline, renderPath, adapter_name="fcp_xml")
     else:
-        otio.adapters.write_to_file ( timeline, renderPath )
+        otio.adapters.write_to_file(timeline, renderPath)
+
+    return renderPath
 
 
-
-class UAS_ShotManager_Export_OTIO ( Operator ):
+class UAS_ShotManager_Export_OTIO(Operator):
     bl_idname = "uas_shot_manager.export_otio"
     bl_label = "Export otio"
     bl_description = "Export otio"
-    bl_options = { "INTERNAL" }
+    bl_options = {"INTERNAL"}
 
-    file: StringProperty ( )
-    
-    def execute ( self, context ):
+    file: StringProperty()
+
+    def execute(self, context):
         props = context.scene.UAS_shot_manager_props
-  
+
         if props.isRenderRootPathValid():
             print("Here OTIIO")
-            exportOtio(renderRootFilePath = props.renderRootPath, fps = context.scene.render.fps)
+            exportOtio(renderRootFilePath=props.renderRootPath, fps=context.scene.render.fps)
         else:
             print("Here not OTIIO")
             from ..utils.utils import ShowMessageBox
-            ShowMessageBox( "Render root path is invalid", "OpenTimelineIO Export Aborted", 'ERROR')
+
+            ShowMessageBox("Render root path is invalid", "OpenTimelineIO Export Aborted", "ERROR")
             print("OpenTimelineIO Export aborted before start: Invalid Root Path")
 
-        return { "FINISHED" }
-
+        return {"FINISHED"}
 
     # def invoke ( self, context, event ):
     #     props = context.scene.UAS_shot_manager_props
-        
+
     #     if not props.isRenderRootPathValid():
     #         from ..utils.utils import ShowMessageBox
     #         ShowMessageBox( "Render root path is invalid", "OpenTimelineIO Export Aborted", 'ERROR')
     #         print("OpenTimelineIO Export aborted before start: Invalid Root Path")
-        
+
     #     return {'RUNNING_MODAL'}
-        
-        # wkip a remettre plus tard pour définir des chemins alternatifs de sauvegarde.
-        # se baser sur 
-        # wm = context.window_manager
-        # self.fps = context.scene.render.fps
-        # out_path = context.scene.render.filepath
-        # if out_path.startswith ( "//" ):
 
-        #     out_path = str ( Path ( props.renderRootPath ).parent.absolute ( ) ) + out_path[ 1 : ]
-        # out_path = Path ( out_path)
+    # wkip a remettre plus tard pour définir des chemins alternatifs de sauvegarde.
+    # se baser sur
+    # wm = context.window_manager
+    # self.fps = context.scene.render.fps
+    # out_path = context.scene.render.filepath
+    # if out_path.startswith ( "//" ):
 
-        # take = context.scene.UAS_shot_manager_props.getCurrentTake ()
-        # if take is None:
-        #     take_name = ""
-        # else:
-        #     take_name = take.getName_PathCompliant()
+    #     out_path = str ( Path ( props.renderRootPath ).parent.absolute ( ) ) + out_path[ 1 : ]
+    # out_path = Path ( out_path)
 
-        # if out_path.suffix == "":
-        #     self.file = f"{out_path.absolute ( )}/{take_name}/export.xml"
-        # else:
-        #     self.file = f"{out_path.parent.absolute ( )}/{take_name}/export.xml"
+    # take = context.scene.UAS_shot_manager_props.getCurrentTake ()
+    # if take is None:
+    #     take_name = ""
+    # else:
+    #     take_name = take.getName_PathCompliant()
 
-        # return wm.invoke_props_dialog ( self )
+    # if out_path.suffix == "":
+    #     self.file = f"{out_path.absolute ( )}/{take_name}/export.xml"
+    # else:
+    #     self.file = f"{out_path.parent.absolute ( )}/{take_name}/export.xml"
 
-
-
-_classes = ( 
-            UAS_PT_ShotManagerRenderPanel,
-            UAS_PT_ShotManager_Render,
-            UAS_PT_ShotManager_RenderDialog,
-            UAS_PT_ShotManager_Render_StampInfoProperties,
-
-            UAS_OT_OpenPathBrowser,
-        #    UAS_ShotManager_Explorer,
-            UAS_LaunchRRSRender,
-
-            UAS_ShotManager_Render_RestoreProjectSettings,
-            UAS_ShotManager_Export_OTIO )
+    # return wm.invoke_props_dialog ( self )
 
 
-def register ( ):
+_classes = (
+    UAS_PT_ShotManagerRenderPanel,
+    UAS_PT_ShotManager_Render,
+    UAS_PT_ShotManager_RenderDialog,
+    UAS_PT_ShotManager_Render_StampInfoProperties,
+    UAS_OT_OpenPathBrowser,
+    #    UAS_ShotManager_Explorer,
+    UAS_LaunchRRSRender,
+    UAS_ShotManager_Render_RestoreProjectSettings,
+    UAS_ShotManager_Export_OTIO,
+)
+
+
+def register():
     for cls in _classes:
-        bpy.utils.register_class ( cls )
+        bpy.utils.register_class(cls)
 
 
-def unregister ( ):
-    for cls in reversed ( _classes ):
-        bpy.utils.unregister_class ( cls )
-
+def unregister():
+    for cls in reversed(_classes):
+        bpy.utils.unregister_class(cls)
