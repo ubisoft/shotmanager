@@ -30,11 +30,10 @@
 import os
 from pathlib import Path
 import subprocess
-import importlib
 
 import bpy
 import bpy.utils.previews
-from bpy.props import IntProperty, StringProperty, EnumProperty, BoolProperty, FloatVectorProperty
+from bpy.props import BoolProperty
 from bpy.types import Panel, Operator, Menu
 
 try:
@@ -43,11 +42,9 @@ except ModuleNotFoundError:
     subprocess.run([bpy.app.binary_path_python, "-m", "pip", "install", "opentimelineio==0.11.0"])
     import opentimelineio as otio
 
-import addon_utils
-
 from .ogl_ui import UAS_ShotManager_DrawTimeline, UAS_ShotManager_DrawCameras_UI
 
-from . import properties
+from .properties import props
 
 from .handlers import jump_to_shot
 
@@ -70,7 +67,7 @@ bl_info = {
     "author": "Romain Carriquiry Borchiari, Julien Blervaque (aka Werwack)",
     "description": "Manage a sequence of shots and cameras in the 3D View - Ubisoft Animation Studio",
     "blender": (2, 82, 0),
-    "version": (1, 1, 15),
+    "version": (1, 1, 16),
     "location": "View3D > UAS Shot Manager",
     "wiki_url": "https://mdc-web-tomcat17.ubisoft.org/confluence/display/UASTech/UAS+Shot+Manager",
     "warning": "",
@@ -94,8 +91,6 @@ class UAS_PT_ShotManager(Panel):
 
     def draw_header(self, context):
         scene = context.scene
-        render = scene.render
-        props = scene.UAS_shot_manager_props
 
         layout = self.layout
         layout.emboss = "NONE"
@@ -206,28 +201,31 @@ class UAS_PT_ShotManager(Panel):
         row.separator(factor=2.0)
         split = row.split(align=True)
         split.separator()
-        row.prop(context.scene, "frame_current", text="")  # directly binded to the scene property
+        row.prop(scene, "frame_current", text="")  # directly binded to the scene property
         row.separator(factor=2.0)
         split = row.split(align=True)
         # split.separator ( )
         # wkip mettre une propriété
-        row.prop(context.scene.render, "fps_base", text="")  # directly binded to the scene property
+        row.prop(scene.render, "fps_base", text="")  # directly binded to the scene property
 
         layout.separator(factor=0.5)
 
         ################
         # editing
         row = layout.row(align=True)
-        editingDuration = props.getEditDuration(ignoreDisabled=True)
+        editingDuration = props.getEditDuration()
         editingDurationStr = "-" if -1 == editingDuration else (str(editingDuration) + " frames")
         row.label(text="Editing Duration: " + editingDurationStr)
 
         row.separator()
         #    row = layout.row(align=True)
         # context.props.getCurrentShotIndex(ignoreDisabled = False
-        editingCurrentTime = props.getEditCurrentTime(ignoreDisabled=True)
+        editingCurrentTime = props.getEditCurrentTime()
         editingCurrentTimeStr = "-" if -1 == editingCurrentTime else str(editingCurrentTime)
         row.label(text="Current Time in Edit: " + editingCurrentTimeStr)
+
+        row.alignment = "RIGHT"
+        row.label(text=str(scene.render.fps) + " fps")
 
         ################
         # status text line
@@ -843,7 +841,7 @@ def register():
     vse_render.register()
     prefs.register()
     precut_tools.register()
-    properties.register()
+    props.register()
     utils_render.register()
 
     # declaration of properties that will not be saved in the scene
@@ -882,7 +880,7 @@ def register():
 
 def unregister():
     utils_render.unregister()
-    properties.unregister()
+    props.unregister()
     precut_tools.unregister()
     prefs.unregister()
     vse_render.unregister()

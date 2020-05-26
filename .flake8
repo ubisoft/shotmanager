@@ -1,6 +1,6 @@
 [flake8]
 max-line-length = 120
-ignore = E203, E501, W503 # Incompatible with black
+ignore = E203, E501, W503, F722, F821 # Incompatible with black, F722, F821 because of bug in Flake with names and strings
 
 exclude =
   .git
