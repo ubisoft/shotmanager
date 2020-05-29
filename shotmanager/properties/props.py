@@ -45,13 +45,10 @@ class UAS_ShotManager_Props(PropertyGroup):
     isInitialized: BoolProperty(get=get_isInitialized, set=set_isInitialized, default=False)
 
     def getParentScene(self):
-        parentScene = None
-        i = 0
-        while i < len(bpy.data.scenes) and parentScene is None:
-            if "UAS_shot_manager_props" in bpy.data.scenes[i] and self == bpy.data.scenes[i]["UAS_shot_manager_props"]:
-                parentScene = bpy.data.scenes[i]
-            i += 1
-        return parentScene
+        for scene in bpy.data.scenes:
+            if "UAS_shot_manager_props" in scene and self == scene["UAS_shot_manager_props"]:
+                return scene
+        return None
 
     # edit
     #############
