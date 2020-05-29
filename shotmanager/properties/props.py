@@ -1208,34 +1208,47 @@ class UAS_ShotManager_Props(PropertyGroup):
 
     #     return (renderPath, renderedInfoFileName)
 
-    def restoreProjectSettings(self):
+    def restoreProjectSettings(self, settingsListOnly=False):
         scene = bpy.context.scene
 
-        # verbose_set("UAS_PROJECT_NAME","RRSpecial",override_existing,verbose)
-        # verbose_set("UAS_PROJECT_FRAMERATE","25.0",override_existing,verbose)
-        # verbose_set("UAS_PROJECT_RESOLUTION","[1280,720]",override_existing,verbose)
-        # verbose_set("UAS_PROJECT_RESOLUTIONFRAMED","[1280,960]",override_existing,verbose)
-        # verbose_set("UAS_PROJECT_OUTPUTFORMAT","mp4",override_existing,verbose)
-        # verbose_set("UAS_PROJECT_COLORSPACE","",override_existing,verbose)
-        # verbose_set("UAS_PROJECT_ASSETNAME","",override_existing,verbose)
+        settingsList = []
+        settingsList.append(["UAS_PROJECT_NAME", os.environ["UAS_PROJECT_NAME"]])
+        settingsList.append(["UAS_PROJECT_FRAMERATE", os.environ["UAS_PROJECT_FRAMERATE"]])
+        settingsList.append(["UAS_PROJECT_RESOLUTION", os.environ["UAS_PROJECT_RESOLUTION"]])
+        settingsList.append(["UAS_PROJECT_RESOLUTIONFRAMED", os.environ["UAS_PROJECT_RESOLUTIONFRAMED"]])
+        settingsList.append(["UAS_PROJECT_OUTPUTFORMAT", os.environ["UAS_PROJECT_OUTPUTFORMAT"]])
+        settingsList.append(["UAS_PROJECT_COLORSPACE", os.environ["UAS_PROJECT_COLORSPACE"]])
+        settingsList.append(["UAS_PROJECT_ASSETNAME", os.environ["UAS_PROJECT_ASSETNAME"]])
 
-        if "UAS_RRS_PROJECTNAME" in os.environ.keys():
-            projProp_Name = os.environ["UAS_RRS_PROJECTNAME"]
+        if not settingsListOnly:
+            # verbose_set("UAS_PROJECT_NAME","RRSpecial",override_existing,verbose)
+            # verbose_set("UAS_PROJECT_FRAMERATE","25.0",override_existing,verbose)
+            # verbose_set("UAS_PROJECT_RESOLUTION","[1280,720]",override_existing,verbose)
+            # verbose_set("UAS_PROJECT_RESOLUTIONFRAMED","[1280,960]",override_existing,verbose)
+            # verbose_set("UAS_PROJECT_OUTPUTFORMAT","mp4",override_existing,verbose)
+            # verbose_set("UAS_PROJECT_COLORSPACE","",override_existing,verbose)
+            # verbose_set("UAS_PROJECT_ASSETNAME","",override_existing,verbose)
 
-        if "UAS_PROJECT_RESOLUTION" in os.environ.keys():
-            resolution = json.loads(os.environ["UAS_PROJECT_RESOLUTION"])
-            scene.render.resolution_x = resolution[0]
-            scene.render.resolution_y = resolution[1]
+            if "UAS_PROJECT_NAME" in os.environ.keys():
+                projProp_Name = os.environ["UAS_PROJECT_NAME"]
 
-        if "UAS_PROJECT_FRAMERATE" in os.environ.keys():
-            scene.render.fps = float(os.environ["UAS_PROJECT_FRAMERATE"])
+            if "UAS_PROJECT_FRAMERATE" in os.environ.keys():
+                scene.render.fps = float(os.environ["UAS_PROJECT_FRAMERATE"])
 
-        # other settings
-        scene.render.fps_base = 1.0
-        scene.render.resolution_percentage = 100.0
+            if "UAS_PROJECT_RESOLUTION" in os.environ.keys():
+                resolution = json.loads(os.environ["UAS_PROJECT_RESOLUTION"])
+                scene.render.resolution_x = resolution[0]
+                scene.render.resolution_y = resolution[1]
+                settingsList.append(["UAS_PROJECT_RESOLUTION", os.environ["UAS_PROJECT_RESOLUTION"]])
 
-        # path
-        self.setProjectRenderFilePath()
+            # other settings
+            scene.render.fps_base = 1.0
+            scene.render.resolution_percentage = 100.0
+
+            # path
+            self.setProjectRenderFilePath()
+
+        return settingsList
 
     def createDefaultTake(self):
         takes = self.getTakes()
