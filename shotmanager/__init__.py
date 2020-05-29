@@ -75,7 +75,7 @@ bl_info = {
     "author": "Romain Carriquiry Borchiari, Julien Blervaque (aka Werwack)",
     "description": "Manage a sequence of shots and cameras in the 3D View - Ubisoft Animation Studio",
     "blender": (2, 82, 0),
-    "version": (1, 1, 17),
+    "version": (1, 1, 18),
     "location": "View3D > UAS Shot Manager",
     "wiki_url": "https://mdc-web-tomcat17.ubisoft.org/confluence/display/UASTech/UAS+Shot+Manager",
     "warning": "",
@@ -98,25 +98,23 @@ class UAS_PT_ShotManager(Panel):
     bl_category = "UAS Shot Man"
 
     def draw_header(self, context):
-        scene = context.scene
-
         layout = self.layout
         layout.emboss = "NONE"
         row = layout.row(align=True)
 
         # About... panel
         if context.window_manager.UAS_shot_manager_displayAbout:
-            _emboss = True
+            # _emboss = True
             row.alert = True
         else:
             #    _emboss = False
             row.alert = False
 
-        row.prop(context.window_manager, "UAS_shot_manager_displayAbout", icon="SETTINGS", icon_only=True)
+        global icons_col
+        icon = icons_col["General_Ubisoft_32"]
+        row.prop(context.window_manager, "UAS_shot_manager_displayAbout", icon_value=icon.icon_id, icon_only=True)
 
     def draw_header_preset(self, context):
-        scene = context.scene
-
         layout = self.layout
         layout.emboss = "NONE"
         row = layout.row(align=True)
@@ -125,7 +123,9 @@ class UAS_PT_ShotManager(Panel):
         row.operator("utils.launchrender", text="", icon="RENDER_ANIMATION").renderMode = "ANIMATION"
         # row.label(text = "|")
         row.separator(factor=2)
-        row.operator("uas_shot_manager.render_openexplorer", text="", icon="FILEBROWSER").path = bpy.path.abspath(
+        global icons_col
+        icon = icons_col["General_Explorer_32"]
+        row.operator("uas_shot_manager.render_openexplorer", text="", icon_value=icon.icon_id).path = bpy.path.abspath(
             bpy.data.filepath
         )
 
@@ -210,11 +210,15 @@ class UAS_PT_ShotManager(Panel):
         split = row.split(align=True)
         split.separator()
         row.prop(scene, "frame_current", text="")  # directly binded to the scene property
-        row.separator(factor=2.0)
         split = row.split(align=True)
+        row.separator(factor=3.0)
         # split.separator ( )
         # wkip mettre une propriété
-        row.prop(scene.render, "fps_base", text="")  # directly binded to the scene property
+        # row.prop(scene.render, "fps_base", text="")  # directly binded to the scene property
+        if props.playSpeedGlobal != 100:
+            row.alert = True
+        row.prop(props, "playSpeedGlobal", text="")  # directly binded to the scene property
+        row.alert = False
 
         layout.separator(factor=0.5)
 
@@ -382,14 +386,14 @@ class UAS_UL_ShotManager_Items(bpy.types.UIList):
 
         grid_flow.scale_x = 0.5
 
-        ### start
+        # start
         if currentFrame == item.start:
             if props.highlight_all_shot_frames or current_shot_index == index:
                 grid_flow.alert = True
         grid_flow.prop(item, "start", text="")
         grid_flow.alert = False
 
-        ### duration
+        # duration
         if (
             item.start < currentFrame
             and currentFrame < item.end
@@ -409,7 +413,7 @@ class UAS_UL_ShotManager_Items(bpy.types.UIList):
         grid_flow.scale_x = 0.5
         grid_flow.alert = False
 
-        ### end
+        # end
         if currentFrame == item.end:
             if props.highlight_all_shot_frames or current_shot_index == index:
                 grid_flow.alert = True
@@ -854,7 +858,7 @@ def register():
 
     # declaration of properties that will not be saved in the scene
 
-    ### About button panel Quick Settings[ -----------------------------
+    # About button panel Quick Settings[ -----------------------------
     bpy.types.WindowManager.UAS_shot_manager_displayAbout = BoolProperty(
         name="About...", description="Display About Informations", default=False
     )

@@ -1,12 +1,11 @@
 # -*- coding: utf-8 -*-
 
 import bpy
-from bpy.types import Panel, Operator
-from bpy.props import IntProperty, StringProperty, EnumProperty, BoolProperty, PointerProperty, FloatVectorProperty
+from bpy.types import Panel
 
 
 #############
-## Preferences
+# Preferences
 #############
 
 
@@ -57,6 +56,30 @@ class UAS_PT_ShotManagerPref_General(Panel):
         col = layout.column()
         col.use_property_split = True
         col.label(text="PlaceHolder")
+
+
+class UAS_PT_ShotManagerPref_Project(Panel):
+    bl_label = "Project"
+    bl_idname = "UAS_PT_Shot_Manager_Pref_Project"
+    bl_space_type = "VIEW_3D"
+    bl_region_type = "UI"
+    bl_category = "UAS Shot Man"
+    bl_options = {"DEFAULT_CLOSED"}
+    bl_parent_id = "UAS_PT_Shot_Manager_Pref"
+
+    def draw(self, context):
+        layout = self.layout
+        props = context.scene.UAS_shot_manager_props
+        layout.use_property_split = True
+
+        col = layout.column()
+        col.use_property_split = True
+        col.prop(props, "new_shot_duration", text="Default Shot Length")
+        col.prop(props, "new_shot_prefix", text="Default Shot Prefix")
+
+        # row = layout.row()
+        # row.label(text="Handles:")
+        col.prop(props, "handles", text="Handles Duration")
 
 
 class UAS_PT_ShotManagerPref_Timeline(Panel):
@@ -124,17 +147,44 @@ class UAS_PT_ShotManagerPref_Shots(Panel):
         )
         col.prop(context.scene.UAS_shot_manager_props, "current_shot_properties_mode")
         col.separator()
-        col.prop(context.scene.UAS_shot_manager_props, "new_shot_duration", text="Default Shot Length")
-        col.prop(context.scene.UAS_shot_manager_props, "new_shot_prefix", text="Default Shot Prefix")
 
         layout.separator()
 
 
+class UAS_PT_ShotManager_Render_StampInfoProperties(Panel):
+    bl_label = "Stamp Info Properties"
+    bl_idname = "UAS_PT_Shot_Manager_Pref_StampInfoPrefs"
+    bl_space_type = "VIEW_3D"
+    bl_region_type = "UI"
+    bl_category = "UAS Shot Man"
+    bl_options = {"DEFAULT_CLOSED"}
+    bl_parent_id = "UAS_PT_Shot_Manager_Pref"
+
+    def draw_header_preset(self, context):
+        layout = self.layout
+        layout.emboss = "NONE"
+        row = layout.row(align=True)
+
+        if context.scene.UAS_StampInfo_Settings is None:
+            row.alert = True
+            row.label(text="Not found !")
+        else:
+            row.alert = False
+        row.label(text="Loaded - V." + context.scene.UAS_StampInfo_Settings.version())
+
+    def draw(self, context):
+        box = self.layout.box()
+        row = box.row()
+        row.prop(context.scene.UAS_shot_manager_props, "useStampInfoDuringRendering")
+
+
 _classes = (
     UAS_PT_ShotManagerPrefPanel,
-    UAS_PT_ShotManagerPref_Shots,
-    # UAS_PT_ShotManagerPref_General,
+    UAS_PT_ShotManagerPref_Project,
     UAS_PT_ShotManagerPref_Timeline,
+    UAS_PT_ShotManagerPref_Shots,
+    UAS_PT_ShotManager_Render_StampInfoProperties,
+    # UAS_PT_ShotManagerPref_General,
 )
 
 

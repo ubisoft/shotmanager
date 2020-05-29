@@ -62,8 +62,7 @@ class UAS_PT_ShotManagerRenderPanel(Panel):
         row.separator()
         layout.separator()
 
-        box = layout.box()
-        row = box.row(align=True)
+        row = layout.row(align=True)
         row.scale_y = 1.6
         # row.operator ( renderProps.UAS_PT_ShotManager_RenderDialog.bl_idname, text = "Render Active", icon = "RENDER_ANIMATION" ).only_active = True
 
@@ -84,13 +83,20 @@ class UAS_PT_ShotManagerRenderPanel(Panel):
         row.prop(props, "displayProjectProps", text="", icon="RENDERLAYERS")
         row.operator("uas_shot_manager.render", text="Render All").renderMode = "PROJECT"
 
-        row = box.row()
+        row = layout.row()
         row.alert = True
         row.operator("uas_shot_manager.lauchrrsrender")
         row.operator("uas_shot_manager.export_otio")
+        row.alert = False
 
-        ### STILL ###
+        layout.separator(factor=1)
+
+        # STILL ###
         if props.displayStillProps:
+            row = layout.row()
+            row.label(text="Render Image:")
+
+            box = layout.box()
             row = box.row()
             row.prop(props.renderSettingsStill, "writeToDisk")
 
@@ -101,8 +107,12 @@ class UAS_PT_ShotManagerRenderPanel(Panel):
             row.label(text="Current Image: " + filePath)
             row.operator("uas_shot_manager.render_openexplorer", text="", icon="FILEBROWSER").path = filePath
 
-        ### ANIMATION ###
+        # ANIMATION ###
         elif props.displayAnimationProps:
+            row = layout.row()
+            row.label(text="Render Current Shot:")
+
+            box = layout.box()
             row = box.row()
             row.prop(props.renderSettingsAnim, "renderWithHandles")
 
@@ -111,13 +121,17 @@ class UAS_PT_ShotManagerRenderPanel(Panel):
             row.label(text="Current Video: " + filePath)
             row.operator("uas_shot_manager.render_openexplorer", text="", icon="FILEBROWSER").path = filePath
 
-        ### PROJECT ###
+        # PROJECT ###
         elif props.displayProjectProps:
+            row = layout.row()
+            row.label(text="Render All:")
+
+            box = layout.box()
             row = box.row()
             row.prop(props.renderSettingsProject, "renderAllTakes")
             row.prop(props.renderSettingsProject, "renderAlsoDisabled")
 
-            pass
+        layout.separator(factor=2)
 
         # ------------------------
 
@@ -151,9 +165,6 @@ class UAS_PT_ShotManagerRenderPanel(Panel):
         # row.separator()
         # row.operator("uas_shot_manager.render_openexplorer", emboss=True, icon='FILEBROWSER', text="")
 
-        row = box.row()
-        row.label(text="Handles:")
-        row.prop(props, "handles", text="")
         self.layout.separator(factor=1)
 
     def check(self, context):
@@ -812,35 +823,6 @@ class UAS_ShotManager_Render_DisplayProjectSettings(Operator):
         return {"FINISHED"}
 
 
-class UAS_PT_ShotManager_Render_StampInfoProperties(Panel):
-    bl_label = "Stamp Info Properties"
-    bl_idname = "UAS_PT_Shot_Manager_StampInfoPrefs"
-    bl_space_type = "VIEW_3D"
-    bl_region_type = "UI"
-    bl_category = "UAS Shot Man"
-    bl_options = {"DEFAULT_CLOSED"}
-    bl_parent_id = "UAS_PT_ShotManagerRenderPanel"
-
-    def draw_header_preset(self, context):
-        scene = context.scene
-
-        layout = self.layout
-        layout.emboss = "NONE"
-        row = layout.row(align=True)
-
-        if context.scene.UAS_StampInfo_Settings is None:
-            row.alert = True
-            row.label(text="Not found !")
-        else:
-            row.alert = False
-        ## wkip    row.label(text="Loaded - V." + context.scene.UAS_StampInfo_Settings.version())
-
-    def draw(self, context):
-        box = self.layout.box()
-        row = box.row()
-        row.prop(context.scene.UAS_shot_manager_props, "useStampInfoDuringRendering")
-
-
 ######
 # IO #
 ######
@@ -983,7 +965,6 @@ _classes = (
     UAS_PT_ShotManagerRenderPanel,
     UAS_PT_ShotManager_Render,
     UAS_PT_ShotManager_RenderDialog,
-    UAS_PT_ShotManager_Render_StampInfoProperties,
     UAS_OT_OpenPathBrowser,
     #    UAS_ShotManager_Explorer,
     UAS_LaunchRRSRender,

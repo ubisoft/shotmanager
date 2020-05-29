@@ -1,6 +1,25 @@
 
-# History
+
+# To do
+
+* offset des bornes d'un shot
+* bugs rendu
+* job avec curseur temps
+* fix de l'affichage des plans disabled ds timeline
+* lock cam
+* sel cam
+* harmoniser explorers
+
+* voir les modifiers
+
+* about: 
+	* version de pil
+	* dev by
+	* date
+
 --------
+
+# History
 
 ## V 1.1.X
 

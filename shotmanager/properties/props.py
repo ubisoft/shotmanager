@@ -6,6 +6,7 @@ from bpy.types import PropertyGroup
 from bpy.props import (
     CollectionProperty,
     IntProperty,
+    FloatProperty,
     StringProperty,
     EnumProperty,
     BoolProperty,
@@ -139,6 +140,9 @@ class UAS_ShotManager_Props(PropertyGroup):
         name="Display Camera Selection Button in Shot List", default=True, options=set()
     )
 
+    # prefs
+    #############
+
     new_shot_duration: IntProperty(default=50, options=set())
 
     new_shot_prefix: StringProperty(default="Sh")
@@ -185,6 +189,31 @@ class UAS_ShotManager_Props(PropertyGroup):
     change_time: BoolProperty(default=True, options=set())
 
     display_disabledshots_in_timeline: BoolProperty(default=False, options=set())
+
+    def _get_playSpeedGlobal(self):
+        val = self.get("playSpeedGlobal", 1.0)
+        val = 100.0 / bpy.context.scene.render.fps_base
+        return val
+
+    def _set_playSpeedGlobal(self, value):
+        self["playSpeedGlobal"] = value
+
+    def _update_playSpeedGlobal(self, context):
+        bpy.context.scene.render.fps_base = 100.0 / self["playSpeedGlobal"]
+
+    playSpeedGlobal: FloatProperty(
+        name="Play Speed",
+        description="Change the global play speed of the scene",
+        subtype="PERCENTAGE",
+        soft_min=10,
+        soft_max=200,
+        precision=0,
+        get=_get_playSpeedGlobal,
+        set=_set_playSpeedGlobal,
+        update=_update_playSpeedGlobal,
+        default=100.0,
+        options=set(),
+    )
 
     # display_prev_next_buttons: BoolProperty (
     #     default = True,
