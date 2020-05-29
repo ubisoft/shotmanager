@@ -44,6 +44,15 @@ class UAS_ShotManager_Props(PropertyGroup):
 
     isInitialized: BoolProperty(get=get_isInitialized, set=set_isInitialized, default=False)
 
+    def getParentScene(self):
+        parentScene = None
+        i = 0
+        while i < len(bpy.data.scenes) and parentScene is None:
+            if "UAS_shot_manager_props" in bpy.data.scenes[i] and self == bpy.data.scenes[i]["UAS_shot_manager_props"]:
+                parentScene = bpy.data.scenes[i]
+            i += 1
+        return parentScene
+
     # edit
     #############
 
@@ -139,6 +148,13 @@ class UAS_ShotManager_Props(PropertyGroup):
 
     render_shot_prefix: StringProperty(
         name="Render Shot Prefix", description="Prefix added to the shot names at render time", default="Act01_Sq01_"
+    )
+
+    use_camera_color: BoolProperty(
+        name="Use Camera Color",
+        description="If True the color used by a shot is based on the color of its camera (default).\n"
+        "Othewise the shot uses its own color",
+        default=True,
     )
 
     # shots list
@@ -504,6 +520,7 @@ class UAS_ShotManager_Props(PropertyGroup):
         shotList = self.get_shots(takeInd)
 
         newShot = shotList.add()  # shot is added at the end
+        newShot.parentScene = self.getParentScene()
         newShot.parentTakeIndex = takeInd
         newShot.name = name
         newShot.enabled = enabled

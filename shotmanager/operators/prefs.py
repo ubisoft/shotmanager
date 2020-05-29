@@ -83,6 +83,9 @@ class UAS_PT_ShotManagerPref_Timeline(Panel):
             props, "display_disabledshots_in_timeline", text="Display Disabled Shots in Timeline",
         )
         col.prop(props, "editStartFrame", text="Index of the First Frame in the Edit")
+        col.prop(
+            props, "use_camera_color", text="Use Camera Color for Shots ",
+        )
 
     #    col.prop ( props, "display_prev_next_buttons", text = "Display Previous and Next Frame buttons in the play bar" )
 

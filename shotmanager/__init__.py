@@ -5,6 +5,14 @@
 # Installation:
 #
 #
+# Things to know:
+#   - 1 shot manager instance per scene (= possible differences in preferences per scene)
+#
+#   - time on media (= output videos) starts at frame 0 (and then last frame index is equal to Durantion - 1)
+#   - Shots:
+#       - end frame is INCLUDED in the shot frames (and then rendered)
+#
+#
 # Dev notes:
 #  * Pb:
 #   cleanner le patch dégueu des indices de takes lors de la suppression des shots disabled
