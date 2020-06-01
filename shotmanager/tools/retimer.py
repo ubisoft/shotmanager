@@ -112,9 +112,10 @@ def _stretch_frames(fcurve: FCurve, start_frame, end_frame, factor, pivot_value,
 
 
 def _remove_frames(fcurve: FCurve, start_frame, end_frame, remove_gap):
-    fcurve.remove_frames(start_frame, end_frame)
+    fcurve.remove_frames(start_frame - 1, end_frame)
     if remove_gap:
-        _offset_frames(fcurve, end_frame, start_frame - end_frame - 1)
+        _offset_frames(fcurve, end_frame, start_frame - end_frame)
+        pass
 
 
 def _offset_frames(fcurve: FCurve, reference_frame, offset):
@@ -151,7 +152,7 @@ def retime_frames(fcurve: FCurve, mode, start_frame=0, end_frame=0, remove_gap=T
             for v in new_keys:
                 fcurve.insert_frame(v)
 
-    elif mode == "REMOVE":
+    elif mode == "DELETE" or mode == "CLEAR_ANIM":
         _remove_frames(fcurve, start_frame, end_frame, remove_gap)
 
     elif mode == "RESCALE":
@@ -171,7 +172,7 @@ def retime_shot(shot, mode, start_frame=0, end_frame=0, remove_gap=True, factor=
     elif mode == "FREEZE":
         pass
 
-    elif mode == "REMOVE":
+    elif mode == "DELETE":
 
         # # the removal lets a 1 frame space, not an overlap of start by end!!
         # # if start and end are in the range then we create a 1 frame shot
@@ -191,25 +192,25 @@ def retime_shot(shot, mode, start_frame=0, end_frame=0, remove_gap=True, factor=
 
         # else:
 
+        print(" DELETE: start_frame, end: ", start_frame, end_frame)
         offset = end_frame - start_frame
 
         if shot.start <= start_frame:
-            if shot.end < end_frame:
-                shot.end = start_frame
+            if shot.end <= start_frame:
+                pass
+            elif shot.end < end_frame:
+                shot.end = start_frame - 1  # goes to a non deleted part
             elif shot.end == end_frame:
-                shot.end = start_frame + 1
+                shot.end = start_frame - 1  # goes to a non deleted part
             else:
                 shot.end -= offset
-        elif shot.start <= end_frame:
-            if shot.start < end_frame:
-                shot.start = start_frame
-            else:
-                shot.start = start_frame + 1
 
-            if shot.end < end_frame:
-                shot.end = start_frame
-            elif shot.end == end_frame:
-                shot.end = start_frame + 1
+        elif start_frame < shot.start and shot.start < end_frame:
+            shot.start = start_frame - 1
+
+            if shot.end <= end_frame:
+                shot.end = start_frame - 1
+                shot.enabled = False
             else:
                 shot.end -= offset
 
@@ -220,6 +221,42 @@ def retime_shot(shot, mode, start_frame=0, end_frame=0, remove_gap=True, factor=
 
     elif mode == "RESCALE":
         pass
+
+
+# start parameter is replaced here by duration
+def retimeScene(
+    scene,
+    mode: str,
+    objects,
+    start: float,
+    duration: float,
+    join_gap=True,
+    factor=1.0,
+    pivot=0,
+    apply_on_objects=True,
+    apply_on_shape_keys=True,
+    apply_on_grease_pencils=True,
+    apply_on_shots=True,
+):
+
+    startFrame = start
+    if "INSERT" == mode:
+        startFrame = start + 1
+
+    retimer(
+        scene,
+        mode,
+        objects,
+        startFrame,
+        startFrame + duration,
+        join_gap=join_gap,
+        factor=factor,
+        pivot=pivot,
+        apply_on_objects=apply_on_objects,
+        apply_on_shape_keys=apply_on_shape_keys,
+        apply_on_grease_pencils=apply_on_grease_pencils,
+        apply_on_shots=apply_on_shots,
+    )
 
 
 def retimer(
