@@ -3,99 +3,68 @@
 UAS Shot Manager
 -------------------------------------------------------------
 
-Purpose:
+# Purpose:
 --------
 
-	Manages the shots of a Blender scene.
+	Manages the shots of a Blender scene. It offers a realtime editing directly on
+	the data of a 3D scene.
+	Shot Manager is very versatile and can be useful in many cases.
+	The main usecase is this: A continuous action is set in a scene, then some cameras
+	are put at the appropriate places in the world and a shot is created for each one of
+	them in order to record the right segment of time.
+	This is very convenient for previz and 3D layout.
 
 
-Features:
----------
+# Important points:
+-------------------
+
+
+
+3D:
+	- Camera markers are NOT compatible with Shot Manager. They prevent the shot play to work correctlt.
+	Shot Manager will then not allow their use by freezint its user interface.
+
+	- Negative frames are not supported. When starting the action prepare a sate time zone between 0 and the
+	start of the first shot (including the lenght of the handles).
+
+	- The end frame of a shot is included in the shot and rendered.
+	The duration of a shot (ie the total number of frames) is then equal to end - start + 1
+
+3D Edit:
+	- By default first frame of the edit is 0, as most edititng applications, but this is a preference and it can
+	be set to 1, or event to an arbitrary (positive) number (so that the sequence and exported xml can be added
+	at the end of another one)
+
+Media:
+	- First frame of the exported videos gets the number 0 (and not 1)
+	- Hence the last frame of a media is equal to duration - 1
+	- Rendered media and exports are done in the specified Root directory. Path relative to the current project are
+	supported.
+
+
+
+Naming:
+	- Shot: Association of a period of time in the 3D scene, given by a start and a end, and a point of view, given
+	by the camera held by the shot.
+
 
 	- Takes: A take is a given set of shots
+# Features:
+---------
+
+# Retime
+---------
+
+## Insert Time:
+	Insert a range of time between the frame Start and the frame Start + 1.
+	- From (or Start): Frame at which the time is inserted. wkip frame inserted there?
+	Keyframes at this frame are not affected by the time change
+	- To (or End): Defines the frame at which the frame Start + 1 will be after the insertion time.
+	Keyframes at thisframe Start + 1 and above will then be added to an offset given by Duration (End - Start).
+	Hence End - Start is the duration of the time insered right after the frame Start.
+
+## Remove Time:
+	Remove the time included between Start frame and End Frame.
 
 
-History:
---------
-
-* V 1.1.10 - xx/05/2020:
-	Fixed correct logo stamped for project
-	Added contextual render properties in the UI
-	Added batch render parameters for Stamp Info
-	
-* V 1.1.9 - 08/05/2020:
-	Finished integration of OpenTimelineIO
-	Improved render functions
-	Fixes on Stamp Info integration
-
-* V 1.1.8 - 29/04/2020:
-	Experimental: Play rate factor added to the playbar
-	Shots Tools menu:
-		Added a function to create new shots with the same camera for the precu production step
-	Bug fix: Create Camera now gets the active camera by default
-	Various small bug fixes
-	
-* V 1.1.7 - 27/04/2020:
-	UI:
-		Tried to improve the way the Enabled parameter is changed so that the shot selection is facilitated
-	Bug fix: Several bugs in the shots creation, removal, selection index...
-	Shots Tools menu:
-		Added a function to remove cameras from shots
-	Added OpenTimeline IO as import	- wip
-	Timeline:
-		Bug Fix: Time cursor is now correctly displayed in normal play mode
-
-
-* V 1.1.6 - 27/04/2020:
-	*** Added a preference setting to specify if the shot properties panel should be updated with the selected or
-	the current shot ***
-	Defautl behavior is now on the selected shot !!
-
-	Added various functions to manipulate shots and takes
-	Take 0 is now named Main Take and cannot be removed nor renamed
-
-	Shots Tools menu:
-		New function to create shots from the cameras in the scene
-	
-	Bug Fix: Shots colors are now random again
-
-
-* V 1.1.5 - 23/04/2020:
-	Bug fix: Still an error with take changes
-
-    Added a Shots Tools menu
-	
-* V 1.1.4 - 22/04/2020:
-	Bug fix: Error message when removing a shot
-    Bug Fix: Error when trying to delete the first take
-
-    Added a Takes Tools menu
-		put the Rename Take in the tool menu
-        Added function Remove Disabled Shots
-        Added function Remove All Shots
-
-* V 1.1.3 - 22/04/2020:
-	Not released
-	
-* V 1.1.2 - 21/04/2020:
-	Added a About rollout (V 1)
-	Shots:
-		Color of shots can now be displayed in the shots list
-		Duration of shots can now be displayed in the shots list
-		Select Shot button can now be displayed in the shots list
-	Playbar:
-		Edit duration displayed below the playbar
-		Buttons Duplicate on Shots et Takes
-	
-	Add New Shot dialog box: 
-		Small UI fixes
-		Color exposed
-
-* V 1.1.1 - 15/04/2020:
-	Added a playbar
-	Added a button to display the opengl timeline
-	
-* V 1.0.0:
-	First version
-
-
+[History](./CHANGELOG.md)

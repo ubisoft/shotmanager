@@ -5,6 +5,14 @@
 # Installation:
 #
 #
+# Things to know:
+#   - 1 shot manager instance per scene (= possible differences in preferences per scene)
+#
+#   - time on media (= output videos) starts at frame 0 (and then last frame index is equal to Durantion - 1)
+#   - Shots:
+#       - end frame is INCLUDED in the shot frames (and then rendered)
+#
+#
 # Dev notes:
 #  * Pb:
 #   cleanner le patch dégueu des indices de takes lors de la suppression des shots disabled
@@ -64,12 +72,14 @@ from .operators import takes
 from .operators import shots
 from .operators import renderProps
 from .operators import playbar
+from .operators import timeControl
 from .operators import prefs
 from .utils import utils_render
 
 from .scripts import precut_tools
 
 from .tools import vse_render
+from .tools import retimer
 
 
 bl_info = {
@@ -77,7 +87,7 @@ bl_info = {
     "author": "Romain Carriquiry Borchiari, Julien Blervaque (aka Werwack)",
     "description": "Manage a sequence of shots and cameras in the 3D View - Ubisoft Animation Studio",
     "blender": (2, 82, 0),
-    "version": (1, 1, 17),
+    "version": (1, 2, 10),
     "location": "View3D > UAS Shot Manager",
     "wiki_url": "https://mdc-web-tomcat17.ubisoft.org/confluence/display/UASTech/UAS+Shot+Manager",
     "warning": "",
@@ -100,25 +110,23 @@ class UAS_PT_ShotManager(Panel):
     bl_category = "UAS Shot Man"
 
     def draw_header(self, context):
-        scene = context.scene
-
         layout = self.layout
         layout.emboss = "NONE"
         row = layout.row(align=True)
 
         # About... panel
         if context.window_manager.UAS_shot_manager_displayAbout:
-            _emboss = True
+            # _emboss = True
             row.alert = True
         else:
             #    _emboss = False
             row.alert = False
 
-        row.prop(context.window_manager, "UAS_shot_manager_displayAbout", icon="SETTINGS", icon_only=True)
+        global icons_col
+        icon = icons_col["General_Ubisoft_32"]
+        row.prop(context.window_manager, "UAS_shot_manager_displayAbout", icon_value=icon.icon_id, icon_only=True)
 
     def draw_header_preset(self, context):
-        scene = context.scene
-
         layout = self.layout
         layout.emboss = "NONE"
         row = layout.row(align=True)
@@ -127,7 +135,9 @@ class UAS_PT_ShotManager(Panel):
         row.operator("utils.launchrender", text="", icon="RENDER_ANIMATION").renderMode = "ANIMATION"
         # row.label(text = "|")
         row.separator(factor=2)
-        row.operator("uas_shot_manager.render_openexplorer", text="", icon="FILEBROWSER").path = bpy.path.abspath(
+        global icons_col
+        icon = icons_col["General_Explorer_32"]
+        row.operator("uas_shot_manager.render_openexplorer", text="", icon_value=icon.icon_id).path = bpy.path.abspath(
             bpy.data.filepath
         )
 
@@ -212,11 +222,15 @@ class UAS_PT_ShotManager(Panel):
         split = row.split(align=True)
         split.separator()
         row.prop(scene, "frame_current", text="")  # directly binded to the scene property
-        row.separator(factor=2.0)
         split = row.split(align=True)
+        row.separator(factor=3.0)
         # split.separator ( )
         # wkip mettre une propriété
-        row.prop(scene.render, "fps_base", text="")  # directly binded to the scene property
+        # row.prop(scene.render, "fps_base", text="")  # directly binded to the scene property
+        if props.playSpeedGlobal != 100:
+            row.alert = True
+        row.prop(props, "playSpeedGlobal", text="")  # directly binded to the scene property
+        row.alert = False
 
         layout.separator(factor=0.5)
 
@@ -269,7 +283,13 @@ class UAS_PT_ShotManager(Panel):
         if len(props.takes):
             box = layout.box()
             row = box.row()
-            row.label(text="Shots: ")
+            numShots = len(props.getShotsList(ignoreDisabled=False))
+            numEnabledShots = len(props.getShotsList(ignoreDisabled=True))
+            row.label(text=f"Shots ({numEnabledShots}/{numShots}): ")
+
+            row.operator("uas_shot_manager.scenerangefromshot", text="", icon="PREVIEW_RANGE")
+            row.operator("uas_shot_manager.scenerangefrom3dedit", text="", icon="PREVIEW_RANGE")
+            row.separator(factor=3)
 
             row = box.row()
             templateList = row.template_list(
@@ -388,14 +408,14 @@ class UAS_UL_ShotManager_Items(bpy.types.UIList):
 
         grid_flow.scale_x = 0.5
 
-        ### start
+        # start
         if currentFrame == item.start:
             if props.highlight_all_shot_frames or current_shot_index == index:
                 grid_flow.alert = True
         grid_flow.prop(item, "start", text="")
         grid_flow.alert = False
 
-        ### duration
+        # duration
         if (
             item.start < currentFrame
             and currentFrame < item.end
@@ -415,7 +435,7 @@ class UAS_UL_ShotManager_Items(bpy.types.UIList):
         grid_flow.scale_x = 0.5
         grid_flow.alert = False
 
-        ### end
+        # end
         if currentFrame == item.end:
             if props.highlight_all_shot_frames or current_shot_index == index:
                 grid_flow.alert = True
@@ -757,6 +777,46 @@ class UAS_ShotManager_Empty(Operator):
     index: bpy.props.IntProperty(default=0)
 
 
+class UAS_ShotManager_SceneRangeFromShot(Operator):
+    bl_idname = "uas_shot_manager.scenerangefromshot"
+    bl_label = "Scene Range From Shot"
+    bl_description = "Set scene time range with CURRENT shot range"
+    bl_options = {"INTERNAL"}
+
+    def execute(self, context):
+        scene = context.scene
+        props = scene.UAS_shot_manager_props
+
+        currentShot = props.getCurrentShot()
+        scene.use_preview_range = True
+
+        scene.frame_preview_start = currentShot.start
+        scene.frame_preview_end = currentShot.end
+
+        return {"FINISHED"}
+
+
+# operator here must be a duplicate of UAS_ShotManager_SceneRangeFromShot is order to use a different description
+class UAS_ShotManager_SceneRangeFrom3DEdit(Operator):
+    bl_idname = "uas_shot_manager.scenerangefrom3dedit"
+    bl_label = "Scene Range From 3D Edit"
+    bl_description = "Set scene time range with the the 3D edit range"
+    bl_options = {"INTERNAL"}
+
+    def execute(self, context):
+        scene = context.scene
+        props = scene.UAS_shot_manager_props
+
+        shotList = props.getShotsList(ignoreDisabled=True)
+
+        if 0 < len(shotList):
+            scene.use_preview_range = True
+            scene.frame_preview_start = shotList[0].start
+            scene.frame_preview_end = shotList[len(shotList) - 1].end
+
+        return {"FINISHED"}
+
+
 ###########
 # Handlers
 ###########
@@ -809,6 +869,9 @@ classes = (
     UAS_ShotManager_DrawTimeline,
     UAS_PT_ShotManager_Initialize,
     UAS_ShotManager_DrawCameras_UI,
+    #  UAS_Retimer,
+    UAS_ShotManager_SceneRangeFromShot,
+    UAS_ShotManager_SceneRangeFrom3DEdit,
 )
 
 
@@ -851,6 +914,7 @@ def register():
     shots.register()
     utils.register()
     playbar.register()
+    timeControl.register()
     renderProps.register()
     vse_render.register()
     prefs.register()
@@ -860,7 +924,7 @@ def register():
 
     # declaration of properties that will not be saved in the scene
 
-    ### About button panel Quick Settings[ -----------------------------
+    # About button panel Quick Settings[ -----------------------------
     bpy.types.WindowManager.UAS_shot_manager_displayAbout = BoolProperty(
         name="About...", description="Display About Informations", default=False
     )
@@ -899,6 +963,7 @@ def unregister():
     prefs.unregister()
     vse_render.unregister()
     renderProps.unregister()
+    timeControl.unregister()
     playbar.unregister()
     utils.unregister()
     shots.unregister()

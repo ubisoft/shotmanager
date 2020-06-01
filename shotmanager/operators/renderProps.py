@@ -43,6 +43,7 @@ class UAS_PT_ShotManagerRenderPanel(Panel):
             row.alert = True
         row.prop(props, "useProjectRenderSettings")
         row.operator("uas_shot_manager.render_restore_project_settings")
+        row.operator("uas_shot_manager.render_display_project_settings")
         row.separator(factor=0.1)
 
         row = layout.row()
@@ -61,8 +62,7 @@ class UAS_PT_ShotManagerRenderPanel(Panel):
         row.separator()
         layout.separator()
 
-        box = layout.box()
-        row = box.row(align=True)
+        row = layout.row(align=True)
         row.scale_y = 1.6
         # row.operator ( renderProps.UAS_PT_ShotManager_RenderDialog.bl_idname, text = "Render Active", icon = "RENDER_ANIMATION" ).only_active = True
 
@@ -83,13 +83,20 @@ class UAS_PT_ShotManagerRenderPanel(Panel):
         row.prop(props, "displayProjectProps", text="", icon="RENDERLAYERS")
         row.operator("uas_shot_manager.render", text="Render All").renderMode = "PROJECT"
 
-        row = box.row()
+        row = layout.row()
         row.alert = True
         row.operator("uas_shot_manager.lauchrrsrender")
         row.operator("uas_shot_manager.export_otio")
+        row.alert = False
 
-        ### STILL ###
+        layout.separator(factor=1)
+
+        # STILL ###
         if props.displayStillProps:
+            row = layout.row()
+            row.label(text="Render Image:")
+
+            box = layout.box()
             row = box.row()
             row.prop(props.renderSettingsStill, "writeToDisk")
 
@@ -100,8 +107,12 @@ class UAS_PT_ShotManagerRenderPanel(Panel):
             row.label(text="Current Image: " + filePath)
             row.operator("uas_shot_manager.render_openexplorer", text="", icon="FILEBROWSER").path = filePath
 
-        ### ANIMATION ###
+        # ANIMATION ###
         elif props.displayAnimationProps:
+            row = layout.row()
+            row.label(text="Render Current Shot:")
+
+            box = layout.box()
             row = box.row()
             row.prop(props.renderSettingsAnim, "renderWithHandles")
 
@@ -110,13 +121,17 @@ class UAS_PT_ShotManagerRenderPanel(Panel):
             row.label(text="Current Video: " + filePath)
             row.operator("uas_shot_manager.render_openexplorer", text="", icon="FILEBROWSER").path = filePath
 
-        ### PROJECT ###
+        # PROJECT ###
         elif props.displayProjectProps:
+            row = layout.row()
+            row.label(text="Render All:")
+
+            box = layout.box()
             row = box.row()
             row.prop(props.renderSettingsProject, "renderAllTakes")
             row.prop(props.renderSettingsProject, "renderAlsoDisabled")
 
-            pass
+        layout.separator(factor=2)
 
         # ------------------------
 
@@ -150,9 +165,6 @@ class UAS_PT_ShotManagerRenderPanel(Panel):
         # row.separator()
         # row.operator("uas_shot_manager.render_openexplorer", emboss=True, icon='FILEBROWSER', text="")
 
-        row = box.row()
-        row.label(text="Handles:")
-        row.prop(props, "handles", text="")
         self.layout.separator(factor=1)
 
     def check(self, context):
@@ -774,33 +786,41 @@ class UAS_ShotManager_Render_RestoreProjectSettings(Operator):
         return {"FINISHED"}
 
 
-class UAS_PT_ShotManager_Render_StampInfoProperties(Panel):
-    bl_label = "Stamp Info Properties"
-    bl_idname = "UAS_PT_Shot_Manager_StampInfoPrefs"
-    bl_space_type = "VIEW_3D"
-    bl_region_type = "UI"
-    bl_category = "UAS Shot Man"
-    bl_options = {"DEFAULT_CLOSED"}
-    bl_parent_id = "UAS_PT_ShotManagerRenderPanel"
+class UAS_ShotManager_Render_DisplayProjectSettings(Operator):
+    bl_idname = "uas_shot_manager.render_display_project_settings"
+    bl_label = "Project Settings"
+    bl_description = "Display Project Settings"
+    bl_options = {"INTERNAL"}
 
-    def draw_header_preset(self, context):
-        scene = context.scene
-
-        layout = self.layout
-        layout.emboss = "NONE"
-        row = layout.row(align=True)
-
-        if context.scene.UAS_StampInfo_Settings is None:
-            row.alert = True
-            row.label(text="Not found !")
-        else:
-            row.alert = False
-        ## wkip    row.label(text="Loaded - V." + context.scene.UAS_StampInfo_Settings.version())
+    def invoke(self, context, event):
+        return context.window_manager.invoke_props_dialog(self, width=450)
 
     def draw(self, context):
-        box = self.layout.box()
-        row = box.row()
-        row.prop(context.scene.UAS_shot_manager_props, "useStampInfoDuringRendering")
+        layout = self.layout
+        scene = context.scene
+        props = scene.UAS_shot_manager_props
+
+        settingsList = props.restoreProjectSettings(settingsListOnly=True)
+
+        box = layout.box()
+
+        # grid_flow = row.grid_flow(align=True, row_major=True, columns=2, even_columns=False)
+
+        # col = grid_flow.column(align=False)
+        # col.scale_x = 0.6
+        # col.label(text="New Shot Name:")
+
+        for prop in settingsList:
+            row = box.row(align=True)
+            row.label(text=prop[0] + ":")
+            row.label(text=str(prop[1]))
+
+        # col = grid_flow.column(align=False)
+        # col.prop ( self, "name", text="" )
+
+    def execute(self, context):
+
+        return {"FINISHED"}
 
 
 ######
@@ -981,11 +1001,11 @@ _classes = (
     UAS_PT_ShotManagerRenderPanel,
     UAS_PT_ShotManager_Render,
     UAS_PT_ShotManager_RenderDialog,
-    UAS_PT_ShotManager_Render_StampInfoProperties,
     UAS_OT_OpenPathBrowser,
     #    UAS_ShotManager_Explorer,
     UAS_LaunchRRSRender,
     UAS_ShotManager_Render_RestoreProjectSettings,
+    UAS_ShotManager_Render_DisplayProjectSettings,
     UAS_ShotManager_Export_OTIO,
     UAS_ShotManager_Import_OTIO
 )

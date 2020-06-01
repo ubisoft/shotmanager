@@ -6,6 +6,7 @@ from bpy.types import PropertyGroup
 from bpy.props import (
     CollectionProperty,
     IntProperty,
+    FloatProperty,
     StringProperty,
     EnumProperty,
     BoolProperty,
@@ -16,6 +17,8 @@ from shotmanager.operators import shots
 from .render_settings import UAS_ShotManager_RenderSettings
 from .shot import UAS_ShotManager_Shot
 from .take import UAS_ShotManager_Take
+
+from ..operators.timeControl import UAS_Retimer_Properties
 
 
 class UAS_ShotManager_Props(PropertyGroup):
@@ -43,6 +46,14 @@ class UAS_ShotManager_Props(PropertyGroup):
         self["isInitialized"] = value
 
     isInitialized: BoolProperty(get=get_isInitialized, set=set_isInitialized, default=False)
+
+    def getParentScene(self):
+        for scene in bpy.data.scenes:
+            if "UAS_shot_manager_props" in scene and self == scene["UAS_shot_manager_props"]:
+                return scene
+        return None
+
+    retimer: PointerProperty(type=UAS_Retimer_Properties)
 
     # edit
     #############
@@ -130,8 +141,11 @@ class UAS_ShotManager_Props(PropertyGroup):
     display_color_in_shotlist: BoolProperty(name="Display Color in Shot List", default=False, options=set())
 
     display_selectbut_in_shotlist: BoolProperty(
-        name="Display Camera Selection Button in Shot List", default=True, options=set()
+        name="Display Camera Selection Button in Shot List", default=False, options=set()
     )
+
+    # prefs
+    #############
 
     new_shot_duration: IntProperty(default=50, options=set())
 
@@ -139,6 +153,13 @@ class UAS_ShotManager_Props(PropertyGroup):
 
     render_shot_prefix: StringProperty(
         name="Render Shot Prefix", description="Prefix added to the shot names at render time", default="Act01_Sq01_"
+    )
+
+    use_camera_color: BoolProperty(
+        name="Use Camera Color",
+        description="If True the color used by a shot is based on the color of its camera (default).\n"
+        "Othewise the shot uses its own color",
+        default=True,
     )
 
     # shots list
@@ -172,6 +193,31 @@ class UAS_ShotManager_Props(PropertyGroup):
     change_time: BoolProperty(default=True, options=set())
 
     display_disabledshots_in_timeline: BoolProperty(default=False, options=set())
+
+    def _get_playSpeedGlobal(self):
+        val = self.get("playSpeedGlobal", 1.0)
+        val = 100.0 / bpy.context.scene.render.fps_base
+        return val
+
+    def _set_playSpeedGlobal(self, value):
+        self["playSpeedGlobal"] = value
+
+    def _update_playSpeedGlobal(self, context):
+        bpy.context.scene.render.fps_base = 100.0 / self["playSpeedGlobal"]
+
+    playSpeedGlobal: FloatProperty(
+        name="Play Speed",
+        description="Change the global play speed of the scene",
+        subtype="PERCENTAGE",
+        soft_min=10,
+        soft_max=200,
+        precision=0,
+        get=_get_playSpeedGlobal,
+        set=_set_playSpeedGlobal,
+        update=_update_playSpeedGlobal,
+        default=100.0,
+        options=set(),
+    )
 
     # display_prev_next_buttons: BoolProperty (
     #     default = True,
@@ -504,6 +550,7 @@ class UAS_ShotManager_Props(PropertyGroup):
         shotList = self.get_shots(takeInd)
 
         newShot = shotList.add()  # shot is added at the end
+        newShot.parentScene = self.getParentScene()
         newShot.parentTakeIndex = takeInd
         newShot.name = name
         newShot.enabled = enabled
@@ -1208,34 +1255,47 @@ class UAS_ShotManager_Props(PropertyGroup):
 
     #     return (renderPath, renderedInfoFileName)
 
-    def restoreProjectSettings(self):
+    def restoreProjectSettings(self, settingsListOnly=False):
         scene = bpy.context.scene
 
-        # verbose_set("UAS_PROJECT_NAME","RRSpecial",override_existing,verbose)
-        # verbose_set("UAS_PROJECT_FRAMERATE","25.0",override_existing,verbose)
-        # verbose_set("UAS_PROJECT_RESOLUTION","[1280,720]",override_existing,verbose)
-        # verbose_set("UAS_PROJECT_RESOLUTIONFRAMED","[1280,960]",override_existing,verbose)
-        # verbose_set("UAS_PROJECT_OUTPUTFORMAT","mp4",override_existing,verbose)
-        # verbose_set("UAS_PROJECT_COLORSPACE","",override_existing,verbose)
-        # verbose_set("UAS_PROJECT_ASSETNAME","",override_existing,verbose)
+        settingsList = []
+        settingsList.append(["UAS_PROJECT_NAME", os.environ["UAS_PROJECT_NAME"]])
+        settingsList.append(["UAS_PROJECT_FRAMERATE", os.environ["UAS_PROJECT_FRAMERATE"]])
+        settingsList.append(["UAS_PROJECT_RESOLUTION", os.environ["UAS_PROJECT_RESOLUTION"]])
+        settingsList.append(["UAS_PROJECT_RESOLUTIONFRAMED", os.environ["UAS_PROJECT_RESOLUTIONFRAMED"]])
+        settingsList.append(["UAS_PROJECT_OUTPUTFORMAT", os.environ["UAS_PROJECT_OUTPUTFORMAT"]])
+        settingsList.append(["UAS_PROJECT_COLORSPACE", os.environ["UAS_PROJECT_COLORSPACE"]])
+        settingsList.append(["UAS_PROJECT_ASSETNAME", os.environ["UAS_PROJECT_ASSETNAME"]])
 
-        if "UAS_RRS_PROJECTNAME" in os.environ.keys():
-            projProp_Name = os.environ["UAS_RRS_PROJECTNAME"]
+        if not settingsListOnly:
+            # verbose_set("UAS_PROJECT_NAME","RRSpecial",override_existing,verbose)
+            # verbose_set("UAS_PROJECT_FRAMERATE","25.0",override_existing,verbose)
+            # verbose_set("UAS_PROJECT_RESOLUTION","[1280,720]",override_existing,verbose)
+            # verbose_set("UAS_PROJECT_RESOLUTIONFRAMED","[1280,960]",override_existing,verbose)
+            # verbose_set("UAS_PROJECT_OUTPUTFORMAT","mp4",override_existing,verbose)
+            # verbose_set("UAS_PROJECT_COLORSPACE","",override_existing,verbose)
+            # verbose_set("UAS_PROJECT_ASSETNAME","",override_existing,verbose)
 
-        if "UAS_PROJECT_RESOLUTION" in os.environ.keys():
-            resolution = json.loads(os.environ["UAS_PROJECT_RESOLUTION"])
-            scene.render.resolution_x = resolution[0]
-            scene.render.resolution_y = resolution[1]
+            if "UAS_PROJECT_NAME" in os.environ.keys():
+                projProp_Name = os.environ["UAS_PROJECT_NAME"]
 
-        if "UAS_PROJECT_FRAMERATE" in os.environ.keys():
-            scene.render.fps = float(os.environ["UAS_PROJECT_FRAMERATE"])
+            if "UAS_PROJECT_FRAMERATE" in os.environ.keys():
+                scene.render.fps = float(os.environ["UAS_PROJECT_FRAMERATE"])
 
-        # other settings
-        scene.render.fps_base = 1.0
-        scene.render.resolution_percentage = 100.0
+            if "UAS_PROJECT_RESOLUTION" in os.environ.keys():
+                resolution = json.loads(os.environ["UAS_PROJECT_RESOLUTION"])
+                scene.render.resolution_x = resolution[0]
+                scene.render.resolution_y = resolution[1]
+                settingsList.append(["UAS_PROJECT_RESOLUTION", os.environ["UAS_PROJECT_RESOLUTION"]])
 
-        # path
-        self.setProjectRenderFilePath()
+            # other settings
+            scene.render.fps_base = 1.0
+            scene.render.resolution_percentage = 100.0
+
+            # path
+            self.setProjectRenderFilePath()
+
+        return settingsList
 
     def createDefaultTake(self):
         takes = self.getTakes()
