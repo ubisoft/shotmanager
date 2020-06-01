@@ -28,8 +28,10 @@
 
 
 import os
+import importlib
 from pathlib import Path
 import subprocess
+import platform
 
 import bpy
 import bpy.utils.previews
@@ -38,8 +40,16 @@ from bpy.types import Panel, Operator, Menu
 
 try:
     import opentimelineio as otio
+    if otio.__version__ < "0.12.1" and platform.system ( ) == "Windows":
+        print ( "Upgrading OpentimelineIO to 0.12.1" )
+        subprocess.run ( [ bpy.app.binary_path_python, "-m", "pip", "install", os.path.join ( os.path.dirname ( __file__ ), "OpenTimelineIO-0.12.1-cp37-cp37m-win_amd64.whl" ) ] )
+        importlib.reload ( otio ) # Need to be tested.
 except ModuleNotFoundError:
-    subprocess.run([bpy.app.binary_path_python, "-m", "pip", "install", "opentimelineio==0.11.0"])
+    if platform.system ( ) ==platform.system ( ) == "Windows":
+        subprocess.run ( [ bpy.app.binary_path_python, "-m", "pip", "install",
+                           os.path.join ( os.path.dirname ( __file__ ), "OpenTimelineIO-0.12.1-cp37-cp37m-win_amd64.whl" ) ] )
+    else:
+        subprocess.run([bpy.app.binary_path_python, "-m", "pip", "install", "opentimelineio"])
     import opentimelineio as otio
 
 from .ogl_ui import UAS_ShotManager_DrawTimeline, UAS_ShotManager_DrawCameras_UI
@@ -326,6 +336,10 @@ class UAS_MT_ShotManager_Takes_ToolsMenu(Menu):
         row.operator_context = "INVOKE_DEFAULT"
         row.operator("uas_shot_manager.reset_takes_to_default", text="Reset to Default...")
 
+        layout.separator()
+        row = layout.row ( align = True )
+        row.operator_context = "INVOKE_DEFAULT"
+        row.operator ( "uas_shot_manager.import_otio", text = "New Take From OTIO" )
 
 #############
 # Shots

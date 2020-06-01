@@ -941,6 +941,42 @@ class UAS_ShotManager_Export_OTIO(Operator):
     # return wm.invoke_props_dialog ( self )
 
 
+class UAS_ShotManager_Import_OTIO(Operator):
+    bl_idname = "uas_shot_manager.import_otio"
+    bl_label = "Import otio"
+    bl_description = "Import otio"
+    bl_options = {"INTERNAL"}
+
+    file: StringProperty(subtype="FILE_PATH")
+
+    def execute(self, context):
+        import opentimelineio as otio
+        props = context.scene.UAS_shot_manager_props
+        if len ( props.getCurrentTake ( ).getShotList ( ) ) != 0:
+            bpy.ops.uas_shot_manager.add_take ( name = Path ( self.file ).stem )
+
+        try:
+            timeline = otio.adapters.read_from_file ( self.file )
+            if len ( timeline.video_tracks ( ) ):
+                track = timeline.video_tracks ( )[ 0 ] # Assume the first one contains the shots.
+
+                for clip in track.each_clip ( ):
+                    bpy.ops.uas_shot_manager.add_shot ( name = clip.name,
+                                                        start = otio.opentime.to_frames ( clip.range_in_parent ( ).start_time ),
+                                                        end = otio.opentime.to_frames ( clip.range_in_parent ( ).end_time_inclusive ( ) ),
+                                                        cameraName = 'Camera',
+                                                        color = (0.185963, 0.780457, 0.704022) )
+
+        except otio.exceptions.NoKnownAdapterForExtensionError:
+            from ..utils.utils import ShowMessageBox
+            ShowMessageBox("File not recognized", f"{self.file} could not be understood by Opentimelineio", "ERROR")
+
+        return {"FINISHED"}
+
+    def invoke ( self, context, event ):
+        return context.window_manager.invoke_props_dialog ( self )
+
+
 _classes = (
     UAS_PT_ShotManagerRenderPanel,
     UAS_PT_ShotManager_Render,
@@ -951,6 +987,7 @@ _classes = (
     UAS_LaunchRRSRender,
     UAS_ShotManager_Render_RestoreProjectSettings,
     UAS_ShotManager_Export_OTIO,
+    UAS_ShotManager_Import_OTIO
 )
 
 
