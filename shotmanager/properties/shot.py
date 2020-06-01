@@ -60,25 +60,25 @@ class UAS_ShotManager_Shot(PropertyGroup):
 
     name: StringProperty(name="Name", get=get_name, set=set_name)
 
-    def _start_frame_changed(self, context):
+    def _update_start(self, context):
         if self.start > self.end:
             self.end = self.start
 
-    def _end_frame_changed(self, context):
+    start: IntProperty(name="Start", description="Index of the first included frame of the shot", update=_update_start)
+
+    def _update_end(self, context):
         if self.start > self.end:
             self.start = self.end
 
-    def _enabled_changed(self, context):
+    end: IntProperty(name="End", description="Index of the last included frame of the shot", update=_update_end)
+
+    def _update_enabled(self, context):
         context.scene.UAS_shot_manager_props.selected_shot_index = context.scene.UAS_shot_manager_props.getShotIndex(
             self
         )
 
-    start: IntProperty(
-        name="Start", description="Index of the first included frame of the shot", update=_start_frame_changed
-    )
-    end: IntProperty(name="End", description="Index of the last included frame of the shot", update=_end_frame_changed)
     enabled: BoolProperty(
-        name="Enabled", description="Use - or not - the shot in the edit", update=_enabled_changed, default=True
+        name="Enabled", description="Use - or not - the shot in the edit", update=_update_enabled, default=True
     )
 
     camera: PointerProperty(

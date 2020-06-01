@@ -2,6 +2,12 @@
 
 # To do
 
+* Camera et viewports:
+	* option pour display name, display shot name, recording, handle
+
+
+* mettre le stamp de start de video a la frame 0
+
 * offset des bornes d'un shot
 * bugs rendu
 * job avec curseur temps
@@ -12,6 +18,8 @@
 
 * voir les modifiers
 
+* path relatif et absolu pour le root
+
 * about: 
 	* version de pil
 	* dev by
@@ -21,7 +29,18 @@
 
 # History
 
+## V 1.1.2X
+
+* V 1.2.1x - 30/05/2020:
+
+
 ## V 1.1.X
+
+* V 1.1.18 - 30/05/2020:
+	Some UI changes to improve the general understanding (icons, button positions...)
+	Introduced an option (activated now by default) to use the camera color instead of a
+	unique shot color for the shots
+	Improved the Play Speed button
 
 * V 1.1.16 - 26/05/2020:
     Added Publish function for RRS

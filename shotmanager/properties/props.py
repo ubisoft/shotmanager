@@ -18,6 +18,8 @@ from .render_settings import UAS_ShotManager_RenderSettings
 from .shot import UAS_ShotManager_Shot
 from .take import UAS_ShotManager_Take
 
+from ..operators.timeControl import UAS_Retimer_Properties
+
 
 class UAS_ShotManager_Props(PropertyGroup):
     def version(self):
@@ -50,6 +52,8 @@ class UAS_ShotManager_Props(PropertyGroup):
             if "UAS_shot_manager_props" in scene and self == scene["UAS_shot_manager_props"]:
                 return scene
         return None
+
+    retimer: PointerProperty(type=UAS_Retimer_Properties)
 
     # edit
     #############
@@ -137,7 +141,7 @@ class UAS_ShotManager_Props(PropertyGroup):
     display_color_in_shotlist: BoolProperty(name="Display Color in Shot List", default=False, options=set())
 
     display_selectbut_in_shotlist: BoolProperty(
-        name="Display Camera Selection Button in Shot List", default=True, options=set()
+        name="Display Camera Selection Button in Shot List", default=False, options=set()
     )
 
     # prefs
