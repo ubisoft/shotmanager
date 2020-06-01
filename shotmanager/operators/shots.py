@@ -369,7 +369,7 @@ class UAS_ShotManager_Shots_SelectCamera(Operator):
 
 class UAS_ShotManager_Shots_RemoveCamera(Operator):
     bl_idname = "uas_shot_manager.shots_removecamera"
-    bl_label = "Remove Camera from All Shots."
+    bl_label = "Remove Camera From All Shots"
     bl_description = "Remove the camera of the selected shot from all the shots."
     bl_options = {"INTERNAL"}
 
