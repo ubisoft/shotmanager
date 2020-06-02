@@ -86,6 +86,8 @@ from .utils import utils
 
 from .operators import takes
 from .operators import shots
+from .operators import shots_global_settings
+
 from .operators import renderProps
 from .operators import playbar
 from .operators import timeControl
@@ -337,12 +339,11 @@ class UAS_MT_ShotManager_Takes_ToolsMenu(Menu):
     bl_description = "Take Tools"
 
     def draw(self, context):
-        scene = context.scene
 
-        marker_list = context.scene.timeline_markers
+        # marker_list = context.scene.timeline_markers
         # list_marked_cameras = [o.camera for o in marker_list if o != None]
 
-        ## Copy menu entries[ ---
+        # Copy menu entries[ ---
         layout = self.layout
         row = layout.row(align=True)
 
@@ -457,16 +458,16 @@ class UAS_UL_ShotManager_Items(bpy.types.UIList):
         grid_flow.scale_x = 1.0
 
         if props.display_camera_in_shotlist:
-            if None == item.camera:
+            if item.camera is None:
                 grid_flow.alert = True
             grid_flow.prop(item, "camera", text="")
-            if None == item.camera:
+            if item.camera is None:
                 grid_flow.alert = False
 
         if props.display_lens_in_shotlist:
             grid_flow.scale_x = 0.4
             grid_flow.use_property_decorate = True
-            if None != item.camera:
+            if item.camera is not None:
                 grid_flow.prop(item.camera.data, "lens", text="Lens")
             else:
                 grid_flow.alert = True
@@ -500,7 +501,6 @@ class UAS_PT_ShotManager_ShotProperties(Panel):
 
     def draw_header(self, context):
         scene = context.scene
-        render = scene.render
         layout = self.layout
         layout.emboss = "NONE"
         row = layout.row(align=True)
@@ -556,10 +556,10 @@ class UAS_PT_ShotManager_ShotProperties(Panel):
             row.separator(factor=1.0)
             c = row.column()
             grid_flow = c.grid_flow(align=False, columns=4, even_columns=False)
-            if None == shot.camera:
+            if shot.camera is None:
                 grid_flow.alert = True
             grid_flow.prop(shot, "camera", text="Camera")
-            if None == shot.camera:
+            if shot.camera is None:
                 grid_flow.alert = False
             grid_flow.prop(props, "display_camera_in_shotlist", text="")
 
@@ -567,7 +567,7 @@ class UAS_PT_ShotManager_ShotProperties(Panel):
             grid_flow.scale_x = 0.7
             #     row.label ( text = "Lens: " )
             grid_flow.use_property_decorate = True
-            if None != shot.camera:
+            if shot.camera is not None:
                 grid_flow.prop(shot.camera.data, "lens", text="Lens")
             else:
                 grid_flow.alert = True
@@ -599,6 +599,47 @@ class UAS_PT_ShotManager_ShotProperties(Panel):
         else:
             shot = props.getShot(props.selected_shot_index)
         val = len(context.scene.UAS_shot_manager_props.getTakes()) and shot
+
+        return val
+
+
+class UAS_PT_ShotManager_ShotsGlobalSettings(Panel):
+    bl_label = "Shots Global Control"  # "Current Shot Properties" # keep the space !!
+    bl_idname = "UAS_PT_Shot_Manager_Shots_GlobalSettings"
+    bl_space_type = "VIEW_3D"
+    bl_region_type = "UI"
+    bl_category = "UAS Shot Man"
+    bl_options = {"DEFAULT_CLOSED"}
+    bl_parent_id = "UAS_PT_Shot_Manager"
+
+    def draw(self, context):
+        scene = context.scene
+        props = scene.UAS_shot_manager_props
+
+        layout = self.layout
+
+        layout.label(text="Cameras Background:")
+        box = layout.box()
+
+        # name and color
+        row = box.row()
+        row.separator(factor=1.0)
+        c = row.column()
+        grid_flow = c.grid_flow(align=False, columns=4, even_columns=False)
+        grid_flow.operator("uas_shots_settings.use_background")
+        #   grid_flow.scale_x = 0.7
+        # grid_flow.prop(shot, "color", text="")
+        #   grid_flow.scale_x = 1.0
+        # grid_flow.prop(props, "display_color_in_shotlist", text="")
+        row.separator(factor=0.5)  # prevents stange look when panel is narrow
+
+        # Duration
+        # row = box.row()
+
+    @classmethod
+    def poll(cls, context):
+        props = context.scene.UAS_shot_manager_props
+        val = len(props.getTakes()) and len(props.get_shots())
 
         return val
 
@@ -888,6 +929,7 @@ classes = (
     UAS_PT_ShotManager,
     UAS_MT_ShotManager_Takes_ToolsMenu,
     UAS_PT_ShotManager_ShotProperties,
+    UAS_PT_ShotManager_ShotsGlobalSettings,
     UAS_MT_ShotManager_Shots_ToolsMenu,
     UAS_ShotManager_Actions,
     UAS_ShotManager_ShotDuration,
@@ -938,6 +980,7 @@ def register():
 
     takes.register()
     shots.register()
+    shots_global_settings.register()
     utils.register()
     playbar.register()
     timeControl.register()
@@ -992,6 +1035,7 @@ def unregister():
     timeControl.unregister()
     playbar.unregister()
     utils.unregister()
+    shots_global_settings.unregister()
     shots.unregister()
     takes.unregister()
 
