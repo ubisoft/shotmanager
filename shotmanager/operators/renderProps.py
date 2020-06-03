@@ -977,6 +977,7 @@ class UAS_ShotManager_OT_Import_OTIO(Operator):
     reformatShotNames: BoolProperty(
         name="Reformat Shot Names", description="Keep only the shot name part for the name of the shots", default=True,
     )
+    use_clip_media_camera_backgrounds = BoolProperty ( name = "Use Clip Media Camera Backgrounds" )
 
     def draw(self, context):
         layout = self.layout
@@ -988,6 +989,7 @@ class UAS_ShotManager_OT_Import_OTIO(Operator):
         box.separator(factor=0.2)
         box.prop(self, "createCameras")
         box.prop(self, "reformatShotNames")
+        box.prop(self, "use_clip_media_camera_backgrounds")
 
         layout.separator()
 
@@ -1007,7 +1009,7 @@ class UAS_ShotManager_OT_Import_OTIO(Operator):
                 track = timeline.video_tracks()[0]  # Assume the first one contains the shots.
 
                 cam = None
-                if not self.createCameras:
+                if not self.createCameras: # Create Default Camera
                     # bpy.ops.object.camera_add(location=[0, 0, 0], rotation=[0, 0, 0])  # doesn't return a cam...
                     cam = bpy.data.cameras.new("Camera")
                     cam_ob = bpy.data.objects.new(cam.name, cam)
@@ -1017,8 +1019,8 @@ class UAS_ShotManager_OT_Import_OTIO(Operator):
                     cam_ob.rotation_euler = (radians(90), 0.0, radians(90))
 
                 for i, clip in enumerate(track.each_clip()):
+                    clipName = clip.name
                     if self.createCameras:
-                        clipName = clip.name
                         if self.reformatShotNames:
                             clipName = clipName.split("_")[2]
                             if clipName[1] == "H":
@@ -1033,6 +1035,8 @@ class UAS_ShotManager_OT_Import_OTIO(Operator):
                         cam_ob.color = [uniform(0, 1), uniform(0, 1), uniform(0, 1), 1]
                         cam_ob.location = (0.0, i, 0.0)
                         cam_ob.rotation_euler = (radians(90), 0.0, radians(90))
+                        if self.use_clip_media_camera_backgrounds:
+                            utils.add_background_video_to_cam ( cam, utils.file_path_from_uri ( clip.media_reference.target_url ).replace ( "C:/Users/theboss/Documents", "D:/tmp/RSS-intro-EDL-AAF-XML" ), otio.opentime.to_frames(clip.range_in_parent().start_time) )
 
                     bpy.ops.uas_shot_manager.add_shot(
                         name=clipName,
