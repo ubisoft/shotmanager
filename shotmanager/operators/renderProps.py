@@ -5,6 +5,7 @@ from pathlib import Path
 import bpy
 from bpy.types import Panel, Operator
 from bpy.props import StringProperty, EnumProperty, BoolProperty
+from bpy_extras.io_utils import ImportHelper
 
 from ..utils import utils
 
@@ -961,6 +962,138 @@ class UAS_ShotManager_Export_OTIO(Operator):
     # return wm.invoke_props_dialog ( self )
 
 
+class UAS_ShotManager_OT_Import_OTIO(Operator):
+    bl_idname = "uasshotmanager.importotio"
+    bl_label = "Import/Update Shots from OTIO File"
+    bl_description = "Open OTIO file to import a set of shots"
+    bl_options = {"INTERNAL", "REGISTER", "UNDO"}
+
+    otioFile: StringProperty()
+    createCameras: BoolProperty(
+        name="Create Camera for New Shots",
+        description="Create a camera for each new shot or use the same camera for all shots",
+        default=True,
+    )
+    reformatShotNames: BoolProperty(
+        name="Reformat Shot Names", description="Keep only the shot name part for the name of the shots", default=True,
+    )
+
+    def draw(self, context):
+        layout = self.layout
+        row = layout.row(align=True)
+
+        box = row.box()
+        box.prop(self, "otioFile", text="OTIO File")
+
+        box.separator(factor=0.2)
+        box.prop(self, "createCameras")
+        box.prop(self, "reformatShotNames")
+
+        layout.separator()
+
+    def execute(self, context):
+        import opentimelineio as otio
+        from random import uniform
+        from math import radians
+
+        # print("Otio File: ", self.otioFile)
+        props = context.scene.UAS_shot_manager_props
+        if len(props.getCurrentTake().getShotList()) != 0:
+            bpy.ops.uas_shot_manager.add_take(name=Path(self.otioFile).stem)
+
+        try:
+            timeline = otio.adapters.read_from_file(self.otioFile)
+            if len(timeline.video_tracks()):
+                track = timeline.video_tracks()[0]  # Assume the first one contains the shots.
+
+                cam = None
+                if not self.createCameras:
+                    # bpy.ops.object.camera_add(location=[0, 0, 0], rotation=[0, 0, 0])  # doesn't return a cam...
+                    cam = bpy.data.cameras.new("Camera")
+                    cam_ob = bpy.data.objects.new(cam.name, cam)
+                    bpy.context.collection.objects.link(cam_ob)
+                    bpy.data.cameras[cam.name].lens = 40
+                    cam_ob.location = (0.0, 0.0, 0.0)
+                    cam_ob.rotation_euler = (radians(90), 0.0, radians(90))
+
+                for i, clip in enumerate(track.each_clip()):
+                    if self.createCameras:
+                        clipName = clip.name
+                        if self.reformatShotNames:
+                            clipName = clipName.split("_")[2]
+                            if clipName[1] == "H":
+                                clipName[1] = "h"
+                            if clipName[2] == "0":
+                                clipName = clipName[0:2] + clipName[3:]
+
+                        cam = bpy.data.cameras.new("Cam_" + clipName)
+                        cam_ob = bpy.data.objects.new(cam.name, cam)
+                        bpy.context.collection.objects.link(cam_ob)
+                        bpy.data.cameras[cam.name].lens = 40
+                        cam_ob.color = [uniform(0, 1), uniform(0, 1), uniform(0, 1), 1]
+                        cam_ob.location = (0.0, i, 0.0)
+                        cam_ob.rotation_euler = (radians(90), 0.0, radians(90))
+
+                    bpy.ops.uas_shot_manager.add_shot(
+                        name=clipName,
+                        start=otio.opentime.to_frames(clip.range_in_parent().start_time),
+                        end=otio.opentime.to_frames(clip.range_in_parent().end_time_inclusive()),
+                        cameraName=cam.name,
+                        color=(cam_ob.color[0], cam_ob.color[1], cam_ob.color[2]),
+                    )
+
+        except otio.exceptions.NoKnownAdapterForExtensionError:
+            from ..utils.utils import ShowMessageBox
+
+            ShowMessageBox("File not recognized", f"{self.otioFile} could not be understood by Opentimelineio", "ERROR")
+
+        return {"FINISHED"}
+
+    def invoke(self, context, event):
+        wm = context.window_manager
+        wm.invoke_props_dialog(self, width=400)
+        #    res = bpy.ops.uasotio.openfilebrowser("INVOKE_DEFAULT")
+
+        # print("Res: ", res)
+
+        return {"RUNNING_MODAL"}
+
+
+# This operator requires   from bpy_extras.io_utils import ImportHelper
+# See https://sinestesia.co/blog/tutorials/using-blenders-filebrowser-with-python/
+class UAS_OTIO_OpenFileBrowser(Operator, ImportHelper):  # from bpy_extras.io_utils import ImportHelper
+    bl_idname = "uasotio.openfilebrowser"
+    bl_label = "Open Otio File"
+    bl_description = "Open OTIO file to import a set of shots"
+
+    pathProp: StringProperty()
+    filepath: StringProperty(subtype="FILE_PATH")
+    filter_glob: StringProperty(default="*.xml;*.otio", options={"HIDDEN"})
+
+    def execute(self, context):
+        """Open OTIO file to import a set of shots"""
+        filename, extension = os.path.splitext(self.filepath)
+        print("Selected file:", self.filepath)
+        print("File name:", filename)
+        print("File extension:", extension)
+
+        bpy.ops.uasshotmanager.importotio("INVOKE_DEFAULT", otioFile=self.filepath)
+
+        return {"FINISHED"}
+
+    def invoke(self, context, event):
+
+        # if self.pathProp in context.window_manager.UAS_vse_render:
+        #     self.filepath = context.window_manager.UAS_vse_render[self.pathProp]
+        # else:
+        self.filepath = ""
+        # https://docs.blender.org/api/current/bpy.types.WindowManager.html
+        #    self.directory = bpy.context.scene.UAS_shot_manager_props.renderRootPath
+        context.window_manager.fileselect_add(self)
+
+        return {"RUNNING_MODAL"}
+
+
 _classes = (
     UAS_PT_ShotManagerRenderPanel,
     UAS_PT_ShotManager_Render,
@@ -971,6 +1104,8 @@ _classes = (
     UAS_ShotManager_Render_RestoreProjectSettings,
     UAS_ShotManager_Render_DisplayProjectSettings,
     UAS_ShotManager_Export_OTIO,
+    UAS_ShotManager_OT_Import_OTIO,
+    UAS_OTIO_OpenFileBrowser,
 )
 
 

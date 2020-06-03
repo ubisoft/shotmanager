@@ -144,6 +144,9 @@ class UAS_ShotManager_Props(PropertyGroup):
         name="Display Camera Selection Button in Shot List", default=False, options=set()
     )
 
+    # shots global control
+    #############
+
     # prefs
     #############
 

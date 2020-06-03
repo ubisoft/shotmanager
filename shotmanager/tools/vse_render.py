@@ -4,13 +4,9 @@ import bpy
 
 from bpy.types import Panel, Operator, PropertyGroup
 from bpy.props import (
-    IntProperty,
     IntVectorProperty,
     StringProperty,
-    EnumProperty,
-    BoolProperty,
     PointerProperty,
-    FloatVectorProperty,
 )
 
 
@@ -27,7 +23,6 @@ class UAS_PT_VSERender(Panel):
 
     def draw(self, context):
         layout = self.layout
-        scene = context.scene
 
         row = layout.row()
         #     row.prop(scene.UAS_StampInfo_Settings, "debugMode")
@@ -142,8 +137,8 @@ class UAS_compositeVideoInVSE(Operator):
     def execute(self, context):
         """UAS_VSETruc"""
         print("Op compositeVideoInVSE")
-        vse_render = context.window_manager.UAS_vse_render
-        scene = context.scene
+        #   vse_render = context.window_manager.UAS_vse_render
+        #   scene = context.scene
 
         context.window_manager.UAS_vse_render.compositeVideoInVSE(1, 20, "c:\\tmp\\MyVSEOutput.mp4")
 
@@ -299,7 +294,7 @@ class UAS_Vse_Render(PropertyGroup):
         # https://docs.blender.org/api/blender_python_api_2_77_0/bpy.types.Sequences.html
         # Path ( renderPath ).parent.mkdir ( parents = True, exist_ok = True )
 
-        ### add BG
+        # add BG
         scene.render.resolution_x = self.inputBGResolution[0]
         scene.render.resolution_y = self.inputBGResolution[1]
         scene.frame_start = frame_start
