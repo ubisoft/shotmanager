@@ -142,13 +142,20 @@ class BL_UI_Cursor:
 
         self.value = value
 
-        self.bbox = Square ( self.posx,
+        # Is used for drawing the frame number and for cursor interaction
+        self.bbox = Square ( self.posx + self.sizex,
                              self.posy,
                              self.sizex,
                              self.sizey )
+        self.caret = Square ( self.posx,
+                              self.posy - self.sizey,
+                              3,
+                              4 )
 
         self.hightlighted = False
 
+        self.color = ( .2, .2, 1., 1 )
+        self.hightlighted_color = ( .5, .5, .5, 1 )
         self._p_mouse_x = 0
         self._mouse_down = False
         self._dragable = False
@@ -167,12 +174,14 @@ class BL_UI_Cursor:
             self.posy = posy
 
     def draw ( self ):
-        self.bbox.color = ( .5, .5, .5, 1 )
+        self.bbox.color = self.color
+        self.caret.color = self.color
         if self.hightlighted:
-            self.bbox.color = ( 1, 1, 1, 1 )
+            self.bbox.color = self.hightlighted_color
+            self.caret.color = self.hightlighted_color
+        self.caret.draw ( )
         self.bbox.draw ( )
-
-        blf.color ( 0, 0, 0, 0, 1  )
+        blf.color ( 0, .9, .9, .9, 1  )
         blf.size ( 0, 12, 72 )
         font_width, font_height = blf.dimensions ( 0, self.value )
         blf.position ( 0, self.bbox.x - 0.5 * font_width, self.bbox.y - 0.5 * font_height, 0 )
@@ -237,12 +246,16 @@ class BL_UI_Cursor:
         self.hightlighted = True
 
     def mouse_exit ( self, event, x, y ):
-        pass
+        self.hightlighted = False
 
     def mouse_move ( self, x, y ):
         if self._dragable:
             self.posx += x - self._p_mouse_x
-            self.bbox.x = self.posx
+            self.posx = max ( 0, min ( self.posx, self.context.area.width - 1 ) )
+            self.caret.x = self.posx
+            # Make sure the box stays fully in view.
+            self.bbox.x = max ( self.bbox.sx, self.posx )
+            self.bbox.x = min ( self.bbox.x, self.context.area.width - 1 - self.bbox.sx )
             self._p_mouse_x = x
             if self._move_callback is not None:
                 self._move_callback ( )
