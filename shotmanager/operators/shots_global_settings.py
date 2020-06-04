@@ -20,6 +20,7 @@ class UAS_ShotsSettings_UseBackground(Operator):
 _classes = (UAS_ShotsSettings_UseBackground,)
 
 
+
 def register():
     for cls in _classes:
         bpy.utils.register_class(cls)

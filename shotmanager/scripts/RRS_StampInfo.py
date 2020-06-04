@@ -109,7 +109,7 @@ def set_StampInfoShotSettings(
 def setRRSRenderFromShotManager(scene, shotName):
     print(" -- * setRRSRenderFromShotManager * --")
 
-    stampInfoSettings = bpy.context.scene.UAS_StampInfo_Settings
+    # stampInfoSettings = bpy.context.scene.UAS_StampInfo_Settings
 
     setRRS_StampInfoSettings(scene, shotName)
 

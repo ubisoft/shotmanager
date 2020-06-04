@@ -2,16 +2,30 @@ import bpy
 from ..operators import renderProps
 
 
-def publishRRS(prodFilePath):
-    print(" -- * publishRRS * --")
+def publishRRS(prodFilePath, verbose=False):
+    scene = bpy.context.scene
+
+    if "UAS_shot_manager_props" not in scene:
+        print("\n*** publishRRS failed: No UAS_shot_manager_prop found in the scene ***\n")
+        return False
+
+    props = scene.UAS_shot_manager_props
+
+    print("\n---------------------------------------------------------")
+    print(" -- * publishRRS * --\n\n")
 
     cacheFilePath = "c:\\tmp\\"
+
+    if verbose:
+        print("Local cache path: ", cacheFilePath)
+        print("Current Scene: " + scene.name + ", current take: " + props.getCurrentTakeName())
+
+    print("\n---------------------------------------------------------")
 
     # batch render to generate the files
     # To do: specify the take?
 
     # renderProps.launchRender("PROJECT", renderRootFilePath=cacheFilePath)
-    scene = bpy.context.scene
     renderedFilesList = renderProps.launchRenderWithVSEComposite("PROJECT", renderRootFilePath=cacheFilePath)
 
     # generate the otio file
@@ -23,7 +37,8 @@ def publishRRS(prodFilePath):
 
     renderedFilesList.append(renderedOtioFile)
 
-    print("\nNewMediaList = ", renderedFilesList)
+    if verbose:
+        print("\nNewMediaList = ", renderedFilesList)
 
     # copy files to the network
 
@@ -40,8 +55,12 @@ def publishRRS(prodFilePath):
         if not target.endswith("\\"):
             target += "\\"
         target += tail
-        print("target: ", target)
+
+        if verbose:
+            print("target: ", target)
         try:
             shutil.copyfile(f, target)
         except Exception as e:
             print("*** File cannot be copied: ", e)
+
+    return True

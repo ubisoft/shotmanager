@@ -215,14 +215,14 @@ class UAS_LaunchRRSRender(Operator):
     bl_description = "Run the RRS Render Script"
 
     def execute(self, context):
-        """Use the selected file as a stamped logo"""
+        """Launch RRS Publish script"""
         print(" UAS_LaunchRRSRender")
 
         from ..scripts import publishRRS
 
         # publishRRS.publishRRS( context.scene.UAS_shot_manager_props.renderRootPath )
-        publishRRS.publishRRS("c:\\tmpRezo\\")
-        print("End of POublish")
+        publishRRS.publishRRS("c:\\tmpRezo\\", verbose=True)
+        print("End of Publish")
         return {"FINISHED"}
 
 
