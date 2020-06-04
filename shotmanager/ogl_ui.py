@@ -595,7 +595,7 @@ class BL_UI_Timeline:
         self.frame_cursor.value = str ( sequence_current_frame )
 
     def mouse_down ( self, x, y ):
-        return self.is_in_rect ( x, y )
+        return False#self.is_in_rect ( x, y )
 
     def mouse_up ( self, x, y ):
         pass
