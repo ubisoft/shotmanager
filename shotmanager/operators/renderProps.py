@@ -1,4 +1,5 @@
 import os
+import re
 import json
 from pathlib import Path
 
@@ -1018,15 +1019,15 @@ class UAS_ShotManager_OT_Import_OTIO(Operator):
                     cam_ob.location = (0.0, 0.0, 0.0)
                     cam_ob.rotation_euler = (radians(90), 0.0, radians(90))
 
+                shot_re = re.compile ( r"sh_?(\d+)", re.IGNORECASE )
                 for i, clip in enumerate(track.each_clip()):
                     clipName = clip.name
                     if self.createCameras:
                         if self.reformatShotNames:
-                            clipName = clipName.split("_")[2]
-                            if clipName[1] == "H":
-                                clipName[1] = "h"
-                            if clipName[2] == "0":
-                                clipName = clipName[0:2] + clipName[3:]
+                            match = shot_re.search ( clipName )
+                            if match:
+                                clipName = context.scene.UAS_shot_manager_props.new_shot_prefix + match.group ( 1 )
+
 
                         cam = bpy.data.cameras.new("Cam_" + clipName)
                         cam_ob = bpy.data.objects.new(cam.name, cam)
@@ -1036,7 +1037,11 @@ class UAS_ShotManager_OT_Import_OTIO(Operator):
                         cam_ob.location = (0.0, i, 0.0)
                         cam_ob.rotation_euler = (radians(90), 0.0, radians(90))
                         if self.use_clip_media_camera_backgrounds:
-                            utils.add_background_video_to_cam ( cam, utils.file_path_from_uri ( clip.media_reference.target_url ).replace ( "C:/Users/theboss/Documents", "D:/tmp/RSS-intro-EDL-AAF-XML" ), otio.opentime.to_frames(clip.range_in_parent().start_time) )
+                            media_path = Path ( utils.file_path_from_uri ( clip.media_reference.target_url ) )
+                            if not media_path.exists ( ):
+                                # Lets find it inside next to the xml.
+                                media_path = Path ( self.otioFile ).parent.joinpath ( media_path.name )
+                            utils.add_background_video_to_cam ( cam, str ( media_path ), otio.opentime.to_frames(clip.range_in_parent().start_time) )
 
                     bpy.ops.uas_shot_manager.add_shot(
                         name=clipName,
