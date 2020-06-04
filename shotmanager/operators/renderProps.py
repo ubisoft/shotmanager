@@ -1050,6 +1050,7 @@ class UAS_ShotManager_OT_Import_OTIO(Operator):
                         cameraName=cam.name,
                         color=(cam_ob.color[0], cam_ob.color[1], cam_ob.color[2]),
                     )
+                    context.scene.frame_end = otio.opentime.to_frames(clip.range_in_parent().end_time_inclusive())
 
         except otio.exceptions.NoKnownAdapterForExtensionError:
             from ..utils.utils import ShowMessageBox
