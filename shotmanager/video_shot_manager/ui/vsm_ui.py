@@ -19,7 +19,7 @@ icons_col = None
 
 
 ######
-# Shot Manager main panel #
+# Video Shot Manager main panel #
 ######
 
 
@@ -72,7 +72,6 @@ class UAS_PT_VideoShotManager(Panel):
         vsm_props = scene.UAS_vsm_props
 
         row = layout.row()
-        row.label(text="Tot4o")
 
         ################
         # About... panel
@@ -92,7 +91,7 @@ class UAS_PT_VideoShotManager(Panel):
             row.separator(factor=1.4)
 
         ################
-        # shots
+        # tracks
 
         row = layout.row()  # just to give some space...
         row.label(text="Tracks")
@@ -117,7 +116,7 @@ class UAS_PT_VideoShotManager(Panel):
 
 
 #############
-# Shots
+# tracks
 #############
 
 
@@ -132,7 +131,7 @@ class UAS_UL_VideoShotManager_Items(bpy.types.UIList):
         #         layout.separator(factor=0.1)
 
         #         c = layout.column()
-        grid_flow = c.grid_flow(align=True, columns=9, even_columns=False)
+        grid_flow = c.grid_flow(align=False, columns=9, even_columns=False)
 
         if vsm_props.display_color_in_tracklist:
             grid_flow.scale_x = 0.15
@@ -145,13 +144,21 @@ class UAS_UL_VideoShotManager_Items(bpy.types.UIList):
         # grid_flow.alignment = 'LEFT'
         grid_flow.prop(item, "enabled", text=" ")  # keep the space in the text !!!
         #   grid_flow.separator( factor = 0.5)
+        grid_flow.scale_x = 0.6
+        grid_flow.prop(item, "vseTrackIndex", text=" ")
         grid_flow.scale_x = 0.8
         grid_flow.label(text=item.name)
 
+        grid_flow.prop(item, "shotManagerScene", text=" ")
+        # grid_flow.prop(item, "shotManagerTake", text=" ")
+        grid_flow.prop(item, "current_take_name")
+        grid_flow.prop(item, "trackType", text=" ")
 
-#         #   grid_flow.alignment = 'RIGHT'
+        grid_flow.operator(
+            "uas_video_shot_manager.update_vse_track", text="", icon="FILE_REFRESH"
+        ).trackName = item.name
 
-#         grid_flow.scale_x = 0.5
+        grid_flow.operator("uas_video_shot_manager.go_to_specified_scene").trackName = item.name
 
 
 # ##################

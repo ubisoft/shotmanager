@@ -16,15 +16,17 @@ from .ui import vsm_ui
 
 icons_col = None
 
-# classes = (UAS_PT_VideoShotManager,)
+# classes = (
+#     ,
+# )
 
 
 def register():
     # for cls in classes:
     #     bpy.utils.register_class(cls)
 
-    tracks.register()
     vsm_props.register()
+    tracks.register()
     vsm_ui.register()
 
     # declaration of properties that will not be saved in the scene
@@ -35,9 +37,7 @@ def register():
     )
 
     pcoll = bpy.utils.previews.new()
-    print("pcoll: ", pcoll)
     my_icons_dir = os.path.join(os.path.dirname(__file__), "..\\icons")
-    print("my_icons_dir: ", my_icons_dir)
     for png in Path(my_icons_dir).rglob("*.png"):
         pcoll.load(png.stem, str(png), "IMAGE")
 
@@ -47,8 +47,8 @@ def register():
 
 def unregister():
     vsm_ui.unregister()
-    vsm_props.unregister()
     tracks.unregister()
+    vsm_props.unregister()
 
     # for cls in reversed(classes):
     #     bpy.utils.unregister_class(cls)

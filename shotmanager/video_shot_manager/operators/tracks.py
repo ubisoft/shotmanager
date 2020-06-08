@@ -1,7 +1,9 @@
 
 import bpy
 from bpy.types import Operator, Menu
-from bpy.props import IntProperty, StringProperty, EnumProperty, BoolProperty, FloatVectorProperty
+from bpy.props import StringProperty, BoolProperty, FloatVectorProperty, PointerProperty
+
+from ..properties.track import UAS_VideoShotManager_Track
 
 
 class UAS_VideoShotManager_TrackAdd(Operator):
@@ -30,7 +32,7 @@ class UAS_VideoShotManager_TrackAdd(Operator):
     def invoke(self, context, event):
         wm = context.window_manager
 
-        self.name = "totot"
+        self.name = "New Track"
         ev = []
         if event.ctrl:
             ev.append("Ctrl")
@@ -297,12 +299,48 @@ class UAS_VideoShotManager_TrackRemoveMultiple(Operator):
         return {"FINISHED"}
 
 
+class UAS_VideoShotManager_UpdateVSETrack(Operator):
+    bl_idname = "uas_video_shot_manager.update_vse_track"
+    bl_label = "Update VSE Track"
+    bl_description = "Update VSE Track"
+    bl_options = {"INTERNAL"}
+
+    trackName: StringProperty()
+
+    def invoke(self, context, event):
+
+        print("trackName: ", self.trackName)
+        context.scene.UAS_vsm_props.tracks[self.trackName].regenerateTrackContent()
+
+        return {"FINISHED"}
+
+
+class UAS_VideoShotManager_GoToSpecifedScene(Operator):
+    bl_idname = "uas_video_shot_manager.go_to_specified_scene"
+    bl_label = "Go To Scene"
+    bl_description = "Go to specified scene"
+    bl_options = {"INTERNAL"}
+
+    trackName: StringProperty()
+
+    def invoke(self, context, event):
+
+        print("trackName: ", self.trackName)
+        # Make track scene the current one
+        bpy.context.window.scene = context.scene.UAS_vsm_props.tracks[self.trackName].shotManagerScene
+        bpy.context.window.workspace = bpy.data.workspaces["Layout"]
+
+        return {"FINISHED"}
+
+
 _classes = (
     UAS_VideoShotManager_TrackAdd,
     UAS_VideoShotManager_TrackDuplicate,
     UAS_VideoShotManager_RemoveTrack,
     UAS_VideoShotManager_Actions,
     UAS_VideoShotManager_TrackRemoveMultiple,
+    UAS_VideoShotManager_UpdateVSETrack,
+    UAS_VideoShotManager_GoToSpecifedScene,
     # UAS_VideoShotManager_SetCurrentTrack,
 )
 
