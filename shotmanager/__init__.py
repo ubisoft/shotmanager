@@ -31,8 +31,6 @@
 #
 #       - mettre des vraies prefs utilisateurs
 #
-#       - installer open timeline io
-#
 
 
 import os
@@ -130,12 +128,12 @@ class UAS_PT_ShotManager(Panel):
     bl_region_type = "UI"
     bl_category = "UAS Shot Man"
 
+    # About panel ###
     def draw_header(self, context):
         layout = self.layout
         layout.emboss = "NONE"
         row = layout.row(align=True)
 
-        # About... panel
         if context.window_manager.UAS_shot_manager_displayAbout:
             # _emboss = True
             row.alert = True
@@ -953,7 +951,7 @@ def register():
 
     # declaration of properties that will not be saved in the scene
 
-    # About button panel Quick Settings[ -----------------------------
+    # About button panel Quick Settings
     bpy.types.WindowManager.UAS_shot_manager_displayAbout = BoolProperty(
         name="About...", description="Display About Informations", default=False
     )
@@ -976,6 +974,7 @@ def register():
         update=timeline_valueChanged,
     )
 
+    # from pathlib import Path
     pcoll = bpy.utils.previews.new()
     my_icons_dir = os.path.join(os.path.dirname(__file__), "icons")
     for png in Path(my_icons_dir).rglob("*.png"):
