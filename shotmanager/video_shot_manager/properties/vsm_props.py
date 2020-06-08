@@ -14,13 +14,14 @@ from .track import UAS_VideoShotManager_Track
 
 
 class UAS_VSM_Props(PropertyGroup):
-    toto: BoolProperty()
 
     tracks: CollectionProperty(type=UAS_VideoShotManager_Track)
 
     current_track_index: IntProperty(default=-1)
 
     selected_track_index: IntProperty(default=-1)
+
+    display_color_in_tracklist: BoolProperty(name="Display Color in Track List", default=False, options=set())
 
     def getTracks(self):
         return self.tracks
