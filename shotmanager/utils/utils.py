@@ -89,7 +89,7 @@ def add_background_video_to_cam ( camera: bpy.types.Camera, movie_path, frame_st
         clip = bpy.data.movieclips[ movie_path.name ]
         clip.frame_start = frame_start
         camera.show_background_images = True
-        bg = camera.background_images.new ( )
+        bg = camera.background_images.new( )
         bg.source = "MOVIE_CLIP"
         bg.clip = clip
 

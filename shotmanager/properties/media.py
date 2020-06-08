@@ -5,7 +5,7 @@ from bpy.types import PropertyGroup
 from bpy.props import StringProperty, IntProperty, BoolProperty, PointerProperty, FloatVectorProperty
 
 
-class UAS_ShotManager_Shot(PropertyGroup):
+class UAS_ShotManager_Media(PropertyGroup):
 
     parentScene: PointerProperty(type=Scene)
 

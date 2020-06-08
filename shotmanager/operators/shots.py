@@ -266,6 +266,48 @@ class UAS_ShotManager_RemoveShot(Operator):
         return {"FINISHED"}
 
 
+class UAS_ShotManager_Actions(Operator):
+    """Move items up and down, add and remove"""
+
+    bl_idname = "uas_shot_manager.list_action"
+    bl_label = "List Actions"
+    bl_description = "Move items up and down, add and remove"
+    bl_options = {"INTERNAL"}
+
+    action: bpy.props.EnumProperty(items=(("UP", "Up", ""), ("DOWN", "Down", "")))
+
+    def invoke(self, context, event):
+        scene = context.scene
+        props = scene.UAS_shot_manager_props
+        shots = props.get_shots()
+        currentShotInd = props.getCurrentShotIndex()
+        selectedShotInd = props.getSelectedShotIndex()
+
+        try:
+            item = shots[currentShotInd]
+        except IndexError:
+            pass
+        else:
+            if self.action == "DOWN" and selectedShotInd < len(shots) - 1:
+                shots.move(selectedShotInd, selectedShotInd + 1)
+                if currentShotInd == selectedShotInd:
+                    props.setCurrentShotByIndex(currentShotInd + 1)
+                elif currentShotInd == selectedShotInd + 1:
+                    props.setCurrentShotByIndex(selectedShotInd)
+                props.setSelectedShotByIndex(selectedShotInd + 1)
+
+            elif self.action == "UP" and selectedShotInd >= 1:
+                shots.move(selectedShotInd, selectedShotInd - 1)
+                if currentShotInd == selectedShotInd:
+                    props.setCurrentShotByIndex(currentShotInd - 1)
+                elif currentShotInd == selectedShotInd - 1:
+                    props.setCurrentShotByIndex(selectedShotInd)
+
+                props.setSelectedShotByIndex(selectedShotInd - 1)
+
+        return {"FINISHED"}
+
+
 class UAS_ShotManager_ShotRemoveMultiple(Operator):
     bl_idname = "uas_shot_manager.remove_multiple_shots"
     bl_label = "Remove Shots"
@@ -314,14 +356,13 @@ class UAS_ShotManager_ShotRemoveMultiple(Operator):
 
 class UAS_ShotManager_CreateShotsFromEachCamera(Operator):
     bl_idname = "uas_shot_manager.create_shots_from_each_camera"
-    bl_label = "Create Shots From Each Camera"
-    bl_description = "Create Shots From Each Camera"
+    bl_label = "Create Shots From Existing Cameras"
+    bl_description = "Create a new shot for each camera in the scene.\nThe edit made with these shots will cover the current animation range."
     bl_options = {"INTERNAL"}
 
     def invoke(self, context, event):
         scene = context.scene
         props = scene.UAS_shot_manager_props
-        shots = props.get_shots()
         currentShotInd = props.getCurrentShotIndex()
         selectedShotInd = props.getSelectedShotIndex()
 
@@ -334,21 +375,24 @@ class UAS_ShotManager_CreateShotsFromEachCamera(Operator):
                 cams.append(obj)
         cams = sorted(cams, key=_objectSortingFunc)
 
-        for i, cam in enumerate(cams):
-            shotName = props.new_shot_prefix + f"{(i + 1):02d}" + "0"
-            props.addShot(
-                atIndex=selectedShotInd + i + 1,
-                camera=cam,
-                name=shotName,
-                start=i * props.new_shot_duration,
-                end=(i + 1) * props.new_shot_duration - 1,
-                color=(uniform(0, 1), uniform(0, 1), uniform(0, 1), 1),
-            )
+        if len(cams):
+            duration = scene.frame_end - scene.frame_start + 1
 
-        if -1 == currentShotInd:
-            props.setCurrentShotByIndex(0)
-            props.setSelectedShotByIndex(0)
-            # wkip pas parfait, on devrait conserver la sel currente
+            for i, cam in enumerate(cams):
+                shotName = props.new_shot_prefix + f"{(i + 1):02d}" + "0"
+                props.addShot(
+                    atIndex=selectedShotInd + i + 1,
+                    camera=cam,
+                    name=shotName,
+                    start=scene.frame_start + i * int(duration / len(cams)),
+                    end=scene.frame_start + (i + 1) * int(duration / len(cams)) - 1,
+                    color=(uniform(0, 1), uniform(0, 1), uniform(0, 1), 1),
+                )
+
+            if -1 == currentShotInd:
+                props.setCurrentShotByIndex(0)
+                props.setSelectedShotByIndex(0)
+                # wkip pas parfait, on devrait conserver la sel currente
 
         return {"FINISHED"}
 
@@ -376,7 +420,6 @@ class UAS_ShotManager_Shots_RemoveCamera(Operator):
     removeFromOtherTakes: BoolProperty(name="Also Remove From Other Takes", default=False)
 
     def draw(self, context):
-        scene = context.scene
         layout = self.layout
 
         box = layout.box()
@@ -387,7 +430,6 @@ class UAS_ShotManager_Shots_RemoveCamera(Operator):
     def execute(self, context):
         props = context.scene.UAS_shot_manager_props
         selectedShot = props.getSelectedShot()
-        selectedShotInd = props.getSelectedShotIndex()
 
         if selectedShot is None:
             return {"CANCELLED"}
@@ -479,6 +521,7 @@ _classes = (
     UAS_ShotManager_ShotAdd,
     UAS_ShotManager_ShotDuplicate,
     UAS_ShotManager_RemoveShot,
+    UAS_ShotManager_Actions,
     UAS_ShotManager_ShotRemoveMultiple,
     UAS_ShotManager_Shots_SelectCamera,
     UAS_ShotManager_Shots_RemoveCamera,

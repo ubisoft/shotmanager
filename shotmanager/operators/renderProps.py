@@ -975,10 +975,14 @@ class UAS_ShotManager_OT_Import_OTIO(Operator):
         description="Create a camera for each new shot or use the same camera for all shots",
         default=True,
     )
+    useMediaAsCameraBG: BoolProperty(
+        name="Use Clips as Camera Backgrounds",
+        description="Use the clips and videos from the edit file as background for the cameras",
+        default=True,
+    )
     reformatShotNames: BoolProperty(
         name="Reformat Shot Names", description="Keep only the shot name part for the name of the shots", default=True,
     )
-    use_clip_media_camera_backgrounds = BoolProperty ( name = "Use Clip Media Camera Backgrounds" )
 
     def draw(self, context):
         layout = self.layout
@@ -989,8 +993,8 @@ class UAS_ShotManager_OT_Import_OTIO(Operator):
 
         box.separator(factor=0.2)
         box.prop(self, "createCameras")
+        box.prop(self, "useMediaAsCameraBG")
         box.prop(self, "reformatShotNames")
-        box.prop(self, "use_clip_media_camera_backgrounds")
 
         layout.separator()
 
@@ -1010,7 +1014,7 @@ class UAS_ShotManager_OT_Import_OTIO(Operator):
                 track = timeline.video_tracks()[0]  # Assume the first one contains the shots.
 
                 cam = None
-                if not self.createCameras: # Create Default Camera
+                if not self.createCameras:  # Create Default Camera
                     # bpy.ops.object.camera_add(location=[0, 0, 0], rotation=[0, 0, 0])  # doesn't return a cam...
                     cam = bpy.data.cameras.new("Camera")
                     cam_ob = bpy.data.objects.new(cam.name, cam)
@@ -1019,15 +1023,14 @@ class UAS_ShotManager_OT_Import_OTIO(Operator):
                     cam_ob.location = (0.0, 0.0, 0.0)
                     cam_ob.rotation_euler = (radians(90), 0.0, radians(90))
 
-                shot_re = re.compile ( r"sh_?(\d+)", re.IGNORECASE )
+                shot_re = re.compile(r"sh_?(\d+)", re.IGNORECASE)
                 for i, clip in enumerate(track.each_clip()):
                     clipName = clip.name
                     if self.createCameras:
                         if self.reformatShotNames:
-                            match = shot_re.search ( clipName )
+                            match = shot_re.search(clipName)
                             if match:
-                                clipName = context.scene.UAS_shot_manager_props.new_shot_prefix + match.group ( 1 )
-
+                                clipName = context.scene.UAS_shot_manager_props.new_shot_prefix + match.group(1)
 
                         cam = bpy.data.cameras.new("Cam_" + clipName)
                         cam_ob = bpy.data.objects.new(cam.name, cam)
@@ -1036,12 +1039,14 @@ class UAS_ShotManager_OT_Import_OTIO(Operator):
                         cam_ob.color = [uniform(0, 1), uniform(0, 1), uniform(0, 1), 1]
                         cam_ob.location = (0.0, i, 0.0)
                         cam_ob.rotation_euler = (radians(90), 0.0, radians(90))
-                        if self.use_clip_media_camera_backgrounds:
-                            media_path = Path ( utils.file_path_from_uri ( clip.media_reference.target_url ) )
-                            if not media_path.exists ( ):
+                        if self.useMediaAsCameraBG:
+                            media_path = Path(utils.file_path_from_uri(clip.media_reference.target_url))
+                            if not media_path.exists():
                                 # Lets find it inside next to the xml.
-                                media_path = Path ( self.otioFile ).parent.joinpath ( media_path.name )
-                            utils.add_background_video_to_cam ( cam, str ( media_path ), otio.opentime.to_frames(clip.range_in_parent().start_time) )
+                                media_path = Path(self.otioFile).parent.joinpath(media_path.name)
+                            utils.add_background_video_to_cam(
+                                cam, str(media_path), otio.opentime.to_frames(clip.range_in_parent().start_time)
+                            )
 
                     bpy.ops.uas_shot_manager.add_shot(
                         name=clipName,

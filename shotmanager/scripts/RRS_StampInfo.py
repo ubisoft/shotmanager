@@ -58,6 +58,8 @@ def setRRS_StampInfoSettings(scene):
             stampInfoSettings.dateUsed = True
             stampInfoSettings.timeUsed = True
 
+            stampInfoSettings.videoDurationUsed = True
+
             stampInfoSettings.videoFrameUsed = True
             stampInfoSettings.videoRangeUsed = True
             stampInfoSettings.videoHandlesUsed = True
@@ -76,6 +78,8 @@ def setRRS_StampInfoSettings(scene):
             stampInfoSettings.shotUsed = True
             stampInfoSettings.cameraUsed = True
             stampInfoSettings.cameraLensUsed = True
+
+            stampInfoSettings.shotDurationUsed = True
 
             stampInfoSettings.filenameUsed = True
             stampInfoSettings.filepathUsed = True

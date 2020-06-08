@@ -165,12 +165,12 @@ class UAS_PT_ShotManager_Render_StampInfoProperties(Panel):
         layout.emboss = "NONE"
         row = layout.row(align=True)
 
-        if context.scene.UAS_StampInfo_Settings is None:
+        if "UAS_StampInfo_Settings" in context.scene and context.scene["UAS_StampInfo_Settings"] is None:
             row.alert = True
             row.label(text="Not found !")
         else:
             row.alert = False
-        row.label(text="Loaded - V." + context.scene.UAS_StampInfo_Settings.version())
+        # wkip    row.label(text="Loaded - V." + context.scene["UAS_StampInfo_Settings"].version())
 
     def draw(self, context):
         box = self.layout.box()
