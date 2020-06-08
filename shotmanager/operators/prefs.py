@@ -1,135 +1,198 @@
-#-*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 
 import bpy
-from bpy.types import Panel, Operator
-from bpy.props import IntProperty, StringProperty, EnumProperty, BoolProperty, PointerProperty, FloatVectorProperty
-
-
+from bpy.types import Panel
 
 
 #############
-## Preferences
+# Preferences
 #############
 
-class UAS_PT_ShotManagerPrefPanel ( Panel ):
+
+class UAS_PT_ShotManagerPrefPanel(Panel):
     bl_label = "Preferences"
     bl_idname = "UAS_PT_Shot_Manager_Pref"
     bl_space_type = "VIEW_3D"
     bl_region_type = "UI"
     bl_category = "UAS Shot Man"
-    bl_options = { "DEFAULT_CLOSED" }
+    bl_options = {"DEFAULT_CLOSED"}
 
-    def draw ( self, context ):
+    def draw(self, context):
         layout = self.layout
 
     # shots preferences
-        # row = layout.row()
-        # row.label ( text = "Shots:" )
-        # box = layout.box()
-        # col = box.column()
-        # col.use_property_split = True
-        # col.prop ( context.scene.UAS_shot_manager_props, "display_camera_in_shotlist", text = "Display Camera in Shot List" )
-        # col.prop ( context.scene.UAS_shot_manager_props, "new_shot_duration", text = "Default Shot Length" )
-        # col.prop ( context.scene.UAS_shot_manager_props, "new_shot_prefix", text = "Default Shot Prefix" )
-        
+    # row = layout.row()
+    # row.label ( text = "Shots:" )
+    # box = layout.box()
+    # col = box.column()
+    # col.use_property_split = True
+    # col.prop ( context.scene.UAS_shot_manager_props, "display_camera_in_shotlist", text = "Display Camera in Shot List" )
+    # col.prop ( context.scene.UAS_shot_manager_props, "new_shot_duration", text = "Default Shot Length" )
+    # col.prop ( context.scene.UAS_shot_manager_props, "new_shot_prefix", text = "Default Shot Prefix" )
+
     # timeline preferences
-        # row = layout.row()
-        # row.label ( text = "Timeline:" )
-        # box = layout.box()
-        # col = box.column()
-        # col.use_property_split = True
-        # col.prop ( context.scene.UAS_shot_manager_props, "change_time", text = "Set Current Frame On Shot Selection" )
-        # col.prop ( context.scene.UAS_shot_manager_props, "display_disabledshots_in_timeline", text = "Display Disabled Shots in Timeline" )
+    # row = layout.row()
+    # row.label ( text = "Timeline:" )
+    # box = layout.box()
+    # col = box.column()
+    # col.use_property_split = True
+    # col.prop ( context.scene.UAS_shot_manager_props, "change_time", text = "Set Current Frame On Shot Selection" )
+    # col.prop ( context.scene.UAS_shot_manager_props, "display_disabledshots_in_timeline", text = "Display Disabled Shots in Timeline" )
 
 
-class UAS_PT_ShotManagerPref_General ( Panel ):
+class UAS_PT_ShotManagerPref_General(Panel):
     bl_label = "General"
     bl_idname = "UAS_PT_Shot_Manager_Pref_General"
     bl_space_type = "VIEW_3D"
     bl_region_type = "UI"
     bl_category = "UAS Shot Man"
-    bl_options = { "DEFAULT_CLOSED" }
+    bl_options = {"DEFAULT_CLOSED"}
     bl_parent_id = "UAS_PT_Shot_Manager_Pref"
 
-    def draw ( self, context ):
+    def draw(self, context):
         layout = self.layout
         layout.use_property_split = True
 
-        col = layout.column ( )
+        col = layout.column()
         col.use_property_split = True
-        col.label( text = "PlaceHolder")
+        col.label(text="PlaceHolder")
 
 
-class UAS_PT_ShotManagerPref_Timeline ( Panel ):
+class UAS_PT_ShotManagerPref_Project(Panel):
+    bl_label = "Project"
+    bl_idname = "UAS_PT_Shot_Manager_Pref_Project"
+    bl_space_type = "VIEW_3D"
+    bl_region_type = "UI"
+    bl_category = "UAS Shot Man"
+    bl_options = {"DEFAULT_CLOSED"}
+    bl_parent_id = "UAS_PT_Shot_Manager_Pref"
+
+    def draw(self, context):
+        layout = self.layout
+        props = context.scene.UAS_shot_manager_props
+        layout.use_property_split = True
+
+        col = layout.column()
+        col.use_property_split = True
+        col.prop(props, "new_shot_duration", text="Default Shot Length")
+        col.prop(props, "new_shot_prefix", text="Default Shot Prefix")
+
+        # row = layout.row()
+        # row.label(text="Handles:")
+        col.prop(props, "handles", text="Handles Duration")
+
+
+class UAS_PT_ShotManagerPref_Timeline(Panel):
     bl_label = "Play Mode and Timeline"
     bl_idname = "UAS_PT_Shot_Manager_Pref_Timeline"
     bl_space_type = "VIEW_3D"
     bl_region_type = "UI"
     bl_category = "UAS Shot Man"
-    bl_options = { "DEFAULT_CLOSED" }
+    bl_options = {"DEFAULT_CLOSED"}
     bl_parent_id = "UAS_PT_Shot_Manager_Pref"
 
-    def draw ( self, context ):
+    def draw(self, context):
+        props = context.scene.UAS_shot_manager_props
         layout = self.layout
         row = layout.row()
-      
-       # box = layout.box()
-       # col = box.column ( )
-    # or
-        col = row.column ( )
+
+        # box = layout.box()
+        # col = box.column ( )
+        # or
+        col = row.column()
         col.use_property_split = True
-        col.prop ( context.scene.UAS_shot_manager_props, "change_time", text = "Set Current Frame On Shot Selection" )
-        col.prop ( context.scene.UAS_shot_manager_props, "display_disabledshots_in_timeline", text = "Display Disabled Shots in Timeline" )
-    #    col.prop ( context.scene.UAS_shot_manager_props, "display_prev_next_buttons", text = "Display Previous and Next Frame buttons in the play bar" )
+        col.prop(props, "change_time", text="Set Current Frame On Shot Selection")
+        col.prop(
+            props, "display_disabledshots_in_timeline", text="Display Disabled Shots in Timeline",
+        )
+        col.prop(props, "editStartFrame", text="Index of the First Frame in the Edit")
+        col.prop(
+            props, "use_camera_color", text="Use Camera Color for Shots ",
+        )
+
+    #    col.prop ( props, "display_prev_next_buttons", text = "Display Previous and Next Frame buttons in the play bar" )
 
 
-        
-class UAS_PT_ShotManagerPref_Shots ( Panel ):
+class UAS_PT_ShotManagerPref_Shots(Panel):
     bl_label = "Shots"
     bl_idname = "UAS_PT_Shot_Manager_Pref_Shots"
     bl_space_type = "VIEW_3D"
     bl_region_type = "UI"
     bl_category = "UAS Shot Man"
-    bl_options = { "DEFAULT_CLOSED" }
+    bl_options = {"DEFAULT_CLOSED"}
     bl_parent_id = "UAS_PT_Shot_Manager_Pref"
 
-    def draw ( self, context ):
+    def draw(self, context):
         layout = self.layout
         row = layout.row()
-      
-       # box = layout.box()
-       # col = box.column ( )
-    # or
-        col = row.column ( )
+
+        # box = layout.box()
+        # col = box.column ( )
+        # or
+        col = row.column()
 
         col.use_property_split = True
-    #    col.prop ( context.scene.UAS_shot_manager_props, "display_camera_in_shotlist", text = "Display Camera in Shot List" )
-    #    col.prop ( context.scene.UAS_shot_manager_props, "display_color_in_shotlist", text = "Display Color in Shot List" )
-        col.prop ( context.scene.UAS_shot_manager_props, "display_selectbut_in_shotlist", text = "Display Camera Select button in Shot List" )
+        #    col.prop ( context.scene.UAS_shot_manager_props, "display_camera_in_shotlist", text = "Display Camera in Shot List" )
+        #    col.prop ( context.scene.UAS_shot_manager_props, "display_color_in_shotlist", text = "Display Color in Shot List" )
+        col.prop(
+            context.scene.UAS_shot_manager_props,
+            "display_selectbut_in_shotlist",
+            text="Display Camera Select button in Shot List",
+        )
         col.separator()
-        col.prop ( context.scene.UAS_shot_manager_props, "highlight_all_shot_frames", text = "Highlight all framing values in Shot List" )
-        col.prop ( context.scene.UAS_shot_manager_props, "current_shot_properties_mode" )
+        col.prop(
+            context.scene.UAS_shot_manager_props,
+            "highlight_all_shot_frames",
+            text="Highlight all framing values in Shot List",
+        )
+        col.prop(context.scene.UAS_shot_manager_props, "current_shot_properties_mode")
         col.separator()
-        col.prop ( context.scene.UAS_shot_manager_props, "new_shot_duration", text = "Default Shot Length" )
-        col.prop ( context.scene.UAS_shot_manager_props, "new_shot_prefix", text = "Default Shot Prefix" )
 
         layout.separator()
 
 
+class UAS_PT_ShotManager_Render_StampInfoProperties(Panel):
+    bl_label = "Stamp Info Properties"
+    bl_idname = "UAS_PT_Shot_Manager_Pref_StampInfoPrefs"
+    bl_space_type = "VIEW_3D"
+    bl_region_type = "UI"
+    bl_category = "UAS Shot Man"
+    bl_options = {"DEFAULT_CLOSED"}
+    bl_parent_id = "UAS_PT_Shot_Manager_Pref"
+
+    def draw_header_preset(self, context):
+        layout = self.layout
+        layout.emboss = "NONE"
+        row = layout.row(align=True)
+
+        if "UAS_StampInfo_Settings" in context.scene and context.scene["UAS_StampInfo_Settings"] is None:
+            row.alert = True
+            row.label(text="Not found !")
+        else:
+            row.alert = False
+        # wkip    row.label(text="Loaded - V." + context.scene["UAS_StampInfo_Settings"].version())
+
+    def draw(self, context):
+        box = self.layout.box()
+        row = box.row()
+        row.prop(context.scene.UAS_shot_manager_props, "useStampInfoDuringRendering")
 
 
-_classes = ( UAS_PT_ShotManagerPrefPanel,
-            UAS_PT_ShotManagerPref_Shots,
-           # UAS_PT_ShotManagerPref_General,
-            UAS_PT_ShotManagerPref_Timeline
-             )
+_classes = (
+    UAS_PT_ShotManagerPrefPanel,
+    UAS_PT_ShotManagerPref_Project,
+    UAS_PT_ShotManagerPref_Timeline,
+    UAS_PT_ShotManagerPref_Shots,
+    UAS_PT_ShotManager_Render_StampInfoProperties,
+    # UAS_PT_ShotManagerPref_General,
+)
 
 
-def register ( ):
+def register():
     for cls in _classes:
-        bpy.utils.register_class ( cls )
+        bpy.utils.register_class(cls)
 
 
-def unregister ( ):
-    for cls in reversed ( _classes ):
-        bpy.utils.unregister_class ( cls )
+def unregister():
+    for cls in reversed(_classes):
+        bpy.utils.unregister_class(cls)

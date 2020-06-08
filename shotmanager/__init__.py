@@ -5,6 +5,14 @@
 # Installation:
 #
 #
+# Things to know:
+#   - 1 shot manager instance per scene (= possible differences in preferences per scene)
+#
+#   - time on media (= output videos) starts at frame 0 (and then last frame index is equal to Durantion - 1)
+#   - Shots:
+#       - end frame is INCLUDED in the shot frames (and then rendered)
+#
+#
 # Dev notes:
 #  * Pb:
 #   cleanner le patch dégueu des indices de takes lors de la suppression des shots disabled
@@ -23,31 +31,52 @@
 #
 #       - mettre des vraies prefs utilisateurs
 #
-#       - installer open timeline io
-#
 
 
 import os
+import importlib
 from pathlib import Path
 import subprocess
-import importlib
+import platform
 
 import bpy
 import bpy.utils.previews
-from bpy.props import IntProperty, StringProperty, EnumProperty, BoolProperty, FloatVectorProperty
+from bpy.props import BoolProperty
 from bpy.types import Panel, Operator, Menu
 
 try:
     import opentimelineio as otio
-except ModuleNotFoundError:
-    subprocess.run([bpy.app.binary_path_python, "-m", "pip", "install", "opentimelineio==0.11.0"])
-    import opentimelineio as otio
 
-import addon_utils
+    if otio.__version__ < "0.12.1" and platform.system() == "Windows":
+        print("Upgrading OpentimelineIO to 0.12.1")
+        subprocess.run(
+            [
+                bpy.app.binary_path_python,
+                "-m",
+                "pip",
+                "install",
+                os.path.join(os.path.dirname(__file__), "OpenTimelineIO-0.12.1-cp37-cp37m-win_amd64.whl"),
+            ]
+        )
+        importlib.reload(otio)  # Need to be tested.
+except ModuleNotFoundError:
+    if platform.system() == platform.system() == "Windows":
+        subprocess.run(
+            [
+                bpy.app.binary_path_python,
+                "-m",
+                "pip",
+                "install",
+                os.path.join(os.path.dirname(__file__), "OpenTimelineIO-0.12.1-cp37-cp37m-win_amd64.whl"),
+            ]
+        )
+    else:
+        subprocess.run([bpy.app.binary_path_python, "-m", "pip", "install", "opentimelineio"])
+    import opentimelineio as otio
 
 from .ogl_ui import UAS_ShotManager_DrawTimeline, UAS_ShotManager_DrawCameras_UI
 
-from . import properties
+from .properties import props
 
 from .handlers import jump_to_shot
 
@@ -55,14 +84,21 @@ from .utils import utils
 
 from .operators import takes
 from .operators import shots
+from .operators import shots_global_settings
+
 from .operators import renderProps
 from .operators import playbar
+from .operators import timeControl
 from .operators import prefs
 from .utils import utils_render
 
 from .scripts import precut_tools
 
 from .tools import vse_render
+from .tools import retimer
+
+
+from . import video_shot_manager
 
 
 bl_info = {
@@ -70,7 +106,7 @@ bl_info = {
     "author": "Romain Carriquiry Borchiari, Julien Blervaque (aka Werwack)",
     "description": "Manage a sequence of shots and cameras in the 3D View - Ubisoft Animation Studio",
     "blender": (2, 82, 0),
-    "version": (1, 1, 15),
+    "version": (1, 2, 10),
     "location": "View3D > UAS Shot Manager",
     "wiki_url": "https://mdc-web-tomcat17.ubisoft.org/confluence/display/UASTech/UAS+Shot+Manager",
     "warning": "",
@@ -92,28 +128,24 @@ class UAS_PT_ShotManager(Panel):
     bl_region_type = "UI"
     bl_category = "UAS Shot Man"
 
+    # About panel ###
     def draw_header(self, context):
-        scene = context.scene
-        render = scene.render
-        props = scene.UAS_shot_manager_props
-
         layout = self.layout
         layout.emboss = "NONE"
         row = layout.row(align=True)
 
-        # About... panel
         if context.window_manager.UAS_shot_manager_displayAbout:
-            _emboss = True
+            # _emboss = True
             row.alert = True
         else:
-            _emboss = False
+            #    _emboss = False
             row.alert = False
 
-        row.prop(context.window_manager, "UAS_shot_manager_displayAbout", icon="SETTINGS", icon_only=True)
+        global icons_col
+        icon = icons_col["General_Ubisoft_32"]
+        row.prop(context.window_manager, "UAS_shot_manager_displayAbout", icon_value=icon.icon_id, icon_only=True)
 
     def draw_header_preset(self, context):
-        scene = context.scene
-
         layout = self.layout
         layout.emboss = "NONE"
         row = layout.row(align=True)
@@ -122,7 +154,9 @@ class UAS_PT_ShotManager(Panel):
         row.operator("utils.launchrender", text="", icon="RENDER_ANIMATION").renderMode = "ANIMATION"
         # row.label(text = "|")
         row.separator(factor=2)
-        row.operator("uas_shot_manager.render_openexplorer", text="", icon="FILEBROWSER").path = bpy.path.abspath(
+        global icons_col
+        icon = icons_col["General_Explorer_32"]
+        row.operator("uas_shot_manager.render_openexplorer", text="", icon_value=icon.icon_id).path = bpy.path.abspath(
             bpy.data.filepath
         )
 
@@ -206,28 +240,35 @@ class UAS_PT_ShotManager(Panel):
         row.separator(factor=2.0)
         split = row.split(align=True)
         split.separator()
-        row.prop(context.scene, "frame_current", text="")  # directly binded to the scene property
-        row.separator(factor=2.0)
+        row.prop(scene, "frame_current", text="")  # directly binded to the scene property
         split = row.split(align=True)
+        row.separator(factor=3.0)
         # split.separator ( )
         # wkip mettre une propriété
-        row.prop(context.scene.render, "fps_base", text="")  # directly binded to the scene property
+        # row.prop(scene.render, "fps_base", text="")  # directly binded to the scene property
+        if props.playSpeedGlobal != 100:
+            row.alert = True
+        row.prop(props, "playSpeedGlobal", text="")  # directly binded to the scene property
+        row.alert = False
 
         layout.separator(factor=0.5)
 
         ################
         # editing
         row = layout.row(align=True)
-        editingDuration = props.getEditDuration(ignoreDisabled=True)
+        editingDuration = props.getEditDuration()
         editingDurationStr = "-" if -1 == editingDuration else (str(editingDuration) + " frames")
         row.label(text="Editing Duration: " + editingDurationStr)
 
         row.separator()
         #    row = layout.row(align=True)
         # context.props.getCurrentShotIndex(ignoreDisabled = False
-        editingCurrentTime = props.getEditCurrentTime(ignoreDisabled=True)
+        editingCurrentTime = props.getEditCurrentTime()
         editingCurrentTimeStr = "-" if -1 == editingCurrentTime else str(editingCurrentTime)
         row.label(text="Current Time in Edit: " + editingCurrentTimeStr)
+
+        row.alignment = "RIGHT"
+        row.label(text=str(scene.render.fps) + " fps")
 
         ################
         # status text line
@@ -261,7 +302,13 @@ class UAS_PT_ShotManager(Panel):
         if len(props.takes):
             box = layout.box()
             row = box.row()
-            row.label(text="Shots: ")
+            numShots = len(props.getShotsList(ignoreDisabled=False))
+            numEnabledShots = len(props.getShotsList(ignoreDisabled=True))
+            row.label(text=f"Shots ({numEnabledShots}/{numShots}): ")
+
+            row.operator("uas_shot_manager.scenerangefromshot", text="", icon="PREVIEW_RANGE")
+            row.operator("uas_shot_manager.scenerangefrom3dedit", text="", icon="PREVIEW_RANGE")
+            row.separator(factor=3)
 
             row = box.row()
             templateList = row.template_list(
@@ -272,7 +319,6 @@ class UAS_PT_ShotManager(Panel):
             col.operator("uas_shot_manager.add_shot", icon="ADD", text="")
             col.operator("uas_shot_manager.duplicate_shot", icon="DUPLICATE", text="")
             col.operator("uas_shot_manager.remove_shot", icon="REMOVE", text="")
-            #   col.operator ( "uas_shot_manager.list_action", icon = 'REMOVE', text = "" ).action = 'REMOVE'
             col.separator()
             col.operator("uas_shot_manager.list_action", icon="TRIA_UP", text="").action = "UP"
             col.operator("uas_shot_manager.list_action", icon="TRIA_DOWN", text="").action = "DOWN"
@@ -283,7 +329,7 @@ class UAS_PT_ShotManager(Panel):
 
 
 #############
-## tools for Takes
+# tools for Takes
 #############
 
 
@@ -293,12 +339,11 @@ class UAS_MT_ShotManager_Takes_ToolsMenu(Menu):
     bl_description = "Take Tools"
 
     def draw(self, context):
-        scene = context.scene
 
-        marker_list = context.scene.timeline_markers
+        # marker_list = context.scene.timeline_markers
         # list_marked_cameras = [o.camera for o in marker_list if o != None]
 
-        ## Copy menu entries[ ---
+        # Copy menu entries[ ---
         layout = self.layout
         row = layout.row(align=True)
 
@@ -330,7 +375,7 @@ class UAS_MT_ShotManager_Takes_ToolsMenu(Menu):
 
 
 #############
-## Shots
+# Shots
 #############
 
 
@@ -339,7 +384,7 @@ class UAS_UL_ShotManager_Items(bpy.types.UIList):
         global icons_col
         props = context.scene.UAS_shot_manager_props
         current_shot_index = props.current_shot_index
-        current_shot = props.getCurrentShot()
+
         cam = "Cam" if current_shot_index == index else ""
         currentFrame = context.scene.frame_current
 
@@ -376,14 +421,14 @@ class UAS_UL_ShotManager_Items(bpy.types.UIList):
 
         grid_flow.scale_x = 0.5
 
-        ### start
+        # start
         if currentFrame == item.start:
             if props.highlight_all_shot_frames or current_shot_index == index:
                 grid_flow.alert = True
         grid_flow.prop(item, "start", text="")
         grid_flow.alert = False
 
-        ### duration
+        # duration
         if (
             item.start < currentFrame
             and currentFrame < item.end
@@ -403,7 +448,7 @@ class UAS_UL_ShotManager_Items(bpy.types.UIList):
         grid_flow.scale_x = 0.5
         grid_flow.alert = False
 
-        ### end
+        # end
         if currentFrame == item.end:
             if props.highlight_all_shot_frames or current_shot_index == index:
                 grid_flow.alert = True
@@ -413,16 +458,16 @@ class UAS_UL_ShotManager_Items(bpy.types.UIList):
         grid_flow.scale_x = 1.0
 
         if props.display_camera_in_shotlist:
-            if None == item.camera:
+            if item.camera is None:
                 grid_flow.alert = True
             grid_flow.prop(item, "camera", text="")
-            if None == item.camera:
+            if item.camera is None:
                 grid_flow.alert = False
 
         if props.display_lens_in_shotlist:
             grid_flow.scale_x = 0.4
             grid_flow.use_property_decorate = True
-            if None != item.camera:
+            if item.camera is not None:
                 grid_flow.prop(item.camera.data, "lens", text="Lens")
             else:
                 grid_flow.alert = True
@@ -456,7 +501,6 @@ class UAS_PT_ShotManager_ShotProperties(Panel):
 
     def draw_header(self, context):
         scene = context.scene
-        render = scene.render
         layout = self.layout
         layout.emboss = "NONE"
         row = layout.row(align=True)
@@ -512,10 +556,10 @@ class UAS_PT_ShotManager_ShotProperties(Panel):
             row.separator(factor=1.0)
             c = row.column()
             grid_flow = c.grid_flow(align=False, columns=4, even_columns=False)
-            if None == shot.camera:
+            if shot.camera is None:
                 grid_flow.alert = True
             grid_flow.prop(shot, "camera", text="Camera")
-            if None == shot.camera:
+            if shot.camera is None:
                 grid_flow.alert = False
             grid_flow.prop(props, "display_camera_in_shotlist", text="")
 
@@ -523,7 +567,7 @@ class UAS_PT_ShotManager_ShotProperties(Panel):
             grid_flow.scale_x = 0.7
             #     row.label ( text = "Lens: " )
             grid_flow.use_property_decorate = True
-            if None != shot.camera:
+            if shot.camera is not None:
                 grid_flow.prop(shot.camera.data, "lens", text="Lens")
             else:
                 grid_flow.alert = True
@@ -559,50 +603,49 @@ class UAS_PT_ShotManager_ShotProperties(Panel):
         return val
 
 
-class UAS_ShotManager_Actions(Operator):
-    """Move items up and down, add and remove"""
+class UAS_PT_ShotManager_ShotsGlobalSettings(Panel):
+    bl_label = "Shots Global Control"  # "Current Shot Properties" # keep the space !!
+    bl_idname = "UAS_PT_Shot_Manager_Shots_GlobalSettings"
+    bl_space_type = "VIEW_3D"
+    bl_region_type = "UI"
+    bl_category = "UAS Shot Man"
+    bl_options = {"DEFAULT_CLOSED"}
+    bl_parent_id = "UAS_PT_Shot_Manager"
 
-    bl_idname = "uas_shot_manager.list_action"
-    bl_label = "List Actions"
-    bl_description = "Move items up and down, add and remove"
-    bl_options = {"INTERNAL"}
-
-    action: bpy.props.EnumProperty(items=(("UP", "Up", ""), ("DOWN", "Down", "")))
-
-    def invoke(self, context, event):
+    def draw(self, context):
         scene = context.scene
         props = scene.UAS_shot_manager_props
-        shots = props.get_shots()
-        currentShotInd = props.getCurrentShotIndex()
-        selectedShotInd = props.getSelectedShotIndex()
-        print("  ** Action: currentShotInd: ", currentShotInd)
-        print("     selectedShotInd: ", selectedShotInd)
 
-        try:
-            item = shots[currentShotInd]
-        except IndexError:
-            pass
-        else:
-            if self.action == "DOWN" and selectedShotInd < len(shots) - 1:
-                shots.move(selectedShotInd, selectedShotInd + 1)
-                if currentShotInd == selectedShotInd:
-                    props.setCurrentShotByIndex(currentShotInd + 1)
-                elif currentShotInd == selectedShotInd + 1:
-                    props.setCurrentShotByIndex(selectedShotInd)
-                props.setSelectedShotByIndex(selectedShotInd + 1)
+        layout = self.layout
 
-            elif self.action == "UP" and selectedShotInd >= 1:
-                shots.move(selectedShotInd, selectedShotInd - 1)
-                if currentShotInd == selectedShotInd:
-                    props.setCurrentShotByIndex(currentShotInd - 1)
-                elif currentShotInd == selectedShotInd - 1:
-                    props.setCurrentShotByIndex(selectedShotInd)
+        layout.label(text="Camera Background Images:")
+        box = layout.box()
 
-                props.setSelectedShotByIndex(selectedShotInd - 1)
-                print("     currentShotInd 02: ", currentShotInd)
-                print("     selectedShotInd 02: ", props.getSelectedShotIndex())
+        # name and color
+        row = box.row()
+        row.separator(factor=1.0)
+        c = row.column()
+        grid_flow = c.grid_flow(align=False, columns=4, even_columns=False)
+        grid_flow.operator("uas_shots_settings.use_background", text="Turn On").useBackground = True
+        grid_flow.operator("uas_shots_settings.use_background", text="Turn Off").useBackground = False
+        # grid_flow.operator("uas_shots_settings.background_alpha", text="Alpha")
+        grid_flow.prop(bpy.context.window_manager.UAS_shot_manager_shotsGlobalSettings, "backgroundAlpha", text="Alpha")
 
-        return {"FINISHED"}
+        #   grid_flow.scale_x = 0.7
+        # grid_flow.prop(shot, "color", text="")
+        #   grid_flow.scale_x = 1.0
+        # grid_flow.prop(props, "display_color_in_shotlist", text="")
+        row.separator(factor=0.5)  # prevents stange look when panel is narrow
+
+        # Duration
+        # row = box.row()
+
+    @classmethod
+    def poll(cls, context):
+        props = context.scene.UAS_shot_manager_props
+        val = len(props.getTakes()) and len(props.get_shots())
+
+        return val
 
 
 #################
@@ -655,7 +698,7 @@ class UAS_MT_ShotManager_Shots_ToolsMenu(Menu):
 
         layout.separator()
 
-        ## Clear menu entries[ ---
+        # tools for shots ###
         row = layout.row(align=True)
         row.label(text="Tools for Shots:")
 
@@ -671,6 +714,20 @@ class UAS_MT_ShotManager_Shots_ToolsMenu(Menu):
         row.operator_context = "INVOKE_DEFAULT"
         row.operator("uas_shot_manager.shots_removecamera")
 
+        # import shots ###
+
+        layout.separator()
+        row = layout.row(align=True)
+        row.label(text="Import Shots:")
+
+        row = layout.row(align=True)
+        row.operator_context = "INVOKE_DEFAULT"
+        row.operator("uasotio.openfilebrowser", text="Import Shots From OTIO")
+        # wkip debug - to remove:
+        row = layout.row(align=True)
+        row.operator("uasshotmanager.importotio", text="Import Shots From OTIO - Debug")
+
+        # tools for precut ###
         layout.separator()
         row = layout.row(align=True)
         row.label(text="Tools for Precut:")
@@ -745,6 +802,46 @@ class UAS_ShotManager_Empty(Operator):
     index: bpy.props.IntProperty(default=0)
 
 
+class UAS_ShotManager_SceneRangeFromShot(Operator):
+    bl_idname = "uas_shot_manager.scenerangefromshot"
+    bl_label = "Scene Range From Shot"
+    bl_description = "Set scene time range with CURRENT shot range"
+    bl_options = {"INTERNAL"}
+
+    def execute(self, context):
+        scene = context.scene
+        props = scene.UAS_shot_manager_props
+
+        currentShot = props.getCurrentShot()
+        scene.use_preview_range = True
+
+        scene.frame_preview_start = currentShot.start
+        scene.frame_preview_end = currentShot.end
+
+        return {"FINISHED"}
+
+
+# operator here must be a duplicate of UAS_ShotManager_SceneRangeFromShot is order to use a different description
+class UAS_ShotManager_SceneRangeFrom3DEdit(Operator):
+    bl_idname = "uas_shot_manager.scenerangefrom3dedit"
+    bl_label = "Scene Range From 3D Edit"
+    bl_description = "Set scene time range with the the 3D edit range"
+    bl_options = {"INTERNAL"}
+
+    def execute(self, context):
+        scene = context.scene
+        props = scene.UAS_shot_manager_props
+
+        shotList = props.getShotsList(ignoreDisabled=True)
+
+        if 0 < len(shotList):
+            scene.use_preview_range = True
+            scene.frame_preview_start = shotList[0].start
+            scene.frame_preview_end = shotList[len(shotList) - 1].end
+
+        return {"FINISHED"}
+
+
 ###########
 # Handlers
 ###########
@@ -790,13 +887,16 @@ classes = (
     UAS_PT_ShotManager,
     UAS_MT_ShotManager_Takes_ToolsMenu,
     UAS_PT_ShotManager_ShotProperties,
+    UAS_PT_ShotManager_ShotsGlobalSettings,
     UAS_MT_ShotManager_Shots_ToolsMenu,
-    UAS_ShotManager_Actions,
     UAS_ShotManager_ShotDuration,
     UAS_ShotManager_Empty,
     UAS_ShotManager_DrawTimeline,
     UAS_PT_ShotManager_Initialize,
     UAS_ShotManager_DrawCameras_UI,
+    #  UAS_Retimer,
+    UAS_ShotManager_SceneRangeFromShot,
+    UAS_ShotManager_SceneRangeFrom3DEdit,
 )
 
 
@@ -837,18 +937,21 @@ def register():
 
     takes.register()
     shots.register()
+    shots_global_settings.register()
     utils.register()
     playbar.register()
+    timeControl.register()
     renderProps.register()
     vse_render.register()
     prefs.register()
     precut_tools.register()
-    properties.register()
+    props.register()
     utils_render.register()
+    video_shot_manager.register()
 
     # declaration of properties that will not be saved in the scene
 
-    ### About button panel Quick Settings[ -----------------------------
+    # About button panel Quick Settings
     bpy.types.WindowManager.UAS_shot_manager_displayAbout = BoolProperty(
         name="About...", description="Display About Informations", default=False
     )
@@ -871,6 +974,7 @@ def register():
         update=timeline_valueChanged,
     )
 
+    # from pathlib import Path
     pcoll = bpy.utils.previews.new()
     my_icons_dir = os.path.join(os.path.dirname(__file__), "icons")
     for png in Path(my_icons_dir).rglob("*.png"):
@@ -881,14 +985,17 @@ def register():
 
 
 def unregister():
+    video_shot_manager.unregister()
     utils_render.unregister()
-    properties.unregister()
+    props.unregister()
     precut_tools.unregister()
     prefs.unregister()
     vse_render.unregister()
     renderProps.unregister()
+    timeControl.unregister()
     playbar.unregister()
     utils.unregister()
+    shots_global_settings.unregister()
     shots.unregister()
     takes.unregister()
 
