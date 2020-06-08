@@ -14,6 +14,7 @@ from bpy.props import (
 )
 
 from shotmanager.operators import shots
+from .media import UAS_ShotManager_Media
 from .render_settings import UAS_ShotManager_RenderSettings
 from .shot import UAS_ShotManager_Shot
 from .take import UAS_ShotManager_Take
@@ -550,9 +551,9 @@ class UAS_ShotManager_Props(PropertyGroup):
         if -1 == takeInd:
             return None
 
-        shotList = self.get_shots(takeInd)
+        shots = self.get_shots(takeInd)
 
-        newShot = shotList.add()  # shot is added at the end
+        newShot = shots.add()  # shot is added at the end
         newShot.parentScene = self.getParentScene()
         newShot.parentTakeIndex = takeInd
         newShot.name = name
@@ -563,7 +564,7 @@ class UAS_ShotManager_Props(PropertyGroup):
         newShot.color = color
 
         if -1 != atIndex:  # move shot at specified index
-            shotList.move(len(shotList) - 1, atIndex)
+            shots.move(len(shots) - 1, atIndex)
 
         return newShot
 
@@ -580,7 +581,7 @@ class UAS_ShotManager_Props(PropertyGroup):
         if -1 == takeInd:
             return None
 
-        shotList = self.get_shots(takeInd)
+        shots = self.get_shots(takeInd)
 
         newShot = shots.add()  # shot is added at the end
         newShot.parentTakeIndex = takeInd
@@ -592,8 +593,8 @@ class UAS_ShotManager_Props(PropertyGroup):
         newShot.color = shot.color
 
         if -1 != atIndex:  # move shot at specified index
-            shotList.move(len(shotList) - 1, atIndex)
-            newShot = shotList[atIndex]
+            shots.move(len(shots) - 1, atIndex)
+            newShot = shots[atIndex]
 
         return newShot
 
@@ -802,17 +803,17 @@ class UAS_ShotManager_Props(PropertyGroup):
         if -1 == takeInd:
             return firstShotInd
 
-        shots = self.getShotsList(ignoreDisabled=ignoreDisabled, takeIndex=takeIndex)
-        #   print(" getFirstShotIndex: shots: ", shots)
+        shotList = self.getShotsList(ignoreDisabled=ignoreDisabled, takeIndex=takeIndex)
+        #   print(" getFirstShotIndex: shotList: ", shotList)
 
-        #  not required cause shots is already filtered!
-        # if ignoreDisabled and 0 < len(shots):
+        #  not required cause shotList is already filtered!
+        # if ignoreDisabled and 0 < len(shotList):
         #     firstShotInd = 0
-        #     while firstShotInd < len(shots) and not shots[firstShotInd].enabled:
+        #     while firstShotInd < len(shotList) and not shotList[firstShotInd].enabled:
         #         firstShotInd += 1
-        #     if firstShotInd >= len(shots): firstShotInd = 0
+        #     if firstShotInd >= len(shotList): firstShotInd = 0
         # else:
-        if 0 < len(shots):
+        if 0 < len(shotList):
             firstShotInd = 0
 
         return firstShotInd
@@ -832,11 +833,11 @@ class UAS_ShotManager_Props(PropertyGroup):
         if -1 == takeInd:
             return lastShotInd
 
-        shots = self.getShotsList(ignoreDisabled=ignoreDisabled, takeIndex=takeIndex)
-        print(" getLastShotIndex: shots: ", shots)
+        shotList = self.getShotsList(ignoreDisabled=ignoreDisabled, takeIndex=takeIndex)
+        print(" getLastShotIndex: shotList: ", shotList)
 
-        if 0 < len(shots):
-            lastShotInd = len(shots) - 1
+        if 0 < len(shotList):
+            lastShotInd = len(shotList) - 1
 
         return lastShotInd
 
@@ -868,13 +869,13 @@ class UAS_ShotManager_Props(PropertyGroup):
         if -1 == takeInd:
             return previousShotInd
 
-        shots = self.getShotsList(takeIndex=takeIndex)
+        shotList = self.getShotsList(takeIndex=takeIndex)
 
         previousShotInd = currentShotIndex - 1
-        isPreviousFound = shots[previousShotInd].enabled
+        isPreviousFound = shotList[previousShotInd].enabled
         while 0 <= previousShotInd and not isPreviousFound:
             previousShotInd -= 1
-            isPreviousFound = shots[previousShotInd].enabled
+            isPreviousFound = shotList[previousShotInd].enabled
 
         return previousShotInd
 
@@ -886,17 +887,17 @@ class UAS_ShotManager_Props(PropertyGroup):
         if -1 == takeInd:
             return nextShotInd
 
-        shots = self.getShotsList(takeIndex=takeIndex)
+        shotList = self.getShotsList(takeIndex=takeIndex)
 
         nextShotInd = currentShotIndex + 1
-        if len(shots) > nextShotInd:
-            isNextFound = shots[nextShotInd].enabled
-            while len(shots) > nextShotInd and not isNextFound:
+        if len(shotList) > nextShotInd:
+            isNextFound = shotList[nextShotInd].enabled
+            while len(shotList) > nextShotInd and not isNextFound:
                 nextShotInd += 1
-                if len(shots) > nextShotInd:
-                    isNextFound = shots[nextShotInd].enabled
+                if len(shotList) > nextShotInd:
+                    isNextFound = shotList[nextShotInd].enabled
 
-        if len(shots) <= nextShotInd:
+        if len(shotList) <= nextShotInd:
             nextShotInd = -1
 
         return nextShotInd
@@ -1335,11 +1336,18 @@ class UAS_ShotManager_Props(PropertyGroup):
         self.isInitialized = True
 
 
-_classes = (UAS_ShotManager_Shot, UAS_ShotManager_Take, UAS_ShotManager_RenderSettings, UAS_ShotManager_Props)
+_classes = (
+    UAS_ShotManager_Media,
+    UAS_ShotManager_Shot,
+    UAS_ShotManager_Take,
+    UAS_ShotManager_RenderSettings,
+    UAS_ShotManager_Props,
+)
 
 
 def register():
     print("\n *** *** Resistering Shot Manager Addon *** *** \n")
+
     for cls in _classes:
         bpy.utils.register_class(cls)
 
@@ -1347,6 +1355,8 @@ def register():
 
 
 def unregister():
+
     del bpy.types.Scene.UAS_shot_manager_props
+
     for cls in reversed(_classes):
         bpy.utils.unregister_class(cls)

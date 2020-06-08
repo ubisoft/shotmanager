@@ -1,8 +1,10 @@
 
 
 import os
-from pathlib import Path
+import re
 import subprocess
+from pathlib import Path
+from urllib.parse import unquote_plus, urlparse
 
 import bpy
 from bpy.types import Operator
@@ -69,6 +71,36 @@ def ShowMessageBox(message="", title="Message Box", icon="INFO"):
 
     bpy.context.window_manager.popup_menu(draw, title=title, icon=icon)
 
+
+# #Shows a message box with a specific message 
+# ShowMessageBox("This is a message") 
+
+# #Shows a message box with a message and custom title
+# ShowMessageBox("This is a message", "This is a custom title")
+
+# #Shows a message box with a message, custom title, and a specific icon
+# ShowMessageBox("This is a message", "This is a custom title", 'ERROR')
+
+def file_path_from_uri ( uri ):
+    path = unquote_plus ( urlparse ( uri ).path ).replace ( "\\", "//" )
+    if re.match ( r"^/\S:.*", path ):  # Remove leading /
+        path = path[ 1: ]
+
+    return path
+
+
+def add_background_video_to_cam ( camera: bpy.types.Camera, movie_path, frame_start = 1 ):
+    movie_path = Path ( movie_path )
+    if not movie_path.exists ( ):
+        return
+
+    if "FINISHED" in bpy.ops.clip.open ( directory = str ( movie_path.parent ), files = [ { "name": movie_path.name } ] ):
+        clip = bpy.data.movieclips[ movie_path.name ]
+        clip.frame_start = frame_start
+        camera.show_background_images = True
+        bg = camera.background_images.new( )
+        bg.source = "MOVIE_CLIP"
+        bg.clip = clip
 
 _classes = (UAS_ShotManager_OpenExplorer, )
 

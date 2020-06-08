@@ -98,6 +98,9 @@ from .tools import vse_render
 from .tools import retimer
 
 
+from . import video_shot_manager
+
+
 bl_info = {
     "name": "UAS Shot Manager",
     "author": "Romain Carriquiry Borchiari, Julien Blervaque (aka Werwack)",
@@ -316,7 +319,6 @@ class UAS_PT_ShotManager(Panel):
             col.operator("uas_shot_manager.add_shot", icon="ADD", text="")
             col.operator("uas_shot_manager.duplicate_shot", icon="DUPLICATE", text="")
             col.operator("uas_shot_manager.remove_shot", icon="REMOVE", text="")
-            #   col.operator ( "uas_shot_manager.list_action", icon = 'REMOVE', text = "" ).action = 'REMOVE'
             col.separator()
             col.operator("uas_shot_manager.list_action", icon="TRIA_UP", text="").action = "UP"
             col.operator("uas_shot_manager.list_action", icon="TRIA_DOWN", text="").action = "DOWN"
@@ -616,7 +618,7 @@ class UAS_PT_ShotManager_ShotsGlobalSettings(Panel):
 
         layout = self.layout
 
-        layout.label(text="Cameras Background:")
+        layout.label(text="Camera Background Images:")
         box = layout.box()
 
         # name and color
@@ -624,7 +626,11 @@ class UAS_PT_ShotManager_ShotsGlobalSettings(Panel):
         row.separator(factor=1.0)
         c = row.column()
         grid_flow = c.grid_flow(align=False, columns=4, even_columns=False)
-        grid_flow.operator("uas_shots_settings.use_background")
+        grid_flow.operator("uas_shots_settings.use_background", text="Turn On").useBackground = True
+        grid_flow.operator("uas_shots_settings.use_background", text="Turn Off").useBackground = False
+        # grid_flow.operator("uas_shots_settings.background_alpha", text="Alpha")
+        grid_flow.prop(bpy.context.window_manager.UAS_shot_manager_shotsGlobalSettings, "backgroundAlpha", text="Alpha")
+
         #   grid_flow.scale_x = 0.7
         # grid_flow.prop(shot, "color", text="")
         #   grid_flow.scale_x = 1.0
@@ -640,52 +646,6 @@ class UAS_PT_ShotManager_ShotsGlobalSettings(Panel):
         val = len(props.getTakes()) and len(props.get_shots())
 
         return val
-
-
-class UAS_ShotManager_Actions(Operator):
-    """Move items up and down, add and remove"""
-
-    bl_idname = "uas_shot_manager.list_action"
-    bl_label = "List Actions"
-    bl_description = "Move items up and down, add and remove"
-    bl_options = {"INTERNAL"}
-
-    action: bpy.props.EnumProperty(items=(("UP", "Up", ""), ("DOWN", "Down", "")))
-
-    def invoke(self, context, event):
-        scene = context.scene
-        props = scene.UAS_shot_manager_props
-        shots = props.get_shots()
-        currentShotInd = props.getCurrentShotIndex()
-        selectedShotInd = props.getSelectedShotIndex()
-        print("  ** Action: currentShotInd: ", currentShotInd)
-        print("     selectedShotInd: ", selectedShotInd)
-
-        try:
-            item = shots[currentShotInd]
-        except IndexError:
-            pass
-        else:
-            if self.action == "DOWN" and selectedShotInd < len(shots) - 1:
-                shots.move(selectedShotInd, selectedShotInd + 1)
-                if currentShotInd == selectedShotInd:
-                    props.setCurrentShotByIndex(currentShotInd + 1)
-                elif currentShotInd == selectedShotInd + 1:
-                    props.setCurrentShotByIndex(selectedShotInd)
-                props.setSelectedShotByIndex(selectedShotInd + 1)
-
-            elif self.action == "UP" and selectedShotInd >= 1:
-                shots.move(selectedShotInd, selectedShotInd - 1)
-                if currentShotInd == selectedShotInd:
-                    props.setCurrentShotByIndex(currentShotInd - 1)
-                elif currentShotInd == selectedShotInd - 1:
-                    props.setCurrentShotByIndex(selectedShotInd)
-
-                props.setSelectedShotByIndex(selectedShotInd - 1)
-                print("     currentShotInd 02: ", currentShotInd)
-                print("     selectedShotInd 02: ", props.getSelectedShotIndex())
-
-        return {"FINISHED"}
 
 
 #################
@@ -764,8 +724,8 @@ class UAS_MT_ShotManager_Shots_ToolsMenu(Menu):
         row.operator_context = "INVOKE_DEFAULT"
         row.operator("uasotio.openfilebrowser", text="Import Shots From OTIO")
         # wkip debug - to remove:
-        # row = layout.row(align=True)
-        # row.operator("uasshotmanager.importotio", text="Import Shots From OTIO - Debug")
+        row = layout.row(align=True)
+        row.operator("uasshotmanager.importotio", text="Import Shots From OTIO - Debug")
 
         # tools for precut ###
         layout.separator()
@@ -929,7 +889,6 @@ classes = (
     UAS_PT_ShotManager_ShotProperties,
     UAS_PT_ShotManager_ShotsGlobalSettings,
     UAS_MT_ShotManager_Shots_ToolsMenu,
-    UAS_ShotManager_Actions,
     UAS_ShotManager_ShotDuration,
     UAS_ShotManager_Empty,
     UAS_ShotManager_DrawTimeline,
@@ -988,6 +947,7 @@ def register():
     precut_tools.register()
     props.register()
     utils_render.register()
+    video_shot_manager.register()
 
     # declaration of properties that will not be saved in the scene
 
@@ -1025,6 +985,7 @@ def register():
 
 
 def unregister():
+    video_shot_manager.unregister()
     utils_render.unregister()
     props.unregister()
     precut_tools.unregister()
