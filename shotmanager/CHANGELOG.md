@@ -1,29 +1,5 @@
 
 
-# To do
-
-* Camera et viewports:
-	* option pour display name, display shot name, recording, handle
-
-
-* mettre le stamp de start de video a la frame 0
-
-* offset des bornes d'un shot
-* bugs rendu
-* job avec curseur temps
-* fix de l'affichage des plans disabled ds timeline
-* lock cam
-* sel cam
-* harmoniser explorers
-
-* voir les modifiers
-
-* path relatif et absolu pour le root
-
-* about: 
-	* version de pil
-	* dev by
-	* date
 
 --------
 
