@@ -74,6 +74,9 @@ except ModuleNotFoundError:
         subprocess.run([bpy.app.binary_path_python, "-m", "pip", "install", "opentimelineio"])
     import opentimelineio as otio
 
+
+from . import config
+
 from .ogl_ui import UAS_ShotManager_DrawTimeline, UAS_ShotManager_DrawCameras_UI
 
 from .properties import props
@@ -86,6 +89,7 @@ from .operators import takes
 from .operators import shots
 from .operators import shots_global_settings
 
+from .operators import general
 from .operators import renderProps
 from .operators import playbar
 from .operators import timeControl
@@ -98,7 +102,7 @@ from .tools import vse_render
 from .tools import retimer
 
 
-from . import video_shot_manager
+from . import videoshotmanager
 
 
 bl_info = {
@@ -113,7 +117,7 @@ bl_info = {
     "category": "UAS",
 }
 
-icons_col = None
+import shotmanager.config
 
 
 ######
@@ -141,8 +145,7 @@ class UAS_PT_ShotManager(Panel):
             #    _emboss = False
             row.alert = False
 
-        global icons_col
-        icon = icons_col["General_Ubisoft_32"]
+        icon = config.icons_col["General_Ubisoft_32"]
         row.prop(context.window_manager, "UAS_shot_manager_displayAbout", icon_value=icon.icon_id, icon_only=True)
 
     def draw_header_preset(self, context):
@@ -154,8 +157,8 @@ class UAS_PT_ShotManager(Panel):
         row.operator("utils.launchrender", text="", icon="RENDER_ANIMATION").renderMode = "ANIMATION"
         # row.label(text = "|")
         row.separator(factor=2)
-        global icons_col
-        icon = icons_col["General_Explorer_32"]
+
+        icon = config.icons_col["General_Explorer_32"]
         row.operator("uas_shot_manager.render_openexplorer", text="", icon_value=icon.icon_id).path = bpy.path.abspath(
             bpy.data.filepath
         )
@@ -163,6 +166,10 @@ class UAS_PT_ShotManager(Panel):
         #    row.operator("render.opengl", text="", icon='IMAGE_DATA')
         #   row.operator("render.opengl", text="", icon='RENDER_ANIMATION').animation = True
         #    row.operator("screen.screen_full_area", text ="", icon = 'FULLSCREEN_ENTER').use_hide_panels=False
+
+        row.separator(factor=2)
+        row.operator("uas_shot_manager.go_to_video_shot_manager", text="", icon="SEQ_STRIP_DUPLICATE")
+
         row.separator(factor=3)
 
     def draw(self, context):
@@ -381,7 +388,6 @@ class UAS_MT_ShotManager_Takes_ToolsMenu(Menu):
 
 class UAS_UL_ShotManager_Items(bpy.types.UIList):
     def draw_item(self, context, layout, data, item, icon, active_data, active_propname, index):
-        global icons_col
         props = context.scene.UAS_shot_manager_props
         current_shot_index = props.current_shot_index
 
@@ -389,11 +395,11 @@ class UAS_UL_ShotManager_Items(bpy.types.UIList):
         currentFrame = context.scene.frame_current
 
         if item.enabled:
-            icon = icons_col[f"ShotMan_Enabled{cam}"]
+            icon = config.icons_col[f"ShotMan_Enabled{cam}"]
             if item.start <= context.scene.frame_current <= item.end:
-                icon = icons_col[f"ShotMan_EnabledCurrent{cam}"]
+                icon = config.icons_col[f"ShotMan_EnabledCurrent{cam}"]
         else:
-            icon = icons_col[f"ShotMan_Disabled{cam}"]
+            icon = config.icons_col[f"ShotMan_Disabled{cam}"]
 
         c = layout.column()
         c.operator("uas_shot_manager.set_current_shot", icon_value=icon.icon_id, text="").index = index
@@ -917,9 +923,9 @@ def verbose_set(key: str, default: bool, override: str, verbose: bool = True) ->
 def setup_project_env(override_existing: bool, verbose: bool = True) -> None:
 
     verbose_set("UAS_PROJECT_NAME", "RRSpecial", override_existing, verbose)
-    verbose_set("UAS_PROJECT_FRAMERATE", "25.0", override_existing, verbose)
-    verbose_set("UAS_PROJECT_RESOLUTION", "[1280,720]", override_existing, verbose)
-    verbose_set("UAS_PROJECT_RESOLUTIONFRAMED", "[1280,960]", override_existing, verbose)
+    verbose_set("UAS_PROJECT_FRAMERATE", "23.0", override_existing, verbose)
+    verbose_set("UAS_PROJECT_RESOLUTION", "[1000,600]", override_existing, verbose)
+    verbose_set("UAS_PROJECT_RESOLUTIONFRAMED", "[1000,660]", override_existing, verbose)
     verbose_set("UAS_PROJECT_OUTPUTFORMAT", "mp4", override_existing, verbose)
     verbose_set("UAS_PROJECT_COLORSPACE", "", override_existing, verbose)
     verbose_set("UAS_PROJECT_ASSETNAME", "", override_existing, verbose)
@@ -931,6 +937,8 @@ def setup_project_env(override_existing: bool, verbose: bool = True) -> None:
 def register():
     # set RRS Environment variables for project
     setup_project_env(True, True)
+
+    config.initGlobalVariables()
 
     for cls in classes:
         bpy.utils.register_class(cls)
@@ -947,7 +955,8 @@ def register():
     precut_tools.register()
     props.register()
     utils_render.register()
-    video_shot_manager.register()
+    general.register()
+    videoshotmanager.register()
 
     # declaration of properties that will not be saved in the scene
 
@@ -974,18 +983,10 @@ def register():
         update=timeline_valueChanged,
     )
 
-    # from pathlib import Path
-    pcoll = bpy.utils.previews.new()
-    my_icons_dir = os.path.join(os.path.dirname(__file__), "icons")
-    for png in Path(my_icons_dir).rglob("*.png"):
-        pcoll.load(png.stem, str(png), "IMAGE")
-
-    global icons_col
-    icons_col = pcoll
-
 
 def unregister():
-    video_shot_manager.unregister()
+    videoshotmanager.unregister()
+    general.unregister()
     utils_render.unregister()
     props.unregister()
     precut_tools.unregister()
@@ -1009,6 +1010,4 @@ def unregister():
     del bpy.types.WindowManager.UAS_shot_manager_handler_toggle
     del bpy.types.WindowManager.UAS_shot_manager_display_timeline
 
-    global icons_col
-    bpy.utils.previews.remove(icons_col)
-    icons_col = None
+    config.releaseGlobalVariables()

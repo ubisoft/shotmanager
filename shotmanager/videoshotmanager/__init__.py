@@ -14,7 +14,6 @@ from .operators import tracks
 # from .ui.vsm_ui import UAS_PT_VideoShotManager
 from .ui import vsm_ui
 
-icons_col = None
 
 # classes = (
 #     ,
@@ -22,6 +21,7 @@ icons_col = None
 
 
 def register():
+
     # for cls in classes:
     #     bpy.utils.register_class(cls)
 
@@ -36,14 +36,6 @@ def register():
         name="About...", description="Display About Informations", default=False
     )
 
-    pcoll = bpy.utils.previews.new()
-    my_icons_dir = os.path.join(os.path.dirname(__file__), "..\\icons")
-    for png in Path(my_icons_dir).rglob("*.png"):
-        pcoll.load(png.stem, str(png), "IMAGE")
-
-    global icons_col
-    icons_col = pcoll
-
 
 def unregister():
     vsm_ui.unregister()
@@ -54,8 +46,3 @@ def unregister():
     #     bpy.utils.unregister_class(cls)
 
     del bpy.types.WindowManager.UAS_video_shot_manager_displayAbout
-
-    global icons_col
-    if icons_col is not None:
-        bpy.utils.previews.remove(icons_col)
-    icons_col = None

@@ -2,7 +2,7 @@ import bpy
 
 from bpy.types import Panel, Menu
 
-from videoshotmanager.properties import vsm_props
+from ..properties import vsm_props
 from ..operators import tracks
 
 import shotmanager.config as config
@@ -39,7 +39,7 @@ class UAS_PT_VideoShotManager(Panel):
                 context.window_manager, "UAS_video_shot_manager_displayAbout", icon_value=icon.icon_id, icon_only=True
             )
         else:
-            row.prop(context.window_manager, "UAS_video_shot_manager_displayAbout", text="toto")
+            row.prop(context.window_manager, "UAS_video_shot_manager_displayAbout", text="About")
 
     # def draw_header_preset(self, context):
     #     layout = self.layout
