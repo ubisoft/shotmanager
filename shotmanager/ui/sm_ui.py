@@ -673,6 +673,10 @@ class UAS_ShotManager_ShotDuration(Operator):
 
     index: bpy.props.IntProperty(default=0)
 
+    @classmethod
+    def poll(self, context):
+        return context.active_object.mode == "OBJECT"
+
     def execute(self, context):
         context.scene.UAS_shot_manager_props.selectCamera(self.index)
         return {"FINISHED"}
