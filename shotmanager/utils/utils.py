@@ -11,6 +11,17 @@ from bpy.types import Operator
 from bpy.props import StringProperty
 
 
+def addonVersion(addonName):
+    import addon_utils
+
+    versionTupple = [
+        addon.bl_info.get("version", (-1, -1, -1))
+        for addon in addon_utils.modules()
+        if addon.bl_info["name"] == addonName
+    ][0]
+    return str(versionTupple[0]) + "." + str(versionTupple[1]) + "." + str(versionTupple[2])
+
+
 class PropertyRestoreCtx:
     """
     Restore property values at the end of the block.

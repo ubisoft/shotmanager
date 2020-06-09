@@ -6,6 +6,7 @@ from pathlib import Path
 
 def initGlobalVariables():
 
+    # icons ############
     global icons_col
 
     pcoll = bpy.utils.previews.new()

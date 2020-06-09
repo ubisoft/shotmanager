@@ -21,17 +21,12 @@ from .take import UAS_ShotManager_Take
 
 from ..operators.timeControl import UAS_Retimer_Properties
 
+from ..utils import utils
+
 
 class UAS_ShotManager_Props(PropertyGroup):
     def version(self):
-        import addon_utils
-
-        versionTupple = [
-            addon.bl_info.get("version", (-1, -1, -1))
-            for addon in addon_utils.modules()
-            if addon.bl_info["name"] == "UAS_StampInfo"
-        ][0]
-        return str(versionTupple[0]) + "." + str(versionTupple[1]) + "." + str(versionTupple[2])
+        return utils.addonVersion("UAS Shot Manager")
 
     def get_isInitialized(self):
         #    print(" get_isInitialized")

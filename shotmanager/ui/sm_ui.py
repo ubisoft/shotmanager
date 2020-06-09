@@ -4,6 +4,7 @@ from bpy.types import Panel, Operator, Menu
 from ..config import config
 from ..ogl_ui import UAS_ShotManager_DrawTimeline, UAS_ShotManager_DrawCameras_UI
 
+from ..utils import utils
 
 ######
 # Shot Manager main panel #
@@ -12,7 +13,7 @@ from ..ogl_ui import UAS_ShotManager_DrawTimeline, UAS_ShotManager_DrawCameras_U
 
 class UAS_PT_ShotManager(Panel):
     #    bl_label = f"UAS Shot Manager {'.'.join ( str ( v ) for v in bl_info[ 'version'] ) }"
-    bl_label = "UAS Shot Manager"
+    bl_label = " UAS Shot Manager   V. " + utils.addonVersion("UAS Shot Manager")
     bl_idname = "UAS_PT_Shot_Manager"
     bl_space_type = "VIEW_3D"
     bl_region_type = "UI"
@@ -35,8 +36,10 @@ class UAS_PT_ShotManager(Panel):
         row.prop(context.window_manager, "UAS_shot_manager_displayAbout", icon_value=icon.icon_id, icon_only=True)
 
     def draw_header_preset(self, context):
+        props = context.scene.UAS_shot_manager_props
         layout = self.layout
         layout.emboss = "NONE"
+
         row = layout.row(align=True)
 
         row.operator("utils.launchrender", text="", icon="RENDER_STILL").renderMode = "STILL"
