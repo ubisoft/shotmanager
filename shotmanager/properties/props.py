@@ -1,5 +1,4 @@
 import os
-import json
 
 import bpy
 from bpy.types import PropertyGroup
@@ -28,6 +27,12 @@ class UAS_ShotManager_Props(PropertyGroup):
     def version(self):
         return utils.addonVersion("UAS Shot Manager")
 
+    def initialize_shot_manager(self):
+        print("\nInitializing Shot Manager...\n")
+        self.createDefaultTake()
+        self.createRenderSettings()
+        self.isInitialized = True
+
     def get_isInitialized(self):
         #    print(" get_isInitialized")
         val = self.get("isInitialized", False)
@@ -50,6 +55,25 @@ class UAS_ShotManager_Props(PropertyGroup):
         return None
 
     retimer: PointerProperty(type=UAS_Retimer_Properties)
+
+    # project settings
+    #############
+
+    project_name: StringProperty(name="Project Name", default="")
+    project_fps: FloatProperty(name="Project Fps", default=12.0)
+    project_resolution_x: IntProperty(name="", default=1280)
+    project_resolution_y: IntProperty(name="", default=720)
+    project_resolution_framed_x: IntProperty(name="", default=1280)
+    project_resolution_framed_y: IntProperty(name="", default=720)
+    project_shot_format: StringProperty(name="Shot Format", default=r"Act{:02}_Seq{:04}_Sh{:04}")
+    project_output_format: StringProperty(name="Output Format", default="")
+    project_color_space: StringProperty(name="Color Space", default="")
+    project_asset_name: StringProperty(name="Asset Name", default="")
+
+    new_shot_prefix: StringProperty(default="Sh")
+    render_shot_prefix: StringProperty(
+        name="Render Shot Prefix", description="Prefix added to the shot names at render time", default="Unused"
+    )
 
     # edit
     #############
@@ -147,12 +171,6 @@ class UAS_ShotManager_Props(PropertyGroup):
     #############
 
     new_shot_duration: IntProperty(default=50, options=set())
-
-    new_shot_prefix: StringProperty(default="Sh")
-
-    render_shot_prefix: StringProperty(
-        name="Render Shot Prefix", description="Prefix added to the shot names at render time", default="Act01_Sq01_"
-    )
 
     use_camera_color: BoolProperty(
         name="Use Camera Color",
@@ -1258,37 +1276,19 @@ class UAS_ShotManager_Props(PropertyGroup):
         scene = bpy.context.scene
 
         settingsList = []
-        settingsList.append(["UAS_PROJECT_NAME", os.environ["UAS_PROJECT_NAME"]])
-        settingsList.append(["UAS_PROJECT_FRAMERATE", os.environ["UAS_PROJECT_FRAMERATE"]])
-        settingsList.append(["UAS_PROJECT_RESOLUTION", os.environ["UAS_PROJECT_RESOLUTION"]])
-        settingsList.append(["UAS_PROJECT_RESOLUTIONFRAMED", os.environ["UAS_PROJECT_RESOLUTIONFRAMED"]])
-        settingsList.append(["UAS_PROJECT_OUTPUTFORMAT", os.environ["UAS_PROJECT_OUTPUTFORMAT"]])
-        settingsList.append(["UAS_PROJECT_COLORSPACE", os.environ["UAS_PROJECT_COLORSPACE"]])
-        settingsList.append(["UAS_PROJECT_ASSETNAME", os.environ["UAS_PROJECT_ASSETNAME"]])
+
+        # settingsList.append([self.project_name.name, self.project_name])
+        settingsList.append(["Project Name", '"' + self.project_name + '"'])
+        settingsList.append(["Project Framerate", str(self.project_fps) + " fps"])
+        # wkip todo
 
         if not settingsListOnly:
-            # verbose_set("UAS_PROJECT_NAME","RRSpecial",override_existing,verbose)
-            # verbose_set("UAS_PROJECT_FRAMERATE","25.0",override_existing,verbose)
-            # verbose_set("UAS_PROJECT_RESOLUTION","[1280,720]",override_existing,verbose)
-            # verbose_set("UAS_PROJECT_RESOLUTIONFRAMED","[1280,960]",override_existing,verbose)
-            # verbose_set("UAS_PROJECT_OUTPUTFORMAT","mp4",override_existing,verbose)
-            # verbose_set("UAS_PROJECT_COLORSPACE","",override_existing,verbose)
-            # verbose_set("UAS_PROJECT_ASSETNAME","",override_existing,verbose)
 
-            if "UAS_PROJECT_NAME" in os.environ.keys():
-                projProp_Name = os.environ["UAS_PROJECT_NAME"]
-
-            if "UAS_PROJECT_FRAMERATE" in os.environ.keys():
-                scene.render.fps = float(os.environ["UAS_PROJECT_FRAMERATE"])
-
-            if "UAS_PROJECT_RESOLUTION" in os.environ.keys():
-                resolution = json.loads(os.environ["UAS_PROJECT_RESOLUTION"])
-                scene.render.resolution_x = resolution[0]
-                scene.render.resolution_y = resolution[1]
-                settingsList.append(["UAS_PROJECT_RESOLUTION", os.environ["UAS_PROJECT_RESOLUTION"]])
-
-            # other settings
+            scene.render.fps = self.project_fps
             scene.render.fps_base = 1.0
+
+            scene.render.resolution_x = self.project_resolution_x
+            scene.render.resolution_y = self.project_resolution_y
             scene.render.resolution_percentage = 100.0
 
             # path
@@ -1324,11 +1324,39 @@ class UAS_ShotManager_Props(PropertyGroup):
         self.renderSettingsProject.name = "Project Preset"
         self.renderSettingsProject.renderMode = "PROJECT"
 
-    def initialize_shot_manager(self):
-        print("\nInitializing Shot Manager...\n")
-        self.createDefaultTake()
-        self.createRenderSettings()
-        self.isInitialized = True
+    def setProjectSettings(
+        self,
+        project_name=None,
+        project_fps=-1,
+        project_resolution=None,
+        project_resolution_framed=None,
+        project_shot_format=None,
+        project_output_format=None,
+        project_color_space=None,
+        project_asset_name=None,
+    ):
+        """ Set only the specified properties
+        """
+        if project_name is not None:
+            self.project_name = project_name
+        if -1 != project_fps:
+            self.project_fps = project_fps
+        if project_resolution is not None:
+            self.project_resolution_x = project_resolution[0]
+            self.project_resolution_y = project_resolution[1]
+        if project_resolution_framed is not None:
+            self.project_resolution_framed_x = project_resolution_framed[0]
+            self.project_resolution_framed_y = project_resolution_framed[1]
+        if project_shot_format is not None:
+            self.project_shot_format = project_shot_format
+        if project_output_format is not None:
+            self.project_output_format = project_output_format
+        if project_color_space is not None:
+            self.project_color_space = project_color_space
+        if project_asset_name is not None:
+            self.project_asset_name = project_asset_name
+
+        self.restoreProjectSettings()
 
 
 _classes = (

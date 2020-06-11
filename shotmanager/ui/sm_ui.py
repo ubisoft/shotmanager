@@ -164,6 +164,9 @@ class UAS_PT_ShotManager(Panel):
         row.label(text="Current Time in Edit: " + editingCurrentTimeStr)
 
         row.alignment = "RIGHT"
+        # wkip to remove - check with project fps!!
+        if 25 != scene.render.fps:
+            row.alert = True
         row.label(text=str(scene.render.fps) + " fps")
 
         ################
@@ -675,7 +678,8 @@ class UAS_ShotManager_ShotDuration(Operator):
 
     @classmethod
     def poll(self, context):
-        return context.active_object.mode == "OBJECT"
+        selectionIsPossible = context.active_object is None or context.active_object.mode == "OBJECT"
+        return selectionIsPossible
 
     def execute(self, context):
         context.scene.UAS_shot_manager_props.selectCamera(self.index)

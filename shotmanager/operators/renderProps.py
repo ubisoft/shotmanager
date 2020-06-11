@@ -5,7 +5,7 @@ from pathlib import Path
 
 import bpy
 from bpy.types import Panel, Operator
-from bpy.props import StringProperty, EnumProperty, BoolProperty
+from bpy.props import StringProperty, EnumProperty, BoolProperty, IntProperty
 from bpy_extras.io_utils import ImportHelper
 
 from ..utils import utils
@@ -288,6 +288,11 @@ def launchRenderWithVSEComposite(renderMode, renderRootFilePath="", useStampInfo
 
     projectFps = scene.render.fps
 
+    if props.useProjectRenderSettings:
+        props.restoreProjectSettings()
+        scene.render.image_settings.file_format = "PNG"
+        projectFps = scene.render.fps
+
     newMediaFiles = []
 
     rootPath = renderRootFilePath if "" != renderRootFilePath else os.path.dirname(bpy.data.filepath)
@@ -328,10 +333,6 @@ def launchRenderWithVSEComposite(renderMode, renderRootFilePath="", useStampInfo
 
     context.window_manager.UAS_shot_manager_handler_toggle = False
     context.window_manager.UAS_shot_manager_display_timeline = False
-
-    if props.useProjectRenderSettings:
-        props.restoreProjectSettings()
-        scene.render.image_settings.file_format = "PNG"
 
     if preset_useStampInfo:  # framed output resolution is used only when StampInfo is used
         if "UAS_PROJECT_RESOLUTIONFRAMED" in os.environ.keys():
@@ -444,9 +445,11 @@ def launchRenderWithVSEComposite(renderMode, renderRootFilePath="", useStampInfo
                 offsetEnd=props.handles,
             )
 
-        # render full sequence
-        bpy.context.window.scene = sequenceScene
-        bpy.ops.render.opengl(animation=True, sequencer=True)
+    # render full sequence
+    # Note that here we are back to the sequence scene, not anymore in the shot scene
+    bpy.context.window.scene = sequenceScene
+    bpy.ops.render.opengl(animation=True, sequencer=True)
+    newMediaFiles.append(sequenceScene.render.filepath)
 
     return newMediaFiles
 
@@ -838,7 +841,7 @@ def exportOtio(scene, renderRootFilePath="", fps=-1):
     props = scene.UAS_shot_manager_props
 
     sceneFps = fps if fps != -1 else scene.render.fps
-
+    print("exportOtio: sceneFps:", sceneFps)
     import opentimelineio as otio
 
     take = props.getCurrentTake()
@@ -892,7 +895,9 @@ def exportOtio(scene, renderRootFilePath="", fps=-1):
             )
             source_range = otio.opentime.range_from_start_end_time(clip_start_time, clip_end_time_exclusive)
             newClip = otio.schema.Clip(name=shotFileName, source_range=source_range, media_reference=media_reference)
-            newClip.metadata = {"clip_name": shot["name"], "camera_name": shot["camera"].name_full}
+            # newClip.metadata = {"clip_name": shot["name"], "camera_name": shot["camera"].name_full}
+            newClip.metadata["clip_name"] = shot.name
+            newClip.metadata["camera_name"] = shot["camera"].name_full
 
             clips.append(newClip)
             playhead += media_duration
@@ -983,6 +988,13 @@ class UAS_ShotManager_OT_Import_OTIO(Operator):
     reformatShotNames: BoolProperty(
         name="Reformat Shot Names", description="Keep only the shot name part for the name of the shots", default=True,
     )
+    importAtFrame: IntProperty(
+        name="Import at Frame",
+        description="Make the imported edit start at the specified frame",
+        soft_min=0,
+        min=0,
+        default=25,
+    )
 
     def draw(self, context):
         layout = self.layout
@@ -995,6 +1007,7 @@ class UAS_ShotManager_OT_Import_OTIO(Operator):
         box.prop(self, "createCameras")
         box.prop(self, "useMediaAsCameraBG")
         box.prop(self, "reformatShotNames")
+        box.prop(self, "importAtFrame")
 
         layout.separator()
 
@@ -1045,17 +1058,24 @@ class UAS_ShotManager_OT_Import_OTIO(Operator):
                                 # Lets find it inside next to the xml.
                                 media_path = Path(self.otioFile).parent.joinpath(media_path.name)
                             utils.add_background_video_to_cam(
-                                cam, str(media_path), otio.opentime.to_frames(clip.range_in_parent().start_time)
+                                cam,
+                                str(media_path),
+                                otio.opentime.to_frames(clip.range_in_parent().start_time) + self.importAtFrame,
                             )
 
                     bpy.ops.uas_shot_manager.add_shot(
                         name=clipName,
-                        start=otio.opentime.to_frames(clip.range_in_parent().start_time),
-                        end=otio.opentime.to_frames(clip.range_in_parent().end_time_inclusive()),
+                        start=otio.opentime.to_frames(clip.range_in_parent().start_time) + self.importAtFrame,
+                        end=otio.opentime.to_frames(clip.range_in_parent().end_time_inclusive()) + self.importAtFrame,
                         cameraName=cam.name,
                         color=(cam_ob.color[0], cam_ob.color[1], cam_ob.color[2]),
                     )
-                    context.scene.frame_end = otio.opentime.to_frames(clip.range_in_parent().end_time_inclusive())
+
+                    # wkip maybe to remove
+                    context.scene.frame_start = self.importAtFrame
+                    context.scene.frame_end = (
+                        otio.opentime.to_frames(clip.range_in_parent().end_time_inclusive()) + self.importAtFrame
+                    )
 
         except otio.exceptions.NoKnownAdapterForExtensionError:
             from ..utils.utils import ShowMessageBox

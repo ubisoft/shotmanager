@@ -149,37 +149,34 @@ def install_shot_handler(self, context):
 # )
 
 
-def verbose_set(key: str, default: bool, override: str, verbose: bool = True) -> None:
-    default_value = str(default)
-    if key in os.environ.keys():
-        if override and os.environ[key] != default_value:
-            if verbose:
-                print(f"Overrinding value for '{key}': {default}")
-            os.environ[key] = default_value
-        return  # already set
+# def verbose_set(key: str, default: bool, override: str, verbose: bool = True) -> None:
+#     default_value = str(default)
+#     if key in os.environ.keys():
+#         if override and os.environ[key] != default_value:
+#             if verbose:
+#                 print(f"Overrinding value for '{key}': {default}")
+#             os.environ[key] = default_value
+#         return  # already set
 
-    if verbose:
-        print(f"Key '{key}' not in the default environment, setting it to {default_value}")
-    os.environ[key] = default_value
-
-
-def setup_project_env(override_existing: bool, verbose: bool = True) -> None:
-
-    verbose_set("UAS_PROJECT_NAME", "RRSpecial", override_existing, verbose)
-    verbose_set("UAS_PROJECT_FRAMERATE", "23.0", override_existing, verbose)
-    verbose_set("UAS_PROJECT_RESOLUTION", "[1000,600]", override_existing, verbose)
-    verbose_set("UAS_PROJECT_RESOLUTIONFRAMED", "[1000,660]", override_existing, verbose)
-    verbose_set("UAS_PROJECT_OUTPUTFORMAT", "mp4", override_existing, verbose)
-    verbose_set("UAS_PROJECT_COLORSPACE", "", override_existing, verbose)
-    verbose_set("UAS_PROJECT_ASSETNAME", "", override_existing, verbose)
+#     if verbose:
+#         print(f"Key '{key}' not in the default environment, setting it to {default_value}")
+#     os.environ[key] = default_value
 
 
-# setup_project_env(True,False)
+# def setup_project_env(override_existing: bool, verbose: bool = True) -> None:
+
+#     verbose_set("UAS_PROJECT_NAME", "RRSpecial", override_existing, verbose)
+#     verbose_set("UAS_PROJECT_FRAMERATE", "25.0", override_existing, verbose)
+#     verbose_set("UAS_PROJECT_RESOLUTION", "[1280,720]", override_existing, verbose)
+#     verbose_set("UAS_PROJECT_RESOLUTIONFRAMED", "[1280,960]", override_existing, verbose)
+#     verbose_set("UAS_PROJECT_OUTPUTFORMAT", "mp4", override_existing, verbose)
+#     verbose_set("UAS_PROJECT_COLORSPACE", "", override_existing, verbose)
+#     verbose_set("UAS_PROJECT_ASSETNAME", "", override_existing, verbose)
 
 
 def register():
     # set RRS Environment variables for project
-    setup_project_env(True, True)
+    #    setup_project_env(True, True)
 
     config.initGlobalVariables()
 
