@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 
 import bpy
 from bpy.types import Panel
@@ -26,7 +25,7 @@ class UAS_PT_ShotManagerPrefPanel(Panel):
     # box = layout.box()
     # col = box.column()
     # col.use_property_split = True
-    # col.prop ( context.scene.UAS_shot_manager_props, "display_camera_in_shotlist", text = "Display Camera in Shot List" )
+    # col.prop ( context.scene.UAS_shot_manager_props, "display_camera_in_shotlist",text = "Display Camera in Shot List" )
     # col.prop ( context.scene.UAS_shot_manager_props, "new_shot_duration", text = "Default Shot Length" )
     # col.prop ( context.scene.UAS_shot_manager_props, "new_shot_prefix", text = "Default Shot Prefix" )
 
@@ -165,18 +164,26 @@ class UAS_PT_ShotManager_Render_StampInfoProperties(Panel):
         layout.emboss = "NONE"
         row = layout.row(align=True)
 
-        if "UAS_StampInfo_Settings" in context.scene and context.scene["UAS_StampInfo_Settings"] is None:
+        if "UAS_StampInfo_Settings" not in context.scene or context.scene["UAS_StampInfo_Settings"] is None:
             row.alert = True
             row.label(text="Not found !")
         else:
-            row.alert = False
-        # wkip    row.label(text="Loaded - V." + context.scene["UAS_StampInfo_Settings"].version())
+            try:
+                row.alert = False
+                row.label(text="Loaded - V." + context.scene["UAS_StampInfo_Settings"].version())
+            except Exception as e:
+                # print("Oops!", e.__class__, "occurred.")
+                row.alert = True
+                row.label(text="Not found but has value")
+            else:
+                row.alert = True
+                row.label(text="Not found but has value")
 
     def draw(self, context):
         box = self.layout.box()
         row = box.row()
         row.prop(context.scene.UAS_shot_manager_props, "useStampInfoDuringRendering")
-
+   
 
 _classes = (
     UAS_PT_ShotManagerPrefPanel,
