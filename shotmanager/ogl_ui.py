@@ -131,7 +131,7 @@ def get_region_at_xy ( context, x, y ):
 
 
 class BL_UI_Cursor:
-    def __init__ ( self, value = "0", move_callback = None ):
+    def __init__ ( self, move_callback = None ):
         self.context = None
 
         self.posx = 0
@@ -139,8 +139,6 @@ class BL_UI_Cursor:
 
         self.sizex = 11
         self.sizey = 8
-
-        self.value = value
 
         # Is used for drawing the frame number and for cursor interaction
         self.bbox = Square ( self.posx + self.sizex,
@@ -174,18 +172,30 @@ class BL_UI_Cursor:
             self.posy = posy
 
     def draw ( self ):
+        edit_time = self.context.scene.UAS_shot_manager_props.getEditCurrentTime( ignoreDisabled = True )
+
         self.bbox.color = self.color
         self.caret.color = self.color
         if self.hightlighted:
             self.bbox.color = self.hightlighted_color
             self.caret.color = self.hightlighted_color
+
+        self.posx = remap ( edit_time, 0, self.context.scene.UAS_shot_manager_props.getEditDuration ( ignoreDisabled = True ), 0, self.context.area.width )
+
+        self.bbox.x = self.posx
+        # Make sure the box stays fully in view.
+        self.bbox.x = max ( self.bbox.sx, self.bbox.x )
+        self.bbox.x = min ( self.bbox.x, self.context.area.width - 1 - self.bbox.sx )
+
         self.caret.draw ( )
         self.bbox.draw ( )
         blf.color ( 0, .9, .9, .9, 1  )
         blf.size ( 0, 12, 72 )
-        font_width, font_height = blf.dimensions ( 0, self.value )
+        frame = str ( edit_time )
+        font_width, font_height = blf.dimensions ( 0, frame )
         blf.position ( 0, self.bbox.x - 0.5 * font_width, self.bbox.y - 0.5 * font_height, 0 )
-        blf.draw ( 0, self.value )
+        blf.draw ( 0, frame )
+
 
     def is_in_rect ( self, x, y ):
         region = get_region_at_xy ( self.context, x, y  )
@@ -251,11 +261,6 @@ class BL_UI_Cursor:
     def mouse_move ( self, x, y ):
         if self._dragable:
             self.posx += x - self._p_mouse_x
-            self.posx = max ( 0, min ( self.posx, self.context.area.width - 1 ) )
-            self.caret.x = self.posx
-            # Make sure the box stays fully in view.
-            self.bbox.x = max ( self.bbox.sx, self.posx )
-            self.bbox.x = min ( self.bbox.x, self.context.area.width - 1 - self.bbox.sx )
             self._p_mouse_x = x
             if self._move_callback is not None:
                 self._move_callback ( )
@@ -413,7 +418,7 @@ class BL_UI_Timeline:
         self._mouse_down = False
 
         self.ui_shots = list ( )
-        self.frame_cursor = BL_UI_Cursor ( "100", self.frame_cursor_moved )
+        self.frame_cursor = BL_UI_Cursor ( self.frame_cursor_moved )
 
     def set_location ( self, x, y ):
         self.x = x
@@ -583,6 +588,7 @@ class BL_UI_Timeline:
             if ui_shot.x <= cursor_x < ui_shot.x + ui_shot.width:
                 for shot in shots:
                     if shot.name == ui_shot.label:
+                        shotmanager_props.setCurrentShot ( shot )
                         self.context.scene.frame_current = round ( remap ( cursor_x,
                                                                          ui_shot.x, ui_shot.x + ui_shot.width,
                                                                          shot.start, shot.end ) )
@@ -591,8 +597,8 @@ class BL_UI_Timeline:
 
                     sequence_current_frame += shot.end - shot.start
 
-
-        self.frame_cursor.value = str ( sequence_current_frame )
+        #self.context.window_manager.UAS_shot_manager_editing_time = sequence_current_frame
+        #self.frame_cursor.value = str ( self.context.window_manager.UAS_shot_manager_editing_time )
 
     def mouse_down ( self, x, y ):
         return False#self.is_in_rect ( x, y )
