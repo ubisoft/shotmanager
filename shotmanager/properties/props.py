@@ -617,7 +617,6 @@ class UAS_ShotManager_Props(PropertyGroup):
             #        self.selected_shot_index = currentShotIndex        # removed
 
             if shotList[currentShotIndex].camera is not None:
-                print("    new camera: ", shotList[currentShotIndex].camera.name)
 
                 # set the current camera in the 3D view
                 # [‘PERSP’, ‘ORTHO’, ‘CAMERA’]

@@ -151,7 +151,7 @@ class BL_UI_Cursor:
                               4 )
 
         self.hightlighted = False
-
+        self.edit_time = 0
         self.color = ( .2, .2, 1., 1 )
         self.hightlighted_color = ( .5, .5, .5, 1 )
         self._p_mouse_x = 0
@@ -172,7 +172,7 @@ class BL_UI_Cursor:
             self.posy = posy
 
     def draw ( self ):
-        edit_time = self.context.scene.UAS_shot_manager_props.getEditCurrentTime( ignoreDisabled = True )
+
 
         self.bbox.color = self.color
         self.caret.color = self.color
@@ -180,8 +180,8 @@ class BL_UI_Cursor:
             self.bbox.color = self.hightlighted_color
             self.caret.color = self.hightlighted_color
 
-        self.posx = remap ( edit_time, 0, self.context.scene.UAS_shot_manager_props.getEditDuration ( ignoreDisabled = True ), 0, self.context.area.width )
-
+        self.update_pos ( )
+        self.caret.x = self.posx
         self.bbox.x = self.posx
         # Make sure the box stays fully in view.
         self.bbox.x = max ( self.bbox.sx, self.bbox.x )
@@ -191,7 +191,7 @@ class BL_UI_Cursor:
         self.bbox.draw ( )
         blf.color ( 0, .9, .9, .9, 1  )
         blf.size ( 0, 12, 72 )
-        frame = str ( edit_time )
+        frame = str ( self.context.scene.UAS_shot_manager_props.getEditCurrentTime ( ignoreDisabled = True ) )
         font_width, font_height = blf.dimensions ( 0, frame )
         blf.position ( 0, self.bbox.x - 0.5 * font_width, self.bbox.y - 0.5 * font_height, 0 )
         blf.draw ( 0, frame )
@@ -264,6 +264,12 @@ class BL_UI_Cursor:
             self._p_mouse_x = x
             if self._move_callback is not None:
                 self._move_callback ( )
+
+    def update_pos ( self ):
+        if self._dragable:
+            return
+        scene_edit_time = self.context.scene.UAS_shot_manager_props.getEditCurrentTime ( ignoreDisabled = True )
+        self.posx = remap ( scene_edit_time, 0, self.context.scene.UAS_shot_manager_props.getEditDuration ( ignoreDisabled = True ), 0, self.context.area.width )
 
 
 
@@ -469,8 +475,8 @@ class BL_UI_Timeline:
     def draw_shots ( self ):
         total_range = 0
         shotmanager_props = self.context.scene.UAS_shot_manager_props
-        shots = shotmanager_props.getShotsList(ignoreDisabled = not shotmanager_props.display_disabledshots_in_timeline)
-        currentShotIndex = shotmanager_props.getCurrentShotIndex(ignoreDisabled = not shotmanager_props.display_disabledshots_in_timeline)
+        shots = shotmanager_props.getShotsList(ignoreDisabled = True )
+        currentShotIndex = shotmanager_props.getCurrentShotIndex(ignoreDisabled = True)
 
         self.ui_shots.clear ( )
         total_range += sum ( [ s.end + 1 - s.start for s in shots ] )
@@ -592,6 +598,7 @@ class BL_UI_Timeline:
                         self.context.scene.frame_current = round ( remap ( cursor_x,
                                                                          ui_shot.x, ui_shot.x + ui_shot.width,
                                                                          shot.start, shot.end ) )
+                        #print ( self.context.scene.frame_current )
                         sequence_current_frame += self.context.scene.frame_current - shot.start + 1
                         break
 
