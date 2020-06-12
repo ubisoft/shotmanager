@@ -20,6 +20,7 @@ font_info = { "font_id": 0,
               "handler": None }
 
 def remap ( value, old_min, old_max, new_min, new_max ):
+    value = clamp ( value, old_min, old_max )
     old_range = old_max - old_min
     if old_range == 0:
         new_value = new_min
@@ -29,6 +30,8 @@ def remap ( value, old_min, old_max, new_min, new_max ):
 
     return new_value
 
+def clamp ( value, minimum, maximum ):
+    return min ( max ( value, minimum ), maximum )
 #
 # Geometry utils functions
 #
@@ -83,6 +86,9 @@ class Square:
     @color.setter
     def color ( self, value ):
         self._color = value
+
+    def copy ( self ):
+        return Square ( self.x, self.y, self.sx, self.sy, self.color )
         
     def draw ( self ):
         vertices = ((-self._sx + self._x, self._sy + self._y), (self._sx + self._x, self._sy + self._y),
@@ -112,7 +118,7 @@ def get_region_at_xy ( context, x, y ):
     :param context:
     :param x:
     :param y:
-    :return:
+    :return: the region and the area containing this region
     """
     for area in context.screen.areas:
         if area.type != 'VIEW_3D':
@@ -125,14 +131,18 @@ def get_region_at_xy ( context, x, y ):
                 if (region.x <= x < region.width + region.x and
                         region.y <= y < region.height + region.y):
 
-                    return region
+                    return region, area
 
-    return None
+    return None, None
 
 
 class BL_UI_Cursor:
     def __init__ ( self, move_callback = None ):
         self.context = None
+
+        self.range_min = 0
+        self.range_max = 100
+        self._value = 0
 
         self.posx = 0
         self.posy = 32
@@ -159,50 +169,59 @@ class BL_UI_Cursor:
         self._dragable = False
         self._move_callback = move_callback
         self.__inrect = False
+        self.__area = None
+        self.__region = None
 
+    @property
+    def value ( self ):
+        return self._value
+
+    @value.setter
+    def value ( self, value ):
+        self._value = clamp ( value, self.range_min, self.range_max )
 
     def init ( self, context ):
         self.context = context
-
-    def set_position ( self, posx = None, posy = None):
-        if posx is not None:
-            self.posx = posx
-
-        if posy is not None:
-            self.posy = posy
+        self.__area = context.area
 
     def draw ( self ):
-
-
         self.bbox.color = self.color
         self.caret.color = self.color
         if self.hightlighted:
             self.bbox.color = self.hightlighted_color
             self.caret.color = self.hightlighted_color
 
-        self.update_pos ( )
-        self.caret.x = self.posx
-        self.bbox.x = self.posx
-        # Make sure the box stays fully in view.
-        self.bbox.x = max ( self.bbox.sx, self.bbox.x )
-        self.bbox.x = min ( self.bbox.x, self.context.area.width - 1 - self.bbox.sx )
+        box_to_draw = self.bbox.copy ( )
+        box_to_draw.x = self.posx
+        caret_to_draw = self.caret.copy ( )
+        caret_to_draw.x = self.posx
+        if not self._dragable:
+            scene_edit_time = self.context.scene.UAS_shot_manager_props.getEditCurrentTime ( ignoreDisabled = True )
+            val = remap ( scene_edit_time, 0, self.context.scene.UAS_shot_manager_props.getEditDuration ( ignoreDisabled = True ), 0, self.context.area.width )
+            self.value = remap ( val, 0, self.context.area.width, self.range_min, self.range_max )
+        else:
+            val = remap ( self.value, self.range_min, self.range_max, 0, self.context.area.width )
 
-        self.caret.draw ( )
-        self.bbox.draw ( )
+        box_to_draw.x = val
+        caret_to_draw.x = val
+        box_to_draw.x = max ( box_to_draw.sx, box_to_draw.x )
+        box_to_draw.x = min ( box_to_draw.x, self.context.area.width - 1 - box_to_draw.sx )
+        caret_to_draw.draw ( )
+        box_to_draw.draw ( )
+
         blf.color ( 0, .9, .9, .9, 1  )
         blf.size ( 0, 12, 72 )
         frame = str ( self.context.scene.UAS_shot_manager_props.getEditCurrentTime ( ignoreDisabled = True ) )
         font_width, font_height = blf.dimensions ( 0, frame )
-        blf.position ( 0, self.bbox.x - 0.5 * font_width, self.bbox.y - 0.5 * font_height, 0 )
+        blf.position ( 0, box_to_draw.x - 0.5 * font_width, box_to_draw.y - 0.5 * font_height, 0 )
         blf.draw ( 0, frame )
 
 
     def is_in_rect ( self, x, y ):
-        region = get_region_at_xy ( self.context, x, y  )
-        if region is not None:
-            x -= region.x
-            y -= region.y
-
+        if self.__region is not None:
+            x -= self.__region.x
+            y -= self.__region.y
+            self.bbox.x = remap ( self.value, self.range_min, self.range_max, 0, self.__area.width )
             bound_lo, bound_hi = self.bbox.bbox ( )
             if bound_lo[ 0 ] <= x < bound_hi[ 0 ] and bound_lo[ 1 ] <= y < bound_hi[ 1 ]:
                 return True
@@ -213,6 +232,9 @@ class BL_UI_Cursor:
         x = event.mouse_x
         y = event.mouse_y
 
+        tmp_region, tmp_area = get_region_at_xy ( self.context, x, y )
+        if tmp_area is not None:
+            self.__region, self.__area = tmp_region, tmp_area
         if event.type == 'LEFTMOUSE':
             if event.value == 'PRESS':
                 self._mouse_down = True
@@ -259,18 +281,12 @@ class BL_UI_Cursor:
         self.hightlighted = False
 
     def mouse_move ( self, x, y ):
-        if self._dragable:
-            self.posx += x - self._p_mouse_x
+        if self._dragable and self.__area is not None:
+            #self.posx += x - self._p_mouse_x
+            self.value += ( x - self._p_mouse_x ) * ( self.range_max - self.range_min) / self.__area.width
             self._p_mouse_x = x
             if self._move_callback is not None:
                 self._move_callback ( )
-
-    def update_pos ( self ):
-        if self._dragable:
-            return
-        scene_edit_time = self.context.scene.UAS_shot_manager_props.getEditCurrentTime ( ignoreDisabled = True )
-        self.posx = remap ( scene_edit_time, 0, self.context.scene.UAS_shot_manager_props.getEditDuration ( ignoreDisabled = True ), 0, self.context.area.width )
-
 
 
 class BL_UI_Shot:
@@ -443,7 +459,6 @@ class BL_UI_Timeline:
     def init ( self, context ):
         self.context = context
         self.frame_cursor.init ( context )
-        #self.frame_cursor.set_position ( posy = self.height )
 
     def draw_caret ( self, x, color ):
         caret_width = 3
@@ -588,24 +603,15 @@ class BL_UI_Timeline:
         shotmanager_props = self.context.scene.UAS_shot_manager_props
         shots = shotmanager_props.getShotsList ( ignoreDisabled = not shotmanager_props.display_disabledshots_in_timeline )
 
-        cursor_x = self.frame_cursor.posx
+
+        new_edit_frame = round ( remap ( self.frame_cursor.value, self.frame_cursor.range_min, self.frame_cursor.range_max, 0, shotmanager_props.getEditDuration ( ) ) )
         sequence_current_frame = 0
-        for ui_shot in self.ui_shots:
-            if ui_shot.x <= cursor_x < ui_shot.x + ui_shot.width:
-                for shot in shots:
-                    if shot.name == ui_shot.label:
-                        shotmanager_props.setCurrentShot ( shot )
-                        self.context.scene.frame_current = round ( remap ( cursor_x,
-                                                                         ui_shot.x, ui_shot.x + ui_shot.width,
-                                                                         shot.start, shot.end ) )
-                        #print ( self.context.scene.frame_current )
-                        sequence_current_frame += self.context.scene.frame_current - shot.start + 1
-                        break
-
-                    sequence_current_frame += shot.end - shot.start
-
-        #self.context.window_manager.UAS_shot_manager_editing_time = sequence_current_frame
-        #self.frame_cursor.value = str ( self.context.window_manager.UAS_shot_manager_editing_time )
+        for shot in shots:
+            if sequence_current_frame <=new_edit_frame < sequence_current_frame + shot.getDuration ( ):
+                shotmanager_props.setCurrentShot ( shot )
+                self.context.scene.frame_current = shot.start + new_edit_frame - sequence_current_frame
+                break
+            sequence_current_frame += shot.getDuration ( )
 
     def mouse_down ( self, x, y ):
         return False#self.is_in_rect ( x, y )
