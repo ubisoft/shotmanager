@@ -51,7 +51,8 @@ class UAS_ShotManager_ShotAdd(Operator):
         wm = context.window_manager
         props = context.scene.UAS_shot_manager_props
 
-        self.name = f"{props.new_shot_prefix}{len ( props.getShotsList() ) + 1:02}" + "0"
+        # self.name = f"{props.new_shot_prefix}{len ( props.getShotsList() ) + 1:02}" + "0"
+        self.name = (props.project_shot_format.split("_")[2]).format(len(props.getShotsList() * 10))
         self.start = context.scene.frame_current
         self.end = context.scene.frame_current + props.new_shot_duration
 

@@ -1134,7 +1134,7 @@ class UAS_ShotManager_Props(PropertyGroup):
         props = bpy.context.scene.UAS_shot_manager_props
         resultStr = ""
 
-        fileName = props.render_shot_prefix + shot.getName_PathCompliant()
+        fileName = f"{props.render_shot_prefix}_{shot.getName_PathCompliant()}"
 
         # fileName + frame index + extension
         fileFullName = fileName
@@ -1336,6 +1336,7 @@ class UAS_ShotManager_Props(PropertyGroup):
         project_asset_name=None,
     ):
         """ Set only the specified properties
+            Shot format must use "_" as separators. It is of the template: Act{:02}_Seq{:04}_Sh{:04}
         """
         if project_name is not None:
             self.project_name = project_name
@@ -1349,6 +1350,15 @@ class UAS_ShotManager_Props(PropertyGroup):
             self.project_resolution_framed_y = project_resolution_framed[1]
         if project_shot_format is not None:
             self.project_shot_format = project_shot_format
+
+            self.render_shot_prefix = bpy.context.scene.name  # + "_"
+
+            # not used anymore...
+            s = project_shot_format.split("_")[2]
+            s = s.format(0)
+            s = s.replace("0", "")
+            self.new_shot_prefix = s
+
         if project_output_format is not None:
             self.project_output_format = project_output_format
         if project_color_space is not None:

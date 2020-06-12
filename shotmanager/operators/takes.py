@@ -83,7 +83,6 @@ class UAS_ShotManager_AddTake(Operator):
             self.name = "Main Take"
         else:
             self.name = f"Take_{len ( context.scene.UAS_shot_manager_props.getTakes() ) - 1 + 1:02}"
-
         return context.window_manager.invoke_props_dialog(self)
 
 
@@ -129,7 +128,11 @@ class UAS_ShotManager_DuplicateTake(Operator):
         return {"FINISHED"}
 
     def invoke(self, context, event):
-        self.name = f"Take_{len ( context.scene.UAS_shot_manager_props.getTakes() ) + 1:02}"
+        takes = context.scene.UAS_shot_manager_props.getTakes()
+        if len(takes) <= 0:
+            self.name = "Main Take"
+        else:
+            self.name = f"Take_{len ( context.scene.UAS_shot_manager_props.getTakes() ) - 1 + 1:02}"
         return context.window_manager.invoke_props_dialog(self)
 
 

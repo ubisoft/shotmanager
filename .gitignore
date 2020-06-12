@@ -1,4 +1,6 @@
 __pycache__
 .venv
 *.pyc
+_PackagesForInstall
 *.history
+*.blend1

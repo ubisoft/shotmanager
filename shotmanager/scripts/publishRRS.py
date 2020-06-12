@@ -67,11 +67,12 @@ def initializeForRRS():
     print_project_env()
 
 
-def publishRRS(prodFilePath, verbose=False):
+def publishRRS(prodFilePath, takeIndex=-1, verbose=False):
     scene = bpy.context.scene
 
     # To remove!!! Debug only
-    setup_project_env(True, True)
+    # setup_project_env(True, True)
+    # takeIndex = 1
 
     initializeForRRS()
 
@@ -98,14 +99,16 @@ def publishRRS(prodFilePath, verbose=False):
     # To do: specify the take?
 
     # renderProps.launchRender("PROJECT", renderRootFilePath=cacheFilePath)
-    renderedFilesList = renderProps.launchRenderWithVSEComposite("PROJECT", renderRootFilePath=cacheFilePath)
+    renderedFilesList = renderProps.launchRenderWithVSEComposite(
+        "PROJECT", takeIndex=takeIndex, renderRootFilePath=cacheFilePath
+    )
 
     # generate the otio file
 
     # projProp_fps = json.loads( os.environ['UAS_PROJECT_FRAMERATE'] )
     # wkip beurk pour récuperer le bon contexte de scene
     bpy.context.window.scene = scene
-    renderedOtioFile = renderProps.exportOtio(scene, renderRootFilePath=cacheFilePath)
+    renderedOtioFile = renderProps.exportOtio(scene, takeIndex=takeIndex, renderRootFilePath=cacheFilePath)
 
     renderedFilesList.append(renderedOtioFile)
 
