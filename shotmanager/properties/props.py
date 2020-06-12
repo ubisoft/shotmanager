@@ -66,6 +66,9 @@ class UAS_ShotManager_Props(PropertyGroup):
     project_resolution_framed_x: IntProperty(name="", default=1280)
     project_resolution_framed_y: IntProperty(name="", default=720)
     project_shot_format: StringProperty(name="Shot Format", default=r"Act{:02}_Seq{:04}_Sh{:04}")
+
+    project_shot_handle_duration: IntProperty(name="Project Handle Duration", default=10)
+
     project_output_format: StringProperty(name="Output Format", default="")
     project_color_space: StringProperty(name="Color Space", default="")
     project_asset_name: StringProperty(name="Asset Name", default="")
@@ -156,7 +159,7 @@ class UAS_ShotManager_Props(PropertyGroup):
 
     display_lens_in_shotlist: BoolProperty(name="Display Camera Lens in Shot List", default=False, options=set())
 
-    display_duration_in_shotlist: BoolProperty(name="Display Shot Duration in Shot List", default=False, options=set())
+    display_duration_in_shotlist: BoolProperty(name="Display Shot Duration in Shot List", default=True, options=set())
 
     display_color_in_shotlist: BoolProperty(name="Display Color in Shot List", default=False, options=set())
 
@@ -1291,6 +1294,8 @@ class UAS_ShotManager_Props(PropertyGroup):
             scene.render.resolution_y = self.project_resolution_y
             scene.render.resolution_percentage = 100.0
 
+            self.handles = self.project_shot_handle_duration
+
             # path
             self.setProjectRenderFilePath()
 
@@ -1331,6 +1336,7 @@ class UAS_ShotManager_Props(PropertyGroup):
         project_resolution=None,
         project_resolution_framed=None,
         project_shot_format=None,
+        project_shot_handle_duration=-1,
         project_output_format=None,
         project_color_space=None,
         project_asset_name=None,
@@ -1358,6 +1364,9 @@ class UAS_ShotManager_Props(PropertyGroup):
             s = s.format(0)
             s = s.replace("0", "")
             self.new_shot_prefix = s
+
+        if -1 != project_shot_handle_duration:
+            self.project_shot_handle_duration = project_shot_handle_duration
 
         if project_output_format is not None:
             self.project_output_format = project_output_format

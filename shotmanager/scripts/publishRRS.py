@@ -25,10 +25,11 @@ def setup_project_env(override_existing: bool, verbose: bool = True) -> None:
     verbose_set("UAS_PROJECT_FRAMERATE", "25.0", override_existing, verbose)
     verbose_set("UAS_PROJECT_RESOLUTION", "[1280,720]", override_existing, verbose)
     verbose_set("UAS_PROJECT_RESOLUTIONFRAMED", "[1280,960]", override_existing, verbose)
+    verbose_set("UAS_PROJECT_SHOTFORMAT", r"Act{:02}_Seq{:04}_Sh{:04}", override_existing, verbose)
     verbose_set("UAS_PROJECT_OUTPUTFORMAT", "mp4", override_existing, verbose)
+    verbose_set("UAS_PROJECT_SHOTHANDLEDURATION", 10, override_existing, verbose)
     verbose_set("UAS_PROJECT_COLORSPACE", "", override_existing, verbose)
     verbose_set("UAS_PROJECT_ASSETNAME", "", override_existing, verbose)
-    verbose_set("UAS_PROJECT_SHOTFORMAT", r"Act{:02}_Seq{:04}_Sh{:04}", override_existing, verbose)
 
 
 def print_project_env():
@@ -39,6 +40,7 @@ def print_project_env():
     settingsList.append(["UAS_PROJECT_RESOLUTION", os.environ["UAS_PROJECT_RESOLUTION"]])
     settingsList.append(["UAS_PROJECT_RESOLUTIONFRAMED", os.environ["UAS_PROJECT_RESOLUTIONFRAMED"]])
     settingsList.append(["UAS_PROJECT_SHOTFORMAT", os.environ["UAS_PROJECT_SHOTFORMAT"]])
+    settingsList.append(["UAS_PROJECT_SHOTHANDLEDURATION", os.environ["UAS_PROJECT_SHOTHANDLEDURATION"]])
     settingsList.append(["UAS_PROJECT_OUTPUTFORMAT", os.environ["UAS_PROJECT_OUTPUTFORMAT"]])
     settingsList.append(["UAS_PROJECT_COLORSPACE", os.environ["UAS_PROJECT_COLORSPACE"]])
     settingsList.append(["UAS_PROJECT_ASSETNAME", os.environ["UAS_PROJECT_ASSETNAME"]])
@@ -59,6 +61,7 @@ def initializeForRRS():
         project_resolution=json.loads(os.environ["UAS_PROJECT_RESOLUTION"]),
         project_resolution_framed=json.loads(os.environ["UAS_PROJECT_RESOLUTIONFRAMED"]),
         project_shot_format=os.environ["UAS_PROJECT_SHOTFORMAT"],
+        project_shot_format=os.environ["UAS_PROJECT_SHOTHANDLEDURATION"],
         project_output_format=os.environ["UAS_PROJECT_OUTPUTFORMAT"],
         project_color_space=os.environ["UAS_PROJECT_COLORSPACE"],
         project_asset_name=os.environ["UAS_PROJECT_ASSETNAME"],
@@ -71,8 +74,8 @@ def publishRRS(prodFilePath, takeIndex=-1, verbose=False):
     scene = bpy.context.scene
 
     # To remove!!! Debug only
-    # setup_project_env(True, True)
-    # takeIndex = 1
+    #  setup_project_env(True, True)
+    #  takeIndex = 1
 
     initializeForRRS()
 
@@ -95,17 +98,19 @@ def publishRRS(prodFilePath, takeIndex=-1, verbose=False):
 
     print("\n---------------------------------------------------------")
 
+    ################
     # batch render to generate the files
-    # To do: specify the take?
+    ################
 
-    # renderProps.launchRender("PROJECT", renderRootFilePath=cacheFilePath)
+    # shot videos are rendered in the directory of the take, not anymore in a directory with the shot name
     renderedFilesList = renderProps.launchRenderWithVSEComposite(
         "PROJECT", takeIndex=takeIndex, renderRootFilePath=cacheFilePath
     )
 
+    ################
     # generate the otio file
+    ################
 
-    # projProp_fps = json.loads( os.environ['UAS_PROJECT_FRAMERATE'] )
     # wkip beurk pour récuperer le bon contexte de scene
     bpy.context.window.scene = scene
     renderedOtioFile = renderProps.exportOtio(scene, takeIndex=takeIndex, renderRootFilePath=cacheFilePath)
@@ -115,7 +120,9 @@ def publishRRS(prodFilePath, takeIndex=-1, verbose=False):
     if verbose:
         print("\nNewMediaList = ", renderedFilesList)
 
+    ################
     # copy files to the network
+    ################
 
     # Wkip to do: exclude .png
     # from distutils.dir_util import copy_tree

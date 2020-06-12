@@ -480,6 +480,15 @@ class UAS_PT_ShotManager_ShotProperties(Panel):
 
             # row.prop ( context.props, "display_duration_in_shotlist", text = "" )
 
+            if shot.camera is not None and len(shot.camera.data.background_images):
+                # shot.camera.data.background_images[0].alpha = self.alpha  # globalSettings.backgroundAlpha:
+                box = layout.box()
+                row = box.row()
+                row.separator(factor=1.0)
+                c = row.column()
+                grid_flow = c.grid_flow(align=False, columns=4, even_columns=False)
+                grid_flow.prop(shot, "bgImages_Offset")
+
     @classmethod
     def poll(cls, context):
         props = context.scene.UAS_shot_manager_props

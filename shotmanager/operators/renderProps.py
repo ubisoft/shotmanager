@@ -414,7 +414,10 @@ def launchRenderWithVSEComposite(renderMode, takeIndex=-1, renderRootFilePath=""
             vse_render.inputBGMediaPath = newTempRenderPath + "_tmp_StampInfo.####.png"
             vse_render.inputBGResolution = (1280, 960)
 
-            compositedMediaPath = shot.getOutputFileName(fullPath=True, rootFilePath=rootPath)
+            # compositedMediaPath = shot.getOutputFileName(fullPath=True, rootFilePath=rootPath)     # if we use that the shot .mp4 is rendered in the shot dir
+            # here we render in the take dir
+            compositedMediaPath = f"{rootPath}{take.getName_PathCompliant()}\\{shot.getOutputFileName(fullPath=False)}"
+
             vse_render.compositeVideoInVSE(
                 projectFps,
                 1,
@@ -435,6 +438,10 @@ def launchRenderWithVSEComposite(renderMode, takeIndex=-1, renderRootFilePath=""
             for file in filtered_files:
                 path_to_file = os.path.join(newTempRenderPath, file)
                 os.remove(path_to_file)
+            try:
+                os.rmdir(newTempRenderPath)
+            except Exception:
+                print("Cannot delete Dir: ", newTempRenderPath)
 
             vse_render.createNewClip(
                 sequenceScene,
@@ -878,8 +885,10 @@ def exportOtio(scene, takeIndex=-1, renderRootFilePath="", fps=-1):
 
             available_range = otio.opentime.range_from_start_end_time(start_time, end_time_exclusive)
 
-            shotFilePath = shot.getOutputFileName(fullPath=True, rootFilePath=renderPath)
-            shotFileName = shot.getOutputFileName()
+            # shotFilePath = shot.getOutputFileName(fullPath=True, rootFilePath=renderPath)
+
+            shotFileName = shot.getOutputFileName(fullPath=False)
+            shotFilePath = f"{renderPath}{take_name}\\{shotFileName}"
             print("    shotFilePath: ", shotFilePath, shotFileName)
 
             media_reference = otio.schema.ExternalReference(target_url=shotFilePath, available_range=available_range)
@@ -971,6 +980,17 @@ class UAS_ShotManager_OT_Import_OTIO(Operator):
     bl_options = {"INTERNAL", "REGISTER", "UNDO"}
 
     otioFile: StringProperty()
+    importAtFrame: IntProperty(
+        name="Import at Frame",
+        description="Make the imported edit start at the specified frame",
+        soft_min=0,
+        min=0,
+        default=25,
+    )
+    reformatShotNames: BoolProperty(
+        name="Reformat Shot Names", description="Keep only the shot name part for the name of the shots", default=True,
+    )
+
     createCameras: BoolProperty(
         name="Create Camera for New Shots",
         description="Create a camera for each new shot or use the same camera for all shots",
@@ -981,15 +1001,13 @@ class UAS_ShotManager_OT_Import_OTIO(Operator):
         description="Use the clips and videos from the edit file as background for the cameras",
         default=True,
     )
-    reformatShotNames: BoolProperty(
-        name="Reformat Shot Names", description="Keep only the shot name part for the name of the shots", default=True,
+
+    mediaHaveHandles: BoolProperty(
+        name="Media Have Handles", description="Do imported media use the project handles?", default=False,
     )
-    importAtFrame: IntProperty(
-        name="Import at Frame",
-        description="Make the imported edit start at the specified frame",
-        soft_min=0,
-        min=0,
-        default=25,
+
+    mediaHandlesDuration: IntProperty(
+        name="Handles Duration", description="", soft_min=0, min=0, default=10,
     )
 
     def draw(self, context):
@@ -1000,10 +1018,18 @@ class UAS_ShotManager_OT_Import_OTIO(Operator):
         box.prop(self, "otioFile", text="OTIO File")
 
         box.separator(factor=0.2)
-        box.prop(self, "createCameras")
-        box.prop(self, "useMediaAsCameraBG")
-        box.prop(self, "reformatShotNames")
         box.prop(self, "importAtFrame")
+        box.prop(self, "reformatShotNames")
+        box.prop(self, "createCameras")
+        if self.createCameras:
+            layout.label(text="Camera Background:")
+            row = layout.row(align=True)
+            box = row.box()
+            box.prop(self, "useMediaAsCameraBG")
+            if self.useMediaAsCameraBG:
+                box.prop(self, "mediaHaveHandles")
+                if self.mediaHaveHandles:
+                    box.prop(self, "mediaHandlesDuration")
 
         layout.separator()
 
@@ -1049,6 +1075,7 @@ class UAS_ShotManager_OT_Import_OTIO(Operator):
                         cam_ob.location = (0.0, i, 0.0)
                         cam_ob.rotation_euler = (radians(90), 0.0, radians(90))
 
+                        # add media as camera background
                         if self.useMediaAsCameraBG:
                             print("Import Otio clip.media_reference.target_url: ", clip.media_reference.target_url)
                             media_path = Path(utils.file_path_from_uri(clip.media_reference.target_url))
@@ -1056,11 +1083,19 @@ class UAS_ShotManager_OT_Import_OTIO(Operator):
                             if not media_path.exists():
                                 # Lets find it inside next to the xml
                                 media_path = Path(self.otioFile).parent.joinpath(media_path.name)
-                                print("** not found, so new media_path: ", media_path)
+                                print("** not found, so Path(self.otioFile).parent: ", Path(self.otioFile).parent)
+                                print("   and new media_path: ", media_path)
+
+                            handlesDuration = 0
+                            if self.mediaHaveHandles:
+                                handlesDuration = self.mediaHandlesDuration
+
                             utils.add_background_video_to_cam(
                                 cam,
                                 str(media_path),
-                                otio.opentime.to_frames(clip.range_in_parent().start_time) + self.importAtFrame,
+                                otio.opentime.to_frames(clip.range_in_parent().start_time)
+                                + self.importAtFrame
+                                - handlesDuration,
                             )
 
                     bpy.ops.uas_shot_manager.add_shot(

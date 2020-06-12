@@ -2,7 +2,7 @@ import bpy
 
 from bpy.types import Scene
 from bpy.types import PropertyGroup
-from bpy.props import StringProperty, IntProperty, BoolProperty, PointerProperty, FloatVectorProperty
+from bpy.props import StringProperty, IntProperty, BoolProperty, PointerProperty, FloatVectorProperty, FloatProperty
 
 
 class UAS_ShotManager_Shot(PropertyGroup):
@@ -133,3 +133,11 @@ class UAS_ShotManager_Shot(PropertyGroup):
 
     def getEditEnd(self, scene):
         return scene.UAS_shot_manager_props.getEditTime(self, self.end)
+
+    bgImages_Offset: IntProperty(
+        name="BG Clip Offset",
+        description="Time offset for the clip used as background for the camera",
+        soft_min=-20,
+        soft_max=20,
+        default=0,
+    )
