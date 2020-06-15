@@ -20,14 +20,19 @@ class UAS_Retimer_Properties(PropertyGroup):
             ),
             (
                 "RESCALE",
-                "Scale Time !!! Not debugged yet !!!",
-                "Change the scale of the specified time range.\nKeyframes after the end of the range are just offset.",
+                "Rescale Time",
+                "Change the scale of the specified time range, starting at the specified start frame.\nKeyframes after the end of the range are just offset.",
             ),
             (
                 "CLEAR_ANIM",
                 "Clear Animation",
                 "Clear the animation on the specified time range.\nNo keyframes are offset.",
             ),
+            # (
+            #     "FREEZE",
+            #     "Clear Animation",
+            #     "Clear the animation on the specified time range.\nNo keyframes are offset.",
+            # ),
         ),
         options=set(),
     )
@@ -98,8 +103,14 @@ class UAS_Retimer_Properties(PropertyGroup):
 
     # Rescale specific
     factor: FloatProperty(
-        name="Factor", default=1, min=0, max=10, options=set(),
+        name="Factor",
+        description="Scale factore used to change the duration of the specified time range",
+        default=1,
+        min=0.01,
+        max=10,
+        options=set(),
     )
+
     pivot: IntProperty(
         name="Pivot", options=set(),
     )
@@ -121,6 +132,7 @@ class UAS_Retimer_Properties(PropertyGroup):
     applytToGreasePencil: BoolProperty(
         name="Grease Pencil", default=True, options=set(),
     )
+
 
 _classes = (UAS_Retimer_Properties,)
 

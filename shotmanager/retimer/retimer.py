@@ -236,17 +236,12 @@ def retimeScene(
     apply_on_grease_pencils=True,
     apply_on_shots=True,
 ):
-
-    startFrame = start
-    if "INSERT" == mode:
-        startFrame = start + 1
-
     retimer(
         scene,
         mode,
         objects,
-        startFrame,
-        startFrame + duration,
+        start,
+        start + duration,
         join_gap=join_gap,
         factor=factor,
         pivot=pivot,

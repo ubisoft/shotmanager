@@ -87,19 +87,43 @@ class UAS_PT_ShotManagerRetimer(Panel):
             compo.separator(factor=2)
 
         elif retimerProps.mode == "RESCALE":
-            row = box.row()
+            row = box.row(align=True)
             row.separator(factor=1)
-            row.prop(retimerProps, "start_frame", text="From")
-            row.prop(retimerProps, "end_frame", text="To")
+            row.prop(retimerProps, "start_frame", text="Rescale After")
+            row.operator(
+                "uas_shot_manager.getcurrentframefor", text="", icon="TRIA_UP_BAR"
+            ).propertyToUpdate = "start_frame"
+            row.separator()
 
-            row.operator("uas_shot_manager.gettimerange", text="", icon="SEQ_STRIP_META")
+            row.prop(retimerProps, "end_frame", text="Up To (excl.)")
+            row.operator(
+                "uas_shot_manager.getcurrentframefor", text="", icon="TRIA_UP_BAR"
+            ).propertyToUpdate = "end_frame"
+            row.separator()
+
+            # row.operator("uas_shot_manager.gettimerange", text="", icon="SEQ_STRIP_META")
+            # row.separator(factor=1)
+
+            row = box.row(align=True)
+            # row.use_property_split = True
+
             row.separator(factor=1)
-
-            row = box.row()
-            row.use_property_split = True
-
-            row.prop(retimerProps, "factor")
-            row.prop(retimerProps, "pivot")
+            row.prop(retimerProps, "factor", text="Scale Factor")
+            newEndStr = (
+                "   fr. "
+                + str(retimerProps.end_frame)
+                + " => fr. "
+                # + "{:.{}f}".format( (retimerProps.end_frame - retimerProps.start_frame) * retimerProps.factor + retimerProps.start_frame, 1 )
+                + str(
+                    round(
+                        (retimerProps.end_frame - retimerProps.start_frame) * retimerProps.factor
+                        + retimerProps.start_frame
+                    )
+                )
+            )
+            row.label(text=newEndStr)
+            row.separator(factor=1)
+            # row.prop(retimerProps, "pivot")
 
             # apply ###
             row = box.row()
@@ -109,6 +133,30 @@ class UAS_PT_ShotManagerRetimer(Panel):
             compo.scale_y = 1.2
             compo.operator("uas_shot_manager.retimerapply", text="Rescale")
             compo.separator(factor=2)
+
+        # elif retimerProps.mode == "RESCALE":
+        #     row = box.row()
+        #     row.separator(factor=1)
+        #     row.prop(retimerProps, "start_frame", text="From")
+        #     row.prop(retimerProps, "end_frame", text="To")
+
+        #     row.operator("uas_shot_manager.gettimerange", text="", icon="SEQ_STRIP_META")
+        #     row.separator(factor=1)
+
+        #     row = box.row()
+        #     row.use_property_split = True
+
+        #     row.prop(retimerProps, "factor")
+        #     row.prop(retimerProps, "pivot")
+
+        #     # apply ###
+        #     row = box.row()
+        #     row.separator(factor=0.1)
+        #     compo = layout.row()
+        #     compo.separator(factor=2)
+        #     compo.scale_y = 1.2
+        #     compo.operator("uas_shot_manager.retimerapply", text="Rescale")
+        #     compo.separator(factor=2)
 
         elif retimerProps.mode == "CLEAR_ANIM":
             row = box.row(align=True)
@@ -260,10 +308,10 @@ class UAS_ShotManager_RetimerApply(Operator):
                 context.scene,
                 retimerProps.mode,
                 obj_list,
-                startFrame,
+                startFrame + 1,
                 retimerProps.insert_duration,
                 retimerProps.gap,
-                retimerProps.factor,
+                1.0,
                 retimerProps.pivot,
                 retimerProps.applyToObjects,
                 retimerProps.applyToShapeKeys,
@@ -278,8 +326,23 @@ class UAS_ShotManager_RetimerApply(Operator):
                 startFrame + 1,
                 endFrame - startFrame,
                 True,
-                retimerProps.factor,
+                1.0,
                 retimerProps.pivot,
+                retimerProps.applyToObjects,
+                retimerProps.applyToShapeKeys,
+                retimerProps.applytToGreasePencil,
+                retimerProps.applyToShots,
+            )
+        elif "RESCALE" == retimerProps.mode:
+            retimer.retimeScene(
+                context.scene,
+                retimerProps.mode,
+                obj_list,
+                startFrame + 1,
+                endFrame - startFrame - 1,
+                True,
+                retimerProps.factor,
+                startFrame,
                 retimerProps.applyToObjects,
                 retimerProps.applyToShapeKeys,
                 retimerProps.applytToGreasePencil,
