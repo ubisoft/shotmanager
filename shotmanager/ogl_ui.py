@@ -185,6 +185,7 @@ class BL_UI_Cursor:
         self.__area = context.area
 
     def draw ( self ):
+        props = self.context.scene.UAS_shot_manager_props
         self.bbox.color = self.color
         self.caret.color = self.color
         if self.hightlighted:
@@ -195,9 +196,11 @@ class BL_UI_Cursor:
         box_to_draw.x = self.posx
         caret_to_draw = self.caret.copy ( )
         caret_to_draw.x = self.posx
+        edit_start_frame = props.editStartFrame
         if not self._dragable:
-            scene_edit_time = self.context.scene.UAS_shot_manager_props.getEditCurrentTime ( ignoreDisabled = True )
-            val = remap ( scene_edit_time, 0, self.context.scene.UAS_shot_manager_props.getEditDuration ( ignoreDisabled = True ), 0, self.context.area.width )
+            scene_edit_time = props.getEditCurrentTime ( ignoreDisabled = True )
+            scene_edit_time = max ( edit_start_frame, scene_edit_time )
+            val = remap ( scene_edit_time, edit_start_frame, props.getEditDuration ( ignoreDisabled = True ) + edit_start_frame, 0, self.context.area.width )
             self.value = remap ( val, 0, self.context.area.width, self.range_min, self.range_max )
         else:
             val = remap ( self.value, self.range_min, self.range_max, 0, self.context.area.width )
@@ -211,7 +214,7 @@ class BL_UI_Cursor:
 
         blf.color ( 0, .9, .9, .9, 1  )
         blf.size ( 0, 12, 72 )
-        frame = str ( self.context.scene.UAS_shot_manager_props.getEditCurrentTime ( ignoreDisabled = True ) )
+        frame = str ( max ( props.getEditCurrentTime ( ignoreDisabled = True ), edit_start_frame ) )
         font_width, font_height = blf.dimensions ( 0, frame )
         blf.position ( 0, box_to_draw.x - 0.5 * font_width, box_to_draw.y - 0.5 * font_height, 0 )
         blf.draw ( 0, frame )
@@ -222,6 +225,7 @@ class BL_UI_Cursor:
             x -= self.__region.x
             y -= self.__region.y
             self.bbox.x = remap ( self.value, self.range_min, self.range_max, 0, self.__area.width )
+            self.bbox.x = clamp ( self.bbox.x, self.bbox.sx, self.__area.width - self.bbox.sx )
             bound_lo, bound_hi = self.bbox.bbox ( )
             if bound_lo[ 0 ] <= x < bound_hi[ 0 ] and bound_lo[ 1 ] <= y < bound_hi[ 1 ]:
                 return True
@@ -604,8 +608,8 @@ class BL_UI_Timeline:
         shots = shotmanager_props.getShotsList ( ignoreDisabled = not shotmanager_props.display_disabledshots_in_timeline )
 
 
-        new_edit_frame = round ( remap ( self.frame_cursor.value, self.frame_cursor.range_min, self.frame_cursor.range_max, 0, shotmanager_props.getEditDuration ( ) ) )
-        sequence_current_frame = 0
+        new_edit_frame = round ( remap ( self.frame_cursor.value, self.frame_cursor.range_min, self.frame_cursor.range_max, shotmanager_props.editStartFrame, shotmanager_props.editStartFrame + shotmanager_props.getEditDuration ( ) - 1 ) )
+        sequence_current_frame = shotmanager_props.editStartFrame
         for shot in shots:
             if sequence_current_frame <=new_edit_frame < sequence_current_frame + shot.getDuration ( ):
                 shotmanager_props.setCurrentShot ( shot )
