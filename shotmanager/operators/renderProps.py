@@ -10,7 +10,9 @@ from bpy_extras.io_utils import ImportHelper
 
 from ..utils import utils
 
-from ..scripts.RRS_StampInfo import setRRS_StampInfoSettings
+from ..scripts.rrs.RRS_StampInfo import setRRS_StampInfoSettings
+
+import opentimelineio as otio
 
 # for file browser:
 # from bpy_extras.io_utils import ImportHelper
@@ -63,13 +65,6 @@ class UAS_PT_ShotManagerRenderPanel(Panel):
         row.operator("uas_shot_manager.render_openexplorer", text="", icon="FILEBROWSER").path = props.renderRootPath
         row.separator()
         layout.separator()
-
-        row = layout.row(align=True)
-        row.alert = True
-        row.label(text="RRS Specific (debug temp):")
-        row.operator("uas_shot_manager.lauchrrsrender", text="RRS Publish - Debug")
-        row.alert = False
-        layout.separator(factor=1)
 
         row = layout.row(align=True)
         row.scale_y = 1.6
@@ -216,23 +211,6 @@ class UAS_OT_OpenPathBrowser(Operator):
         return {"RUNNING_MODAL"}
 
 
-class UAS_LaunchRRSRender(Operator):
-    bl_idname = "uas_shot_manager.lauchrrsrender"
-    bl_label = "RRS Render Script"
-    bl_description = "Run the RRS Render Script"
-
-    def execute(self, context):
-        """Launch RRS Publish script"""
-        print(" UAS_LaunchRRSRender")
-
-        from ..scripts import publishRRS
-
-        # publishRRS.publishRRS( context.scene.UAS_shot_manager_props.renderRootPath )
-        publishRRS.publishRRS("c:\\tmpRezo\\", verbose=True)
-        print("End of Publish")
-        return {"FINISHED"}
-
-
 # class UAS_ShotManager_Explorer ( Operator ):
 #     bl_idname = "uas_shot_manager.explorer"
 #     bl_label = "Open Explorer"
@@ -306,6 +284,7 @@ def launchRenderWithVSEComposite(renderMode, takeIndex=-1, renderRootFilePath=""
         rootPath += "\\"
 
     preset_useStampInfo = False
+    RRS_StampInfo = None
     if "UAS_StampInfo_Settings" in scene:
         RRS_StampInfo = scene.UAS_StampInfo_Settings
 
@@ -855,7 +834,7 @@ def exportOtio(scene, takeIndex=-1, renderRootFilePath="", fps=-1):
 
     sceneFps = fps if fps != -1 else scene.render.fps
     print("exportOtio: sceneFps:", sceneFps)
-    import opentimelineio as otio
+    #   import opentimelineio as otio
 
     take = props.getCurrentTake() if -1 == takeIndex else props.getTakeByIndex(takeIndex)
     shotList = take.getShotList(ignoreDisabled=True)
@@ -1009,7 +988,7 @@ class UAS_ShotManager_OT_Import_OTIO(Operator):
     )
 
     mediaHaveHandles: BoolProperty(
-        name="Media Have Handles", description="Do imported media use the project handles?", default=False,
+        name="Media Have Handles", description="Do imported media use the project handles?", default=True,
     )
 
     mediaHandlesDuration: IntProperty(
@@ -1023,9 +1002,15 @@ class UAS_ShotManager_OT_Import_OTIO(Operator):
         box = row.box()
         box.prop(self, "otioFile", text="OTIO File")
 
-        if 25.0 != context.scene.render.fps:
+        timeline = otio.adapters.read_from_file(self.otioFile)
+        time = timeline.duration()
+        rate = int(time.rate)
+
+        if rate != context.scene.render.fps:
             box.alert = True
-            box.label(text="!!! Scene fps is not 25 !!!")
+            box.label(
+                text="!!! Scene fps is " + str(context.scene.render.fps) + ", imported edit is " + str(rate) + "!!"
+            )
             box.alert = False
 
         box.separator(factor=0.2)
@@ -1045,7 +1030,7 @@ class UAS_ShotManager_OT_Import_OTIO(Operator):
         layout.separator()
 
     def execute(self, context):
-        import opentimelineio as otio
+        #   import opentimelineio as otio
         from random import uniform
         from math import radians
 
@@ -1102,14 +1087,16 @@ class UAS_ShotManager_OT_Import_OTIO(Operator):
                                 handlesDuration = self.mediaHandlesDuration
 
                             # start frame of the background video is not set here since it will be linked to the shot start frame
-                            utils.add_background_video_to_cam(cam, str(media_path), 0)
+                            utils.add_background_video_to_cam(
+                                cam, str(media_path), 0, alpha=props.shotsGlobalSettings.backgroundAlpha
+                            )
 
                     shot = props.addShot(
                         name=clipName,
                         start=otio.opentime.to_frames(clip.range_in_parent().start_time) + self.importAtFrame,
                         end=otio.opentime.to_frames(clip.range_in_parent().end_time_inclusive()) + self.importAtFrame,
-                        camera=cam,
-                        color=(cam_ob.color[0], cam_ob.color[1], cam_ob.color[2]),
+                        camera=cam_ob,
+                        color=cam_ob.color,  # (cam_ob.color[0], cam_ob.color[1], cam_ob.color[2]),
                     )
                     # bpy.ops.uas_shot_manager.add_shot(
                     #     name=clipName,
@@ -1136,7 +1123,7 @@ class UAS_ShotManager_OT_Import_OTIO(Operator):
 
     def invoke(self, context, event):
         wm = context.window_manager
-        wm.invoke_props_dialog(self, width=400)
+        wm.invoke_props_dialog(self, width=500)
         #    res = bpy.ops.uasotio.openfilebrowser("INVOKE_DEFAULT")
 
         # print("Res: ", res)
@@ -1185,7 +1172,6 @@ _classes = (
     UAS_PT_ShotManager_RenderDialog,
     UAS_OT_OpenPathBrowser,
     #    UAS_ShotManager_Explorer,
-    UAS_LaunchRRSRender,
     UAS_ShotManager_Render_RestoreProjectSettings,
     UAS_ShotManager_Render_DisplayProjectSettings,
     UAS_ShotManager_Export_OTIO,

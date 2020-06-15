@@ -3,7 +3,7 @@ import bpy
 from bpy.types import Panel, Operator
 from bpy.props import CollectionProperty, StringProperty
 
-import shotmanager.operators.shots as shots
+# import shotmanager.operators.shots as shots
 
 
 # from ..properties import get_takes

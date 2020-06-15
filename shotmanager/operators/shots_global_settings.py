@@ -76,9 +76,9 @@ def register():
 
     # declaration of properties that will not be saved in the scene
 
-    bpy.types.WindowManager.UAS_shot_manager_shotsGlobalSettings = PointerProperty(
-        type=UAS_ShotManager_ShotsGlobalSettings
-    )
+    # bpy.types.WindowManager.UAS_shot_manager_shotsGlobalSettings = PointerProperty(
+    #     type=UAS_ShotManager_ShotsGlobalSettings
+    # )
 
 
 def unregister():

@@ -39,6 +39,23 @@
 #
 #       - mettre des vraies prefs utilisateurs
 #
+#
+#   Refacto code:
+#   - faire modules avec:
+#       - otio
+#       - render
+#   - séparer en operator / ui ... ?
+#   - mettre RRS en rep separé
+#   - ranger les explorers
+#
+#
+#
+#
+#
+#
+#
+#
+#
 
 
 import os
@@ -91,14 +108,14 @@ from .operators import shots_global_settings
 
 from .operators import general
 from .operators import playbar
-from .operators import timeControl
 from .operators import renderProps
-
-# from .tools import retimer
 
 from .operators import prefs
 
 from .properties import props
+
+from .retimer import retimer_ui
+from .retimer import retimer_props
 
 from .scripts import precut_tools
 
@@ -111,13 +128,15 @@ from .utils import utils
 
 from . import videoshotmanager
 
+from .scripts import rrs
+
 
 bl_info = {
     "name": "UAS Shot Manager",
     "author": "Romain Carriquiry Borchiari, Julien Blervaque (aka Werwack)",
     "description": "Manage a sequence of shots and cameras in the 3D View - Ubisoft Animation Studio",
     "blender": (2, 83, 0),
-    "version": (1, 2, 15),
+    "version": (1, 2, 16),
     "location": "View3D > UAS Shot Manager",
     "wiki_url": "https://mdc-web-tomcat17.ubisoft.org/confluence/display/UASTech/UAS+Shot+Manager",
     "warning": "",
@@ -191,18 +210,23 @@ def register():
     # for cls in classes:
     #     bpy.utils.register_class(cls)
 
-    sm_ui.register()
-    timeControl.register()
+    # operators
     takes.register()
     shots.register()
     shots_global_settings.register()
+    precut_tools.register()
+    playbar.register()
+    retimer_props.register()
+    props.register()
+
+    # ui
+    sm_ui.register()
+    rrs.register()
+    retimer_ui.register()
     renderProps.register()
     utils.register()
 
-    playbar.register()
     vse_render.register()
-    precut_tools.register()
-    props.register()
     utils_render.register()
     general.register()
     videoshotmanager.register()
@@ -236,22 +260,27 @@ def register():
 
 def unregister():
 
+    # ui
     prefs.unregister()
     videoshotmanager.unregister()
     general.unregister()
     utils_render.unregister()
-    props.unregister()
-    precut_tools.unregister()
     vse_render.unregister()
-    playbar.unregister()
 
     utils.unregister()
     renderProps.unregister()
+    retimer_ui.unregister()
+    rrs.unregister()
+    sm_ui.unregister()
+
+    # operators
+    props.unregister()
+    retimer_props.unregister()
+    playbar.unregister()
+    precut_tools.unregister()
     shots_global_settings.unregister()
     shots.unregister()
     takes.unregister()
-    timeControl.unregister()
-    sm_ui.unregister()
 
     # for cls in reversed(classes):
     #     bpy.utils.unregister_class(cls)

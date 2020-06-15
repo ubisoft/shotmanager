@@ -12,12 +12,17 @@ from bpy.props import StringProperty
 def addonVersion(addonName):
     import addon_utils
 
+    versionStr = "-"
     versionTupple = [
         addon.bl_info.get("version", (-1, -1, -1))
         for addon in addon_utils.modules()
         if addon.bl_info["name"] == addonName
-    ][0]
-    return str(versionTupple[0]) + "." + str(versionTupple[1]) + "." + str(versionTupple[2])
+    ]
+    if len(versionTupple):
+        versionTupple = versionTupple[0]
+        versionStr = str(versionTupple[0]) + "." + str(versionTupple[1]) + "." + str(versionTupple[2])
+
+    return versionStr
 
 
 class PropertyRestoreCtx:
@@ -101,7 +106,7 @@ def file_path_from_uri(uri):
     return path
 
 
-def add_background_video_to_cam(camera: bpy.types.Camera, movie_path, frame_start):
+def add_background_video_to_cam(camera: bpy.types.Camera, movie_path, frame_start, alpha=-1):
     print("add_background_video_to_cam")
     movie_path = Path(movie_path)
     if not movie_path.exists():
@@ -120,6 +125,8 @@ def add_background_video_to_cam(camera: bpy.types.Camera, movie_path, frame_star
 
         bg.display_depth = "FRONT"
         bg.frame_method = "CROP"
+        if -1 != alpha:
+            bg.alpha = alpha
 
 
 _classes = (UAS_ShotManager_OpenExplorer,)

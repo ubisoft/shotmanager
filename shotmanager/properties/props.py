@@ -17,8 +17,8 @@ from .media import UAS_ShotManager_Media
 from .render_settings import UAS_ShotManager_RenderSettings
 from .shot import UAS_ShotManager_Shot
 from .take import UAS_ShotManager_Take
-
-from ..operators.timeControl import UAS_Retimer_Properties
+from ..operators.shots_global_settings import UAS_ShotManager_ShotsGlobalSettings
+from ..retimer.retimer_props import UAS_Retimer_Properties
 
 from ..utils import utils
 
@@ -55,6 +55,26 @@ class UAS_ShotManager_Props(PropertyGroup):
         return None
 
     retimer: PointerProperty(type=UAS_Retimer_Properties)
+
+    def getWarnings(self, scene):
+        """ Return an array with all the warnings
+        """
+        warningList = []
+        if scene.render.fps != self.project_fps:
+            warningList.append("Current scene fps and project fps are different !!")
+
+        # check if a negative render frame may be rendered
+        shotList = self.get_shots()
+        hasNegativeFrame = False
+        shotInd = 0
+        while shotInd < len(shotList) and not hasNegativeFrame:
+            hasNegativeFrame = shotList[shotInd].start - self.handles < 0
+            shotInd += 1
+
+        if hasNegativeFrame:
+            warningList.append("Index of the output frame of a shot minus handle is negative !!")
+
+        return warningList
 
     # project settings
     #############
@@ -187,8 +207,10 @@ class UAS_ShotManager_Props(PropertyGroup):
         name="Display Camera Selection Button in Shot List", default=False, options=set()
     )
 
-    # shots global control
+    # shots global settings
     #############
+
+    shotsGlobalSettings: PointerProperty(type=UAS_ShotManager_ShotsGlobalSettings)
 
     # prefs
     #############
@@ -201,6 +223,15 @@ class UAS_ShotManager_Props(PropertyGroup):
         "Othewise the shot uses its own color",
         default=True,
     )
+
+    # bgImages_Alpha: FloatProperty(
+    #     name="BG Image Alpha",
+    #     description="Opacity of the camera background images",
+    #     min=0.0,
+    #     max=1.0,
+    #     default=0.9,
+    #     options=set(),
+    # )
 
     # shots list
     #############
@@ -1300,10 +1331,22 @@ class UAS_ShotManager_Props(PropertyGroup):
 
         settingsList = []
 
-        # settingsList.append([self.project_name.name, self.project_name])
         settingsList.append(["Project Name", '"' + self.project_name + '"'])
         settingsList.append(["Project Framerate", str(self.project_fps) + " fps"])
-        # wkip todo
+        settingsList.append(["Resolution", str(self.project_resolution_x) + " x " + str(self.project_resolution_y)])
+        settingsList.append(
+            [
+                "Resolution Framed",
+                str(self.project_resolution_framed_x) + " x " + str(self.project_resolution_framed_y),
+            ]
+        )
+        settingsList.append(["Shot Name Format", str(self.project_shot_format)])
+        settingsList.append(["Shot Handle Duration", str(self.project_shot_handle_duration)])
+        settingsList.append(["Project Output Format", str(self.project_output_format)])
+        settingsList.append(["Project Color Space", str(self.project_color_space)])
+        settingsList.append(["Project Asset Name", str(self.project_asset_name)])
+        settingsList.append(["new_shot_prefix", str(self.new_shot_prefix)])
+        settingsList.append(["render_shot_prefix", str(self.render_shot_prefix)])
 
         if not settingsListOnly:
 

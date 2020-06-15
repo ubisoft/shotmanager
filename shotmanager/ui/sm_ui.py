@@ -170,6 +170,17 @@ class UAS_PT_ShotManager(Panel):
         row.label(text=str(scene.render.fps) + " fps")
 
         ################
+        # warnings
+        warningsList = props.getWarnings(scene)
+        if len(warningsList):
+            for w in warningsList:
+                row = layout.row()
+                row.separator()
+                row.alert = True
+                row.label(text=w)
+                row.alert = False
+
+        ################
         # takes
         row = layout.row()  # just to give some space...
         box = layout.box()
@@ -529,7 +540,8 @@ class UAS_PT_ShotManager_ShotsGlobalSettings(Panel):
         grid_flow.operator("uas_shots_settings.use_background", text="Turn On").useBackground = True
         grid_flow.operator("uas_shots_settings.use_background", text="Turn Off").useBackground = False
         # grid_flow.operator("uas_shots_settings.background_alpha", text="Alpha")
-        grid_flow.prop(bpy.context.window_manager.UAS_shot_manager_shotsGlobalSettings, "backgroundAlpha", text="Alpha")
+        # grid_flow.prop(bpy.context.window_manager.UAS_shot_manager_shotsGlobalSettings, "backgroundAlpha", text="Alpha")
+        grid_flow.prop(props.shotsGlobalSettings, "backgroundAlpha", text="Alpha")
 
         #   grid_flow.scale_x = 0.7
         # grid_flow.prop(shot, "color", text="")
