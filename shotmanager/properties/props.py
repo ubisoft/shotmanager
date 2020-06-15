@@ -1,5 +1,4 @@
 import os
-import json
 
 import bpy
 from bpy.types import PropertyGroup
@@ -18,20 +17,21 @@ from .media import UAS_ShotManager_Media
 from .render_settings import UAS_ShotManager_RenderSettings
 from .shot import UAS_ShotManager_Shot
 from .take import UAS_ShotManager_Take
+from ..operators.shots_global_settings import UAS_ShotManager_ShotsGlobalSettings
+from ..retimer.retimer_props import UAS_Retimer_Properties
 
-from ..operators.timeControl import UAS_Retimer_Properties
+from ..utils import utils
 
 
 class UAS_ShotManager_Props(PropertyGroup):
     def version(self):
-        import addon_utils
+        return utils.addonVersion("UAS Shot Manager")
 
-        versionTupple = [
-            addon.bl_info.get("version", (-1, -1, -1))
-            for addon in addon_utils.modules()
-            if addon.bl_info["name"] == "UAS_StampInfo"
-        ][0]
-        return str(versionTupple[0]) + "." + str(versionTupple[1]) + "." + str(versionTupple[2])
+    def initialize_shot_manager(self):
+        print("\nInitializing Shot Manager...\n")
+        self.createDefaultTake()
+        self.createRenderSettings()
+        self.isInitialized = True
 
     def get_isInitialized(self):
         #    print(" get_isInitialized")
@@ -55,6 +55,48 @@ class UAS_ShotManager_Props(PropertyGroup):
         return None
 
     retimer: PointerProperty(type=UAS_Retimer_Properties)
+
+    def getWarnings(self, scene):
+        """ Return an array with all the warnings
+        """
+        warningList = []
+        if scene.render.fps != self.project_fps:
+            warningList.append("Current scene fps and project fps are different !!")
+
+        # check if a negative render frame may be rendered
+        shotList = self.get_shots()
+        hasNegativeFrame = False
+        shotInd = 0
+        while shotInd < len(shotList) and not hasNegativeFrame:
+            hasNegativeFrame = shotList[shotInd].start - self.handles < 0
+            shotInd += 1
+
+        if hasNegativeFrame:
+            warningList.append("Index of the output frame of a shot minus handle is negative !!")
+
+        return warningList
+
+    # project settings
+    #############
+
+    project_name: StringProperty(name="Project Name", default="")
+    project_fps: FloatProperty(name="Project Fps", default=12.0)
+    project_resolution_x: IntProperty(name="", default=1280)
+    project_resolution_y: IntProperty(name="", default=720)
+    project_resolution_framed_x: IntProperty(name="", default=1280)
+    project_resolution_framed_y: IntProperty(name="", default=720)
+    project_shot_format: StringProperty(name="Shot Format", default=r"Act{:02}_Seq{:04}_Sh{:04}")
+
+    project_shot_handle_duration: IntProperty(name="Project Handle Duration", default=10)
+
+    project_output_format: StringProperty(name="Output Format", default="")
+    project_color_space: StringProperty(name="Color Space", default="")
+    project_asset_name: StringProperty(name="Asset Name", default="")
+
+    new_shot_prefix: StringProperty(default="Sh")
+    render_shot_prefix: StringProperty(
+        name="Render Shot Prefix", description="Prefix added to the shot names at render time", default="Unused"
+    )
 
     # edit
     #############
@@ -91,6 +133,7 @@ class UAS_ShotManager_Props(PropertyGroup):
         self["displayStillProps"] = True
         self["displayAnimationProps"] = False
         self["displayProjectProps"] = False
+        self["displayOtioProps"] = False
 
     def get_displayAnimationProps(self):
         val = self.get("displayAnimationProps", False)
@@ -101,6 +144,7 @@ class UAS_ShotManager_Props(PropertyGroup):
         self["displayStillProps"] = False
         self["displayAnimationProps"] = True
         self["displayProjectProps"] = False
+        self["displayOtioProps"] = False
 
     def get_displayProjectProps(self):
         val = self.get("displayProjectProps", False)
@@ -111,6 +155,18 @@ class UAS_ShotManager_Props(PropertyGroup):
         self["displayStillProps"] = False
         self["displayAnimationProps"] = False
         self["displayProjectProps"] = True
+        self["displayOtioProps"] = False
+
+    def get_displayOtioProps(self):
+        val = self.get("displayOtioProps", False)
+        return val
+
+    def set_displayOtioProps(self, value):
+        print(" set_displayOtioProps: value: ", value)
+        self["displayStillProps"] = False
+        self["displayAnimationProps"] = False
+        self["displayProjectProps"] = False
+        self["displayOtioProps"] = True
 
     displayStillProps: BoolProperty(
         name="Display Still Preset Properties", get=get_displayStillProps, set=set_displayStillProps, default=True
@@ -127,6 +183,12 @@ class UAS_ShotManager_Props(PropertyGroup):
         set=set_displayProjectProps,
         default=False,
     )
+    displayOtioProps: BoolProperty(
+        name="Display OpenTimelineIO Export Preset Properties",
+        get=get_displayOtioProps,
+        set=set_displayOtioProps,
+        default=False,
+    )
 
     # shots
     #############
@@ -137,7 +199,7 @@ class UAS_ShotManager_Props(PropertyGroup):
 
     display_lens_in_shotlist: BoolProperty(name="Display Camera Lens in Shot List", default=False, options=set())
 
-    display_duration_in_shotlist: BoolProperty(name="Display Shot Duration in Shot List", default=False, options=set())
+    display_duration_in_shotlist: BoolProperty(name="Display Shot Duration in Shot List", default=True, options=set())
 
     display_color_in_shotlist: BoolProperty(name="Display Color in Shot List", default=False, options=set())
 
@@ -145,19 +207,15 @@ class UAS_ShotManager_Props(PropertyGroup):
         name="Display Camera Selection Button in Shot List", default=False, options=set()
     )
 
-    # shots global control
+    # shots global settings
     #############
+
+    shotsGlobalSettings: PointerProperty(type=UAS_ShotManager_ShotsGlobalSettings)
 
     # prefs
     #############
 
     new_shot_duration: IntProperty(default=50, options=set())
-
-    new_shot_prefix: StringProperty(default="Sh")
-
-    render_shot_prefix: StringProperty(
-        name="Render Shot Prefix", description="Prefix added to the shot names at render time", default="Act01_Sq01_"
-    )
 
     use_camera_color: BoolProperty(
         name="Use Camera Color",
@@ -165,6 +223,15 @@ class UAS_ShotManager_Props(PropertyGroup):
         "Othewise the shot uses its own color",
         default=True,
     )
+
+    # bgImages_Alpha: FloatProperty(
+    #     name="BG Image Alpha",
+    #     description="Opacity of the camera background images",
+    #     min=0.0,
+    #     max=1.0,
+    #     default=0.9,
+    #     options=set(),
+    # )
 
     # shots list
     #############
@@ -1120,7 +1187,7 @@ class UAS_ShotManager_Props(PropertyGroup):
         props = bpy.context.scene.UAS_shot_manager_props
         resultStr = ""
 
-        fileName = props.render_shot_prefix + shot.getName_PathCompliant()
+        fileName = f"{props.render_shot_prefix}_{shot.getName_PathCompliant()}"
 
         # fileName + frame index + extension
         fileFullName = fileName
@@ -1262,38 +1329,34 @@ class UAS_ShotManager_Props(PropertyGroup):
         scene = bpy.context.scene
 
         settingsList = []
-        settingsList.append(["UAS_PROJECT_NAME", os.environ["UAS_PROJECT_NAME"]])
-        settingsList.append(["UAS_PROJECT_FRAMERATE", os.environ["UAS_PROJECT_FRAMERATE"]])
-        settingsList.append(["UAS_PROJECT_RESOLUTION", os.environ["UAS_PROJECT_RESOLUTION"]])
-        settingsList.append(["UAS_PROJECT_RESOLUTIONFRAMED", os.environ["UAS_PROJECT_RESOLUTIONFRAMED"]])
-        settingsList.append(["UAS_PROJECT_OUTPUTFORMAT", os.environ["UAS_PROJECT_OUTPUTFORMAT"]])
-        settingsList.append(["UAS_PROJECT_COLORSPACE", os.environ["UAS_PROJECT_COLORSPACE"]])
-        settingsList.append(["UAS_PROJECT_ASSETNAME", os.environ["UAS_PROJECT_ASSETNAME"]])
+
+        settingsList.append(["Project Name", '"' + self.project_name + '"'])
+        settingsList.append(["Project Framerate", str(self.project_fps) + " fps"])
+        settingsList.append(["Resolution", str(self.project_resolution_x) + " x " + str(self.project_resolution_y)])
+        settingsList.append(
+            [
+                "Resolution Framed",
+                str(self.project_resolution_framed_x) + " x " + str(self.project_resolution_framed_y),
+            ]
+        )
+        settingsList.append(["Shot Name Format", str(self.project_shot_format)])
+        settingsList.append(["Shot Handle Duration", str(self.project_shot_handle_duration)])
+        settingsList.append(["Project Output Format", str(self.project_output_format)])
+        settingsList.append(["Project Color Space", str(self.project_color_space)])
+        settingsList.append(["Project Asset Name", str(self.project_asset_name)])
+        settingsList.append(["new_shot_prefix", str(self.new_shot_prefix)])
+        settingsList.append(["render_shot_prefix", str(self.render_shot_prefix)])
 
         if not settingsListOnly:
-            # verbose_set("UAS_PROJECT_NAME","RRSpecial",override_existing,verbose)
-            # verbose_set("UAS_PROJECT_FRAMERATE","25.0",override_existing,verbose)
-            # verbose_set("UAS_PROJECT_RESOLUTION","[1280,720]",override_existing,verbose)
-            # verbose_set("UAS_PROJECT_RESOLUTIONFRAMED","[1280,960]",override_existing,verbose)
-            # verbose_set("UAS_PROJECT_OUTPUTFORMAT","mp4",override_existing,verbose)
-            # verbose_set("UAS_PROJECT_COLORSPACE","",override_existing,verbose)
-            # verbose_set("UAS_PROJECT_ASSETNAME","",override_existing,verbose)
 
-            if "UAS_PROJECT_NAME" in os.environ.keys():
-                projProp_Name = os.environ["UAS_PROJECT_NAME"]
-
-            if "UAS_PROJECT_FRAMERATE" in os.environ.keys():
-                scene.render.fps = float(os.environ["UAS_PROJECT_FRAMERATE"])
-
-            if "UAS_PROJECT_RESOLUTION" in os.environ.keys():
-                resolution = json.loads(os.environ["UAS_PROJECT_RESOLUTION"])
-                scene.render.resolution_x = resolution[0]
-                scene.render.resolution_y = resolution[1]
-                settingsList.append(["UAS_PROJECT_RESOLUTION", os.environ["UAS_PROJECT_RESOLUTION"]])
-
-            # other settings
+            scene.render.fps = self.project_fps
             scene.render.fps_base = 1.0
+
+            scene.render.resolution_x = self.project_resolution_x
+            scene.render.resolution_y = self.project_resolution_y
             scene.render.resolution_percentage = 100.0
+
+            self.handles = self.project_shot_handle_duration
 
             # path
             self.setProjectRenderFilePath()
@@ -1328,11 +1391,53 @@ class UAS_ShotManager_Props(PropertyGroup):
         self.renderSettingsProject.name = "Project Preset"
         self.renderSettingsProject.renderMode = "PROJECT"
 
-    def initialize_shot_manager(self):
-        print("\nInitializing Shot Manager...\n")
-        self.createDefaultTake()
-        self.createRenderSettings()
-        self.isInitialized = True
+    def setProjectSettings(
+        self,
+        project_name=None,
+        project_fps=-1,
+        project_resolution=None,
+        project_resolution_framed=None,
+        project_shot_format=None,
+        project_shot_handle_duration=-1,
+        project_output_format=None,
+        project_color_space=None,
+        project_asset_name=None,
+    ):
+        """ Set only the specified properties
+            Shot format must use "_" as separators. It is of the template: Act{:02}_Seq{:04}_Sh{:04}
+        """
+        if project_name is not None:
+            self.project_name = project_name
+        if -1 != project_fps:
+            self.project_fps = project_fps
+        if project_resolution is not None:
+            self.project_resolution_x = project_resolution[0]
+            self.project_resolution_y = project_resolution[1]
+        if project_resolution_framed is not None:
+            self.project_resolution_framed_x = project_resolution_framed[0]
+            self.project_resolution_framed_y = project_resolution_framed[1]
+        if project_shot_format is not None:
+            self.project_shot_format = project_shot_format
+
+            self.render_shot_prefix = bpy.context.scene.name  # + "_"
+
+            # not used anymore...
+            s = project_shot_format.split("_")[2]
+            s = s.format(0)
+            s = s.replace("0", "")
+            self.new_shot_prefix = s
+
+        if -1 != project_shot_handle_duration:
+            self.project_shot_handle_duration = project_shot_handle_duration
+
+        if project_output_format is not None:
+            self.project_output_format = project_output_format
+        if project_color_space is not None:
+            self.project_color_space = project_color_space
+        if project_asset_name is not None:
+            self.project_asset_name = project_asset_name
+
+        self.restoreProjectSettings()
 
 
 _classes = (

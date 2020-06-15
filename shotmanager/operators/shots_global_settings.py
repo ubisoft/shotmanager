@@ -16,7 +16,7 @@ class UAS_ShotManager_ShotsGlobalSettings(PropertyGroup):
         max=1.0,
         step=0.1,
         update=_update_backgroundAlpha,
-        default=0.7,
+        default=0.9,
     )
 
 
@@ -70,16 +70,15 @@ _classes = (
 )
 
 
-
 def register():
     for cls in _classes:
         bpy.utils.register_class(cls)
 
     # declaration of properties that will not be saved in the scene
 
-    bpy.types.WindowManager.UAS_shot_manager_shotsGlobalSettings = PointerProperty(
-        type=UAS_ShotManager_ShotsGlobalSettings
-    )
+    # bpy.types.WindowManager.UAS_shot_manager_shotsGlobalSettings = PointerProperty(
+    #     type=UAS_ShotManager_ShotsGlobalSettings
+    # )
 
 
 def unregister():

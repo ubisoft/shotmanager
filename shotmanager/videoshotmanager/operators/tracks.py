@@ -13,10 +13,10 @@ class UAS_VideoShotManager_TrackAdd(Operator):
         "Add a new track starting at the current frame"
         "\nThe new track is put after the selected track"
     )
-    bl_options = {"INTERNAL"}
+    bl_options = {"REGISTER", "UNDO"}
 
     name: StringProperty(name="Name")
-    
+
     color: FloatVectorProperty(
         name="Color",
         subtype="COLOR",
@@ -93,7 +93,7 @@ class UAS_VideoShotManager_TrackDuplicate(Operator):
     bl_idname = "uas_video_shot_manager.duplicate_track"
     bl_label = "Duplicate Selected Track"
     bl_description = "Duplicate the track selected in the track list." "\nThe new track is put after the selected track"
-    bl_options = {"INTERNAL"}
+    bl_options = {"REGISTER", "UNDO"}
 
     name: StringProperty(name="Name")
     addToEndOfList: BoolProperty(name="Add At The End Of The List")
@@ -160,7 +160,7 @@ class UAS_VideoShotManager_RemoveTrack(Operator):
     bl_idname = "uas_video_shot_manager.remove_track"
     bl_label = "Remove Selected Track"
     bl_description = "Remove the track selected in the track list."
-    bl_options = {"INTERNAL"}
+    bl_options = {"REGISTER", "UNDO"}
 
     @classmethod
     def poll(cls, context):
@@ -216,7 +216,7 @@ class UAS_VideoShotManager_Actions(Operator):
     bl_idname = "uas_video_shot_manager.list_action"
     bl_label = "List Actions 02"
     bl_description = "Move items up and down, add and remove"
-    bl_options = {"INTERNAL"}
+    bl_options = {"REGISTER", "UNDO"}
 
     action: bpy.props.EnumProperty(items=(("UP", "Up", ""), ("DOWN", "Down", "")))
 
@@ -258,7 +258,7 @@ class UAS_VideoShotManager_TrackRemoveMultiple(Operator):
     bl_idname = "uas_video_shot_manager.remove_multiple_tracks"
     bl_label = "Remove Tracks"
     bl_description = "Remove the specified tracks from the list"
-    bl_options = {"INTERNAL"}
+    bl_options = {"REGISTER", "UNDO"}
 
     action: bpy.props.EnumProperty(items=(("ALL", "ALL", ""), ("DISABLED", "DISABLED", "")))
 

@@ -23,7 +23,7 @@ class UAS_ShotManager_ShotAdd(Operator):
         "Add a new shot starting at the current frame and using the selected camera"
         "\nThe new shot is put after the selected shot"
     )
-    bl_options = {"INTERNAL"}
+    bl_options = {"INTERNAL", "REGISTER", "UNDO"}
 
     name: StringProperty(name="Name")
     start: IntProperty(name="Start")
@@ -51,7 +51,8 @@ class UAS_ShotManager_ShotAdd(Operator):
         wm = context.window_manager
         props = context.scene.UAS_shot_manager_props
 
-        self.name = f"{props.new_shot_prefix}{len ( props.getShotsList() ) + 1:02}" + "0"
+        # self.name = f"{props.new_shot_prefix}{len ( props.getShotsList() ) + 1:02}" + "0"
+        self.name = (props.project_shot_format.split("_")[2]).format(len(props.getShotsList() * 10))
         self.start = context.scene.frame_current
         self.end = context.scene.frame_current + props.new_shot_duration
 
@@ -145,7 +146,7 @@ class UAS_ShotManager_ShotDuplicate(Operator):
     bl_idname = "uas_shot_manager.duplicate_shot"
     bl_label = "Duplicate Selected Shot"
     bl_description = "Duplicate the shot selected in the shot list." "\nThe new shot is put after the selected shot"
-    bl_options = {"INTERNAL"}
+    bl_options = {"REGISTER", "UNDO"}
 
     name: StringProperty(name="Name")
     startAtCurrentTime: BoolProperty(name="Start At Current Frame", default=True)
@@ -216,7 +217,7 @@ class UAS_ShotManager_RemoveShot(Operator):
     bl_idname = "uas_shot_manager.remove_shot"
     bl_label = "Remove Selected Shot"
     bl_description = "Remove the shot selected in the shot list."
-    bl_options = {"INTERNAL"}
+    bl_options = {"REGISTER", "UNDO"}
 
     @classmethod
     def poll(cls, context):
@@ -272,7 +273,7 @@ class UAS_ShotManager_Actions(Operator):
     bl_idname = "uas_shot_manager.list_action"
     bl_label = "List Actions"
     bl_description = "Move items up and down, add and remove"
-    bl_options = {"INTERNAL"}
+    bl_options = {"REGISTER", "UNDO"}
 
     action: bpy.props.EnumProperty(items=(("UP", "Up", ""), ("DOWN", "Down", "")))
 
@@ -312,7 +313,7 @@ class UAS_ShotManager_ShotRemoveMultiple(Operator):
     bl_idname = "uas_shot_manager.remove_multiple_shots"
     bl_label = "Remove Shots"
     bl_description = "Remove the specified shots from the current take"
-    bl_options = {"INTERNAL"}
+    bl_options = {"REGISTER", "UNDO"}
 
     action: bpy.props.EnumProperty(items=(("ALL", "ALL", ""), ("DISABLED", "DISABLED", "")))
 
@@ -358,7 +359,7 @@ class UAS_ShotManager_CreateShotsFromEachCamera(Operator):
     bl_idname = "uas_shot_manager.create_shots_from_each_camera"
     bl_label = "Create Shots From Existing Cameras"
     bl_description = "Create a new shot for each camera in the scene.\nThe edit made with these shots will cover the current animation range."
-    bl_options = {"INTERNAL"}
+    bl_options = {"REGISTER", "UNDO"}
 
     def invoke(self, context, event):
         scene = context.scene
@@ -401,7 +402,7 @@ class UAS_ShotManager_Shots_SelectCamera(Operator):
     bl_idname = "uas_shot_manager.shots_selectcamera"
     bl_label = "Select Camera"
     bl_description = "Deselect all and select specified camera"
-    bl_options = {"INTERNAL"}
+    bl_options = {"INTERNAL", "REGISTER", "UNDO"}
 
     index: bpy.props.IntProperty(default=0)
 
@@ -415,7 +416,7 @@ class UAS_ShotManager_Shots_RemoveCamera(Operator):
     bl_idname = "uas_shot_manager.shots_removecamera"
     bl_label = "Remove Camera From All Shots"
     bl_description = "Remove the camera of the selected shot from all the shots."
-    bl_options = {"INTERNAL"}
+    bl_options = {"INTERNAL", "REGISTER", "UNDO"}
 
     removeFromOtherTakes: BoolProperty(name="Also Remove From Other Takes", default=False)
 
@@ -462,7 +463,7 @@ class UAS_ShotManager_SetCurrentShot(Operator):
     bl_idname = "uas_shot_manager.set_current_shot"
     bl_label = "Set current Shot"
     bl_description = "Set the current shot"
-    bl_options = {"INTERNAL"}
+    bl_options = {"INTERNAL", "REGISTER", "UNDO"}
 
     index: bpy.props.IntProperty()
 
@@ -477,7 +478,7 @@ class UAS_ShotManager_UniqueCameras(Operator):
     bl_idname = "uas_shot_manager.unique_cameras"
     bl_label = "Make All Cameras Unique"
     bl_description = "Make cameras unique per shot"
-    bl_options = {"INTERNAL"}
+    bl_options = {"INTERNAL", "REGISTER", "UNDO"}
 
     @staticmethod
     def unique_cam_name(cam_name):

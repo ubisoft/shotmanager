@@ -5,12 +5,14 @@ from pathlib import Path
 
 import bpy
 from bpy.types import Panel, Operator
-from bpy.props import StringProperty, EnumProperty, BoolProperty
+from bpy.props import StringProperty, EnumProperty, BoolProperty, IntProperty
 from bpy_extras.io_utils import ImportHelper
 
 from ..utils import utils
 
-from ..scripts.RRS_StampInfo import setRRS_StampInfoSettings
+from ..scripts.rrs.RRS_StampInfo import setRRS_StampInfoSettings
+
+import opentimelineio as otio
 
 # for file browser:
 # from bpy_extras.io_utils import ImportHelper
@@ -20,7 +22,7 @@ def get_media_path(out_path, take_name, shot_name):
 
     if out_path.startswith("//"):
         out_path = str(Path(bpy.data.filepath).parent.absolute()) + out_path[1:]
-    return f"{out_path}/{take_name}/{bpy.context.scene.UAS_shot_manager_props.render_shot_prefix + shot_name}.mp4"
+    return f"{out_path}/{take_name}/{bpy.context.scene.UAS_shot_manager_props.render_shot_prefix}_{shot_name}.mp4"
 
 
 ##########
@@ -80,16 +82,15 @@ class UAS_PT_ShotManagerRenderPanel(Panel):
         row.prop(props, "displayAnimationProps", text="", icon="RENDER_ANIMATION")
         row.operator("uas_shot_manager.render", text="Render Current Shot").renderMode = "ANIMATION"
 
-        row.separator(factor=4)
+        row.separator(factor=2)
         row.scale_x = 1.2
         row.prop(props, "displayProjectProps", text="", icon="RENDERLAYERS")
         row.operator("uas_shot_manager.render", text="Render All").renderMode = "PROJECT"
 
         row = layout.row()
-        row.alert = True
-        row.operator("uas_shot_manager.lauchrrsrender")
+        row = layout.row(align=True)
+        row.prop(props, "displayOtioProps", text="", icon="SEQ_STRIP_DUPLICATE")
         row.operator("uas_shot_manager.export_otio")
-        row.alert = False
 
         layout.separator(factor=1)
 
@@ -210,23 +211,6 @@ class UAS_OT_OpenPathBrowser(Operator):
         return {"RUNNING_MODAL"}
 
 
-class UAS_LaunchRRSRender(Operator):
-    bl_idname = "uas_shot_manager.lauchrrsrender"
-    bl_label = "RRS Render Script"
-    bl_description = "Run the RRS Render Script"
-
-    def execute(self, context):
-        """Launch RRS Publish script"""
-        print(" UAS_LaunchRRSRender")
-
-        from ..scripts import publishRRS
-
-        # publishRRS.publishRRS( context.scene.UAS_shot_manager_props.renderRootPath )
-        publishRRS.publishRRS("c:\\tmpRezo\\", verbose=True)
-        print("End of Publish")
-        return {"FINISHED"}
-
-
 # class UAS_ShotManager_Explorer ( Operator ):
 #     bl_idname = "uas_shot_manager.explorer"
 #     bl_label = "Open Explorer"
@@ -278,7 +262,7 @@ class UAS_PT_ShotManager_Render(Operator):
         return {"FINISHED"}
 
 
-def launchRenderWithVSEComposite(renderMode, renderRootFilePath="", useStampInfo=True):
+def launchRenderWithVSEComposite(renderMode, takeIndex=-1, renderRootFilePath="", useStampInfo=True):
     """ Generate the media for the specified take
         Return a list of all the created files
     """
@@ -288,6 +272,11 @@ def launchRenderWithVSEComposite(renderMode, renderRootFilePath="", useStampInfo
 
     projectFps = scene.render.fps
 
+    if props.useProjectRenderSettings:
+        props.restoreProjectSettings()
+        scene.render.image_settings.file_format = "PNG"
+        projectFps = scene.render.fps
+
     newMediaFiles = []
 
     rootPath = renderRootFilePath if "" != renderRootFilePath else os.path.dirname(bpy.data.filepath)
@@ -295,6 +284,7 @@ def launchRenderWithVSEComposite(renderMode, renderRootFilePath="", useStampInfo
         rootPath += "\\"
 
     preset_useStampInfo = False
+    RRS_StampInfo = None
     if "UAS_StampInfo_Settings" in scene:
         RRS_StampInfo = scene.UAS_StampInfo_Settings
 
@@ -310,7 +300,7 @@ def launchRenderWithVSEComposite(renderMode, renderRootFilePath="", useStampInfo
             RRS_StampInfo.renderRootPath = rootPath
             setRRS_StampInfoSettings(scene)
 
-    take = props.getCurrentTake()
+    take = props.getCurrentTake() if -1 == takeIndex else props.getTakeByIndex(takeIndex)
     shotList = take.getShotList(ignoreDisabled=True)
 
     # sequence composite scene
@@ -324,14 +314,10 @@ def launchRenderWithVSEComposite(renderMode, renderRootFilePath="", useStampInfo
     sequenceScene.frame_end = props.getEditDuration()
     sequenceScene.render.image_settings.file_format = "FFMPEG"
     sequenceScene.render.ffmpeg.format = "MPEG4"
-    sequenceScene.render.filepath = rootPath + props.render_shot_prefix + ".mp4"
+    sequenceScene.render.filepath = f"{rootPath}{take.getName_PathCompliant()}\\{props.render_shot_prefix}.mp4"
 
     context.window_manager.UAS_shot_manager_handler_toggle = False
     context.window_manager.UAS_shot_manager_display_timeline = False
-
-    if props.useProjectRenderSettings:
-        props.restoreProjectSettings()
-        scene.render.image_settings.file_format = "PNG"
 
     if preset_useStampInfo:  # framed output resolution is used only when StampInfo is used
         if "UAS_PROJECT_RESOLUTIONFRAMED" in os.environ.keys():
@@ -355,9 +341,9 @@ def launchRenderWithVSEComposite(renderMode, renderRootFilePath="", useStampInfo
 
             # render stamped info
             if preset_useStampInfo:
-                RRS_StampInfo.shotName = shot.name
                 RRS_StampInfo.takeName = take.getName_PathCompliant()
-                print("RRS_StampInfo.takeName: ", RRS_StampInfo.takeName)
+                #    print("RRS_StampInfo.takeName: ", RRS_StampInfo.takeName)
+            #        RRS_StampInfo.shotName = f"{props.render_shot_prefix}_{shot.name}"
             #        print("RRS_StampInfo.renderRootPath: ", RRS_StampInfo.renderRootPath)
             # RRS_StampInfo.renderRootPath = (
             #     rootPath + "\\" + take.getName_PathCompliant() + "\\" + shot.getName_PathCompliant() + "\\"
@@ -383,7 +369,7 @@ def launchRenderWithVSEComposite(renderMode, renderRootFilePath="", useStampInfo
                 print("      \nscene.render.filepath: ", scene.render.filepath)
                 print("      Current Scene:", scene.name)
                 if preset_useStampInfo:
-                    RRS_StampInfo.shotName = shot.name
+                    RRS_StampInfo.shotName = f"{props.render_shot_prefix}_{shot.name}"
                     RRS_StampInfo.cameraName = shot.camera.name
                     scene.render.resolution_x = 1280
                     scene.render.resolution_y = 960
@@ -413,7 +399,10 @@ def launchRenderWithVSEComposite(renderMode, renderRootFilePath="", useStampInfo
             vse_render.inputBGMediaPath = newTempRenderPath + "_tmp_StampInfo.####.png"
             vse_render.inputBGResolution = (1280, 960)
 
-            compositedMediaPath = shot.getOutputFileName(fullPath=True, rootFilePath=rootPath)
+            # compositedMediaPath = shot.getOutputFileName(fullPath=True, rootFilePath=rootPath)     # if we use that the shot .mp4 is rendered in the shot dir
+            # here we render in the take dir
+            compositedMediaPath = f"{rootPath}{take.getName_PathCompliant()}\\{shot.getOutputFileName(fullPath=False)}"
+
             vse_render.compositeVideoInVSE(
                 projectFps,
                 1,
@@ -434,6 +423,10 @@ def launchRenderWithVSEComposite(renderMode, renderRootFilePath="", useStampInfo
             for file in filtered_files:
                 path_to_file = os.path.join(newTempRenderPath, file)
                 os.remove(path_to_file)
+            try:
+                os.rmdir(newTempRenderPath)
+            except Exception:
+                print("Cannot delete Dir: ", newTempRenderPath)
 
             vse_render.createNewClip(
                 sequenceScene,
@@ -444,9 +437,11 @@ def launchRenderWithVSEComposite(renderMode, renderRootFilePath="", useStampInfo
                 offsetEnd=props.handles,
             )
 
-        # render full sequence
-        bpy.context.window.scene = sequenceScene
-        bpy.ops.render.opengl(animation=True, sequencer=True)
+    # render full sequence
+    # Note that here we are back to the sequence scene, not anymore in the shot scene
+    bpy.context.window.scene = sequenceScene
+    bpy.ops.render.opengl(animation=True, sequencer=True)
+    newMediaFiles.append(sequenceScene.render.filepath)
 
     return newMediaFiles
 
@@ -829,8 +824,8 @@ class UAS_ShotManager_Render_DisplayProjectSettings(Operator):
 # IO #
 ######
 
-# wkip donner en parametre un nom ou indice de take!!!!
-def exportOtio(scene, renderRootFilePath="", fps=-1):
+
+def exportOtio(scene, takeIndex=-1, renderRootFilePath="", fps=-1):
     """ Create an OpenTimelineIO XML file for the specified take
         Return the file path of the created file
     """
@@ -838,17 +833,13 @@ def exportOtio(scene, renderRootFilePath="", fps=-1):
     props = scene.UAS_shot_manager_props
 
     sceneFps = fps if fps != -1 else scene.render.fps
+    print("exportOtio: sceneFps:", sceneFps)
+    #   import opentimelineio as otio
 
-    import opentimelineio as otio
+    take = props.getCurrentTake() if -1 == takeIndex else props.getTakeByIndex(takeIndex)
+    shotList = take.getShotList(ignoreDisabled=True)
 
-    take = props.getCurrentTake()
-    if take is None:
-        print("   *** No Take found - Export OTIO aborted")
-        return ""
-    else:
-        take_name = take.getName_PathCompliant()
-
-    shotList = props.get_shots()
+    take_name = take.getName_PathCompliant()
 
     # wkip note: scene.frame_start probablement à remplacer par start du premier shot enabled!!!
     startFrame = 0
@@ -859,11 +850,11 @@ def exportOtio(scene, renderRootFilePath="", fps=-1):
     timeline.tracks.append(track)
 
     renderPath = renderRootFilePath if "" != renderRootFilePath else props.renderRootPath
-    renderPath += take_name + "\\" + take_name + ".xml"
-    if Path(renderPath).suffix == "":
-        renderPath += ".otio"
+    otioRenderPath = renderPath + take_name + "\\" + take_name + ".xml"
+    if Path(otioRenderPath).suffix == "":
+        otioRenderPath += ".otio"
 
-    print("   OTIO renderPath:", renderPath)
+    print("   OTIO otioRenderPath:", otioRenderPath)
 
     clips = list()
     playhead = 0
@@ -879,8 +870,10 @@ def exportOtio(scene, renderRootFilePath="", fps=-1):
 
             available_range = otio.opentime.range_from_start_end_time(start_time, end_time_exclusive)
 
-            shotFilePath = shot.getOutputFileName(fullPath=True)
-            shotFileName = shot.getOutputFileName()
+            # shotFilePath = shot.getOutputFileName(fullPath=True, rootFilePath=renderPath)
+
+            shotFileName = shot.getOutputFileName(fullPath=False)
+            shotFilePath = f"{renderPath}{take_name}\\{shotFileName}"
             print("    shotFilePath: ", shotFilePath, shotFileName)
 
             media_reference = otio.schema.ExternalReference(target_url=shotFilePath, available_range=available_range)
@@ -892,20 +885,22 @@ def exportOtio(scene, renderRootFilePath="", fps=-1):
             )
             source_range = otio.opentime.range_from_start_end_time(clip_start_time, clip_end_time_exclusive)
             newClip = otio.schema.Clip(name=shotFileName, source_range=source_range, media_reference=media_reference)
-            newClip.metadata = {"clip_name": shot["name"], "camera_name": shot["camera"].name_full}
+            # newClip.metadata = {"clip_name": shot["name"], "camera_name": shot["camera"].name_full}
+            newClip.metadata["clip_name"] = shot.name
+            newClip.metadata["camera_name"] = shot["camera"].name_full
 
             clips.append(newClip)
             playhead += media_duration
 
     track.extend(clips)
 
-    Path(renderPath).parent.mkdir(parents=True, exist_ok=True)
-    if renderPath.endswith(".xml"):
-        otio.adapters.write_to_file(timeline, renderPath, adapter_name="fcp_xml")
+    Path(otioRenderPath).parent.mkdir(parents=True, exist_ok=True)
+    if otioRenderPath.endswith(".xml"):
+        otio.adapters.write_to_file(timeline, otioRenderPath, adapter_name="fcp_xml")
     else:
-        otio.adapters.write_to_file(timeline, renderPath)
+        otio.adapters.write_to_file(timeline, otioRenderPath)
 
-    return renderPath
+    return otioRenderPath
 
 
 class UAS_ShotManager_Export_OTIO(Operator):
@@ -970,6 +965,17 @@ class UAS_ShotManager_OT_Import_OTIO(Operator):
     bl_options = {"INTERNAL", "REGISTER", "UNDO"}
 
     otioFile: StringProperty()
+    importAtFrame: IntProperty(
+        name="Import at Frame",
+        description="Make the imported edit start at the specified frame",
+        soft_min=0,
+        min=0,
+        default=25,
+    )
+    reformatShotNames: BoolProperty(
+        name="Reformat Shot Names", description="Keep only the shot name part for the name of the shots", default=True,
+    )
+
     createCameras: BoolProperty(
         name="Create Camera for New Shots",
         description="Create a camera for each new shot or use the same camera for all shots",
@@ -980,8 +986,13 @@ class UAS_ShotManager_OT_Import_OTIO(Operator):
         description="Use the clips and videos from the edit file as background for the cameras",
         default=True,
     )
-    reformatShotNames: BoolProperty(
-        name="Reformat Shot Names", description="Keep only the shot name part for the name of the shots", default=True,
+
+    mediaHaveHandles: BoolProperty(
+        name="Media Have Handles", description="Do imported media use the project handles?", default=True,
+    )
+
+    mediaHandlesDuration: IntProperty(
+        name="Handles Duration", description="", soft_min=0, min=0, default=10,
     )
 
     def draw(self, context):
@@ -991,15 +1002,35 @@ class UAS_ShotManager_OT_Import_OTIO(Operator):
         box = row.box()
         box.prop(self, "otioFile", text="OTIO File")
 
+        timeline = otio.adapters.read_from_file(self.otioFile)
+        time = timeline.duration()
+        rate = int(time.rate)
+
+        if rate != context.scene.render.fps:
+            box.alert = True
+            box.label(
+                text="!!! Scene fps is " + str(context.scene.render.fps) + ", imported edit is " + str(rate) + "!!"
+            )
+            box.alert = False
+
         box.separator(factor=0.2)
-        box.prop(self, "createCameras")
-        box.prop(self, "useMediaAsCameraBG")
+        box.prop(self, "importAtFrame")
         box.prop(self, "reformatShotNames")
+        box.prop(self, "createCameras")
+        if self.createCameras:
+            layout.label(text="Camera Background:")
+            row = layout.row(align=True)
+            box = row.box()
+            box.prop(self, "useMediaAsCameraBG")
+            if self.useMediaAsCameraBG:
+                box.prop(self, "mediaHaveHandles")
+                if self.mediaHaveHandles:
+                    box.prop(self, "mediaHandlesDuration")
 
         layout.separator()
 
     def execute(self, context):
-        import opentimelineio as otio
+        #   import opentimelineio as otio
         from random import uniform
         from math import radians
 
@@ -1039,23 +1070,49 @@ class UAS_ShotManager_OT_Import_OTIO(Operator):
                         cam_ob.color = [uniform(0, 1), uniform(0, 1), uniform(0, 1), 1]
                         cam_ob.location = (0.0, i, 0.0)
                         cam_ob.rotation_euler = (radians(90), 0.0, radians(90))
+
+                        # add media as camera background
                         if self.useMediaAsCameraBG:
+                            print("Import Otio clip.media_reference.target_url: ", clip.media_reference.target_url)
                             media_path = Path(utils.file_path_from_uri(clip.media_reference.target_url))
+                            print("Import Otio media_path: ", media_path)
                             if not media_path.exists():
-                                # Lets find it inside next to the xml.
+                                # Lets find it inside next to the xml
                                 media_path = Path(self.otioFile).parent.joinpath(media_path.name)
+                                print("** not found, so Path(self.otioFile).parent: ", Path(self.otioFile).parent)
+                                print("   and new media_path: ", media_path)
+
+                            handlesDuration = 0
+                            if self.mediaHaveHandles:
+                                handlesDuration = self.mediaHandlesDuration
+
+                            # start frame of the background video is not set here since it will be linked to the shot start frame
                             utils.add_background_video_to_cam(
-                                cam, str(media_path), otio.opentime.to_frames(clip.range_in_parent().start_time)
+                                cam, str(media_path), 0, alpha=props.shotsGlobalSettings.backgroundAlpha
                             )
 
-                    bpy.ops.uas_shot_manager.add_shot(
+                    shot = props.addShot(
                         name=clipName,
-                        start=otio.opentime.to_frames(clip.range_in_parent().start_time),
-                        end=otio.opentime.to_frames(clip.range_in_parent().end_time_inclusive()),
-                        cameraName=cam.name,
-                        color=(cam_ob.color[0], cam_ob.color[1], cam_ob.color[2]),
+                        start=otio.opentime.to_frames(clip.range_in_parent().start_time) + self.importAtFrame,
+                        end=otio.opentime.to_frames(clip.range_in_parent().end_time_inclusive()) + self.importAtFrame,
+                        camera=cam_ob,
+                        color=cam_ob.color,  # (cam_ob.color[0], cam_ob.color[1], cam_ob.color[2]),
                     )
-                    context.scene.frame_end = otio.opentime.to_frames(clip.range_in_parent().end_time_inclusive())
+                    # bpy.ops.uas_shot_manager.add_shot(
+                    #     name=clipName,
+                    #     start=otio.opentime.to_frames(clip.range_in_parent().start_time) + self.importAtFrame,
+                    #     end=otio.opentime.to_frames(clip.range_in_parent().end_time_inclusive()) + self.importAtFrame,
+                    #     cameraName=cam.name,
+                    #     color=(cam_ob.color[0], cam_ob.color[1], cam_ob.color[2]),
+                    # )
+                    shot.bgImages_linkToShotStart = True
+                    shot.bgImages_offset = -1 * handlesDuration
+
+                    # wkip maybe to remove
+                    context.scene.frame_start = self.importAtFrame
+                    context.scene.frame_end = (
+                        otio.opentime.to_frames(clip.range_in_parent().end_time_inclusive()) + self.importAtFrame
+                    )
 
         except otio.exceptions.NoKnownAdapterForExtensionError:
             from ..utils.utils import ShowMessageBox
@@ -1066,7 +1123,7 @@ class UAS_ShotManager_OT_Import_OTIO(Operator):
 
     def invoke(self, context, event):
         wm = context.window_manager
-        wm.invoke_props_dialog(self, width=400)
+        wm.invoke_props_dialog(self, width=500)
         #    res = bpy.ops.uasotio.openfilebrowser("INVOKE_DEFAULT")
 
         # print("Res: ", res)
@@ -1115,7 +1172,6 @@ _classes = (
     UAS_PT_ShotManager_RenderDialog,
     UAS_OT_OpenPathBrowser,
     #    UAS_ShotManager_Explorer,
-    UAS_LaunchRRSRender,
     UAS_ShotManager_Render_RestoreProjectSettings,
     UAS_ShotManager_Render_DisplayProjectSettings,
     UAS_ShotManager_Export_OTIO,

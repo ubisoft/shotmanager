@@ -18,7 +18,7 @@ class UAS_ShotManager_Playbar_GoToFirstShot(Operator):
         props = context.scene.UAS_shot_manager_props
         firstShot = props.getFirstShot(ignoreDisabled=True)
         newFrame = 0
-        if None != firstShot:
+        if firstShot is not None:
             newFrame = firstShot.start
             props.setCurrentShot(firstShot)
             props.setSelectedShot(firstShot)
@@ -38,7 +38,7 @@ class UAS_ShotManager_Playbar_GoToLastShot(Operator):
         props = context.scene.UAS_shot_manager_props
         lastShot = props.getLastShot(ignoreDisabled=True)
         newFrame = 0
-        if None != lastShot:
+        if lastShot is not None:
             newFrame = lastShot.end
             props.setCurrentShot(lastShot)
             props.setSelectedShot(lastShot)
@@ -72,6 +72,7 @@ class UAS_ShotManager_Playbar_GoToNextShot(Operator):
 
         return {"FINISHED"}
 
+
 class UAS_ShotManager_Playbar_GoToPreviousFrame(Operator):
     bl_idname = "uas_shot_manager.playbar_gotopreviousframe"
     bl_label = "Previous Frame"
@@ -97,6 +98,7 @@ class UAS_ShotManager_Playbar_GoToNextFrame(Operator):
 
         return {"FINISHED"}
 
+
 _classes = (
     UAS_ShotManager_Playbar_GoToFirstShot,
     UAS_ShotManager_Playbar_GoToLastShot,
@@ -115,4 +117,3 @@ def register():
 def unregister():
     for cls in reversed(_classes):
         bpy.utils.unregister_class(cls)
-
