@@ -113,6 +113,7 @@ class UAS_ShotManager_Props(PropertyGroup):
         self["displayStillProps"] = True
         self["displayAnimationProps"] = False
         self["displayProjectProps"] = False
+        self["displayOtioProps"] = False
 
     def get_displayAnimationProps(self):
         val = self.get("displayAnimationProps", False)
@@ -123,6 +124,7 @@ class UAS_ShotManager_Props(PropertyGroup):
         self["displayStillProps"] = False
         self["displayAnimationProps"] = True
         self["displayProjectProps"] = False
+        self["displayOtioProps"] = False
 
     def get_displayProjectProps(self):
         val = self.get("displayProjectProps", False)
@@ -133,6 +135,18 @@ class UAS_ShotManager_Props(PropertyGroup):
         self["displayStillProps"] = False
         self["displayAnimationProps"] = False
         self["displayProjectProps"] = True
+        self["displayOtioProps"] = False
+
+    def get_displayOtioProps(self):
+        val = self.get("displayOtioProps", False)
+        return val
+
+    def set_displayOtioProps(self, value):
+        print(" set_displayOtioProps: value: ", value)
+        self["displayStillProps"] = False
+        self["displayAnimationProps"] = False
+        self["displayProjectProps"] = False
+        self["displayOtioProps"] = True
 
     displayStillProps: BoolProperty(
         name="Display Still Preset Properties", get=get_displayStillProps, set=set_displayStillProps, default=True
@@ -147,6 +161,12 @@ class UAS_ShotManager_Props(PropertyGroup):
         name="Display Project Preset Properties",
         get=get_displayProjectProps,
         set=set_displayProjectProps,
+        default=False,
+    )
+    displayOtioProps: BoolProperty(
+        name="Display OpenTimelineIO Export Preset Properties",
+        get=get_displayOtioProps,
+        set=set_displayOtioProps,
         default=False,
     )
 

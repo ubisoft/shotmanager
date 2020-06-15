@@ -23,7 +23,7 @@ class UAS_ShotManager_ShotAdd(Operator):
         "Add a new shot starting at the current frame and using the selected camera"
         "\nThe new shot is put after the selected shot"
     )
-    bl_options = {"REGISTER", "UNDO"}
+    bl_options = {"INTERNAL", "REGISTER", "UNDO"}
 
     name: StringProperty(name="Name")
     start: IntProperty(name="Start")

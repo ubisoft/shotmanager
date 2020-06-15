@@ -487,7 +487,9 @@ class UAS_PT_ShotManager_ShotProperties(Panel):
                 row.separator(factor=1.0)
                 c = row.column()
                 grid_flow = c.grid_flow(align=False, columns=4, even_columns=False)
-                grid_flow.prop(shot, "bgImages_Offset")
+
+                grid_flow.prop(shot, "bgImages_linkToShotStart")
+                grid_flow.prop(shot, "bgImages_offset")
 
     @classmethod
     def poll(cls, context):

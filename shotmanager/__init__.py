@@ -24,6 +24,14 @@
 #
 #
 #  * To do:
+#   mettre des shot warnings et errors
+#   faire un warning pour shot start - handle < 0!!!
+#
+#
+#
+#
+#
+#
 #       - mettre des modifiers CTRL et Alt pour jogguer entre les débuts et fin seulement de plans
 #       - ajouter un bouton Help
 #       - prefix Name

@@ -27,7 +27,7 @@ def setup_project_env(override_existing: bool, verbose: bool = True) -> None:
     verbose_set("UAS_PROJECT_RESOLUTIONFRAMED", "[1280,960]", override_existing, verbose)
     verbose_set("UAS_PROJECT_SHOTFORMAT", r"Act{:02}_Seq{:04}_Sh{:04}", override_existing, verbose)
     verbose_set("UAS_PROJECT_OUTPUTFORMAT", "mp4", override_existing, verbose)
-    verbose_set("UAS_PROJECT_SHOTHANDLEDURATION", 10, override_existing, verbose)
+    verbose_set("UAS_PROJECT_SHOTHANDLEDURATION", "10", override_existing, verbose)
     verbose_set("UAS_PROJECT_COLORSPACE", "", override_existing, verbose)
     verbose_set("UAS_PROJECT_ASSETNAME", "", override_existing, verbose)
 
@@ -61,7 +61,7 @@ def initializeForRRS():
         project_resolution=json.loads(os.environ["UAS_PROJECT_RESOLUTION"]),
         project_resolution_framed=json.loads(os.environ["UAS_PROJECT_RESOLUTIONFRAMED"]),
         project_shot_format=os.environ["UAS_PROJECT_SHOTFORMAT"],
-        project_shot_format=os.environ["UAS_PROJECT_SHOTHANDLEDURATION"],
+        project_shot_handle_duration=int(os.environ["UAS_PROJECT_SHOTHANDLEDURATION"]),
         project_output_format=os.environ["UAS_PROJECT_OUTPUTFORMAT"],
         project_color_space=os.environ["UAS_PROJECT_COLORSPACE"],
         project_asset_name=os.environ["UAS_PROJECT_ASSETNAME"],
@@ -74,8 +74,8 @@ def publishRRS(prodFilePath, takeIndex=-1, verbose=False):
     scene = bpy.context.scene
 
     # To remove!!! Debug only
-    #  setup_project_env(True, True)
-    #  takeIndex = 1
+    setup_project_env(True, True)
+    takeIndex = 1
 
     initializeForRRS()
 

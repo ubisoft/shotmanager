@@ -65,6 +65,13 @@ class UAS_PT_ShotManagerRenderPanel(Panel):
         layout.separator()
 
         row = layout.row(align=True)
+        row.alert = True
+        row.label(text="RRS Specific (debug temp):")
+        row.operator("uas_shot_manager.lauchrrsrender", text="RRS Publish - Debug")
+        row.alert = False
+        layout.separator(factor=1)
+
+        row = layout.row(align=True)
         row.scale_y = 1.6
         # row.operator ( renderProps.UAS_PT_ShotManager_RenderDialog.bl_idname, text = "Render Active", icon = "RENDER_ANIMATION" ).only_active = True
 
@@ -80,16 +87,15 @@ class UAS_PT_ShotManagerRenderPanel(Panel):
         row.prop(props, "displayAnimationProps", text="", icon="RENDER_ANIMATION")
         row.operator("uas_shot_manager.render", text="Render Current Shot").renderMode = "ANIMATION"
 
-        row.separator(factor=4)
+        row.separator(factor=2)
         row.scale_x = 1.2
         row.prop(props, "displayProjectProps", text="", icon="RENDERLAYERS")
         row.operator("uas_shot_manager.render", text="Render All").renderMode = "PROJECT"
 
         row = layout.row()
-        row.alert = True
-        row.operator("uas_shot_manager.lauchrrsrender")
+        row = layout.row(align=True)
+        row.prop(props, "displayOtioProps", text="", icon="SEQ_STRIP_DUPLICATE")
         row.operator("uas_shot_manager.export_otio")
-        row.alert = False
 
         layout.separator(factor=1)
 
@@ -1017,6 +1023,11 @@ class UAS_ShotManager_OT_Import_OTIO(Operator):
         box = row.box()
         box.prop(self, "otioFile", text="OTIO File")
 
+        if 25.0 != context.scene.render.fps:
+            box.alert = True
+            box.label(text="!!! Scene fps is not 25 !!!")
+            box.alert = False
+
         box.separator(factor=0.2)
         box.prop(self, "importAtFrame")
         box.prop(self, "reformatShotNames")
@@ -1090,21 +1101,25 @@ class UAS_ShotManager_OT_Import_OTIO(Operator):
                             if self.mediaHaveHandles:
                                 handlesDuration = self.mediaHandlesDuration
 
-                            utils.add_background_video_to_cam(
-                                cam,
-                                str(media_path),
-                                otio.opentime.to_frames(clip.range_in_parent().start_time)
-                                + self.importAtFrame
-                                - handlesDuration,
-                            )
+                            # start frame of the background video is not set here since it will be linked to the shot start frame
+                            utils.add_background_video_to_cam(cam, str(media_path), 0)
 
-                    bpy.ops.uas_shot_manager.add_shot(
+                    shot = props.addShot(
                         name=clipName,
                         start=otio.opentime.to_frames(clip.range_in_parent().start_time) + self.importAtFrame,
                         end=otio.opentime.to_frames(clip.range_in_parent().end_time_inclusive()) + self.importAtFrame,
-                        cameraName=cam.name,
+                        camera=cam,
                         color=(cam_ob.color[0], cam_ob.color[1], cam_ob.color[2]),
                     )
+                    # bpy.ops.uas_shot_manager.add_shot(
+                    #     name=clipName,
+                    #     start=otio.opentime.to_frames(clip.range_in_parent().start_time) + self.importAtFrame,
+                    #     end=otio.opentime.to_frames(clip.range_in_parent().end_time_inclusive()) + self.importAtFrame,
+                    #     cameraName=cam.name,
+                    #     color=(cam_ob.color[0], cam_ob.color[1], cam_ob.color[2]),
+                    # )
+                    shot.bgImages_linkToShotStart = True
+                    shot.bgImages_offset = -1 * handlesDuration
 
                     # wkip maybe to remove
                     context.scene.frame_start = self.importAtFrame

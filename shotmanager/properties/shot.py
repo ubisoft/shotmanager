@@ -64,6 +64,12 @@ class UAS_ShotManager_Shot(PropertyGroup):
         if self.start > self.end:
             self.end = self.start
 
+        if self.camera is not None and len(self.camera.data.background_images):
+            bgClip = self.camera.data.background_images[0].clip
+            if bgClip is not None and self.bgImages_linkToShotStart:
+                bgClip.frame_start = self.start + self.bgImages_offset
+                # print("  Value: ", value)
+
     start: IntProperty(name="Start", description="Index of the first included frame of the shot", update=_update_start)
 
     def _update_end(self, context):
@@ -134,10 +140,49 @@ class UAS_ShotManager_Shot(PropertyGroup):
     def getEditEnd(self, scene):
         return scene.UAS_shot_manager_props.getEditTime(self, self.end)
 
-    bgImages_Offset: IntProperty(
+    ##############
+    # background images
+    ##############
+
+    def _update_bgImages_linkToShotStart(self, context):
+        if self.camera is not None and len(self.camera.data.background_images):
+            bgClip = self.camera.data.background_images[0].clip
+            if bgClip is not None:
+                if self._update_bgImages_linkToShotStart:
+                    bgClip.frame_start = self.start + self.bgImages_offset
+                else:
+                    bgClip.frame_start = self.bgImages_offset
+
+    bgImages_linkToShotStart: BoolProperty(
+        name="Link BG to Start",
+        description="Link the background image clip to the shot start.\n"
+        "If linked the background clip start frame is relative to the shot start.\n"
+        "If not linked the clip starts at frame 0 + offset",
+        default=True,
+        update=_update_bgImages_linkToShotStart,
+        options=set(),
+    )
+
+    def _get_bgImages_offset(self):
+        val = self.get("bgImages_offset", 0)
+        return val
+
+    def _set_bgImages_offset(self, value):
+        self["bgImages_offset"] = value
+        if self.camera is not None and len(self.camera.data.background_images):
+            bgClip = self.camera.data.background_images[0].clip
+            if bgClip is not None:
+                if self.bgImages_linkToShotStart:
+                    bgClip.frame_start = self.start + self.bgImages_offset
+                else:
+                    bgClip.frame_start = self.bgImages_offset
+
+    bgImages_offset: IntProperty(
         name="BG Clip Offset",
         description="Time offset for the clip used as background for the camera",
         soft_min=-20,
         soft_max=20,
+        get=_get_bgImages_offset,
+        set=_set_bgImages_offset,
         default=0,
     )
