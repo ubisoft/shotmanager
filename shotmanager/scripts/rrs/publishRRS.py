@@ -50,10 +50,10 @@ def print_project_env():
         print(prop[0] + ": " + prop[1])
 
 
-def initializeForRRS():
+def initializeForRRS(override_existing: bool, verbose=False):
     scene = bpy.context.scene
 
-    setup_project_env(True, True)
+    setup_project_env(override_existing, verbose)
 
     scene.UAS_shot_manager_props.setProjectSettings(
         project_name=os.environ["UAS_PROJECT_NAME"],
@@ -71,26 +71,44 @@ def initializeForRRS():
 
 
 def publishRRS(prodFilePath, takeIndex=-1, verbose=False):
+    import os
+    import errno
+
     scene = bpy.context.scene
 
     # To remove!!! Debug only
     # setup_project_env(True, True)
     # takeIndex = 1
 
-    initializeForRRS()
+    # initializeForRRS()
 
-    print_project_env()
+    # print_project_env()
 
     if "UAS_shot_manager_props" not in scene:
         print("\n*** publishRRS failed: No UAS_shot_manager_prop found in the scene ***\n")
         return False
 
     props = scene.UAS_shot_manager_props
+    if (
+        not len(props.getTakes())
+        or len(props.getTakes()) <= takeIndex
+        or (not len(props.getTakes()[takeIndex].getShotList(ignoreDisabled=True)))
+    ):
+        print("No take or no shots to render - Aborting Publish")
+        return False
 
     print("\n---------------------------------------------------------")
     print(" -- * publishRRS * --\n\n")
 
     cacheFilePath = "c:\\tmp\\" + scene.name + "\\"
+
+    # create cache dir
+    if not os.path.exists(os.path.dirname(cacheFilePath)):
+        try:
+            os.makedirs(os.path.dirname(cacheFilePath), exist_ok=True)
+        except OSError as exc:  # Guard against race condition
+            if exc.errno != errno.EEXIST:
+                raise
 
     if verbose:
         print("Local cache path: ", cacheFilePath)

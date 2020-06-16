@@ -53,8 +53,8 @@ class UAS_ShotManager_ShotAdd(Operator):
 
         # self.name = f"{props.new_shot_prefix}{len ( props.getShotsList() ) + 1:02}" + "0"
         self.name = (props.project_shot_format.split("_")[2]).format(len(props.getShotsList() * 10))
-        self.start = context.scene.frame_current
-        self.end = context.scene.frame_current + props.new_shot_duration
+        self.start = max(context.scene.frame_current, 10)
+        self.end = self.start + props.new_shot_duration
 
         camName = props.getActiveCameraName()
         if "" != camName:
