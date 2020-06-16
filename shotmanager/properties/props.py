@@ -1358,6 +1358,11 @@ class UAS_ShotManager_Props(PropertyGroup):
 
             self.handles = self.project_shot_handle_duration
 
+            s = self.project_shot_format.split("_")[2]
+            s = s.format(0)
+            s = s.replace("0", "")
+            self.new_shot_prefix = s
+
             # path
             self.setProjectRenderFilePath()
 
@@ -1421,7 +1426,6 @@ class UAS_ShotManager_Props(PropertyGroup):
 
             self.render_shot_prefix = bpy.context.scene.name  # + "_"
 
-            # not used anymore...
             s = project_shot_format.split("_")[2]
             s = s.format(0)
             s = s.replace("0", "")
