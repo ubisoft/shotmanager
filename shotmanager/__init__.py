@@ -29,9 +29,6 @@
 #
 #
 #
-#
-#
-#
 #       - mettre des modifiers CTRL et Alt pour jogguer entre les débuts et fin seulement de plans
 #       - ajouter un bouton Help
 #       - prefix Name
@@ -42,10 +39,9 @@
 #
 #   Refacto code:
 #   - faire modules avec:
-#       - otio
+#       - otio (avec les bons imports)
 #       - render
 #   - séparer en operator / ui ... ?
-#   - mettre RRS en rep separé
 #   - ranger les explorers
 #
 #
@@ -139,7 +135,7 @@ bl_info = {
     "author": "Romain Carriquiry Borchiari, Julien Blervaque (aka Werwack)",
     "description": "Manage a sequence of shots and cameras in the 3D View - Ubisoft Animation Studio",
     "blender": (2, 83, 0),
-    "version": (1, 2, 17),
+    "version": (1, 2, 18),
     "location": "View3D > UAS Shot Manager",
     "wiki_url": "https://mdc-web-tomcat17.ubisoft.org/confluence/display/UASTech/UAS+Shot+Manager",
     "warning": "",

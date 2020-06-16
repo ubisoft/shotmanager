@@ -17,6 +17,8 @@ class UAS_PT_ShotManager_RRS_Debug(Panel):
         row.alert = True
         row.label(text="RRS Specific (debug temp):")
         row.operator("uas_shot_manager.initialize_rrs_project", text="Debug - RRS Initialyze")
-        row.operator("uas_shot_manager.lauch_rrs_render", text="Debug - RRS Publish")
+        row.operator("uas_shot_manager.lauch_rrs_render", text="Debug - RRS Publish").prodFilePath = (
+            "c:\\tmpRezo\\" + context.scene.name + "\\"
+        )
         row.alert = False
         layout.separator(factor=1)

@@ -328,7 +328,8 @@ def launchRenderWithVSEComposite(renderMode, takeIndex=-1, renderRootFilePath=""
     # if props.useProjectRenderSettings:
     #     scene.render.image_settings.file_format = "FFMPEG"
     #     scene.render.ffmpeg.format = "MPEG4"
-    RRS_StampInfo.clearRenderHandlers()
+    if preset_useStampInfo:
+        RRS_StampInfo.clearRenderHandlers()
     for i, shot in enumerate(shotList):
         if shot.enabled:
             print("\n----------------------------------------------------")
