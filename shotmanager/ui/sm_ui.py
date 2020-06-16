@@ -208,6 +208,7 @@ class UAS_PT_ShotManager(Panel):
             row.label(text=f"Shots ({numEnabledShots}/{numShots}): ")
 
             row.operator("uas_shot_manager.scenerangefromshot", text="", icon="PREVIEW_RANGE")
+            #    row.operator("uas_shot_manager.scenerangefromenabledshots", text="", icon="PREVIEW_RANGE")
             row.operator("uas_shot_manager.scenerangefrom3dedit", text="", icon="PREVIEW_RANGE")
             row.separator(factor=3)
 
@@ -738,6 +739,28 @@ class UAS_ShotManager_SceneRangeFromShot(Operator):
         return {"FINISHED"}
 
 
+# # operator here must be a duplicate of UAS_ShotManager_SceneRangeFromShot is order to use a different description
+# class UAS_ShotManager_SceneRangeFromEnabledShots(Operator):
+#     bl_idname = "uas_shot_manager.scenerangefromenabledshots"
+#     bl_label = "Scene Range From Enabled Shot"
+#     bl_description = "Set scene time range with enabled shots range"
+#     bl_options = {"INTERNAL"}
+
+#     def execute(self, context):
+#         scene = context.scene
+#         props = scene.UAS_shot_manager_props
+
+#         shotList = props.getShotsList(ignoreDisabled=True)
+
+#         if len(shotList):
+#             scene.use_preview_range = True
+
+#             scene.frame_preview_start = shotList[0].start
+#             scene.frame_preview_end = shotList[len(shotList) - 1].end
+
+#         return {"FINISHED"}
+
+
 # operator here must be a duplicate of UAS_ShotManager_SceneRangeFromShot is order to use a different description
 class UAS_ShotManager_SceneRangeFrom3DEdit(Operator):
     bl_idname = "uas_shot_manager.scenerangefrom3dedit"
@@ -786,6 +809,7 @@ classes = (
     UAS_ShotManager_DrawCameras_UI,
     #  UAS_Retimer,
     UAS_ShotManager_SceneRangeFromShot,
+    #    UAS_ShotManager_SceneRangeFromEnabledShots,
     UAS_ShotManager_SceneRangeFrom3DEdit,
 )
 

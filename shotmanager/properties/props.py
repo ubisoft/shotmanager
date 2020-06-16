@@ -98,6 +98,10 @@ class UAS_ShotManager_Props(PropertyGroup):
         name="Render Shot Prefix", description="Prefix added to the shot names at render time", default="Unused"
     )
 
+    # playbar
+    #############
+    restartPlay: BoolProperty(default=False)
+
     # edit
     #############
 
@@ -968,6 +972,10 @@ class UAS_ShotManager_Props(PropertyGroup):
 
         return nextShotInd
 
+    ###############
+    # functions working only on current take !!!
+    ###############
+
     # wkip ignoreDisabled pas encore implémenté ici!!!!
     def goToPreviousShot(self, currentFrame, ignoreDisabled=False):
         """ 
@@ -1167,6 +1175,55 @@ class UAS_ShotManager_Props(PropertyGroup):
             bpy.context.scene.frame_set(newFrame)
 
         return newFrame
+
+    # works only on current take
+    def getFirstShotIndexContainingFrame(self, frameIndex, ignoreDisabled=False):
+        """Return the first shot containing the specifed frame, -1 if not found
+        """
+        firstShotInd = -1
+
+        shotList = self.get_shots()
+        shotFound = False
+
+        if len(shotList):
+            firstShotInd = 0
+            while firstShotInd < len(shotList) and not shotFound:
+                if not ignoreDisabled or shotList[firstShotInd].enabled:
+                    shotFound = shotList[firstShotInd].start <= frameIndex and frameIndex <= shotList[firstShotInd].end
+                firstShotInd += 1
+
+        if shotFound:
+            firstShotInd = firstShotInd - 1
+        else:
+            firstShotInd = -1
+
+        return firstShotInd
+
+    # works only on current take
+    def getFirstShotIndexAfterFrame(self, frameIndex, ignoreDisabled=False):
+        """Return the first shot after the specifed frame (supposing thanks to getFirstShotIndexContainingFrame than 
+            frameIndex is not in a shot), -1 if not found
+        """
+        firstShotInd = -1
+
+        shotList = self.get_shots()
+        shotFound = False
+
+        if len(shotList):
+            firstShotInd = 0
+            while firstShotInd < len(shotList) and not shotFound:
+                if not ignoreDisabled or shotList[firstShotInd].enabled:
+                    shotFound = frameIndex < shotList[firstShotInd].start
+                firstShotInd += 1
+
+        if shotFound:
+            firstShotInd = firstShotInd - 1
+        else:
+            firstShotInd = -1
+
+        return firstShotInd
+
+    ##############################
 
     def getShotOutputFileNameFromIndex(
         self, shotIndex=-1, takeIndex=-1, frameIndex=-1, fullPath=False, fullPathOnly=False, rootFilePath=""
