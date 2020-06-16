@@ -1192,6 +1192,35 @@ class UAS_ShotManager_Props(PropertyGroup):
                     shotFound = shotList[firstShotInd].start <= frameIndex and frameIndex <= shotList[firstShotInd].end
                 firstShotInd += 1
 
+        if shotFound:
+            firstShotInd = firstShotInd - 1
+        else:
+            firstShotInd = -1
+
+        return firstShotInd
+
+    # works only on current take
+    def getFirstShotIndexAfterFrame(self, frameIndex, ignoreDisabled=False):
+        """Return the first shot after the specifed frame (supposing thanks to getFirstShotIndexContainingFrame than 
+            frameIndex is not in a shot), -1 if not found
+        """
+        firstShotInd = -1
+
+        shotList = self.get_shots()
+        shotFound = False
+
+        if len(shotList):
+            firstShotInd = 0
+            while firstShotInd < len(shotList) and not shotFound:
+                if not ignoreDisabled or shotList[firstShotInd].enabled:
+                    shotFound = frameIndex < shotList[firstShotInd].start
+                firstShotInd += 1
+
+        if shotFound:
+            firstShotInd = firstShotInd - 1
+        else:
+            firstShotInd = -1
+
         return firstShotInd
 
     ##############################
