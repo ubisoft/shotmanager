@@ -100,7 +100,7 @@ except ModuleNotFoundError:
 
 from .config import config
 
-from .handlers import jump_to_shot
+from .handlers import jump_to_shot, jump_to_shot__frame_change_post
 
 from .operators import takes
 from .operators import shots
@@ -125,6 +125,7 @@ from .ui import sm_ui
 
 from .utils import utils_render
 from .utils import utils
+from .utils import utils_handlers
 
 from . import videoshotmanager
 
@@ -165,10 +166,16 @@ def install_shot_handler(self, context):
                 scene.UAS_shot_manager_props.current_shot_index = i
                 break
         bpy.app.handlers.frame_change_pre.append(jump_to_shot)
+    #     bpy.app.handlers.frame_change_post.append(jump_to_shot__frame_change_post)
 
     #    bpy.ops.uas_shot_manager.draw_timeline ( "INVOKE_DEFAULT" )
     elif not self.UAS_shot_manager_handler_toggle and jump_to_shot in bpy.app.handlers.frame_change_pre:
-        bpy.app.handlers.frame_change_pre.remove(jump_to_shot)
+        # bpy.app.handlers.frame_change_pre.remove(jump_to_shot)
+        # bpy.app.handlers.frame_change_post.remove(jump_to_shot__frame_change_post)
+        utils_handlers.removeAllHandlerOccurences(jump_to_shot, handlerCateg=bpy.app.handlers.frame_change_pre)
+        utils_handlers.removeAllHandlerOccurences(
+            jump_to_shot__frame_change_post, handlerCateg=bpy.app.handlers.frame_change_post
+        )
 
 
 # classes = (
@@ -206,6 +213,13 @@ def register():
     #    setup_project_env(True, True)
 
     config.initGlobalVariables()
+
+    utils_handlers.displayHandlers()
+    utils_handlers.removeAllHandlerOccurences(jump_to_shot, handlerCateg=bpy.app.handlers.frame_change_pre)
+    utils_handlers.removeAllHandlerOccurences(
+        jump_to_shot__frame_change_post, handlerCateg=bpy.app.handlers.frame_change_post
+    )
+    utils_handlers.displayHandlers()
 
     # for cls in classes:
     #     bpy.utils.register_class(cls)
