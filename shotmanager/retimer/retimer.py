@@ -98,6 +98,10 @@ def _stretch_frames(fcurve: FCurve, start_frame, end_frame, factor, pivot_value,
             stretched_last_frame = last_frame[0] + compute_offset(last_frame[0], pivot_value, factor)
             if stretched_last_frame >= end_frame:
                 _offset_frames(fcurve, end_frame + 1, stretched_last_frame - end_frame)
+            else:
+                _offset_frames ( fcurve, start_frame + 1, end_frame - start_frame )
+        else:
+            _offset_frames ( fcurve, start_frame + 1, end_frame - start_frame )
 
     for i in range(len(fcurve)):
         coordinates = fcurve.get_key_coordinates(i)
@@ -121,10 +125,10 @@ def _offset_frames(fcurve: FCurve, reference_frame, offset):
         key_time, value = fcurve.get_key_coordinates(i)
         if key_time >= reference_frame:
             fcurve.set_key_coordinates(i, (key_time + offset, value))
-
             left_handle, right_handle = fcurve.handles(i)
             left_handle[0] += offset
             right_handle[0] += offset
+
 
 
 def retime_frames(fcurve: FCurve, mode, start_frame=0, end_frame=0, remove_gap=True, factor=1.0, pivot=""):
@@ -323,7 +327,7 @@ def retimer(
         if apply_on_grease_pencils:
             if obj.type == "GPENCIL":
                 for layer in obj.data.layers:
-                    retime_frames(GPFCurve(ayer), *retime_args)
+                    retime_frames(GPFCurve(layer), *retime_args)
 
     # Shots
     if apply_on_shots:
