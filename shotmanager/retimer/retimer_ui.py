@@ -20,6 +20,7 @@ class UAS_PT_ShotManagerRetimer(Panel):
     bl_options = {"DEFAULT_CLOSED"}
 
     def draw(self, context):
+
         retimerProps = context.scene.UAS_shot_manager_props.retimer
 
         layout = self.layout
@@ -50,6 +51,16 @@ class UAS_PT_ShotManagerRetimer(Panel):
             row.prop(retimerProps, "insert_duration", text="Duration")
             row.separator(factor=1)
 
+            row = box.row(align=True)
+            newStart = retimerProps.start_frame
+            newStartStr = f"Start: {retimerProps.start_frame} \u2192 {newStart}"
+            newEnd = retimerProps.start_frame + 1 + retimerProps.insert_duration
+            newEndStr = f"End: {retimerProps.start_frame + 1} \u2192 {newEnd}"
+            newRangeStr = f"Time Range: {0} fr \u2192 {retimerProps.insert_duration} fr"
+            row.separator(factor=1)
+            row.label(text=newStartStr + ",      " + newEndStr + ",      " + newRangeStr)
+            row.separator(factor=1)
+
             # apply ###
             row = box.row()
             row.separator(factor=0.1)
@@ -75,6 +86,16 @@ class UAS_PT_ShotManagerRetimer(Panel):
             row.separator()
 
             #            row.operator("uas_shot_manager.gettimerange", text="", icon="SEQ_STRIP_META")
+            row.separator(factor=1)
+
+            row = box.row(align=True)
+            newStart = retimerProps.start_frame
+            newStartStr = f"Start: {retimerProps.start_frame} \u2192 {newStart}"
+            newEnd = retimerProps.start_frame
+            newEndStr = f"End: {retimerProps.end_frame} \u2192 {newEnd}"
+            newRangeStr = f"Time Range: {retimerProps.end_frame - retimerProps.start_frame} fr. \u2192 {newEnd - retimerProps.start_frame} fr.,"
+            row.separator(factor=1)
+            row.label(text=newStartStr + ",      " + newEndStr + ",      " + newRangeStr)
             row.separator(factor=1)
 
             # apply ###
@@ -107,21 +128,21 @@ class UAS_PT_ShotManagerRetimer(Panel):
             row = box.row(align=True)
             # row.use_property_split = True
 
-            row.separator(factor=1)
+            row.separator(factor=2)
+            row.label(text="")
             row.prop(retimerProps, "factor", text="Scale Factor")
-            newEndStr = (
-                "   fr. "
-                + str(retimerProps.end_frame)
-                + " => fr. "
-                # + "{:.{}f}".format( (retimerProps.end_frame - retimerProps.start_frame) * retimerProps.factor + retimerProps.start_frame, 1 )
-                + str(
-                    round(
-                        (retimerProps.end_frame - retimerProps.start_frame) * retimerProps.factor
-                        + retimerProps.start_frame
-                    )
-                )
+            row.separator(factor=1)
+
+            row = box.row(align=True)
+            newStart = retimerProps.start_frame
+            newStartStr = f"Start: {retimerProps.start_frame} \u2192 {newStart}"
+            newEnd = round(
+                (retimerProps.end_frame - retimerProps.start_frame) * retimerProps.factor + retimerProps.start_frame
             )
-            row.label(text=newEndStr)
+            newEndStr = f"End: {retimerProps.end_frame} \u2192 {newEnd}"
+            newRangeStr = f"Time Range: {retimerProps.end_frame - retimerProps.start_frame} fr. \u2192 {newEnd - retimerProps.start_frame} fr.,"
+            row.separator(factor=1)
+            row.label(text=newStartStr + ",      " + newEndStr + ",      " + newRangeStr)
             row.separator(factor=1)
             # row.prop(retimerProps, "pivot")
 

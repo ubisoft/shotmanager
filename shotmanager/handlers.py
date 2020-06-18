@@ -3,7 +3,7 @@ import bpy
 
 def jump_to_shot(self):
 
-    verbose = True
+    verbose = False
 
     def getPreviousShotIndex(shots, current_index):
         previous_index = (current_shot_index - 1) % len(shots)

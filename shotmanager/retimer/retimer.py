@@ -157,7 +157,7 @@ def retime_frames(fcurve: FCurve, mode, start_frame=0, end_frame=0, remove_gap=T
         _stretch_frames(fcurve, start_frame, end_frame, factor, pivot, False)
 
 
-def retime_shot(shot, mode, start_frame=0, end_frame=0, remove_gap=True, factor=1.0, pivot=""):
+def retime_shot(shot, mode, start_frame=0, end_frame=0, remove_gap=True, factor=1.0, pivot=0):
 
     if mode == "INSERT":
         offset = end_frame - start_frame
@@ -218,6 +218,24 @@ def retime_shot(shot, mode, start_frame=0, end_frame=0, remove_gap=True, factor=
             shot.end -= offset
 
     elif mode == "RESCALE":
+        offset = end_frame - start_frame
+
+        # important to offset end first!!
+        if end_frame < shot.end:
+            shot.end += offset
+        elif start_frame < shot.end and shot.end <= end_frame:
+            shot.end = (shot.end - pivot) * factor + pivot
+        else:
+            pass
+
+        if end_frame < shot.start:
+            shot.start += offset
+        elif start_frame < shot.start and shot.start <= end_frame:
+            shot.start = (shot.start - pivot) * factor + pivot
+        else:
+            pass
+
+    elif mode == "CLEAR_ANIM":
         pass
 
 
@@ -267,7 +285,9 @@ def retimer(
     apply_on_shots=True,
 ):
 
+    print("Retiming scene: , factor: ", mode, factor)
     retime_args = (mode, start, end, join_gap, factor, pivot)
+    print("retime_args: ", retime_args)
 
     actions_done = set()  # Actions can be linked so we must make sure to only retime them once.
     for obj in objects:
@@ -312,6 +332,8 @@ def retimer(
 
         if "INSERT" == mode:
             retime_args = (mode, start - 1, end - 1, join_gap, factor, pivot)
+        elif "RESCALE" == mode:
+            retime_args = (mode, start - 1, end, join_gap, factor, pivot)
             pass
 
         for shot in shotList:
