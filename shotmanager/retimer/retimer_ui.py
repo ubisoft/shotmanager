@@ -56,7 +56,7 @@ class UAS_PT_ShotManagerRetimer(Panel):
             newStartStr = f"Start: {retimerProps.start_frame} \u2192 {newStart}"
             newEnd = retimerProps.start_frame + 1 + retimerProps.insert_duration
             newEndStr = f"End: {retimerProps.start_frame + 1} \u2192 {newEnd}"
-            newRangeStr = f"Time Range: {0} fr \u2192 {retimerProps.insert_duration} fr"
+            newRangeStr = f"Duration: {0} fr \u2192 {retimerProps.insert_duration} fr"
             row.separator(factor=1)
             row.label(text=newStartStr + ",      " + newEndStr + ",      " + newRangeStr)
             row.separator(factor=1)
@@ -83,7 +83,6 @@ class UAS_PT_ShotManagerRetimer(Panel):
             row.operator(
                 "uas_shot_manager.getcurrentframefor", text="", icon="TRIA_UP_BAR"
             ).propertyToUpdate = "end_frame"
-            row.separator()
 
             #            row.operator("uas_shot_manager.gettimerange", text="", icon="SEQ_STRIP_META")
             row.separator(factor=1)
@@ -93,7 +92,7 @@ class UAS_PT_ShotManagerRetimer(Panel):
             newStartStr = f"Start: {retimerProps.start_frame} \u2192 {newStart}"
             newEnd = retimerProps.start_frame
             newEndStr = f"End: {retimerProps.end_frame} \u2192 {newEnd}"
-            newRangeStr = f"Time Range: {retimerProps.end_frame - retimerProps.start_frame} fr. \u2192 {newEnd - retimerProps.start_frame} fr.,"
+            newRangeStr = f"Duration: {retimerProps.end_frame - retimerProps.start_frame} fr. \u2192 {newEnd - retimerProps.start_frame} fr.,"
             row.separator(factor=1)
             row.label(text=newStartStr + ",      " + newEndStr + ",      " + newRangeStr)
             row.separator(factor=1)
@@ -126,7 +125,6 @@ class UAS_PT_ShotManagerRetimer(Panel):
             # row.separator(factor=1)
 
             row = box.row(align=True)
-            # row.use_property_split = True
 
             row.separator(factor=2)
             row.label(text="")
@@ -140,7 +138,7 @@ class UAS_PT_ShotManagerRetimer(Panel):
                 (retimerProps.end_frame - retimerProps.start_frame) * retimerProps.factor + retimerProps.start_frame
             )
             newEndStr = f"End: {retimerProps.end_frame} \u2192 {newEnd}"
-            newRangeStr = f"Time Range: {retimerProps.end_frame - retimerProps.start_frame} fr. \u2192 {newEnd - retimerProps.start_frame} fr.,"
+            newRangeStr = f"Duration: {retimerProps.end_frame - retimerProps.start_frame} fr. \u2192 {newEnd - retimerProps.start_frame} fr.,"
             row.separator(factor=1)
             row.label(text=newStartStr + ",      " + newEndStr + ",      " + newRangeStr)
             row.separator(factor=1)
@@ -182,19 +180,27 @@ class UAS_PT_ShotManagerRetimer(Panel):
         elif retimerProps.mode == "CLEAR_ANIM":
             row = box.row(align=True)
             row.separator(factor=1)
-            row.prop(retimerProps, "start_frame", text="From")
+            row.prop(retimerProps, "start_frame", text="Clear After")
             row.operator(
                 "uas_shot_manager.getcurrentframefor", text="", icon="TRIA_UP_BAR"
             ).propertyToUpdate = "start_frame"
             row.separator()
 
-            row.prop(retimerProps, "end_frame", text="To")
+            row.prop(retimerProps, "end_frame", text="Up To (incl.)")
             row.operator(
                 "uas_shot_manager.getcurrentframefor", text="", icon="TRIA_UP_BAR"
             ).propertyToUpdate = "end_frame"
-            row.separator()
 
-            #            row.operator("uas_shot_manager.gettimerange", text="", icon="SEQ_STRIP_META")
+            row.separator(factor=1)
+
+            row = box.row(align=True)
+            newStart = retimerProps.start_frame
+            newStartStr = f"Start: {retimerProps.start_frame} \u2192 {newStart}"
+            newEnd = retimerProps.end_frame
+            newEndStr = f"End: {retimerProps.end_frame} \u2192 {newEnd}"
+            newRangeStr = f"Duration: {retimerProps.end_frame - retimerProps.start_frame} fr.,"
+            row.separator(factor=1)
+            row.label(text=f"Animation in range  [ {newStart + 1},  {newEnd} ]  will be cleared,      {newRangeStr}")
             row.separator(factor=1)
 
             # apply ###
@@ -374,7 +380,7 @@ class UAS_ShotManager_RetimerApply(Operator):
                 context.scene,
                 retimerProps.mode,
                 obj_list,
-                startFrame,
+                startFrame + 1,
                 endFrame - startFrame,
                 False,
                 retimerProps.factor,
