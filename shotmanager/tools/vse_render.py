@@ -185,14 +185,17 @@ class UAS_Vse_Render(PropertyGroup):
             mediaType = "MOVIE"
         elif mediaExt in (".jpg", ".jpeg", ".png", ".tga", ".tif", ".tiff"):
             if -1 != filePath.find("###"):
-                mediaType = "SEQUENCE"
+                mediaType = "IMAGES_SEQUENCE"
             else:
                 mediaType = "IMAGE"
         elif mediaExt in (".mp3", ".wav"):
             mediaType = "SOUND"
         return mediaType
 
-    def createNewClip(self, scene, mediaPath, channelInd, atFrame, offsetStart=0, offsetEnd=0):
+    # a clip is called a sequence in VSE
+    def createNewClip(
+        self, scene, mediaPath, channelInd, atFrame, offsetStart=0, offsetEnd=0, cameraScene=None, cameraObject=None
+    ):
         """
             A strip is placed at a specified time in the edit by putting its media start at the place where
             it will be, in an absolute approach, and then by changing the handles of the clip with offsetStart
@@ -201,7 +204,24 @@ class UAS_Vse_Render(PropertyGroup):
             Both offsetStart and offsetEnd are relative to the start time of the media.
         """
 
-        def _new_sequence(scene, seqName, images_path, channelInd, atFrame):
+        def _new_camera(scene, name, channelInd, atFrame, offsetStart, offsetEnd, cameraScene, cameraObject):
+            # !!! When the 3D scence range is not starting at zero the camera strip is clipped at the begining...
+            OriRangeStart = cameraScene.frame_start
+            OriRangeEnd = cameraScene.frame_end
+            cameraScene.frame_start = 0
+            cameraScene.frame_end = offsetEnd
+
+            camSeq = scene.sequence_editor.sequences.new_scene(name, cameraScene, channelInd, atFrame)
+            camSeq.scene_camera = cameraObject
+            camSeq.frame_offset_start = offsetStart
+            camSeq.frame_offset_end = 0
+
+            # cameraScene.frame_start = OriRangeStart
+            # cameraScene.frame_end = OriRangeEnd
+
+            return camSeq
+
+        def _new_images_sequence(scene, seqName, images_path, channelInd, atFrame):
             import re
             from pathlib import Path
 
@@ -270,16 +290,34 @@ class UAS_Vse_Render(PropertyGroup):
             newClip = scene.sequence_editor.sequences.new_movie("myVideo", mediaPath, channelInd, atFrame)
         if "IMAGE" == mediaType:
             newClip = scene.sequence_editor.sequences.new_image("myImage", mediaPath, channelInd, atFrame)
-        if "SEQUENCE" == mediaType:
-            newClip = _new_sequence(scene, "mySequence", mediaPath, channelInd, atFrame)
+        if "IMAGES_SEQUENCE" == mediaType:
+            newClip = _new_images_sequence(scene, "mySequence", mediaPath, channelInd, atFrame)
             # newClip = scene.sequence_editor.sequences.new_image("myVideo", mediaPath, channelInd, atFrame)
         if "SOUND" == mediaType:
             newClip = scene.sequence_editor.sequences.new_movie("mySound", mediaPath, channelInd, atFrame)
+        if "UNKNOWN" == mediaType:
+            if cameraScene is not None and cameraObject is not None:
+                mediaType = "CAMERA"
+                newClip = _new_camera(
+                    scene, "myCamera", channelInd, atFrame, offsetStart, offsetEnd, cameraScene, cameraObject
+                )
 
-        newClip.frame_offset_start = offsetStart
-        newClip.frame_offset_end = offsetEnd
+        if mediaType != "CAMERA":
+            newClip.frame_offset_start = offsetStart
+            newClip.frame_offset_end = offsetEnd
 
         return newClip
+
+    def clearChannel(self, scene, channelIndex):
+        sequencesList = list()
+        for seq in scene.sequence_editor.sequences:
+            if channelIndex == seq.channel:
+                sequencesList.append(seq)
+
+        for seq in sequencesList:
+            scene.sequence_editor.sequences.remove(seq)
+
+        bpy.ops.sequencer.refresh_all()
 
     def compositeVideoInVSE(self, fps, frame_start, frame_end, output_filepath, postfixSceneName=""):
         # Add new scene

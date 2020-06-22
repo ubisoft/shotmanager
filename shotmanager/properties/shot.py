@@ -134,11 +134,11 @@ class UAS_ShotManager_Shot(PropertyGroup):
         options=set(),
     )
 
-    def getEditStart(self, scene):
-        return scene.UAS_shot_manager_props.getEditTime(self, self.start)
+    def getEditStart(self):
+        return self.parentScene.UAS_shot_manager_props.getEditTime(self, self.start)
 
-    def getEditEnd(self, scene):
-        return scene.UAS_shot_manager_props.getEditTime(self, self.end)
+    def getEditEnd(self):
+        return self.parentScene.UAS_shot_manager_props.getEditTime(self, self.end)
 
     ##############
     # background images
