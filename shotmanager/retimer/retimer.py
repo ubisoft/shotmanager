@@ -94,17 +94,17 @@ def _stretch_frames(fcurve: FCurve, start_frame, end_frame, factor, pivot_value,
             if f[0] <= end_frame:
                 last_frame = f
                 break
-        if last_frame is not None and last_frame[ 0 ] != pivot_value:
+        if last_frame is not None and last_frame[0] != pivot_value:
             stretched_last_frame = last_frame[0] + compute_offset(last_frame[0], pivot_value, factor)
             if stretched_last_frame >= end_frame:
                 _offset_frames(fcurve, end_frame + 1, stretched_last_frame - end_frame)
             else:
                 pass
-                #logging.warning ( f"{end_frame}")
-                #_offset_frames ( fcurve, start_frame + 1, end_frame - start_frame )
-                #Cas de merde par ici
+                # logging.warning ( f"{end_frame}")
+                # _offset_frames ( fcurve, start_frame + 1, end_frame - start_frame )
+                # Cas de merde par ici
         else:
-            _offset_frames ( fcurve, start_frame + 1, end_frame - start_frame )
+            _offset_frames(fcurve, start_frame + 1, end_frame - start_frame)
 
     for i in range(len(fcurve)):
         coordinates = fcurve.get_key_coordinates(i)
@@ -131,7 +131,6 @@ def _offset_frames(fcurve: FCurve, reference_frame, offset):
             left_handle, right_handle = fcurve.handles(i)
             left_handle[0] += offset
             right_handle[0] += offset
-
 
 
 def retime_frames(fcurve: FCurve, mode, start_frame=0, end_frame=0, remove_gap=True, factor=1.0, pivot=""):
@@ -204,17 +203,17 @@ def retime_shot(shot, mode, start_frame=0, end_frame=0, remove_gap=True, factor=
             if shot.end <= start_frame:
                 pass
             elif shot.end < end_frame:
-                shot.end = start_frame - 1  # goes to a non deleted part
+                shot.end = start_frame  # goes to a non deleted part
             elif shot.end == end_frame:
-                shot.end = start_frame - 1  # goes to a non deleted part
+                shot.end = start_frame  # goes to a non deleted part
             else:
                 shot.end -= offset
 
         elif start_frame < shot.start and shot.start < end_frame:
-            shot.start = start_frame - 1
+            shot.start = start_frame
 
             if shot.end <= end_frame:
-                shot.end = start_frame - 1
+                shot.end = start_frame
                 shot.enabled = False
             else:
                 shot.end -= offset
@@ -225,22 +224,43 @@ def retime_shot(shot, mode, start_frame=0, end_frame=0, remove_gap=True, factor=
             shot.end -= offset
 
     elif mode == "RESCALE":
-        offset = end_frame - start_frame
+        offset = (end_frame - start_frame) * (factor - 1)
 
-        # important to offset end first!!
-        if end_frame < shot.end:
-            shot.end += offset
-        elif start_frame < shot.end and shot.end <= end_frame:
-            shot.end = (shot.end - pivot) * factor + pivot
-        else:
-            pass
+        if offset > 0:
+            # important to offset END first!!
+            if end_frame < shot.end:
+                shot.end += offset
+            elif start_frame < shot.end and shot.end <= end_frame:
+                shot.end = (shot.end - pivot) * factor + pivot
+            else:
+                pass
 
-        if end_frame < shot.start:
-            shot.start += offset
-        elif start_frame < shot.start and shot.start <= end_frame:
-            shot.start = (shot.start - pivot) * factor + pivot
+            if end_frame < shot.start:
+                shot.start += offset
+            elif start_frame < shot.start and shot.start <= end_frame:
+                shot.start = (shot.start - pivot) * factor + pivot
+            else:
+                pass
+
         else:
-            pass
+            # important to offset START first!!
+            if end_frame < shot.start:
+                shot.start += offset
+            elif start_frame < shot.start and shot.start <= end_frame:
+                shot.start = (
+                    (shot.start - pivot) * factor + pivot + 0.005
+                )  # approximation to make sure the rounded value is done to the upper value
+            else:
+                pass
+
+            if end_frame < shot.end:
+                shot.end += offset
+            elif start_frame < shot.end and shot.end <= end_frame:
+                shot.end = (
+                    (shot.end - pivot) * factor + pivot + 0.005
+                )  # approximation to make sure the rounded value is done to the upper value
+            else:
+                pass
 
     elif mode == "CLEAR_ANIM":
         pass
@@ -339,8 +359,11 @@ def retimer(
 
         if "INSERT" == mode:
             retime_args = (mode, start - 1, end - 1, join_gap, factor, pivot)
+        elif "DELETE" == mode:
+            retime_args = (mode, start - 1, end - 1, join_gap, factor, pivot)
+        #  retime_args = (mode, start, end, join_gap, factor, pivot)
         elif "RESCALE" == mode:
-            retime_args = (mode, start - 1, end, join_gap, factor, pivot)
+            retime_args = (mode, start - 1, end - 1, join_gap, factor, pivot)
             pass
 
         for shot in shotList:

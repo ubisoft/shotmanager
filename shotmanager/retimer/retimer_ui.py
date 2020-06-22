@@ -79,7 +79,7 @@ class UAS_PT_ShotManagerRetimer(Panel):
             ).propertyToUpdate = "start_frame"
             row.separator()
 
-            row.prop(retimerProps, "end_frame", text="Up To (incl.)")
+            row.prop(retimerProps, "end_frame", text="Up To (excl.)")
             row.operator(
                 "uas_shot_manager.getcurrentframefor", text="", icon="TRIA_UP_BAR"
             ).propertyToUpdate = "end_frame"
@@ -90,9 +90,9 @@ class UAS_PT_ShotManagerRetimer(Panel):
             row = box.row(align=True)
             newStart = retimerProps.start_frame
             newStartStr = f"Start: {retimerProps.start_frame} \u2192 {newStart}"
-            newEnd = retimerProps.start_frame
+            newEnd = retimerProps.start_frame + 1
             newEndStr = f"End: {retimerProps.end_frame} \u2192 {newEnd}"
-            newRangeStr = f"Duration: {retimerProps.end_frame - retimerProps.start_frame} fr. \u2192 {newEnd - retimerProps.start_frame} fr.,"
+            newRangeStr = f"Duration: {retimerProps.end_frame - retimerProps.start_frame - 1} fr. \u2192 {newEnd - retimerProps.start_frame - 1} fr.,"
             row.separator(factor=1)
             row.label(text=newStartStr + ",      " + newEndStr + ",      " + newRangeStr)
             row.separator(factor=1)
@@ -351,7 +351,7 @@ class UAS_ShotManager_RetimerApply(Operator):
                 retimerProps.mode,
                 obj_list,
                 startFrame + 1,
-                endFrame - startFrame,
+                endFrame - startFrame - 1,
                 True,
                 1.0,
                 retimerProps.pivot,
