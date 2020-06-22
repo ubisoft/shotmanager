@@ -91,15 +91,16 @@ def _stretch_frames(fcurve: FCurve, start_frame, end_frame, factor, pivot_value,
         last_frame = None
         for i in reversed(range(len(fcurve))):
             f = fcurve.get_key_coordinates(i)
-            if f[0] < end_frame:
+            if f[0] <= end_frame:
                 last_frame = f
                 break
-        if last_frame is not None:
+        if last_frame is not None and last_frame[ 0 ] != pivot_value:
             stretched_last_frame = last_frame[0] + compute_offset(last_frame[0], pivot_value, factor)
             if stretched_last_frame >= end_frame:
                 _offset_frames(fcurve, end_frame + 1, stretched_last_frame - end_frame)
             else:
                 pass
+                #logging.warning ( f"{end_frame}")
                 #_offset_frames ( fcurve, start_frame + 1, end_frame - start_frame )
                 #Cas de merde par ici
         else:
