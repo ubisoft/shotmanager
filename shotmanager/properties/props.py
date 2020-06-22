@@ -672,9 +672,7 @@ class UAS_ShotManager_Props(PropertyGroup):
     def setCurrentShotByIndex(self, currentShotIndex):
         """ Changing the current shot doesn't affect the selected one
         """
-        #  print(" setCurrentShotByIndex")
         scene = bpy.context.scene
-        props = scene.UAS_shot_manager_props
 
         shotList = self.get_shots()
         self.current_shot_index = currentShotIndex
@@ -683,30 +681,15 @@ class UAS_ShotManager_Props(PropertyGroup):
             if self.change_time:
                 scene.frame_current = shotList[currentShotIndex].start
 
-            #    print(" Set Current Shot: new shot absolute index: ", currentShotIndex)
-
-            #        self.selected_shot_index = currentShotIndex        # removed
-
             if shotList[currentShotIndex].camera is not None:
-
-                # set the current camera in the 3D view
-                # [‘PERSP’, ‘ORTHO’, ‘CAMERA’]
+                # set the current camera in the 3D view: [‘PERSP’, ‘ORTHO’, ‘CAMERA’]
                 area = next(area for area in bpy.context.screen.areas if area.type == "VIEW_3D")
-                #    area.spaces[0].region_3d.view_perspective = 'PERSP'
 
-                # print("00000")
+                area.spaces[0].use_local_camera = False
                 scene.camera = shotList[currentShotIndex].camera
-                #    bpy.context.scene.camera =  bpy.context.scene.objects["Camera_Sapin"]
-                #    bpy.data.scenes[ "SceneRace" ].camera = bpy.context.scene.objects["Camera_Sapin"]
-                # scene.camera = shotList[ currentShotIndex ].camera
-                #   bpy.data.scenes[ scn.name ].camera = shotList[ self.index ].camera
-
-                #    print("    new scene camera: ", bpy.context.scene.camera.name)
                 area.spaces[0].region_3d.view_perspective = "CAMERA"
 
             # bpy.context.scene.objects["Camera_Sapin"]
-
-            #  context.space_data.region_3d.view_perspective = "CAMERA"
 
     def setCurrentShot(self, currentShot):
         shotInd = self.getShotIndex(currentShot)
