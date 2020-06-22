@@ -207,6 +207,9 @@ class UAS_PT_ShotManager(Panel):
             numEnabledShots = len(props.getShotsList(ignoreDisabled=True))
             row.label(text=f"Shots ({numEnabledShots}/{numShots}): ")
 
+            row.separator(factor=1)
+            row.operator("uas_shot_manager.enabledisableall", text="", icon="CHECKBOX_HLT")
+
             row.operator("uas_shot_manager.scenerangefromshot", text="", icon="PREVIEW_RANGE")
             #    row.operator("uas_shot_manager.scenerangefromenabledshots", text="", icon="PREVIEW_RANGE")
             row.operator("uas_shot_manager.scenerangefrom3dedit", text="", icon="PREVIEW_RANGE")
@@ -720,6 +723,37 @@ class UAS_ShotManager_Empty(Operator):
     index: bpy.props.IntProperty(default=0)
 
 
+class UAS_ShotManager_EnableDisableAll(Operator):
+    bl_idname = "uas_shot_manager.enabledisableall"
+    bl_label = "Enable / Disable All Shots"
+    bl_description = "Enable all shots,\nClick + Ctrl: Disable all shots,\nClick + Shift: Invert shots state"
+    bl_options = {"INTERNAL", "REGISTER", "UNDO"}
+
+    def invoke(self, context, event):
+        scene = context.scene
+        props = scene.UAS_shot_manager_props
+
+        enableMode = "ENABLEALL"
+        if event.shift:
+            enableMode = "INVERT"
+        elif event.ctrl:
+            enableMode = "DISABLEALL"
+
+        selectedShotInd = props.getSelectedShotIndex()
+        shotsList = props.getShotsList()
+        for shot in shotsList:
+            if "ENABLEALL" == enableMode:
+                shot.enabled = True
+            elif "DISABLEALL" == enableMode:
+                shot.enabled = False
+            elif "INVERT" == enableMode:
+                shot.enabled = not shot.enabled
+
+        props.setSelectedShotByIndex(selectedShotInd)
+
+        return {"FINISHED"}
+
+
 class UAS_ShotManager_SceneRangeFromShot(Operator):
     bl_idname = "uas_shot_manager.scenerangefromshot"
     bl_label = "Scene Range From Shot"
@@ -808,6 +842,7 @@ classes = (
     UAS_PT_ShotManager_Initialize,
     UAS_ShotManager_DrawCameras_UI,
     #  UAS_Retimer,
+    UAS_ShotManager_EnableDisableAll,
     UAS_ShotManager_SceneRangeFromShot,
     #    UAS_ShotManager_SceneRangeFromEnabledShots,
     UAS_ShotManager_SceneRangeFrom3DEdit,
