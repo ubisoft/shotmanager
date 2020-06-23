@@ -658,11 +658,11 @@ class UAS_MT_ShotManager_Shots_ToolsMenu(Menu):
 
         row = layout.row(align=True)
         row.operator_context = "INVOKE_DEFAULT"
-        row.operator("uas_shot_manager.remove_multiple_shots", text="Remove Disabled Shots").action = "DISABLED"
+        row.operator("uas_shot_manager.remove_multiple_shots", text="Remove Disabled Shots...").action = "DISABLED"
 
         row = layout.row(align=True)
         row.operator_context = "INVOKE_DEFAULT"
-        row.operator("uas_shot_manager.remove_multiple_shots", text="Remove All Shots").action = "ALL"
+        row.operator("uas_shot_manager.remove_multiple_shots", text="Remove All Shots...").action = "ALL"
 
         layout.separator()
 

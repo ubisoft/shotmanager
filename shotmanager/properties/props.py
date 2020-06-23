@@ -955,6 +955,29 @@ class UAS_ShotManager_Props(PropertyGroup):
 
         return nextShotInd
 
+    def deleteShotCamera(self, shot):
+        """ Check in all takes if the camera is used by another shot and if not then delete it
+        """
+        deleteOk = False
+
+        if shot.camera is None:
+            return False
+
+        for t in self.takes:
+            for s in t.shots:
+                if shot != s and s.camera is not None and shot.camera == s.camera:
+                    return False
+
+        bpy.ops.object.select_all(action="DESELECT")
+        cam = shot.camera
+        shot.camera = None
+
+        # https://wiki.blender.org/wiki/Reference/Release_Notes/2.80/Python_API/Scene_and_Object_API
+        cam.select_set(True)
+        bpy.ops.object.delete()
+
+        return deleteOk
+
     ###############
     # functions working only on current take !!!
     ###############
