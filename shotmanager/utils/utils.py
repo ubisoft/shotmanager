@@ -106,7 +106,12 @@ def file_path_from_uri(uri):
     return path
 
 
-def add_background_video_to_cam(camera: bpy.types.Camera, movie_path, frame_start, alpha=-1):
+def add_background_video_to_cam(
+    camera: bpy.types.Camera, movie_path, frame_start, alpha=-1, proxyRenderSize="PROXY_50"
+):
+    """ Camera argument: use camera.data, not the camera object
+        proxyRenderSize is PROXY_25, PROXY_50, PROXY_75, PROXY_100, FULL
+    """
     print("add_background_video_to_cam")
     movie_path = Path(movie_path)
     if not movie_path.exists():
@@ -127,6 +132,8 @@ def add_background_video_to_cam(camera: bpy.types.Camera, movie_path, frame_star
         bg.frame_method = "CROP"
         if -1 != alpha:
             bg.alpha = alpha
+
+        bg.clip_user.proxy_render_size = proxyRenderSize
 
 
 _classes = (UAS_ShotManager_OpenExplorer,)

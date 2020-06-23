@@ -140,18 +140,35 @@ class UAS_ShotManager_Shot(PropertyGroup):
     def getEditEnd(self, scene):
         return scene.UAS_shot_manager_props.getEditTime(self, self.end)
 
+    def updateClipLinkToShotStart(self):
+        if self.camera is not None and len(self.camera.data.background_images):
+            bgClip = self.camera.data.background_images[0].clip
+            if bgClip is not None:
+                if self.bgImages_linkToShotStart:
+                    bgClip.frame_start = self.start + self.bgImages_offset
+                else:
+                    bgClip.frame_start = self.bgImages_offset
+
     ##############
     # background images
     ##############
 
-    def _update_bgImages_linkToShotStart(self, context):
-        if self.camera is not None and len(self.camera.data.background_images):
-            bgClip = self.camera.data.background_images[0].clip
-            if bgClip is not None:
-                if self._update_bgImages_linkToShotStart:
-                    bgClip.frame_start = self.start + self.bgImages_offset
-                else:
-                    bgClip.frame_start = self.bgImages_offset
+    def _get_bgImages_linkToShotStart(self):
+        val = self.get("bgImages_linkToShotStart", True)
+        return val
+
+    def _set_bgImages_linkToShotStart(self, value):
+        self["bgImages_linkToShotStart"] = value
+        self.updateClipLinkToShotStart()
+
+    # def _update_bgImages_linkToShotStart(self, context):
+    #     if self.camera is not None and len(self.camera.data.background_images):
+    #         bgClip = self.camera.data.background_images[0].clip
+    #         if bgClip is not None:
+    #             if self._update_bgImages_linkToShotStart:
+    #                 bgClip.frame_start = self.start + self.bgImages_offset
+    #             else:
+    #                 bgClip.frame_start = self.bgImages_offset
 
     bgImages_linkToShotStart: BoolProperty(
         name="Link BG to Start",
@@ -159,7 +176,9 @@ class UAS_ShotManager_Shot(PropertyGroup):
         "If linked the background clip start frame is relative to the shot start.\n"
         "If not linked the clip starts at frame 0 + offset",
         default=True,
-        update=_update_bgImages_linkToShotStart,
+        get=_get_bgImages_linkToShotStart,
+        set=_set_bgImages_linkToShotStart,
+        # update=_update_bgImages_linkToShotStart,
         options=set(),
     )
 
@@ -169,13 +188,14 @@ class UAS_ShotManager_Shot(PropertyGroup):
 
     def _set_bgImages_offset(self, value):
         self["bgImages_offset"] = value
-        if self.camera is not None and len(self.camera.data.background_images):
-            bgClip = self.camera.data.background_images[0].clip
-            if bgClip is not None:
-                if self.bgImages_linkToShotStart:
-                    bgClip.frame_start = self.start + self.bgImages_offset
-                else:
-                    bgClip.frame_start = self.bgImages_offset
+        self.updateClipLinkToShotStart()
+        # if self.camera is not None and len(self.camera.data.background_images):
+        #     bgClip = self.camera.data.background_images[0].clip
+        #     if bgClip is not None:
+        #         if self.bgImages_linkToShotStart:
+        #             bgClip.frame_start = self.start + self.bgImages_offset
+        #         else:
+        #             bgClip.frame_start = self.bgImages_offset
 
     bgImages_offset: IntProperty(
         name="BG Clip Offset",
