@@ -1,5 +1,6 @@
 import bpy
 from bpy.types import Panel, Operator, Menu
+from bpy.props import StringProperty, IntProperty
 
 from ..config import config
 from ..ogl_ui import UAS_ShotManager_DrawTimeline, UAS_ShotManager_DrawCameras_UI
@@ -207,6 +208,9 @@ class UAS_PT_ShotManager(Panel):
             numEnabledShots = len(props.getShotsList(ignoreDisabled=True))
             row.label(text=f"Shots ({numEnabledShots}/{numShots}): ")
 
+            row.separator(factor=1)
+            row.operator("uas_shot_manager.enabledisableall", text="", icon="CHECKBOX_HLT")
+
             row.operator("uas_shot_manager.scenerangefromshot", text="", icon="PREVIEW_RANGE")
             #    row.operator("uas_shot_manager.scenerangefromenabledshots", text="", icon="PREVIEW_RANGE")
             row.operator("uas_shot_manager.scenerangefrom3dedit", text="", icon="PREVIEW_RANGE")
@@ -400,6 +404,8 @@ class UAS_PT_ShotManager_ShotProperties(Panel):
     bl_options = {"DEFAULT_CLOSED"}
     bl_parent_id = "UAS_PT_Shot_Manager"
 
+    tmpBGPath: StringProperty()
+
     def draw_header(self, context):
         scene = context.scene
         layout = self.layout
@@ -492,16 +498,32 @@ class UAS_PT_ShotManager_ShotProperties(Panel):
 
             # row.prop ( context.props, "display_duration_in_shotlist", text = "" )
 
-            if shot.camera is not None and len(shot.camera.data.background_images):
-                # shot.camera.data.background_images[0].alpha = self.alpha  # globalSettings.backgroundAlpha:
+            if shot.camera is not None:
                 box = layout.box()
                 row = box.row()
                 row.separator(factor=1.0)
                 c = row.column()
-                grid_flow = c.grid_flow(align=False, columns=4, even_columns=False)
+                grid_flow = c.grid_flow(align=True, columns=4, even_columns=False)
 
-                grid_flow.prop(shot, "bgImages_linkToShotStart")
-                grid_flow.prop(shot, "bgImages_offset")
+                # grid_flow.prop(shot.camera.data.background_images[0].clip.name)
+                if len(shot.camera.data.background_images) and shot.camera.data.background_images[0].clip is not None:
+                    grid_flow.prop(shot.camera.data.background_images[0].clip, "filepath")
+                else:
+                    # tmpBGPath
+                    grid_flow.operator(
+                        "uas_shot_manager.openfilebrowser_for_cam_bg", text="", icon="FILEBROWSER", emboss=True
+                    ).pathProp = "inputOverMediaPath"
+
+                grid_flow.operator(
+                    "uas_shot_manager.remove_bg_images", text="", icon="PANEL_CLOSE", emboss=True
+                ).shotIndex = props.getShotIndex(shot)
+
+                row = box.row()
+                if not len(shot.camera.data.background_images):
+                    row.enabled = False
+                row.separator(factor=1.0)
+                row.prop(shot, "bgImages_linkToShotStart")
+                row.prop(shot, "bgImages_offset")
 
     @classmethod
     def poll(cls, context):
@@ -533,25 +555,16 @@ class UAS_PT_ShotManager_ShotsGlobalSettings(Panel):
         layout.label(text="Camera Background Images:")
         box = layout.box()
 
-        # name and color
         row = box.row()
         row.separator(factor=1.0)
         c = row.column()
         grid_flow = c.grid_flow(align=False, columns=4, even_columns=False)
         grid_flow.operator("uas_shots_settings.use_background", text="Turn On").useBackground = True
         grid_flow.operator("uas_shots_settings.use_background", text="Turn Off").useBackground = False
-        # grid_flow.operator("uas_shots_settings.background_alpha", text="Alpha")
-        # grid_flow.prop(bpy.context.window_manager.UAS_shot_manager_shotsGlobalSettings, "backgroundAlpha", text="Alpha")
         grid_flow.prop(props.shotsGlobalSettings, "backgroundAlpha", text="Alpha")
+        grid_flow.prop(props.shotsGlobalSettings, "proxyRenderSize")
 
-        #   grid_flow.scale_x = 0.7
-        # grid_flow.prop(shot, "color", text="")
-        #   grid_flow.scale_x = 1.0
-        # grid_flow.prop(props, "display_color_in_shotlist", text="")
         row.separator(factor=0.5)  # prevents stange look when panel is narrow
-
-        # Duration
-        # row = box.row()
 
     @classmethod
     def poll(cls, context):
@@ -559,6 +572,66 @@ class UAS_PT_ShotManager_ShotsGlobalSettings(Panel):
         val = len(props.getTakes()) and len(props.get_shots())
 
         return val
+
+
+# This operator requires   from bpy_extras.io_utils import ImportHelper
+# See https://sinestesia.co/blog/tutorials/using-blenders-filebrowser-with-python/
+class UAS_ShotManager_OpenFileBrowserForCamBG(Operator):  # from bpy_extras.io_utils import ImportHelper
+    bl_idname = "uas_shot_manager.openfilebrowser_for_cam_bg"
+    bl_label = "Camera Background"
+    bl_description = "Open a file browser to define the image or video to use as camera background"
+    bl_options = {"INTERNAL", "REGISTER", "UNDO"}
+
+    pathProp: StringProperty()
+
+    filepath: StringProperty(subtype="FILE_PATH")
+
+    filter_glob: StringProperty(default="*.mov;*.mp4", options={"HIDDEN"})
+
+    def invoke(self, context, event):  # See comments at end  [1]
+
+        context.window_manager.fileselect_add(self)
+
+        return {"RUNNING_MODAL"}
+
+    def execute(self, context):
+        """Use the selected file as a stamped logo"""
+        #  filename, extension = os.path.splitext(self.filepath)
+        #   print('Selected file:', self.filepath)
+        #   print('File name:', filename)
+        #   print('File extension:', extension)
+        props = context.scene.UAS_shot_manager_props
+        shot = props.getCurrentShot()
+
+        # start frame of the background video is not set here since it will be linked to the shot start frame
+        utils.add_background_video_to_cam(
+            shot.camera.data, str(self.filepath), 0, alpha=props.shotsGlobalSettings.backgroundAlpha
+        )
+
+        shot.bgImages_linkToShotStart = shot.bgImages_linkToShotStart
+        shot.bgImages_offset = shot.bgImages_offset
+
+        return {"FINISHED"}
+
+
+class UAS_ShotManager_RemoveBGImages(Operator):
+    bl_idname = "uas_shot_manager.remove_bg_images"
+    bl_label = "Remove BG Images"
+    bl_description = "Remove the camera background images"
+    bl_options = {"INTERNAL", "REGISTER", "UNDO"}
+
+    shotIndex: IntProperty()
+
+    def invoke(self, context, event):
+        props = context.scene.UAS_shot_manager_props
+        shot = props.getShot(self.shotIndex)
+        if shot.camera is not None and len(shot.camera.data.background_images):
+            # if shot.camera.data.background_images[0].clip is not None:
+            shot.camera.data.show_background_images = False
+            # shot.camera.data.background_images[0].clip = None
+            shot.camera.data.background_images.clear()
+            # shot.camera.data.background_images[0].clip.filepath = ""
+        return {"FINISHED"}
 
 
 #################
@@ -585,11 +658,11 @@ class UAS_MT_ShotManager_Shots_ToolsMenu(Menu):
 
         row = layout.row(align=True)
         row.operator_context = "INVOKE_DEFAULT"
-        row.operator("uas_shot_manager.remove_multiple_shots", text="Remove Disabled Shots").action = "DISABLED"
+        row.operator("uas_shot_manager.remove_multiple_shots", text="Remove Disabled Shots...").action = "DISABLED"
 
         row = layout.row(align=True)
         row.operator_context = "INVOKE_DEFAULT"
-        row.operator("uas_shot_manager.remove_multiple_shots", text="Remove All Shots").action = "ALL"
+        row.operator("uas_shot_manager.remove_multiple_shots", text="Remove All Shots...").action = "ALL"
 
         layout.separator()
 
@@ -720,6 +793,37 @@ class UAS_ShotManager_Empty(Operator):
     index: bpy.props.IntProperty(default=0)
 
 
+class UAS_ShotManager_EnableDisableAll(Operator):
+    bl_idname = "uas_shot_manager.enabledisableall"
+    bl_label = "Enable / Disable All Shots"
+    bl_description = "Enable all shots,\nClick + Ctrl: Disable all shots,\nClick + Shift: Invert shots state"
+    bl_options = {"INTERNAL", "REGISTER", "UNDO"}
+
+    def invoke(self, context, event):
+        scene = context.scene
+        props = scene.UAS_shot_manager_props
+
+        enableMode = "ENABLEALL"
+        if event.shift:
+            enableMode = "INVERT"
+        elif event.ctrl:
+            enableMode = "DISABLEALL"
+
+        selectedShotInd = props.getSelectedShotIndex()
+        shotsList = props.getShotsList()
+        for shot in shotsList:
+            if "ENABLEALL" == enableMode:
+                shot.enabled = True
+            elif "DISABLEALL" == enableMode:
+                shot.enabled = False
+            elif "INVERT" == enableMode:
+                shot.enabled = not shot.enabled
+
+        props.setSelectedShotByIndex(selectedShotInd)
+
+        return {"FINISHED"}
+
+
 class UAS_ShotManager_SceneRangeFromShot(Operator):
     bl_idname = "uas_shot_manager.scenerangefromshot"
     bl_label = "Scene Range From Shot"
@@ -808,9 +912,12 @@ classes = (
     UAS_PT_ShotManager_Initialize,
     UAS_ShotManager_DrawCameras_UI,
     #  UAS_Retimer,
+    UAS_ShotManager_EnableDisableAll,
     UAS_ShotManager_SceneRangeFromShot,
     #    UAS_ShotManager_SceneRangeFromEnabledShots,
     UAS_ShotManager_SceneRangeFrom3DEdit,
+    UAS_ShotManager_OpenFileBrowserForCamBG,
+    UAS_ShotManager_RemoveBGImages,
 )
 
 

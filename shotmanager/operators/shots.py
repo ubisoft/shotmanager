@@ -155,10 +155,17 @@ class UAS_ShotManager_ShotDuplicate(Operator):
     @classmethod
     def poll(cls, context):
         shots = context.scene.UAS_shot_manager_props.get_shots()
-        if len(shots) <= 0:
+        if not len(shots):
             return False
-
         return True
+
+    def invoke(self, context, event):
+        #    currentShot = context.scene.UAS_shot_manager_props.getCurrentShot()
+        selectedShot = context.scene.UAS_shot_manager_props.getSelectedShot()
+        if selectedShot is None:
+            return {"CANCELLED"}
+        self.name = selectedShot.name + "_copy"
+        return context.window_manager.invoke_props_dialog(self)
 
     def draw(self, context):
         layout = self.layout
@@ -203,14 +210,6 @@ class UAS_ShotManager_ShotDuplicate(Operator):
         props.setSelectedShotByIndex(newShotInd)
 
         return {"FINISHED"}
-
-    def invoke(self, context, event):
-        #    currentShot = context.scene.UAS_shot_manager_props.getCurrentShot()
-        selectedShot = context.scene.UAS_shot_manager_props.getSelectedShot()
-        if selectedShot is None:
-            return {"CANCELLED"}
-        self.name = selectedShot.name + "_copy"
-        return context.window_manager.invoke_props_dialog(self)
 
 
 class UAS_ShotManager_RemoveShot(Operator):
@@ -315,9 +314,59 @@ class UAS_ShotManager_ShotRemoveMultiple(Operator):
     bl_description = "Remove the specified shots from the current take"
     bl_options = {"REGISTER", "UNDO"}
 
-    action: bpy.props.EnumProperty(items=(("ALL", "ALL", ""), ("DISABLED", "DISABLED", "")))
+    action: EnumProperty(items=(("ALL", "ALL", ""), ("DISABLED", "DISABLED", "")), default="ALL")
+
+    deleteCameras: BoolProperty(
+        name="Delete Shots Cameras",
+        description="When deleting a shot, also delete the associated camera, if not used by another shot",
+        default=False,
+    )
+
+    @classmethod
+    def description(self, context, properties):
+        descr = "_"
+        # print("properties: ", properties)
+        # print("properties action: ", properties.action)
+        if "ALL" == properties.action:
+            descr = "Remove all shots from the current take"
+        elif "DISABLED" == properties.action:
+            descr = "Remove only disabled shots from the current take"
+        return descr
+
+    @classmethod
+    def poll(cls, context):
+        shots = context.scene.UAS_shot_manager_props.get_shots()
+        if not len(shots):
+            return False
+        return True
 
     def invoke(self, context, event):
+        return context.window_manager.invoke_props_dialog(self, width=400)
+
+    def draw(self, context):
+        layout = self.layout
+        scene = context.scene
+
+        box = layout.box()
+        row = box.row(align=True)
+        grid_flow = row.grid_flow(align=True, row_major=True, columns=2, even_columns=False)
+
+        col = grid_flow.column(align=False)
+        col.scale_x = 0.6
+        col.label(text="Delete Associated Camera:")
+        col = grid_flow.column(align=False)
+        col.prop(self, "deleteCameras", text="")
+
+        # row = box.row(align=True)
+        # grid_flow = row.grid_flow(align=True, row_major=True, columns=1, even_columns=False)
+        # # grid_flow.separator( factor=0.5)
+        # grid_flow.use_property_split = True
+        # grid_flow.prop(self, "startAtCurrentTime")
+        # grid_flow.prop(self, "addToEndOfList")
+
+        layout.separator()
+
+    def execute(self, context):
         scene = context.scene
         props = scene.UAS_shot_manager_props
         shots = props.get_shots()
@@ -335,6 +384,8 @@ class UAS_ShotManager_ShotRemoveMultiple(Operator):
                 props.setCurrentShotByIndex(-1)
                 i = len(shots) - 1
                 while i > -1:
+                    if self.deleteCameras:
+                        props.deleteShotCamera(shots[i])
                     shots.remove(i)
                     i -= 1
                 props.setSelectedShotByIndex(-1)
@@ -344,6 +395,8 @@ class UAS_ShotManager_ShotRemoveMultiple(Operator):
                     if not shots[i].enabled:
                         if currentShotInd == len(shots) - 1 and currentShotInd == selectedShotInd:
                             pass
+                        if self.deleteCameras:
+                            props.deleteShotCamera(shots[i])
                         shots.remove(i)
                     i -= 1
                 if 0 < len(shots):  # wkip pas parfait, on devrait conserver la sel currente
@@ -414,7 +467,7 @@ class UAS_ShotManager_Shots_SelectCamera(Operator):
 
 class UAS_ShotManager_Shots_RemoveCamera(Operator):
     bl_idname = "uas_shot_manager.shots_removecamera"
-    bl_label = "Remove Camera From All Shots"
+    bl_label = "Remove Camera From All Shots..."
     bl_description = "Remove the camera of the selected shot from all the shots."
     bl_options = {"INTERNAL", "REGISTER", "UNDO"}
 
