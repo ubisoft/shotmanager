@@ -88,21 +88,8 @@ def _stretch_frames(fcurve: FCurve, start_frame, end_frame, factor, pivot_value,
         if remove_post_end:
             _remove_frames(fcurve, min(remove_post_end), max(remove_post_end), False)
     else:
-        last_frame = None
-        for i in reversed(range(len(fcurve))):
-            f = fcurve.get_key_coordinates(i)
-            if f[0] <= end_frame:
-                last_frame = f
-                break
-        if factor >= 1.:
-            if last_frame is not None and last_frame[0] != pivot_value:
-                stretched_last_frame = last_frame[0] + compute_offset(last_frame[0], pivot_value, factor)
-                if stretched_last_frame >= end_frame:
-                    _offset_frames(fcurve, end_frame + 1, stretched_last_frame - end_frame)
-                else:
-                    pass
-            else:
-                _offset_frames(fcurve, start_frame + 1, end_frame - start_frame)
+        if factor > 1:
+            _offset_frames ( fcurve, end_frame + 1, compute_offset ( end_frame, pivot_value, factor ) )
 
     for i in range(len(fcurve)):
         coordinates = fcurve.get_key_coordinates(i)
@@ -114,7 +101,7 @@ def _stretch_frames(fcurve: FCurve, start_frame, end_frame, factor, pivot_value,
             handles[1][0] += compute_offset(handles[1][0], pivot_value, factor)
 
     if factor < 1.:
-        _offset_frames ( fcurve, end_frame, compute_offset ( end_frame + 1, pivot_value, factor ) )
+        _offset_frames ( fcurve, end_frame, compute_offset ( end_frame, pivot_value, factor ) )
 
 
 def _remove_frames(fcurve: FCurve, start_frame, end_frame, remove_gap):
