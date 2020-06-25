@@ -16,6 +16,24 @@ def list_cameras(self, context):
     return res
 
 
+class UAS_ShotManager_SetCurrentShot(Operator):
+    """Set the specifed shot as current
+    """
+
+    bl_idname = "uas_shot_manager.set_current_shot"
+    bl_label = "Set current Shot"
+    bl_description = "Set the current shot"
+    bl_options = {"INTERNAL", "REGISTER", "UNDO"}
+
+    index: bpy.props.IntProperty()
+
+    def invoke(self, context, event):
+        context.scene.UAS_shot_manager_props.setCurrentShotByIndex(self.index)
+        context.scene.UAS_shot_manager_props.setSelectedShotByIndex(self.index)
+
+        return {"FINISHED"}
+
+
 class UAS_ShotManager_ShotAdd(Operator):
     bl_idname = "uas_shot_manager.add_shot"
     bl_label = "Add New Shot"
@@ -26,14 +44,14 @@ class UAS_ShotManager_ShotAdd(Operator):
     bl_options = {"INTERNAL", "REGISTER", "UNDO"}
 
     name: StringProperty(name="Name")
-    start: IntProperty(name="Start")
-    end: IntProperty(name="End")
     cameraName: EnumProperty(items=list_cameras, name="Camera", description="Select a Camera")
-    # camera: PointerProperty (
     #     name = "Camera",
     #     description = "Select a Camera",
     #     type = bpy.types.Object,
     #     poll = lambda self, obj: True if obj.type == "CAMERA" else False )
+    # camera: PointerProperty (
+    start: IntProperty(name="Start")
+    end: IntProperty(name="End")
 
     color: FloatVectorProperty(
         name="Color",
@@ -52,7 +70,7 @@ class UAS_ShotManager_ShotAdd(Operator):
         props = context.scene.UAS_shot_manager_props
 
         # self.name = f"{props.new_shot_prefix}{len ( props.getShotsList() ) + 1:02}" + "0"
-        self.name = (props.project_shot_format.split("_")[2]).format(len(props.getShotsList() * 10))
+        self.name = (props.project_shot_format.split("_")[2]).format((len(props.getShotsList()) + 1) * 10)
         self.start = max(context.scene.frame_current, 10)
         self.end = self.start + props.new_shot_duration
 
@@ -88,7 +106,12 @@ class UAS_ShotManager_ShotAdd(Operator):
         col.label(text="New Shot Name:")
         col = grid_flow.column(align=False)
         col.prop(self, "name", text="")
+        col = grid_flow.column(align=False)
+        col.label(text="Camera:")
+        col = grid_flow.column(align=False)
+        col.prop(self, "cameraName", text="")
 
+        col.separator(factor=1)
         col = grid_flow.column(align=False)
         col.label(text="Start:")
         col = grid_flow.column(align=False)
@@ -97,10 +120,6 @@ class UAS_ShotManager_ShotAdd(Operator):
         col.label(text="End:")
         col = grid_flow.column(align=False)
         col.prop(self, "end", text="")
-        col = grid_flow.column(align=False)
-        col.label(text="Camera:")
-        col = grid_flow.column(align=False)
-        col.prop(self, "cameraName", text="")
 
         if not context.scene.UAS_shot_manager_props.use_camera_color:
             col = grid_flow.column(align=False)
@@ -451,6 +470,135 @@ class UAS_ShotManager_CreateShotsFromEachCamera(Operator):
         return {"FINISHED"}
 
 
+class UAS_ShotManager_CreateNShots(Operator):
+    bl_idname = "uas_shot_manager.create_n_shots"
+    bl_label = "Create Specifed Number of Shots"
+    bl_description = "Create a specified number of shots with the same camera"
+    bl_options = {"REGISTER", "UNDO"}
+
+    name: StringProperty(name="Name")
+    cameraName: EnumProperty(items=list_cameras, name="Camera", description="Select a Camera")
+    start: IntProperty(name="Start")
+    duration: IntProperty(name="Duration", min=1)
+    offsetFromPrevious: IntProperty(
+        name="Offset From previous Shot",
+        description="Number of frames from which the start of a whot will be offset from the end of the one preceding it",
+        default=1,
+    )
+    count: IntProperty(name="Number of Shots to Create", min=1, default=4)
+
+    color: FloatVectorProperty(
+        name="Color",
+        subtype="COLOR",
+        size=3,
+        description="Shot Color",
+        min=0.0,
+        max=1.0,
+        precision=2,
+        # default=(uniform(0, 1), uniform(0, 1), uniform(0, 1)),
+        default=(1.0, 1.0, 1.0),
+    )
+
+    def invoke(self, context, event):
+        wm = context.window_manager
+        props = context.scene.UAS_shot_manager_props
+
+        # self.name = f"{props.new_shot_prefix}{len ( props.getShotsList() ) + 1:02}" + "0"
+        self.name = (props.project_shot_format.split("_")[2]).format((len(props.getShotsList()) + 1) * 10)
+        self.start = max(context.scene.frame_current, 10)
+        self.duration = props.new_shot_duration
+
+        camName = props.getActiveCameraName()
+        if "" != camName:
+            self.cameraName = camName
+
+        self.color = (uniform(0, 1), uniform(0, 1), uniform(0, 1))
+
+        return wm.invoke_props_dialog(self)
+
+    def draw(self, context):
+        layout = self.layout
+
+        box = layout.box()
+        row = box.row(align=True)
+        grid_flow = row.grid_flow(align=True, row_major=True, columns=2, even_columns=False)
+
+        col = grid_flow.column(align=False)
+        col.label(text="Number of Shots:")
+        col = grid_flow.column(align=False)
+        col.prop(self, "count", text="")
+
+        col.separator(factor=2)
+        col = grid_flow.column(align=False)
+        col.scale_x = 0.6
+        col.label(text="New Shot Name:")
+        col = grid_flow.column(align=False)
+        col.prop(self, "name", text="")
+        col = grid_flow.column(align=False)
+        col.label(text="Camera:")
+        col = grid_flow.column(align=False)
+        col.prop(self, "cameraName", text="")
+
+        col.separator(factor=1)
+        col = grid_flow.column(align=False)
+        col.label(text="Start:")
+        col = grid_flow.column(align=False)
+        col.prop(self, "start", text="")
+        col = grid_flow.column(align=False)
+        col.label(text="Duration:")
+        col = grid_flow.column(align=False)
+        col.prop(self, "duration", text="")
+        col = grid_flow.column(align=False)
+        col.label(text="Offset From Previous:")
+        col = grid_flow.column(align=False)
+        col.prop(self, "offsetFromPrevious", text="")
+
+        if not context.scene.UAS_shot_manager_props.use_camera_color:
+            col = grid_flow.column(align=False)
+            col.label(text="Color:")
+            col = grid_flow.column(align=True)
+            col.prop(self, "color", text="")
+
+        layout.separator()
+
+    def execute(self, context):
+        scene = context.scene
+        props = scene.UAS_shot_manager_props
+        selectedShotInd = props.getSelectedShotIndex()
+        newShotInd = selectedShotInd + 1
+
+        cam = None
+        col = [self.color[0], self.color[1], self.color[2], 1]
+
+        if "" != self.cameraName:
+            cam = bpy.context.scene.objects[self.cameraName]
+            if props.use_camera_color:
+                col[0] = cam.color[0]
+                col[1] = cam.color[1]
+                col[2] = cam.color[2]
+
+        for i in range(1, self.count + 1):
+            startFrame = self.start + (i - 1) * (self.duration - 1 + self.offsetFromPrevious)
+            endFrame = startFrame + self.duration - 1
+
+            props.addShot(
+                atIndex=newShotInd,
+                name=props.getUniqueShotName(props.project_shot_format.split("_")[2]).format(
+                    (len(props.getShotsList()) + 1) * 10
+                ),
+                start=startFrame,
+                end=endFrame,
+                camera=cam,
+                color=col,
+            )
+            newShotInd += 1
+
+        props.setCurrentShotByIndex(newShotInd - 1)
+        props.setSelectedShotByIndex(newShotInd - 1)
+
+        return {"FINISHED"}
+
+
 class UAS_ShotManager_Shots_SelectCamera(Operator):
     bl_idname = "uas_shot_manager.shots_selectcamera"
     bl_label = "Select Camera"
@@ -510,23 +658,6 @@ class UAS_ShotManager_Shots_RemoveCamera(Operator):
         return context.window_manager.invoke_props_dialog(self)
 
 
-class UAS_ShotManager_SetCurrentShot(Operator):
-    """Move items up and down, add and remove"""
-
-    bl_idname = "uas_shot_manager.set_current_shot"
-    bl_label = "Set current Shot"
-    bl_description = "Set the current shot"
-    bl_options = {"INTERNAL", "REGISTER", "UNDO"}
-
-    index: bpy.props.IntProperty()
-
-    def invoke(self, context, event):
-        context.scene.UAS_shot_manager_props.setCurrentShotByIndex(self.index)
-        context.scene.UAS_shot_manager_props.setSelectedShotByIndex(self.index)
-
-        return {"FINISHED"}
-
-
 class UAS_ShotManager_UniqueCameras(Operator):
     bl_idname = "uas_shot_manager.unique_cameras"
     bl_label = "Make All Cameras Unique"
@@ -572,6 +703,7 @@ class UAS_ShotManager_UniqueCameras(Operator):
 
 
 _classes = (
+    UAS_ShotManager_SetCurrentShot,
     UAS_ShotManager_ShotAdd,
     UAS_ShotManager_ShotDuplicate,
     UAS_ShotManager_RemoveShot,
@@ -579,9 +711,9 @@ _classes = (
     UAS_ShotManager_ShotRemoveMultiple,
     UAS_ShotManager_Shots_SelectCamera,
     UAS_ShotManager_Shots_RemoveCamera,
-    UAS_ShotManager_SetCurrentShot,
-    UAS_ShotManager_UniqueCameras,
     UAS_ShotManager_CreateShotsFromEachCamera,
+    UAS_ShotManager_CreateNShots,
+    UAS_ShotManager_UniqueCameras,
 )
 
 

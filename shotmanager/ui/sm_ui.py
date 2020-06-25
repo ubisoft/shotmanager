@@ -694,6 +694,10 @@ class UAS_MT_ShotManager_Shots_ToolsMenu(Menu):
 
         row = layout.row(align=True)
         row.operator_context = "INVOKE_DEFAULT"
+        row.operator("uas_shot_manager.create_n_shots")
+
+        row = layout.row(align=True)
+        row.operator_context = "INVOKE_DEFAULT"
         row.operator("uas_shot_manager.unique_cameras")
 
         row = layout.row(align=True)
