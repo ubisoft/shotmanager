@@ -681,7 +681,7 @@ class UAS_ShotManager_Props(PropertyGroup):
             if self.change_time:
                 scene.frame_current = shotList[currentShotIndex].start
 
-            if shotList[currentShotIndex].camera is not None:
+            if shotList[currentShotIndex].camera is not None and bpy.context.screen is not None:
                 # set the current camera in the 3D view: [‘PERSP’, ‘ORTHO’, ‘CAMERA’]
                 area = next(area for area in bpy.context.screen.areas if area.type == "VIEW_3D")
 
