@@ -207,6 +207,8 @@ class UAS_ShotManager_Props(PropertyGroup):
 
     display_color_in_shotlist: BoolProperty(name="Display Color in Shot List", default=False, options=set())
 
+    display_enabled_in_shotlist: BoolProperty(name="Display Enabled State in Shot List", default=True, options=set())
+
     display_selectbut_in_shotlist: BoolProperty(
         name="Display Camera Selection Button in Shot List", default=False, options=set()
     )
@@ -226,6 +228,7 @@ class UAS_ShotManager_Props(PropertyGroup):
         description="If True the color used by a shot is based on the color of its camera (default).\n"
         "Othewise the shot uses its own color",
         default=True,
+        options=set(),
     )
 
     # bgImages_Alpha: FloatProperty(
@@ -1301,13 +1304,15 @@ class UAS_ShotManager_Props(PropertyGroup):
         return cameras
 
     def selectCamera(self, shotIndex):
-        bpy.ops.object.select_all(action="DESELECT")
         shot = self.getShot(shotIndex)
-        if None != shot:
-            if None != shot.camera:
-                camObj = bpy.context.scene.objects[shot.camera.name]
-                bpy.context.view_layer.objects.active = camObj
-                camObj.select_set(True)
+        if shot is not None and shot.camera is not None:
+            if bpy.context.active_object.mode != "OBJECT":
+                bpy.ops.object.mode_set(mode="OBJECT")
+                # if bpy.context.active_object is None or bpy.context.active_object.mode == "OBJECT":
+            bpy.ops.object.select_all(action="DESELECT")
+            camObj = bpy.context.scene.objects[shot.camera.name]
+            bpy.context.view_layer.objects.active = camObj
+            camObj.select_set(True)
 
     def getActiveCameraName(self):
         cameras = self.getSceneCameras()

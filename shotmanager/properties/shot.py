@@ -84,7 +84,11 @@ class UAS_ShotManager_Shot(PropertyGroup):
         )
 
     enabled: BoolProperty(
-        name="Enabled", description="Use - or not - the shot in the edit", update=_update_enabled, default=True
+        name="Enabled",
+        description="Use - or not - the shot in the edit",
+        update=_update_enabled,
+        default=True,
+        options=set(),
     )
 
     camera: PointerProperty(

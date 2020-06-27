@@ -236,7 +236,7 @@ def register():
     renderProps.register()
     utils.register()
 
-    vse_render.register()
+    # vse_render.register()  # debug
     utils_render.register()
     general.register()
     videoshotmanager.register()
@@ -275,7 +275,7 @@ def unregister():
     videoshotmanager.unregister()
     general.unregister()
     utils_render.unregister()
-    vse_render.unregister()
+    # vse_render.unregister()
 
     utils.unregister()
     renderProps.unregister()

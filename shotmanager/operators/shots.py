@@ -22,14 +22,21 @@ class UAS_ShotManager_SetCurrentShot(Operator):
 
     bl_idname = "uas_shot_manager.set_current_shot"
     bl_label = "Set current Shot"
-    bl_description = "Set the current shot"
+    bl_description = "Click: Set the shot as the current one.\nShift + Click: Toggle shot Disabled state.\nCtrl + Click: Select Shot Camera"
     bl_options = {"INTERNAL", "REGISTER", "UNDO"}
 
     index: bpy.props.IntProperty()
 
     def invoke(self, context, event):
-        context.scene.UAS_shot_manager_props.setCurrentShotByIndex(self.index)
-        context.scene.UAS_shot_manager_props.setSelectedShotByIndex(self.index)
+        props = context.scene.UAS_shot_manager_props
+        if event.shift:
+            shot = props.getShot(self.index)
+            shot.enabled = not shot.enabled
+        elif event.ctrl:
+            context.scene.UAS_shot_manager_props.selectCamera(self.index)
+        else:
+            props.setCurrentShotByIndex(self.index)
+            props.setSelectedShotByIndex(self.index)
 
         return {"FINISHED"}
 
@@ -603,13 +610,19 @@ class UAS_ShotManager_Shots_SelectCamera(Operator):
     bl_idname = "uas_shot_manager.shots_selectcamera"
     bl_label = "Select Camera"
     bl_description = "Deselect all and select specified camera"
-    bl_options = {"INTERNAL", "REGISTER", "UNDO"}
+    bl_options = {"INTERNAL", "UNDO"}
 
     index: bpy.props.IntProperty(default=0)
 
-    def execute(self, context):
-        context.scene.UAS_shot_manager_props.selectCamera(self.index)
+    # @classmethod
+    # def poll(self, context):
+    #     selectionIsPossible = context.active_object is None or context.active_object.mode == "OBJECT"
+    #     return selectionIsPossible
 
+    def execute(self, context):
+        if context.active_object.mode != "OBJECT":
+            bpy.ops.object.mode_set(mode="OBJECT")
+        context.scene.UAS_shot_manager_props.selectCamera(self.index)
         return {"FINISHED"}
 
 
@@ -620,6 +633,12 @@ class UAS_ShotManager_Shots_RemoveCamera(Operator):
     bl_options = {"INTERNAL", "REGISTER", "UNDO"}
 
     removeFromOtherTakes: BoolProperty(name="Also Remove From Other Takes", default=False)
+
+    def invoke(self, context, event):
+        selectedShot = context.scene.UAS_shot_manager_props.getSelectedShot()
+        if selectedShot is None:
+            return {"CANCELLED"}
+        return context.window_manager.invoke_props_dialog(self)
 
     def draw(self, context):
         layout = self.layout
@@ -650,12 +669,6 @@ class UAS_ShotManager_Shots_RemoveCamera(Operator):
                         s.camera = None
 
         return {"FINISHED"}
-
-    def invoke(self, context, event):
-        selectedShot = context.scene.UAS_shot_manager_props.getSelectedShot()
-        if selectedShot is None:
-            return {"CANCELLED"}
-        return context.window_manager.invoke_props_dialog(self)
 
 
 class UAS_ShotManager_UniqueCameras(Operator):
