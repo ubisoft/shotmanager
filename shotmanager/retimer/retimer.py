@@ -326,7 +326,7 @@ def retimer(
                 and obj.data.shape_keys.animation_data is not None
             ):
                 action = obj.data.shape_keys.animation_data.action
-                if action in actions_done:
+                if action is None or action in actions_done:
                     continue
 
                 for fcurve in action.fcurves:

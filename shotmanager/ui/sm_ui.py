@@ -105,7 +105,9 @@ class UAS_PT_ShotManager(Panel):
             icon="ANIM",
         )
         row.prop(context.window_manager, "UAS_shot_manager_display_timeline", text="", toggle=True, icon="TIME")
-        # row.prop ( props, "display_timeline", text = "", toggle = True, icon = "TIME" )
+
+        row.emboss = "PULLDOWN_MENU"
+        row.operator("uas_shot_manager.playbar_prefs", text="", icon="SETTINGS")
 
         ################
         # play bar
@@ -191,14 +193,6 @@ class UAS_PT_ShotManager(Panel):
         #    row.menu(UAS_MT_ShotManager_Takes_ToolsMenu.bl_idname,text="Tools",icon='TOOL_SETTINGS')
         row.menu("UAS_MT_Shot_Manager_takes_toolsmenu", icon="TOOL_SETTINGS", text="")
 
-        # row.operator ( "uas_shot_manager.rename_take", icon = "SYNTAX_ON", text = "" )
-        # row.separator (  )
-
-        # split = row.split ( align = True )
-        # split.operator ( "uas_shot_manager.add_take", icon = "ADD", text = "" )
-        # split.operator ( "uas_shot_manager.duplicate_take", icon = "DUPLICATE", text = "" )
-        # split.operator ( "uas_shot_manager.remove_take", icon = "REMOVE", text = "" )
-
         ################
         # shots
         if len(props.takes):
@@ -214,10 +208,12 @@ class UAS_PT_ShotManager(Panel):
             row.operator("uas_shot_manager.scenerangefromshot", text="", icon="PREVIEW_RANGE")
             #    row.operator("uas_shot_manager.scenerangefromenabledshots", text="", icon="PREVIEW_RANGE")
             row.operator("uas_shot_manager.scenerangefrom3dedit", text="", icon="PREVIEW_RANGE")
-            row.separator(factor=3)
+
+            row.emboss = "PULLDOWN_MENU"
+            row.operator("uas_shot_manager.shots_prefs", text="", icon="SETTINGS")
 
             row = box.row()
-            templateList = row.template_list(
+            row.template_list(
                 "UAS_UL_ShotManager_Items", "", props.getCurrentTake(), "shots", props, "selected_shot_index", rows=6
             )
 
@@ -281,7 +277,7 @@ class UAS_MT_ShotManager_Takes_ToolsMenu(Menu):
 
 
 #############
-# Shots
+# Shot Item
 #############
 
 
@@ -300,33 +296,48 @@ class UAS_UL_ShotManager_Items(bpy.types.UIList):
         else:
             icon = config.icons_col[f"ShotMan_Disabled{cam}"]
 
-        c = layout.column()
-        c.operator("uas_shot_manager.set_current_shot", icon_value=icon.icon_id, text="").index = index
-        layout.separator(factor=0.1)
+        row = layout.row()
+        row.operator("uas_shot_manager.set_current_shot", icon_value=icon.icon_id, text="").index = index
 
-        c = layout.column()
-        grid_flow = c.grid_flow(align=True, columns=9, even_columns=False)
-        if item.camera is None:
-            grid_flow.alert = True
+        row = layout.row(align=True)
+        row.scale_x = 1.0
+        if props.display_selectbut_in_shotlist:
+            row.operator("uas_shot_manager.shots_selectcamera", text="", icon="RESTRICT_SELECT_OFF").index = index
 
         if props.display_color_in_shotlist:
-            grid_flow.scale_x = 0.15
-            grid_flow.prop(item, "color", text="")
-            grid_flow.scale_x = 1.0
+            row = row.row(align=True)
+            row.scale_x = 0.2
+            row.prop(item, "color", text="")
+            row.scale_x = 0.45
 
-        #  grid_flow.prop ( item, "enabled", text = item.name )
+        row = layout.row(align=True)
 
-        grid_flow.scale_x = 0.08
-        # grid_flow.alignment = 'LEFT'
-        grid_flow.prop(item, "enabled", text=" ")  # keep the space in the text !!!
-        #   grid_flow.separator( factor = 0.5)
-        grid_flow.scale_x = 0.8
-        grid_flow.label(text=item.name)
-        #   grid_flow.alignment = 'RIGHT'
+        row.scale_x = 1.0
+        if props.display_enabled_in_shotlist:
+            row.prop(item, "enabled", text="")
+            row.separator(factor=0.9)
+        row.scale_x = 0.8
+        row.label(text=item.name)
 
-        grid_flow.scale_x = 0.5
+        ###########
+        # shot values
+        ###########
+
+        row = layout.row(align=True)
+        grid_flow = row.grid_flow(align=True, columns=9, even_columns=False)
+        grid_flow.use_property_split = False
+        button_x_factor = 0.6
 
         # start
+        ###########
+
+        grid_flow.scale_x = button_x_factor
+        if props.display_getsetcurrentframe_in_shotlist:
+            grid_flow.operator(
+                "uas_shot_manager.getsetcurrentframe", text="", icon="TRIA_DOWN_BAR"
+            ).shotSource = f"[{index},0]"
+
+        grid_flow.scale_x = 0.4
         if currentFrame == item.start:
             if props.highlight_all_shot_frames or current_shot_index == index:
                 grid_flow.alert = True
@@ -334,6 +345,17 @@ class UAS_UL_ShotManager_Items(bpy.types.UIList):
         grid_flow.alert = False
 
         # duration
+        ###########
+
+        grid_flow.scale_x = button_x_factor - 0.1
+        grid_flow.prop(
+            item,
+            "durationLocked",
+            text="",
+            icon="DECORATE_LOCKED" if item.durationLocked else "DECORATE_UNLOCKED",
+            toggle=True,
+        )
+
         if (
             item.start < currentFrame
             and currentFrame < item.end
@@ -341,24 +363,34 @@ class UAS_UL_ShotManager_Items(bpy.types.UIList):
         ):
             if props.highlight_all_shot_frames or current_shot_index == index:
                 grid_flow.alert = True
-        # bpy.ops.uas_shot_manager.empty.myEmpty.description = "toto"
 
         if props.display_duration_in_shotlist:
-            grid_flow.scale_x = 0.2
+            grid_flow.scale_x = 0.3
             # grid_flow.label ( text = str(item.getDuration()) )
             grid_flow.operator("uas_shot_manager.shot_duration", text=str(item.getDuration())).index = index
         else:
             grid_flow.scale_x = 0.05
             grid_flow.operator("uas_shot_manager.shot_duration", text="").index = index
-        grid_flow.scale_x = 0.5
         grid_flow.alert = False
 
         # end
+        ###########
+
+        grid_flow.scale_x = 0.4
         if currentFrame == item.end:
             if props.highlight_all_shot_frames or current_shot_index == index:
                 grid_flow.alert = True
         grid_flow.prop(item, "end", text="")
         grid_flow.alert = False
+
+        grid_flow.scale_x = button_x_factor - 0.2
+        if props.display_getsetcurrentframe_in_shotlist:
+            grid_flow.operator(
+                "uas_shot_manager.getsetcurrentframe", text="", icon="TRIA_DOWN_BAR"
+            ).shotSource = f"[{index},1]"
+
+        # camera
+        ###########
 
         grid_flow.scale_x = 1.0
 
@@ -376,18 +408,9 @@ class UAS_UL_ShotManager_Items(bpy.types.UIList):
                 grid_flow.prop(item.camera.data, "lens", text="Lens")
             else:
                 grid_flow.alert = True
-                grid_flow.operator("uas_shot_manager.empty", text="-").index = index
+                grid_flow.operator("uas_shot_manager.nolens", text="-").index = index
                 grid_flow.alert = False
             grid_flow.scale_x = 1.0
-        # split = row.split ( align = True )
-        # split.separator ( )
-
-        #    grid_flow ( align = False)        # interline
-        # layout.separator ( factor = 0.1 )
-
-        if props.display_selectbut_in_shotlist:
-            c = layout.column()
-            c.operator("uas_shot_manager.shots_selectcamera", text="", icon="RESTRICT_SELECT_OFF").index = index
 
 
 ##################
@@ -478,7 +501,7 @@ class UAS_PT_ShotManager_ShotProperties(Panel):
                 grid_flow.prop(shot.camera.data, "lens", text="Lens")
             else:
                 grid_flow.alert = True
-                grid_flow.operator("uas_shot_manager.empty", text="No Lens")
+                grid_flow.operator("uas_shot_manager.nolens", text="No Lens")
                 grid_flow.alert = False
             grid_flow.scale_x = 1.0
             grid_flow.prop(props, "display_lens_in_shotlist", text="")
@@ -768,35 +791,6 @@ class UAS_MT_ShotManager_Shots_ToolsMenu(Menu):
 #########
 
 
-# used in the shot item
-class UAS_ShotManager_ShotDuration(Operator):
-    bl_idname = "uas_shot_manager.shot_duration"
-    bl_label = "Shot Range"
-    bl_description = "Shot Range"
-    bl_options = {"INTERNAL"}
-
-    index: bpy.props.IntProperty(default=0)
-
-    @classmethod
-    def poll(self, context):
-        selectionIsPossible = context.active_object is None or context.active_object.mode == "OBJECT"
-        return selectionIsPossible
-
-    def execute(self, context):
-        context.scene.UAS_shot_manager_props.selectCamera(self.index)
-        return {"FINISHED"}
-
-
-# used in the shot item
-class UAS_ShotManager_Empty(Operator):
-    bl_idname = "uas_shot_manager.empty"
-    bl_label = "No Lens"
-    bl_description = "No Lens"
-    bl_options = {"INTERNAL"}
-
-    index: bpy.props.IntProperty(default=0)
-
-
 class UAS_ShotManager_EnableDisableAll(Operator):
     bl_idname = "uas_shot_manager.enabledisableall"
     bl_label = "Enable / Disable All Shots"
@@ -910,8 +904,6 @@ classes = (
     UAS_PT_ShotManager_ShotProperties,
     UAS_PT_ShotManager_ShotsGlobalSettings,
     UAS_MT_ShotManager_Shots_ToolsMenu,
-    UAS_ShotManager_ShotDuration,
-    UAS_ShotManager_Empty,
     UAS_ShotManager_DrawTimeline,
     UAS_PT_ShotManager_Initialize,
     UAS_ShotManager_DrawCameras_UI,

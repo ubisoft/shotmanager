@@ -60,23 +60,105 @@ class UAS_ShotManager_Shot(PropertyGroup):
 
     name: StringProperty(name="Name", get=get_name, set=set_name)
 
-    def _update_start(self, context):
-        if self.start > self.end:
-            self.end = self.start
+    #############
+    # start #####
+    #############
 
+    def _get_start(self):
+        val = self.get("start", 25)
+        return val
+
+    def _set_start(self, value):
+        duration = self.getDuration()
+        self["start"] = value
+        if self.durationLocked:
+            self["end"] = self.start + duration - 1
+        else:
+            if self.start > self.end:
+                self["end"] = self.start
+
+    def _update_start(self, context):
+        print("Updating Cam")
         if self.camera is not None and len(self.camera.data.background_images):
             bgClip = self.camera.data.background_images[0].clip
             if bgClip is not None and self.bgImages_linkToShotStart:
                 bgClip.frame_start = self.start + self.bgImages_offset
                 # print("  Value: ", value)
 
-    start: IntProperty(name="Start", description="Index of the first included frame of the shot", update=_update_start)
+    start: IntProperty(
+        name="Start",
+        description="Index of the first included frame of the shot",
+        get=_get_start,
+        set=_set_start,
+        update=_update_start,
+    )
+
+    #############
+    # end #####
+    #############
+
+    def _get_end(self):
+        val = self.get("end", 30)
+        return val
+
+    def _set_end(self, value):
+        duration = self.getDuration()
+        self["end"] = value
+        if self.durationLocked:
+            self["start"] = self.end - duration + 1
+        else:
+            if self.start > self.end:
+                self["start"] = self.end
 
     def _update_end(self, context):
-        if self.start > self.end:
-            self.start = self.end
+        pass
 
-    end: IntProperty(name="End", description="Index of the last included frame of the shot", update=_update_end)
+    end: IntProperty(
+        name="End",
+        description="Index of the last included frame of the shot",
+        get=_get_end,
+        set=_set_end,
+        update=_update_end,
+    )
+
+    #############
+    # duration #####
+    #############
+
+    def _get_duration_fp(self):
+        print("\n*** _get_duration_fp: New state: ", self.duration_fp)
+
+        # not used
+        fakeVal = self.get("_get_duration_fp", -1)
+
+        realVal = self.getDuration()
+        return realVal
+
+    def _set_duration_fp(self, value):
+        print("\n*** _update_duration_fp: New state: ", self.duration_fp)
+        self["_set_duration_fp"] = value
+        self.end = self.start + max(value, 1) - 1
+
+    def _update_duration_fp(self, context):
+        print("\n*** _update_duration_fp: New state: ", self.duration_fp)
+
+    # fake property: value never used in itself, its purpose is to update ofher properties
+    duration_fp: IntProperty(
+        name="Shot Duration",
+        description="Duration is a frame number given by end - start + 1",
+        min=1,
+        get=_get_duration_fp,
+        set=_set_duration_fp,
+        update=_update_duration_fp,
+        options=set(),
+    )
+
+    durationLocked: BoolProperty(
+        name="Lock Duration",
+        description="Lock - or not - the shot duration.\nWhen locked, changing one boundary will also affect the other",
+        default=False,
+        options=set(),
+    )
 
     def _update_enabled(self, context):
         context.scene.UAS_shot_manager_props.selected_shot_index = context.scene.UAS_shot_manager_props.getShotIndex(
@@ -84,7 +166,11 @@ class UAS_ShotManager_Shot(PropertyGroup):
         )
 
     enabled: BoolProperty(
-        name="Enabled", description="Use - or not - the shot in the edit", update=_update_enabled, default=True
+        name="Enabled",
+        description="Use - or not - the shot in the edit",
+        update=_update_enabled,
+        default=True,
+        options=set(),
     )
 
     camera: PointerProperty(
