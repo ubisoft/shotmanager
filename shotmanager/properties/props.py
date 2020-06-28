@@ -213,6 +213,10 @@ class UAS_ShotManager_Props(PropertyGroup):
         name="Display Camera Selection Button in Shot List", default=False, options=set()
     )
 
+    display_getsetcurrentframe_in_shotlist: BoolProperty(
+        name="Display Get/Set current Frame Buttons in Shot List", default=True, options=set()
+    )
+
     # shots global settings
     #############
 
@@ -429,6 +433,7 @@ class UAS_ShotManager_Props(PropertyGroup):
 
         return takeName
 
+    #############
     # render
     #############
 

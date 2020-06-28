@@ -152,15 +152,18 @@ class UAS_ShotManager_Shots_Prefs(Operator):
         box = layout.box()
         col = box.column()
 
+        col.separator(factor=0.5)
         col.use_property_split = True
         col.prop(props, "display_selectbut_in_shotlist", text="Display Camera Select Button")
         col.prop(props, "display_enabled_in_shotlist", text="Display Enabled State")
+        col.prop(props, "display_getsetcurrentframe_in_shotlist", text="Display Get/Set current Frame Buttons")
+
         col.prop(props, "highlight_all_shot_frames", text="Highlight Framing Values When Equal to Current Time")
 
-        col.separator(factor=0.7)
+        col.separator(factor=1.0)
         col.prop(props, "use_camera_color", text="Use Camera Color for Shots ")
 
-        col.separator(factor=0.7)
+        col.separator(factor=1.0)
         col.prop(props, "change_time", text="Set Current Frame To Shot Start When Current Shot Is Changed")
 
         col.use_property_split = True

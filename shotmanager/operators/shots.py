@@ -1,11 +1,9 @@
-# -*- coding: utf-8 -*-
-from random import uniform
-
 import bpy
 from bpy.types import Operator
 from bpy.props import IntProperty, StringProperty, EnumProperty, BoolProperty, FloatVectorProperty
 
-# from ..properties import get_shots
+from random import uniform
+import json
 
 
 def list_cameras(self, context):
@@ -14,6 +12,11 @@ def list_cameras(self, context):
         res.append((cam.name, cam.name, "", i))
 
     return res
+
+
+########################
+# for shot items
+########################
 
 
 class UAS_ShotManager_SetCurrentShot(Operator):
@@ -39,6 +42,67 @@ class UAS_ShotManager_SetCurrentShot(Operator):
             props.setSelectedShotByIndex(self.index)
 
         return {"FINISHED"}
+
+
+class UAS_ShotManager_ShotDuration(Operator):
+    bl_idname = "uas_shot_manager.shot_duration"
+    bl_label = "Shot Duration"
+    bl_description = "Shot Duration, given by end - start + 1"
+    bl_options = {"INTERNAL"}
+
+    index: bpy.props.IntProperty(default=0)
+
+    # @classmethod
+    # def poll(self, context):
+    #     selectionIsPossible = context.active_object is None or context.active_object.mode == "OBJECT"
+    #     return selectionIsPossible
+
+    # def execute(self, context):
+    #     context.scene.UAS_shot_manager_props.selectCamera(self.index)
+    #     return {"FINISHED"}
+
+
+class UAS_ShotManager_GetSetCurrentFrame(Operator):
+    bl_idname = "uas_shot_manager.getsetcurrentframe"
+    bl_label = "Get/Set Current Frame"
+    bl_description = "Click: Set current frame with value.\nShift + Click: Get current frame for value"
+    bl_options = {"INTERNAL"}
+
+    shotSource: StringProperty(default="")
+
+    def invoke(self, context, event):
+        props = context.scene.UAS_shot_manager_props
+        argArr = json.loads(self.shotSource)
+
+        print("shotSource: ", self.shotSource)
+        print("argArr: ", argArr)
+        shot = props.getShot(argArr[0])
+        if event.shift:
+            if 0 == argArr[1]:
+                shot.start = context.scene.frame_current
+            elif 1 == argArr[1]:
+                shot.end = context.scene.frame_current
+        else:
+            if 0 == argArr[1]:
+                context.scene.frame_current = shot.start
+            elif 1 == argArr[1]:
+                context.scene.frame_current = shot.end
+
+        return {"FINISHED"}
+
+
+class UAS_ShotManager_NoLens(Operator):
+    bl_idname = "uas_shot_manager.nolens"
+    bl_label = "No Lens"
+    bl_description = "No Lens"
+    bl_options = {"INTERNAL"}
+
+    index: IntProperty(default=0)
+
+
+########################
+# for shot manipulation
+########################
 
 
 class UAS_ShotManager_ShotAdd(Operator):
@@ -332,6 +396,11 @@ class UAS_ShotManager_Actions(Operator):
                 props.setSelectedShotByIndex(selectedShotInd - 1)
 
         return {"FINISHED"}
+
+
+########################
+# for shot actions
+########################
 
 
 class UAS_ShotManager_ShotRemoveMultiple(Operator):
@@ -716,11 +785,17 @@ class UAS_ShotManager_UniqueCameras(Operator):
 
 
 _classes = (
+    # for shot items:
     UAS_ShotManager_SetCurrentShot,
+    UAS_ShotManager_ShotDuration,
+    UAS_ShotManager_GetSetCurrentFrame,
+    UAS_ShotManager_NoLens,
+    # for shot manipulation:
     UAS_ShotManager_ShotAdd,
     UAS_ShotManager_ShotDuplicate,
     UAS_ShotManager_RemoveShot,
     UAS_ShotManager_Actions,
+    # for shot actions:
     UAS_ShotManager_ShotRemoveMultiple,
     UAS_ShotManager_Shots_SelectCamera,
     UAS_ShotManager_Shots_RemoveCamera,
