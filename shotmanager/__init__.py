@@ -20,7 +20,6 @@
 #       - jog pas parfait
 #       - script unique cam en rade
 #       - getsion des viewports
-#       - sortir les properties de shot
 #
 #
 #  * To do:
@@ -45,14 +44,6 @@
 #   - ranger les explorers
 #
 #
-#
-#
-#
-#
-#
-#
-#
-
 
 import os
 import importlib
@@ -134,8 +125,8 @@ bl_info = {
     "name": "UAS Shot Manager",
     "author": "Romain Carriquiry Borchiari, Julien Blervaque (aka Werwack)",
     "description": "Manage a sequence of shots and cameras in the 3D View - Ubisoft Animation Studio",
-    "blender": (2, 83, 0),
-    "version": (1, 2, 19),
+    "blender": (2, 83, 1),
+    "version": (1, 2, 21),
     "location": "View3D > UAS Shot Manager",
     "wiki_url": "https://mdc-web-tomcat17.ubisoft.org/confluence/display/UASTech/UAS+Shot+Manager",
     "warning": "",
@@ -236,7 +227,7 @@ def register():
     renderProps.register()
     utils.register()
 
-    vse_render.register()
+    # vse_render.register()  # debug
     utils_render.register()
     general.register()
     videoshotmanager.register()
@@ -275,7 +266,7 @@ def unregister():
     videoshotmanager.unregister()
     general.unregister()
     utils_render.unregister()
-    vse_render.unregister()
+    # vse_render.unregister()
 
     utils.unregister()
     renderProps.unregister()
