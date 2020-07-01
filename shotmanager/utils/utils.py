@@ -136,7 +136,44 @@ def add_background_video_to_cam(
         bg.clip_user.proxy_render_size = proxyRenderSize
 
 
-_classes = (UAS_ShotManager_OpenExplorer,)
+class UAS_Utils_RunScript(Operator):
+    bl_idname = "uas_utils.run_script"
+    bl_label = "Run Script"
+    bl_description = "Open a script and run it"
+
+    path: StringProperty()
+
+    def execute(self, context):
+        import pathlib
+
+        myPath = str(pathlib.Path(__file__).parent.absolute()) + "\..\\api\\api_first_steps.py"
+        print("\n*** UAS_Utils_RunScript Op is running: ", myPath)
+        bpy.ops.script.python_file_run(filepath=bpy.path.abspath(myPath))
+        return {"FINISHED"}
+
+
+def findFirstUniqueName(originalItem, name, itemsArray):
+    """ Return a string that correspont to name.xxx as the first unique name in the array
+    """
+    itemInd = 0
+    numDuplicatesFound = 0
+    newIndexStr = ".{:03}"
+    newName = name
+    while itemInd < len(itemsArray):
+        if itemsArray[itemInd] != originalItem and newName == itemsArray[itemInd].name:
+            newName = name + newIndexStr.format(numDuplicatesFound)
+            numDuplicatesFound += 1
+            itemInd = 0
+        else:
+            itemInd += 1
+
+    return newName
+
+
+_classes = (
+    UAS_ShotManager_OpenExplorer,
+    UAS_Utils_RunScript,
+)
 
 
 def register():

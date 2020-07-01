@@ -1,6 +1,7 @@
 import os
 
 import bpy
+from bpy.types import Scene
 from bpy.types import PropertyGroup
 from bpy.props import (
     CollectionProperty,
@@ -48,10 +49,26 @@ class UAS_ShotManager_Props(PropertyGroup):
 
     isInitialized: BoolProperty(get=get_isInitialized, set=set_isInitialized, default=False)
 
+    parentScene: PointerProperty(type=Scene)
+
     def getParentScene(self):
-        for scene in bpy.data.scenes:
-            if "UAS_shot_manager_props" in scene and self == scene["UAS_shot_manager_props"]:
-                return scene
+        parentScn = None
+        try:
+            parentScn = self.parentScene
+        except:
+            print("Unexpected error:", sys.exc_info()[0])
+
+        if parentScn is not None:
+            return parentScn
+
+        for scn in bpy.data.scenes:
+            if "UAS_shot_manager_props" in scn:
+                props = scn.UAS_shot_manager_props
+                if self == props:
+                    #    print("getParentScene: Scene found")
+                    self.parentScene = scn
+                    return scn
+        # print("getParentScene: Scene NOT found")
         return None
 
     retimer: PointerProperty(type=UAS_Retimer_Properties)
@@ -332,6 +349,7 @@ class UAS_ShotManager_Props(PropertyGroup):
             for s in t.shots:
                 s.parentTakeIndex = i
 
+    # wkip deprecated
     def getUniqueTakeName(self, nameToMakeUnique):
         uniqueName = nameToMakeUnique
         takes = self.getTakes()
@@ -351,23 +369,25 @@ class UAS_ShotManager_Props(PropertyGroup):
     def getTakeByIndex(self, takeIndex):
         """ Return the take corresponding to the specified index
         """
-        takeInd = self.getCurrentTakeIndex() if -1 == takeIndex else (takeIndex if 0 < len(self.getTakes()) else -1)
+        props = self.getParentScene().UAS_shot_manager_props
+        takeInd = self.getCurrentTakeIndex() if -1 == takeIndex else (takeIndex if 0 < len(props.getTakes()) else -1)
         take = None
         if -1 == takeInd:
             return take
-        return self.takes[takeInd]
+        return props.takes[takeInd]
 
     def getTakeIndex(self, take):
         #  print("getCurrentTakeIndex")
         takeInd = -1
-        if 0 < len(self.takes):
+        props = self.getParentScene().UAS_shot_manager_props
+        if 0 < len(props.takes):
             takeInd = 0
             #   print(" self.takes[0]: ", self.takes[takeInd].name)
             #   print(" self.current_take_name: " + str(take) + ", type: " + str(type(take)) )
-            while takeInd < len(self.takes) and self.takes[takeInd] != take:
+            while takeInd < len(props.takes) and props.takes[takeInd] != take:
                 #        print("  toto02: takeInd: ", takeInd)
                 takeInd += 1
-            if takeInd >= len(self.takes):
+            if takeInd >= len(props.takes):
                 takeInd = -1
 
         return takeInd
@@ -375,23 +395,25 @@ class UAS_ShotManager_Props(PropertyGroup):
     def getCurrentTakeIndex(self):
         #   print("getCurrentTakeIndex")
         takeInd = -1
-        if 0 < len(self.takes):
+        props = self.getParentScene().UAS_shot_manager_props
+        if 0 < len(props.takes):
             takeInd = 0
             #      print(" self.takes[0]: " + str(self.takes[takeInd].name) + ", type: " + str(type(self.takes[takeInd])) )
             #     print(" self.current_take_name: " + str(self.current_take_name) + ", type: " + str(type(self.current_take_name)) )
-            while takeInd < len(self.takes) and self.takes[takeInd].name != self.current_take_name:
+            while takeInd < len(props.takes) and props.takes[takeInd].name != self.current_take_name:
                 #         print("  toto06: takeInd: ", takeInd)
                 takeInd += 1
-            if takeInd >= len(self.takes):
+            if takeInd >= len(props.takes):
                 takeInd = -1
         #    self.current_take_name = self.takes[takeInd].name
 
         return takeInd
 
-    def setCurrentTakeIndex(self, currentTakeIndex):
-        currentTakeInd = min(currentTakeIndex, len(self.takes))
+    def setCurrentTakeByIndex(self, currentTakeIndex):
+        props = self.getParentScene().UAS_shot_manager_props
+        currentTakeInd = min(currentTakeIndex, len(props.takes))
         if -1 < currentTakeInd:
-            self.current_take_name = self.takes[currentTakeInd].name
+            self.current_take_name = props.takes[currentTakeInd].name
             self.setCurrentShotByIndex(0)
             self.setSelectedShotByIndex(0)
         else:
@@ -414,10 +436,15 @@ class UAS_ShotManager_Props(PropertyGroup):
         currentTakeName = self.current_take_name
         return currentTakeName
 
+    # wkip deprecated
     def getTakeName_PathCompliant(self, takeIndex=-1):
         """ Return the name of the specified take with spaces replaced by "_"
         """
-        takeInd = self.getCurrentTakeIndex() if -1 == takeIndex else (takeIndex if 0 < len(self.getTakes()) else -1)
+        takeInd = (
+            self.getCurrentTakeIndex()
+            if -1 == takeIndex
+            else (takeIndex if 0 <= takeIndex and takeIndex < len(self.getTakes()) else -1)
+        )
         takeName = ""
         if -1 == takeInd:
             return takeName
@@ -425,6 +452,41 @@ class UAS_ShotManager_Props(PropertyGroup):
         takeName = self.takes[takeInd].getName_PathCompliant()
 
         return takeName
+
+    def createDefaultTake(self):
+        takes = self.getTakes()
+        defaultTake = None
+        if 0 >= len(takes):
+            defaultTake = takes.add()
+            defaultTake.name = "Main Take"
+            self.setCurrentTakeByIndex(0)
+            # self.setCurrentShotByIndex(-1)
+            # self.setSelectedShotByIndex(-1)
+
+        else:
+            defaultTake = takes[0]
+        return defaultTake
+
+    def addTake(self, atIndex=-1, name="New Take"):
+        """ Add a new take after the current take if possible or at the end of the take list otherwise
+            Return the newly added take
+        """
+        takes = self.getTakes()
+        newTake = None
+        if len(takes) <= 0:
+            newTake = self.createDefaultTake()
+        else:
+            newTakeName = self.getUniqueTakeName(name)
+            newTake = takes.add()
+            newTake.parentScene = self.getParentScene()
+            newTake.name = newTakeName
+
+        # props.current_take_name = newTake.name
+
+        if -1 != atIndex:  # move shot at specified index
+            takes.move(len(takes) - 1, atIndex)
+
+        return newTake
 
     # render
     #############
@@ -477,7 +539,11 @@ class UAS_ShotManager_Props(PropertyGroup):
     def getEditDuration(self, ignoreDisabled=True, takeIndex=-1):
         """ Return edit duration in frames
         """
-        takeInd = self.getCurrentTakeIndex() if -1 == takeIndex else (takeIndex if 0 < len(self.getTakes()) else -1)
+        takeInd = (
+            self.getCurrentTakeIndex()
+            if -1 == takeIndex
+            else (takeIndex if 0 <= takeIndex and takeIndex < len(self.getTakes()) else -1)
+        )
         duration = -1
         if -1 == takeInd:
             return -1
@@ -583,7 +649,11 @@ class UAS_ShotManager_Props(PropertyGroup):
     ####################
 
     def getUniqueShotName(self, nameToMakeUnique, takeIndex=-1):
-        takeInd = self.getCurrentTakeIndex() if -1 == takeIndex else (takeIndex if 0 < len(self.getTakes()) else -1)
+        takeInd = (
+            self.getCurrentTakeIndex()
+            if -1 == takeIndex
+            else (takeIndex if 0 <= takeIndex and takeIndex < len(self.getTakes()) else -1)
+        )
         uniqueName = nameToMakeUnique
         if -1 == takeInd:
             return uniqueName
@@ -616,13 +686,19 @@ class UAS_ShotManager_Props(PropertyGroup):
             Since this function works also with takes that are not the current one the current shot is not taken into account not modified
         """
         # wkip wip fix for early backward compatibility - to remove
-        self.fixShotsParent()
-        takeInd = self.getCurrentTakeIndex() if -1 == takeIndex else (takeIndex if 0 < len(self.getTakes()) else -1)
-        newShot = None
+        # self.fixShotsParent()
+        currentTakeInd = self.getCurrentTakeIndex()
+        takeInd = (
+            currentTakeInd
+            if -1 == takeIndex
+            else (takeIndex if 0 <= takeIndex and takeIndex < len(self.getTakes()) else -1)
+        )
         if -1 == takeInd:
+            print("AddShot: Failed")
             return None
 
-        shots = self.get_shots(takeInd)
+        newShot = None
+        shots = self.get_shots(takeIndex=takeInd)
 
         newShot = shots.add()  # shot is added at the end
         newShot.parentScene = self.getParentScene()
@@ -634,25 +710,40 @@ class UAS_ShotManager_Props(PropertyGroup):
         newShot.camera = camera
         newShot.color = color
 
+        newShotInd = len(shots) - 1
         if -1 != atIndex:  # move shot at specified index
-            shots.move(len(shots) - 1, atIndex)
+            shots.move(newShotInd, atIndex)
+            newShotInd = atIndex
+
+        # update the current take if needed
+        if takeInd == currentTakeInd:
+            self.setCurrentShotByIndex(newShotInd)
+            self.setSelectedShotByIndex(newShotInd)
 
         return newShot
 
-    def copyShot(self, shot, atIndex=-1, takeIndex=-1):
+    def copyShot(self, shot, atIndex=-1, targetTakeIndex=-1):
         """ Copy a shot after the current shot if possible or at the end of the shot list otherwise (case of an add in a take
             that is not the current one)
             Return the newly added shot
             Since this function works also with takes that are not the current one the current shot is not taken into account not modified
+            Specifying a value to targetTakeIndex allows the copy of a shot to another take
         """
         # wkip wip fix for early backward compatibility - to remove
-        self.fixShotsParent()
-        takeInd = shot.parentTakeIndex if -1 == takeIndex else (takeIndex if 0 < len(self.getTakes()) else -1)
-        newShot = None
+        # self.fixShotsParent()
+
+        currentTakeInd = self.getCurrentTakeIndex()
+        sourceTakeInd = shot.parentTakeIndex
+        takeInd = (
+            sourceTakeInd
+            if -1 == targetTakeIndex
+            else (targetTakeIndex if 0 <= targetTakeIndex and targetTakeIndex < len(self.getTakes()) else -1)
+        )
         if -1 == takeInd:
             return None
 
-        shots = self.get_shots(takeInd)
+        newShot = None
+        shots = self.get_shots(takeIndex=takeInd)
 
         newShot = shots.add()  # shot is added at the end
         newShot.parentTakeIndex = takeInd
@@ -663,11 +754,89 @@ class UAS_ShotManager_Props(PropertyGroup):
         newShot.camera = shot.camera
         newShot.color = shot.color
 
+        newShotInd = len(shots) - 1
         if -1 != atIndex:  # move shot at specified index
             shots.move(len(shots) - 1, atIndex)
-            newShot = shots[atIndex]
+            newShotInd = self.getShotIndex(newShot)
+
+        # update the current take if needed
+        if takeInd == currentTakeInd:
+            self.setCurrentShotByIndex(newShotInd)
+            self.setSelectedShotByIndex(newShotInd)
 
         return newShot
+
+    def removeShot(self, shot):
+        currentTakeInd = self.getCurrentTakeIndex()
+        takeInd = shot.parentTakeIndex
+        shots = self.get_shots(takeIndex=takeInd)
+        shotInd = self.getShotIndex(shot)
+
+        # update the current take if needed
+        if takeInd == currentTakeInd:
+            currentShotInd = self.current_shot_index
+            currentShot = shots[currentShotInd]
+            selectedShotInd = self.getSelectedShotIndex()
+            selectedShot = shots[selectedShotInd]
+
+            if shotInd != selectedShotInd:
+                self.setSelectedShotByIndex(shotInd)
+
+            # case of the last shot
+            if selectedShotInd == len(shots) - 1:
+                if currentShotInd == selectedShotInd:
+                    self.setCurrentShotByIndex(selectedShotInd - 1)
+
+                shots.remove(selectedShotInd)
+                #  self.selected_shot_index = selectedShotInd - 1
+                self.setSelectedShotByIndex(selectedShotInd - 1)
+            else:
+                if currentShotInd >= selectedShotInd:
+                    self.setCurrentShotByIndex(-1)
+                shots.remove(selectedShotInd)
+
+                if currentShotInd == selectedShotInd:
+                    self.setCurrentShotByIndex(self.selected_shot_index)
+                elif currentShotInd > selectedShotInd:
+                    self.setCurrentShotByIndex(min(currentShotInd - 1, len(shots) - 1))
+
+                if selectedShotInd < len(shots):
+                    self.setSelectedShotByIndex(selectedShotInd)
+                else:
+                    self.setSelectedShotByIndex(selectedShotInd - 1)
+
+            # restore selected item
+            if shotInd != selectedShotInd:
+                if shotInd < selectedShotInd:
+                    self.setSelectedShotByIndex(selectedShotInd - 1)
+                else:
+                    self.setSelectedShotByIndex(selectedShotInd)
+        else:
+            shots.remove(shotInd)
+
+    def moveShotToIndex(self, shot, newIndex, takeIndex=-1):
+        currentTakeInd = self.getCurrentTakeIndex()
+        takeInd = (
+            currentTakeInd
+            if -1 == takeIndex
+            else (takeIndex if 0 <= takeIndex and takeIndex < len(self.getTakes()) else -1)
+        )
+        if -1 == takeInd:
+            print("moveShotToIndex: Failed")
+            return None
+
+        shots = self.get_shots(takeIndex=takeInd)
+        currentShotInd = self.getCurrentShotIndex()
+        selectedShotInd = self.getSelectedShotIndex()
+        shotInd = self.getShotIndex(shot)
+        newInd = max(0, newIndex)
+        newInd = min(newInd, len(shots) - 1)
+
+        shots.move(shotInd, newInd)
+
+        if currentShotInd == shotInd:
+            self.setCurrentShotByIndex(newInd)
+        self.setSelectedShotByIndex(newInd)
 
     def setCurrentShotByIndex(self, currentShotIndex):
         """ Changing the current shot doesn't affect the selected one
@@ -696,13 +865,12 @@ class UAS_ShotManager_Props(PropertyGroup):
         #    print("setCurrentShot: shotInd:", shotInd)
         self.setCurrentShotByIndex(shotInd)
 
-    def getShotIndex(self, shot, takeIndex=-1):
-        takeInd = self.getCurrentTakeIndex() if -1 == takeIndex else (takeIndex if 0 < len(self.getTakes()) else -1)
+    def getShotIndex(self, shot):
+        takeInd = shot.parentTakeIndex
         shotInd = -1
-        if -1 == takeInd:
-            return shotInd
 
-        shotList = self.getShotsList(ignoreDisabled=False, takeIndex=takeIndex)
+        # wkip a optimiser
+        shotList = self.getShotsList(ignoreDisabled=False, takeIndex=takeInd)
 
         shotInd = 0
         while shotInd < len(shotList) and shot != shotList[shotInd]:  # wkip mettre shotList[shotInd].name?
@@ -713,7 +881,11 @@ class UAS_ShotManager_Props(PropertyGroup):
         return shotInd
 
     def getShot(self, shotIndex, ignoreDisabled=False, takeIndex=-1):
-        takeInd = self.getCurrentTakeIndex() if -1 == takeIndex else (takeIndex if 0 < len(self.getTakes()) else -1)
+        takeInd = (
+            self.getCurrentTakeIndex()
+            if -1 == takeIndex
+            else (takeIndex if 0 <= takeIndex and takeIndex < len(self.getTakes()) else -1)
+        )
         shot = None
         if -1 == takeInd:
             return None
@@ -734,7 +906,11 @@ class UAS_ShotManager_Props(PropertyGroup):
     def get_shots(self, takeIndex=-1):
         """ Return the actual shots array of the specified take
         """
-        takeInd = self.getCurrentTakeIndex() if -1 == takeIndex else (takeIndex if 0 < len(self.getTakes()) else -1)
+        takeInd = (
+            self.getCurrentTakeIndex()
+            if -1 == takeIndex
+            else (takeIndex if 0 <= takeIndex and takeIndex < len(self.getTakes()) else -1)
+        )
         shotList = []
         if -1 == takeInd:
             return shotList
@@ -744,7 +920,11 @@ class UAS_ShotManager_Props(PropertyGroup):
         return shotList
 
     def getShotsList(self, ignoreDisabled=False, takeIndex=-1):
-        takeInd = self.getCurrentTakeIndex() if -1 == takeIndex else (takeIndex if 0 < len(self.getTakes()) else -1)
+        takeInd = (
+            self.getCurrentTakeIndex()
+            if -1 == takeIndex
+            else (takeIndex if 0 <= takeIndex and takeIndex < len(self.getTakes()) else -1)
+        )
         shotList = []
         if -1 == takeInd:
             return shotList
@@ -768,7 +948,11 @@ class UAS_ShotManager_Props(PropertyGroup):
         """
         #   print(" *** getCurrentShotIndex")
 
-        takeInd = self.getCurrentTakeIndex() if -1 == takeIndex else (takeIndex if 0 < len(self.getTakes()) else -1)
+        takeInd = (
+            self.getCurrentTakeIndex()
+            if -1 == takeIndex
+            else (takeIndex if 0 <= takeIndex and takeIndex < len(self.getTakes()) else -1)
+        )
         currentShotInd = -1
         if -1 == takeInd:
             return currentShotInd
@@ -800,7 +984,11 @@ class UAS_ShotManager_Props(PropertyGroup):
         return currentShotInd
 
     def getCurrentShot(self, ignoreDisabled=False, takeIndex=-1):
-        takeInd = self.getCurrentTakeIndex() if -1 == takeIndex else (takeIndex if 0 < len(self.getTakes()) else -1)
+        takeInd = (
+            self.getCurrentTakeIndex()
+            if -1 == takeIndex
+            else (takeIndex if 0 <= takeIndex and takeIndex < len(self.getTakes()) else -1)
+        )
         currentShotInd = -1
         if -1 == takeInd:
             return currentShotInd
@@ -851,7 +1039,11 @@ class UAS_ShotManager_Props(PropertyGroup):
     def getFirstShotIndex(self, ignoreDisabled=False, takeIndex=-1):
         """
         """
-        takeInd = self.getCurrentTakeIndex() if -1 == takeIndex else (takeIndex if 0 < len(self.getTakes()) else -1)
+        takeInd = (
+            self.getCurrentTakeIndex()
+            if -1 == takeIndex
+            else (takeIndex if 0 <= takeIndex and takeIndex < len(self.getTakes()) else -1)
+        )
         firstShotInd = -1
         if -1 == takeInd:
             return firstShotInd
@@ -881,7 +1073,11 @@ class UAS_ShotManager_Props(PropertyGroup):
 
     #     return currentIndexInEnabledList
     def getLastShotIndex(self, ignoreDisabled=False, takeIndex=-1):
-        takeInd = self.getCurrentTakeIndex() if -1 == takeIndex else (takeIndex if 0 < len(self.getTakes()) else -1)
+        takeInd = (
+            self.getCurrentTakeIndex()
+            if -1 == takeIndex
+            else (takeIndex if 0 <= takeIndex and takeIndex < len(self.getTakes()) else -1)
+        )
         lastShotInd = -1
         if -1 == takeInd:
             return lastShotInd
@@ -917,7 +1113,11 @@ class UAS_ShotManager_Props(PropertyGroup):
     # currentShotIndex is given in the WHOLE list of shots (including disabled)
     # returns the index of the previous enabled shot in the WHOLE list, -1 if none
     def getPreviousEnabledShotIndex(self, currentShotIndex, takeIndex=-1):
-        takeInd = self.getCurrentTakeIndex() if -1 == takeIndex else (takeIndex if 0 < len(self.getTakes()) else -1)
+        takeInd = (
+            self.getCurrentTakeIndex()
+            if -1 == takeIndex
+            else (takeIndex if 0 <= takeIndex and takeIndex < len(self.getTakes()) else -1)
+        )
         previousShotInd = -1
         if -1 == takeInd:
             return previousShotInd
@@ -935,7 +1135,11 @@ class UAS_ShotManager_Props(PropertyGroup):
     # currentShotIndex is given in the WHOLE list of shots (including disabled)
     # returns the index of the next enabled shot in the WHOLE list, -1 if none
     def getNextEnabledShotIndex(self, currentShotIndex, takeIndex=-1):
-        takeInd = self.getCurrentTakeIndex() if -1 == takeIndex else (takeIndex if 0 < len(self.getTakes()) else -1)
+        takeInd = (
+            self.getCurrentTakeIndex()
+            if -1 == takeIndex
+            else (takeIndex if 0 <= takeIndex and takeIndex < len(self.getTakes()) else -1)
+        )
         nextShotInd = -1
         if -1 == takeInd:
             return nextShotInd
@@ -1431,20 +1635,6 @@ class UAS_ShotManager_Props(PropertyGroup):
 
         return settingsList
 
-    def createDefaultTake(self):
-        takes = self.getTakes()
-        defaultTake = None
-        if 0 >= len(takes):
-            defaultTake = takes.add()
-            defaultTake.name = "Main Take"
-            self.setCurrentTakeIndex(0)
-            # self.setCurrentShotByIndex(-1)
-            # self.setSelectedShotByIndex(-1)
-
-        else:
-            defaultTake = takes[0]
-        return defaultTake
-
     def createRenderSettings(self):
 
         # Still
@@ -1517,7 +1707,7 @@ _classes = (
 
 
 def register():
-    print("\n *** *** Resistering Shot Manager Addon *** *** \n")
+    print("\n *** *** Registering Shot Manager Addon *** *** \n")
 
     for cls in _classes:
         bpy.utils.register_class(cls)

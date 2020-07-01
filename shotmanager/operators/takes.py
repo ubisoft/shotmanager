@@ -61,20 +61,9 @@ class UAS_ShotManager_AddTake(Operator):
         layout.separator()
 
     def execute(self, context):
-        scene = context.scene
-        props = scene.UAS_shot_manager_props
+        newTake = context.scene.UAS_shot_manager_props.addTake(name=self.name)
 
-        takes = props.getTakes()
-        take = None
-        if len(takes) <= 0:
-            take = props.createDefaultTake()
-        else:
-            self.name = props.getUniqueTakeName(self.name)
-            take = takes.add()
-            take.name = self.name
-
-        props.current_take_name = take.name
-
+        context.scene.UAS_shot_manager_props.current_take_name = newTake.name
         return {"FINISHED"}
 
     def invoke(self, context, event):

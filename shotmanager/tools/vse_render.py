@@ -65,17 +65,20 @@ class UAS_PT_VSERender(Panel):
         row.operator("vse.compositevideoinvse", emboss=True)
         # row.prop ( context.window_manager, "UAS_shot_manager_handler_toggle",
 
-    #     row = layout.row()
-    #     row.operator("debug.lauchrrsrender", emboss=True)
+        #     row = layout.row()
+        #     row.operator("debug.lauchrrsrender", emboss=True)
 
-    #     if not utils_render.isRenderPathValid(context.scene):
-    #         row = layout.row()
-    #         row.alert = True
-    #         row.label( text = "Invalid render path")
+        #     if not utils_render.isRenderPathValid(context.scene):
+        #         row = layout.row()
+        #         row.alert = True
+        #         row.label( text = "Invalid render path")
 
-    #     row = layout.row()
-    #     row.operator("debug.createcomponodes", emboss=True)
-    #     row.operator("debug.clearcomponodes", emboss=True)
+        #     row = layout.row()
+        #     row.operator("debug.createcomponodes", emboss=True)
+        #     row.operator("debug.clearcomponodes", emboss=True)
+
+        row = layout.row()
+        row.operator("uas_utils.run_script").path = "//../api/api_first_steps.py"
 
 
 class UAS_VSETruc(Operator):

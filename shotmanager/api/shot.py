@@ -1,43 +1,73 @@
-def shotManager(self):
+def get_shot_manager_owner(shot_instance):
     """Return the shot manager properties instance the shot is belonging to.
     """
-    parentShotManager = None
+    return shot_instance.shotManager()
 
-    # wkip dirty if self.parentScene is not None
-    if self.parentScene is None:
-        self.parentScene = bpy.context.scene
 
-    if self.parentScene is not None and "UAS_shot_manager_props" in self.parentScene:
-        parentShotManager = self.parentScene.UAS_shot_manager_props
-    return parentShotManager
+def get_name(shot_instance):
+    return shot_instance.name
 
-def getDuration(self):
+
+def set_name(shot_instance, name):
+    """ Set a unique name to the shot
+    """
+    shot_instance.name = name
+
+
+def get_name_path_compliant(shot_instance):
+    return shot_instance.getName_PathCompliant()
+
+
+def get_start(shot_instance):
+    return shot_instance.start
+
+
+def set_start(shot_instance, value):
+    shot_instance.start = value
+
+
+def get_end(shot_instance):
+    return shot_instance.end
+
+
+def set_end(shot_instance, value):
+    shot_instance.end = value
+
+
+def get_duration(shot_instance):
     """ Returns the shot duration in frames
         in Blender - and in Shot Manager - the last frame of the shot is included in the rendered images
     """
-    duration = self.end - self.start + 1
-    return duration
-
-def getOutputFileName(self, frameIndex=-1, fullPath=False, fullPathOnly=False, rootFilePath=""):
-    return bpy.context.scene.UAS_shot_manager_props.getShotOutputFileName(
-        self, frameIndex=frameIndex, fullPath=fullPath, fullPathOnly=fullPathOnly, rootFilePath=rootFilePath
-    )
-
-def getName_PathCompliant(self):
-    shotName = self.name.replace(" ", "_")
-    return shotName
+    return shot_instance.getDuration()
 
 
-def get_color(self):
-    
-    return val
-
-def set_color(self, value):
+def get_color(shot_instance):
+    return shot_instance.get_color()
 
 
-def getEditStart(self, scene):
-    return scene.UAS_shot_manager_props.getEditTime(self, self.start)
+def set_color(shot_instance, value):
+    shot_instance.set_color(value)
 
-def getEditEnd(self, scene):
-    return scene.UAS_shot_manager_props.getEditTime(self, self.end)
 
+def get_enable_state(shot_instance):
+    return shot_instance.enabled
+
+
+def set_enable_state(shot_instance, value):
+    shot_instance.enabled = value
+
+
+def get_camera(shot_instance):
+    return shot_instance.camera
+
+
+def set_camera(shot_instance, camera):
+    shot_instance.camera = camera
+
+
+def get_edit_start(shot_instance, scene):
+    return shot_instance.getEditStart(scene)
+
+
+def get_edit_end(shot_instance, scene):
+    return shot_instance.getEditEnd(scene)
