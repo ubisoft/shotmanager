@@ -13,7 +13,7 @@ from bpy.props import (
     PointerProperty,
 )
 
-from shotmanager.operators import shots
+# from shotmanager.operators import shots
 from .media import UAS_ShotManager_Media
 from .render_settings import UAS_ShotManager_RenderSettings
 from .shot import UAS_ShotManager_Shot
@@ -27,6 +27,8 @@ from ..utils import utils
 class UAS_ShotManager_Props(PropertyGroup):
     def version(self):
         return utils.addonVersion("UAS Shot Manager")
+
+    dataVersion: IntProperty()
 
     def initialize_shot_manager(self):
         print("\nInitializing Shot Manager...\n")
@@ -1716,7 +1718,6 @@ _classes = (
 
 
 def register():
-    print("\n *** *** Registering Shot Manager Addon *** *** \n")
 
     for cls in _classes:
         bpy.utils.register_class(cls)

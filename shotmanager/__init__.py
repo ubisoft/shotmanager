@@ -52,7 +52,7 @@ import platform
 
 import bpy
 
-from bpy.props import BoolProperty
+from bpy.props import BoolProperty, IntProperty
 
 try:
     import opentimelineio as otio
@@ -199,6 +199,16 @@ def register():
     # set RRS Environment variables for project
     #    setup_project_env(True, True)
 
+    # update data
+    versionTupple = utils.addonVersion("UAS Shot Manager")
+    print(
+        "\n *** *** Registering Shot Manager Add-on - version: "
+        + versionTupple[0]
+        + "  ("
+        + str(versionTupple[1])
+        + ") *** ***"
+    )
+
     config.initGlobalVariables()
 
     # utils_handlers.displayHandlers()
@@ -234,6 +244,10 @@ def register():
     prefs.register()
 
     # declaration of properties that will not be saved in the scene
+    # bpy.context.window_manager.UAS_shot_manager_version
+    bpy.types.WindowManager.UAS_shot_manager_version = IntProperty(
+        name="Add-on Version Int", description="Add-on version as integer", default=versionTupple[1]
+    )
 
     # About button panel Quick Settings
     bpy.types.WindowManager.UAS_shot_manager_displayAbout = BoolProperty(

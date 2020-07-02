@@ -14,7 +14,7 @@ from ..utils import utils
 
 class UAS_PT_ShotManager(Panel):
     #    bl_label = f"UAS Shot Manager {'.'.join ( str ( v ) for v in bl_info[ 'version'] ) }"
-    bl_label = " UAS Shot Manager   V. " + utils.addonVersion("UAS Shot Manager")
+    bl_label = " UAS Shot Manager   V. " + utils.addonVersion("UAS Shot Manager")[0]
     bl_idname = "UAS_PT_Shot_Manager"
     bl_space_type = "VIEW_3D"
     bl_region_type = "UI"

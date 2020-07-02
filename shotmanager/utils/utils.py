@@ -9,7 +9,28 @@ from bpy.types import Operator
 from bpy.props import StringProperty
 
 
+def convertVersionStrToInt(versionStr):
+    """ Convert a string formated like "1.23.48" to a version integer such as 1023048
+    """
+    formatedVersion = "{:02}{:03}{:03}"
+    versionSplitted = versionStr.split(".")
+    return int(formatedVersion.format(int(versionSplitted[0]), int(versionSplitted[1]), int(versionSplitted[2])))
+
+
+def convertVersionIntToStr(versionInt):
+    """ Convert an integer formated like 1023048 to a version string such as "1.23.48"
+    """
+    versionIntStr = str(versionInt)
+    length = len(versionIntStr)
+    versionStr = versionIntStr[-3 : length - 6] + "." + versionIntStr[-6 : length - 3] + "." + versionIntStr[-3:length]
+    return versionStr
+
+
 def addonVersion(addonName):
+    """ Return the add-on version in the form of a tupple made by: 
+            - a string x.y.z (eg: "1.21.3")
+            - an integer. x.y.z becomes xxyyyzzz (eg: "1.21.3" becomes 1021003)
+    """
     import addon_utils
 
     versionStr = "-"
@@ -22,7 +43,14 @@ def addonVersion(addonName):
         versionTupple = versionTupple[0]
         versionStr = str(versionTupple[0]) + "." + str(versionTupple[1]) + "." + str(versionTupple[2])
 
-    return versionStr
+        versionStr = "1.2.25"
+        versionInt = convertVersionStrToInt(versionStr)
+
+        print("versionStr: ", versionStr)
+        print("versionInt: ", versionInt)
+        print("convertVersionIntToStr: ", convertVersionIntToStr(versionInt))
+
+    return (versionStr, versionInt)
 
 
 class PropertyRestoreCtx:
