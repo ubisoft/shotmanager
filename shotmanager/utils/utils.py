@@ -22,7 +22,13 @@ def convertVersionIntToStr(versionInt):
     """
     versionIntStr = str(versionInt)
     length = len(versionIntStr)
-    versionStr = versionIntStr[-3 : length - 6] + "." + versionIntStr[-6 : length - 3] + "." + versionIntStr[-3:length]
+    versionStr = (
+        str(int(versionIntStr[-1 * length : length - 6]))
+        + "."
+        + str(int(versionIntStr[-6 : length - 3]))
+        + "."
+        + str(int(versionIntStr[-3:length]))
+    )
     return versionStr
 
 
@@ -33,6 +39,7 @@ def addonVersion(addonName):
     """
     import addon_utils
 
+    print("addonVersion called...")
     versionStr = "-"
     versionTupple = [
         addon.bl_info.get("version", (-1, -1, -1))
@@ -43,12 +50,12 @@ def addonVersion(addonName):
         versionTupple = versionTupple[0]
         versionStr = str(versionTupple[0]) + "." + str(versionTupple[1]) + "." + str(versionTupple[2])
 
-        versionStr = "1.2.25"
+        # versionStr = "131.258.265"
         versionInt = convertVersionStrToInt(versionStr)
 
-        print("versionStr: ", versionStr)
-        print("versionInt: ", versionInt)
-        print("convertVersionIntToStr: ", convertVersionIntToStr(versionInt))
+        # print("versionStr: ", versionStr)
+        # print("versionInt: ", versionInt)
+        # print("convertVersionIntToStr: ", convertVersionIntToStr(versionInt))
 
     return (versionStr, versionInt)
 

@@ -145,7 +145,7 @@ def jump_to_shot(self):
         # shot manager playbar buttons work. They work without the time range restrictions.
         pass
 
-    if shotList[current_shot_index].camera is not None:
+    if -1 < current_shot_index and shotList[current_shot_index].camera is not None:
         scene.camera = shotList[current_shot_index].camera
         props.selected_shot_index = current_shot_index
 

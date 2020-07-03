@@ -28,7 +28,14 @@ class UAS_ShotManager_Props(PropertyGroup):
     def version(self):
         return utils.addonVersion("UAS Shot Manager")
 
-    dataVersion: IntProperty()
+    dataVersion: IntProperty(
+        """ Data Version is of the form xxyyyzzz, integer generated from the string version "xx.yyy.zzz"
+            Use functions convertVersionStrToInt and convertVersionIntToStr in the module utils.py to manipulate it.
+        """,
+        name="Data Version",
+        description="Version of Shot Manager used to generate the data of the current scene.",
+        default=-1,
+    )
 
     def initialize_shot_manager(self):
         print("\nInitializing Shot Manager...\n")
@@ -79,6 +86,8 @@ class UAS_ShotManager_Props(PropertyGroup):
         """ Return an array with all the warnings
         """
         warningList = []
+
+        # check if the current framerate is valid according to the project settings (wkip)
         if scene.render.fps != self.project_fps:
             warningList.append("Current scene fps and project fps are different !!")
 
@@ -89,9 +98,14 @@ class UAS_ShotManager_Props(PropertyGroup):
         while shotInd < len(shotList) and not hasNegativeFrame:
             hasNegativeFrame = shotList[shotInd].start - self.handles < 0
             shotInd += 1
-
         if hasNegativeFrame:
             warningList.append("Index of the output frame of a shot minus handle is negative !!")
+
+        # check is the data version is compatible with the current version
+        if self.dataVersion <= 0 or dataVersion < bpy.context.window_manager.UAS_shot_manager_version:
+            warningList.append("Data version is lower than SM version !!")
+
+        # wkip to do: check if some camera markets are used in the scene
 
         return warningList
 
@@ -1205,7 +1219,11 @@ class UAS_ShotManager_Props(PropertyGroup):
             else:
             - fisrt click: put current time at the end of the previous enabled shot
         """
-        print(" ** -- ** goToPreviousShot")
+        # print(" ** -- ** goToPreviousShot")
+
+        if not len(self.get_shots()):
+            return ()
+
         previousShotInd = -1
         newFrame = currentFrame
 
@@ -1248,7 +1266,10 @@ class UAS_ShotManager_Props(PropertyGroup):
 
     # works only on current take
     def goToNextShot(self, currentFrame, ignoreDisabled=False):
-        print(" ** -- ** goToNextShot")
+        # print(" ** -- ** goToNextShot")
+        if not len(self.get_shots()):
+            return ()
+
         nextShot = None
         nextShotInd = -1
         newFrame = currentFrame
@@ -1300,6 +1321,9 @@ class UAS_ShotManager_Props(PropertyGroup):
     # wkip ignoreDisabled pas encore implémenté ici!!!!
     def goToPreviousFrame(self, currentFrame, ignoreDisabled=False):
         #  print(" ** -- ** goToPreviousFrame")
+        if not len(self.get_shots()):
+            return ()
+
         previousShot = None
         previousShotInd = -1
         newFrame = currentFrame
@@ -1349,6 +1373,9 @@ class UAS_ShotManager_Props(PropertyGroup):
     # works only on current take
     def goToNextFrame(self, currentFrame, ignoreDisabled=False):
         #   print(" ** -- ** goToNextShot")
+        if not len(self.get_shots()):
+            return ()
+
         nextShot = None
         nextShotInd = -1
         newFrame = currentFrame

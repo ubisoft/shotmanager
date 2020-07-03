@@ -247,9 +247,7 @@ class UAS_ShotManager_ShotDuplicate(Operator):
     @classmethod
     def poll(cls, context):
         shots = context.scene.UAS_shot_manager_props.get_shots()
-        if not len(shots):
-            return False
-        return True
+        return len(shots)
 
     def invoke(self, context, event):
         #    currentShot = context.scene.UAS_shot_manager_props.getCurrentShot()
@@ -314,10 +312,7 @@ class UAS_ShotManager_RemoveShot(Operator):
     @classmethod
     def poll(cls, context):
         shots = context.scene.UAS_shot_manager_props.get_shots()
-        if len(shots) <= 0:
-            return False
-
-        return True
+        return len(shots)
 
     def invoke(self, context, event):
         scene = context.scene
@@ -339,6 +334,11 @@ class UAS_ShotManager_Actions(Operator):
     bl_options = {"REGISTER", "UNDO"}
 
     action: bpy.props.EnumProperty(items=(("UP", "Up", ""), ("DOWN", "Down", "")))
+
+    @classmethod
+    def poll(cls, context):
+        shots = context.scene.UAS_shot_manager_props.get_shots()
+        return len(shots)
 
     def invoke(self, context, event):
 
@@ -414,9 +414,7 @@ class UAS_ShotManager_ShotRemoveMultiple(Operator):
     @classmethod
     def poll(cls, context):
         shots = context.scene.UAS_shot_manager_props.get_shots()
-        if not len(shots):
-            return False
-        return True
+        return len(shots)
 
     def invoke(self, context, event):
         return context.window_manager.invoke_props_dialog(self, width=400)
@@ -686,6 +684,11 @@ class UAS_ShotManager_Shots_RemoveCamera(Operator):
 
     removeFromOtherTakes: BoolProperty(name="Also Remove From Other Takes", default=False)
 
+    @classmethod
+    def poll(cls, context):
+        shots = context.scene.UAS_shot_manager_props.get_shots()
+        return len(shots)
+
     def invoke(self, context, event):
         selectedShot = context.scene.UAS_shot_manager_props.getSelectedShot()
         if selectedShot is None:
@@ -728,6 +731,11 @@ class UAS_ShotManager_UniqueCameras(Operator):
     bl_label = "Make All Cameras Unique"
     bl_description = "Make cameras unique per shot"
     bl_options = {"INTERNAL", "REGISTER", "UNDO"}
+
+    @classmethod
+    def poll(cls, context):
+        shots = context.scene.UAS_shot_manager_props.get_shots()
+        return len(shots)
 
     @staticmethod
     def unique_cam_name(cam_name):

@@ -57,6 +57,7 @@ from bpy.props import BoolProperty, IntProperty
 try:
     import opentimelineio as otio
 
+    # wkip type de comparaison qui ne marche pas tout le temps!!! ex: "2.12.1"<"11.12.1"  is False !!!
     if otio.__version__ < "0.12.1" and platform.system() == "Windows":
         print("Upgrading OpentimelineIO to 0.12.1")
         subprocess.run(
@@ -209,6 +210,15 @@ def register():
         + ") *** ***"
     )
 
+    # bpy.context.window_manager.UAS_shot_manager_version
+    bpy.types.WindowManager.UAS_shot_manager_version = IntProperty(
+        name="Add-on Version Int", description="Add-on version as integer", default=versionTupple[1]
+    )
+
+    bpy.types.WindowManager.UAS_shot_manager_isInitialized = BoolProperty(
+        name="Shot Manager is initialized", description="", default=False
+    )
+
     config.initGlobalVariables()
 
     # utils_handlers.displayHandlers()
@@ -243,19 +253,12 @@ def register():
     videoshotmanager.register()
     prefs.register()
 
-    # declaration of properties that will not be saved in the scene
-    # bpy.context.window_manager.UAS_shot_manager_version
-    bpy.types.WindowManager.UAS_shot_manager_version = IntProperty(
-        name="Add-on Version Int", description="Add-on version as integer", default=versionTupple[1]
-    )
+    # declaration of properties that will not be saved in the scene:
+    ####################
 
     # About button panel Quick Settings
     bpy.types.WindowManager.UAS_shot_manager_displayAbout = BoolProperty(
         name="About...", description="Display About Informations", default=False
-    )
-
-    bpy.types.WindowManager.UAS_shot_manager_isInitialized = BoolProperty(
-        name="Shot Manager is initialized", description="", default=False
     )
 
     bpy.types.WindowManager.UAS_shot_manager_handler_toggle = BoolProperty(
@@ -306,5 +309,8 @@ def unregister():
     del bpy.types.WindowManager.UAS_shot_manager_displayAbout
     del bpy.types.WindowManager.UAS_shot_manager_handler_toggle
     del bpy.types.WindowManager.UAS_shot_manager_display_timeline
+
+    del bpy.types.WindowManager.UAS_shot_manager_isInitialized
+    del bpy.types.WindowManager.UAS_shot_manager_version
 
     config.releaseGlobalVariables()
