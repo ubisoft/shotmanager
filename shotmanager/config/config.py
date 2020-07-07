@@ -17,7 +17,7 @@ def initGlobalVariables():
     icons_col = pcoll
 
     global uasDebug
-    uasDebug = True
+    uasDebug = False
 
 
 def releaseGlobalVariables():

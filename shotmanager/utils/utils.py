@@ -39,7 +39,7 @@ def addonVersion(addonName):
     """
     import addon_utils
 
-    print("addonVersion called...")
+    #   print("addonVersion called...")
     versionStr = "-"
     versionTupple = [
         addon.bl_info.get("version", (-1, -1, -1))

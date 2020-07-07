@@ -40,7 +40,6 @@
 #   - faire modules avec:
 #       - otio (avec les bons imports)
 #       - render
-#   - séparer en operator / ui ... ?
 #   - ranger les explorers
 #
 #
@@ -51,6 +50,7 @@ import subprocess
 import platform
 
 import bpy
+from bpy.app.handlers import persistent
 
 from bpy.props import BoolProperty, IntProperty
 
@@ -121,6 +121,7 @@ from . import videoshotmanager
 
 from .scripts import rrs
 
+from .data_patches.data_patch_to_v1_2_25 import data_patch_to_v1_2_25
 
 bl_info = {
     "name": "UAS Shot Manager",
@@ -166,6 +167,50 @@ def install_shot_handler(self, context):
         # )
 
 
+@persistent
+def checkDataVersion_post_load_handler(self, context):
+    loadedFileName = bpy.path.basename(bpy.context.blend_data.filepath)
+    print("\n\n-------------------------------------------------------")
+    if "" == loadedFileName:
+        print("\nNew file loaded")
+    else:
+        print("\nExisting file loaded: ", bpy.path.basename(bpy.context.blend_data.filepath))
+        print("  - Shot Manager is checking the version used to create the loaded scene data...")
+
+        numScenesToUpgrade = 0
+        for scn in bpy.data.scenes:
+            if "UAS_shot_manager_props" in scn:
+                #   print("\n   Shot Manager instance found in scene " + scn.name)
+                props = scn.UAS_shot_manager_props
+                #   print("     Data version: ", props.dataVersion)
+                #   print("     Shot Manager version: ", bpy.context.window_manager.UAS_shot_manager_version)
+                if props.dataVersion <= 0 or props.dataVersion < bpy.context.window_manager.UAS_shot_manager_version:
+                    print("     *** Shot Manager Data Version is lower than the current Shot Manager version")
+                    numScenesToUpgrade += 1
+                #    props.dataVersion = -5
+
+        if numScenesToUpgrade:
+            # apply patch and apply new data version
+            # wkip patch strategy to re-think. Collect the data versions and apply the respective patches?
+            print("       Applying data patch to file")
+            data_patch_to_v1_2_25()
+
+            # set right data version
+            # props.dataVersion = bpy.context.window_manager.UAS_shot_manager_version
+            # print("       Data upgraded to version V. ", props.dataVersion)
+
+
+# wkip doesn t work!!! Property values changed right before the save are not saved in the file!
+# @persistent
+# def checkDataVersion_save_pre_handler(self, context):
+#     print("\nFile saved - Shot Manager is writing its data version in the scene")
+#     for scn in bpy.data.scenes:
+#         if "UAS_shot_manager_props" in scn:
+#             print("\n   Shot Manager instance found in scene, writing data version: " + scn.name)
+#             props.dataVersion = bpy.context.window_manager.UAS_shot_manager_version
+#             print("   props.dataVersion: ", props.dataVersion)
+
+
 # classes = (
 #
 # )
@@ -200,6 +245,9 @@ def register():
     # set RRS Environment variables for project
     #    setup_project_env(True, True)
 
+    config.initGlobalVariables()
+    verbose = config.uasDebug
+
     # update data
     versionTupple = utils.addonVersion("UAS Shot Manager")
     print(
@@ -215,11 +263,40 @@ def register():
         name="Add-on Version Int", description="Add-on version as integer", default=versionTupple[1]
     )
 
+    # handler to check the data version at load
+    ##################
+    print("       - Post Load handler added")
+
+    if verbose:
+        utils_handlers.displayHandlers(handlerCategName="load_post")
+
+    utils_handlers.removeAllHandlerOccurences(
+        checkDataVersion_post_load_handler, handlerCateg=bpy.app.handlers.load_post
+    )
+    bpy.app.handlers.load_post.append(checkDataVersion_post_load_handler)
+
+    if verbose:
+        utils_handlers.displayHandlers(handlerCategName="load_post")
+
+    # handler to write the data version at save
+    ##################
+    # print("       - Pre Save handler added")
+    # if verbose:
+    #     utils_handlers.displayHandlers(handlerCategName="save_pre")
+
+    # utils_handlers.removeAllHandlerOccurences(checkDataVersion_save_pre_handler, handlerCateg=bpy.app.handlers.save_pre)
+    # bpy.app.handlers.save_pre.append(checkDataVersion_save_pre_handler)
+
+    # if verbose:
+    #     utils_handlers.displayHandlers(handlerCategName="save_pre")
+
+    # initialization
+    ##################
+
+    # data version is written in the initialize function
     bpy.types.WindowManager.UAS_shot_manager_isInitialized = BoolProperty(
         name="Shot Manager is initialized", description="", default=False
     )
-
-    config.initGlobalVariables()
 
     # utils_handlers.displayHandlers()
     utils_handlers.removeAllHandlerOccurences(jump_to_shot, handlerCateg=bpy.app.handlers.frame_change_pre)

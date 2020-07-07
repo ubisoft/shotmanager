@@ -22,7 +22,7 @@ from .ui import vsm_ui
 
 def register():
 
-    print("\n         - Registering Video Shot Manager Package\n")
+    print("\n       - Registering Video Shot Manager Package\n")
 
     # for cls in classes:
     #     bpy.utils.register_class(cls)

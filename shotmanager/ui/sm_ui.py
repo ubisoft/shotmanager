@@ -113,7 +113,7 @@ class UAS_PT_ShotManager(Panel):
         split.separator()
         row.alignment = "CENTER"
         subrow = row.row(align=True)
-        subrow.enabled = len(props.get_shots())
+        subrow.enabled = 0 < len(props.get_shots())
         subrow.operator("uas_shot_manager.playbar_gotofirstshot", text="", icon="REW")
         subrow.operator("uas_shot_manager.playbar_gotopreviousshot", text="", icon="PREV_KEYFRAME")
         subrow.operator("uas_shot_manager.playbar_gotopreviousframe", text="", icon="FRAME_PREV")
@@ -133,7 +133,7 @@ class UAS_PT_ShotManager(Panel):
         split = row.split(align=True)
         split.separator()
         subrow = row.row(align=True)
-        subrow.enabled = len(props.get_shots())
+        subrow.enabled = 0 < len(props.get_shots())
         subrow.operator("uas_shot_manager.playbar_gotonextframe", text="", icon="FRAME_NEXT")
         subrow.operator("uas_shot_manager.playbar_gotonextshot", text="", icon="NEXT_KEYFRAME")
         subrow.operator("uas_shot_manager.playbar_gotolastshot", text="", icon="FF")

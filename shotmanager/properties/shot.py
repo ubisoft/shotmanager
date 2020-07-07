@@ -25,6 +25,8 @@ class UAS_ShotManager_Shot(PropertyGroup):
     parentTakeIndex: IntProperty(name="Parent Take Index", default=-1)
 
     # for backward compatibility - before V1.2.21
+    # used by data version patches.
+    # For general purpose use the property self.parentScene
     def getParentScene(self):
         if self.parentScene is not None:
             return self.parentScene
@@ -74,7 +76,8 @@ class UAS_ShotManager_Shot(PropertyGroup):
     def set_name(self, value):
         """ Set a unique name to the shot
         """
-        shots = self.getParentScene().UAS_shot_manager_props.getShotsList(takeIndex=self.parentTakeIndex)
+        # shots = self.getParentScene().UAS_shot_manager_props.getShotsList(takeIndex=self.parentTakeIndex)
+        shots = self.parentScene.UAS_shot_manager_props.getShotsList(takeIndex=self.parentTakeIndex)
         newName = findFirstUniqueName(self, value, shots)
         self["name"] = newName
 
@@ -202,7 +205,7 @@ class UAS_ShotManager_Shot(PropertyGroup):
 
     def get_color(self):
         defaultVal = [1.0, 1.0, 1.0, 1.0]
-        props = self.getParentScene().UAS_shot_manager_props
+        props = self.parentScene.UAS_shot_manager_props
 
         if props.use_camera_color:
             if self.camera is not None:

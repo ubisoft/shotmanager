@@ -39,6 +39,7 @@ class UAS_ShotManager_Props(PropertyGroup):
 
     def initialize_shot_manager(self):
         print("\nInitializing Shot Manager...\n")
+        self.dataVersion = bpy.context.window_manager.UAS_shot_manager_version
         self.createDefaultTake()
         self.createRenderSettings()
         self.isInitialized = True
@@ -102,7 +103,14 @@ class UAS_ShotManager_Props(PropertyGroup):
             warningList.append("Index of the output frame of a shot minus handle is negative !!")
 
         # check is the data version is compatible with the current version
-        if self.dataVersion <= 0 or dataVersion < bpy.context.window_manager.UAS_shot_manager_version:
+        # wkip obsolete code due to post register data version check
+        if self.dataVersion <= 0 or self.dataVersion < bpy.context.window_manager.UAS_shot_manager_version:
+            # print("Warning: elf.dataVersion:", self.dataVersion)
+            # print(
+            #     "Warning: bpy.context.window_manager.UAS_shot_manager_version:",
+            #     bpy.context.window_manager.UAS_shot_manager_version,
+            # )
+
             warningList.append("Data version is lower than SM version !!")
 
         # wkip to do: check if some camera markets are used in the scene
