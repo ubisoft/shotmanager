@@ -54,37 +54,38 @@ from bpy.app.handlers import persistent
 
 from bpy.props import BoolProperty, IntProperty
 
-try:
-    import opentimelineio as otio
+# try:
+#     import opentimelineio as otio
 
-    # wkip type de comparaison qui ne marche pas tout le temps!!! ex: "2.12.1"<"11.12.1"  is False !!!
-    if otio.__version__ < "0.12.1" and platform.system() == "Windows":
-        print("Upgrading OpentimelineIO to 0.12.1")
-        subprocess.run(
-            [
-                bpy.app.binary_path_python,
-                "-m",
-                "pip",
-                "install",
-                os.path.join(os.path.dirname(__file__), "OpenTimelineIO-0.12.1-cp37-cp37m-win_amd64.whl"),
-            ]
-        )
-        importlib.reload(otio)  # Need to be tested.
-except ModuleNotFoundError:
-    if platform.system() == platform.system() == "Windows":
-        subprocess.run(
-            [
-                bpy.app.binary_path_python,
-                "-m",
-                "pip",
-                "install",
-                os.path.join(os.path.dirname(__file__), "OpenTimelineIO-0.12.1-cp37-cp37m-win_amd64.whl"),
-            ]
-        )
-    else:
-        subprocess.run([bpy.app.binary_path_python, "-m", "pip", "install", "opentimelineio"])
-    import opentimelineio as otio
+#     # wkip type de comparaison qui ne marche pas tout le temps!!! ex: "2.12.1"<"11.12.1"  is False !!!
+#     if otio.__version__ < "0.12.1" and platform.system() == "Windows":
+#         print("Upgrading OpentimelineIO to 0.12.1")
+#         subprocess.run(
+#             [
+#                 bpy.app.binary_path_python,
+#                 "-m",
+#                 "pip",
+#                 "install",
+#                 os.path.join(os.path.dirname(__file__), "OpenTimelineIO-0.12.1-cp37-cp37m-win_amd64.whl"),
+#             ]
+#         )
+#         importlib.reload(otio)  # Need to be tested.
+# except ModuleNotFoundError:
+#     if platform.system() == platform.system() == "Windows":
+#         subprocess.run(
+#             [
+#                 bpy.app.binary_path_python,
+#                 "-m",
+#                 "pip",
+#                 "install",
+#                 os.path.join(os.path.dirname(__file__), "OpenTimelineIO-0.12.1-cp37-cp37m-win_amd64.whl"),
+#             ]
+#         )
+#     else:
+#         subprocess.run([bpy.app.binary_path_python, "-m", "pip", "install", "opentimelineio"])
+#     import opentimelineio as otio
 
+from . import otio
 
 from .config import config
 
@@ -122,6 +123,8 @@ from . import videoshotmanager
 from .scripts import rrs
 
 from .data_patches.data_patch_to_v1_2_25 import data_patch_to_v1_2_25
+
+from .debug import sm_debug
 
 bl_info = {
     "name": "UAS Shot Manager",
@@ -324,11 +327,16 @@ def register():
     renderProps.register()
     utils.register()
 
-    # vse_render.register()  # debug
+    otio.register()
+    vse_render.register()
     utils_render.register()
     general.register()
     videoshotmanager.register()
     prefs.register()
+
+    # debug tools
+    if config.uasDebug:
+        sm_debug.register()
 
     # declaration of properties that will not be saved in the scene:
     ####################
@@ -355,12 +363,17 @@ def register():
 
 def unregister():
 
+    # debug tools
+    if config.uasDebug:
+        sm_debug.unregister()
+
     # ui
     prefs.unregister()
     videoshotmanager.unregister()
     general.unregister()
     utils_render.unregister()
-    # vse_render.unregister()
+    vse_render.unregister()
+    otio.unregister()
 
     utils.unregister()
     renderProps.unregister()

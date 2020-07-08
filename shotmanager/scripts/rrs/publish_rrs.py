@@ -1,5 +1,6 @@
 import bpy
 from ...operators import renderProps
+from ...otio import exportOtio
 
 import os
 import json
@@ -131,7 +132,7 @@ def publishRRS(prodFilePath, takeIndex=-1, verbose=False):
 
     # wkip beurk pour récuperer le bon contexte de scene
     bpy.context.window.scene = scene
-    renderedOtioFile = renderProps.exportOtio(scene, takeIndex=takeIndex, renderRootFilePath=cacheFilePath)
+    renderedOtioFile = exportOtio(scene, takeIndex=takeIndex, renderRootFilePath=cacheFilePath)
 
     renderedFilesList.append(renderedOtioFile)
 

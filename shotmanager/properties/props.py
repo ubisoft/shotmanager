@@ -489,6 +489,7 @@ class UAS_ShotManager_Props(PropertyGroup):
         defaultTake = None
         if 0 >= len(takes):
             defaultTake = takes.add()
+            defaultTake.getParentScene()
             defaultTake.name = "Main Take"
             self.setCurrentTakeByIndex(0)
             # self.setCurrentShotByIndex(-1)

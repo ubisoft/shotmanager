@@ -17,7 +17,14 @@ def initGlobalVariables():
     icons_col = pcoll
 
     global uasDebug
-    uasDebug = False
+
+    if "UasDebug" in os.environ.keys():
+        uasDebug = os.environ["UasDebug"]
+        print("UAS debug in env var : ", uasDebug)
+    else:
+        uasDebug = True
+
+    print("UAS debug: ", uasDebug)
 
 
 def releaseGlobalVariables():

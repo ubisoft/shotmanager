@@ -216,18 +216,15 @@ class UAS_PT_ShotManager_Render_StampInfoProperties(Panel):
         layout.emboss = "NONE"
         row = layout.row(align=True)
 
-        if "UAS_StampInfo_Settings" not in context.scene or context.scene["UAS_StampInfo_Settings"] is None:
-            # row.alert = True
-            row.label(text="Version not found")
-            row.alert = False
+        versionTupple = utils.addonVersion("UAS_StampInfo")
+        # print("Stamp Info Version: ", versionTupple)
+        if versionTupple is not None:
+            if "UAS_StampInfo_Settings" not in context.scene or context.scene["UAS_StampInfo_Settings"] is None:
+                row.label(text="V." + versionTupple[0] + " - NOT in Scene")
+            else:
+                row.label(text="V." + versionTupple[0] + " - Loaded in Scene")
         else:
-            try:
-                versionStr = utils.addonVersion("UAS_StampInfo")
-                row.label(text="Loaded - V." + versionStr)
-                # row.label(text="Loaded - V." + context.scene.UAS_StampInfo_Settings.version())
-            except Exception as e:
-                #    row.alert = True
-                row.label(text="Not found")
+            row.label(text="Not found")
 
     def draw(self, context):
         box = self.layout.box()

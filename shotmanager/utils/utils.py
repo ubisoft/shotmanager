@@ -36,11 +36,15 @@ def addonVersion(addonName):
     """ Return the add-on version in the form of a tupple made by: 
             - a string x.y.z (eg: "1.21.3")
             - an integer. x.y.z becomes xxyyyzzz (eg: "1.21.3" becomes 1021003)
+        Return None if the addon has not been found
     """
     import addon_utils
 
     #   print("addonVersion called...")
     versionStr = "-"
+    versionInt = -1
+    versions = None
+
     versionTupple = [
         addon.bl_info.get("version", (-1, -1, -1))
         for addon in addon_utils.modules()
@@ -57,7 +61,9 @@ def addonVersion(addonName):
         # print("versionInt: ", versionInt)
         # print("convertVersionIntToStr: ", convertVersionIntToStr(versionInt))
 
-    return (versionStr, versionInt)
+        versions = (versionStr, versionInt)
+
+    return versions
 
 
 class PropertyRestoreCtx:
@@ -181,9 +187,10 @@ class UAS_Utils_RunScript(Operator):
     def execute(self, context):
         import pathlib
 
-        myPath = str(pathlib.Path(__file__).parent.absolute()) + "\..\\api\\api_first_steps.py"
+        myPath = str(pathlib.Path(__file__).parent.absolute()) + self.path  # \\api\\api_first_steps.py"
         print("\n*** UAS_Utils_RunScript Op is running: ", myPath)
-        bpy.ops.script.python_file_run(filepath=bpy.path.abspath(myPath))
+        # bpy.ops.script.python_file_run(filepath=bpy.path.abspath(myPath))
+        bpy.ops.script.python_file_run(filepath=myPath)
         return {"FINISHED"}
 
 
