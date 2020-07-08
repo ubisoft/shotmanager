@@ -136,6 +136,29 @@ def add_background_video_to_cam(
         bg.clip_user.proxy_render_size = proxyRenderSize
 
 
+def cameras_from_scene(scene):
+    """ Return the list of all the cameras in the scene
+    """
+    camList = [c for c in scene.objects if c.type == "CAMERA"]
+    return camList
+
+
+def duplicateObject(sourceObject):
+    """ Duplicate (deepcopy) an object and place it in the same collection
+    """
+    newObject = sourceObject.copy()
+    newObject.animation_data.action = sourceObject.animation_data.action.copy()
+    newObject.data = sourceObject.data.copy()
+    newObject.data.animation_data.action = sourceObject.data.animation_data.action.copy()
+
+    sourceCollections = sourceObject.users_collection
+    if len(sourceCollections):
+        sourceCollections[0].objects.link(newObject)
+    else:
+        (sourceObject.users_scene)[0].collection.objects.link(newObject)
+    return newObject
+
+
 _classes = (UAS_ShotManager_OpenExplorer,)
 
 
