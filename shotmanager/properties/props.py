@@ -537,7 +537,7 @@ class UAS_ShotManager_Props(PropertyGroup):
         print("*** set_useStampInfoDuringRendering: value: ", value)
         self["useStampInfoDuringRendering"] = value
 
-        if "UAS_StampInfo_Settings" in bpy.context.scene:
+        if getattr(bpy.context.scene, "UAS_StampInfo_Settings", None) is not None:
             # bpy.context.scene.UAS_StampInfo_Settings.activateStampInfo(value)
             bpy.context.scene.UAS_StampInfo_Settings.stampInfoUsed = value
 

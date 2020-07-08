@@ -44,46 +44,10 @@
 #
 #
 
-import os
-import importlib
-import subprocess
-import platform
-
 import bpy
 from bpy.app.handlers import persistent
 
 from bpy.props import BoolProperty, IntProperty
-
-# try:
-#     import opentimelineio as otio
-
-#     # wkip type de comparaison qui ne marche pas tout le temps!!! ex: "2.12.1"<"11.12.1"  is False !!!
-#     if otio.__version__ < "0.12.1" and platform.system() == "Windows":
-#         print("Upgrading OpentimelineIO to 0.12.1")
-#         subprocess.run(
-#             [
-#                 bpy.app.binary_path_python,
-#                 "-m",
-#                 "pip",
-#                 "install",
-#                 os.path.join(os.path.dirname(__file__), "OpenTimelineIO-0.12.1-cp37-cp37m-win_amd64.whl"),
-#             ]
-#         )
-#         importlib.reload(otio)  # Need to be tested.
-# except ModuleNotFoundError:
-#     if platform.system() == platform.system() == "Windows":
-#         subprocess.run(
-#             [
-#                 bpy.app.binary_path_python,
-#                 "-m",
-#                 "pip",
-#                 "install",
-#                 os.path.join(os.path.dirname(__file__), "OpenTimelineIO-0.12.1-cp37-cp37m-win_amd64.whl"),
-#             ]
-#         )
-#     else:
-#         subprocess.run([bpy.app.binary_path_python, "-m", "pip", "install", "opentimelineio"])
-#     import opentimelineio as otio
 
 from . import otio
 

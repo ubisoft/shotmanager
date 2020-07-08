@@ -264,7 +264,8 @@ class UAS_PT_ShotManager_Render(Operator):
 
 def launchRenderWithVSEComposite(renderMode, takeIndex=-1, renderRootFilePath="", useStampInfo=True):
     """ Generate the media for the specified take
-        Return a list of all the created files
+        Return a dictionary with a list of all the created files and a list of failed ones
+        filesDict = {"rendered_files": newMediaFiles, "failed_files": failedFiles}
     """
     context = bpy.context
     scene = bpy.context.scene
@@ -285,7 +286,7 @@ def launchRenderWithVSEComposite(renderMode, takeIndex=-1, renderRootFilePath=""
 
     preset_useStampInfo = False
     RRS_StampInfo = None
-    if "UAS_StampInfo_Settings" in scene:
+    if getattr(scene, "UAS_StampInfo_Settings", None) is not None:
         RRS_StampInfo = scene.UAS_StampInfo_Settings
 
         # remove handlers and compo!!!
@@ -445,8 +446,10 @@ def launchRenderWithVSEComposite(renderMode, takeIndex=-1, renderRootFilePath=""
     bpy.context.window.scene = sequenceScene
     bpy.ops.render.opengl(animation=True, sequencer=True)
     newMediaFiles.append(sequenceScene.render.filepath)
+    failedFiles = []
 
-    return newMediaFiles
+    filesDict = {"rendered_files": newMediaFiles, "failed_files": failedFiles}
+    return filesDict
 
 
 def launchRender(renderMode, renderRootFilePath="", useStampInfo=True):
@@ -464,7 +467,7 @@ def launchRender(renderMode, renderRootFilePath="", useStampInfo=True):
     # tester le chemin
 
     preset_useStampInfo = False
-    if "UAS_StampInfo_Settings" in scene:
+    if getattr(scene, "UAS_StampInfo_Settings", None) is not None:
         RRS_StampInfo = scene.UAS_StampInfo_Settings
         preset_useStampInfo = useStampInfo
         if not useStampInfo:
@@ -728,7 +731,7 @@ class UAS_PT_ShotManager_RenderDialog(Operator):
 
                 scene.camera = shot.camera
 
-                if "UAS_StampInfo_Settings" in scene:
+                if getattr(scene, "UAS_StampInfo_Settings", None) is not None:
                     RRS_StampInfo.setRRS_StampInfoSettings(scene)
 
                 if self.renderer == "OPENGL":
@@ -736,7 +739,7 @@ class UAS_PT_ShotManager_RenderDialog(Operator):
                 else:
                     bpy.ops.render.render(animation=True)
 
-                if "UAS_StampInfo_Settings" in scene:
+                if getattr(scene, "UAS_StampInfo_Settings", None) is not None:
                     scene.UAS_StampInfo_Settings.stampInfoUsed = False
             else:
                 for shot in shots:
@@ -745,7 +748,7 @@ class UAS_PT_ShotManager_RenderDialog(Operator):
                         scene.frame_end = shot.end + handles
                         scene.render.filepath = get_media_path(out_path, take_name, shot.name)
                         scene.camera = shot.camera
-                        if "UAS_StampInfo_Settings" in scene:
+                        if getattr(scene, "UAS_StampInfo_Settings", None) is not None:
                             scene.UAS_StampInfo_Settings.stampInfoUsed = True
                             scene.UAS_StampInfo_Settings.shotName = shot.name
 
@@ -754,7 +757,7 @@ class UAS_PT_ShotManager_RenderDialog(Operator):
                         else:
                             bpy.ops.render.render(animation=True)
 
-                        if "UAS_StampInfo_Settings" in scene:
+                        if getattr(scene, "UAS_StampInfo_Settings", None) is not None:
                             scene.UAS_StampInfo_Settings.stampInfoUsed = False
 
             scene.UAS_StampInfo_Settings.restorePreviousValues(scene)

@@ -4,6 +4,11 @@ import os
 from shotmanager.api import shot_manager
 from shotmanager.api import otio
 
+# This should work with any scene where a Shot Manager instance has been instanced and where
+# there are several shots
+# In case a scene is required you can use this one from the GitLab:
+# https://gitlab-ncsa.ubisoft.org/animation-studio/blender/shotmanager-addon/-/blob/master/fixtures/shots_sceneRunningRabbid/shots_sceneRunningRabbid.blend
+
 # Get the shot manager instance of the scene
 sm_props = shot_manager.get_shot_manager(bpy.context.scene)
 

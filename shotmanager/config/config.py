@@ -20,9 +20,8 @@ def initGlobalVariables():
 
     if "UasDebug" in os.environ.keys():
         uasDebug = os.environ["UasDebug"]
-        print("UAS debug in env var : ", uasDebug)
     else:
-        uasDebug = True
+        uasDebug = False
 
     print("UAS debug: ", uasDebug)
 

@@ -72,6 +72,9 @@ def initializeForRRS(override_existing: bool, verbose=False):
 
 
 def publishRRS(prodFilePath, takeIndex=-1, verbose=False):
+    """ Return a dictionary with the rendered and the failed file paths
+        filesDict = {"rendered_files": newMediaFiles, "failed_files": failedFiles}
+    """
     import os
     import errno
 
@@ -122,7 +125,7 @@ def publishRRS(prodFilePath, takeIndex=-1, verbose=False):
     ################
 
     # shot videos are rendered in the directory of the take, not anymore in a directory with the shot name
-    renderedFilesList = renderProps.launchRenderWithVSEComposite(
+    renderedFilesDict = renderProps.launchRenderWithVSEComposite(
         "PROJECT", takeIndex=takeIndex, renderRootFilePath=cacheFilePath
     )
 
@@ -134,10 +137,13 @@ def publishRRS(prodFilePath, takeIndex=-1, verbose=False):
     bpy.context.window.scene = scene
     renderedOtioFile = exportOtio(scene, takeIndex=takeIndex, renderRootFilePath=cacheFilePath)
 
-    renderedFilesList.append(renderedOtioFile)
+    if renderedOtioFile is None:
+        renderedFilesDict["failed_files"].append(renderedOtioFile)
+    else:
+        renderedFilesDict["rendered_files"].append(renderedOtioFile)
 
     if verbose:
-        print("\nNewMediaList = ", renderedFilesList)
+        print("\nNewMediaList = ", renderedFilesDict)
 
     ################
     # copy files to the network
@@ -158,7 +164,7 @@ def publishRRS(prodFilePath, takeIndex=-1, verbose=False):
             if exc.errno != errno.EEXIST:
                 raise
 
-    for f in renderedFilesList:
+    for f in renderedFilesDict["rendered_files"]:
         head, tail = os.path.split(f)
         target = prodFilePath
         if not target.endswith("\\"):
@@ -172,4 +178,4 @@ def publishRRS(prodFilePath, takeIndex=-1, verbose=False):
         except Exception as e:
             print("*** File cannot be copied: ", e)
 
-    return True
+    return renderedFilesDict

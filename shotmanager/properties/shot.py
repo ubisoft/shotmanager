@@ -101,7 +101,6 @@ class UAS_ShotManager_Shot(PropertyGroup):
                 self["end"] = self.start
 
     def _update_start(self, context):
-        print("Updating Cam")
         if self.camera is not None and len(self.camera.data.background_images):
             bgClip = self.camera.data.background_images[0].clip
             if bgClip is not None and self.bgImages_linkToShotStart:
