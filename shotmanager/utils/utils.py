@@ -136,6 +136,13 @@ def add_background_video_to_cam(
         bg.clip_user.proxy_render_size = proxyRenderSize
 
 
+def cameras_from_scene(scene):
+    """ Return the list of all the cameras in the scene
+    """
+    camList = [c for c in scene.objects if c.type == "CAMERA"]
+    return camList
+
+
 _classes = (UAS_ShotManager_OpenExplorer,)
 
 
