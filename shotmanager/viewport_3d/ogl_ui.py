@@ -742,7 +742,8 @@ class UAS_ShotManager_DrawCameras_UI(bpy.types.Operator):
         self.draw_event = None
 
     def modal(self, context, event):
-        if not context.window_manager.UAS_shot_manager_display_timeline:
+        if not context.scene.UAS_shot_manager_props.display_shotname_in_3dviewport:
+            # if not context.window_manager.UAS_shot_manager_display_timeline:
             self.unregister_handlers(context)
             return {"CANCELLED"}
 
