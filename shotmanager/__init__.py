@@ -1,49 +1,3 @@
-# -*- coding: utf-8 -*-
-#
-# This addon blabla
-#
-# Installation:
-#
-#
-# Things to know:
-#   - 1 shot manager instance per scene (= possible differences in preferences per scene)
-#
-#   - time on media (= output videos) starts at frame 0 (and then last frame index is equal to Durantion - 1)
-#   - Shots:
-#       - end frame is INCLUDED in the shot frames (and then rendered)
-#
-#
-# Dev notes:
-#  * Pb:
-#   cleanner le patch dégueu des indices de takes lors de la suppression des shots disabled
-#       - about à finir
-#       - jog pas parfait
-#       - script unique cam en rade
-#       - getsion des viewports
-#
-#
-#  * To do:
-#   mettre des shot warnings et errors
-#   faire un warning pour shot start - handle < 0!!!
-#
-#
-#
-#       - mettre des modifiers CTRL et Alt pour jogguer entre les débuts et fin seulement de plans
-#       - ajouter un bouton Help
-#       - prefix Name
-#       - take verouille les cams
-#
-#       - mettre des vraies prefs utilisateurs
-#
-#
-#   Refacto code:
-#   - faire modules avec:
-#       - otio (avec les bons imports)
-#       - render
-#   - ranger les explorers
-#
-#
-
 import bpy
 from bpy.app.handlers import persistent
 
@@ -95,9 +49,9 @@ bl_info = {
     "author": "Romain Carriquiry Borchiari, Julien Blervaque (aka Werwack)",
     "description": "Manage a sequence of shots and cameras in the 3D View - Ubisoft Animation Studio",
     "blender": (2, 83, 1),
-    "version": (1, 2, 21),
+    "version": (1, 2, 26),
     "location": "View3D > UAS Shot Manager",
-    "wiki_url": "https://mdc-web-tomcat17.ubisoft.org/confluence/display/UASTech/UAS+Shot+Manager",
+    "wiki_url": "https://gitlab-ncsa.ubisoft.org/animation-studio/blender/shotmanager-addon/-/wikis/home",
     "warning": "",
     "category": "UAS",
 }
@@ -146,7 +100,8 @@ def checkDataVersion_post_load_handler(self, context):
 
         numScenesToUpgrade = 0
         for scn in bpy.data.scenes:
-            if "UAS_shot_manager_props" in scn:
+            # if "UAS_shot_manager_props" in scn:
+            if getattr(bpy.context.scene, "UAS_shot_manager_props", None) is not None:
                 #   print("\n   Shot Manager instance found in scene " + scn.name)
                 props = scn.UAS_shot_manager_props
                 #   print("     Data version: ", props.dataVersion)

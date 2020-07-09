@@ -1,3 +1,11 @@
+import os
+import importlib
+import subprocess
+import platform
+
+import bpy
+
+
 try:
     import opentimelineio as otio
 
@@ -34,9 +42,10 @@ from . import operators
 from pathlib import Path
 
 
-def exportOtio(scene, takeIndex=-1, renderRootFilePath="", fps=-1):
+def exportOtio(scene, takeIndex=-1, filePath="", fileName="", addTakeNameToPath=True, fps=-1):
     """ Create an OpenTimelineIO XML file for the specified take
         Return the file path of the created file
+        If file_name is left to default then the rendered file will be a .xml
     """
     print("  ** -- ** exportOtio")
     props = scene.UAS_shot_manager_props
@@ -58,10 +67,16 @@ def exportOtio(scene, takeIndex=-1, renderRootFilePath="", fps=-1):
     track = otio.schema.Track()
     timeline.tracks.append(track)
 
-    renderPath = renderRootFilePath if "" != renderRootFilePath else props.renderRootPath
-    otioRenderPath = renderPath + "\\" + take_name + "\\" + take_name + ".xml"
-    if Path(otioRenderPath).suffix == "":
-        otioRenderPath += ".otio"
+    renderPath = filePath if "" != filePath else props.renderRootPath
+    otioRenderPath = renderPath + "\\"
+    if addTakeNameToPath:
+        otioRenderPath += take_name + "\\"
+    if "" == fileName:
+        otioRenderPath += take_name + ".xml"
+    else:
+        otioRenderPath += fileName
+        if Path(fileName).suffix == "":
+            otioRenderPath += ".otio"
 
     print("   OTIO otioRenderPath:", otioRenderPath)
 
@@ -82,7 +97,7 @@ def exportOtio(scene, takeIndex=-1, renderRootFilePath="", fps=-1):
             # shotFilePath = shot.getOutputFileName(fullPath=True, rootFilePath=renderPath)
 
             shotFileName = shot.getOutputFileName(fullPath=False)
-            shotFilePath = f"{renderPath}{take_name}\\{shotFileName}"
+            shotFilePath = f"{renderPath}\\{take_name}\\{shotFileName}"
             print("    shotFilePath: ", shotFilePath, shotFileName)
 
             media_reference = otio.schema.ExternalReference(target_url=shotFilePath, available_range=available_range)

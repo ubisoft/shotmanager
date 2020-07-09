@@ -7,7 +7,8 @@ from ..utils import utils
 
 def data_patch_to_v1_2_25():
     for scn in bpy.data.scenes:
-        if "UAS_shot_manager_props" in scn:
+        # if "UAS_shot_manager_props" in scn:
+        if getattr(bpy.context.scene, "UAS_shot_manager_props", None) is not None:
             print("\n   Shot Manager instance found in scene " + scn.name)
             props = scn.UAS_shot_manager_props
 

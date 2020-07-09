@@ -238,6 +238,10 @@ class UAS_ShotManager_Props(PropertyGroup):
     # shots
     #############
 
+    display_selectbut_in_shotlist: BoolProperty(
+        name="Display Camera Selection Button in Shot List", default=True, options=set()
+    )
+
     display_name_in_shotlist: BoolProperty(name="Display Name in Shot List", default=True, options=set())
 
     display_camera_in_shotlist: BoolProperty(name="Display Camera in Shot List", default=False, options=set())
@@ -249,10 +253,6 @@ class UAS_ShotManager_Props(PropertyGroup):
     display_color_in_shotlist: BoolProperty(name="Display Color in Shot List", default=False, options=set())
 
     display_enabled_in_shotlist: BoolProperty(name="Display Enabled State in Shot List", default=True, options=set())
-
-    display_selectbut_in_shotlist: BoolProperty(
-        name="Display Camera Selection Button in Shot List", default=False, options=set()
-    )
 
     display_getsetcurrentframe_in_shotlist: BoolProperty(
         name="Display Get/Set current Frame Buttons in Shot List", default=True, options=set()

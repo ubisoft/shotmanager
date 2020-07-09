@@ -20,6 +20,8 @@ if "" == current_file:
     print("*** Save the scene first ***")
 
 # Export otio file from the specified scene to the directory containing the current file
+# If file_name is left to default then the rendered file will be a .xml
 print("Exporting Otio File to: ", current_dir)
-otio.export_otio(sm_props, take_index=-1, render_root_file_path=current_dir)
-
+otio.export_otio(
+    sm_props, file_path=current_dir, file_name="myOtioFile.otio", add_take_name_to_path=False, take_index=-1
+)

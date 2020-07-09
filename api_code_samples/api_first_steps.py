@@ -56,6 +56,7 @@ shot_manager.set_current_take_by_index(sm_props, my_other_take_index)
 current_take = shot_manager.get_current_take(sm_props)
 take.set_name(current_take, "My New Take Renamed")
 
+
 # Duplicate take
 # wkip to do
 

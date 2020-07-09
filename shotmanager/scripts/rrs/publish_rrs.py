@@ -71,12 +71,13 @@ def initializeForRRS(override_existing: bool, verbose=False):
     print_project_env()
 
 
-def publishRRS(prodFilePath, takeIndex=-1, verbose=False):
+def publishRRS(prodFilePath, takeIndex=-1, verbose=False, useCache=False):
     """ Return a dictionary with the rendered and the failed file paths
-        filesDict = {"rendered_files": newMediaFiles, "failed_files": failedFiles}
+        The dictionary have the following entries: rendered_files, failed_files, otio_file
     """
     import os
     import errno
+    import tempfile
 
     scene = bpy.context.scene
 
@@ -104,18 +105,26 @@ def publishRRS(prodFilePath, takeIndex=-1, verbose=False):
     print("\n---------------------------------------------------------")
     print(" -- * publishRRS * --\n\n")
 
-    cacheFilePath = "c:\\tmp\\" + scene.name + "\\"
+    renderDir = prodFilePath
 
-    # create cache dir
-    if not os.path.exists(os.path.dirname(cacheFilePath)):
-        try:
-            os.makedirs(os.path.dirname(cacheFilePath), exist_ok=True)
-        except OSError as exc:  # Guard against race condition
-            if exc.errno != errno.EEXIST:
-                raise
+    if useCache:
+        # wkip récup temp dir dans l'os?
+        # print("Temp dir:", tempfile.gettempdir())
+        renderDir = "c:\\tmp\\" + scene.name + "\\"
+
+        # create cache dir
+        if not os.path.exists(os.path.dirname(renderDir)):
+            try:
+                os.makedirs(os.path.dirname(renderDir), exist_ok=True)
+            except OSError as exc:  # Guard against race condition
+                if exc.errno != errno.EEXIST:
+                    raise
 
     if verbose:
-        print("Local cache path: ", cacheFilePath)
+        print("Use Cache: ", useCache)
+        if useCache:
+            print("Local cache path: ", renderDir)
+        print("Render Dir: ", renderDir)
         print("Current Scene: " + scene.name + ", current take: " + props.getCurrentTakeName())
 
     print("\n---------------------------------------------------------")
@@ -125,9 +134,7 @@ def publishRRS(prodFilePath, takeIndex=-1, verbose=False):
     ################
 
     # shot videos are rendered in the directory of the take, not anymore in a directory with the shot name
-    renderedFilesDict = renderProps.launchRenderWithVSEComposite(
-        "PROJECT", takeIndex=takeIndex, renderRootFilePath=cacheFilePath
-    )
+    renderedFilesDict = renderProps.launchRenderWithVSEComposite("PROJECT", takeIndex=takeIndex, filePath=renderDir)
 
     ################
     # generate the otio file
@@ -135,12 +142,9 @@ def publishRRS(prodFilePath, takeIndex=-1, verbose=False):
 
     # wkip beurk pour récuperer le bon contexte de scene
     bpy.context.window.scene = scene
-    renderedOtioFile = exportOtio(scene, takeIndex=takeIndex, renderRootFilePath=cacheFilePath)
+    renderedOtioFile = exportOtio(scene, takeIndex=takeIndex, filePath=renderDir)
 
-    if renderedOtioFile is None:
-        renderedFilesDict["failed_files"].append(renderedOtioFile)
-    else:
-        renderedFilesDict["rendered_files"].append(renderedOtioFile)
+    renderedFilesDict["otio_file"] = [renderedOtioFile]
 
     if verbose:
         print("\nNewMediaList = ", renderedFilesDict)
@@ -150,32 +154,47 @@ def publishRRS(prodFilePath, takeIndex=-1, verbose=False):
     ################
 
     # from distutils.dir_util import copy_tree
-    # copy_tree(cacheFilePath, prodFilePath, update=1)
+    # copy_tree(renderDir, prodFilePath, update=1)
 
-    import shutil
-    import os
-    import errno
+    if useCache:
+        import shutil
+        import os
+        import errno
 
-    # create dirs
-    if not os.path.exists(os.path.dirname(prodFilePath)):
-        try:
-            os.makedirs(os.path.dirname(prodFilePath), exist_ok=True)
-        except OSError as exc:  # Guard against race condition
-            if exc.errno != errno.EEXIST:
-                raise
+        # create dirs
+        if not os.path.exists(os.path.dirname(prodFilePath)):
+            try:
+                os.makedirs(os.path.dirname(prodFilePath), exist_ok=True)
+            except OSError as exc:  # Guard against race condition
+                if exc.errno != errno.EEXIST:
+                    raise
 
-    for f in renderedFilesDict["rendered_files"]:
-        head, tail = os.path.split(f)
-        target = prodFilePath
-        if not target.endswith("\\"):
-            target += "\\"
-        target += tail
+        def _MoveFile(f):
+            head, tail = os.path.split(f)
+            target = prodFilePath
+            if not target.endswith("\\"):
+                target += "\\"
+            target += tail
 
-        if verbose:
-            print("target: ", target)
-        try:
-            shutil.copyfile(f, target)
-        except Exception as e:
-            print("*** File cannot be copied: ", e)
+            if verbose:
+                print("target: ", target)
+            try:
+                shutil.copyfile(f, target)
+                copiedFiles.append(target)
+            except Exception as e:
+                print("*** File cannot be copied: ", e)
+                notCopiedFiles.append(target)
+
+        copiedFiles = []
+        notCopiedFiles = []
+        for f in renderedFilesDict["rendered_files"]:
+            _MoveFile(f)
+
+        renderedFilesDict = {"rendered_files": copiedFiles, "failed_files": notCopiedFiles}
+
+        copiedFiles = []
+        notCopiedFiles = []
+        _MoveFile(renderedOtioFile)
+        renderedFilesDict["otio_file"] = copiedFiles if len(copiedFiles) else []
 
     return renderedFilesDict

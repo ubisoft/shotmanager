@@ -34,13 +34,16 @@ class UAS_LaunchRRSRender(Operator):
     prodFilePath: StringProperty(default="")
     takeIndex: IntProperty(default=-1)
     verbose: BoolProperty(default=False)
+    useCache: BoolProperty(default=False)
 
     def execute(self, context):
         """Launch RRS Publish script"""
         print(" UAS_LaunchRRSRender")
 
         # publish_rrs.publishRRS( context.scene.UAS_shot_manager_props.renderRootPath )
-        publish_rrs.publishRRS(self.prodFilePath, verbose=self.verbose, takeIndex=self.takeIndex)
+        publish_rrs.publishRRS(
+            self.prodFilePath, verbose=self.verbose, takeIndex=self.takeIndex, useCache=self.useCache
+        )
         print("End of Publish")
 
         return {"FINISHED"}

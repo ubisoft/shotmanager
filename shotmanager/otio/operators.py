@@ -26,7 +26,7 @@ class UAS_ShotManager_Export_OTIO(Operator):
         props = context.scene.UAS_shot_manager_props
 
         if props.isRenderRootPathValid():
-            exportOtio(context.scene, renderRootFilePath=props.renderRootPath, fps=context.scene.render.fps)
+            exportOtio(context.scene, filePath=props.renderRootPath, fps=context.scene.render.fps)
         else:
             from ..utils.utils import ShowMessageBox
 

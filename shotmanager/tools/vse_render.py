@@ -176,7 +176,7 @@ class UAS_Vse_Render(PropertyGroup):
     inputBGResolution: IntVectorProperty(size=2, default=(1280, 960))
 
     def getMediaType(self, filePath):
-        """ Return the type of media according to the file extension
+        """ Return the type of media according to the extension of the provided file path
             Eg: 'IMAGE', 'SOUND', 'MOVIE'
         """
         mediaType = "UNKNOWN"
@@ -281,8 +281,9 @@ class UAS_Vse_Render(PropertyGroup):
         if "SOUND" == mediaType:
             newClip = scene.sequence_editor.sequences.new_movie("mySound", mediaPath, channelInd, atFrame)
 
-        newClip.frame_offset_start = offsetStart
-        newClip.frame_offset_end = offsetEnd
+        if newClip is not None:
+            newClip.frame_offset_start = offsetStart
+            newClip.frame_offset_end = offsetEnd
 
         return newClip
 
@@ -310,15 +311,16 @@ class UAS_Vse_Render(PropertyGroup):
         # scene.render.ffmpeg.constant_rate_factor = video_quality
 
         bgClip = self.createNewClip(scene, self.inputBGMediaPath, 1, 1)
+
         overClip = self.createNewClip(scene, self.inputOverMediaPath, 2, 1)
+        if overClip is not None:
+            overClip.use_crop = True
+            overClip.crop.min_x = -1 * int((self.inputBGResolution[0] - self.inputOverResolution[0]) / 2)
+            overClip.crop.max_x = overClip.crop.min_x
+            overClip.crop.min_y = -1 * int((self.inputBGResolution[1] - self.inputOverResolution[1]) / 2)
+            overClip.crop.max_y = overClip.crop.min_y
 
-        overClip.use_crop = True
-        overClip.crop.min_x = -1 * int((self.inputBGResolution[0] - self.inputOverResolution[0]) / 2)
-        overClip.crop.max_x = overClip.crop.min_x
-        overClip.crop.min_y = -1 * int((self.inputBGResolution[1] - self.inputOverResolution[1]) / 2)
-        overClip.crop.max_y = overClip.crop.min_y
-
-        overClip.blend_type = "OVER_DROP"
+            overClip.blend_type = "OVER_DROP"
 
         # bpy.context.scene.sequence_editor.sequences
         # get res of video: bpy.context.scene.sequence_editor.sequences[1].elements[0].orig_width

@@ -831,7 +831,7 @@ class UAS_ShotManager_Render_DisplayProjectSettings(Operator):
 ######
 
 
-# def exportOtio(scene, takeIndex=-1, renderRootFilePath="", fps=-1):
+# def exportOtio(scene, takeIndex=-1, filePath="", fps=-1):
 #     """ Create an OpenTimelineIO XML file for the specified take
 #         Return the file path of the created file
 #     """
@@ -921,7 +921,7 @@ class UAS_ShotManager_Render_DisplayProjectSettings(Operator):
 #         props = context.scene.UAS_shot_manager_props
 
 #         if props.isRenderRootPathValid():
-#             exportOtio(context.scene, renderRootFilePath=props.renderRootPath, fps=context.scene.render.fps)
+#             exportOtio(context.scene, filePath=props.renderRootPath, fps=context.scene.render.fps)
 #         else:
 #             from ..utils.utils import ShowMessageBox
 
