@@ -1,5 +1,5 @@
 import bpy
-from bpy.types import Panel, Operator
+from bpy.types import Panel, Operator, Menu
 
 from ..utils import utils
 
@@ -8,35 +8,163 @@ from ..utils import utils
 #############
 
 
-class UAS_PT_ShotManagerPrefPanel(Panel):
-    bl_label = "Preferences"
-    bl_idname = "UAS_PT_Shot_Manager_Pref"
-    bl_space_type = "VIEW_3D"
-    bl_region_type = "UI"
-    bl_category = "UAS Shot Man"
-    bl_options = {"DEFAULT_CLOSED"}
+class UAS_MT_ShotManager_Prefs_MainMenu(Menu):
+    bl_idname = "UAS_MT_Shot_Manager_prefs_mainmenu"
+    bl_label = "General Preferences"
+    # bl_description = "General Preferences"
 
     def draw(self, context):
         layout = self.layout
 
-    # shots preferences
-    # row = layout.row()
-    # row.label ( text = "Shots:" )
-    # box = layout.box()
-    # col = box.column()
-    # col.use_property_split = True
-    # col.prop ( context.scene.UAS_shot_manager_props, "display_camera_in_shotlist",text = "Display Camera in Shot List" )
-    # col.prop ( context.scene.UAS_shot_manager_props, "new_shot_duration", text = "Default Shot Length" )
-    # col.prop ( context.scene.UAS_shot_manager_props, "new_shot_prefix", text = "Default Shot Prefix" )
+        row = layout.row(align=True)
+        row.operator("uas_shot_manager.general_prefs", text="Preferences...")
+        row = layout.row(align=True)
+        row.operator("uas_shot_manager.project_settings_prefs", text="Project Settings...")
 
-    # timeline preferences
-    # row = layout.row()
-    # row.label ( text = "Timeline:" )
-    # box = layout.box()
-    # col = box.column()
-    # col.use_property_split = True
-    # col.prop ( context.scene.UAS_shot_manager_props, "change_time", text = "Set Current Frame On Shot Selection" )
-    # col.prop ( context.scene.UAS_shot_manager_props, "display_disabledshots_in_timeline", text = "Display Disabled Shots in Timeline" )
+        layout.separator()
+        row = layout.row(align=True)
+
+        row.operator("uas_shot_manager.about", text="About...")
+
+
+class UAS_ShotManager_About(Operator):
+    bl_idname = "uas_shot_manager.about"
+    bl_label = "About UAS Shot Manager..."
+    bl_description = "More information about UAS Shot Manager..."
+    bl_options = {"INTERNAL"}
+
+    def invoke(self, context, event):
+        return context.window_manager.invoke_props_dialog(self, width=400)
+
+    def draw(self, context):
+        props = context.scene.UAS_shot_manager_props
+        layout = self.layout
+        box = layout.box()
+
+        # Version
+        ###############
+        row = box.row()
+        row.separator()
+        row.label(
+            text="Version:" + props.version() + "   -    (" + "July 2020" + ")" + "   -    Ubisoft Animation Studio"
+        )
+
+        # Authors
+        ###############
+        row = box.row()
+        row.separator()
+        row.label(text="Written by Julien Blervaque (aka Werwack), Romain Carriquiry Borchiari")
+
+        # Purpose
+        ###############
+        row = box.row()
+        row.label(text="Purpose:")
+        row = box.row()
+        row.separator()
+        row.label(text="Create a set of camera shots and edit them")
+        row = box.row()
+        row.separator()
+        row.label(text="in the 3D View as you would do with video clips.")
+
+        # Dependencies
+        ###############
+        row = box.row()
+        row.label(text="Dependencies:")
+        row = box.row()
+        row.separator()
+        row.label(text="- OpenTimelineIO")
+        row = box.row()
+        row.separator()
+        row.label(text="- UAS Stamp Info")
+
+        if "UAS_StampInfo_Settings" not in context.scene or context.scene["UAS_StampInfo_Settings"] is None:
+            # row.alert = True
+            row.label(text="Version not found")
+            row.alert = False
+        else:
+            try:
+                versionStr = utils.addonVersion("UAS_StampInfo")
+                row.label(text="Loaded - V." + versionStr)
+                # row.label(text="Loaded - V." + context.scene.UAS_StampInfo_Settings.version())
+            except Exception as e:
+                #    row.alert = True
+                row.label(text="Not found")
+
+        row.separator()
+
+        layout.separator(factor=1)
+
+    def execute(self, context):
+        return {"FINISHED"}
+
+
+class UAS_ShotManager_General_Prefs(Operator):
+    bl_idname = "uas_shot_manager.general_prefs"
+    bl_label = "General Preferences"
+    bl_description = "Display the General Preferences panel"
+    bl_options = {"INTERNAL"}
+
+    def invoke(self, context, event):
+        return context.window_manager.invoke_props_dialog(self, width=400)
+
+    def draw(self, context):
+        props = context.scene.UAS_shot_manager_props
+        layout = self.layout
+
+        box = layout.box()
+        col = box.column()
+
+        col.use_property_split = True
+        # col.use_property_decorate = False
+
+        col.prop(props, "new_shot_duration", text="Default Shot Length")
+        col.prop(props, "new_shot_prefix", text="Default Shot Prefix")
+
+        # row = layout.row()
+        # row.label(text="Handles:")
+        col.prop(props, "handles", text="Handles Duration")
+
+        layout.separator(factor=1)
+
+    def execute(self, context):
+        return {"FINISHED"}
+
+
+class UAS_ShotManager_ProjectSettings_Prefs(Operator):
+    bl_idname = "uas_shot_manager.project_settings_prefs"
+    bl_label = "Project Settings"
+    bl_description = "Display the Project Settings panel"
+    bl_options = {"INTERNAL"}
+
+    def invoke(self, context, event):
+        return context.window_manager.invoke_props_dialog(self, width=450)
+
+    def draw(self, context):
+        layout = self.layout
+        scene = context.scene
+        props = scene.UAS_shot_manager_props
+
+        settingsList = props.restoreProjectSettings(settingsListOnly=True)
+
+        box = layout.box()
+
+        # grid_flow = row.grid_flow(align=True, row_major=True, columns=2, even_columns=False)
+
+        # col = grid_flow.column(align=False)
+        # col.scale_x = 0.6
+        # col.label(text="New Shot Name:")
+
+        for prop in settingsList:
+            row = box.row(align=True)
+            row.label(text=prop[0] + ":")
+            row.label(text=str(prop[1]))
+
+        # col = grid_flow.column(align=False)
+        # col.prop ( self, "name", text="" )
+
+    def execute(self, context):
+
+        return {"FINISHED"}
 
 
 class UAS_PT_ShotManagerPref_General(Panel):
@@ -57,34 +185,10 @@ class UAS_PT_ShotManagerPref_General(Panel):
         col.label(text="PlaceHolder")
 
 
-class UAS_PT_ShotManagerPref_Project(Panel):
-    bl_label = "Project"
-    bl_idname = "UAS_PT_Shot_Manager_Pref_Project"
-    bl_space_type = "VIEW_3D"
-    bl_region_type = "UI"
-    bl_category = "UAS Shot Man"
-    bl_options = {"DEFAULT_CLOSED"}
-    bl_parent_id = "UAS_PT_Shot_Manager_Pref"
-
-    def draw(self, context):
-        layout = self.layout
-        props = context.scene.UAS_shot_manager_props
-        layout.use_property_split = True
-
-        col = layout.column()
-        col.use_property_split = True
-        col.prop(props, "new_shot_duration", text="Default Shot Length")
-        col.prop(props, "new_shot_prefix", text="Default Shot Prefix")
-
-        # row = layout.row()
-        # row.label(text="Handles:")
-        col.prop(props, "handles", text="Handles Duration")
-
-
 class UAS_ShotManager_Playbar_Prefs(Operator):
     bl_idname = "uas_shot_manager.playbar_prefs"
     bl_label = "Playbar, Timeline ad Edit Settings"
-    bl_description = "Display the Playbar, Timeline ad Edit Preferences panel"
+    bl_description = "Display the Playbar, Timeline and Edit Preferences panel"
     bl_options = {"INTERNAL"}
 
     def invoke(self, context, event):
@@ -147,7 +251,8 @@ class UAS_ShotManager_Shots_Prefs(Operator):
 
         layout = self.layout
 
-        # Shot List ######
+        # Shot List
+        ##############
         layout.label(text="Shot List:")
         box = layout.box()
         col = box.column()
@@ -171,7 +276,8 @@ class UAS_ShotManager_Shots_Prefs(Operator):
         col.prop(props, "current_shot_properties_mode")
         box.separator(factor=0.5)
 
-        # Shot infos displayed in viewport ######
+        # Shot infos displayed in viewport
+        ###############
         layout.separator(factor=1)
         layout.label(text="Shot Info Displayed in 3D Viewport:")
         box = layout.box()
@@ -179,6 +285,19 @@ class UAS_ShotManager_Shots_Prefs(Operator):
 
         col.use_property_split = True
         col.prop(props, "display_shotname_in_3dviewport", text="Display Shot name in 3D Viewport")
+
+        # Properties themes
+        ###############
+        layout.separator(factor=1)
+        layout.label(text="Additional Properties and Tools by Themes:")
+        box = layout.box()
+        row = box.row()
+
+        # row.use_property_split = True
+        row.alignment = "CENTER"
+        row.label(text="Camera Backgrounds")
+        row.scale_x = 1.5
+        row.prop(props, "display_camerabgtools_in_properties", text="", icon="CAMERA_DATA")
 
         # col.prop(
         #     props, "display_selectbut_in_shotlist", text="Display Camera Select Button",
@@ -198,52 +317,54 @@ class UAS_ShotManager_Shots_Prefs(Operator):
         # col.prop(props, "current_shot_properties_mode")
         # box.separator(factor=0.5)
 
-        layout.separator(factor=1)
+        layout.separator(factor=2)
 
     def execute(self, context):
         return {"FINISHED"}
 
 
-class UAS_PT_ShotManager_Render_StampInfoProperties(Panel):
-    bl_label = "Stamp Info Properties"
-    bl_idname = "UAS_PT_Shot_Manager_Pref_StampInfoPrefs"
-    bl_space_type = "VIEW_3D"
-    bl_region_type = "UI"
-    bl_category = "UAS Shot Man"
-    bl_options = {"DEFAULT_CLOSED"}
-    bl_parent_id = "UAS_PT_Shot_Manager_Pref"
+# class UAS_PT_ShotManager_Render_StampInfoProperties(Panel):
+#     bl_label = "Stamp Info Properties"
+#     bl_idname = "UAS_PT_Shot_Manager_Pref_StampInfoPrefs"
+#     bl_space_type = "VIEW_3D"
+#     bl_region_type = "UI"
+#     bl_category = "UAS Shot Man"
+#     bl_options = {"DEFAULT_CLOSED"}
+#     bl_parent_id = "UAS_PT_Shot_Manager_Pref"
 
-    def draw_header_preset(self, context):
-        layout = self.layout
-        layout.emboss = "NONE"
-        row = layout.row(align=True)
+#     def draw_header_preset(self, context):
+#         layout = self.layout
+#         layout.emboss = "NONE"
+#         row = layout.row(align=True)
 
-        if "UAS_StampInfo_Settings" not in context.scene or context.scene["UAS_StampInfo_Settings"] is None:
-            # row.alert = True
-            row.label(text="Version not found")
-            row.alert = False
-        else:
-            try:
-                versionStr = utils.addonVersion("UAS_StampInfo")
-                row.label(text="Loaded - V." + versionStr)
-                # row.label(text="Loaded - V." + context.scene.UAS_StampInfo_Settings.version())
-            except Exception as e:
-                #    row.alert = True
-                row.label(text="Not found")
+#         if "UAS_StampInfo_Settings" not in context.scene or context.scene["UAS_StampInfo_Settings"] is None:
+#             # row.alert = True
+#             row.label(text="Version not found")
+#             row.alert = False
+#         else:
+#             try:
+#                 versionStr = utils.addonVersion("UAS_StampInfo")
+#                 row.label(text="Loaded - V." + versionStr)
+#                 # row.label(text="Loaded - V." + context.scene.UAS_StampInfo_Settings.version())
+#             except Exception as e:
+#                 #    row.alert = True
+#                 row.label(text="Not found")
 
-    def draw(self, context):
-        box = self.layout.box()
-        row = box.row()
-        row.prop(context.scene.UAS_shot_manager_props, "useStampInfoDuringRendering")
+#     def draw(self, context):
+#         box = self.layout.box()
+#         row = box.row()
+#         row.prop(context.scene.UAS_shot_manager_props, "useStampInfoDuringRendering")
 
 
 _classes = (
-    UAS_PT_ShotManagerPrefPanel,
-    UAS_PT_ShotManagerPref_Project,
-    UAS_PT_ShotManager_Render_StampInfoProperties,
+    UAS_MT_ShotManager_Prefs_MainMenu,
+    UAS_ShotManager_About,
+    UAS_ShotManager_General_Prefs,
+    UAS_ShotManager_ProjectSettings_Prefs,
     # UAS_PT_ShotManagerPref_General,
     UAS_ShotManager_Playbar_Prefs,
     UAS_ShotManager_Shots_Prefs,
+    # UAS_PT_ShotManager_Render_StampInfoProperties,
 )
 
 

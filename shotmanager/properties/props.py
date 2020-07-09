@@ -230,6 +230,14 @@ class UAS_ShotManager_Props(PropertyGroup):
         options=set(),
     )
 
+    display_camerabgtools_in_properties: BoolProperty(
+        name="Display Camera Background Image Tools in Shot Prpperties",
+        description="Display the Camera Background Image Tools in the shot properties panels",
+        default=False,
+        options=set(),
+    )
+
+
     # shots global settings
     #############
 
