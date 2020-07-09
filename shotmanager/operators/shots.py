@@ -5,6 +5,8 @@ from bpy.props import IntProperty, StringProperty, EnumProperty, BoolProperty, F
 from random import uniform
 import json
 
+from ..utils import utils
+
 
 def list_cameras(self, context):
     res = list()
@@ -243,6 +245,8 @@ class UAS_ShotManager_ShotDuplicate(Operator):
     name: StringProperty(name="Name")
     startAtCurrentTime: BoolProperty(name="Start At Current Frame", default=True)
     addToEndOfList: BoolProperty(name="Add At The End Of The List")
+    duplicateCam: BoolProperty(name="Also Duplicate Camera")
+    camName: StringProperty(name="Camera Name")
 
     @classmethod
     def poll(cls, context):
@@ -255,30 +259,42 @@ class UAS_ShotManager_ShotDuplicate(Operator):
         if selectedShot is None:
             return {"CANCELLED"}
         self.name = selectedShot.name + "_copy"
-        return context.window_manager.invoke_props_dialog(self)
+        if selectedShot.camera is not None:
+            self.camName = selectedShot.camera.name + "_copy"
+        return context.window_manager.invoke_props_dialog(self, width=350)
 
     def draw(self, context):
         layout = self.layout
         scene = context.scene
 
         box = layout.box()
+        box.separator(factor=0.2)
         row = box.row(align=True)
-        grid_flow = row.grid_flow(align=True, row_major=True, columns=2, even_columns=False)
+        row.label(text="New Shot Name:")
+        row.scale_x = 1.6
+        row.prop(self, "name", text="")
 
-        col = grid_flow.column(align=False)
-        col.scale_x = 0.6
-        col.label(text="New Shot Name:")
-        col = grid_flow.column(align=False)
-        col.prop(self, "name", text="")
-
+        box.separator(factor=0.1)
         row = box.row(align=True)
-        grid_flow = row.grid_flow(align=True, row_major=True, columns=1, even_columns=False)
-        # grid_flow.separator( factor=0.5)
-        grid_flow.use_property_split = True
-        grid_flow.prop(self, "startAtCurrentTime")
-        grid_flow.prop(self, "addToEndOfList")
+        row.separator(factor=2.5)
+        subgrid_flow = row.grid_flow(align=True, row_major=True, columns=1, even_columns=False)
+        # subgrid_flow.separator( factor=0.5)
+        # subgrid_flow.use_property_split = True
+        subgrid_flow.prop(self, "startAtCurrentTime")
+        subgrid_flow.prop(self, "addToEndOfList")
+        subgrid_flow.separator(factor=1.0)
+        subgrid_flow.prop(self, "duplicateCam")
 
-        layout.separator()
+        row = box.row()
+        row.enabled = self.duplicateCam
+        row.scale_x = 1.6
+        row.separator(factor=2.0)
+        row.label(text="New Camera Name:")
+        row.scale_x = 2.4
+        row.prop(self, "camName", text="")
+        row.separator(factor=0.5)
+
+        box.separator(factor=0.4)
 
     def execute(self, context):
         props = context.scene.UAS_shot_manager_props
@@ -292,13 +308,18 @@ class UAS_ShotManager_ShotDuplicate(Operator):
         newShot = props.copyShot(selectedShot, atIndex=newShotInd)
 
         # newShot.name = props.getUniqueShotName(self.name)
+        newShot.name = self.name
         if self.startAtCurrentTime:
             newShot.start = context.scene.frame_current
             newShot.end = newShot.start + selectedShot.end - selectedShot.start
 
-        # removed, now done in addShot
-        # props.setCurrentShotByIndex(newShotInd)
-        # props.setSelectedShotByIndex(newShotInd)
+        if self.duplicateCam and newShot.camera is not None:
+            newCam = utils.duplicateObject(newShot.camera)
+            newCam.name = self.camName
+            newShot.camera = newCam
+
+        props.setCurrentShotByIndex(newShotInd)
+        props.setSelectedShotByIndex(newShotInd)
 
         return {"FINISHED"}
 

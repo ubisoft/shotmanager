@@ -177,45 +177,30 @@ def add_background_video_to_cam(
         bg.clip_user.proxy_render_size = proxyRenderSize
 
 
-class UAS_Utils_RunScript(Operator):
-    bl_idname = "uas_utils.run_script"
-    bl_label = "Run Script"
-    bl_description = "Open a script and run it"
-
-    path: StringProperty()
-
-    def execute(self, context):
-        import pathlib
-
-        myPath = str(pathlib.Path(__file__).parent.absolute()) + self.path  # \\api\\api_first_steps.py"
-        print("\n*** UAS_Utils_RunScript Op is running: ", myPath)
-        # bpy.ops.script.python_file_run(filepath=bpy.path.abspath(myPath))
-        bpy.ops.script.python_file_run(filepath=myPath)
-        return {"FINISHED"}
-
-
-def findFirstUniqueName(originalItem, name, itemsArray):
-    """ Return a string that correspont to name.xxx as the first unique name in the array
+def cameras_from_scene(scene):
+    """ Return the list of all the cameras in the scene
     """
-    itemInd = 0
-    numDuplicatesFound = 0
-    newIndexStr = ".{:03}"
-    newName = name
-    while itemInd < len(itemsArray):
-        if itemsArray[itemInd] != originalItem and newName == itemsArray[itemInd].name:
-            newName = name + newIndexStr.format(numDuplicatesFound)
-            numDuplicatesFound += 1
-            itemInd = 0
-        else:
-            itemInd += 1
-
-    return newName
+    camList = [c for c in scene.objects if c.type == "CAMERA"]
+    return camList
 
 
-_classes = (
-    UAS_ShotManager_OpenExplorer,
-    UAS_Utils_RunScript,
-)
+def duplicateObject(sourceObject):
+    """ Duplicate (deepcopy) an object and place it in the same collection
+    """
+    newObject = sourceObject.copy()
+    newObject.animation_data.action = sourceObject.animation_data.action.copy()
+    newObject.data = sourceObject.data.copy()
+    newObject.data.animation_data.action = sourceObject.data.animation_data.action.copy()
+
+    sourceCollections = sourceObject.users_collection
+    if len(sourceCollections):
+        sourceCollections[0].objects.link(newObject)
+    else:
+        (sourceObject.users_scene)[0].collection.objects.link(newObject)
+    return newObject
+
+
+_classes = (UAS_ShotManager_OpenExplorer,)
 
 
 def register():

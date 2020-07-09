@@ -2,7 +2,7 @@ import bpy
 
 from bpy.types import Scene
 from bpy.types import PropertyGroup
-from bpy.props import StringProperty, IntProperty, BoolProperty, PointerProperty, FloatVectorProperty, FloatProperty
+from bpy.props import StringProperty, IntProperty, BoolProperty, PointerProperty, FloatVectorProperty
 
 from shotmanager.utils.utils import findFirstUniqueName
 
@@ -150,8 +150,8 @@ class UAS_ShotManager_Shot(PropertyGroup):
     def _get_duration_fp(self):
         print("\n*** _get_duration_fp: New state: ", self.duration_fp)
 
-        # not used
-        fakeVal = self.get("_get_duration_fp", -1)
+        # not used, normal it's the fake property
+        self.get("_get_duration_fp", -1)
 
         realVal = self.getDuration()
         return realVal
@@ -195,11 +195,20 @@ class UAS_ShotManager_Shot(PropertyGroup):
         options=set(),
     )
 
+    def _filter_cameras(self, object):
+        """ Return true only for cameras from the same scene as the shot
+        """
+        print("self", str(self))  # this shot
+        print("object", str(object))  # all the objects of the property type
+        camList = [c for c in self.parentScene.objects if c.type == "CAMERA"]
+        return object in camList
+
     camera: PointerProperty(
         name="Camera",
         description="Select a Camera",
         type=bpy.types.Object,
-        poll=lambda self, obj: True if obj.type == "CAMERA" else False,
+        # poll=lambda self, obj: True if obj.type == "CAMERA" else False,
+        poll=_filter_cameras,
     )
 
     def get_color(self):
