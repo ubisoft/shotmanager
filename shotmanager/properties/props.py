@@ -217,6 +217,19 @@ class UAS_ShotManager_Props(PropertyGroup):
         name="Display Get/Set current Frame Buttons in Shot List", default=True, options=set()
     )
 
+    def _update_display_shotname_in_3dviewport(self, context):
+        # print("\n*** Stamp Info updated. New state: ", self.stampInfoUsed)
+        if self.display_shotname_in_3dviewport:
+            bpy.ops.uas_shot_manager.draw_cameras_ui("INVOKE_DEFAULT")
+
+    display_shotname_in_3dviewport: BoolProperty(
+        name="Display Shot name in 3D Viewports",
+        description="Display the name of the shots near the camera object or frame in the 3D viewport",
+        default=True,
+        update=_update_display_shotname_in_3dviewport,
+        options=set(),
+    )
+
     # shots global settings
     #############
 

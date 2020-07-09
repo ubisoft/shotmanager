@@ -3,7 +3,7 @@ from bpy.types import Panel, Operator, Menu
 from bpy.props import StringProperty, IntProperty
 
 from ..config import config
-from ..ogl_ui import UAS_ShotManager_DrawTimeline, UAS_ShotManager_DrawCameras_UI
+from ..viewport_3d.ogl_ui import UAS_ShotManager_DrawTimeline, UAS_ShotManager_DrawCameras_UI
 
 from ..utils import utils
 

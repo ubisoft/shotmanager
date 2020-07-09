@@ -178,6 +178,8 @@ class UAS_ShotManager_Shots_Prefs(Operator):
         col = box.column()
 
         col.use_property_split = True
+        col.prop(props, "display_shotname_in_3dviewport", text="Display Shot name in 3D Viewport")
+
         # col.prop(
         #     props, "display_selectbut_in_shotlist", text="Display Camera Select Button",
         # )
