@@ -24,7 +24,7 @@ class UAS_PT_ShotManager(Panel):
     def poll(cls, context):
         props = context.scene.UAS_shot_manager_props
         val = True
-        val = val and not props.dontRefreshUI()
+        # val = val and not props.dontRefreshUI()
         return val
 
     def draw_header(self, context):

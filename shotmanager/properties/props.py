@@ -124,7 +124,7 @@ class UAS_ShotManager_Props(PropertyGroup):
     refreshUIDuringPlay: BoolProperty(
         name="Keep Refreshing UI During Play (Slower)",
         description="Refresh the information displayed in the Shot Manager UI during Shot Mode Play (slower)",
-        default=False,
+        default=True,
         options=set(),
     )
 
