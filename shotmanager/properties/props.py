@@ -258,6 +258,63 @@ class UAS_ShotManager_Props(PropertyGroup):
         name="Display Get/Set current Frame Buttons in Shot List", default=True, options=set()
     )
 
+    def _update_display_shotname_in_3dviewport(self, context):
+        # print("\n*** Stamp Info updated. New state: ", self.stampInfoUsed)
+        if self.display_shotname_in_3dviewport:
+            bpy.ops.uas_shot_manager.draw_cameras_ui("INVOKE_DEFAULT")
+
+    display_shotname_in_3dviewport: BoolProperty(
+        name="Display Shot name in 3D Viewports",
+        description="Display the name of the shots near the camera object or frame in the 3D viewport",
+        default=True,
+        update=_update_display_shotname_in_3dviewport,
+        options=set(),
+    )
+
+    display_camerabgtools_in_properties: BoolProperty(
+        name="Display Camera Background Image Tools in Shot Prpperties",
+        description="Display the Camera Background Image Tools in the shot properties panels",
+        default=False,
+        options=set(),
+    )
+
+    def _get_useLockCameraView(self):
+        #   print("\n*** useLockCameraView: New state: ", self.useLockCameraView)
+
+        # Can also use area.spaces.active to get the space assoc. with the area
+        for area in bpy.context.screen.areas:
+            if area.type == "VIEW_3D":
+                for space in area.spaces:
+                    if space.type == "VIEW_3D":
+                        realVal = space.lock_camera
+
+        # not used, normal it's the fake property
+        self.get("useLockCameraView", realVal)
+
+        return realVal
+
+    def _set_useLockCameraView(self, value):
+        #  print("\n*** useLockCameraView: New state: ", self.useLockCameraView)
+        self["useLockCameraView"] = value
+        for area in bpy.context.screen.areas:
+            if area.type == "VIEW_3D":
+                for space in area.spaces:
+                    if space.type == "VIEW_3D":
+                        space.lock_camera = value
+
+    # def _update_duration_fp(self, context):
+    #     print("\n*** _update_duration_fp: New state: ", self.duration_fp)
+
+    # fake property: value never used in itself, its purpose is to update ofher properties
+    useLockCameraView: BoolProperty(
+        name="Lock Cameras to View",
+        description="Enable view navigation within the camera view",
+        get=_get_useLockCameraView,
+        set=_set_useLockCameraView,
+        # update=_update_useLockCameraView,
+        options=set(),
+    )
+
     # shots global settings
     #############
 

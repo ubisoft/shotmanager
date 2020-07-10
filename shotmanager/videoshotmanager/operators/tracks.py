@@ -1,18 +1,37 @@
-
 import bpy
 from bpy.types import Operator, Menu
-from bpy.props import StringProperty, BoolProperty, FloatVectorProperty, PointerProperty
+from bpy.props import StringProperty, BoolProperty, FloatVectorProperty, PointerProperty, EnumProperty
 
 from ..properties.track import UAS_VideoShotManager_Track
+
+from random import uniform
+
+
+def _list_scenes(self, context):
+    res = list()
+    # print("Self: ", self)
+    for i, scn in enumerate([c for c in bpy.data.scenes]):
+        if "UAS_shot_manager_props" in scn and scn is not context.scene:
+            res.append((scn.name, scn.name, "", i))
+    # if not len(res):
+    #     res.append(("", "", "", 0))
+    return res
+
+
+def _list_takes(self, context):
+    res = list()
+    for i, take in enumerate([c for c in bpy.data.scenes[self.sceneName].UAS_shot_manager_props.takes]):
+        res.append((take.name, take.name, "", i))
+    # if not len(res):
+    #     res.append(("", "", "", 0))
+    #     print("Toto")
+    return res
 
 
 class UAS_VideoShotManager_TrackAdd(Operator):
     bl_idname = "uas_video_shot_manager.add_track"
     bl_label = "Add New Track"
-    bl_description = (
-        "Add a new track starting at the current frame"
-        "\nThe new track is put after the selected track"
-    )
+    bl_description = "Add a new track starting at the current frame" "\nThe new track is put after the selected track"
     bl_options = {"REGISTER", "UNDO"}
 
     name: StringProperty(name="Name")
@@ -29,24 +48,43 @@ class UAS_VideoShotManager_TrackAdd(Operator):
         default=(1.0, 1.0, 1.0),
     )
 
+    trackType: EnumProperty(
+        name="Track Type",
+        description="Type of the track",
+        items=(
+            ("RENDERED_SHOTS", "Rendered Shots", ""),
+            ("SHOT_CAMERAS", "Shot Cameras", ""),
+            ("CAM_FROM_SCENE", "Camera From Scene", ""),
+            ("CAM_BG", "Camera Backgrounds", ""),
+            ("CUSTOM", "Custom", ""),
+        ),
+        default="CAM_BG",
+        options=set(),
+    )
+
+    sceneName: EnumProperty(
+        items=_list_scenes, name="Takes", description="Select a take",  # update=_current_take_changed
+    )
+
+    sceneTakeName: EnumProperty(
+        items=_list_takes, name="Takes", description="Select a take",  # update=_current_take_changed
+    )
+
     def invoke(self, context, event):
         wm = context.window_manager
 
         self.name = "New Track"
-        ev = []
-        if event.ctrl:
-            ev.append("Ctrl")
-        if event.shift:
-            ev.append("Shift")
-        if event.alt:
-            ev.append("Alt")
-        if event.oskey:
-            ev.append("OS")
-        ev.append("Click")
+        self.color = (uniform(0, 1), uniform(0, 1), uniform(0, 1))
 
-        self.report({'INFO'}, "+".join(ev))
+        sceneNames = _list_scenes(self, context)
+        if len(sceneNames):
+            self.sceneName = sceneNames[0][0]
 
-        return wm.invoke_props_dialog(self)
+        takeNames = _list_takes(self, context)
+        if len(takeNames):
+            self.sceneTakeName = takeNames[0][0]
+
+        return wm.invoke_props_dialog(self, width=400)
 
     def draw(self, context):
         layout = self.layout
@@ -61,11 +99,30 @@ class UAS_VideoShotManager_TrackAdd(Operator):
         col = grid_flow.column(align=False)
         col.prop(self, "name", text="")
 
-        
         col = grid_flow.column(align=False)
         col.label(text="Color:")
-        col = grid_flow.column(align=True)
+        col = grid_flow.column(align=False)
         col.prop(self, "color", text="")
+
+        col.separator()
+
+        col = grid_flow.column(align=False)
+        col.label(text="Track Type:")
+        col = grid_flow.column(align=False)
+        col.prop(self, "trackType", text="")
+
+        if "CUSTOM" != self.trackType:
+            col = grid_flow.column(align=False)
+            col.label(text="Scene:")
+            col = grid_flow.column(align=False)
+            col.prop(self, "sceneName", text="")
+
+            col = grid_flow.column(align=False)
+            col.label(text="Take:")
+            col = grid_flow.column(align=False)
+            #  if self.sceneTakeName == "":
+            # col.alert = True
+            col.prop(self, "sceneTakeName", text="")
 
         layout.separator()
 
@@ -81,6 +138,9 @@ class UAS_VideoShotManager_TrackAdd(Operator):
             atIndex=newTrackInd,
             name=vsm_props.getUniqueTrackName(self.name),
             color=col,
+            trackType=self.trackType,
+            sceneName=self.sceneName,
+            sceneTakeName=self.sceneTakeName,
         )
 
         vsm_props.setCurrentTrackByIndex(newTrackInd)
@@ -222,12 +282,11 @@ class UAS_VideoShotManager_Actions(Operator):
 
     def invoke(self, context, event):
         scene = context.scene
-        print("ici")
         vsm_props = scene.UAS_vsm_props
         tracks = vsm_props.getTracks()
         currentTrackInd = vsm_props.getCurrentTrackIndex()
         selectedTrackInd = vsm_props.getSelectedTrackIndex()
-        
+
         try:
             item = tracks[currentTrackInd]
         except IndexError:
@@ -250,7 +309,7 @@ class UAS_VideoShotManager_Actions(Operator):
                     vsm_props.setCurrentTrackByIndex(selectedTrackInd)
 
                 vsm_props.setSelectedTrackByIndex(selectedTrackInd - 1)
-                
+
         return {"FINISHED"}
 
 
@@ -269,7 +328,7 @@ class UAS_VideoShotManager_TrackRemoveMultiple(Operator):
         selectedTrackInd = vsm_props.getSelectedTrackIndex()
 
         tracks = vsm_props.getTracks()
-        
+
         vsm_props.setCurrentTrackByIndex(-1)
 
         try:
@@ -303,7 +362,7 @@ class UAS_VideoShotManager_UpdateVSETrack(Operator):
     bl_idname = "uas_video_shot_manager.update_vse_track"
     bl_label = "Update VSE Track"
     bl_description = "Update VSE Track"
-    bl_options = {"INTERNAL"}
+    bl_options = {"REGISTER", "UNDO"}
 
     trackName: StringProperty()
 
@@ -311,6 +370,20 @@ class UAS_VideoShotManager_UpdateVSETrack(Operator):
 
         print("trackName: ", self.trackName)
         context.scene.UAS_vsm_props.tracks[self.trackName].regenerateTrackContent()
+
+        return {"FINISHED"}
+
+
+class UAS_VideoShotManager_ClearVSETrack(Operator):
+    bl_idname = "uas_video_shot_manager.clear_vse_track"
+    bl_label = "Clear VSE Track"
+    bl_description = "Clear VSE Track"
+    bl_options = {"REGISTER", "UNDO"}
+
+    def invoke(self, context, event):
+        vsm_props = context.scene.UAS_vsm_props
+        print("trackName: ", vsm_props.tracks[vsm_props.selected_track_index].name)
+        vsm_props.tracks[vsm_props.selected_track_index].clearTrackContent()
 
         return {"FINISHED"}
 
@@ -333,6 +406,21 @@ class UAS_VideoShotManager_GoToSpecifedScene(Operator):
         return {"FINISHED"}
 
 
+class UAS_VideoShotManager_ClearAll(Operator):
+    bl_idname = "uas_video_shot_manager.clear_all"
+    bl_label = "Clear All"
+    bl_description = "Clear all channels"
+    bl_options = {"INTERNAL", "REGISTER", "UNDO"}
+
+    def invoke(self, context, event):
+        vsm_sceneName = "VideoShotManger"
+        vsm_scene = bpy.data.scenes[vsm_sceneName]
+        vsm_scene.sequence_editor_clear()
+        vsm_scene.sequence_editor_create()
+
+        return {"FINISHED"}
+
+
 _classes = (
     UAS_VideoShotManager_TrackAdd,
     UAS_VideoShotManager_TrackDuplicate,
@@ -340,8 +428,10 @@ _classes = (
     UAS_VideoShotManager_Actions,
     UAS_VideoShotManager_TrackRemoveMultiple,
     UAS_VideoShotManager_UpdateVSETrack,
+    UAS_VideoShotManager_ClearVSETrack,
     UAS_VideoShotManager_GoToSpecifedScene,
     # UAS_VideoShotManager_SetCurrentTrack,
+    UAS_VideoShotManager_ClearAll,
 )
 
 

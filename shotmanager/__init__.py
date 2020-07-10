@@ -66,7 +66,7 @@ def timeline_valueChanged(self, context):
     print("  timeline_valueChanged:  self.UAS_shot_manager_display_timeline: ", self.UAS_shot_manager_display_timeline)
     if self.UAS_shot_manager_display_timeline:
         bpy.ops.uas_shot_manager.draw_timeline("INVOKE_DEFAULT")
-        bpy.ops.uas_shot_manager.draw_cameras_ui("INVOKE_DEFAULT")
+        # bpy.ops.uas_shot_manager.draw_cameras_ui("INVOKE_DEFAULT")
 
 
 def install_shot_handler(self, context):

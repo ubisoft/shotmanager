@@ -34,7 +34,8 @@ class UAS_ShotManager_GoToVideoShotManager(Operator):
         )
 
         bpy.context.window.scene = vsm_scene
-        bpy.ops.workspace.append_activate(idname="Video Editing", filepath=startup_blend)
+        if "Video Editing" not in bpy.data.workspaces:
+            bpy.ops.workspace.append_activate(idname="Video Editing", filepath=startup_blend)
         bpy.context.window.workspace = bpy.data.workspaces["Video Editing"]
 
         return {"FINISHED"}

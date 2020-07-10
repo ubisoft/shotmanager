@@ -151,14 +151,14 @@ class UAS_ShotManager_Shot(PropertyGroup):
         print("\n*** _get_duration_fp: New state: ", self.duration_fp)
 
         # not used, normal it's the fake property
-        self.get("_get_duration_fp", -1)
+        self.get("duration_fp", -1)
 
         realVal = self.getDuration()
         return realVal
 
     def _set_duration_fp(self, value):
         print("\n*** _update_duration_fp: New state: ", self.duration_fp)
-        self["_set_duration_fp"] = value
+        self["duration_fp"] = value
         self.end = self.start + max(value, 1) - 1
 
     def _update_duration_fp(self, context):
@@ -253,11 +253,11 @@ class UAS_ShotManager_Shot(PropertyGroup):
         options=set(),
     )
 
-    def getEditStart(self, scene):
-        return scene.UAS_shot_manager_props.getEditTime(self, self.start)
+    def getEditStart(self):
+        return self.parentScene.UAS_shot_manager_props.getEditTime(self, self.start)
 
-    def getEditEnd(self, scene):
-        return scene.UAS_shot_manager_props.getEditTime(self, self.end)
+    def getEditEnd(self):
+        return self.parentScene.UAS_shot_manager_props.getEditTime(self, self.end)
 
     def updateClipLinkToShotStart(self):
         if self.camera is not None and len(self.camera.data.background_images):

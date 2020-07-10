@@ -83,7 +83,15 @@ class UAS_PT_VideoShotManager(Panel):
         # tracks
 
         row = layout.row()  # just to give some space...
+        vseFirstFrame = scene.frame_start
+        if vseFirstFrame != 0:
+            row.alert = True
+        row.label(text="First Frame: " + str(vseFirstFrame))
+
+        row = layout.row()  # just to give some space...
         row.label(text="Tracks")
+
+        row.operator("uas_video_shot_manager.clear_all")
 
         box = layout.box()
         row = box.row()
@@ -134,20 +142,34 @@ class UAS_UL_VideoShotManager_Items(bpy.types.UIList):
         grid_flow.prop(item, "enabled", text=" ")  # keep the space in the text !!!
         #   grid_flow.separator( factor = 0.5)
         grid_flow.scale_x = 0.6
-        grid_flow.prop(item, "vseTrackIndex", text=" ")
+        # grid_flow.prop(item, "vseTrackIndex", text=" ")
+        grid_flow.label(text="   " + str(item.vseTrackIndex))
+
         grid_flow.scale_x = 0.8
         grid_flow.label(text=item.name)
 
-        grid_flow.prop(item, "shotManagerScene", text=" ")
-        # grid_flow.prop(item, "shotManagerTake", text=" ")
-        grid_flow.prop(item, "current_take_name")
-        grid_flow.prop(item, "trackType", text=" ")
+        grid_flow.prop(item, "trackType", text="")
+
+        if not "CUSTOM" == item.trackType:
+            if item.shotManagerScene is None:
+                grid_flow.alert = True
+            grid_flow.prop(item, "shotManagerScene", text="")
+            if item.shotManagerScene is None:
+                grid_flow.alert = False
+
+            if item.shotManagerScene is None or item.sceneTakeName == "":
+                grid_flow.alert = True
+            grid_flow.prop(item, "sceneTakeName", text="")
+            if item.shotManagerScene is None:
+                grid_flow.alert = False
 
         grid_flow.operator(
             "uas_video_shot_manager.update_vse_track", text="", icon="FILE_REFRESH"
         ).trackName = item.name
 
-        grid_flow.operator("uas_video_shot_manager.go_to_specified_scene").trackName = item.name
+        grid_flow.operator(
+            "uas_video_shot_manager.go_to_specified_scene", text="", icon="SCENE_DATA"
+        ).trackName = item.name
 
 
 # ##################
@@ -193,6 +215,29 @@ class UAS_PT_VideoShotManager_TrackProperties(Panel):
             #   grid_flow.scale_x = 1.0
             grid_flow.prop(vsm_props, "display_color_in_tracklist", text="")
             row.separator(factor=0.5)  # prevents stange look when panel is narrow
+
+            grid_flow = c.grid_flow(align=False, columns=4, even_columns=False)
+            grid_flow.prop(track, "trackType")
+
+            if not "CUSTOM" == track.trackType:
+                if track.shotManagerScene is None:
+                    grid_flow.alert = True
+                grid_flow.prop(track, "shotManagerScene")
+                if track.shotManagerScene is None:
+                    grid_flow.alert = False
+
+                if track.shotManagerScene is None:
+                    grid_flow.alert = True
+                grid_flow.prop(track, "sceneTakeName")
+                if track.shotManagerScene is None:
+                    grid_flow.alert = False
+
+            layout.separator()
+            row = layout.row()
+            row.operator("uas_video_shot_manager.clear_vse_track")
+            row.operator("uas_video_shot_manager.update_vse_track", icon="FILE_REFRESH").trackName = track.name
+            row.operator("uas_video_shot_manager.go_to_specified_scene", icon="SCENE_DATA").trackName = track.name
+            layout.separator()
 
     @classmethod
     def poll(cls, context):
