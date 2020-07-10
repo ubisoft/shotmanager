@@ -1142,10 +1142,6 @@ _classes = (
     UAS_OT_OpenPathBrowser,
     #    UAS_ShotManager_Explorer,
     UAS_ShotManager_Render_RestoreProjectSettings,
-    UAS_ShotManager_Render_DisplayProjectSettings,
-    #    UAS_ShotManager_Export_OTIO,
-    #    UAS_ShotManager_OT_Import_OTIO,
-    #    UAS_OTIO_OpenFileBrowser,
 )
 
 

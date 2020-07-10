@@ -611,14 +611,15 @@ class UAS_ShotManager_Props(PropertyGroup):
         options=set(),
     )
 
-    renderRootPath: StringProperty(name="Render Root Path", default="")
+    renderRootPath: StringProperty(name="Render Root Path", default="//")
 
     def isRenderRootPathValid(self, renderRootFilePath=None):
         pathIsValid = False
 
         rootPath = self.renderRootPath if None == renderRootFilePath else renderRootFilePath
-        if "" != rootPath and os.path.exists(rootPath):
-            pathIsValid = True
+        if "" != rootPath:
+            if os.path.exists(rootPath) or rootPath.startswith("//"):
+                pathIsValid = True
         return pathIsValid
 
     ####################
