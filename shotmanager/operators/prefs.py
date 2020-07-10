@@ -209,6 +209,15 @@ class UAS_ShotManager_Playbar_Prefs(Operator):
         # col.prop(props, "current_shot_properties_mode")
         # box.separator(factor=0.5)
 
+        # Play ######
+        # layout.separator(factor=1)
+        layout.label(text="Shot Play Mode:")
+        box = layout.box()
+        col = box.column()
+
+        col.use_property_split = True
+        col.prop(props, "refreshUIDuringPlay")
+
         # Timeline ######
         # layout.separator(factor=1)
         layout.label(text="Timeline:")

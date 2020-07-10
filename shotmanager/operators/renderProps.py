@@ -36,6 +36,18 @@ class UAS_PT_ShotManagerRenderPanel(Panel):
     bl_category = "UAS Shot Man"
     bl_options = {"DEFAULT_CLOSED"}
 
+    @classmethod
+    def poll(cls, context):
+        props = context.scene.UAS_shot_manager_props
+        val = not props.dontRefreshUI() and len(props.takes) and len(props.get_shots())
+        return val
+
+    # def check(self, context):
+    #     # should we redraw when a button is pressed?
+    #     if True:
+    #         return True
+    #     return False
+
     def draw(self, context):
         props = context.scene.UAS_shot_manager_props
 
@@ -169,16 +181,6 @@ class UAS_PT_ShotManagerRenderPanel(Panel):
         # row.operator("uas_shot_manager.render_openexplorer", emboss=True, icon='FILEBROWSER', text="")
 
         self.layout.separator(factor=1)
-
-    def check(self, context):
-        # should we redraw when a button is pressed?
-        if True:
-            return True
-        return False
-
-    @classmethod
-    def poll(cls, context):
-        return len(context.scene.UAS_shot_manager_props.takes) and context.scene.UAS_shot_manager_props.get_shots()
 
 
 class UAS_OT_OpenPathBrowser(Operator):

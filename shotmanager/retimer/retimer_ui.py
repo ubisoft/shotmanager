@@ -19,6 +19,11 @@ class UAS_PT_ShotManagerRetimer(Panel):
     bl_category = "UAS Shot Man"
     bl_options = {"DEFAULT_CLOSED"}
 
+    @classmethod
+    def poll(cls, context):
+        props = context.scene.UAS_shot_manager_props
+        return not props.dontRefreshUI()
+
     def draw(self, context):
 
         retimerProps = context.scene.UAS_shot_manager_props.retimer

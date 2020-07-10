@@ -18,6 +18,7 @@ def initGlobalVariables():
 
     global uasDebug
 
+    # wkip better code: uasDebug = os.environ.get("UasDebug", "0") == "1"
     if "UasDebug" in os.environ.keys():
         uasDebug = bool(int(os.environ["UasDebug"]))
     else:

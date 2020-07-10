@@ -117,6 +117,17 @@ class UAS_ShotManager_Props(PropertyGroup):
 
         return warningList
 
+    def dontRefreshUI(self):
+        res = not self.refreshUIDuringPlay and bpy.context.screen.is_animation_playing
+        return res
+
+    refreshUIDuringPlay: BoolProperty(
+        name="Keep Refreshing UI During Play (Slower)",
+        description="Refresh the information displayed in the Shot Manager UI during Shot Mode Play (slower)",
+        default=True,
+        options=set(),
+    )
+
     # project settings
     #############
 
