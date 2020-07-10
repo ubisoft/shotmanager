@@ -4,6 +4,7 @@ stages:
 flake8:
   tags:
     - linux
+    - docker
   image: python:3
   stage: qa_build
   script:

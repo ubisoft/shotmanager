@@ -1,7 +1,7 @@
 from bpy.types import Operator
 from bpy.props import BoolProperty, StringProperty, IntProperty
 
-from . import publishRRS
+from . import publish_rrs
 
 
 # To call the operator:
@@ -17,7 +17,7 @@ class UAS_InitializeRRSProject(Operator):
     def execute(self, context):
         print(" UAS_InitializeRRSProject")
 
-        publishRRS.initializeForRRS(self.override_existing, verbose=self.verbose)
+        publish_rrs.initializeForRRS(self.override_existing, verbose=self.verbose)
 
         return {"FINISHED"}
 
@@ -34,13 +34,16 @@ class UAS_LaunchRRSRender(Operator):
     prodFilePath: StringProperty(default="")
     takeIndex: IntProperty(default=-1)
     verbose: BoolProperty(default=False)
+    useCache: BoolProperty(default=False)
 
     def execute(self, context):
         """Launch RRS Publish script"""
         print(" UAS_LaunchRRSRender")
 
-        # publishRRS.publishRRS( context.scene.UAS_shot_manager_props.renderRootPath )
-        publishRRS.publishRRS(self.prodFilePath, verbose=self.verbose, takeIndex=self.takeIndex)
+        # publish_rrs.publishRRS( context.scene.UAS_shot_manager_props.renderRootPath )
+        publish_rrs.publishRRS(
+            self.prodFilePath, verbose=self.verbose, takeIndex=self.takeIndex, useCache=self.useCache
+        )
         print("End of Publish")
 
         return {"FINISHED"}

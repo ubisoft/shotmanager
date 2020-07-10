@@ -220,7 +220,8 @@ class UAS_ShotManager_ShotAdd(Operator):
 
         props.addShot(
             atIndex=newShotInd,
-            name=props.getUniqueShotName(self.name),
+            name=self.name,
+            # name=props.getUniqueShotName(self.name),
             start=self.start,
             end=self.end,
             #            camera  = scene.objects[ self.camera ] if self.camera else None,
@@ -228,8 +229,9 @@ class UAS_ShotManager_ShotAdd(Operator):
             color=col,
         )
 
-        props.setCurrentShotByIndex(newShotInd)
-        props.setSelectedShotByIndex(newShotInd)
+        # removed, now done in addShot
+        # props.setCurrentShotByIndex(newShotInd)
+        # props.setSelectedShotByIndex(newShotInd)
 
         return {"FINISHED"}
 
@@ -249,9 +251,7 @@ class UAS_ShotManager_ShotDuplicate(Operator):
     @classmethod
     def poll(cls, context):
         shots = context.scene.UAS_shot_manager_props.get_shots()
-        if not len(shots):
-            return False
-        return True
+        return len(shots)
 
     def invoke(self, context, event):
         #    currentShot = context.scene.UAS_shot_manager_props.getCurrentShot()
@@ -333,47 +333,15 @@ class UAS_ShotManager_RemoveShot(Operator):
     @classmethod
     def poll(cls, context):
         shots = context.scene.UAS_shot_manager_props.get_shots()
-        if len(shots) <= 0:
-            return False
-
-        return True
+        return len(shots)
 
     def invoke(self, context, event):
         scene = context.scene
         props = scene.UAS_shot_manager_props
         shots = props.get_shots()
-        currentShotInd = props.current_shot_index
         selectedShotInd = props.getSelectedShotIndex()
 
-        try:
-            item = shots[selectedShotInd]
-        except IndexError:
-            pass
-        else:
-            #    print(" current: " + str(currentShotInd) + ", len(shots): " + str(len(shots)) + ", selectedShotInd: " + str(selectedShotInd))
-
-            # case of the last shot
-            if selectedShotInd == len(shots) - 1:
-                if currentShotInd == selectedShotInd:
-                    props.setCurrentShotByIndex(selectedShotInd - 1)
-
-                shots.remove(selectedShotInd)
-                #  props.selected_shot_index = selectedShotInd - 1
-                props.setSelectedShotByIndex(selectedShotInd - 1)
-            else:
-                if currentShotInd >= selectedShotInd:
-                    props.setCurrentShotByIndex(-1)
-                shots.remove(selectedShotInd)
-
-                if currentShotInd == selectedShotInd:
-                    props.setCurrentShotByIndex(props.selected_shot_index)
-                elif currentShotInd > selectedShotInd:
-                    props.setCurrentShotByIndex(min(currentShotInd - 1, len(shots) - 1))
-
-                if selectedShotInd < len(shots):
-                    props.setSelectedShotByIndex(selectedShotInd)
-                else:
-                    props.setSelectedShotByIndex(selectedShotInd - 1)
+        props.removeShot(shots[selectedShotInd])
 
         return {"FINISHED"}
 
@@ -383,39 +351,53 @@ class UAS_ShotManager_Actions(Operator):
 
     bl_idname = "uas_shot_manager.list_action"
     bl_label = "List Actions"
-    bl_description = "Move items up and down, add and remove"
+    bl_description = "Move shots up and down in the take, in other words before or after in the edit"
     bl_options = {"REGISTER", "UNDO"}
 
     action: bpy.props.EnumProperty(items=(("UP", "Up", ""), ("DOWN", "Down", "")))
 
+    @classmethod
+    def poll(cls, context):
+        shots = context.scene.UAS_shot_manager_props.get_shots()
+        return len(shots)
+
     def invoke(self, context, event):
+
         scene = context.scene
         props = scene.UAS_shot_manager_props
+
         shots = props.get_shots()
-        currentShotInd = props.getCurrentShotIndex()
+        # currentShotInd = props.getCurrentShotIndex()
         selectedShotInd = props.getSelectedShotIndex()
 
-        try:
-            item = shots[currentShotInd]
-        except IndexError:
-            pass
-        else:
-            if self.action == "DOWN" and selectedShotInd < len(shots) - 1:
-                shots.move(selectedShotInd, selectedShotInd + 1)
-                if currentShotInd == selectedShotInd:
-                    props.setCurrentShotByIndex(currentShotInd + 1)
-                elif currentShotInd == selectedShotInd + 1:
-                    props.setCurrentShotByIndex(selectedShotInd)
-                props.setSelectedShotByIndex(selectedShotInd + 1)
+        if self.action == "UP":
+            #    if 0 < selectedShotInd:
+            props.moveShotToIndex(shots[selectedShotInd], selectedShotInd - 1)
+        elif self.action == "DOWN":
+            #    if len(shots) - 1 > selectedShotInd:
+            props.moveShotToIndex(shots[selectedShotInd], selectedShotInd + 1)
 
-            elif self.action == "UP" and selectedShotInd >= 1:
-                shots.move(selectedShotInd, selectedShotInd - 1)
-                if currentShotInd == selectedShotInd:
-                    props.setCurrentShotByIndex(currentShotInd - 1)
-                elif currentShotInd == selectedShotInd - 1:
-                    props.setCurrentShotByIndex(selectedShotInd)
+        # try:
+        #     item = shots[currentShotInd]
+        # except IndexError:
+        #     pass
+        # else:
+        #     if self.action == "DOWN" and selectedShotInd < len(shots) - 1:
+        #         shots.move(selectedShotInd, selectedShotInd + 1)
+        #         if currentShotInd == selectedShotInd:
+        #             props.setCurrentShotByIndex(currentShotInd + 1)
+        #         elif currentShotInd == selectedShotInd + 1:
+        #             props.setCurrentShotByIndex(selectedShotInd)
+        #         props.setSelectedShotByIndex(selectedShotInd + 1)
 
-                props.setSelectedShotByIndex(selectedShotInd - 1)
+        #     elif self.action == "UP" and selectedShotInd >= 1:
+        #         shots.move(selectedShotInd, selectedShotInd - 1)
+        #         if currentShotInd == selectedShotInd:
+        #             props.setCurrentShotByIndex(currentShotInd - 1)
+        #         elif currentShotInd == selectedShotInd - 1:
+        #             props.setCurrentShotByIndex(selectedShotInd)
+
+        #         props.setSelectedShotByIndex(selectedShotInd - 1)
 
         return {"FINISHED"}
 
@@ -453,9 +435,7 @@ class UAS_ShotManager_ShotRemoveMultiple(Operator):
     @classmethod
     def poll(cls, context):
         shots = context.scene.UAS_shot_manager_props.get_shots()
-        if not len(shots):
-            return False
-        return True
+        return len(shots)
 
     def invoke(self, context, event):
         return context.window_manager.invoke_props_dialog(self, width=400)
@@ -725,6 +705,11 @@ class UAS_ShotManager_Shots_RemoveCamera(Operator):
 
     removeFromOtherTakes: BoolProperty(name="Also Remove From Other Takes", default=False)
 
+    @classmethod
+    def poll(cls, context):
+        shots = context.scene.UAS_shot_manager_props.get_shots()
+        return len(shots)
+
     def invoke(self, context, event):
         selectedShot = context.scene.UAS_shot_manager_props.getSelectedShot()
         if selectedShot is None:
@@ -767,6 +752,11 @@ class UAS_ShotManager_UniqueCameras(Operator):
     bl_label = "Make All Cameras Unique"
     bl_description = "Make cameras unique per shot"
     bl_options = {"INTERNAL", "REGISTER", "UNDO"}
+
+    @classmethod
+    def poll(cls, context):
+        shots = context.scene.UAS_shot_manager_props.get_shots()
+        return len(shots)
 
     @staticmethod
     def unique_cam_name(cam_name):

@@ -286,7 +286,6 @@ _classes = (
 
 
 def register():
-    print("\n *** *** Resistering Video Shot Manager *** *** \n")
     for cls in _classes:
         bpy.utils.register_class(cls)
 

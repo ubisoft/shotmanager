@@ -4,25 +4,54 @@ from bpy.types import Scene
 from bpy.types import PropertyGroup
 from bpy.props import StringProperty, IntProperty, BoolProperty, PointerProperty, FloatVectorProperty
 
+from shotmanager.utils.utils import findFirstUniqueName
+
 
 class UAS_ShotManager_Shot(PropertyGroup):
+    # def _get_parentScene(self):
+    #     val = self.get("parentScene", None)
+    #     if val is None:
+    #         matches = [
+    #             s for s in bpy.data.scenes if "UAS_shot_manager_props" in s and self == s["UAS_shot_manager_props"]
+    #         ]
+    #         self["parentScene"] = matches[0] if len(matches) > 0 else None
+    #     return self["parentScene"]
 
+    # def _set_parentScene(self, value):
+    #     self["parentScene"] = value
+
+    # parentScene: PointerProperty(type=Scene, get=_get_parentScene, set=_set_parentScene)
     parentScene: PointerProperty(type=Scene)
-
     parentTakeIndex: IntProperty(name="Parent Take Index", default=-1)
 
-    def shotManager(self):
-        """Return the shot manager properties instance the shot is belonging to.
-        """
-        parentShotManager = None
+    # for backward compatibility - before V1.2.21
+    # used by data version patches.
+    # For general purpose use the property self.parentScene
+    def getParentScene(self):
+        if self.parentScene is not None:
+            return self.parentScene
 
-        # wkip dirty if self.parentScene is not None
-        if self.parentScene is None:
-            self.parentScene = bpy.context.scene
+        for scn in bpy.data.scenes:
+            if "UAS_shot_manager_props" in scn:
+                props = scn.UAS_shot_manager_props
+                for take in props.takes:
+                    #    print("Take name: ", take.name)
+                    for shot in take.shots:
+                        #        print("  Shot name: ", shot.name)
+                        if shot.name == self.name:
+                            self.parentScene = scn
+                            return scn
+        return None
 
-        if self.parentScene is not None and "UAS_shot_manager_props" in self.parentScene:
-            parentShotManager = self.parentScene.UAS_shot_manager_props
-        return parentShotManager
+    # def shotManager(self):
+    #     """Return the shot manager properties instance the shot is belonging to.
+    #     """
+    #     parentShotManager = None
+    #     parentScene = self.getParentScene()
+
+    #     if parentScene is not None:
+    #         parentShotManager = parentScene.UAS_shot_manager_props
+    #     return parentShotManager
 
     def getDuration(self):
         """ Returns the shot duration in frames
@@ -45,17 +74,11 @@ class UAS_ShotManager_Shot(PropertyGroup):
         return val
 
     def set_name(self, value):
-        newName = value
-        foundDuplicateName = False
-
-        shots = self.shotManager().getShotsList(takeIndex=self.parentTakeIndex)
-
-        for shot in shots:
-            if shot != self and newName == shot.name:
-                foundDuplicateName = True
-        if foundDuplicateName:
-            newName += "_1"
-
+        """ Set a unique name to the shot
+        """
+        # shots = self.getParentScene().UAS_shot_manager_props.getShotsList(takeIndex=self.parentTakeIndex)
+        shots = self.parentScene.UAS_shot_manager_props.getShotsList(takeIndex=self.parentTakeIndex)
+        newName = findFirstUniqueName(self, value, shots)
         self["name"] = newName
 
     name: StringProperty(name="Name", get=get_name, set=set_name)
@@ -78,7 +101,6 @@ class UAS_ShotManager_Shot(PropertyGroup):
                 self["end"] = self.start
 
     def _update_start(self, context):
-        print("Updating Cam")
         if self.camera is not None and len(self.camera.data.background_images):
             bgClip = self.camera.data.background_images[0].clip
             if bgClip is not None and self.bgImages_linkToShotStart:
@@ -191,7 +213,9 @@ class UAS_ShotManager_Shot(PropertyGroup):
 
     def get_color(self):
         defaultVal = [1.0, 1.0, 1.0, 1.0]
-        if self.shotManager() is not None and self.shotManager().use_camera_color:
+        props = self.parentScene.UAS_shot_manager_props
+
+        if props.use_camera_color:
             if self.camera is not None:
                 defaultVal[0] = self.camera.color[0]
                 defaultVal[1] = self.camera.color[1]
@@ -199,7 +223,7 @@ class UAS_ShotManager_Shot(PropertyGroup):
 
         val = self.get("color", defaultVal)
 
-        if self.shotManager() is not None and self.shotManager().use_camera_color:
+        if props.use_camera_color:
             if self.camera is not None:
                 val[0] = self.camera.color[0]
                 val[1] = self.camera.color[1]
@@ -211,12 +235,12 @@ class UAS_ShotManager_Shot(PropertyGroup):
 
     def set_color(self, value):
         self["color"] = value
-        if self.shotManager() is not None and self.shotManager().use_camera_color:
-            if self.camera is not None:
-                self.camera.color[0] = self["color"][0]
-                self.camera.color[1] = self["color"][1]
-                self.camera.color[2] = self["color"][2]
-                self.camera.color[3] = self["color"][3]
+        props = self.parentScene.UAS_shot_manager_props
+        if props.use_camera_color and self.camera is not None:
+            self.camera.color[0] = self["color"][0]
+            self.camera.color[1] = self["color"][1]
+            self.camera.color[2] = self["color"][2]
+            self.camera.color[3] = self["color"][3]
 
     color: FloatVectorProperty(
         subtype="COLOR",

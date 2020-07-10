@@ -9,10 +9,42 @@ from bpy.types import Operator
 from bpy.props import StringProperty
 
 
+def convertVersionStrToInt(versionStr):
+    """ Convert a string formated like "1.23.48" to a version integer such as 1023048
+    """
+    formatedVersion = "{:02}{:03}{:03}"
+    versionSplitted = versionStr.split(".")
+    return int(formatedVersion.format(int(versionSplitted[0]), int(versionSplitted[1]), int(versionSplitted[2])))
+
+
+def convertVersionIntToStr(versionInt):
+    """ Convert an integer formated like 1023048 to a version string such as "1.23.48"
+    """
+    versionIntStr = str(versionInt)
+    length = len(versionIntStr)
+    versionStr = (
+        str(int(versionIntStr[-1 * length : length - 6]))
+        + "."
+        + str(int(versionIntStr[-6 : length - 3]))
+        + "."
+        + str(int(versionIntStr[-3:length]))
+    )
+    return versionStr
+
+
 def addonVersion(addonName):
+    """ Return the add-on version in the form of a tupple made by: 
+            - a string x.y.z (eg: "1.21.3")
+            - an integer. x.y.z becomes xxyyyzzz (eg: "1.21.3" becomes 1021003)
+        Return None if the addon has not been found
+    """
     import addon_utils
 
+    #   print("addonVersion called...")
     versionStr = "-"
+    versionInt = -1
+    versions = None
+
     versionTupple = [
         addon.bl_info.get("version", (-1, -1, -1))
         for addon in addon_utils.modules()
@@ -22,7 +54,16 @@ def addonVersion(addonName):
         versionTupple = versionTupple[0]
         versionStr = str(versionTupple[0]) + "." + str(versionTupple[1]) + "." + str(versionTupple[2])
 
-    return versionStr
+        # versionStr = "131.258.265"
+        versionInt = convertVersionStrToInt(versionStr)
+
+        # print("versionStr: ", versionStr)
+        # print("versionInt: ", versionInt)
+        # print("convertVersionIntToStr: ", convertVersionIntToStr(versionInt))
+
+        versions = (versionStr, versionInt)
+
+    return versions
 
 
 class PropertyRestoreCtx:
@@ -136,6 +177,40 @@ def add_background_video_to_cam(
         bg.clip_user.proxy_render_size = proxyRenderSize
 
 
+def findFirstUniqueName(originalItem, name, itemsArray):
+    """ Return a string that correspont to name.xxx as the first unique name in the array
+    """
+    itemInd = 0
+    numDuplicatesFound = 0
+    newIndexStr = ".{:03}"
+    newName = name
+    while itemInd < len(itemsArray):
+        if itemsArray[itemInd] != originalItem and newName == itemsArray[itemInd].name:
+            newName = name + newIndexStr.format(numDuplicatesFound)
+            numDuplicatesFound += 1
+            itemInd = 0
+        else:
+            itemInd += 1
+    return newName
+
+
+class UAS_Utils_RunScript(Operator):
+    bl_idname = "uas_utils.run_script"
+    bl_label = "Run Script"
+    bl_description = "Open a script and run it"
+
+    path: StringProperty()
+
+    def execute(self, context):
+        import pathlib
+
+        myPath = str(pathlib.Path(__file__).parent.absolute()) + self.path  # \\api\\api_first_steps.py"
+        print("\n*** UAS_Utils_RunScript Op is running: ", myPath)
+        # bpy.ops.script.python_file_run(filepath=bpy.path.abspath(myPath))
+        bpy.ops.script.python_file_run(filepath=myPath)
+        return {"FINISHED"}
+
+
 def cameras_from_scene(scene):
     """ Return the list of all the cameras in the scene
     """
@@ -159,7 +234,10 @@ def duplicateObject(sourceObject):
     return newObject
 
 
-_classes = (UAS_ShotManager_OpenExplorer,)
+_classes = (
+    UAS_ShotManager_OpenExplorer,
+    UAS_Utils_RunScript,
+)
 
 
 def register():

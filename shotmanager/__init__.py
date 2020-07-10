@@ -1,89 +1,9 @@
-# -*- coding: utf-8 -*-
-#
-# This addon blabla
-#
-# Installation:
-#
-#
-# Things to know:
-#   - 1 shot manager instance per scene (= possible differences in preferences per scene)
-#
-#   - time on media (= output videos) starts at frame 0 (and then last frame index is equal to Durantion - 1)
-#   - Shots:
-#       - end frame is INCLUDED in the shot frames (and then rendered)
-#
-#
-# Dev notes:
-#  * Pb:
-#   cleanner le patch dégueu des indices de takes lors de la suppression des shots disabled
-#       - about à finir
-#       - jog pas parfait
-#       - script unique cam en rade
-#       - getsion des viewports
-#
-#
-#  * To do:
-#   mettre des shot warnings et errors
-#   faire un warning pour shot start - handle < 0!!!
-#
-#
-#
-#       - mettre des modifiers CTRL et Alt pour jogguer entre les débuts et fin seulement de plans
-#       - ajouter un bouton Help
-#       - prefix Name
-#       - take verouille les cams
-#
-#       - mettre des vraies prefs utilisateurs
-#
-#
-#   Refacto code:
-#   - faire modules avec:
-#       - otio (avec les bons imports)
-#       - render
-#   - séparer en operator / ui ... ?
-#   - ranger les explorers
-#
-#
-
-import os
-import importlib
-import subprocess
-import platform
-
 import bpy
+from bpy.app.handlers import persistent
 
-from bpy.props import BoolProperty
+from bpy.props import BoolProperty, IntProperty
 
-try:
-    import opentimelineio as otio
-
-    if otio.__version__ < "0.12.1" and platform.system() == "Windows":
-        print("Upgrading OpentimelineIO to 0.12.1")
-        subprocess.run(
-            [
-                bpy.app.binary_path_python,
-                "-m",
-                "pip",
-                "install",
-                os.path.join(os.path.dirname(__file__), "OpenTimelineIO-0.12.1-cp37-cp37m-win_amd64.whl"),
-            ]
-        )
-        importlib.reload(otio)  # Need to be tested.
-except ModuleNotFoundError:
-    if platform.system() == platform.system() == "Windows":
-        subprocess.run(
-            [
-                bpy.app.binary_path_python,
-                "-m",
-                "pip",
-                "install",
-                os.path.join(os.path.dirname(__file__), "OpenTimelineIO-0.12.1-cp37-cp37m-win_amd64.whl"),
-            ]
-        )
-    else:
-        subprocess.run([bpy.app.binary_path_python, "-m", "pip", "install", "opentimelineio"])
-    import opentimelineio as otio
-
+from . import otio
 
 from .config import config
 
@@ -120,15 +40,18 @@ from . import videoshotmanager
 
 from .scripts import rrs
 
+from .data_patches.data_patch_to_v1_2_25 import data_patch_to_v1_2_25
+
+from .debug import sm_debug
 
 bl_info = {
     "name": "UAS Shot Manager",
     "author": "Romain Carriquiry Borchiari, Julien Blervaque (aka Werwack)",
     "description": "Manage a sequence of shots and cameras in the 3D View - Ubisoft Animation Studio",
     "blender": (2, 83, 1),
-    "version": (1, 2, 21),
+    "version": (1, 2, 26),
     "location": "View3D > UAS Shot Manager",
-    "wiki_url": "https://mdc-web-tomcat17.ubisoft.org/confluence/display/UASTech/UAS+Shot+Manager",
+    "wiki_url": "https://gitlab-ncsa.ubisoft.org/animation-studio/blender/shotmanager-addon/-/wikis/home",
     "warning": "",
     "category": "UAS",
 }
@@ -163,6 +86,51 @@ def install_shot_handler(self, context):
         # utils_handlers.removeAllHandlerOccurences(
         #     jump_to_shot__frame_change_post, handlerCateg=bpy.app.handlers.frame_change_post
         # )
+
+
+@persistent
+def checkDataVersion_post_load_handler(self, context):
+    loadedFileName = bpy.path.basename(bpy.context.blend_data.filepath)
+    print("\n\n-------------------------------------------------------")
+    if "" == loadedFileName:
+        print("\nNew file loaded")
+    else:
+        print("\nExisting file loaded: ", bpy.path.basename(bpy.context.blend_data.filepath))
+        print("  - Shot Manager is checking the version used to create the loaded scene data...")
+
+        numScenesToUpgrade = 0
+        for scn in bpy.data.scenes:
+            # if "UAS_shot_manager_props" in scn:
+            if getattr(bpy.context.scene, "UAS_shot_manager_props", None) is not None:
+                #   print("\n   Shot Manager instance found in scene " + scn.name)
+                props = scn.UAS_shot_manager_props
+                #   print("     Data version: ", props.dataVersion)
+                #   print("     Shot Manager version: ", bpy.context.window_manager.UAS_shot_manager_version)
+                if props.dataVersion <= 0 or props.dataVersion < bpy.context.window_manager.UAS_shot_manager_version:
+                    print("     *** Shot Manager Data Version is lower than the current Shot Manager version")
+                    numScenesToUpgrade += 1
+                #    props.dataVersion = -5
+
+        if numScenesToUpgrade:
+            # apply patch and apply new data version
+            # wkip patch strategy to re-think. Collect the data versions and apply the respective patches?
+            print("       Applying data patch to file")
+            data_patch_to_v1_2_25()
+
+            # set right data version
+            # props.dataVersion = bpy.context.window_manager.UAS_shot_manager_version
+            # print("       Data upgraded to version V. ", props.dataVersion)
+
+
+# wkip doesn t work!!! Property values changed right before the save are not saved in the file!
+# @persistent
+# def checkDataVersion_save_pre_handler(self, context):
+#     print("\nFile saved - Shot Manager is writing its data version in the scene")
+#     for scn in bpy.data.scenes:
+#         if "UAS_shot_manager_props" in scn:
+#             print("\n   Shot Manager instance found in scene, writing data version: " + scn.name)
+#             props.dataVersion = bpy.context.window_manager.UAS_shot_manager_version
+#             print("   props.dataVersion: ", props.dataVersion)
 
 
 # classes = (
@@ -200,6 +168,57 @@ def register():
     #    setup_project_env(True, True)
 
     config.initGlobalVariables()
+    verbose = config.uasDebug
+
+    # update data
+    versionTupple = utils.addonVersion("UAS Shot Manager")
+    print(
+        "\n *** *** Registering Shot Manager Add-on - version: "
+        + versionTupple[0]
+        + "  ("
+        + str(versionTupple[1])
+        + ") *** ***"
+    )
+
+    # bpy.context.window_manager.UAS_shot_manager_version
+    bpy.types.WindowManager.UAS_shot_manager_version = IntProperty(
+        name="Add-on Version Int", description="Add-on version as integer", default=versionTupple[1]
+    )
+
+    # handler to check the data version at load
+    ##################
+    print("       - Post Load handler added")
+
+    if verbose:
+        utils_handlers.displayHandlers(handlerCategName="load_post")
+
+    utils_handlers.removeAllHandlerOccurences(
+        checkDataVersion_post_load_handler, handlerCateg=bpy.app.handlers.load_post
+    )
+    bpy.app.handlers.load_post.append(checkDataVersion_post_load_handler)
+
+    if verbose:
+        utils_handlers.displayHandlers(handlerCategName="load_post")
+
+    # handler to write the data version at save
+    ##################
+    # print("       - Pre Save handler added")
+    # if verbose:
+    #     utils_handlers.displayHandlers(handlerCategName="save_pre")
+
+    # utils_handlers.removeAllHandlerOccurences(checkDataVersion_save_pre_handler, handlerCateg=bpy.app.handlers.save_pre)
+    # bpy.app.handlers.save_pre.append(checkDataVersion_save_pre_handler)
+
+    # if verbose:
+    #     utils_handlers.displayHandlers(handlerCategName="save_pre")
+
+    # initialization
+    ##################
+
+    # data version is written in the initialize function
+    bpy.types.WindowManager.UAS_shot_manager_isInitialized = BoolProperty(
+        name="Shot Manager is initialized", description="", default=False
+    )
 
     # utils_handlers.displayHandlers()
     utils_handlers.removeAllHandlerOccurences(jump_to_shot, handlerCateg=bpy.app.handlers.frame_change_pre)
@@ -227,21 +246,23 @@ def register():
     renderProps.register()
     utils.register()
 
-    # vse_render.register()  # debug
+    otio.register()
+    vse_render.register()
     utils_render.register()
     general.register()
     videoshotmanager.register()
     prefs.register()
 
-    # declaration of properties that will not be saved in the scene
+    # debug tools
+    if config.uasDebug:
+        sm_debug.register()
+
+    # declaration of properties that will not be saved in the scene:
+    ####################
 
     # About button panel Quick Settings
     bpy.types.WindowManager.UAS_shot_manager_displayAbout = BoolProperty(
         name="About...", description="Display About Informations", default=False
-    )
-
-    bpy.types.WindowManager.UAS_shot_manager_isInitialized = BoolProperty(
-        name="Shot Manager is initialized", description="", default=False
     )
 
     bpy.types.WindowManager.UAS_shot_manager_handler_toggle = BoolProperty(
@@ -261,12 +282,17 @@ def register():
 
 def unregister():
 
+    # debug tools
+    if config.uasDebug:
+        sm_debug.unregister()
+
     # ui
     prefs.unregister()
     videoshotmanager.unregister()
     general.unregister()
     utils_render.unregister()
-    # vse_render.unregister()
+    vse_render.unregister()
+    otio.unregister()
 
     utils.unregister()
     renderProps.unregister()
@@ -292,5 +318,8 @@ def unregister():
     del bpy.types.WindowManager.UAS_shot_manager_displayAbout
     del bpy.types.WindowManager.UAS_shot_manager_handler_toggle
     del bpy.types.WindowManager.UAS_shot_manager_display_timeline
+
+    del bpy.types.WindowManager.UAS_shot_manager_isInitialized
+    del bpy.types.WindowManager.UAS_shot_manager_version
 
     config.releaseGlobalVariables()

@@ -14,7 +14,7 @@ from ..utils import utils
 
 class UAS_PT_ShotManager(Panel):
     #    bl_label = f"UAS Shot Manager {'.'.join ( str ( v ) for v in bl_info[ 'version'] ) }"
-    bl_label = " UAS Shot Manager   V. " + utils.addonVersion("UAS Shot Manager")
+    bl_label = " UAS Shot Manager   V. " + utils.addonVersion("UAS Shot Manager")[0]
     bl_idname = "UAS_PT_Shot_Manager"
     bl_space_type = "VIEW_3D"
     bl_region_type = "UI"
@@ -27,10 +27,8 @@ class UAS_PT_ShotManager(Panel):
         row = layout.row(align=True)
 
         if context.window_manager.UAS_shot_manager_displayAbout:
-            # _emboss = True
             row.alert = True
         else:
-            #    _emboss = False
             row.alert = False
 
         icon = config.icons_col["General_Ubisoft_32"]
@@ -38,7 +36,6 @@ class UAS_PT_ShotManager(Panel):
         row.operator("uas_shot_manager.about", text="", icon_value=icon.icon_id)
 
     def draw_header_preset(self, context):
-        # props = context.scene.UAS_shot_manager_props
         layout = self.layout
         layout.emboss = "NONE"
 
@@ -46,7 +43,6 @@ class UAS_PT_ShotManager(Panel):
 
         row.operator("utils.launchrender", text="", icon="RENDER_STILL").renderMode = "STILL"
         row.operator("utils.launchrender", text="", icon="RENDER_ANIMATION").renderMode = "ANIMATION"
-        # row.label(text = "|")
         row.separator(factor=2)
 
         icon = config.icons_col["General_Explorer_32"]
@@ -99,10 +95,15 @@ class UAS_PT_ShotManager(Panel):
         # play bar
         ################
         row = layout.row(align=True)
+
+        split = row.split(align=True)
+        split.separator()
         row.alignment = "CENTER"
-        row.operator("uas_shot_manager.playbar_gotofirstshot", text="", icon="REW")
-        row.operator("uas_shot_manager.playbar_gotopreviousshot", text="", icon="PREV_KEYFRAME")
-        row.operator("uas_shot_manager.playbar_gotopreviousframe", text="", icon="FRAME_PREV")
+        subrow = row.row(align=True)
+        subrow.enabled = 0 < len(props.get_shots())
+        subrow.operator("uas_shot_manager.playbar_gotofirstshot", text="", icon="REW")
+        subrow.operator("uas_shot_manager.playbar_gotopreviousshot", text="", icon="PREV_KEYFRAME")
+        subrow.operator("uas_shot_manager.playbar_gotopreviousframe", text="", icon="FRAME_PREV")
 
         split = row.split(align=True)
         split.separator()
@@ -118,9 +119,11 @@ class UAS_PT_ShotManager(Panel):
 
         split = row.split(align=True)
         split.separator()
-        row.operator("uas_shot_manager.playbar_gotonextframe", text="", icon="FRAME_NEXT")
-        row.operator("uas_shot_manager.playbar_gotonextshot", text="", icon="NEXT_KEYFRAME")
-        row.operator("uas_shot_manager.playbar_gotolastshot", text="", icon="FF")
+        subrow = row.row(align=True)
+        subrow.enabled = 0 < len(props.get_shots())
+        subrow.operator("uas_shot_manager.playbar_gotonextframe", text="", icon="FRAME_NEXT")
+        subrow.operator("uas_shot_manager.playbar_gotonextshot", text="", icon="NEXT_KEYFRAME")
+        subrow.operator("uas_shot_manager.playbar_gotolastshot", text="", icon="FF")
 
         # separated frame spinner
         row.separator(factor=2.0)
@@ -744,9 +747,11 @@ class UAS_MT_ShotManager_Shots_ToolsMenu(Menu):
         row = layout.row(align=True)
         row.operator_context = "INVOKE_DEFAULT"
         row.operator("uasotio.openfilebrowser", text="Import Shots From OTIO")
+
         # wkip debug - to remove:
-        row = layout.row(align=True)
-        row.operator("uasshotmanager.importotio", text="Import Shots From OTIO - Debug")
+        if config.uasDebug:
+            row = layout.row(align=True)
+            row.operator("uasshotmanager.importotio", text="Import Shots From OTIO - Debug")
 
         # tools for precut ###
         layout.separator()
