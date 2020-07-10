@@ -11,6 +11,11 @@ class UAS_PT_ShotManager_RRS_Debug(Panel):
     bl_category = "UAS Shot Man"
     bl_options = {"DEFAULT_CLOSED"}
 
+    @classmethod
+    def poll(cls, context):
+        props = context.scene.UAS_shot_manager_props
+        return not props.dontRefreshUI()
+
     def draw(self, context):
         layout = self.layout
         row = layout.row(align=False)

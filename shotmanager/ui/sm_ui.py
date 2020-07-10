@@ -20,7 +20,13 @@ class UAS_PT_ShotManager(Panel):
     bl_region_type = "UI"
     bl_category = "UAS Shot Man"
 
-    # About panel ###
+    @classmethod
+    def poll(cls, context):
+        props = context.scene.UAS_shot_manager_props
+        val = True
+        val = val and not props.dontRefreshUI()
+        return val
+
     def draw_header(self, context):
         layout = self.layout
         layout.emboss = "NONE"
@@ -141,6 +147,12 @@ class UAS_PT_ShotManager(Panel):
         row.alert = False
 
         layout.separator(factor=0.5)
+
+        ################
+        # stop draw here if perfs are required
+        ################
+        if props.dontRefreshUI():
+            return None
 
         # editing
         ################
@@ -441,7 +453,7 @@ class UAS_PT_ShotManager_ShotProperties(Panel):
         else:
             shot = props.getShot(props.selected_shot_index)
         val = len(context.scene.UAS_shot_manager_props.getTakes()) and shot
-
+        val = val and not props.dontRefreshUI()
         return val
 
     def draw_header(self, context):
@@ -580,6 +592,7 @@ class UAS_PT_ShotManager_ShotsGlobalSettings(Panel):
     def poll(cls, context):
         props = context.scene.UAS_shot_manager_props
         val = props.display_camerabgtools_in_properties and len(props.getTakes()) and len(props.get_shots())
+        val = val and not props.dontRefreshUI()
         return val
 
     def draw(self, context):

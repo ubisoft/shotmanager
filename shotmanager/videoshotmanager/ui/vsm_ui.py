@@ -186,6 +186,14 @@ class UAS_PT_VideoShotManager_TrackProperties(Panel):
     bl_parent_id = "UAS_PT_Video_Shot_Manager"
     bl_options = {"DEFAULT_CLOSED"}
 
+    @classmethod
+    def poll(cls, context):
+        vsm_props = context.scene.UAS_vsm_props
+        track = vsm_props.getTrack(vsm_props.selected_track_index)
+        val = track
+
+        return val
+
     def draw_header(self, context):
         layout = self.layout
         layout.emboss = "NONE"
@@ -238,14 +246,6 @@ class UAS_PT_VideoShotManager_TrackProperties(Panel):
             row.operator("uas_video_shot_manager.update_vse_track", icon="FILE_REFRESH").trackName = track.name
             row.operator("uas_video_shot_manager.go_to_specified_scene", icon="SCENE_DATA").trackName = track.name
             layout.separator()
-
-    @classmethod
-    def poll(cls, context):
-        vsm_props = context.scene.UAS_vsm_props
-        track = vsm_props.getTrack(vsm_props.selected_track_index)
-        val = track
-
-        return val
 
 
 #################
