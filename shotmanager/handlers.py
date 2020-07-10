@@ -143,10 +143,10 @@ def jump_to_shot(self):
             print(" ùùù NOT Playing - after return, frame: ", scene.frame_current)
         # having a separation between playing and not playing is very important to let the
         # shot manager playbar buttons work. They work without the time range restrictions.
-        pass
 
     if -1 < current_shot_index and shotList[current_shot_index].camera is not None:
-        scene.camera = shotList[current_shot_index].camera
+        if scene.camera != shotList[current_shot_index].camera:
+            scene.camera = shotList[current_shot_index].camera
         props.selected_shot_index = current_shot_index
 
 
