@@ -11,6 +11,7 @@ class UAS_VideoShotManager_Track(PropertyGroup):
 
     parentScene: PointerProperty(type=Scene, description="Scene to which this track belongs to")
 
+    # deprecated? Use self.parentScene.UAS_vsm_props instead
     def videoShotManager(self):
         """Return the video shot manager properties instance the shot is belonging to.
         """
@@ -59,9 +60,22 @@ class UAS_VideoShotManager_Track(PropertyGroup):
         subtype="COLOR", min=0.0, max=1.0, size=4, default=(1.0, 1.0, 1.0, 1.0), options=set(),
     )
 
-    # wkip readonly?
+    def _get_vseTrackIndex(self):
+        ind = len(self.parentScene.UAS_vsm_props.tracks) - self.parentScene.UAS_vsm_props.getTrackIndex(self)
+        val = self.get("vseTrackIndex", ind)
+        return val
+
+    def _set_vseTrackIndex(self, value):
+        self["vseTrackIndex"] = value
+
     vseTrackIndex: IntProperty(
-        name="VSE Track Index", description="Index of the track to use in the VSE", options=set(),
+        name="VSE Track Index",
+        description="Index of the track to use in the VSE",
+        min=1,
+        get=_get_vseTrackIndex,
+        set=_set_vseTrackIndex,
+        default=1,
+        options=set(),
     )
 
     trackType: EnumProperty(
@@ -69,9 +83,11 @@ class UAS_VideoShotManager_Track(PropertyGroup):
         description="Type of the track",
         items=(
             ("RENDERED_SHOTS", "Rendered Shots", ""),
-            ("3D_CAMERAS", "3D Cameras", ""),
+            ("SHOT_CAMERAS", "Shot Cameras", ""),
+            ("CAM_FROM_SCENE", "Camera From Scene", ""),
             ("CAM_BG", "Camera Backgrounds", ""),
-        ),  # adding CUSTOM ?
+            ("CUSTOM", "Custom", ""),
+        ),
         default="CAM_BG",
         options=set(),
     )
@@ -101,9 +117,11 @@ class UAS_VideoShotManager_Track(PropertyGroup):
 
     def _list_takes(self, context):
         res = list()
-        props = self.shotManagerScene.UAS_shot_manager_props
-        for i, take in enumerate([t.name for t in props.takes]):
-            res.append((take, take, "", i))
+
+        if self.shotManagerScene is not None:
+            props = self.shotManagerScene.UAS_shot_manager_props
+            for i, take in enumerate([t.name for t in props.takes]):
+                res.append((take, take, "", i))
 
         return res
 
@@ -111,23 +129,63 @@ class UAS_VideoShotManager_Track(PropertyGroup):
     #     self.setCurrentShotByIndex(0)
     #     self.setSelectedShotByIndex(0)
 
-    current_take_name: EnumProperty(
-        items=_list_takes, name="Takes", description="Select a take",  # update=_current_take_changed
+    sceneTakeName: EnumProperty(
+        items=_list_takes, name="Takes", description="Select a take"  # update=_current_take_changed
     )
 
     def regenerateTrackContent(self):
         print("regenerateTrackContent: " + self.name)
 
         props = self.shotManagerScene.UAS_shot_manager_props
-        takeInd = props.getTakeIndex(props.takes[self.current_take_name])
+        takeInd = props.getTakeIndex(props.takes[self.sceneTakeName])
         shotsList = props.getShotsList(ignoreDisabled=True, takeIndex=takeInd)
-        for shot in shotsList:
-            print("Shot:", shot.name)
-            if "CAM_BG" == self.trackType:
+
+        self.clearTrackContent()
+
+        if "CAM_BG" == self.trackType:
+            for shot in shotsList:
+                print("\nShot:", shot.name)
+
                 if len(shot.camera.data.background_images):
                     print("Cam BG found")
-                    mediaPath = bpy.path.abspath(shot.camera.data.background_images[0].clip.filepath)
-                    print("mediaPath:", mediaPath)
-                    bpy.context.window_manager.UAS_vse_render.createNewClip(
-                        self.parentScene, mediaPath, self.vseTrackIndex, 2, offsetStart=0, offsetEnd=0
+                    clip = shot.camera.data.background_images[0].clip
+                    offsetEnd = clip.frame_duration + shot.bgImages_offset - shot.getDuration()
+                    print("OffsetEnd:", offsetEnd)
+                    print(
+                        f"dur: {clip.frame_duration}, off: {shot.bgImages_offset}, end - start:{shot.end - shot.start}"
                     )
+                    mediaPath = bpy.path.abspath(clip.filepath)
+                    print(f"mediaPath: {mediaPath}, duration: {clip.frame_duration}")
+                    bpy.context.window_manager.UAS_vse_render.createNewClip(
+                        self.parentScene,
+                        mediaPath,
+                        self.vseTrackIndex,
+                        clip.frame_start,
+                        offsetStart=-1 * shot.bgImages_offset,
+                        offsetEnd=offsetEnd,
+                    )
+
+        elif "CAM_FROM_SCENE":
+
+            for shot in shotsList:
+                print("\nShot:", shot.name)
+                print(f"Start: {shot.start}, Edit Start: {shot.getEditStart()}")
+                bpy.context.window_manager.UAS_vse_render.createNewClip(
+                    self.parentScene,
+                    "",
+                    self.vseTrackIndex,
+                    -1 * shot.start + shot.getEditStart(),
+                    offsetStart=shot.start,  # + shot.getEditStart(),
+                    offsetEnd=shot.end,
+                    cameraScene=self.shotManagerScene,
+                    cameraObject=shot.camera,
+                )
+
+            # self.shotManagerScene.frame_start = 14  # OriRangeStart
+            # self.shotManagerScene.frame_end = OriRangeEnd
+
+        elif "RENDERED_SHOTS":
+            pass
+
+    def clearTrackContent(self):
+        bpy.context.window_manager.UAS_vse_render.clearChannel(self.parentScene, self.vseTrackIndex)

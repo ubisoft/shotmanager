@@ -21,7 +21,7 @@ class UAS_VSM_Props(PropertyGroup):
 
     selected_track_index: IntProperty(default=-1)
 
-    display_color_in_tracklist: BoolProperty(name="Display Color in Track List", default=False, options=set())
+    display_color_in_tracklist: BoolProperty(name="Display Color in Track List", default=True, options=set())
 
     def getTracks(self):
         return self.tracks
@@ -51,7 +51,17 @@ class UAS_VSM_Props(PropertyGroup):
         return uniqueName
 
     def addTrack(
-        self, atIndex=-1, name="defaultTrack", start=10, end=20, camera=None, color=(0.2, 0.6, 0.8, 1), enabled=True,
+        self,
+        atIndex=-1,
+        name="defaultTrack",
+        start=10,
+        end=20,
+        camera=None,
+        color=(0.2, 0.6, 0.8, 1),
+        enabled=True,
+        trackType=None,
+        sceneName="",
+        sceneTakeName="",
     ):
         """ Add a new track after the current track if possible or at the end of the track list otherwise
             Return the newly added track
@@ -66,6 +76,13 @@ class UAS_VSM_Props(PropertyGroup):
         newTrack.name = name
         newTrack.enabled = enabled
         newTrack.color = color
+
+        newTrack.trackType = trackType
+
+        if "" != sceneName:
+            newTrack.shotManagerScene = bpy.data.scenes[sceneName]
+        if "" != sceneTakeName:
+            newTrack.sceneTakeName = sceneTakeName
 
         if -1 != atIndex:  # move track at specified index
             trackList.move(len(trackList) - 1, atIndex)
@@ -158,7 +175,7 @@ class UAS_VSM_Props(PropertyGroup):
         currentTrackInd = -1
 
         if ignoreDisabled and 0 < len(self.tracks):
-            # for i, track in enumerate ( self.context.scene.UAS_track_manager_props.takes[self.context.scene.UAS_track_manager_props.current_take_name].tracks ):
+            # for i, track in enumerate ( self.context.scene.UAS_track_manager_props.takes[self.context.scene.UAS_track_manager_props.sceneTakeName].tracks ):
             currentTrackInd = self.current_track_index
             for i in range(self.current_track_index + 1):
                 if not self.tracks[i].enabled:

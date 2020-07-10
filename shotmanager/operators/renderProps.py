@@ -433,7 +433,7 @@ def launchRenderWithVSEComposite(renderMode, takeIndex=-1, renderRootFilePath=""
                 sequenceScene,
                 compositedMediaPath,
                 1,
-                shot.getEditStart(scene) - props.handles,
+                shot.getEditStart() - props.handles,
                 offsetStart=props.handles,
                 offsetEnd=props.handles,
             )
