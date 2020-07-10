@@ -3,7 +3,7 @@ from bpy.types import Panel, Operator, Menu
 from bpy.props import StringProperty, IntProperty
 
 from ..config import config
-from ..ogl_ui import UAS_ShotManager_DrawTimeline, UAS_ShotManager_DrawCameras_UI
+from ..viewport_3d.ogl_ui import UAS_ShotManager_DrawTimeline, UAS_ShotManager_DrawCameras_UI
 
 from ..utils import utils
 
@@ -34,10 +34,11 @@ class UAS_PT_ShotManager(Panel):
             row.alert = False
 
         icon = config.icons_col["General_Ubisoft_32"]
-        row.prop(context.window_manager, "UAS_shot_manager_displayAbout", icon_value=icon.icon_id, icon_only=True)
+        # row.prop(context.window_manager, "UAS_shot_manager_displayAbout", icon_value=icon.icon_id, icon_only=True)
+        row.operator("uas_shot_manager.about", text="", icon_value=icon.icon_id)
 
     def draw_header_preset(self, context):
-        props = context.scene.UAS_shot_manager_props
+        # props = context.scene.UAS_shot_manager_props
         layout = self.layout
         layout.emboss = "NONE"
 
@@ -60,29 +61,15 @@ class UAS_PT_ShotManager(Panel):
         row.separator(factor=2)
         row.operator("uas_shot_manager.go_to_video_shot_manager", text="", icon="SEQ_STRIP_DUPLICATE")
 
+        row.separator(factor=2)
+        row.menu("UAS_MT_Shot_Manager_prefs_mainmenu", icon="PREFERENCES", text="")
+
         row.separator(factor=3)
 
     def draw(self, context):
         layout = self.layout
         scene = context.scene
         props = scene.UAS_shot_manager_props
-
-        ################
-        # About... panel
-        if context.window_manager.UAS_shot_manager_displayAbout:
-            row = layout.row()
-            aboutStr = "About UAS Shot Manager..."
-            row.label(text=aboutStr)
-
-            row = layout.row()
-            box = row.box()
-            #    aboutStr = "Create a set of camera shots and edit them\nin the 3D View as you would do with video clips."
-            box.label(text="Create a set of camera shots and edit them")
-            box.label(text="in the 3D View as you would do with video clips.")
-            #    box = row.box()
-
-            row = layout.row()
-            row.separator(factor=1.4)
 
         # if not "UAS_shot_manager_props" in context.scene:
         if not props.isInitialized:
@@ -93,8 +80,8 @@ class UAS_PT_ShotManager(Panel):
             row.alert = False
             layout.separator()
 
-        ################
         # play and timeline
+        ################
         row = layout.row()
         row.scale_y = 1.2
         row.prop(
@@ -109,8 +96,8 @@ class UAS_PT_ShotManager(Panel):
         row.emboss = "PULLDOWN_MENU"
         row.operator("uas_shot_manager.playbar_prefs", text="", icon="SETTINGS")
 
-        ################
         # play bar
+        ################
         row = layout.row(align=True)
         row.alignment = "CENTER"
         row.operator("uas_shot_manager.playbar_gotofirstshot", text="", icon="REW")
@@ -152,8 +139,8 @@ class UAS_PT_ShotManager(Panel):
 
         layout.separator(factor=0.5)
 
-        ################
         # editing
+        ################
         row = layout.row(align=True)
         editingDuration = props.getEditDuration()
         editingDurationStr = "-" if -1 == editingDuration else (str(editingDuration) + " frames")
@@ -172,8 +159,8 @@ class UAS_PT_ShotManager(Panel):
             row.alert = True
         row.label(text=str(scene.render.fps) + " fps")
 
-        ################
         # warnings
+        ################
         warningsList = props.getWarnings(scene)
         if len(warningsList):
             for w in warningsList:
@@ -183,8 +170,8 @@ class UAS_PT_ShotManager(Panel):
                 row.label(text=w)
                 row.alert = False
 
-        ################
         # takes
+        ################
         row = layout.row()  # just to give some space...
         box = layout.box()
         row = box.row()
@@ -193,21 +180,35 @@ class UAS_PT_ShotManager(Panel):
         #    row.menu(UAS_MT_ShotManager_Takes_ToolsMenu.bl_idname,text="Tools",icon='TOOL_SETTINGS')
         row.menu("UAS_MT_Shot_Manager_takes_toolsmenu", icon="TOOL_SETTINGS", text="")
 
-        ################
         # shots
+        ################
         if len(props.takes):
             box = layout.box()
             row = box.row()
             numShots = len(props.getShotsList(ignoreDisabled=False))
             numEnabledShots = len(props.getShotsList(ignoreDisabled=True))
-            row.label(text=f"Shots ({numEnabledShots}/{numShots}): ")
 
-            row.separator(factor=1)
-            row.operator("uas_shot_manager.enabledisableall", text="", icon="CHECKBOX_HLT")
+            column_flow = row.column_flow(columns=2)
+            subrow = column_flow.row()
+            subrow.alignment = "LEFT"
+            subrow.scale_x = 0.4
+            subrow.label(text=f"Shots ({numEnabledShots}/{numShots}):")
+            subrow.scale_x = 1.0
+            subrow.operator("uas_shot_manager.enabledisableall", text="", icon="CHECKBOX_HLT")
 
-            row.operator("uas_shot_manager.scenerangefromshot", text="", icon="PREVIEW_RANGE")
+            subrow = column_flow.row()
+            subrow.alignment = "RIGHT"
+
+            if props.useLockCameraView:
+                subrow.alert = True
+            subrow.prop(props, "useLockCameraView", text="", icon="CAMERA_DATA")
+            if props.useLockCameraView:
+                subrow.alert = False
+
+            subrow.separator()
+            subrow.operator("uas_shot_manager.scenerangefromshot", text="", icon="PREVIEW_RANGE")
             #    row.operator("uas_shot_manager.scenerangefromenabledshots", text="", icon="PREVIEW_RANGE")
-            row.operator("uas_shot_manager.scenerangefrom3dedit", text="", icon="PREVIEW_RANGE")
+            subrow.operator("uas_shot_manager.scenerangefrom3dedit", text="", icon="PREVIEW_RANGE")
 
             row.emboss = "PULLDOWN_MENU"
             row.operator("uas_shot_manager.shots_prefs", text="", icon="SETTINGS")
@@ -429,6 +430,17 @@ class UAS_PT_ShotManager_ShotProperties(Panel):
 
     tmpBGPath: StringProperty()
 
+    @classmethod
+    def poll(cls, context):
+        props = context.scene.UAS_shot_manager_props
+        if not ("SELECTED" == props.current_shot_properties_mode):
+            shot = props.getCurrentShot()
+        else:
+            shot = props.getShot(props.selected_shot_index)
+        val = len(context.scene.UAS_shot_manager_props.getTakes()) and shot
+
+        return val
+
     def draw_header(self, context):
         scene = context.scene
         layout = self.layout
@@ -521,7 +533,10 @@ class UAS_PT_ShotManager_ShotProperties(Panel):
 
             # row.prop ( context.props, "display_duration_in_shotlist", text = "" )
 
-            if shot.camera is not None:
+            # Camera background images
+            ######################
+
+            if props.display_camerabgtools_in_properties and shot.camera is not None:
                 box = layout.box()
                 row = box.row()
                 row.separator(factor=1.0)
@@ -548,17 +563,6 @@ class UAS_PT_ShotManager_ShotProperties(Panel):
                 row.prop(shot, "bgImages_linkToShotStart")
                 row.prop(shot, "bgImages_offset")
 
-    @classmethod
-    def poll(cls, context):
-        props = context.scene.UAS_shot_manager_props
-        if not ("SELECTED" == props.current_shot_properties_mode):
-            shot = props.getCurrentShot()
-        else:
-            shot = props.getShot(props.selected_shot_index)
-        val = len(context.scene.UAS_shot_manager_props.getTakes()) and shot
-
-        return val
-
 
 class UAS_PT_ShotManager_ShotsGlobalSettings(Panel):
     bl_label = "Shots Global Control"  # "Current Shot Properties" # keep the space !!
@@ -569,32 +573,36 @@ class UAS_PT_ShotManager_ShotsGlobalSettings(Panel):
     bl_options = {"DEFAULT_CLOSED"}
     bl_parent_id = "UAS_PT_Shot_Manager"
 
+    @classmethod
+    def poll(cls, context):
+        props = context.scene.UAS_shot_manager_props
+        val = props.display_camerabgtools_in_properties and len(props.getTakes()) and len(props.get_shots())
+        return val
+
     def draw(self, context):
         scene = context.scene
         props = scene.UAS_shot_manager_props
 
         layout = self.layout
 
-        layout.label(text="Camera Background Images:")
-        box = layout.box()
+        # Camera background images
+        ######################
 
-        row = box.row()
-        row.separator(factor=1.0)
-        c = row.column()
-        grid_flow = c.grid_flow(align=False, columns=4, even_columns=False)
-        grid_flow.operator("uas_shots_settings.use_background", text="Turn On").useBackground = True
-        grid_flow.operator("uas_shots_settings.use_background", text="Turn Off").useBackground = False
-        grid_flow.prop(props.shotsGlobalSettings, "backgroundAlpha", text="Alpha")
-        grid_flow.prop(props.shotsGlobalSettings, "proxyRenderSize")
+        if props.display_camerabgtools_in_properties:
 
-        row.separator(factor=0.5)  # prevents stange look when panel is narrow
+            layout.label(text="Camera Background Images:")
+            box = layout.box()
 
-    @classmethod
-    def poll(cls, context):
-        props = context.scene.UAS_shot_manager_props
-        val = len(props.getTakes()) and len(props.get_shots())
+            row = box.row()
+            row.separator(factor=1.0)
+            c = row.column()
+            grid_flow = c.grid_flow(align=False, columns=4, even_columns=False)
+            grid_flow.operator("uas_shots_settings.use_background", text="Turn On").useBackground = True
+            grid_flow.operator("uas_shots_settings.use_background", text="Turn Off").useBackground = False
+            grid_flow.prop(props.shotsGlobalSettings, "backgroundAlpha", text="Alpha")
+            grid_flow.prop(props.shotsGlobalSettings, "proxyRenderSize")
 
-        return val
+            row.separator(factor=0.5)  # prevents stange look when panel is narrow
 
 
 # This operator requires   from bpy_extras.io_utils import ImportHelper
@@ -791,6 +799,32 @@ class UAS_MT_ShotManager_Shots_ToolsMenu(Menu):
 #########
 
 
+# class UAS_ShotManager_LockCamToView(Operator):
+#     bl_idname = "uas_shot_manager.lockcamtoview"
+#     bl_label = "Lock Cameras to View"
+#     bl_description = "Enable view navigation within the camera view"
+#     bl_options = {"INTERNAL"}
+
+#     @classmethod
+#     def poll(cls, context):
+#         props = context.scene.UAS_shot_manager_props
+#         val = len(props.getTakes()) and len(props.get_shots())
+#         return val
+
+#     def execute(self, context):
+#         scene = context.scene
+#         props = scene.UAS_shot_manager_props
+
+#         # Can also use area.spaces.active to get the space assoc. with the area
+#         for area in context.screen.areas:
+#             if area.type == "VIEW_3D":
+#                 for space in area.spaces:
+#                     if space.type == "VIEW_3D":
+#                         space.lock_camera = True
+
+#         return {"FINISHED"}
+
+
 class UAS_ShotManager_EnableDisableAll(Operator):
     bl_idname = "uas_shot_manager.enabledisableall"
     bl_label = "Enable / Disable All Shots"
@@ -909,6 +943,7 @@ classes = (
     UAS_ShotManager_DrawCameras_UI,
     #  UAS_Retimer,
     UAS_ShotManager_EnableDisableAll,
+    #   UAS_ShotManager_LockCamToView,
     UAS_ShotManager_SceneRangeFromShot,
     #    UAS_ShotManager_SceneRangeFromEnabledShots,
     UAS_ShotManager_SceneRangeFrom3DEdit,

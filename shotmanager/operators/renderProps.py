@@ -47,7 +47,7 @@ class UAS_PT_ShotManagerRenderPanel(Panel):
             row.alert = True
         row.prop(props, "useProjectRenderSettings")
         row.operator("uas_shot_manager.render_restore_project_settings")
-        row.operator("uas_shot_manager.render_display_project_settings")
+        row.operator("uas_shot_manager.project_settings_prefs")
         row.separator(factor=0.1)
 
         row = layout.row()
@@ -784,43 +784,6 @@ class UAS_ShotManager_Render_RestoreProjectSettings(Operator):
         return {"FINISHED"}
 
 
-class UAS_ShotManager_Render_DisplayProjectSettings(Operator):
-    bl_idname = "uas_shot_manager.render_display_project_settings"
-    bl_label = "Project Settings"
-    bl_description = "Display Project Settings"
-    bl_options = {"INTERNAL"}
-
-    def invoke(self, context, event):
-        return context.window_manager.invoke_props_dialog(self, width=450)
-
-    def draw(self, context):
-        layout = self.layout
-        scene = context.scene
-        props = scene.UAS_shot_manager_props
-
-        settingsList = props.restoreProjectSettings(settingsListOnly=True)
-
-        box = layout.box()
-
-        # grid_flow = row.grid_flow(align=True, row_major=True, columns=2, even_columns=False)
-
-        # col = grid_flow.column(align=False)
-        # col.scale_x = 0.6
-        # col.label(text="New Shot Name:")
-
-        for prop in settingsList:
-            row = box.row(align=True)
-            row.label(text=prop[0] + ":")
-            row.label(text=str(prop[1]))
-
-        # col = grid_flow.column(align=False)
-        # col.prop ( self, "name", text="" )
-
-    def execute(self, context):
-
-        return {"FINISHED"}
-
-
 ######
 # IO #
 ######
@@ -1174,7 +1137,6 @@ _classes = (
     UAS_OT_OpenPathBrowser,
     #    UAS_ShotManager_Explorer,
     UAS_ShotManager_Render_RestoreProjectSettings,
-    UAS_ShotManager_Render_DisplayProjectSettings,
     UAS_ShotManager_Export_OTIO,
     UAS_ShotManager_OT_Import_OTIO,
     UAS_OTIO_OpenFileBrowser,
