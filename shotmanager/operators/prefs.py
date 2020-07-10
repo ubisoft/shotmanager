@@ -297,7 +297,7 @@ class UAS_ShotManager_Shots_Prefs(Operator):
         row.alignment = "CENTER"
         row.label(text="Camera Backgrounds")
         row.scale_x = 1.5
-        row.prop(props, "display_camerabgtools_in_properties", text="", icon="CAMERA_DATA")
+        row.prop(props, "display_camerabgtools_in_properties", text="", icon="VIEW_CAMERA")
 
         # col.prop(
         #     props, "display_selectbut_in_shotlist", text="Display Camera Select Button",

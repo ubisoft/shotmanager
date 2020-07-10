@@ -187,14 +187,28 @@ class UAS_PT_ShotManager(Panel):
             row = box.row()
             numShots = len(props.getShotsList(ignoreDisabled=False))
             numEnabledShots = len(props.getShotsList(ignoreDisabled=True))
-            row.label(text=f"Shots ({numEnabledShots}/{numShots}): ")
 
-            row.separator(factor=1)
-            row.operator("uas_shot_manager.enabledisableall", text="", icon="CHECKBOX_HLT")
+            column_flow = row.column_flow(columns=2)
+            subrow = column_flow.row()
+            subrow.alignment = "LEFT"
+            subrow.scale_x = 0.4
+            subrow.label(text=f"Shots ({numEnabledShots}/{numShots}):")
+            subrow.scale_x = 1.0
+            subrow.operator("uas_shot_manager.enabledisableall", text="", icon="CHECKBOX_HLT")
 
-            row.operator("uas_shot_manager.scenerangefromshot", text="", icon="PREVIEW_RANGE")
+            subrow = column_flow.row()
+            subrow.alignment = "RIGHT"
+
+            if props.useLockCameraView:
+                subrow.alert = True
+            subrow.prop(props, "useLockCameraView", text="", icon="CAMERA_DATA")
+            if props.useLockCameraView:
+                subrow.alert = False
+
+            subrow.separator()
+            subrow.operator("uas_shot_manager.scenerangefromshot", text="", icon="PREVIEW_RANGE")
             #    row.operator("uas_shot_manager.scenerangefromenabledshots", text="", icon="PREVIEW_RANGE")
-            row.operator("uas_shot_manager.scenerangefrom3dedit", text="", icon="PREVIEW_RANGE")
+            subrow.operator("uas_shot_manager.scenerangefrom3dedit", text="", icon="PREVIEW_RANGE")
 
             row.emboss = "PULLDOWN_MENU"
             row.operator("uas_shot_manager.shots_prefs", text="", icon="SETTINGS")
@@ -416,6 +430,17 @@ class UAS_PT_ShotManager_ShotProperties(Panel):
 
     tmpBGPath: StringProperty()
 
+    @classmethod
+    def poll(cls, context):
+        props = context.scene.UAS_shot_manager_props
+        if not ("SELECTED" == props.current_shot_properties_mode):
+            shot = props.getCurrentShot()
+        else:
+            shot = props.getShot(props.selected_shot_index)
+        val = len(context.scene.UAS_shot_manager_props.getTakes()) and shot
+
+        return val
+
     def draw_header(self, context):
         scene = context.scene
         layout = self.layout
@@ -537,17 +562,6 @@ class UAS_PT_ShotManager_ShotProperties(Panel):
                 row.separator(factor=1.0)
                 row.prop(shot, "bgImages_linkToShotStart")
                 row.prop(shot, "bgImages_offset")
-
-    @classmethod
-    def poll(cls, context):
-        props = context.scene.UAS_shot_manager_props
-        if not ("SELECTED" == props.current_shot_properties_mode):
-            shot = props.getCurrentShot()
-        else:
-            shot = props.getShot(props.selected_shot_index)
-        val = len(context.scene.UAS_shot_manager_props.getTakes()) and shot
-
-        return val
 
 
 class UAS_PT_ShotManager_ShotsGlobalSettings(Panel):
@@ -785,6 +799,32 @@ class UAS_MT_ShotManager_Shots_ToolsMenu(Menu):
 #########
 
 
+# class UAS_ShotManager_LockCamToView(Operator):
+#     bl_idname = "uas_shot_manager.lockcamtoview"
+#     bl_label = "Lock Cameras to View"
+#     bl_description = "Enable view navigation within the camera view"
+#     bl_options = {"INTERNAL"}
+
+#     @classmethod
+#     def poll(cls, context):
+#         props = context.scene.UAS_shot_manager_props
+#         val = len(props.getTakes()) and len(props.get_shots())
+#         return val
+
+#     def execute(self, context):
+#         scene = context.scene
+#         props = scene.UAS_shot_manager_props
+
+#         # Can also use area.spaces.active to get the space assoc. with the area
+#         for area in context.screen.areas:
+#             if area.type == "VIEW_3D":
+#                 for space in area.spaces:
+#                     if space.type == "VIEW_3D":
+#                         space.lock_camera = True
+
+#         return {"FINISHED"}
+
+
 class UAS_ShotManager_EnableDisableAll(Operator):
     bl_idname = "uas_shot_manager.enabledisableall"
     bl_label = "Enable / Disable All Shots"
@@ -903,6 +943,7 @@ classes = (
     UAS_ShotManager_DrawCameras_UI,
     #  UAS_Retimer,
     UAS_ShotManager_EnableDisableAll,
+    #   UAS_ShotManager_LockCamToView,
     UAS_ShotManager_SceneRangeFromShot,
     #    UAS_ShotManager_SceneRangeFromEnabledShots,
     UAS_ShotManager_SceneRangeFrom3DEdit,

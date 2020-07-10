@@ -129,14 +129,14 @@ class UAS_ShotManager_Shot(PropertyGroup):
         print("\n*** _get_duration_fp: New state: ", self.duration_fp)
 
         # not used, normal it's the fake property
-        self.get("_get_duration_fp", -1)
+        self.get("duration_fp", -1)
 
         realVal = self.getDuration()
         return realVal
 
     def _set_duration_fp(self, value):
         print("\n*** _update_duration_fp: New state: ", self.duration_fp)
-        self["_set_duration_fp"] = value
+        self["duration_fp"] = value
         self.end = self.start + max(value, 1) - 1
 
     def _update_duration_fp(self, context):
