@@ -22,10 +22,7 @@ class UAS_PT_ShotManager(Panel):
 
     @classmethod
     def poll(cls, context):
-        props = context.scene.UAS_shot_manager_props
-        val = True
-        # val = val and not props.dontRefreshUI()
-        return val
+        return True
 
     def draw_header(self, context):
         layout = self.layout
@@ -383,7 +380,8 @@ class UAS_UL_ShotManager_Items(bpy.types.UIList):
         if props.display_duration_in_shotlist:
             grid_flow.scale_x = 0.3
             # grid_flow.label ( text = str(item.getDuration()) )
-            grid_flow.operator("uas_shot_manager.shot_duration", text=str(item.getDuration())).index = index
+            # grid_flow.operator("uas_shot_manager.shot_duration", text=str(item.getDuration())).index = index
+            grid_flow.prop(item, "duration_fp", text="")
         else:
             grid_flow.scale_x = 0.05
             grid_flow.operator("uas_shot_manager.shot_duration", text="").index = index

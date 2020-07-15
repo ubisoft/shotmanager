@@ -313,9 +313,6 @@ class UAS_ShotManager_Props(PropertyGroup):
                     if space.type == "VIEW_3D":
                         space.lock_camera = value
 
-    # def _update_duration_fp(self, context):
-    #     print("\n*** _update_duration_fp: New state: ", self.duration_fp)
-
     # fake property: value never used in itself, its purpose is to update ofher properties
     useLockCameraView: BoolProperty(
         name="Lock Cameras to View",
