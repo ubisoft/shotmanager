@@ -212,7 +212,9 @@ class BL_UI_Cursor:
         caret_to_draw = self.caret.copy()
         caret_to_draw.x = self.posx + fix_offset_x
         edit_start_frame = props.editStartFrame
-        scene_edit_time = props.getEditCurrentTime(ignoreDisabled=True)
+        scene_edit_time = props.getEditCurrentTimeForSelectedShot(
+            ignoreDisabled=not props.display_disabledshots_in_timeline
+        )
 
         #   print("\nscene_edit_time 01: ", scene_edit_time)
         # wkip
@@ -221,7 +223,7 @@ class BL_UI_Cursor:
             val = remap(
                 scene_edit_time,
                 edit_start_frame,
-                props.getEditDuration(ignoreDisabled=True) + edit_start_frame,
+                props.getEditDuration(ignoreDisabled=not props.display_disabledshots_in_timeline) + edit_start_frame,
                 0,
                 self.context.area.width,
             )
@@ -548,9 +550,9 @@ class BL_UI_Timeline:
 
     def draw_shots(self):
         total_range = 0
-        shotmanager_props = self.context.scene.UAS_shot_manager_props
-        shots = shotmanager_props.getShotsList(ignoreDisabled=True)
-        currentShotIndex = shotmanager_props.getCurrentShotIndex(ignoreDisabled=True)
+        props = self.context.scene.UAS_shot_manager_props
+        shots = props.getShotsList(ignoreDisabled=not props.display_disabledshots_in_timeline)
+        currentShotIndex = props.getCurrentShotIndex(ignoreDisabled=not props.display_disabledshots_in_timeline)
 
         self.ui_shots.clear()
         total_range += sum([s.end + 1 - s.start for s in shots])
@@ -662,25 +664,28 @@ class BL_UI_Timeline:
         return False
 
     def frame_cursor_moved(self):
-        shotmanager_props = self.context.scene.UAS_shot_manager_props
-        shots = shotmanager_props.getShotsList(ignoreDisabled=not shotmanager_props.display_disabledshots_in_timeline)
+        props = self.context.scene.UAS_shot_manager_props
+        # shots = props.getShotsList(ignoreDisabled=not props.display_disabledshots_in_timeline)
+        shots = props.get_shots()
 
         new_edit_frame = round(
             remap(
                 self.frame_cursor.value,
                 self.frame_cursor.range_min,
                 self.frame_cursor.range_max,
-                shotmanager_props.editStartFrame,
-                shotmanager_props.editStartFrame + shotmanager_props.getEditDuration() - 1,
+                props.editStartFrame,
+                props.editStartFrame + props.getEditDuration() - 1,
             )
         )
-        sequence_current_frame = shotmanager_props.editStartFrame
-        for shot in shots:
-            if sequence_current_frame <= new_edit_frame < sequence_current_frame + shot.getDuration():
-                shotmanager_props.setCurrentShot(shot)
-                self.context.scene.frame_current = shot.start + new_edit_frame - sequence_current_frame
-                break
-            sequence_current_frame += shot.getDuration()
+        sequence_current_frame = props.editStartFrame
+        for i, shot in enumerate(shots):
+            if shot.enabled or props.display_disabledshots_in_timeline:
+                if sequence_current_frame <= new_edit_frame < sequence_current_frame + shot.getDuration():
+                    props.setCurrentShotByIndex(i)
+                    props.setSelectedShotByIndex(i)
+                    self.context.scene.frame_current = shot.start + new_edit_frame - sequence_current_frame
+                    break
+                sequence_current_frame += shot.getDuration()
 
     def mouse_down(self, x, y):
         return False  # self.is_in_rect ( x, y )
@@ -818,9 +823,9 @@ class UAS_ShotManager_DrawCameras_UI(bpy.types.Operator):
 
     def draw_shots_names(self, context):
         scn = context.scene
-        shotmanager_props = context.scene.UAS_shot_manager_props
-        shots = shotmanager_props.getShotsList()
-        current_shot = shotmanager_props.getCurrentShot()
+        props = context.scene.UAS_shot_manager_props
+        shots = props.getShotsList()
+        current_shot = props.getCurrentShot()
 
         shot_names_by_camera = defaultdict(list)
         for shot in shots:

@@ -70,14 +70,13 @@ class UAS_ShotManager_GetSetCurrentFrame(Operator):
     bl_description = "Click: Set current frame with value.\nShift + Click: Get current frame for value"
     bl_options = {"INTERNAL"}
 
+    # shotSource is an array [index of shot, 0 (for start) or 1 (for end)]
     shotSource: StringProperty(default="")
 
     def invoke(self, context, event):
         props = context.scene.UAS_shot_manager_props
         argArr = json.loads(self.shotSource)
 
-        print("shotSource: ", self.shotSource)
-        print("argArr: ", argArr)
         shot = props.getShot(argArr[0])
         if event.shift:
             if 0 == argArr[1]:
@@ -85,6 +84,10 @@ class UAS_ShotManager_GetSetCurrentFrame(Operator):
             elif 1 == argArr[1]:
                 shot.end = context.scene.frame_current
         else:
+            if context.window_manager.UAS_shot_manager_handler_toggle:
+                props.setCurrentShotByIndex(argArr[0])
+            else:
+                props.setSelectedShotByIndex(argArr[0])
             if 0 == argArr[1]:
                 context.scene.frame_current = shot.start
             elif 1 == argArr[1]:
@@ -117,6 +120,12 @@ class UAS_ShotManager_ShotTimeInEdit(Operator):
         print("shotSource: ", self.shotSource)
         print("argArr: ", argArr)
         shot = props.getShot(argArr[0])
+
+        if context.window_manager.UAS_shot_manager_handler_toggle:
+            props.setCurrentShotByIndex(argArr[0])
+        else:
+            props.setSelectedShotByIndex(argArr[0])
+
         if event.type == "LEFTMOUSE":
             if 0 == argArr[1]:
                 context.scene.frame_current = shot.start
