@@ -35,6 +35,18 @@ def clamp(value, minimum, maximum):
     return min(max(value, minimum), maximum)
 
 
+def darken_color(color):
+    factor = 0.6
+    d_color = (color[0] * factor, color[1] * factor, color[2] * factor, color[3] * 1.0)
+    return d_color
+
+
+def gamma_color(color):
+    gamma = 0.45
+    d_color = (pow(color[0], gamma), pow(color[1], gamma), pow(color[2], gamma), color[3] * 1.0)
+    return d_color
+
+
 #
 # Geometry utils functions
 #
@@ -147,19 +159,22 @@ class BL_UI_Cursor:
         self._value = 0
 
         self.posx = 0
-        self.posy = 32
+        self.posy = 36
 
         self.sizex = 11
         self.sizey = 8
 
         # Is used for drawing the frame number and for cursor interaction
+        # origine of the referentiel is bottom left
+        self.bboxbg = Square(self.posx + self.sizex + 1, self.posy - 1, self.sizex + 1, self.sizey + 1)
         self.bbox = Square(self.posx + self.sizex, self.posy, self.sizex, self.sizey)
         self.caret = Square(self.posx, self.posy - self.sizey, 3, 4)
 
         self.hightlighted = False
         self.edit_time = 0
         self.color = (0.2, 0.2, 1.0, 1)
-        self.hightlighted_color = (0.5, 0.5, 0.5, 1)
+        self.hightlighted_color = (0.5, 0.5, 0.9, 1)
+        self.darken_color = (0.1, 0.1, 0.3, 1)
         self._p_mouse_x = 0
         self._mouse_down = False
         self._dragable = False
@@ -182,19 +197,26 @@ class BL_UI_Cursor:
 
     def draw(self):
         props = self.context.scene.UAS_shot_manager_props
+        fix_offset_x = 1
         self.bbox.color = self.color
+        self.bboxbg.color = self.darken_color
         self.caret.color = self.color
         if self.hightlighted:
             self.bbox.color = self.hightlighted_color
             self.caret.color = self.hightlighted_color
 
+        box_to_draw_bg = self.bboxbg.copy()
+        box_to_draw_bg.x = self.posx + 1 + fix_offset_x
         box_to_draw = self.bbox.copy()
-        box_to_draw.x = self.posx
+        box_to_draw.x = self.posx + fix_offset_x
         caret_to_draw = self.caret.copy()
-        caret_to_draw.x = self.posx
+        caret_to_draw.x = self.posx + fix_offset_x
         edit_start_frame = props.editStartFrame
+        scene_edit_time = props.getEditCurrentTime(ignoreDisabled=True)
+
+        #   print("\nscene_edit_time 01: ", scene_edit_time)
+        # wkip
         if not self._dragable:
-            scene_edit_time = props.getEditCurrentTime(ignoreDisabled=True)
             scene_edit_time = max(edit_start_frame, scene_edit_time)
             val = remap(
                 scene_edit_time,
@@ -207,19 +229,28 @@ class BL_UI_Cursor:
         else:
             val = remap(self.value, self.range_min, self.range_max, 0, self.context.area.width)
 
-        box_to_draw.x = val
-        caret_to_draw.x = val
+        box_to_draw_bg.x = val + 1 + fix_offset_x
+        box_to_draw_bg.x = max(box_to_draw_bg.sx, box_to_draw_bg.x)
+        box_to_draw_bg.x = min(box_to_draw_bg.x, self.context.area.width - 1 - box_to_draw_bg.sx)
+
+        caret_to_draw.x = val + fix_offset_x
+
+        box_to_draw.x = val + fix_offset_x
         box_to_draw.x = max(box_to_draw.sx, box_to_draw.x)
         box_to_draw.x = min(box_to_draw.x, self.context.area.width - 1 - box_to_draw.sx)
+
+        box_to_draw_bg.draw()
         caret_to_draw.draw()
         box_to_draw.draw()
 
         blf.color(0, 0.9, 0.9, 0.9, 1)
         blf.size(0, 12, 72)
-        frame = str(max(props.getEditCurrentTime(ignoreDisabled=True), edit_start_frame))
+        frame = str(max(scene_edit_time, edit_start_frame))
         font_width, font_height = blf.dimensions(0, frame)
         blf.position(0, box_to_draw.x - 0.5 * font_width, box_to_draw.y - 0.5 * font_height, 0)
         blf.draw(0, frame)
+
+    #   print("\nscene_edit_time 02: ", scene_edit_time)
 
     def is_in_rect(self, x, y):
         if self.__region is not None:
@@ -486,6 +517,35 @@ class BL_UI_Timeline:
         batch_panel.draw(shader)
         bgl.glDisable(bgl.GL_BLEND)
 
+    def draw_frame_caret(self, x, frame_width, color):
+        caret_width = frame_width
+        caret_height = self.height * 0.35
+        area_height = self.get_area_height()
+
+        y = caret_height + self.y_offset
+        x_screen = x
+
+        indices = ((0, 1, 2), (0, 2, 3))
+
+        y_screen_flip = area_height - self.y_screen
+        # bottom left, top left, top right, bottom right
+        vertices = (
+            (x_screen, y_screen_flip - self.height),
+            (x_screen, y_screen_flip - self.height + caret_height),
+            (x_screen + caret_width, y_screen_flip - self.height + caret_height),
+            (x_screen + caret_width, y_screen_flip - self.height),
+        )
+
+        shader = gpu.shader.from_builtin("2D_UNIFORM_COLOR")
+        batch_panel = batch_for_shader(shader, "TRIS", {"pos": vertices}, indices=indices)
+
+        shader.bind()
+        # shader.uniform_float("color", (1.0, 0.1, 0.1, 1))
+        shader.uniform_float("color", color)
+        bgl.glEnable(bgl.GL_BLEND)
+        batch_panel.draw(shader)
+        bgl.glDisable(bgl.GL_BLEND)
+
     def draw_shots(self):
         total_range = 0
         shotmanager_props = self.context.scene.UAS_shot_manager_props
@@ -500,24 +560,25 @@ class BL_UI_Timeline:
             s = BL_UI_Shot(offset_x, self.y, size_x, self.height, shot.name, not shot.enabled)
             self.ui_shots.append(s)
             s.init(self.context)
-            s.bg_color = tuple(shot.color)
+            s.bg_color = tuple(gamma_color(shot.color))
 
             s.draw()
 
+            caret_pos = offset_x + (self.context.scene.frame_current - shot.start) * size_x / float(
+                shot.end + 1 - shot.start
+            )
+            frame_width = size_x / float(shot.end + 1 - shot.start)
+
             if self.context.window_manager.UAS_shot_manager_handler_toggle:
                 if currentShotIndex == i:
-                    self.draw_caret(
-                        offset_x
-                        + (self.context.scene.frame_current - shot.start) * size_x / float(shot.end + 1 - shot.start),
-                        (1.1, 0.1, 0.1, 1),
-                    )
+                    caret_color = (1.0, 0.1, 0.1, 1)
+                    self.draw_frame_caret(caret_pos, frame_width, darken_color(caret_color))
+                    self.draw_caret(caret_pos, caret_color)
             else:
                 if shot.start <= self.context.scene.frame_current and self.context.scene.frame_current <= shot.end:
-                    self.draw_caret(
-                        offset_x
-                        + (self.context.scene.frame_current - shot.start) * size_x / float(shot.end + 1 - shot.start),
-                        (0.1, 1.0, 0.1, 1),
-                    )
+                    caret_color = (0.1, 1.0, 0.1, 1)
+                    self.draw_frame_caret(caret_pos, frame_width, darken_color(caret_color))
+                    self.draw_caret(caret_pos, caret_color)
 
             offset_x += int(self.width * float(shot.end + 1 - shot.start) / total_range)
 
