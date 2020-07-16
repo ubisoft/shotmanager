@@ -269,6 +269,13 @@ class UAS_ShotManager_Props(PropertyGroup):
         name="Display Get/Set current Frame Buttons in Shot List", default=True, options=set()
     )
 
+    display_edit_times_in_shotlist: BoolProperty(
+        name="Display Edit Times in Shot List",
+        description="Display start and end frames of the shots in the time of the edit",
+        default=False,
+        options=set(),
+    )
+
     def _update_display_shotname_in_3dviewport(self, context):
         # print("\n*** Stamp Info updated. New state: ", self.stampInfoUsed)
         if self.display_shotname_in_3dviewport:
@@ -312,9 +319,6 @@ class UAS_ShotManager_Props(PropertyGroup):
                 for space in area.spaces:
                     if space.type == "VIEW_3D":
                         space.lock_camera = value
-
-    # def _update_duration_fp(self, context):
-    #     print("\n*** _update_duration_fp: New state: ", self.duration_fp)
 
     # fake property: value never used in itself, its purpose is to update ofher properties
     useLockCameraView: BoolProperty(
@@ -744,6 +748,24 @@ class UAS_ShotManager_Props(PropertyGroup):
         #         # if shotInd == len(shotList): editCurrentTime = -1
 
         # return editCurrentTime
+
+    def getEditCurrentTimeForSelectedShot(self, ignoreDisabled=True):
+        """ Return edit current time in frames, -1 if no shots or if current shot is disabled
+            works only on current take
+            wkip negative times issues coming here... :/
+        """
+        # works only on current take
+        takeInd = self.getCurrentTakeIndex()
+        editCurrentTime = -1
+        if -1 == takeInd:
+            return editCurrentTime
+
+        # current time must be in the range of the current shot!!!
+        # get the whole shots list
+        #        shotList = self.getShotsList(ignoreDisabled=ignoreDisabled, takeIndex=takeInd)
+        shot = self.getSelectedShot()
+
+        return self.getEditTime(shot, bpy.context.scene.frame_current)
 
     ####################
     # shots

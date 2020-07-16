@@ -18,6 +18,7 @@ from .operators import shots_global_settings
 from .operators import general
 from .operators import playbar
 from .operators import renderProps
+from .operators import shots_toolbar
 
 from .operators import prefs
 
@@ -49,7 +50,7 @@ bl_info = {
     "author": "Romain Carriquiry Borchiari, Julien Blervaque (aka Werwack)",
     "description": "Manage a sequence of shots and cameras in the 3D View - Ubisoft Animation Studio",
     "blender": (2, 83, 1),
-    "version": (1, 3, 1),
+    "version": (1, 3, 2),
     "location": "View3D > UAS Shot Manager",
     "wiki_url": "https://gitlab-ncsa.ubisoft.org/animation-studio/blender/shotmanager-addon/-/wikis/home",
     "warning": "",
@@ -238,6 +239,7 @@ def register():
     playbar.register()
     retimer_props.register()
     props.register()
+    shots_toolbar.register()
 
     # ui
     sm_ui.register()
@@ -302,6 +304,7 @@ def unregister():
     sm_ui.unregister()
 
     # operators
+    shots_toolbar.unregister()
     props.unregister()
     retimer_props.unregister()
     playbar.unregister()

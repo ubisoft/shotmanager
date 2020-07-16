@@ -16,6 +16,7 @@ def initGlobalVariables():
 
     icons_col = pcoll
 
+    # debug ############
     global uasDebug
 
     # wkip better code: uasDebug = os.environ.get("UasDebug", "0") == "1"
