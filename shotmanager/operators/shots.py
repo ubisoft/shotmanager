@@ -102,6 +102,30 @@ class UAS_ShotManager_NoLens(Operator):
     index: IntProperty(default=0)
 
 
+class UAS_ShotManager_ShotTimeInEdit(Operator):
+    bl_idname = "uas_shot_manager.shottimeinedit"
+    bl_label = "Toggle Edit Times"
+    bl_description = "Display the timings of the shots in the edit reference time"
+    bl_options = {"INTERNAL"}
+
+    shotSource: StringProperty(default="")
+
+    def invoke(self, context, event):
+        props = context.scene.UAS_shot_manager_props
+        argArr = json.loads(self.shotSource)
+
+        print("shotSource: ", self.shotSource)
+        print("argArr: ", argArr)
+        shot = props.getShot(argArr[0])
+        if event.type == "LEFTMOUSE":
+            if 0 == argArr[1]:
+                context.scene.frame_current = shot.start
+            elif 1 == argArr[1]:
+                context.scene.frame_current = shot.end
+
+        return {"FINISHED"}
+
+
 ########################
 # for shot manipulation
 ########################
@@ -802,6 +826,7 @@ _classes = (
     UAS_ShotManager_ShotDuration,
     UAS_ShotManager_GetSetCurrentFrame,
     UAS_ShotManager_NoLens,
+    UAS_ShotManager_ShotTimeInEdit,
     # for shot manipulation:
     UAS_ShotManager_ShotAdd,
     UAS_ShotManager_ShotDuplicate,

@@ -269,6 +269,8 @@ class UAS_ShotManager_Props(PropertyGroup):
         name="Display Get/Set current Frame Buttons in Shot List", default=True, options=set()
     )
 
+    display_edit_times_in_shotlist: BoolProperty(name="Display Edit Times in Shot List", default=False, options=set())
+
     def _update_display_shotname_in_3dviewport(self, context):
         # print("\n*** Stamp Info updated. New state: ", self.stampInfoUsed)
         if self.display_shotname_in_3dviewport:

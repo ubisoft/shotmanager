@@ -271,7 +271,9 @@ class UAS_ShotManager_Shots_Prefs(Operator):
         col.prop(props, "display_selectbut_in_shotlist", text="Display Camera Select Button")
         col.prop(props, "display_enabled_in_shotlist", text="Display Enabled State")
         col.prop(props, "display_getsetcurrentframe_in_shotlist", text="Display Get/Set current Frame Buttons")
+        col.prop(props, "display_edit_times_in_shotlist", text="Display Edit Times in Shot List")
 
+        col.separator(factor=1.7)
         col.prop(props, "highlight_all_shot_frames", text="Highlight Framing Values When Equal to Current Time")
 
         col.separator(factor=1.0)

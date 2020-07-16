@@ -18,6 +18,7 @@ from .operators import shots_global_settings
 from .operators import general
 from .operators import playbar
 from .operators import renderProps
+from .operators import shots_toolbar
 
 from .operators import prefs
 
@@ -238,6 +239,7 @@ def register():
     playbar.register()
     retimer_props.register()
     props.register()
+    shots_toolbar.register()
 
     # ui
     sm_ui.register()
@@ -302,6 +304,7 @@ def unregister():
     sm_ui.unregister()
 
     # operators
+    shots_toolbar.unregister()
     props.unregister()
     retimer_props.unregister()
     playbar.unregister()
