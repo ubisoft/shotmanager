@@ -1677,11 +1677,6 @@ class UAS_ShotManager_Props(PropertyGroup):
 
         return currentCamName
 
-    def setProjectRenderFilePath(self):
-        # if '' == bpy.data.filepath:
-
-        bpy.context.scene.render.filepath = f"//{self.getTakeName_PathCompliant()}"
-
     # wkip traiter cas quand aps de nom de fichier
     def getRenderFileName(self):
         #   print("\n getRenderFileName ")
@@ -1738,6 +1733,64 @@ class UAS_ShotManager_Props(PropertyGroup):
     # #       renderedInfoFileName = r"\_tmp_StampInfo." + '{:04d}'.format(renderFrameInd) + ".png"
 
     #     return (renderPath, renderedInfoFileName)
+
+    ##############################
+
+    # Project ###
+
+    ##############################
+
+    def setProjectSettings(
+        self,
+        use_project_settings=None,
+        project_name=None,
+        project_fps=-1,
+        project_resolution=None,
+        project_resolution_framed=None,
+        project_shot_format=None,
+        project_shot_handle_duration=-1,
+        project_output_format=None,
+        project_color_space=None,
+        project_asset_name=None,
+    ):
+        """ Set only the specified properties
+            Shot format must use "_" as separators. It is of the template: Act{:02}_Seq{:04}_Sh{:04}
+        """
+
+        if use_project_settingse is not None:
+            self.use_project_settings = use_project_settings
+
+        if project_name is not None:
+            self.project_name = project_name
+        if -1 != project_fps:
+            self.project_fps = project_fps
+        if project_resolution is not None:
+            self.project_resolution_x = project_resolution[0]
+            self.project_resolution_y = project_resolution[1]
+        if project_resolution_framed is not None:
+            self.project_resolution_framed_x = project_resolution_framed[0]
+            self.project_resolution_framed_y = project_resolution_framed[1]
+        if project_shot_format is not None:
+            self.project_shot_format = project_shot_format
+
+            self.render_shot_prefix = bpy.context.scene.name  # + "_"
+
+            s = project_shot_format.split("_")[2]
+            s = s.format(0)
+            s = s.replace("0", "")
+            self.new_shot_prefix = s
+
+        if -1 != project_shot_handle_duration:
+            self.project_shot_handle_duration = project_shot_handle_duration
+
+        if project_output_format is not None:
+            self.project_output_format = project_output_format
+        if project_color_space is not None:
+            self.project_color_space = project_color_space
+        if project_asset_name is not None:
+            self.project_asset_name = project_asset_name
+
+        self.restoreProjectSettings()
 
     def restoreProjectSettings(self, settingsListOnly=False):
         scene = bpy.context.scene
@@ -1796,52 +1849,10 @@ class UAS_ShotManager_Props(PropertyGroup):
         self.renderSettingsProject.name = "Project Preset"
         self.renderSettingsProject.renderMode = "PROJECT"
 
-    def setProjectSettings(
-        self,
-        project_name=None,
-        project_fps=-1,
-        project_resolution=None,
-        project_resolution_framed=None,
-        project_shot_format=None,
-        project_shot_handle_duration=-1,
-        project_output_format=None,
-        project_color_space=None,
-        project_asset_name=None,
-    ):
-        """ Set only the specified properties
-            Shot format must use "_" as separators. It is of the template: Act{:02}_Seq{:04}_Sh{:04}
-        """
-        if project_name is not None:
-            self.project_name = project_name
-        if -1 != project_fps:
-            self.project_fps = project_fps
-        if project_resolution is not None:
-            self.project_resolution_x = project_resolution[0]
-            self.project_resolution_y = project_resolution[1]
-        if project_resolution_framed is not None:
-            self.project_resolution_framed_x = project_resolution_framed[0]
-            self.project_resolution_framed_y = project_resolution_framed[1]
-        if project_shot_format is not None:
-            self.project_shot_format = project_shot_format
+    def setProjectRenderFilePath(self):
+        # if '' == bpy.data.filepath:
 
-            self.render_shot_prefix = bpy.context.scene.name  # + "_"
-
-            s = project_shot_format.split("_")[2]
-            s = s.format(0)
-            s = s.replace("0", "")
-            self.new_shot_prefix = s
-
-        if -1 != project_shot_handle_duration:
-            self.project_shot_handle_duration = project_shot_handle_duration
-
-        if project_output_format is not None:
-            self.project_output_format = project_output_format
-        if project_color_space is not None:
-            self.project_color_space = project_color_space
-        if project_asset_name is not None:
-            self.project_asset_name = project_asset_name
-
-        self.restoreProjectSettings()
+        bpy.context.scene.render.filepath = f"//{self.getTakeName_PathCompliant()}"
 
 
 _classes = (
