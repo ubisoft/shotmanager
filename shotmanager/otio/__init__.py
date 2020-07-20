@@ -133,9 +133,7 @@ def exportOtio(scene, takeIndex=-1, filePath="", fileName="", addTakeNameToPath=
 
 
 def register():
-
-    print("\n       - Registering OTIO Package")
-
+    print("       - Registering OTIO Package")
     # for cls in classes:
     #     bpy.utils.register_class(cls)
 

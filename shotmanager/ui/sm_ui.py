@@ -25,8 +25,10 @@ class UAS_PT_ShotManager(Panel):
         return True
 
     def draw_header(self, context):
+        props = context.scene.UAS_shot_manager_props
         layout = self.layout
         layout.emboss = "NONE"
+
         row = layout.row(align=True)
 
         if context.window_manager.UAS_shot_manager_displayAbout:
@@ -37,6 +39,9 @@ class UAS_PT_ShotManager(Panel):
         icon = config.icons_col["General_Ubisoft_32"]
         # row.prop(context.window_manager, "UAS_shot_manager_displayAbout", icon_value=icon.icon_id, icon_only=True)
         row.operator("uas_shot_manager.about", text="", icon_value=icon.icon_id)
+
+        if props.use_project_settings:
+            row.label(text=props.project_name)
 
     def draw_header_preset(self, context):
         layout = self.layout
@@ -166,8 +171,8 @@ class UAS_PT_ShotManager(Panel):
         row.label(text="Current Time in Edit: " + editingCurrentTimeStr)
 
         row.alignment = "RIGHT"
-        # wkip to remove - check with project fps!!
-        if 25 != scene.render.fps:
+
+        if props.use_project_settings and props.project_fps != scene.render.fps:
             row.alert = True
         row.label(text=str(scene.render.fps) + " fps")
 

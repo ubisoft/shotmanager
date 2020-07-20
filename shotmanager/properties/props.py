@@ -89,8 +89,9 @@ class UAS_ShotManager_Props(PropertyGroup):
         warningList = []
 
         # check if the current framerate is valid according to the project settings (wkip)
-        if scene.render.fps != self.project_fps:
-            warningList.append("Current scene fps and project fps are different !!")
+        if self.use_project_settings:
+            if scene.render.fps != self.project_fps:
+                warningList.append("Current scene fps and project fps are different !!")
 
         # check if a negative render frame may be rendered
         shotList = self.get_shots()
@@ -131,12 +132,14 @@ class UAS_ShotManager_Props(PropertyGroup):
     # project settings
     #############
 
-    project_name: StringProperty(name="Project Name", default="")
-    project_fps: FloatProperty(name="Project Fps", default=12.0)
-    project_resolution_x: IntProperty(name="", default=1280)
-    project_resolution_y: IntProperty(name="", default=720)
-    project_resolution_framed_x: IntProperty(name="", default=1280)
-    project_resolution_framed_y: IntProperty(name="", default=720)
+    use_project_settings: BoolProperty(name="Use Project Settings", default=False, options=set())
+
+    project_name: StringProperty(name="Project Name", default="My Project")
+    project_fps: FloatProperty(name="Project Fps", default=25.0)
+    project_resolution_x: IntProperty(name="Res. X", default=1280)
+    project_resolution_y: IntProperty(name="Res. Y", default=720)
+    project_resolution_framed_x: IntProperty(name="Res. Framed X", default=1280)
+    project_resolution_framed_y: IntProperty(name="Res. Framed Y", default=720)
     project_shot_format: StringProperty(name="Shot Format", default=r"Act{:02}_Seq{:04}_Sh{:04}")
 
     project_shot_handle_duration: IntProperty(name="Project Handle Duration", default=10)
@@ -144,6 +147,12 @@ class UAS_ShotManager_Props(PropertyGroup):
     project_output_format: StringProperty(name="Output Format", default="")
     project_color_space: StringProperty(name="Color Space", default="")
     project_asset_name: StringProperty(name="Asset Name", default="")
+
+    project_use_stampinfo: BoolProperty(
+        name="Use Stamp Info Add-on",
+        description="Use UAS Stamp Info add-on - if available - to write data on rendered images.\nNote: If Stamp Info is not installed then warnings will be displayed",
+        default=False,
+    )
 
     new_shot_prefix: StringProperty(default="Sh")
     render_shot_prefix: StringProperty(

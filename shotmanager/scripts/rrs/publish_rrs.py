@@ -1,5 +1,5 @@
 import bpy
-from ...operators import renderProps
+from ... import rendering
 from ...otio import exportOtio
 
 import os
