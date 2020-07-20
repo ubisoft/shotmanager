@@ -15,7 +15,7 @@ from bpy.props import (
 
 # from shotmanager.operators import shots
 from .media import UAS_ShotManager_Media
-from .render_settings import UAS_ShotManager_RenderSettings
+from shotmanager.rendering.rendering_props import UAS_ShotManager_RenderSettings
 from .shot import UAS_ShotManager_Shot
 from .take import UAS_ShotManager_Take
 from ..operators.shots_global_settings import UAS_ShotManager_ShotsGlobalSettings
@@ -134,6 +134,7 @@ class UAS_ShotManager_Props(PropertyGroup):
 
     use_project_settings: BoolProperty(name="Use Project Settings", default=False, options=set())
 
+    # settings coming from production
     project_name: StringProperty(name="Project Name", default="My Project")
     project_fps: FloatProperty(name="Project Fps", default=25.0)
     project_resolution_x: IntProperty(name="Res. X", default=1280)
@@ -148,6 +149,7 @@ class UAS_ShotManager_Props(PropertyGroup):
     project_color_space: StringProperty(name="Color Space", default="")
     project_asset_name: StringProperty(name="Asset Name", default="")
 
+    # built-in settings
     project_use_stampinfo: BoolProperty(
         name="Use Stamp Info Add-on",
         description="Use UAS Stamp Info add-on - if available - to write data on rendered images.\nNote: If Stamp Info is not installed then warnings will be displayed",
@@ -155,9 +157,13 @@ class UAS_ShotManager_Props(PropertyGroup):
     )
 
     new_shot_prefix: StringProperty(default="Sh")
+
+    # wkip deprecated??
     render_shot_prefix: StringProperty(
-        name="Render Shot Prefix", description="Prefix added to the shot names at render time", default="Unused"
+        name="Render Shot Prefix", description="Prefix added to the shot names at render time", default=""
     )
+
+    project_images_output_format: StringProperty(name="Images Output Format", default="PNG")
 
     # playbar
     #############
@@ -172,87 +178,6 @@ class UAS_ShotManager_Props(PropertyGroup):
             \nIt is possible to use a custom value when the current scene is not the first one of the edit in this file",
         default=0,
         options=set(),
-    )
-
-    # render
-    #############
-
-    def addRenderSettings(self):
-        newRenderSettings = self.renderSettingsList.add()
-        return newRenderSettings
-
-    # renderSettingsStill: CollectionProperty (
-    #   type = UAS_ShotManager_RenderSettings )
-    renderSettingsStill: PointerProperty(type=UAS_ShotManager_RenderSettings)
-
-    renderSettingsAnim: PointerProperty(type=UAS_ShotManager_RenderSettings)
-
-    renderSettingsProject: PointerProperty(type=UAS_ShotManager_RenderSettings)
-
-    def get_displayStillProps(self):
-        val = self.get("displayStillProps", True)
-        return val
-
-    def set_displayStillProps(self, value):
-        print(" set_displayStillProps: value: ", value)
-        self["displayStillProps"] = True
-        self["displayAnimationProps"] = False
-        self["displayProjectProps"] = False
-        self["displayOtioProps"] = False
-
-    def get_displayAnimationProps(self):
-        val = self.get("displayAnimationProps", False)
-        return val
-
-    def set_displayAnimationProps(self, value):
-        print(" set_displayAnimationProps: value: ", value)
-        self["displayStillProps"] = False
-        self["displayAnimationProps"] = True
-        self["displayProjectProps"] = False
-        self["displayOtioProps"] = False
-
-    def get_displayProjectProps(self):
-        val = self.get("displayProjectProps", False)
-        return val
-
-    def set_displayProjectProps(self, value):
-        print(" set_displayProjectProps: value: ", value)
-        self["displayStillProps"] = False
-        self["displayAnimationProps"] = False
-        self["displayProjectProps"] = True
-        self["displayOtioProps"] = False
-
-    def get_displayOtioProps(self):
-        val = self.get("displayOtioProps", False)
-        return val
-
-    def set_displayOtioProps(self, value):
-        print(" set_displayOtioProps: value: ", value)
-        self["displayStillProps"] = False
-        self["displayAnimationProps"] = False
-        self["displayProjectProps"] = False
-        self["displayOtioProps"] = True
-
-    displayStillProps: BoolProperty(
-        name="Display Still Preset Properties", get=get_displayStillProps, set=set_displayStillProps, default=True
-    )
-    displayAnimationProps: BoolProperty(
-        name="Display Animation Preset Properties",
-        get=get_displayAnimationProps,
-        set=set_displayAnimationProps,
-        default=False,
-    )
-    displayProjectProps: BoolProperty(
-        name="Display Project Preset Properties",
-        get=get_displayProjectProps,
-        set=set_displayProjectProps,
-        default=False,
-    )
-    displayOtioProps: BoolProperty(
-        name="Display OpenTimelineIO Export Preset Properties",
-        get=get_displayOtioProps,
-        set=set_displayOtioProps,
-        default=False,
     )
 
     # shots
@@ -604,6 +529,7 @@ class UAS_ShotManager_Props(PropertyGroup):
     # render
     #############
 
+    # can be overriden by the project settings
     useProjectRenderSettings: BoolProperty(
         name="Use Render Project Settings", description="Use Render Project Settings", default=True,
     )
@@ -635,7 +561,12 @@ class UAS_ShotManager_Props(PropertyGroup):
         options=set(),
     )
 
-    renderRootPath: StringProperty(name="Render Root Path", default="//")
+    renderRootPath: StringProperty(
+        name="Render Root Path",
+        description="Directory where the rendered files will be placed.\n"
+        "Relative path must be set directly in the text field and must start with ''//''",
+        default="//",
+    )
 
     def isRenderRootPathValid(self, renderRootFilePath=None):
         pathIsValid = False
@@ -645,6 +576,112 @@ class UAS_ShotManager_Props(PropertyGroup):
             if os.path.exists(rootPath) or rootPath.startswith("//"):
                 pathIsValid = True
         return pathIsValid
+
+    def isStampInfoAvailable(self):
+        """Return True if the add-on UAS Stamp Info is available, registred and ready to be used
+        """
+        readyToUse = getattr(bpy.context.scene, "UAS_StampInfo_Settings", None) is not None
+        return readyToUse
+
+    def isStampInfoAllowed(self):
+        """Return True if the add-on UAS Stamp Info is available and allowed to be used
+        """
+        allowed = self.isStampInfoAvailable()
+        # wkip temp while fixing stamp info...
+        allowed = allowed and False
+        return allowed
+
+    def stampInfoUsed(self):
+        """Return True if the add-on UAS Stamp Info is available and allowed to be used and checked for use,
+        either from the UI or by the project settings
+        """
+        used = False
+        if self.use_project_settings:
+            used = self.project_use_stampinfo
+        else:
+            used = self.useProjectRenderSettings
+
+        used = used and self.isStampInfoAvailable()
+
+        return used
+
+    def addRenderSettings(self):
+        newRenderSettings = self.renderSettingsList.add()
+        return newRenderSettings
+
+    # renderSettingsStill: CollectionProperty (
+    #   type = UAS_ShotManager_RenderSettings )
+    renderSettingsStill: PointerProperty(type=UAS_ShotManager_RenderSettings)
+
+    renderSettingsAnim: PointerProperty(type=UAS_ShotManager_RenderSettings)
+
+    renderSettingsProject: PointerProperty(type=UAS_ShotManager_RenderSettings)
+
+    def get_displayStillProps(self):
+        val = self.get("displayStillProps", True)
+        return val
+
+    def set_displayStillProps(self, value):
+        print(" set_displayStillProps: value: ", value)
+        self["displayStillProps"] = True
+        self["displayAnimationProps"] = False
+        self["displayProjectProps"] = False
+        self["displayOtioProps"] = False
+
+    def get_displayAnimationProps(self):
+        val = self.get("displayAnimationProps", False)
+        return val
+
+    def set_displayAnimationProps(self, value):
+        print(" set_displayAnimationProps: value: ", value)
+        self["displayStillProps"] = False
+        self["displayAnimationProps"] = True
+        self["displayProjectProps"] = False
+        self["displayOtioProps"] = False
+
+    def get_displayProjectProps(self):
+        val = self.get("displayProjectProps", False)
+        return val
+
+    def set_displayProjectProps(self, value):
+        print(" set_displayProjectProps: value: ", value)
+        self["displayStillProps"] = False
+        self["displayAnimationProps"] = False
+        self["displayProjectProps"] = True
+        self["displayOtioProps"] = False
+
+    def get_displayOtioProps(self):
+        val = self.get("displayOtioProps", False)
+        return val
+
+    def set_displayOtioProps(self, value):
+        print(" set_displayOtioProps: value: ", value)
+        self["displayStillProps"] = False
+        self["displayAnimationProps"] = False
+        self["displayProjectProps"] = False
+        self["displayOtioProps"] = True
+
+    displayStillProps: BoolProperty(
+        name="Display Still Preset Properties", get=get_displayStillProps, set=set_displayStillProps, default=True
+    )
+    displayAnimationProps: BoolProperty(
+        name="Display Animation Preset Properties",
+        get=get_displayAnimationProps,
+        set=set_displayAnimationProps,
+        default=False,
+    )
+    displayProjectProps: BoolProperty(
+        name="Display Project Preset Properties",
+        get=get_displayProjectProps,
+        set=set_displayProjectProps,
+        default=False,
+    )
+    displayOtioProps: BoolProperty(
+        name="Display OpenTimelineIO Export Preset Properties",
+        get=get_displayOtioProps,
+        set=set_displayOtioProps,
+        default=False,
+    )
 
     ####################
     # editing

@@ -21,6 +21,7 @@ from .operators import playbar
 from .operators import shots_toolbar
 
 from .operators import prefs
+from .operators import about
 
 from .properties import props
 
@@ -254,6 +255,7 @@ def register():
     general.register()
     videoshotmanager.register()
     prefs.register()
+    about.register()
 
     # debug tools
 
@@ -290,6 +292,7 @@ def unregister():
         sm_debug.unregister()
 
     # ui
+    about.unregister()
     prefs.unregister()
     videoshotmanager.unregister()
     general.unregister()

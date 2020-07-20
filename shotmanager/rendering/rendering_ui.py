@@ -1,6 +1,8 @@
 import bpy
 from bpy.types import Panel
 
+from ..config import config
+
 
 class UAS_PT_ShotManagerRenderPanel(Panel):
     bl_label = "Rendering"
@@ -40,9 +42,10 @@ class UAS_PT_ShotManagerRenderPanel(Panel):
             row.alignment = "CENTER"
             row.label(text="***  Project Settings used: Scene render settings will be overwritten  *** ")
 
-        row = layout.row()
-        row.separator(factor=3)
-        row.prop(props, "useStampInfoDuringRendering")
+        if props.isStampInfoAllowed():
+            row = layout.row()
+            row.separator(factor=2)
+            row.prop(props, "useStampInfoDuringRendering")
 
         row = layout.row(align=True)
         row.separator(factor=3)
@@ -124,36 +127,34 @@ class UAS_PT_ShotManagerRenderPanel(Panel):
             row.prop(props.renderSettingsProject, "renderAllTakes")
             row.prop(props.renderSettingsProject, "renderAlsoDisabled")
 
-        layout.separator(factor=2)
+        layout.separator(factor=1)
 
         # ------------------------
 
-        box = self.layout.box()
-        # box.use_property_split = True
-
-        row = box.row()
+        renderWarnings = ""
         if "" == bpy.data.filepath:
-            row.alert = True
-            row.label(text="*** Save file first ***")
-        # elif None == (props.getInfoFileFullPath(context.scene, -1)[0]):
-        #     row.alert = True
-        #     row.label ( text = "*** Invalid Output Path ***" )
+            renderWarnings = "*** Save file first ***"
         elif "" == props.getRenderFileName():
-            row.alert = True
-            row.label(text="*** Invalid Output File Name ***")
-        else:
-            row.label(text="Ready to render")
+            renderWarnings = "*** Invalid Output File Name ***"
 
-        row = box.row()
-        row.prop(context.scene.render, "filepath")
-        row.operator(
-            "uas_shot_manager.render_openexplorer", text="", icon="FILEBROWSER"
-        ).path = props.getRenderFileName()
+        if "" != renderWarnings or config.uasDebug:
+            box = self.layout.box()
+            # box.use_property_split = True
 
-        box = self.layout.box()
-        row = box.row()
-        # enabled=False
-        row.prop(props, "render_shot_prefix")
+            row = box.row()
+            row.label(text=renderWarnings)
+
+            row = box.row()
+            row.prop(context.scene.render, "filepath")
+            row.operator(
+                "uas_shot_manager.render_openexplorer", text="", icon="FILEBROWSER"
+            ).path = props.getRenderFileName()
+
+        # wkip retrait temporaire
+        # box = self.layout.box()
+        # row = box.row()
+        # # enabled=False
+        # row.prop(props, "render_shot_prefix")
 
         # row.separator()
         # row.operator("uas_shot_manager.render_openexplorer", emboss=True, icon='FILEBROWSER', text="")
