@@ -1,6 +1,5 @@
 import os
 import re
-import json
 from pathlib import Path
 
 import bpy
@@ -10,8 +9,8 @@ from bpy_extras.io_utils import ImportHelper
 
 from ..utils import utils
 
-
-import opentimelineio as otio
+import opentimelineio
+from .export import exportOtio
 
 
 class UAS_ShotManager_Export_OTIO(Operator):
@@ -113,7 +112,7 @@ class UAS_ShotManager_OT_Import_OTIO(Operator):
         box = row.box()
         box.prop(self, "otioFile", text="OTIO File")
 
-        timeline = otio.adapters.read_from_file(self.otioFile)
+        timeline = opentimelineio.adapters.read_from_file(self.otioFile)
         time = timeline.duration()
         rate = int(time.rate)
 
@@ -151,7 +150,7 @@ class UAS_ShotManager_OT_Import_OTIO(Operator):
             bpy.ops.uas_shot_manager.add_take(name=Path(self.otioFile).stem)
 
         try:
-            timeline = otio.adapters.read_from_file(self.otioFile)
+            timeline = opentimelineio.adapters.read_from_file(self.otioFile)
             if len(timeline.video_tracks()):
                 track = timeline.video_tracks()[0]  # Assume the first one contains the shots.
 
@@ -204,15 +203,16 @@ class UAS_ShotManager_OT_Import_OTIO(Operator):
 
                     shot = props.addShot(
                         name=clipName,
-                        start=otio.opentime.to_frames(clip.range_in_parent().start_time) + self.importAtFrame,
-                        end=otio.opentime.to_frames(clip.range_in_parent().end_time_inclusive()) + self.importAtFrame,
+                        start=opentimelineio.opentime.to_frames(clip.range_in_parent().start_time) + self.importAtFrame,
+                        end=opentimelineio.opentime.to_frames(clip.range_in_parent().end_time_inclusive())
+                        + self.importAtFrame,
                         camera=cam_ob,
                         color=cam_ob.color,  # (cam_ob.color[0], cam_ob.color[1], cam_ob.color[2]),
                     )
                     # bpy.ops.uas_shot_manager.add_shot(
                     #     name=clipName,
-                    #     start=otio.opentime.to_frames(clip.range_in_parent().start_time) + self.importAtFrame,
-                    #     end=otio.opentime.to_frames(clip.range_in_parent().end_time_inclusive()) + self.importAtFrame,
+                    #     start=opentimelineio.opentime.to_frames(clip.range_in_parent().start_time) + self.importAtFrame,
+                    #     end=opentimelineio.opentime.to_frames(clip.range_in_parent().end_time_inclusive()) + self.importAtFrame,
                     #     cameraName=cam.name,
                     #     color=(cam_ob.color[0], cam_ob.color[1], cam_ob.color[2]),
                     # )
@@ -222,10 +222,11 @@ class UAS_ShotManager_OT_Import_OTIO(Operator):
                     # wkip maybe to remove
                     context.scene.frame_start = self.importAtFrame
                     context.scene.frame_end = (
-                        otio.opentime.to_frames(clip.range_in_parent().end_time_inclusive()) + self.importAtFrame
+                        opentimelineio.opentime.to_frames(clip.range_in_parent().end_time_inclusive())
+                        + self.importAtFrame
                     )
 
-        except otio.exceptions.NoKnownAdapterForExtensionError:
+        except opentimelineio.exceptions.NoKnownAdapterForExtensionError:
             from ..utils.utils import ShowMessageBox
 
             ShowMessageBox("File not recognized", f"{self.otioFile} could not be understood by Opentimelineio", "ERROR")

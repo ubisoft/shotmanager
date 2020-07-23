@@ -1,9 +1,8 @@
-import bpy
-from ...operators import renderProps
-from ...otio import exportOtio
-
 import os
 import json
+
+import bpy
+from shotmanager.otio.export import exportOtio
 
 
 def verbose_set(key: str, default: bool, override: str, verbose: bool = True) -> None:
@@ -57,6 +56,7 @@ def initializeForRRS(override_existing: bool, verbose=False):
     setup_project_env(override_existing, verbose)
 
     scene.UAS_shot_manager_props.setProjectSettings(
+        use_project_settings=True,
         project_name=os.environ["UAS_PROJECT_NAME"],
         project_fps=float(os.environ["UAS_PROJECT_FRAMERATE"]),
         project_resolution=json.loads(os.environ["UAS_PROJECT_RESOLUTION"]),

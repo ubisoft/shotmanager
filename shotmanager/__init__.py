@@ -4,6 +4,7 @@ from bpy.app.handlers import persistent
 from bpy.props import BoolProperty, IntProperty
 
 from . import otio
+from . import rendering
 
 from .config import config
 
@@ -17,10 +18,10 @@ from .operators import shots_global_settings
 
 from .operators import general
 from .operators import playbar
-from .operators import renderProps
 from .operators import shots_toolbar
 
 from .operators import prefs
+from .operators import about
 
 from .properties import props
 
@@ -50,7 +51,7 @@ bl_info = {
     "author": "Romain Carriquiry Borchiari, Julien Blervaque (aka Werwack)",
     "description": "Manage a sequence of shots and cameras in the 3D View - Ubisoft Animation Studio",
     "blender": (2, 83, 1),
-    "version": (1, 3, 2),
+    "version": (1, 3, 3),
     "location": "View3D > UAS Shot Manager",
     "wiki_url": "https://gitlab-ncsa.ubisoft.org/animation-studio/blender/shotmanager-addon/-/wikis/home",
     "warning": "",
@@ -188,7 +189,7 @@ def register():
 
     # handler to check the data version at load
     ##################
-    print("       - Post Load handler added")
+    print("       * Post Load handler added\n")
 
     if verbose:
         utils_handlers.displayHandlers(handlerCategName="load_post")
@@ -245,15 +246,16 @@ def register():
     sm_ui.register()
     rrs.register()
     retimer_ui.register()
-    renderProps.register()
     utils.register()
 
+    rendering.register()
     otio.register()
     vse_render.register()
     utils_render.register()
     general.register()
     videoshotmanager.register()
     prefs.register()
+    about.register()
 
     # debug tools
 
@@ -290,15 +292,16 @@ def unregister():
         sm_debug.unregister()
 
     # ui
+    about.unregister()
     prefs.unregister()
     videoshotmanager.unregister()
     general.unregister()
     utils_render.unregister()
     vse_render.unregister()
     otio.unregister()
+    rendering.unregister()
 
     utils.unregister()
-    renderProps.unregister()
     retimer_ui.unregister()
     rrs.unregister()
     sm_ui.unregister()

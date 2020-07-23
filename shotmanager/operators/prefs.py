@@ -27,77 +27,6 @@ class UAS_MT_ShotManager_Prefs_MainMenu(Menu):
         row.operator("uas_shot_manager.about", text="About...")
 
 
-class UAS_ShotManager_About(Operator):
-    bl_idname = "uas_shot_manager.about"
-    bl_label = "About UAS Shot Manager..."
-    bl_description = "More information about UAS Shot Manager..."
-    bl_options = {"INTERNAL"}
-
-    def invoke(self, context, event):
-        return context.window_manager.invoke_props_dialog(self, width=400)
-
-    def draw(self, context):
-        props = context.scene.UAS_shot_manager_props
-        layout = self.layout
-        box = layout.box()
-
-        # Version
-        ###############
-        row = box.row()
-        row.separator()
-        row.label(
-            text="Version:" + props.version()[0] + "   -    (" + "July 2020" + ")" + "   -    Ubisoft Animation Studio"
-        )
-
-        # Authors
-        ###############
-        row = box.row()
-        row.separator()
-        row.label(text="Written by Julien Blervaque (aka Werwack), Romain Carriquiry Borchiari")
-
-        # Purpose
-        ###############
-        row = box.row()
-        row.label(text="Purpose:")
-        row = box.row()
-        row.separator()
-        row.label(text="Create a set of camera shots and edit them")
-        row = box.row()
-        row.separator()
-        row.label(text="in the 3D View as you would do with video clips.")
-
-        # Dependencies
-        ###############
-        row = box.row()
-        row.label(text="Dependencies:")
-        row = box.row()
-        row.separator()
-        row.label(text="- OpenTimelineIO")
-        row = box.row()
-        row.separator()
-        row.label(text="- UAS Stamp Info")
-
-        if "UAS_StampInfo_Settings" not in context.scene or context.scene["UAS_StampInfo_Settings"] is None:
-            # row.alert = True
-            row.label(text="Version not found")
-            row.alert = False
-        else:
-            try:
-                versionStr = utils.addonVersion("UAS_StampInfo")
-                row.label(text="Loaded - V." + versionStr)
-                # row.label(text="Loaded - V." + context.scene.UAS_StampInfo_Settings.version())
-            except Exception as e:
-                #    row.alert = True
-                row.label(text="Not found")
-
-        row.separator()
-
-        layout.separator(factor=1)
-
-    def execute(self, context):
-        return {"FINISHED"}
-
-
 class UAS_ShotManager_General_Prefs(Operator):
     bl_idname = "uas_shot_manager.general_prefs"
     bl_label = "General Preferences"
@@ -110,6 +39,10 @@ class UAS_ShotManager_General_Prefs(Operator):
     def draw(self, context):
         props = context.scene.UAS_shot_manager_props
         layout = self.layout
+
+        layout.alert = True
+        layout.label(text="Any change is effective immediately")
+        layout.alert = False
 
         box = layout.box()
         col = box.column()
@@ -137,6 +70,7 @@ class UAS_ShotManager_ProjectSettings_Prefs(Operator):
     bl_options = {"INTERNAL"}
 
     def invoke(self, context, event):
+        print("Invoke prefs")
         return context.window_manager.invoke_props_dialog(self, width=450)
 
     def draw(self, context):
@@ -144,26 +78,61 @@ class UAS_ShotManager_ProjectSettings_Prefs(Operator):
         scene = context.scene
         props = scene.UAS_shot_manager_props
 
+        layout.alert = True
+        layout.label(text="Any change is effective immediately")
+        layout.alert = False
+
+        layout.prop(props, "use_project_settings")
+        box = layout.box()
+        box.enabled = props.use_project_settings
+        col = box.column()
+        col.use_property_split = True
+        col.use_property_decorate = False
+        col.separator(factor=1)
+
+        col.prop(props, "project_name")
+        col.prop(props, "project_fps")
+        col.prop(props, "project_resolution_x")
+        col.prop(props, "project_resolution_y")
+        col.prop(props, "project_resolution_framed_x")
+        col.prop(props, "project_resolution_framed_y")
+        col.prop(props, "project_shot_format")
+
+        col.prop(props, "project_shot_handle_duration")
+
+        col.prop(props, "project_output_format")
+        col.prop(props, "project_color_space")
+        col.prop(props, "project_asset_name")
+
+        # additional settings
+        box.separator()
+        box.label(text="Additional Settings:")
+        col = box.column()
+        col.enabled = props.use_project_settings
+        col.use_property_split = True
+        col.use_property_decorate = False
+        col.separator(factor=1)
+
+        stampInfoStr = "Use Stamp Info Add-on"
+        if not props.isStampInfoAvailable():
+            stampInfoStr += "  (Warning: Currently NOT installed)"
+        col.prop(props, "project_use_stampinfo", text=stampInfoStr)
+
+        col.prop(props, "project_images_output_format")
+
+        col.separator(factor=1)
+
         settingsList = props.restoreProjectSettings(settingsListOnly=True)
 
-        box = layout.box()
-
-        # grid_flow = row.grid_flow(align=True, row_major=True, columns=2, even_columns=False)
-
-        # col = grid_flow.column(align=False)
-        # col.scale_x = 0.6
-        # col.label(text="New Shot Name:")
-
-        for prop in settingsList:
-            row = box.row(align=True)
-            row.label(text=prop[0] + ":")
-            row.label(text=str(prop[1]))
-
-        # col = grid_flow.column(align=False)
-        # col.prop ( self, "name", text="" )
+        # project settings summary display
+        # box = layout.box()
+        # for prop in settingsList:
+        #     row = box.row(align=True)
+        #     row.label(text=prop[0] + ":")
+        #     row.label(text=str(prop[1]))
 
     def execute(self, context):
-
+        print("exec prefs")
         return {"FINISHED"}
 
 
@@ -198,6 +167,9 @@ class UAS_ShotManager_Playbar_Prefs(Operator):
         props = context.scene.UAS_shot_manager_props
 
         layout = self.layout
+        layout.alert = True
+        layout.label(text="Any change is effective immediately")
+        layout.alert = False
 
         # Playbar ######
         # layout.label(text="Playbar:")
@@ -259,6 +231,10 @@ class UAS_ShotManager_Shots_Prefs(Operator):
         props = context.scene.UAS_shot_manager_props
 
         layout = self.layout
+
+        layout.alert = True
+        layout.label(text="Any change is effective immediately")
+        layout.alert = False
 
         # Shot List
         ##############
@@ -348,7 +324,7 @@ class UAS_ShotManager_Shots_Prefs(Operator):
 #         layout.emboss = "NONE"
 #         row = layout.row(align=True)
 
-#         if "UAS_StampInfo_Settings" not in context.scene or context.scene["UAS_StampInfo_Settings"] is None:
+#         if getattr(scene, "UAS_StampInfo_Settings", None) is not None:
 #             # row.alert = True
 #             row.label(text="Version not found")
 #             row.alert = False
@@ -369,7 +345,6 @@ class UAS_ShotManager_Shots_Prefs(Operator):
 
 _classes = (
     UAS_MT_ShotManager_Prefs_MainMenu,
-    UAS_ShotManager_About,
     UAS_ShotManager_General_Prefs,
     UAS_ShotManager_ProjectSettings_Prefs,
     # UAS_PT_ShotManagerPref_General,

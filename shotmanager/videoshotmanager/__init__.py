@@ -1,9 +1,3 @@
-import os
-import importlib
-from pathlib import Path
-import subprocess
-import platform
-
 import bpy
 from bpy.props import BoolProperty
 import bpy.utils.previews
@@ -21,9 +15,7 @@ from .ui import vsm_ui
 
 
 def register():
-
-    print("\n       - Registering Video Shot Manager Package\n")
-
+    print("       - Registering Video Shot Manager Package\n")
     # for cls in classes:
     #     bpy.utils.register_class(cls)
 
