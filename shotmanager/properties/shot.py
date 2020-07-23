@@ -69,11 +69,11 @@ class UAS_ShotManager_Shot(PropertyGroup):
         shotName = self.name.replace(" ", "_")
         return shotName
 
-    def get_name(self):
+    def _get_name(self):
         val = self.get("name", "-")
         return val
 
-    def set_name(self, value):
+    def _set_name(self, value):
         """ Set a unique name to the shot
         """
         # shots = self.getParentScene().UAS_shot_manager_props.getShotsList(takeIndex=self.parentTakeIndex)
@@ -81,7 +81,7 @@ class UAS_ShotManager_Shot(PropertyGroup):
         newName = findFirstUniqueName(self, value, shots)
         self["name"] = newName
 
-    name: StringProperty(name="Name", get=get_name, set=set_name)
+    name: StringProperty(name="Name", get=_get_name, set=_set_name)
 
     #############
     # start #####
@@ -101,11 +101,12 @@ class UAS_ShotManager_Shot(PropertyGroup):
                 self["end"] = self.start
 
     def _update_start(self, context):
+        self.selectShotInUI()
+
         if self.camera is not None and len(self.camera.data.background_images):
             bgClip = self.camera.data.background_images[0].clip
             if bgClip is not None and self.bgImages_linkToShotStart:
                 bgClip.frame_start = self.start + self.bgImages_offset
-                # print("  Value: ", value)
 
     start: IntProperty(
         name="Start",
@@ -133,7 +134,7 @@ class UAS_ShotManager_Shot(PropertyGroup):
                 self["start"] = self.end
 
     def _update_end(self, context):
-        pass
+        self.selectShotInUI()
 
     end: IntProperty(
         name="End",
@@ -176,17 +177,19 @@ class UAS_ShotManager_Shot(PropertyGroup):
         options=set(),
     )
 
+    def _update_durationLocked(self, context):
+        self.selectShotInUI()
+
     durationLocked: BoolProperty(
         name="Lock Duration",
         description="Lock - or not - the shot duration.\nWhen locked, changing one boundary will also affect the other",
         default=False,
+        update=_update_durationLocked,
         options=set(),
     )
 
     def _update_enabled(self, context):
-        context.scene.UAS_shot_manager_props.selected_shot_index = context.scene.UAS_shot_manager_props.getShotIndex(
-            self
-        )
+        self.selectShotInUI()
 
     enabled: BoolProperty(
         name="Enabled",
@@ -199,9 +202,10 @@ class UAS_ShotManager_Shot(PropertyGroup):
     def _filter_cameras(self, object):
         """ Return true only for cameras from the same scene as the shot
         """
-        print("self", str(self))  # this shot
-        print("object", str(object))  # all the objects of the property type
+        # print("self", str(self))  # this shot
+        # print("object", str(object))  # all the objects of the property type
         camList = [c for c in self.parentScene.objects if c.type == "CAMERA"]
+        self.selectShotInUI()
         return object in camList
 
     camera: PointerProperty(
@@ -212,7 +216,7 @@ class UAS_ShotManager_Shot(PropertyGroup):
         poll=_filter_cameras,
     )
 
-    def get_color(self):
+    def _get_color(self):
         defaultVal = [1.0, 1.0, 1.0, 1.0]
         props = self.parentScene.UAS_shot_manager_props
 
@@ -234,7 +238,7 @@ class UAS_ShotManager_Shot(PropertyGroup):
 
         return val
 
-    def set_color(self, value):
+    def _set_color(self, value):
         self["color"] = value
         props = self.parentScene.UAS_shot_manager_props
         if props.use_camera_color and self.camera is not None:
@@ -243,14 +247,18 @@ class UAS_ShotManager_Shot(PropertyGroup):
             self.camera.color[2] = self["color"][2]
             self.camera.color[3] = self["color"][3]
 
+    def _update_color(self, context):
+        self.selectShotInUI()
+
     color: FloatVectorProperty(
         subtype="COLOR",
         min=0.0,
         max=1.0,
         size=4,
         default=(1.0, 1.0, 1.0, 1.0),
-        get=get_color,
-        set=set_color,
+        get=_get_color,
+        set=_set_color,
+        update=_update_color,
         options=set(),
     )
 
@@ -326,3 +334,8 @@ class UAS_ShotManager_Shot(PropertyGroup):
         set=_set_bgImages_offset,
         default=0,
     )
+
+    def selectShotInUI(self):
+        currentTakeInd = self.parentScene.UAS_shot_manager_props.getCurrentTakeIndex()
+        if currentTakeInd == self.parentTakeIndex:
+            self.parentScene.UAS_shot_manager_props.setSelectedShot(self)
