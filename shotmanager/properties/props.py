@@ -1376,7 +1376,7 @@ class UAS_ShotManager_Props(PropertyGroup):
         newFrame = currentFrame
 
         # in shot play mode the current frame is supposed to be in the current shot
-        if True or bpy.context.window_manager.UAS_shot_manager_handler_toggle:
+        if True or bpy.context.window_manager.UAS_shot_manager_shots_play_mode:
 
             # get current shot in the WHOLE list (= even disabled)
             currentShotInd = self.getCurrentShotIndex()
@@ -1423,7 +1423,7 @@ class UAS_ShotManager_Props(PropertyGroup):
         newFrame = currentFrame
 
         # in shot play mode the current frame is supposed to be in the current shot
-        if True or bpy.context.window_manager.UAS_shot_manager_handler_toggle:
+        if True or bpy.context.window_manager.UAS_shot_manager_shots_play_mode:
 
             # get current shot in the WHOLE list (= even disabled)
             currentShotInd = self.getCurrentShotIndex()
@@ -1477,7 +1477,7 @@ class UAS_ShotManager_Props(PropertyGroup):
         newFrame = currentFrame
 
         # in shot play mode the current frame is supposed to be in the current shot
-        if bpy.context.window_manager.UAS_shot_manager_handler_toggle:
+        if bpy.context.window_manager.UAS_shot_manager_shots_play_mode:
 
             # get current shot in the WHOLE list (= even disabled)
             currentShotInd = self.getCurrentShotIndex()
@@ -1529,7 +1529,7 @@ class UAS_ShotManager_Props(PropertyGroup):
         newFrame = currentFrame
 
         # in shot play mode the current frame is supposed to be in the current shot
-        if bpy.context.window_manager.UAS_shot_manager_handler_toggle:
+        if bpy.context.window_manager.UAS_shot_manager_shots_play_mode:
 
             # get current shot in the WHOLE list (= even disabled)
             currentShotInd = self.getCurrentShotIndex()

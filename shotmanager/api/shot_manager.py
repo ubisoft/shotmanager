@@ -1,3 +1,6 @@
+import bpy
+
+
 def get_shot_manager(scene):
     return scene.UAS_shot_manager_props
 
@@ -213,6 +216,22 @@ def delete_shot_camera(shot_manager, shot):
 ###############
 # functions working only on current take !!!
 ###############
+
+
+def get_shots_play_mode(shot_manager):
+    """ Return True if the Shots Play Mode is active, False otherwise
+        Warning: Currently the play mode status is shared between all the scenes of the file,
+        it is not (yet) specific to an instance of shot manager.
+    """
+    return bpy.context.window_manager.UAS_shot_manager_shots_play_mode
+
+
+def set_shots_play_mode(shot_manager, activate):
+    """ Set to True to have the Shots Play Mode active, False otherwise
+        Warning: Currently the play mode status is shared between all the scenes of the file,
+        it is not (yet) specific to an instance of shot manager.
+    """
+    bpy.context.window_manager.UAS_shot_manager_shots_play_mode = activate
 
 
 def go_to_previous_shot(shot_manager, current_frame):

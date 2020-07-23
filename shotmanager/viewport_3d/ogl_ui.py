@@ -571,7 +571,7 @@ class BL_UI_Timeline:
             )
             frame_width = size_x / float(shot.end + 1 - shot.start)
 
-            if self.context.window_manager.UAS_shot_manager_handler_toggle:
+            if self.context.window_manager.UAS_shot_manager_shots_play_mode:
                 if currentShotIndex == i:
                     caret_color = (1.0, 0.1, 0.1, 1)
                     self.draw_frame_caret(caret_pos, frame_width, darken_color(caret_color))
@@ -761,7 +761,7 @@ class UAS_ShotManager_DrawTimeline(bpy.types.Operator):
             if self.handle_widget_events(event):
                 return {"RUNNING_MODAL"}
 
-        #   if not context.window_manager.UAS_shot_manager_handler_toggle:
+        #   if not context.window_manager.UAS_shot_manager_shots_play_mode:
         #  if not context.scene.UAS_shot_manager_props.display_timeline:
         if not context.window_manager.UAS_shot_manager_display_timeline:
             self.unregister_handlers(context)

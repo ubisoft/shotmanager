@@ -191,7 +191,7 @@ def launchRenderWithVSEComposite(renderMode, takeIndex=-1, filePath="", useStamp
     sequenceScene.render.ffmpeg.format = "MPEG4"
     sequenceScene.render.filepath = f"{rootPath}{take.getName_PathCompliant()}\\{props.render_shot_prefix}.mp4"
 
-    context.window_manager.UAS_shot_manager_handler_toggle = False
+    context.window_manager.UAS_shot_manager_shots_play_mode = False
     context.window_manager.UAS_shot_manager_display_timeline = False
 
     if preset_useStampInfo:  # framed output resolution is used only when StampInfo is used
@@ -383,7 +383,7 @@ def launchRender(renderMode, renderRootFilePath="", useStampInfo=True):
         else:
             take_name = take.name
 
-        context.window_manager.UAS_shot_manager_handler_toggle = False
+        context.window_manager.UAS_shot_manager_shots_play_mode = False
         context.window_manager.UAS_shot_manager_display_timeline = False
 
         if props.useProjectRenderSettings:
@@ -548,7 +548,7 @@ class UAS_PT_ShotManager_RenderDialog(Operator):
             if self.renderer != "OPENGL":
                 scene.render.engine = self.renderer
 
-            context.window_manager.UAS_shot_manager_handler_toggle = False
+            context.window_manager.UAS_shot_manager_shots_play_mode = False
             context.window_manager.UAS_shot_manager_display_timeline = False
 
             out_path = scene.render.filepath

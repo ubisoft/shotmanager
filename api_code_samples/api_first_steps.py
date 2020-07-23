@@ -158,3 +158,16 @@ shot_manager.remove_shot(sm_props, my_first_shot)
 
 # wkip todo
 
+
+#############################
+# Scene manipulation
+#############################
+
+# Get the Shots Play Mode state
+playShotsOn = shot_manager.get_shots_play_mode(sm_props)
+print("Shot Play Mode is: ", playShotsOn)
+
+# Set the Shots Play Mode state
+shot_manager.set_shots_play_mode(sm_props, True)
+print("Shot Play Mode is: ", shot_manager.get_shots_play_mode(sm_props))
+
