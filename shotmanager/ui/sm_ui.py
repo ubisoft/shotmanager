@@ -59,7 +59,7 @@ class UAS_PT_ShotManager(Panel):
         row.separator(factor=2)
 
         icon = config.icons_col["General_Explorer_32"]
-        row.operator("uas_shot_manager.render_openexplorer", text="", icon_value=icon.icon_id).path = bpy.path.abspath(
+        row.operator("uas_shot_manager.open_explorer", text="", icon_value=icon.icon_id).path = bpy.path.abspath(
             bpy.data.filepath
         )
 
@@ -522,6 +522,7 @@ class UAS_PT_ShotManager_ShotProperties(Panel):
     def draw(self, context):
         scene = context.scene
         props = scene.UAS_shot_manager_props
+        iconExplorer = config.icons_col["General_Explorer_32"]
 
         #  shotPropertiesModeIsCurrent = not ('SELECTED' == props.current_shot_properties_mode)
 
@@ -595,7 +596,7 @@ class UAS_PT_ShotManager_ShotProperties(Panel):
             grid_flow = c.grid_flow(align=False, columns=3, even_columns=False)
             grid_flow.label(text="Output: ")
             grid_flow.label(text=str(shot.getOutputFileName()))
-            grid_flow.operator("uas_shot_manager.render_openexplorer", emboss=True, icon="FILEBROWSER", text="")
+            grid_flow.operator("uas_shot_manager.open_explorer", emboss=True, icon_value=iconExplorer.icon_id, text="")
             row.separator(factor=0.5)  # prevents stange look when panel is narrow
 
             # row.prop ( context.props, "display_duration_in_shotlist", text = "" )

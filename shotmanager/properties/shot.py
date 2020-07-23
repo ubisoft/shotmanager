@@ -61,7 +61,7 @@ class UAS_ShotManager_Shot(PropertyGroup):
         return duration
 
     def getOutputFileName(self, frameIndex=-1, fullPath=False, fullPathOnly=False, rootFilePath=""):
-        return bpy.context.scene.UAS_shot_manager_props.getShotOutputFileName(
+        return self.parentScene.UAS_shot_manager_props.getShotOutputFileName(
             self, frameIndex=frameIndex, fullPath=fullPath, fullPathOnly=fullPathOnly, rootFilePath=rootFilePath
         )
 

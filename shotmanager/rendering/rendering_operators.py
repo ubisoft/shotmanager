@@ -1,11 +1,10 @@
 import os
-import re
 import json
 from pathlib import Path
 
 import bpy
-from bpy.types import Panel, Operator
-from bpy.props import EnumProperty, BoolProperty
+from bpy.types import Operator
+from bpy.props import EnumProperty, BoolProperty, StringProperty
 
 
 from ..utils import utils
@@ -40,22 +39,22 @@ class UAS_OT_OpenPathBrowser(Operator):
 
     # https://docs.blender.org/api/current/bpy.props.html
     #  filepath = bpy.props.StringProperty(subtype="FILE_PATH")
-    directory: bpy.props.StringProperty(subtype="DIR_PATH")
+    directory: StringProperty(subtype="DIR_PATH")
 
     # filter_glob : StringProperty(
     #     default = '*',
     #     options = {'HIDDEN'} )
 
-    def execute(self, context):
-        """Open a path browser to define the directory to use to render the images"""
-        bpy.context.scene.UAS_shot_manager_props.renderRootPath = self.directory
-        return {"FINISHED"}
-
     def invoke(self, context, event):  # See comments at end  [1]
         #  self.filepath = bpy.context.scene.UAS_shot_manager_props.renderRootPath
         # https://docs.blender.org/api/current/bpy.types.WindowManager.html
-        self.directory = bpy.context.scene.UAS_shot_manager_props.renderRootPath
+        self.directory = context.scene.UAS_shot_manager_props.renderRootPath
         context.window_manager.fileselect_add(self)
+
+    def execute(self, context):
+        """Open a path browser to define the directory to use to render the images"""
+        context.scene.UAS_shot_manager_props.renderRootPath = self.directory
+        return {"FINISHED"}
 
         return {"RUNNING_MODAL"}
 
@@ -87,10 +86,10 @@ class UAS_PT_ShotManager_Render(Operator):
     bl_description = "Render."
     bl_options = {"INTERNAL"}
 
-    renderMode: bpy.props.EnumProperty(
+    renderMode: EnumProperty(
         name="Display Shot Properties Mode",
         description="Update the content of the Shot Properties panel either on the current shot\nor on the shot seleted in the shots list",
-        items=(("STILL", "Still", ""), ("ANIMATION", "Animation", ""), ("PROJECT", "Project", "")),
+        items=(("STILL", "Still", ""), ("ANIMATION", "Animation", ""), ("ALL", "All Edits", ""), ("OTIO", "Otio", ""),),
         default="STILL",
     )
 
@@ -102,21 +101,37 @@ class UAS_PT_ShotManager_Render(Operator):
             props.displayStillProps = True
         elif "ANIMATION" == self.renderMode:
             props.displayAnimationProps = True
-        elif "PROJECT" == self.renderMode:
-            props.displayProjectProps = True
-        else:
+        elif "ALL" == self.renderMode:
+            props.displayAllEditsProps = True
+        elif "OTIO" == self.renderMode:
             props.displayOtioProps = True
 
-        rootPath = props.renderRootPath
-        if "" == rootPath:
-            rootPath = os.path.dirname(bpy.data.filepath)
-        if props.isRenderRootPathValid():
-            launchRender(self.renderMode, renderRootFilePath=rootPath, useStampInfo=props.useStampInfoDuringRendering)
-        else:
+        renderWarnings = ""
+        if props.renderRootPath.startswith("//"):
+            if "" == bpy.data.filepath:
+                renderWarnings = "*** Save file first ***"
+        elif "" == props.renderRootPath:
+            renderWarnings = "*** Invalid Output File Name ***"
+
+        if "" != renderWarnings:
             from ..utils.utils import ShowMessageBox
 
-            ShowMessageBox("Render root path is invalid", "Render Aborted", "ERROR")
-            print("Render aborted before start: Invalid Root Path")
+            ShowMessageBox(renderWarnings, "Render Aborted", "ERROR")
+            print("Render aborted before start: " + renderWarnings)
+            return {"CANCELLED"}
+
+        if "OTIO" == self.renderMode:
+            bpy.ops.uas_shot_manager.export_otio()
+        else:
+            filePath = props.renderRootPath
+            bpy.path.abspath(filePath)
+            if filePath.startswith("//"):
+                filePath = bpy.path.abspath(filePath)
+            if not (filePath.endswith("/") or filePath.endswith("\\")):
+                filePath += "\\"
+
+            # if props.isRenderRootPathValid():
+            launchRender(self.renderMode, renderRootFilePath=filePath, useStampInfo=props.useStampInfoDuringRendering)
 
         return {"FINISHED"}
 
@@ -342,9 +357,12 @@ def launchRender(renderMode, renderRootFilePath="", useStampInfo=True):
     elif "ANIMATION" == renderMode:
         preset = props.renderSettingsAnim
         print("   ANIMATION, preset: ", preset.name)
+    elif "ALL" == renderMode:
+        preset = props.renderSettingsAll
+        print("   ALL, preset: ", preset.name)
     else:
-        preset = props.renderSettingsProject
-        print("   PROJECT, preset: ", preset.name)
+        preset = props.renderSettingsOtio
+        print("   OTIO, preset: ", preset.name)
 
     # with utils.PropertyRestoreCtx ( (scene.render, "filepath"),
     #                         ( scene, "frame_start"),

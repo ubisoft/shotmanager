@@ -26,6 +26,7 @@ class UAS_PT_ShotManagerRenderPanel(Panel):
 
     def draw(self, context):
         props = context.scene.UAS_shot_manager_props
+        iconExplorer = config.icons_col["General_Explorer_32"]
 
         layout = self.layout
         row = layout.row()
@@ -55,7 +56,9 @@ class UAS_PT_ShotManagerRenderPanel(Panel):
         row.alert = False
         row.operator("uas_shot_manager.openpathbrowser", text="", icon="FILEBROWSER", emboss=True)
         row.separator()
-        row.operator("uas_shot_manager.render_openexplorer", text="", icon="FILEBROWSER").path = props.renderRootPath
+        row.operator(
+            "uas_shot_manager.open_explorer", text="", icon_value=iconExplorer.icon_id
+        ).path = props.renderRootPath
         row.separator()
         layout.separator()
 
@@ -77,13 +80,13 @@ class UAS_PT_ShotManagerRenderPanel(Panel):
 
         row.separator(factor=2)
         row.scale_x = 1.2
-        row.prop(props, "displayProjectProps", text="", icon="RENDERLAYERS")
-        row.operator("uas_shot_manager.render", text="Render All").renderMode = "PROJECT"
+        row.prop(props, "displayAllEditsProps", text="", icon="RENDERLAYERS")
+        row.operator("uas_shot_manager.render", text="Render All").renderMode = "ALL"
 
         row = layout.row()
         row = layout.row(align=True)
         row.prop(props, "displayOtioProps", text="", icon="SEQ_STRIP_DUPLICATE")
-        row.operator("uas_shot_manager.export_otio")
+        row.operator("uas_shot_manager.render", text="Render Otio File").renderMode = "OTIO"
 
         layout.separator(factor=1)
 
@@ -101,7 +104,7 @@ class UAS_PT_ShotManagerRenderPanel(Panel):
                 frameIndex=bpy.context.scene.frame_current, fullPath=True
             )
             row.label(text="Current Image: " + filePath)
-            row.operator("uas_shot_manager.render_openexplorer", text="", icon="FILEBROWSER").path = filePath
+            row.operator("uas_shot_manager.open_explorer", text="", icon_value=iconExplorer.icon_id).path = filePath
 
         # ANIMATION ###
         elif props.displayAnimationProps:
@@ -115,40 +118,72 @@ class UAS_PT_ShotManagerRenderPanel(Panel):
             row = box.row()
             filePath = props.getCurrentShot().getOutputFileName(fullPath=True)
             row.label(text="Current Video: " + filePath)
-            row.operator("uas_shot_manager.render_openexplorer", text="", icon="FILEBROWSER").path = filePath
+            row.operator("uas_shot_manager.open_explorer", text="", icon_value=iconExplorer.icon_id).path = filePath
 
-        # PROJECT ###
-        elif props.displayProjectProps:
+        # ALL EDITS ###
+        elif props.displayAllEditsProps:
             row = layout.row()
             row.label(text="Render All:")
 
             box = layout.box()
             row = box.row()
-            row.prop(props.renderSettingsProject, "renderAllTakes")
-            row.prop(props.renderSettingsProject, "renderAlsoDisabled")
+            row.prop(props.renderSettingsAll, "renderAllTakes")
+            row.prop(props.renderSettingsAll, "renderAlsoDisabled")
 
-        layout.separator(factor=1)
+            row.prop(props.renderSettingsAll, "renderOtioFile")
+
+        # OTIO ###
+        elif props.displayOtioProps:
+            row = layout.row()
+            row.label(text="Render OTIO File:")
+
+            box = layout.box()
+            row = box.row()
+
+            row.prop(props.renderSettingsOtio, "otioFileType")
+
+            row = box.row()
+
+            take = props.getCurrentTake()
+            take_name = take.getName_PathCompliant()
+
+            filePath = props.renderRootPath
+            if filePath.startswith("//"):
+                filePath = bpy.path.abspath(filePath)
+            if not (filePath.endswith("/") or filePath.endswith("\\")):
+                filePath += "\\"
+            # if addTakeNameToPath:
+            filePath += take_name + "\\"
+            # if "" == fileName:
+            filePath += take_name + ".xml"
+            # else:
+            #     otioRenderPath += fileName
+            #     if Path(fileName).suffix == "":
+            #         otioRenderPath += ".otio"
+
+            row.label(text="Current Take Edit: " + filePath)
+            row.operator("uas_shot_manager.open_explorer", text="", icon_value=iconExplorer.icon_id).path = filePath
 
         # ------------------------
 
-        renderWarnings = ""
-        if "" == bpy.data.filepath:
-            renderWarnings = "*** Save file first ***"
-        elif "" == props.getRenderFileName():
-            renderWarnings = "*** Invalid Output File Name ***"
+        # renderWarnings = ""
+        # if "" == bpy.data.filepath:
+        #     renderWarnings = "*** Save file first ***"
+        # elif "" == props.getRenderFileName():
+        #     renderWarnings = "*** Invalid Output File Name ***"
 
-        if "" != renderWarnings or config.uasDebug:
-            box = self.layout.box()
-            # box.use_property_split = True
+        # if "" != renderWarnings or config.uasDebug:
+        #     box = self.layout.box()
+        #     # box.use_property_split = True
 
-            row = box.row()
-            row.label(text=renderWarnings)
+        #     row = box.row()
+        #     row.label(text=renderWarnings)
 
-            row = box.row()
-            row.prop(context.scene.render, "filepath")
-            row.operator(
-                "uas_shot_manager.render_openexplorer", text="", icon="FILEBROWSER"
-            ).path = props.getRenderFileName()
+        #     row = box.row()
+        #     row.prop(context.scene.render, "filepath")
+        #     row.operator(
+        #         "uas_shot_manager.open_explorer", text="", icon="FILEBROWSER"
+        #     ).path = props.getRenderFileName()
 
         # wkip retrait temporaire
         # box = self.layout.box()
@@ -157,7 +192,7 @@ class UAS_PT_ShotManagerRenderPanel(Panel):
         # row.prop(props, "render_shot_prefix")
 
         # row.separator()
-        # row.operator("uas_shot_manager.render_openexplorer", emboss=True, icon='FILEBROWSER', text="")
+        # row.operator("uas_shot_manager.open_explorer", emboss=True, icon='FILEBROWSER', text="")
 
         self.layout.separator(factor=1)
 

@@ -615,7 +615,9 @@ class UAS_ShotManager_Props(PropertyGroup):
 
     renderSettingsAnim: PointerProperty(type=UAS_ShotManager_RenderSettings)
 
-    renderSettingsProject: PointerProperty(type=UAS_ShotManager_RenderSettings)
+    renderSettingsAll: PointerProperty(type=UAS_ShotManager_RenderSettings)
+
+    renderSettingsOtio: PointerProperty(type=UAS_ShotManager_RenderSettings)
 
     def get_displayStillProps(self):
         val = self.get("displayStillProps", True)
@@ -625,7 +627,7 @@ class UAS_ShotManager_Props(PropertyGroup):
         print(" set_displayStillProps: value: ", value)
         self["displayStillProps"] = True
         self["displayAnimationProps"] = False
-        self["displayProjectProps"] = False
+        self["displayAllEditsProps"] = False
         self["displayOtioProps"] = False
 
     def get_displayAnimationProps(self):
@@ -636,18 +638,18 @@ class UAS_ShotManager_Props(PropertyGroup):
         print(" set_displayAnimationProps: value: ", value)
         self["displayStillProps"] = False
         self["displayAnimationProps"] = True
-        self["displayProjectProps"] = False
+        self["displayAllEditsProps"] = False
         self["displayOtioProps"] = False
 
     def get_displayProjectProps(self):
-        val = self.get("displayProjectProps", False)
+        val = self.get("displayAllEditsProps", False)
         return val
 
     def set_displayProjectProps(self, value):
         print(" set_displayProjectProps: value: ", value)
         self["displayStillProps"] = False
         self["displayAnimationProps"] = False
-        self["displayProjectProps"] = True
+        self["displayAllEditsProps"] = True
         self["displayOtioProps"] = False
 
     def get_displayOtioProps(self):
@@ -658,7 +660,7 @@ class UAS_ShotManager_Props(PropertyGroup):
         print(" set_displayOtioProps: value: ", value)
         self["displayStillProps"] = False
         self["displayAnimationProps"] = False
-        self["displayProjectProps"] = False
+        self["displayAllEditsProps"] = False
         self["displayOtioProps"] = True
 
     displayStillProps: BoolProperty(
@@ -670,7 +672,7 @@ class UAS_ShotManager_Props(PropertyGroup):
         set=set_displayAnimationProps,
         default=False,
     )
-    displayProjectProps: BoolProperty(
+    displayAllEditsProps: BoolProperty(
         name="Display Project Preset Properties",
         get=get_displayProjectProps,
         set=set_displayProjectProps,
@@ -1633,10 +1635,11 @@ class UAS_ShotManager_Props(PropertyGroup):
         return fileName
 
     def getShotOutputFileName(self, shot, frameIndex=-1, fullPath=False, fullPathOnly=False, rootFilePath=""):
-        props = bpy.context.scene.UAS_shot_manager_props
         resultStr = ""
 
-        fileName = f"{props.render_shot_prefix}_{shot.getName_PathCompliant()}"
+        fileName = shot.getName_PathCompliant()
+        if "" != self.render_shot_prefix:
+            fileName = self.render_shot_prefix + "_" + fileName
 
         # fileName + frame index + extension
         fileFullName = fileName
@@ -1652,7 +1655,7 @@ class UAS_ShotManager_Props(PropertyGroup):
             if "" == rootFilePath:
                 #  head, tail = os.path.split(bpy.path.abspath(bpy.data.filepath))
                 # wkip we assume renderRootPath is valid...
-                head, tail = os.path.split(bpy.path.abspath(props.renderRootPath))
+                head, tail = os.path.split(bpy.path.abspath(self.renderRootPath))
                 filePath = head + "\\"
             else:
                 # wkip tester le chemin
@@ -1883,8 +1886,21 @@ class UAS_ShotManager_Props(PropertyGroup):
         self.renderSettingsAnim.renderMode = "ANIMATION"
 
         # Project
-        self.renderSettingsProject.name = "Project Preset"
-        self.renderSettingsProject.renderMode = "PROJECT"
+        self.renderSettingsAll.name = "All Edits Preset"
+        self.renderSettingsAll.renderMode = "ALL"
+
+        self.renderSettingsAll.renderAllTakes = False
+        self.renderSettingsAll.renderAllShots = False
+        self.renderSettingsAll.renderAlsoDisabled = False
+        self.renderSettingsAll.renderWithHandles = False
+        self.renderSettingsAll.renderOtioFile = True
+        self.renderSettingsAll.otioFileType = "XML"
+
+        # Otio
+        self.renderSettingsOtio.name = "Otio Preset"
+        self.renderSettingsOtio.renderMode = "OTIO"
+        self.renderSettingsOtio.renderOtioFile = True  # not used in this preset
+        self.renderSettingsOtio.otioFileType = "XML"
 
     def setProjectRenderFilePath(self):
         # if '' == bpy.data.filepath:

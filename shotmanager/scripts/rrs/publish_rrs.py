@@ -1,9 +1,8 @@
-import bpy
-from ... import rendering
-from ...otio import exportOtio
-
 import os
 import json
+
+import bpy
+from shotmanager.otio.export import exportOtio
 
 
 def verbose_set(key: str, default: bool, override: str, verbose: bool = True) -> None:

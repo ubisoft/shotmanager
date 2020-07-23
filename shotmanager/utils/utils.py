@@ -90,7 +90,7 @@ class PropertyRestoreCtx:
 
 
 class UAS_ShotManager_OpenExplorer(Operator):
-    bl_idname = "uas_shot_manager.render_openexplorer"
+    bl_idname = "uas_shot_manager.open_explorer"
     bl_label = "Open Explorer"
     bl_description = "Open an Explorer window located at the render output directory"
 
