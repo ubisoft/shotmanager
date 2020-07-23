@@ -51,7 +51,7 @@ bl_info = {
     "author": "Romain Carriquiry Borchiari, Julien Blervaque (aka Werwack)",
     "description": "Manage a sequence of shots and cameras in the 3D View - Ubisoft Animation Studio",
     "blender": (2, 83, 1),
-    "version": (1, 3, 3),
+    "version": (1, 3, 4),
     "location": "View3D > UAS Shot Manager",
     "wiki_url": "https://gitlab-ncsa.ubisoft.org/animation-studio/blender/shotmanager-addon/-/wikis/home",
     "warning": "",
@@ -72,7 +72,7 @@ def timeline_valueChanged(self, context):
 
 
 def install_shot_handler(self, context):
-    if self.UAS_shot_manager_handler_toggle and jump_to_shot not in bpy.app.handlers.frame_change_pre:
+    if self.UAS_shot_manager_shots_play_mode and jump_to_shot not in bpy.app.handlers.frame_change_pre:
         scene = context.scene
         shots = scene.UAS_shot_manager_props.get_shots()
         for i, shot in enumerate(shots):
@@ -83,7 +83,7 @@ def install_shot_handler(self, context):
     #     bpy.app.handlers.frame_change_post.append(jump_to_shot__frame_change_post)
 
     #    bpy.ops.uas_shot_manager.draw_timeline ( "INVOKE_DEFAULT" )
-    elif not self.UAS_shot_manager_handler_toggle and jump_to_shot in bpy.app.handlers.frame_change_pre:
+    elif not self.UAS_shot_manager_shots_play_mode and jump_to_shot in bpy.app.handlers.frame_change_pre:
         utils_handlers.removeAllHandlerOccurences(jump_to_shot, handlerCateg=bpy.app.handlers.frame_change_pre)
         # utils_handlers.removeAllHandlerOccurences(
         #     jump_to_shot__frame_change_post, handlerCateg=bpy.app.handlers.frame_change_post
@@ -270,7 +270,7 @@ def register():
         name="About...", description="Display About Informations", default=False
     )
 
-    bpy.types.WindowManager.UAS_shot_manager_handler_toggle = BoolProperty(
+    bpy.types.WindowManager.UAS_shot_manager_shots_play_mode = BoolProperty(
         name="frame_handler",
         description="Override the standard animation Play mode to play the enabled shots\nin the specified order",
         default=False,
@@ -323,7 +323,7 @@ def unregister():
         bpy.app.handlers.frame_change_pre.remove(jump_to_shot)
 
     del bpy.types.WindowManager.UAS_shot_manager_displayAbout
-    del bpy.types.WindowManager.UAS_shot_manager_handler_toggle
+    del bpy.types.WindowManager.UAS_shot_manager_shots_play_mode
     del bpy.types.WindowManager.UAS_shot_manager_display_timeline
 
     del bpy.types.WindowManager.UAS_shot_manager_isInitialized

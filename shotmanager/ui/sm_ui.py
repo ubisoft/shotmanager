@@ -95,8 +95,8 @@ class UAS_PT_ShotManager(Panel):
         row.scale_y = 1.2
         row.prop(
             context.window_manager,
-            "UAS_shot_manager_handler_toggle",
-            text="Shots Play Mode" if context.window_manager.UAS_shot_manager_handler_toggle else "Standard Play Mode",
+            "UAS_shot_manager_shots_play_mode",
+            text="Shots Play Mode" if context.window_manager.UAS_shot_manager_shots_play_mode else "Standard Play Mode",
             toggle=True,
             icon="ANIM",
         )

@@ -63,7 +63,7 @@ from bpy.props import (
 
 #         #     row = layout.row()
 #         row.operator("vse.compositevideoinvse", emboss=True)
-#         # row.prop ( context.window_manager, "UAS_shot_manager_handler_toggle",
+#         # row.prop ( context.window_manager, "UAS_shot_manager_shots_play_mode",
 
 #         #     row = layout.row()
 #         #     row.operator("debug.lauchrrsrender", emboss=True)

@@ -84,7 +84,7 @@ class UAS_ShotManager_GetSetCurrentFrame(Operator):
             elif 1 == argArr[1]:
                 shot.end = context.scene.frame_current
         else:
-            if context.window_manager.UAS_shot_manager_handler_toggle:
+            if context.window_manager.UAS_shot_manager_shots_play_mode:
                 props.setCurrentShotByIndex(argArr[0])
             else:
                 props.setSelectedShotByIndex(argArr[0])
@@ -121,7 +121,7 @@ class UAS_ShotManager_ShotTimeInEdit(Operator):
         print("argArr: ", argArr)
         shot = props.getShot(argArr[0])
 
-        if context.window_manager.UAS_shot_manager_handler_toggle:
+        if context.window_manager.UAS_shot_manager_shots_play_mode:
             props.setCurrentShotByIndex(argArr[0])
         else:
             props.setSelectedShotByIndex(argArr[0])
