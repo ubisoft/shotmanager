@@ -159,7 +159,7 @@ class UAS_ShotManager_Shot(PropertyGroup):
         return realVal
 
     def _set_duration_fp(self, value):
-        print("\n*** _update_duration_fp: New state: ", self.duration_fp)
+        # print("\n*** _update_duration_fp: New state: ", self.duration_fp)
         if not self.durationLocked:
             self["duration_fp"] = value
             self.end = self.start + max(value, 1) - 1
