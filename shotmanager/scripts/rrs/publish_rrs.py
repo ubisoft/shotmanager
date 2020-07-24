@@ -3,6 +3,7 @@ import json
 
 import bpy
 from shotmanager.otio.export import exportOtio
+from shotmanager.rendering import rendering_operators
 
 
 def verbose_set(key: str, default: bool, override: str, verbose: bool = True) -> None:
@@ -134,7 +135,9 @@ def publishRRS(prodFilePath, takeIndex=-1, verbose=False, useCache=False):
     ################
 
     # shot videos are rendered in the directory of the take, not anymore in a directory with the shot name
-    renderedFilesDict = renderProps.launchRenderWithVSEComposite("PROJECT", takeIndex=takeIndex, filePath=renderDir)
+    renderedFilesDict = rendering_operators.launchRenderWithVSEComposite(
+        "PROJECT", takeIndex=takeIndex, filePath=renderDir
+    )
 
     ################
     # generate the otio file
