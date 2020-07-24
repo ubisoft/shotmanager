@@ -38,6 +38,7 @@ class UAS_ShotManager_SetCurrentShot(Operator):
             shot = props.getShot(self.index)
             shot.enabled = not shot.enabled
         elif event.ctrl:
+            context.scene.UAS_shot_manager_props.setSelectedShotByIndex(self.index)
             context.scene.UAS_shot_manager_props.selectCamera(self.index)
         else:
             props.setCurrentShotByIndex(self.index)
@@ -59,9 +60,9 @@ class UAS_ShotManager_ShotDuration(Operator):
     #     selectionIsPossible = context.active_object is None or context.active_object.mode == "OBJECT"
     #     return selectionIsPossible
 
-    # def execute(self, context):
-    #     context.scene.UAS_shot_manager_props.selectCamera(self.index)
-    #     return {"FINISHED"}
+    def execute(self, context):
+        context.scene.UAS_shot_manager_props.setSelectedShotByIndex(self.index)
+        return {"FINISHED"}
 
 
 class UAS_ShotManager_GetSetCurrentFrame(Operator):
@@ -724,6 +725,7 @@ class UAS_ShotManager_Shots_SelectCamera(Operator):
     #     return selectionIsPossible
 
     def execute(self, context):
+        context.scene.UAS_shot_manager_props.setSelectedShotByIndex(self.index)
         if context.active_object.mode != "OBJECT":
             bpy.ops.object.mode_set(mode="OBJECT")
         context.scene.UAS_shot_manager_props.selectCamera(self.index)

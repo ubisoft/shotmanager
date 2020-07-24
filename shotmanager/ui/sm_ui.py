@@ -363,6 +363,7 @@ class UAS_UL_ShotManager_Items(bpy.types.UIList):
         grid_flow.use_property_split = False
         button_x_factor = 0.6
 
+        # currentFrameInEdit = props.
         # start
         ###########
         if props.display_edit_times_in_shotlist:
@@ -554,10 +555,22 @@ class UAS_PT_ShotManager_ShotProperties(Panel):
             row = box.row()
             row.separator(factor=1.0)
             c = row.column()
-            grid_flow = c.grid_flow(align=False, columns=4, even_columns=False)
+            grid_flow = c.grid_flow(align=True, columns=4, even_columns=False)
             # row.label ( text = r"Duration: " + str(shot.getDuration()) + " frames" )
             grid_flow.label(text="Duration: ")
-            grid_flow.label(text=str(shot.getDuration()) + " frames")
+
+            grid_flow.use_property_split = False
+            grid_flow.prop(
+                shot,
+                "durationLocked",
+                text="",
+                icon="DECORATE_LOCKED" if shot.durationLocked else "DECORATE_UNLOCKED",
+                toggle=True,
+            )
+
+            grid_flow.prop(shot, "duration_fp", text="")
+
+            #    grid_flow.label(text=str(shot.getDuration()) + " frames")
             grid_flow.prop(props, "display_duration_in_shotlist", text="")
             row.separator(factor=0.5)  # prevents stange look when panel is narrow
 
