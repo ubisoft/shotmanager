@@ -22,7 +22,7 @@ def verbose_set(key: str, default: bool, override: str, verbose: bool = True) ->
 
 def setup_project_env(override_existing: bool, verbose: bool = True) -> None:
 
-    verbose_set("UAS_PROJECT_NAME", "RRSpecial", override_existing, verbose)
+    verbose_set("UAS_PROJECT_NAME", "BuiltIn RRSpecial", override_existing, verbose)
     verbose_set("UAS_PROJECT_FRAMERATE", "25.0", override_existing, verbose)
     verbose_set("UAS_PROJECT_RESOLUTION", "[1280,720]", override_existing, verbose)
     verbose_set("UAS_PROJECT_RESOLUTIONFRAMED", "[1280,960]", override_existing, verbose)
@@ -53,7 +53,7 @@ def print_project_env():
 
 def initializeForRRS(override_existing: bool, verbose=False):
     scene = bpy.context.scene
-
+    print("\n\n *** UAS Pipe to Shot Manager: initializeForRRS ***")
     setup_project_env(override_existing, verbose)
 
     scene.UAS_shot_manager_props.setProjectSettings(
@@ -78,7 +78,8 @@ def publishRRS(prodFilePath, takeIndex=-1, verbose=False, useCache=False):
     """
     import os
     import errno
-    import tempfile
+
+    # import tempfile
 
     scene = bpy.context.scene
 

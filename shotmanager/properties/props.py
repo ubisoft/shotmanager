@@ -1792,6 +1792,8 @@ class UAS_ShotManager_Props(PropertyGroup):
             Shot format must use "_" as separators. It is of the template: Act{:02}_Seq{:04}_Sh{:04}
         """
 
+        print("    * setProjectSettings *")
+
         if use_project_settingse is not None:
             self.use_project_settings = use_project_settings
 
