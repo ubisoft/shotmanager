@@ -96,6 +96,7 @@ class UAS_ShotManager_Shot(PropertyGroup):
         self["start"] = value
         if self.durationLocked:
             self["end"] = self.start + duration - 1
+            print("here")
         else:
             if self.start > self.end:
                 self["end"] = self.start
@@ -158,9 +159,10 @@ class UAS_ShotManager_Shot(PropertyGroup):
         return realVal
 
     def _set_duration_fp(self, value):
-        #    print("\n*** _update_duration_fp: New state: ", self.duration_fp)
-        self["duration_fp"] = value
-        self.end = self.start + max(value, 1) - 1
+        print("\n*** _update_duration_fp: New state: ", self.duration_fp)
+        if not self.durationLocked:
+            self["duration_fp"] = value
+            self.end = self.start + max(value, 1) - 1
 
     def _update_duration_fp(self, context):
         #  print("\n*** _update_duration_fp: New state: ", self.duration_fp)

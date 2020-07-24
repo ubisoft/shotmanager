@@ -51,7 +51,7 @@ bl_info = {
     "author": "Romain Carriquiry Borchiari, Julien Blervaque (aka Werwack)",
     "description": "Manage a sequence of shots and cameras in the 3D View - Ubisoft Animation Studio",
     "blender": (2, 83, 1),
-    "version": (1, 3, 5),
+    "version": (1, 3, 6),
     "location": "View3D > UAS Shot Manager",
     "wiki_url": "https://gitlab-ncsa.ubisoft.org/animation-studio/blender/shotmanager-addon/-/wikis/home",
     "warning": "",
@@ -140,47 +140,16 @@ def checkDataVersion_post_load_handler(self, context):
 # )
 
 
-# def verbose_set(key: str, default: bool, override: str, verbose: bool = True) -> None:
-#     default_value = str(default)
-#     if key in os.environ.keys():
-#         if override and os.environ[key] != default_value:
-#             if verbose:
-#                 print(f"Overrinding value for '{key}': {default}")
-#             os.environ[key] = default_value
-#         return  # already set
-
-#     if verbose:
-#         print(f"Key '{key}' not in the default environment, setting it to {default_value}")
-#     os.environ[key] = default_value
-
-
-# def setup_project_env(override_existing: bool, verbose: bool = True) -> None:
-
-#     verbose_set("UAS_PROJECT_NAME", "RRSpecial", override_existing, verbose)
-#     verbose_set("UAS_PROJECT_FRAMERATE", "25.0", override_existing, verbose)
-#     verbose_set("UAS_PROJECT_RESOLUTION", "[1280,720]", override_existing, verbose)
-#     verbose_set("UAS_PROJECT_RESOLUTIONFRAMED", "[1280,960]", override_existing, verbose)
-#     verbose_set("UAS_PROJECT_OUTPUTFORMAT", "mp4", override_existing, verbose)
-#     verbose_set("UAS_PROJECT_COLORSPACE", "", override_existing, verbose)
-#     verbose_set("UAS_PROJECT_ASSETNAME", "", override_existing, verbose)
-
-
 def register():
-    # set RRS Environment variables for project
-    #    setup_project_env(True, True)
+
+    versionTupple = utils.display_addon_registered_version("UAS Shot Manager")
 
     config.initGlobalVariables()
     verbose = config.uasDebug
 
+    ###################
     # update data
-    versionTupple = utils.addonVersion("UAS Shot Manager")
-    print(
-        "\n *** *** Registering Shot Manager Add-on - version: "
-        + versionTupple[0]
-        + "  ("
-        + str(versionTupple[1])
-        + ") *** ***"
-    )
+    ###################
 
     # bpy.context.window_manager.UAS_shot_manager_version
     bpy.types.WindowManager.UAS_shot_manager_version = IntProperty(

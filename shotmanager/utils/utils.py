@@ -66,6 +66,23 @@ def addonVersion(addonName):
     return versions
 
 
+def display_addon_registered_version(addon_name):
+    versionTupple = addonVersion(addon_name)
+    if versionTupple is not None:
+        print(
+            "\n*** *** Registering "
+            + addon_name
+            + " Add-on - version: "
+            + versionTupple[0]
+            + "  ("
+            + str(versionTupple[1])
+            + ") *** ***"
+        )
+    else:
+        print('\n *** Cannot find registered version for add-on "' + addon_name + '" ***\n')
+    return versionTupple
+
+
 class PropertyRestoreCtx:
     """
     Restore property values at the end of the block.
