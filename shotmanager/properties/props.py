@@ -195,7 +195,7 @@ class UAS_ShotManager_Props(PropertyGroup):
 
     display_duration_in_shotlist: BoolProperty(name="Display Shot Duration in Shot List", default=True, options=set())
 
-    display_color_in_shotlist: BoolProperty(name="Display Color in Shot List", default=False, options=set())
+    display_color_in_shotlist: BoolProperty(name="Display Color in Shot List", default=True, options=set())
 
     display_enabled_in_shotlist: BoolProperty(name="Display Enabled State in Shot List", default=True, options=set())
 

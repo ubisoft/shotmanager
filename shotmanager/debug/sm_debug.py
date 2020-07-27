@@ -77,6 +77,13 @@ class UAS_PT_Shot_Manager_Debug(Panel):
         #     row.operator("debug.createcomponodes", emboss=True)
         #     row.operator("debug.clearcomponodes", emboss=True)
 
+        layout.separator()
+        row = layout.row()
+        row.label(text="Import Sound from XML:")
+        # row.operator("uasvse.openfilebrowser", text="", icon="FILEBROWSER", emboss=True).pathProp = "inputBGMediaPath"
+        row.operator("uasshotmanager.importsoundotio")
+
+        layout.separator()
         row = layout.row()
         row.label(text="Scripts:")
         row = layout.row()

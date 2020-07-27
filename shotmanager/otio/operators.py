@@ -1,16 +1,13 @@
 import os
-import re
-from pathlib import Path
 
 import bpy
 from bpy.types import Operator
 from bpy.props import StringProperty, BoolProperty, IntProperty
 from bpy_extras.io_utils import ImportHelper
 
-from ..utils import utils
-
 import opentimelineio
-from .export import exportOtio
+from .exports import exportOtio
+from .imports import importOtio, importSound
 
 
 class UAS_ShotManager_Export_OTIO(Operator):
@@ -85,7 +82,6 @@ class UAS_ShotManager_OT_Import_OTIO(Operator):
     reformatShotNames: BoolProperty(
         name="Reformat Shot Names", description="Keep only the shot name part for the name of the shots", default=True,
     )
-
     createCameras: BoolProperty(
         name="Create Camera for New Shots",
         description="Create a camera for each new shot or use the same camera for all shots",
@@ -96,14 +92,21 @@ class UAS_ShotManager_OT_Import_OTIO(Operator):
         description="Use the clips and videos from the edit file as background for the cameras",
         default=True,
     )
-
     mediaHaveHandles: BoolProperty(
         name="Media Have Handles", description="Do imported media use the project handles?", default=True,
     )
-
     mediaHandlesDuration: IntProperty(
         name="Handles Duration", description="", soft_min=0, min=0, default=10,
     )
+
+    def invoke(self, context, event):
+        wm = context.window_manager
+        wm.invoke_props_dialog(self, width=500)
+        #    res = bpy.ops.uasotio.openfilebrowser("INVOKE_DEFAULT")
+
+        # print("Res: ", res)
+
+        return {"RUNNING_MODAL"}
 
     def draw(self, context):
         layout = self.layout
@@ -141,104 +144,55 @@ class UAS_ShotManager_OT_Import_OTIO(Operator):
 
     def execute(self, context):
         #   import opentimelineio as otio
-        from random import uniform
-        from math import radians
+        # from random import uniform
+        # from math import radians
 
-        # print("Otio File: ", self.otioFile)
-        props = context.scene.UAS_shot_manager_props
-        if len(props.getCurrentTake().getShotList()) != 0:
-            bpy.ops.uas_shot_manager.add_take(name=Path(self.otioFile).stem)
+        importOtio(
+            context.scene,
+            self.otioFile,
+            importAtFrame=self.importAtFrame,
+            reformatShotNames=self.reformatShotNames,
+            createCameras=self.createCameras,
+            useMediaAsCameraBG=self.useMediaAsCameraBG,
+            mediaHaveHandles=self.mediaHaveHandles,
+            mediaHandlesDuration=self.mediaHandlesDuration,
+        )
 
-        try:
-            timeline = opentimelineio.adapters.read_from_file(self.otioFile)
-            if len(timeline.video_tracks()):
-                track = timeline.video_tracks()[0]  # Assume the first one contains the shots.
+        return {"FINISHED"}
 
-                cam = None
-                if not self.createCameras:  # Create Default Camera
-                    # bpy.ops.object.camera_add(location=[0, 0, 0], rotation=[0, 0, 0])  # doesn't return a cam...
-                    cam = bpy.data.cameras.new("Camera")
-                    cam_ob = bpy.data.objects.new(cam.name, cam)
-                    bpy.context.collection.objects.link(cam_ob)
-                    bpy.data.cameras[cam.name].lens = 40
-                    cam_ob.location = (0.0, 0.0, 0.0)
-                    cam_ob.rotation_euler = (radians(90), 0.0, radians(90))
 
-                shot_re = re.compile(r"sh_?(\d+)", re.IGNORECASE)
-                for i, clip in enumerate(track.each_clip()):
-                    clipName = clip.name
-                    if self.createCameras:
-                        if self.reformatShotNames:
-                            match = shot_re.search(clipName)
-                            if match:
-                                clipName = context.scene.UAS_shot_manager_props.new_shot_prefix + match.group(1)
+class UAS_ShotManager_OT_ImportSound_OTIO(Operator):
+    bl_idname = "uasshotmanager.importsoundotio"
+    bl_label = "Import sound tracks from OTIO File"
+    bl_description = "Import sound tracks from OTIO File"
+    bl_options = {"INTERNAL", "REGISTER", "UNDO"}
 
-                        cam = bpy.data.cameras.new("Cam_" + clipName)
-                        cam_ob = bpy.data.objects.new(cam.name, cam)
-                        bpy.context.collection.objects.link(cam_ob)
-                        bpy.data.cameras[cam.name].lens = 40
-                        cam_ob.color = [uniform(0, 1), uniform(0, 1), uniform(0, 1), 1]
-                        cam_ob.location = (0.0, i, 0.0)
-                        cam_ob.rotation_euler = (radians(90), 0.0, radians(90))
+    pathProp: StringProperty()
+    filepath: StringProperty(subtype="FILE_PATH")
+    filter_glob: StringProperty(default="*.xml;*.otio", options={"HIDDEN"})
 
-                        # add media as camera background
-                        if self.useMediaAsCameraBG:
-                            print("Import Otio clip.media_reference.target_url: ", clip.media_reference.target_url)
-                            media_path = Path(utils.file_path_from_uri(clip.media_reference.target_url))
-                            print("Import Otio media_path: ", media_path)
-                            if not media_path.exists():
-                                # Lets find it inside next to the xml
-                                media_path = Path(self.otioFile).parent.joinpath(media_path.name)
-                                print("** not found, so Path(self.otioFile).parent: ", Path(self.otioFile).parent)
-                                print("   and new media_path: ", media_path)
+    def execute(self, context):
+        """Open OTIO file to import a set of shots"""
+        filename, extension = os.path.splitext(self.filepath)
+        print("Selected file:", self.filepath)
+        print("File name:", filename)
+        print("File extension:", extension)
 
-                            handlesDuration = 0
-                            if self.mediaHaveHandles:
-                                handlesDuration = self.mediaHandlesDuration
-
-                            # start frame of the background video is not set here since it will be linked to the shot start frame
-                            utils.add_background_video_to_cam(
-                                cam, str(media_path), 0, alpha=props.shotsGlobalSettings.backgroundAlpha
-                            )
-
-                    shot = props.addShot(
-                        name=clipName,
-                        start=opentimelineio.opentime.to_frames(clip.range_in_parent().start_time) + self.importAtFrame,
-                        end=opentimelineio.opentime.to_frames(clip.range_in_parent().end_time_inclusive())
-                        + self.importAtFrame,
-                        camera=cam_ob,
-                        color=cam_ob.color,  # (cam_ob.color[0], cam_ob.color[1], cam_ob.color[2]),
-                    )
-                    # bpy.ops.uas_shot_manager.add_shot(
-                    #     name=clipName,
-                    #     start=opentimelineio.opentime.to_frames(clip.range_in_parent().start_time) + self.importAtFrame,
-                    #     end=opentimelineio.opentime.to_frames(clip.range_in_parent().end_time_inclusive()) + self.importAtFrame,
-                    #     cameraName=cam.name,
-                    #     color=(cam_ob.color[0], cam_ob.color[1], cam_ob.color[2]),
-                    # )
-                    shot.bgImages_linkToShotStart = True
-                    shot.bgImages_offset = -1 * handlesDuration
-
-                    # wkip maybe to remove
-                    context.scene.frame_start = self.importAtFrame
-                    context.scene.frame_end = (
-                        opentimelineio.opentime.to_frames(clip.range_in_parent().end_time_inclusive())
-                        + self.importAtFrame
-                    )
-
-        except opentimelineio.exceptions.NoKnownAdapterForExtensionError:
-            from ..utils.utils import ShowMessageBox
-
-            ShowMessageBox("File not recognized", f"{self.otioFile} could not be understood by Opentimelineio", "ERROR")
+        importSound(
+            context.scene, self.filepath,
+        )
 
         return {"FINISHED"}
 
     def invoke(self, context, event):
-        wm = context.window_manager
-        wm.invoke_props_dialog(self, width=500)
-        #    res = bpy.ops.uasotio.openfilebrowser("INVOKE_DEFAULT")
 
-        # print("Res: ", res)
+        # if self.pathProp in context.window_manager.UAS_vse_render:
+        #     self.filepath = context.window_manager.UAS_vse_render[self.pathProp]
+        # else:
+        self.filepath = ""
+        # https://docs.blender.org/api/current/bpy.types.WindowManager.html
+        #    self.directory = bpy.context.scene.UAS_shot_manager_props.renderRootPath
+        context.window_manager.fileselect_add(self)
 
         return {"RUNNING_MODAL"}
 
@@ -281,6 +235,7 @@ class UAS_OTIO_OpenFileBrowser(Operator, ImportHelper):  # from bpy_extras.io_ut
 _classes = (
     UAS_ShotManager_Export_OTIO,
     UAS_ShotManager_OT_Import_OTIO,
+    UAS_ShotManager_OT_ImportSound_OTIO,
     UAS_OTIO_OpenFileBrowser,
 )
 

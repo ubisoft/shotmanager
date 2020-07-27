@@ -2,7 +2,7 @@ import os
 import json
 
 import bpy
-from shotmanager.otio.export import exportOtio
+from shotmanager.otio.exports import exportOtio
 from shotmanager.rendering import rendering_operators
 
 

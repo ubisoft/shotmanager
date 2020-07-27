@@ -141,26 +141,6 @@ class UAS_ShotManager_ProjectSettings_Prefs(Operator):
         context.scene.UAS_shot_manager_props.restoreProjectSettings()
 
 
-# class UAS_ShotManager_ApplyProjectSettingsToScene(Operator):
-#     bl_idname = "uas_shot_manager.applyprojectsettingstoscene"
-#     bl_label = "Apply Project Settings To Scene"
-#     bl_description = "If "
-#     bl_options = {"INTERNAL"}
-
-#     @classmethod
-#     def poll(cls, context):
-#         props = context.scene.UAS_shot_manager_props
-#         val = len(props.getTakes()) and len(props.get_shots())
-#         return val
-
-#     def execute(self, context):
-#         scene = context.scene
-#         props = scene.UAS_shot_manager_props
-
-
-#         return {"FINISHED"}
-
-
 class UAS_PT_ShotManagerPref_General(Panel):
     bl_label = "General"
     bl_idname = "UAS_PT_Shot_Manager_Pref_General"
