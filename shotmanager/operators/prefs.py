@@ -1,8 +1,6 @@
 import bpy
 from bpy.types import Panel, Operator, Menu
 
-from ..utils import utils
-
 #############
 # Preferences
 #############
@@ -67,7 +65,7 @@ class UAS_ShotManager_ProjectSettings_Prefs(Operator):
     bl_idname = "uas_shot_manager.project_settings_prefs"
     bl_label = "Project Settings"
     bl_description = "Display the Project Settings panel"
-    bl_options = {"INTERNAL"}
+    bl_options = {"INTERNAL", "REGISTER", "UNDO"}
 
     def invoke(self, context, event):
         print("Invoke prefs")
@@ -132,8 +130,35 @@ class UAS_ShotManager_ProjectSettings_Prefs(Operator):
         #     row.label(text=str(prop[1]))
 
     def execute(self, context):
-        print("exec prefs")
+        print("exec proj settings")
+        context.scene.UAS_shot_manager_props.restoreProjectSettings()
         return {"FINISHED"}
+
+    def cancel(self, context):
+        print("cancel proj settings")
+        # since project properties are immediatly applied to Shot Manager properties then we also force the
+        # application of the settings in the scene even if the user is not clicking on OK button
+        context.scene.UAS_shot_manager_props.restoreProjectSettings()
+
+
+# class UAS_ShotManager_ApplyProjectSettingsToScene(Operator):
+#     bl_idname = "uas_shot_manager.applyprojectsettingstoscene"
+#     bl_label = "Apply Project Settings To Scene"
+#     bl_description = "If "
+#     bl_options = {"INTERNAL"}
+
+#     @classmethod
+#     def poll(cls, context):
+#         props = context.scene.UAS_shot_manager_props
+#         val = len(props.getTakes()) and len(props.get_shots())
+#         return val
+
+#     def execute(self, context):
+#         scene = context.scene
+#         props = scene.UAS_shot_manager_props
+
+
+#         return {"FINISHED"}
 
 
 class UAS_PT_ShotManagerPref_General(Panel):

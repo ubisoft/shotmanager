@@ -1830,6 +1830,10 @@ class UAS_ShotManager_Props(PropertyGroup):
         self.restoreProjectSettings()
 
     def restoreProjectSettings(self, settingsListOnly=False):
+
+        if not self.use_project_settings:
+            return None
+
         scene = bpy.context.scene
 
         settingsList = []
