@@ -23,7 +23,7 @@ rrs.initialize_for_rrs(override_existing=True, verbose=True)
 # launch the rendering process of the shots from the current take and get a dictionary of
 # the rendered and failed files
 # The dictionary have the following entries: rendered_files, failed_files, otio_file
-files_dico = rrs.publishRRS(current_dir, take_index=-1, verbose=True, use_cache=False)
+files_dico = rrs.publishRRS(current_dir, take_index=-1, verbose=True, use_cache=False, fileListOnly=False)
 
 print("\nRendered files: ", len(files_dico["rendered_files"]))
 for f in files_dico["rendered_files"]:

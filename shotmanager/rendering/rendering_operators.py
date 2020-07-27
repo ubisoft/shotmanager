@@ -136,7 +136,7 @@ class UAS_PT_ShotManager_Render(Operator):
         return {"FINISHED"}
 
 
-def launchRenderWithVSEComposite(renderMode, takeIndex=-1, filePath="", useStampInfo=True):
+def launchRenderWithVSEComposite(renderMode, takeIndex=-1, filePath="", useStampInfo=True, fileListOnly=False):
     """ Generate the media for the specified take
         Return a dictionary with a list of all the created files and a list of failed ones
         filesDict = {"rendered_files": newMediaFiles, "failed_files": failedFiles}
@@ -205,6 +205,7 @@ def launchRenderWithVSEComposite(renderMode, takeIndex=-1, filePath="", useStamp
     #     scene.render.ffmpeg.format = "MPEG4"
     if preset_useStampInfo:
         RRS_StampInfo.clearRenderHandlers()
+
     for i, shot in enumerate(shotList):
         if shot.enabled:
             print("\n----------------------------------------------------")
@@ -261,14 +262,16 @@ def launchRenderWithVSEComposite(renderMode, takeIndex=-1, filePath="", useStamp
                     print("RRS_StampInfo.renderRootPath: ", RRS_StampInfo.renderRootPath)
                     RRS_StampInfo.renderRootPath = newTempRenderPath
 
-                    RRS_StampInfo.renderTmpImageWithStampedInfo(scene, currentFrame)
+                    if not fileListOnly:
+                        RRS_StampInfo.renderTmpImageWithStampedInfo(scene, currentFrame)
 
                 # area.spaces[0].region_3d.view_perspective = 'CAMERA'
 
                 scene.render.resolution_x = 1280
                 scene.render.resolution_y = 720
 
-                bpy.ops.render.render(animation=False, write_still=True)
+                if not fileListOnly:
+                    bpy.ops.render.render(animation=False, write_still=True)
 
             vse_render = context.window_manager.UAS_vse_render
             vse_render.inputOverMediaPath = (scene.render.filepath)[0:-8] + "####" + ".png"
@@ -281,13 +284,15 @@ def launchRenderWithVSEComposite(renderMode, takeIndex=-1, filePath="", useStamp
             # here we render in the take dir
             compositedMediaPath = f"{rootPath}{take.getName_PathCompliant()}\\{shot.getOutputFileName(fullPath=False)}"
 
-            vse_render.compositeVideoInVSE(
-                projectFps,
-                1,
-                shot.end - shot.start + 2 * props.handles + 1,
-                compositedMediaPath,
-                shot.getName_PathCompliant(),
-            )
+            if not fileListOnly:
+                vse_render.compositeVideoInVSE(
+                    projectFps,
+                    1,
+                    shot.end - shot.start + 2 * props.handles + 1,
+                    compositedMediaPath,
+                    shot.getName_PathCompliant(),
+                )
+
             newMediaFiles.append(compositedMediaPath)
 
             # bpy.ops.render.render("INVOKE_DEFAULT", animation=False, write_still=True)
@@ -295,34 +300,40 @@ def launchRenderWithVSEComposite(renderMode, takeIndex=-1, filePath="", useStamp
             # bpy.ops.render.opengl ( animation = True )
 
             # delete unsused rendered frames
-            files_in_directory = os.listdir(newTempRenderPath)
-            filtered_files = [file for file in files_in_directory if file.endswith(".png")]
+            if not fileListOnly:
+                files_in_directory = os.listdir(newTempRenderPath)
+                filtered_files = [file for file in files_in_directory if file.endswith(".png")]
 
-            for file in filtered_files:
-                path_to_file = os.path.join(newTempRenderPath, file)
-                os.remove(path_to_file)
-            try:
-                os.rmdir(newTempRenderPath)
-            except Exception:
-                print("Cannot delete Dir: ", newTempRenderPath)
+                for file in filtered_files:
+                    path_to_file = os.path.join(newTempRenderPath, file)
+                    os.remove(path_to_file)
+                try:
+                    os.rmdir(newTempRenderPath)
+                except Exception:
+                    print("Cannot delete Dir: ", newTempRenderPath)
 
-            vse_render.createNewClip(
-                sequenceScene,
-                compositedMediaPath,
-                1,
-                shot.getEditStart() - props.handles,
-                offsetStart=props.handles,
-                offsetEnd=props.handles,
-            )
+            if not fileListOnly:
+                vse_render.createNewClip(
+                    sequenceScene,
+                    compositedMediaPath,
+                    1,
+                    shot.getEditStart() - props.handles,
+                    offsetStart=props.handles,
+                    offsetEnd=props.handles,
+                )
 
     # render full sequence
     # Note that here we are back to the sequence scene, not anymore in the shot scene
     bpy.context.window.scene = sequenceScene
-    bpy.ops.render.opengl(animation=True, sequencer=True)
+
+    if not fileListOnly:
+        bpy.ops.render.opengl(animation=True, sequencer=True)
+
     newMediaFiles.append(sequenceScene.render.filepath)
     failedFiles = []
 
     filesDict = {"rendered_files": newMediaFiles, "failed_files": failedFiles}
+
     return filesDict
 
 

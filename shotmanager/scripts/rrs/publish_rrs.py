@@ -72,7 +72,7 @@ def initializeForRRS(override_existing: bool, verbose=False):
     print_project_env()
 
 
-def publishRRS(prodFilePath, takeIndex=-1, verbose=False, useCache=False):
+def publishRRS(prodFilePath, takeIndex=-1, verbose=False, useCache=False, fileListOnly=False):
     """ Return a dictionary with the rendered and the failed file paths
         The dictionary have the following entries: rendered_files, failed_files, otio_file
     """
@@ -137,7 +137,7 @@ def publishRRS(prodFilePath, takeIndex=-1, verbose=False, useCache=False):
 
     # shot videos are rendered in the directory of the take, not anymore in a directory with the shot name
     renderedFilesDict = rendering_operators.launchRenderWithVSEComposite(
-        "PROJECT", takeIndex=takeIndex, filePath=renderDir
+        "PROJECT", takeIndex=takeIndex, filePath=renderDir, fileListOnly=fileListOnly
     )
 
     ################
@@ -200,5 +200,9 @@ def publishRRS(prodFilePath, takeIndex=-1, verbose=False, useCache=False):
         notCopiedFiles = []
         _MoveFile(renderedOtioFile)
         renderedFilesDict["otio_file"] = copiedFiles if len(copiedFiles) else []
+
+    # if dump rendered file list
+    with open(prodFilePath + "renderedFiles.json", "w") as fp:
+        json.dump(renderedFilesDict, fp, indent=4)
 
     return renderedFilesDict
