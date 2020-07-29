@@ -823,12 +823,12 @@ class UAS_MT_ShotManager_Shots_ToolsMenu(Menu):
 
         row = layout.row(align=True)
         row.operator_context = "INVOKE_DEFAULT"
-        row.operator("uasotio.openfilebrowser", text="Import Shots From OTIO")
+        row.operator("uasotio.openfilebrowser", text="Create Shots From OTIO")
 
         # wkip debug - to remove:
         if config.uasDebug:
             row = layout.row(align=True)
-            row.operator("uasshotmanager.importotio", text="Import Shots From OTIO - Debug")
+            row.operator("uasshotmanager.createshotsfromotio", text="Create Shots From OTIO - Debug")
 
         # tools for precut ###
         layout.separator()

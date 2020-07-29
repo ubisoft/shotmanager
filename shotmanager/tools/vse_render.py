@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 
 import bpy
 
@@ -181,8 +182,6 @@ class UAS_Vse_Render(PropertyGroup):
         """
         mediaType = "UNKNOWN"
 
-        from pathlib import Path
-
         mediaExt = Path(filePath.lower()).suffix
         if mediaExt in (".mp4", ".avi", ".mov", ".mkv"):
             mediaType = "MOVIE"
@@ -299,7 +298,8 @@ class UAS_Vse_Render(PropertyGroup):
             newClip = _new_images_sequence(scene, "mySequence", mediaPath, channelInd, atFrame)
             # newClip = scene.sequence_editor.sequences.new_image("myVideo", mediaPath, channelInd, atFrame)
         if "SOUND" == mediaType:
-            newClip = scene.sequence_editor.sequences.new_movie("mySound", mediaPath, channelInd, atFrame)
+            newClip = scene.sequence_editor.sequences.new_sound("mySound", mediaPath, channelInd, atFrame)
+            newClip.frame_final_duration = offsetEnd
         if "UNKNOWN" == mediaType:
             if cameraScene is not None and cameraObject is not None:
                 mediaType = "CAMERA"
@@ -307,9 +307,9 @@ class UAS_Vse_Render(PropertyGroup):
                     scene, "myCamera", channelInd, atFrame, offsetStart, offsetEnd, cameraScene, cameraObject
                 )
 
-        if newClip is not None:
-            newClip.frame_offset_start = offsetStart
-            newClip.frame_offset_end = offsetEnd
+        # if newClip is not None and mediaType != "SOUNDS":
+        #     newClip.frame_offset_start = offsetStart
+        #     newClip.frame_offset_end = offsetEnd
 
         return newClip
 
