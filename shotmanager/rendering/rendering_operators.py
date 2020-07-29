@@ -1,21 +1,12 @@
-import os
-import json
 from pathlib import Path
 
 import bpy
 from bpy.types import Operator
 from bpy.props import EnumProperty, BoolProperty, StringProperty
 
-from .rendering import launchRenderWithVSEComposite, launchRender
+from .rendering import launchRender
 
 from ..utils import utils
-
-from ..scripts.rrs.RRS_StampInfo import setRRS_StampInfoSettings
-
-# import opentimelineio as otio
-
-# for file browser:
-# from bpy_extras.io_utils import ImportHelper
 
 
 def get_media_path(out_path, take_name, shot_name):
@@ -58,27 +49,6 @@ class UAS_OT_OpenPathBrowser(Operator):
         return {"FINISHED"}
 
         return {"RUNNING_MODAL"}
-
-
-# class UAS_ShotManager_Explorer ( Operator ):
-#     bl_idname = "uas_shot_manager.explorer"
-#     bl_label = "Open Explorer"
-#     bl_description = "Open Explorer"
-#     bl_options = { "INTERNAL" }
-
-#     folder: StringProperty ( )
-
-#     def execute ( self, context ):
-#         pathToOpen = self.folder
-#         absPathToOpen = bpy.path.abspath(pathToOpen)
-#         #wkip pouvoir ouvrir path relatif
-
-#         if Path ( pathToOpen ).exists():
-#             subprocess.Popen ( f"explorer \"{bpy.path.abspath(pathToOpen)}\"" )
-#         else:
-#             print("Open Explorer failed: Path not found: \"" + bpy.path.abspath(pathToOpen) + "\"")
-
-#         return { "FINISHED" }
 
 
 class UAS_PT_ShotManager_Render(Operator):
@@ -245,6 +215,8 @@ class UAS_PT_ShotManager_RenderDialog(Operator):
 ###########
 # utils
 ###########
+
+
 class UAS_ShotManager_Render_RestoreProjectSettings(Operator):
     bl_idname = "uas_shot_manager.render_restore_project_settings"
     bl_label = "Restore Project Settings"

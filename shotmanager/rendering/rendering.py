@@ -1,11 +1,9 @@
 import os
 import json
-from pathlib import Path
 
 import bpy
 
-from ..utils import utils
-
+from ..config import config
 from ..scripts.rrs.RRS_StampInfo import setRRS_StampInfoSettings
 
 
@@ -61,10 +59,13 @@ def launchRenderWithVSEComposite(renderMode, takeIndex=-1, filePath="", useStamp
     sequenceScene.render.fps = projectFps
     sequenceScene.render.resolution_x = 1280
     sequenceScene.render.resolution_y = 960
-    sequenceScene.frame_start = 1
-    sequenceScene.frame_end = props.getEditDuration()
+    sequenceScene.frame_start = 0
+    sequenceScene.frame_end = props.getEditDuration() - 1
     sequenceScene.render.image_settings.file_format = "FFMPEG"
     sequenceScene.render.ffmpeg.format = "MPEG4"
+    sequenceScene.render.ffmpeg.constant_rate_factor = "PERC_LOSSLESS"  # "PERC_LOSSLESS"
+    sequenceScene.render.ffmpeg.gopsize = 5  # keyframe interval
+    sequenceScene.render.ffmpeg.audio_codec = "AC3"
     sequenceScene.render.filepath = f"{rootPath}{take.getName_PathCompliant()}\\{props.renderShotPrefix()}.mp4"
 
     context.window_manager.UAS_shot_manager_shots_play_mode = False
@@ -83,6 +84,9 @@ def launchRenderWithVSEComposite(renderMode, takeIndex=-1, filePath="", useStamp
         RRS_StampInfo.clearRenderHandlers()
 
     for i, shot in enumerate(shotList):
+        # context.window_manager.UAS_shot_manager_progressbar = (i + 1) / len(shotList) * 100.0
+        # bpy.ops.wm.redraw_timer(type="DRAW_WIN_SWAP", iterations=2)
+
         if shot.enabled:
             print("\n----------------------------------------------------")
             print("\n  Shot rendered: ", shot.name)
@@ -149,18 +153,27 @@ def launchRenderWithVSEComposite(renderMode, takeIndex=-1, filePath="", useStamp
                 if not fileListOnly:
                     bpy.ops.render.render(animation=False, write_still=True)
 
-            vse_render = context.window_manager.UAS_vse_render
-            vse_render.inputOverMediaPath = (scene.render.filepath)[0:-8] + "####" + ".png"
-            print("inputOverMediaPath: ", vse_render.inputOverMediaPath)
-            vse_render.inputOverResolution = (1280, 720)
-            vse_render.inputBGMediaPath = newTempRenderPath + "_tmp_StampInfo.####.png"
-            vse_render.inputBGResolution = (1280, 960)
+            # render sound
+            if not fileListOnly:
+                audioFilePath = newTempRenderPath + f"{props.renderShotPrefix()}_{shot.name}" + ".wav"
+                print("audioFilePath: ", audioFilePath)
+                # bpy.ops.sound.mixdown(filepath=audioFilePath, relative_path=True, container='WAV', codec='PCM')
+                bpy.ops.sound.mixdown(filepath=audioFilePath, relative_path=False, container="WAV", codec="PCM")
 
             # compositedMediaPath = shot.getOutputFileName(fullPath=True, rootFilePath=rootPath)     # if we use that the shot .mp4 is rendered in the shot dir
             # here we render in the take dir
             compositedMediaPath = f"{rootPath}{take.getName_PathCompliant()}\\{shot.getOutputFileName(fullPath=False)}"
 
+            # use vse_render to store all the elements to composite
             if not fileListOnly:
+                vse_render = context.window_manager.UAS_vse_render
+                vse_render.inputOverMediaPath = (scene.render.filepath)[0:-8] + "####" + ".png"
+                print("inputOverMediaPath: ", vse_render.inputOverMediaPath)
+                vse_render.inputOverResolution = (1280, 720)
+                vse_render.inputBGMediaPath = newTempRenderPath + "_tmp_StampInfo.####.png"
+                vse_render.inputBGResolution = (1280, 960)
+                vse_render.inputAudioMediaPath = audioFilePath
+
                 vse_render.compositeVideoInVSE(
                     projectFps,
                     1,
@@ -178,7 +191,7 @@ def launchRenderWithVSEComposite(renderMode, takeIndex=-1, filePath="", useStamp
             # delete unsused rendered frames
             if not fileListOnly:
                 files_in_directory = os.listdir(newTempRenderPath)
-                filtered_files = [file for file in files_in_directory if file.endswith(".png")]
+                filtered_files = [file for file in files_in_directory if file.endswith(".png") or file.endswith(".wav")]
 
                 for file in filtered_files:
                     path_to_file = os.path.join(newTempRenderPath, file)
@@ -188,11 +201,13 @@ def launchRenderWithVSEComposite(renderMode, takeIndex=-1, filePath="", useStamp
                 except Exception:
                     print("Cannot delete Dir: ", newTempRenderPath)
 
+            print(f"shot.getEditStart: {shot.getEditStart()}, props.handles: {props.handles}")
+
             if not fileListOnly:
                 vse_render.createNewClip(
                     sequenceScene,
                     compositedMediaPath,
-                    1,
+                    sequenceScene.frame_start,
                     shot.getEditStart() - props.handles,
                     offsetStart=props.handles,
                     offsetEnd=props.handles,
@@ -209,6 +224,11 @@ def launchRenderWithVSEComposite(renderMode, takeIndex=-1, filePath="", useStamp
     failedFiles = []
 
     filesDict = {"rendered_files": newMediaFiles, "failed_files": failedFiles}
+
+    # cleaning current file from temp scenes
+    if not config.uasDebug:
+        # current scene is sequenceScene
+        bpy.ops.scene.delete()
 
     return filesDict
 

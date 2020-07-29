@@ -1,7 +1,7 @@
 import bpy
 from bpy.app.handlers import persistent
 
-from bpy.props import BoolProperty, IntProperty
+from bpy.props import BoolProperty, IntProperty, FloatProperty
 
 from . import otio
 from . import rendering
@@ -234,6 +234,8 @@ def register():
     # declaration of properties that will not be saved in the scene:
     ####################
 
+    # call in the code by context.window_manager.UAS_shot_manager_displayAbout etc
+
     # About button panel Quick Settings
     bpy.types.WindowManager.UAS_shot_manager_displayAbout = BoolProperty(
         name="About...", description="Display About Informations", default=False
@@ -251,6 +253,17 @@ def register():
         description="Display a timeline in the 3D Viewport with the shots in the specified order",
         default=False,
         update=timeline_valueChanged,
+    )
+
+    bpy.types.WindowManager.UAS_shot_manager_progressbar = FloatProperty(
+        name="progressbar",
+        description="Value of the progress bar",
+        subtype="PERCENTAGE",
+        min=0,
+        max=100,
+        precision=0,
+        default=0,
+        options=set(),
     )
 
 

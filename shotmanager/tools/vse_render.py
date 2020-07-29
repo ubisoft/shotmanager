@@ -1,9 +1,11 @@
 import os
 from pathlib import Path
 
+from ..config import config
+
 import bpy
 
-from bpy.types import Panel, Operator, PropertyGroup
+from bpy.types import Operator, PropertyGroup
 from bpy.props import (
     IntVectorProperty,
     StringProperty,
@@ -144,7 +146,9 @@ class UAS_compositeVideoInVSE(Operator):
         #   vse_render = context.window_manager.UAS_vse_render
         #   scene = context.scene
 
-        context.window_manager.UAS_vse_render.compositeVideoInVSE(1, 20, "c:\\tmp\\MyVSEOutput.mp4")
+        context.window_manager.UAS_vse_render.compositeVideoInVSE(
+            bpy.context.scene.render.fps, 1, 20, "c:\\tmp\\MyVSEOutput.mp4"
+        )
 
         return {"FINISHED"}
 
@@ -175,6 +179,8 @@ class UAS_Vse_Render(PropertyGroup):
     )
 
     inputBGResolution: IntVectorProperty(size=2, default=(1280, 960))
+
+    inputAudioMediaPath: StringProperty(name="Input Audio Media Path", default="")
 
     def getMediaType(self, filePath):
         """ Return the type of media according to the extension of the provided file path
@@ -292,14 +298,24 @@ class UAS_Vse_Render(PropertyGroup):
         print("media Path: ", mediaPath)
         if "MOVIE" == mediaType:
             newClip = scene.sequence_editor.sequences.new_movie("myVideo", mediaPath, channelInd, atFrame)
+            newClip.frame_offset_start = offsetStart
+            newClip.frame_offset_end = offsetEnd
+            newClip = scene.sequence_editor.sequences.new_sound("myVideoSound", mediaPath, channelInd + 1, atFrame)
+            newClip.frame_offset_start = offsetStart
+            newClip.frame_offset_end = offsetEnd
         if "IMAGE" == mediaType:
             newClip = scene.sequence_editor.sequences.new_image("myImage", mediaPath, channelInd, atFrame)
+            newClip.frame_offset_start = offsetStart
+            newClip.frame_offset_end = offsetEnd
         if "IMAGES_SEQUENCE" == mediaType:
             newClip = _new_images_sequence(scene, "mySequence", mediaPath, channelInd, atFrame)
             # newClip = scene.sequence_editor.sequences.new_image("myVideo", mediaPath, channelInd, atFrame)
+            newClip.frame_offset_start = offsetStart
+            newClip.frame_offset_end = offsetEnd
         if "SOUND" == mediaType:
             newClip = scene.sequence_editor.sequences.new_sound("mySound", mediaPath, channelInd, atFrame)
-            newClip.frame_final_duration = offsetEnd
+            if 0 != offsetEnd:
+                newClip.frame_final_duration = offsetEnd
         if "UNKNOWN" == mediaType:
             if cameraScene is not None and cameraObject is not None:
                 mediaType = "CAMERA"
@@ -344,8 +360,11 @@ class UAS_Vse_Render(PropertyGroup):
         scene.frame_end = frame_end
         scene.render.image_settings.file_format = "FFMPEG"
         scene.render.ffmpeg.format = "MPEG4"
+        scene.render.ffmpeg.constant_rate_factor = "PERC_LOSSLESS"  # "PERC_LOSSLESS"
+        scene.render.ffmpeg.gopsize = 5  # keyframe interval
+
+        scene.render.ffmpeg.audio_codec = "AC3"
         scene.render.filepath = output_filepath
-        # scene.render.ffmpeg.constant_rate_factor = video_quality
 
         bgClip = self.createNewClip(scene, self.inputBGMediaPath, 1, 1)
 
@@ -359,6 +378,8 @@ class UAS_Vse_Render(PropertyGroup):
 
             overClip.blend_type = "OVER_DROP"
 
+        audioClip = self.createNewClip(scene, self.inputAudioMediaPath, 3, 1)
+
         # bpy.context.scene.sequence_editor.sequences
         # get res of video: bpy.context.scene.sequence_editor.sequences[1].elements[0].orig_width
         # ne marche que sur vidéos
@@ -367,8 +388,8 @@ class UAS_Vse_Render(PropertyGroup):
         bpy.context.window.scene = scene
         bpy.ops.render.opengl(animation=True, sequencer=True)
 
-
-#      bpy.ops.scene.delete()
+        if not config.uasDebug:
+            bpy.ops.scene.delete()
 
 
 _classes = (
