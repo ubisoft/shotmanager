@@ -158,7 +158,7 @@ class UAS_ShotManager_Props(PropertyGroup):
 
     new_shot_prefix: StringProperty(default="Sh")
 
-    # wkip deprecated??
+    # overriden by project settings
     render_shot_prefix: StringProperty(
         name="Render Shot Prefix", description="Prefix added to the shot names at render time", default=""
     )
@@ -1633,8 +1633,9 @@ class UAS_ShotManager_Props(PropertyGroup):
         resultStr = ""
 
         fileName = shot.getName_PathCompliant()
-        if "" != self.render_shot_prefix:
-            fileName = self.render_shot_prefix + "_" + fileName
+        shotPrefix = self.renderShotPrefix()
+        if "" != shotPrefix:
+            fileName = shotPrefix + "_" + fileName
 
         # fileName + frame index + extension
         fileFullName = fileName
@@ -1809,17 +1810,8 @@ class UAS_ShotManager_Props(PropertyGroup):
             self.project_resolution_framed_y = project_resolution_framed[1]
         if project_shot_format is not None:
             self.project_shot_format = project_shot_format
-
-            self.render_shot_prefix = bpy.context.scene.name  # + "_"
-
-            s = project_shot_format.split("_")[2]
-            s = s.format(0)
-            s = s.replace("0", "")
-            self.new_shot_prefix = s
-
         if -1 != project_shot_handle_duration:
             self.project_shot_handle_duration = project_shot_handle_duration
-
         if project_output_format is not None:
             self.project_output_format = project_output_format
         if project_color_space is not None:
@@ -1831,10 +1823,7 @@ class UAS_ShotManager_Props(PropertyGroup):
 
     def restoreProjectSettings(self, settingsListOnly=False):
 
-        if not self.use_project_settings:
-            return None
-
-        scene = bpy.context.scene
+        print("    * restoreProjectSettings , settingsListOnly: *", settingsListOnly)
 
         settingsList = []
 
@@ -1853,16 +1842,19 @@ class UAS_ShotManager_Props(PropertyGroup):
         settingsList.append(["Project Color Space", str(self.project_color_space)])
         settingsList.append(["Project Asset Name", str(self.project_asset_name)])
         settingsList.append(["new_shot_prefix", str(self.new_shot_prefix)])
-        settingsList.append(["render_shot_prefix", str(self.render_shot_prefix)])
+        # settingsList.append(["render_shot_prefix", str(self.render_shot_prefix)])
 
-        if not settingsListOnly:
+        #################
+        # applying project settings to parent scene
 
-            scene.render.fps = self.project_fps
-            scene.render.fps_base = 1.0
+        if self.use_project_settings and not settingsListOnly:
 
-            scene.render.resolution_x = self.project_resolution_x
-            scene.render.resolution_y = self.project_resolution_y
-            scene.render.resolution_percentage = 100.0
+            self.parentScene.render.fps = self.project_fps
+            self.parentScene.render.fps_base = 1.0
+
+            self.parentScene.render.resolution_x = self.project_resolution_x
+            self.parentScene.render.resolution_y = self.project_resolution_y
+            self.parentScene.render.resolution_percentage = 100.0
 
             self.handles = self.project_shot_handle_duration
 
@@ -1875,6 +1867,17 @@ class UAS_ShotManager_Props(PropertyGroup):
             self.setProjectRenderFilePath()
 
         return settingsList
+
+    def renderShotPrefix(self):
+        shotPrefix = ""
+
+        if self.use_project_settings:
+            # wkip to improve with project_shot_format!!!
+            shotPrefix = self.parentScene.name
+        else:
+            shotPrefix = self.render_shot_prefix
+
+        return shotPrefix
 
     def createRenderSettings(self):
 

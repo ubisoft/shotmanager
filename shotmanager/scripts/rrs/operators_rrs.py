@@ -42,7 +42,11 @@ class UAS_LaunchRRSRender(Operator):
 
         # publish_rrs.publishRRS( context.scene.UAS_shot_manager_props.renderRootPath )
         publish_rrs.publishRRS(
-            self.prodFilePath, verbose=self.verbose, takeIndex=self.takeIndex, useCache=self.useCache, fileListOnly=True
+            self.prodFilePath,
+            verbose=self.verbose,
+            takeIndex=self.takeIndex,
+            useCache=self.useCache,
+            fileListOnly=False,
         )
         print("End of Publish")
 
