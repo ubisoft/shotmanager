@@ -58,17 +58,17 @@ class UAS_PT_ShotManager(Panel):
         row.operator("utils.launchrender", text="", icon="RENDER_ANIMATION").renderMode = "ANIMATION"
         row.separator(factor=2)
 
-        icon = config.icons_col["General_Explorer_32"]
-        row.operator("uas_shot_manager.open_explorer", text="", icon_value=icon.icon_id).path = bpy.path.abspath(
-            bpy.data.filepath
-        )
-
         #    row.operator("render.opengl", text="", icon='IMAGE_DATA')
         #   row.operator("render.opengl", text="", icon='RENDER_ANIMATION').animation = True
         #    row.operator("screen.screen_full_area", text ="", icon = 'FULLSCREEN_ENTER').use_hide_panels=False
 
-        row.separator(factor=2)
         row.operator("uas_shot_manager.go_to_video_shot_manager", text="", icon="SEQ_STRIP_DUPLICATE")
+
+        row.separator(factor=2)
+        icon = config.icons_col["General_Explorer_32"]
+        row.operator("uas_shot_manager.open_explorer", text="", icon_value=icon.icon_id).path = bpy.path.abspath(
+            bpy.data.filepath
+        )
 
         row.separator(factor=2)
         row.menu("UAS_MT_Shot_Manager_prefs_mainmenu", icon="PREFERENCES", text="")

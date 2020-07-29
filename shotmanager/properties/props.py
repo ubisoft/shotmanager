@@ -129,6 +129,11 @@ class UAS_ShotManager_Props(PropertyGroup):
         options=set(),
     )
 
+    # wkip rrs specific
+    #############
+
+    rrs_useRenderRoot: BoolProperty(name="Use Render Root", default=True)
+
     # project settings
     #############
 
