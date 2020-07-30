@@ -1800,7 +1800,7 @@ class UAS_ShotManager_Props(PropertyGroup):
 
         print("    * setProjectSettings *")
 
-        if use_project_settingse is not None:
+        if use_project_settings is not None:
             self.use_project_settings = use_project_settings
 
         if project_name is not None:
