@@ -74,7 +74,7 @@ def initializeForRRS(override_existing: bool, verbose=False):
 
 def publishRRS(prodFilePath, takeIndex=-1, verbose=False, useCache=False, fileListOnly=False):
     """ Return a dictionary with the rendered and the failed file paths
-        The dictionary have the following entries: rendered_files, failed_files, otio_file
+        The dictionary have the following entries: rendered_files, failed_files, edl_files
     """
     import os
     import errno
@@ -150,7 +150,7 @@ def publishRRS(prodFilePath, takeIndex=-1, verbose=False, useCache=False, fileLi
     bpy.context.window.scene = scene
     renderedOtioFile = exportOtio(scene, takeIndex=takeIndex, filePath=renderDir)
 
-    renderedFilesDict["otio_file"] = [renderedOtioFile]
+    renderedFilesDict["edl_files"] = [renderedOtioFile]
 
     if verbose:
         print("\nNewMediaList = ", renderedFilesDict)
@@ -201,7 +201,7 @@ def publishRRS(prodFilePath, takeIndex=-1, verbose=False, useCache=False, fileLi
         copiedFiles = []
         notCopiedFiles = []
         _MoveFile(renderedOtioFile)
-        renderedFilesDict["otio_file"] = copiedFiles if len(copiedFiles) else []
+        renderedFilesDict["edl_files"] = copiedFiles if len(copiedFiles) else []
 
     # if dump rendered file list
     with open(prodFilePath + "renderedFiles.json", "w") as fp:

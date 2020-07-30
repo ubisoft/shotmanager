@@ -39,6 +39,7 @@ class UAS_ShotManager_Props(PropertyGroup):
 
     def initialize_shot_manager(self):
         print("\nInitializing Shot Manager...\n")
+        self.parentScene = bpy.context.scene
         self.dataVersion = bpy.context.window_manager.UAS_shot_manager_version
         self.createDefaultTake()
         self.createRenderSettings()
