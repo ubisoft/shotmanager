@@ -1,7 +1,7 @@
 import bpy
 from bpy.types import Panel, Operator, Menu
 
-from ..utils import utils
+from ..config import config
 
 #############
 # Preferences
@@ -46,15 +46,28 @@ class UAS_ShotManager_General_Prefs(Operator):
 
         box = layout.box()
         col = box.column()
-
         col.use_property_split = True
         # col.use_property_decorate = False
 
         col.prop(props, "new_shot_duration", text="Default Shot Length")
+
+        layout.separator()
+        if props.use_project_settings:
+            row = layout.row()
+            row.alert = True
+            row.label(text="Overriden by Project Settings:")
+        else:
+            # layout.label(text="Others")
+            pass
+        box = layout.box()
+        box.enabled = not props.use_project_settings
+        col = box.column()
+        col.use_property_split = True
         col.prop(props, "new_shot_prefix", text="Default Shot Prefix")
 
         # row = layout.row()
         # row.label(text="Handles:")
+        col.prop(props, "render_shot_prefix")
         col.prop(props, "handles", text="Handles Duration")
 
         layout.separator(factor=1)
@@ -67,7 +80,7 @@ class UAS_ShotManager_ProjectSettings_Prefs(Operator):
     bl_idname = "uas_shot_manager.project_settings_prefs"
     bl_label = "Project Settings"
     bl_description = "Display the Project Settings panel"
-    bl_options = {"INTERNAL"}
+    bl_options = {"INTERNAL", "REGISTER", "UNDO"}
 
     def invoke(self, context, event):
         print("Invoke prefs")
@@ -122,18 +135,25 @@ class UAS_ShotManager_ProjectSettings_Prefs(Operator):
 
         col.separator(factor=1)
 
-        settingsList = props.restoreProjectSettings(settingsListOnly=True)
-
         # project settings summary display
-        # box = layout.box()
-        # for prop in settingsList:
-        #     row = box.row(align=True)
-        #     row.label(text=prop[0] + ":")
-        #     row.label(text=str(prop[1]))
+        if config.uasDebug:
+            settingsList = props.restoreProjectSettings(settingsListOnly=True)
+            box = layout.box()
+            for prop in settingsList:
+                row = box.row(align=True)
+                row.label(text=prop[0] + ":")
+                row.label(text=str(prop[1]))
 
     def execute(self, context):
-        print("exec prefs")
+        print("exec proj settings")
+        context.scene.UAS_shot_manager_props.restoreProjectSettings()
         return {"FINISHED"}
+
+    def cancel(self, context):
+        print("cancel proj settings")
+        # since project properties are immediatly applied to Shot Manager properties then we also force the
+        # application of the settings in the scene even if the user is not clicking on OK button
+        context.scene.UAS_shot_manager_props.restoreProjectSettings()
 
 
 class UAS_PT_ShotManagerPref_General(Panel):

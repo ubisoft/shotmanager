@@ -21,39 +21,43 @@ class UAS_PT_VideoShotManager(Panel):
     bl_category = "UAS Video Shot Man"
 
     def draw_header(self, context):
+        props = context.scene.UAS_shot_manager_props
         layout = self.layout
         layout.emboss = "NONE"
+
         row = layout.row(align=True)
 
-        # About... panel
-        if context.window_manager.UAS_video_shot_manager_displayAbout:
-            # _emboss = True
-            row.alert = True
-        else:
-            #    _emboss = False
-            row.alert = False
+        # if context.window_manager.UAS_video_shot_manager_displayAbout:
+        #     row.alert = True
+        # else:
+        #     row.alert = False
 
-        if config.icons_col is not None:
-            icon = config.icons_col["General_Ubisoft_32"]
-            row.prop(
-                context.window_manager, "UAS_video_shot_manager_displayAbout", icon_value=icon.icon_id, icon_only=True
-            )
-        else:
-            row.prop(context.window_manager, "UAS_video_shot_manager_displayAbout", text="About")
+        icon = config.icons_col["General_Ubisoft_32"]
+        row.operator("uas_shot_manager.about", text="", icon_value=icon.icon_id)
 
-    # def draw_header_preset(self, context):
-    #     layout = self.layout
-    #     layout.emboss = "NONE"
-    #     row = layout.row(align=True)
+    def draw_header_preset(self, context):
+        layout = self.layout
+        layout.emboss = "NONE"
 
-    #     row.operator("uas_shot_manager.render_openexplorer", text="", icon_value=icon.icon_id).path = bpy.path.abspath(
-    #         bpy.data.filepath
-    #     )
+        row = layout.row(align=True)
 
-    #     #    row.operator("render.opengl", text="", icon='IMAGE_DATA')
-    #     #   row.operator("render.opengl", text="", icon='RENDER_ANIMATION').animation = True
-    #     #    row.operator("screen.screen_full_area", text ="", icon = 'FULLSCREEN_ENTER').use_hide_panels=False
-    #     row.separator(factor=3)
+        row.operator("utils.launchrender", text="", icon="RENDER_STILL").renderMode = "STILL"
+        row.operator("utils.launchrender", text="", icon="RENDER_ANIMATION").renderMode = "ANIMATION"
+
+        #    row.operator("render.opengl", text="", icon='IMAGE_DATA')
+        #   row.operator("render.opengl", text="", icon='RENDER_ANIMATION').animation = True
+        #    row.operator("screen.screen_full_area", text ="", icon = 'FULLSCREEN_ENTER').use_hide_panels=False
+
+        row.separator(factor=2)
+        icon = config.icons_col["General_Explorer_32"]
+        row.operator("uas_shot_manager.open_explorer", text="", icon_value=icon.icon_id).path = bpy.path.abspath(
+            bpy.data.filepath
+        )
+
+        row.separator(factor=2)
+        row.menu("UAS_MT_Video_Shot_Manager_prefs_mainmenu", icon="PREFERENCES", text="")
+
+        row.separator(factor=3)
 
     def draw(self, context):
         layout = self.layout
@@ -61,23 +65,6 @@ class UAS_PT_VideoShotManager(Panel):
         vsm_props = scene.UAS_vsm_props
 
         row = layout.row()
-
-        ################
-        # About... panel
-        if context.window_manager.UAS_video_shot_manager_displayAbout:
-            row = layout.row()
-            aboutStr = "About UAS Video Shot Manager..."
-            row.label(text=aboutStr)
-
-            row = layout.row()
-            box = row.box()
-            #    aboutStr = "Create a set of camera shots and edit them\nin the 3D View as you would do with video clips."
-            box.label(text="Create a set of camera shots and edit them")
-            box.label(text="in the 3D View as you would do with video clips.")
-            #    box = row.box()
-
-            row = layout.row()
-            row.separator(factor=1.4)
 
         ################
         # tracks
@@ -273,6 +260,15 @@ class UAS_MT_VideoShotManager_ToolsMenu(Menu):
         row = layout.row(align=True)
         row.operator_context = "INVOKE_DEFAULT"
         row.operator("uas_video_shot_manager.remove_multiple_tracks", text="Remove All Tracks").action = "ALL"
+
+        # import edits
+        layout.separator()
+        row = layout.row(align=True)
+        row.label(text="Import Edits:")
+
+        row = layout.row(align=True)
+        row.operator_context = "INVOKE_DEFAULT"
+        row.operator("uasotio.openfilebrowser", text="Import Edit From OTIO").importMode = "IMPORT_EDIT"
 
         layout.separator()
 

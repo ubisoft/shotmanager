@@ -23,7 +23,9 @@ def initGlobalVariables():
     if "UasDebug" in os.environ.keys():
         uasDebug = bool(int(os.environ["UasDebug"]))
     else:
-        uasDebug = False
+        uasDebug = True
+
+    uasDebug = False
 
     print("UAS debug: ", uasDebug)
 

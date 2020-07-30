@@ -1,3 +1,4 @@
+import bpy
 from bpy.types import Operator
 from bpy.props import BoolProperty, StringProperty, IntProperty
 
@@ -41,9 +42,26 @@ class UAS_LaunchRRSRender(Operator):
         print(" UAS_LaunchRRSRender")
 
         # publish_rrs.publishRRS( context.scene.UAS_shot_manager_props.renderRootPath )
-        publish_rrs.publishRRS(
-            self.prodFilePath, verbose=self.verbose, takeIndex=self.takeIndex, useCache=self.useCache, fileListOnly=True
-        )
+        props = context.scene.UAS_shot_manager_props
+
+        if props.rrs_useRenderRoot:
+            print("Publish at render root")
+            publish_rrs.publishRRS(
+                bpy.path.abspath(props.renderRootPath),
+                verbose=True,
+                takeIndex=self.takeIndex,
+                useCache=False,
+                fileListOnly=False,
+            )
+        else:
+            publish_rrs.publishRRS(
+                self.prodFilePath,
+                verbose=self.verbose,
+                takeIndex=self.takeIndex,
+                useCache=self.useCache,
+                fileListOnly=False,
+            )
+
         print("End of Publish")
 
         return {"FINISHED"}

@@ -2,8 +2,8 @@ import os
 import json
 
 import bpy
-from shotmanager.otio.export import exportOtio
-from shotmanager.rendering import rendering_operators
+from shotmanager.otio.exports import exportOtio
+from shotmanager.rendering import rendering
 
 
 def verbose_set(key: str, default: bool, override: str, verbose: bool = True) -> None:
@@ -79,6 +79,8 @@ def publishRRS(prodFilePath, takeIndex=-1, verbose=False, useCache=False, fileLi
     import os
     import errno
 
+    # print("*** publishRRS useCache: ", useCache)
+    # print("     prodFilePath: ", prodFilePath)
     # import tempfile
 
     scene = bpy.context.scene
@@ -136,7 +138,7 @@ def publishRRS(prodFilePath, takeIndex=-1, verbose=False, useCache=False, fileLi
     ################
 
     # shot videos are rendered in the directory of the take, not anymore in a directory with the shot name
-    renderedFilesDict = rendering_operators.launchRenderWithVSEComposite(
+    renderedFilesDict = rendering.launchRenderWithVSEComposite(
         "PROJECT", takeIndex=takeIndex, filePath=renderDir, fileListOnly=fileListOnly
     )
 

@@ -17,13 +17,23 @@ class UAS_PT_ShotManager_RRS_Debug(Panel):
         return not props.dontRefreshUI()
 
     def draw(self, context):
+        props = context.scene.UAS_shot_manager_props
+
         layout = self.layout
         row = layout.row(align=False)
-        row.alert = True
         row.label(text="RRS Specific (debug temp):")
+        row.prop(props, "rrs_useRenderRoot")
+        row = layout.row(align=False)
+        row.alert = True
         row.operator("uas_shot_manager.initialize_rrs_project", text="Debug - RRS Initialyze")
         row.operator("uas_shot_manager.lauch_rrs_render", text="Debug - RRS Publish").prodFilePath = (
             "c:\\tmpRezo\\" + context.scene.name + "\\"
         )
         row.alert = False
+
+        row = layout.row(align=False)
+        # row.enabled = False
+        row.prop(context.window_manager, "UAS_shot_manager_progressbar", text="Rendering...")
+
         layout.separator(factor=1)
+

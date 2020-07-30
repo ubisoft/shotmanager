@@ -1,7 +1,7 @@
 import bpy
 from bpy.app.handlers import persistent
 
-from bpy.props import BoolProperty, IntProperty
+from bpy.props import BoolProperty, IntProperty, FloatProperty
 
 from . import otio
 from . import rendering
@@ -9,8 +9,6 @@ from . import rendering
 from .config import config
 
 from .handlers import jump_to_shot
-
-# from .handlers import jump_to_shot__frame_change_post
 
 from .operators import takes
 from .operators import shots
@@ -48,10 +46,10 @@ from .debug import sm_debug
 
 bl_info = {
     "name": "UAS Shot Manager",
-    "author": "Romain Carriquiry Borchiari, Julien Blervaque (aka Werwack)",
+    "author": "Julien Blervaque (aka Werwack), Romain Carriquiry Borchiari",
     "description": "Manage a sequence of shots and cameras in the 3D View - Ubisoft Animation Studio",
     "blender": (2, 83, 1),
-    "version": (1, 3, 6),
+    "version": (1, 3, 9),
     "location": "View3D > UAS Shot Manager",
     "wiki_url": "https://gitlab-ncsa.ubisoft.org/animation-studio/blender/shotmanager-addon/-/wikis/home",
     "warning": "",
@@ -234,10 +232,7 @@ def register():
     # declaration of properties that will not be saved in the scene:
     ####################
 
-    # About button panel Quick Settings
-    bpy.types.WindowManager.UAS_shot_manager_displayAbout = BoolProperty(
-        name="About...", description="Display About Informations", default=False
-    )
+    # call in the code by context.window_manager.UAS_shot_manager_shots_play_mode etc
 
     bpy.types.WindowManager.UAS_shot_manager_shots_play_mode = BoolProperty(
         name="frame_handler",
@@ -251,6 +246,17 @@ def register():
         description="Display a timeline in the 3D Viewport with the shots in the specified order",
         default=False,
         update=timeline_valueChanged,
+    )
+
+    bpy.types.WindowManager.UAS_shot_manager_progressbar = FloatProperty(
+        name="progressbar",
+        description="Value of the progress bar",
+        subtype="PERCENTAGE",
+        min=0,
+        max=100,
+        precision=0,
+        default=0,
+        options=set(),
     )
 
 
@@ -291,7 +297,6 @@ def unregister():
     if jump_to_shot in bpy.app.handlers.frame_change_pre:
         bpy.app.handlers.frame_change_pre.remove(jump_to_shot)
 
-    del bpy.types.WindowManager.UAS_shot_manager_displayAbout
     del bpy.types.WindowManager.UAS_shot_manager_shots_play_mode
     del bpy.types.WindowManager.UAS_shot_manager_display_timeline
 

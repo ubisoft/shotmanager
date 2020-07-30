@@ -3,6 +3,8 @@ import os
 import bpy
 from bpy.types import Operator
 
+from ..utils.utils import getSceneVSE
+
 
 class UAS_ShotManager_GoToVideoShotManager(Operator):
     bl_idname = "uas_shot_manager.go_to_video_shot_manager"
@@ -12,30 +14,21 @@ class UAS_ShotManager_GoToVideoShotManager(Operator):
 
     def invoke(self, context, event):
 
-        vsm_sceneName = "VideoShotManger"
         vsm_scene = None
+        vsm_scene = getSceneVSE("VideoShotManger")
 
-        if vsm_sceneName in bpy.data.scenes:
-            vsm_scene = bpy.data.scenes[vsm_sceneName]
-        else:
-            vsm_scene = bpy.data.scenes.new(name=vsm_sceneName)
-            vsm_scene.render.fps = context.scene.render.fps
+        # startup_blend = os.path.join(
+        #     bpy.utils.resource_path("LOCAL"),
+        #     "scripts",
+        #     "startup",
+        #     "bl_app_templates_system",
+        #     "Video_Editing",
+        #     "startup.blend",
+        # )
 
-            if not vsm_scene.sequence_editor:
-                vsm_scene.sequence_editor_create()
-
-        startup_blend = os.path.join(
-            bpy.utils.resource_path("LOCAL"),
-            "scripts",
-            "startup",
-            "bl_app_templates_system",
-            "Video_Editing",
-            "startup.blend",
-        )
-
-        bpy.context.window.scene = vsm_scene
-        if "Video Editing" not in bpy.data.workspaces:
-            bpy.ops.workspace.append_activate(idname="Video Editing", filepath=startup_blend)
+        # bpy.context.window.scene = vsm_scene
+        # if "Video Editing" not in bpy.data.workspaces:
+        #     bpy.ops.workspace.append_activate(idname="Video Editing", filepath=startup_blend)
         bpy.context.window.workspace = bpy.data.workspaces["Video Editing"]
 
         return {"FINISHED"}

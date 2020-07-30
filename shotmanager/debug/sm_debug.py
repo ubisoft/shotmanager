@@ -50,9 +50,15 @@ class UAS_PT_Shot_Manager_Debug(Panel):
         row.alert = False
         row.operator("uasvse.openfilebrowser", text="", icon="FILEBROWSER", emboss=True).pathProp = "inputBGMediaPath"
         row.separator()
-
         row = layout.row(align=True)
         row.prop(context.window_manager.UAS_vse_render, "inputBGResolution")
+
+        row = layout.row(align=True)
+        row.prop(context.window_manager.UAS_vse_render, "inputAudioMediaPath")
+        row.operator(
+            "uasvse.openfilebrowser", text="", icon="FILEBROWSER", emboss=True
+        ).pathProp = "inputAudioMediaPath"
+        row.separator()
 
         layout.separator()
         row = layout.row()
@@ -62,7 +68,7 @@ class UAS_PT_Shot_Manager_Debug(Panel):
         # #    row.prop(scene.UAS_StampInfo_Settings, "offsetToCenterHNorm")
 
         #     row = layout.row()
-        row.operator("vse.compositevideoinvse", emboss=True)
+        row.operator("vse.compositevideoinvse", text="Composite in VSE", emboss=True)
         # row.prop ( context.window_manager, "UAS_shot_manager_shots_play_mode",
 
         #     row = layout.row()
@@ -77,6 +83,13 @@ class UAS_PT_Shot_Manager_Debug(Panel):
         #     row.operator("debug.createcomponodes", emboss=True)
         #     row.operator("debug.clearcomponodes", emboss=True)
 
+        layout.separator()
+        row = layout.row()
+        row.label(text="Import Sound from XML:")
+        # row.operator("uasvse.openfilebrowser", text="", icon="FILEBROWSER", emboss=True).pathProp = "inputBGMediaPath"
+        row.operator("uasshotmanager.importsoundotio")
+
+        layout.separator()
         row = layout.row()
         row.label(text="Scripts:")
         row = layout.row()
