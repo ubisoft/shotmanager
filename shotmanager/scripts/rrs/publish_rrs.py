@@ -204,7 +204,7 @@ def publishRRS(prodFilePath, takeIndex=-1, verbose=False, useCache=False, fileLi
         renderedFilesDict["edl_files"] = copiedFiles if len(copiedFiles) else []
 
     # if dump rendered file list
-    with open(prodFilePath + "renderedFiles.json", "w") as fp:
+    with open(prodFilePath + "/renderedFiles.json", "w") as fp:
         json.dump(renderedFilesDict, fp, indent=4)
 
     return renderedFilesDict

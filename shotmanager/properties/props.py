@@ -39,7 +39,7 @@ class UAS_ShotManager_Props(PropertyGroup):
 
     def initialize_shot_manager(self):
         print("\nInitializing Shot Manager...\n")
-        self.parentScene = bpy.context.scene
+        self.parentScene = self.getParentScene()
         self.dataVersion = bpy.context.window_manager.UAS_shot_manager_version
         self.createDefaultTake()
         self.createRenderSettings()
@@ -1855,12 +1855,13 @@ class UAS_ShotManager_Props(PropertyGroup):
 
         if self.use_project_settings and not settingsListOnly:
 
-            self.parentScene.render.fps = self.project_fps
-            self.parentScene.render.fps_base = 1.0
+            parentScn = self.getParentScene()
+            parentScn.render.fps = self.project_fps
+            parentScn.render.fps_base = 1.0
 
-            self.parentScene.render.resolution_x = self.project_resolution_x
-            self.parentScene.render.resolution_y = self.project_resolution_y
-            self.parentScene.render.resolution_percentage = 100.0
+            parentScn.render.resolution_x = self.project_resolution_x
+            parentScn.render.resolution_y = self.project_resolution_y
+            parentScn.render.resolution_percentage = 100.0
 
             self.handles = self.project_shot_handle_duration
 
@@ -1879,7 +1880,7 @@ class UAS_ShotManager_Props(PropertyGroup):
 
         if self.use_project_settings:
             # wkip to improve with project_shot_format!!!
-            shotPrefix = self.parentScene.name
+            shotPrefix = self.getParentScene().name
         else:
             shotPrefix = self.render_shot_prefix
 
