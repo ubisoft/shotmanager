@@ -2,14 +2,16 @@ import os
 
 import bpy
 from bpy.types import Operator
-from bpy.props import StringProperty, BoolProperty, IntProperty
+from bpy.props import StringProperty, BoolProperty, IntProperty, EnumProperty
 from bpy_extras.io_utils import ImportHelper
 
 import opentimelineio
 from .exports import exportOtio
 
 # from shotmanager.otio import imports
-from .imports import createShotsFromOtio, importSound
+from .imports import createShotsFromOtio, importSound, importOtioToVSE
+
+from ..utils import utils
 
 
 class UAS_ShotManager_Export_OTIO(Operator):
@@ -73,6 +75,10 @@ class UAS_ShotManager_OT_Create_Shots_From_OTIO(Operator):
     bl_description = "Open OTIO file to import a set of shots"
     bl_options = {"INTERNAL", "REGISTER", "UNDO"}
 
+    pathProp: StringProperty()
+    filepath: StringProperty(subtype="FILE_PATH")
+    filter_glob: StringProperty(default="*.xml;*.otio", options={"HIDDEN"})
+
     otioFile: StringProperty()
     importAtFrame: IntProperty(
         name="Import at Frame",
@@ -113,7 +119,7 @@ class UAS_ShotManager_OT_Create_Shots_From_OTIO(Operator):
         #    res = bpy.ops.uasotio.openfilebrowser("INVOKE_DEFAULT")
 
         # print("Res: ", res)
-
+        # return wm.invoke_props_dialog(self, width=500)
         return {"RUNNING_MODAL"}
 
     def draw(self, context):
@@ -172,6 +178,11 @@ class UAS_ShotManager_OT_Create_Shots_From_OTIO(Operator):
         #   import opentimelineio as otio
         # from random import uniform
         # from math import radians
+        print("Exec uasshotmanager.createshotsfromotio")
+        # filename, extension = os.path.splitext(self.filepath)
+        # print("ex Selected file:", self.filepath)
+        # print("ex File name:", filename)
+        # print("ex File extension:", extension)
 
         # importOtio(
         createShotsFromOtio(
@@ -184,6 +195,85 @@ class UAS_ShotManager_OT_Create_Shots_From_OTIO(Operator):
             mediaHaveHandles=self.mediaHaveHandles,
             mediaHandlesDuration=self.mediaHandlesDuration,
             importSoundInVSE=self.importSoundInVSE,
+        )
+
+        return {"FINISHED"}
+
+
+class UAS_ShotManager_OT_Import_Edit_From_OTIO(Operator):
+    bl_idname = "uasshotmanager.importeditfromotio"
+    bl_label = "Import Edit from OTIO File"
+    bl_description = "Open OTIO file to import its content"
+    bl_options = {"INTERNAL", "REGISTER", "UNDO"}
+
+    otioFile: StringProperty()
+    importAtFrame: IntProperty(
+        name="Import at Frame",
+        description="Make the imported edit start at the specified frame",
+        soft_min=0,
+        min=0,
+        default=25,
+    )
+
+    importSoundInVSE: BoolProperty(
+        name="Import sound In VSE",
+        description="Import sound clips directly into the VSE of the current scene",
+        default=True,
+    )
+
+    def invoke(self, context, event):
+        wm = context.window_manager
+        wm.invoke_props_dialog(self, width=500)
+        #    res = bpy.ops.uasotio.openfilebrowser("INVOKE_DEFAULT")
+        return {"RUNNING_MODAL"}
+
+    def draw(self, context):
+        layout = self.layout
+        row = layout.row(align=True)
+
+        box = row.box()
+        box.label(text="OTIO File")
+        box.prop(self, "otioFile", text="")
+
+        from pathlib import Path
+
+        if "" != self.otioFile and Path(self.otioFile).exists():
+            timeline = opentimelineio.adapters.read_from_file(self.otioFile)
+            time = timeline.duration()
+            rate = int(time.rate)
+
+            if rate != context.scene.render.fps:
+                box.alert = True
+                box.label(
+                    text="!!! Scene fps is " + str(context.scene.render.fps) + ", imported edit is " + str(rate) + "!!"
+                )
+                box.alert = False
+
+        box.separator(factor=0.2)
+        box.prop(self, "importAtFrame")
+
+        layout.label(text="Sound:")
+        row = layout.row(align=True)
+        box = row.box()
+        row = box.row()
+        row.prop(self, "importSoundInVSE")
+
+        layout.separator()
+
+    def execute(self, context):
+
+        # creation VSE si existe pas
+        vse = utils.getSceneVSE(context.scene.name)
+        # bpy.context.space_data.show_seconds = False
+        bpy.context.window.workspace = bpy.data.workspaces["Video Editing"]
+        # bpy.context.window.space_data.show_seconds = False
+
+        importOtioToVSE(
+            self.otioFile,
+            vse,
+            importAtFrame=self.importAtFrame,
+            importVideoTracks=True,
+            importAudioTracks=self.importSoundInVSE,
         )
 
         return {"FINISHED"}
@@ -243,6 +333,13 @@ class UAS_OTIO_OpenFileBrowser(Operator, ImportHelper):  # from bpy_extras.io_ut
     bl_label = "Open Otio File"
     bl_description = "Open OTIO file to import a set of shots"
 
+    importMode: EnumProperty(
+        name="Import Mode",
+        description="Import Mode",
+        items=(("CREATE_SHOTS", "Create Shots", ""), ("IMPORT_EDIT", "Import Edit", ""),),
+        default="CREATE_SHOTS",
+    )
+
     pathProp: StringProperty()
     filepath: StringProperty(subtype="FILE_PATH")
     filter_glob: StringProperty(default="*.xml;*.otio", options={"HIDDEN"})
@@ -256,6 +353,16 @@ class UAS_OTIO_OpenFileBrowser(Operator, ImportHelper):  # from bpy_extras.io_ut
         # https://docs.blender.org/api/current/bpy.types.WindowManager.html
         #    self.directory = bpy.context.scene.UAS_shot_manager_props.renderRootPath
         context.window_manager.fileselect_add(self)
+        # wm = bpy.context.window_manager
+        # operat = bpy.ops.uasshotmanager.createshotsfromotio
+        # operat = type(UAS_ShotManager_OT_Create_Shots_From_OTIO)
+        # operat = wm.operators["uasshotmanager.createshotsfromotio"]
+        # operator = [op for op in wm.operators if op.name == "uasshotmanager.createshotsfromotio"]
+
+        # if operator:
+        #     print(" -- found op:", operator[-1].otioFile)
+
+        #  context.window_manager.fileselect_add(operat)
 
         # return {"FINISHED"}
         return {"RUNNING_MODAL"}
@@ -263,11 +370,14 @@ class UAS_OTIO_OpenFileBrowser(Operator, ImportHelper):  # from bpy_extras.io_ut
     def execute(self, context):
         """Open OTIO file to import a set of shots"""
         filename, extension = os.path.splitext(self.filepath)
-        print("Selected file:", self.filepath)
-        print("File name:", filename)
-        print("File extension:", extension)
+        print("ex Selected file:", self.filepath)
+        print("ex File name:", filename)
+        print("ex File extension:", extension)
 
-        bpy.ops.uasshotmanager.createshotsfromotio("INVOKE_DEFAULT", otioFile=self.filepath)
+        if "CREATE_SHOTS" == self.importMode:
+            bpy.ops.uasshotmanager.createshotsfromotio("INVOKE_DEFAULT", otioFile=self.filepath)
+        elif "IMPORT_EDIT" == self.importMode:
+            bpy.ops.uasshotmanager.importeditfromotio("INVOKE_DEFAULT", otioFile=self.filepath)
 
         return {"FINISHED"}
 
@@ -275,6 +385,7 @@ class UAS_OTIO_OpenFileBrowser(Operator, ImportHelper):  # from bpy_extras.io_ut
 _classes = (
     UAS_ShotManager_Export_OTIO,
     UAS_ShotManager_OT_Create_Shots_From_OTIO,
+    UAS_ShotManager_OT_Import_Edit_From_OTIO,
     UAS_ShotManager_OT_ImportSound_OTIO,
     UAS_OTIO_OpenFileBrowser,
 )

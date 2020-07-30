@@ -10,8 +10,6 @@ from .config import config
 
 from .handlers import jump_to_shot
 
-# from .handlers import jump_to_shot__frame_change_post
-
 from .operators import takes
 from .operators import shots
 from .operators import shots_global_settings
@@ -51,7 +49,7 @@ bl_info = {
     "author": "Julien Blervaque (aka Werwack), Romain Carriquiry Borchiari",
     "description": "Manage a sequence of shots and cameras in the 3D View - Ubisoft Animation Studio",
     "blender": (2, 83, 1),
-    "version": (1, 3, 8),
+    "version": (1, 3, 9),
     "location": "View3D > UAS Shot Manager",
     "wiki_url": "https://gitlab-ncsa.ubisoft.org/animation-studio/blender/shotmanager-addon/-/wikis/home",
     "warning": "",
@@ -234,12 +232,7 @@ def register():
     # declaration of properties that will not be saved in the scene:
     ####################
 
-    # call in the code by context.window_manager.UAS_shot_manager_displayAbout etc
-
-    # About button panel Quick Settings
-    bpy.types.WindowManager.UAS_shot_manager_displayAbout = BoolProperty(
-        name="About...", description="Display About Informations", default=False
-    )
+    # call in the code by context.window_manager.UAS_shot_manager_shots_play_mode etc
 
     bpy.types.WindowManager.UAS_shot_manager_shots_play_mode = BoolProperty(
         name="frame_handler",
@@ -304,7 +297,6 @@ def unregister():
     if jump_to_shot in bpy.app.handlers.frame_change_pre:
         bpy.app.handlers.frame_change_pre.remove(jump_to_shot)
 
-    del bpy.types.WindowManager.UAS_shot_manager_displayAbout
     del bpy.types.WindowManager.UAS_shot_manager_shots_play_mode
     del bpy.types.WindowManager.UAS_shot_manager_display_timeline
 

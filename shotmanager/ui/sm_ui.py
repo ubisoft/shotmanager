@@ -31,13 +31,12 @@ class UAS_PT_ShotManager(Panel):
 
         row = layout.row(align=True)
 
-        if context.window_manager.UAS_shot_manager_displayAbout:
-            row.alert = True
-        else:
-            row.alert = False
+        # if context.window_manager.  warning on addons missing - to do:
+        #     row.alert = True
+        # else:
+        #     row.alert = False
 
         icon = config.icons_col["General_Ubisoft_32"]
-        # row.prop(context.window_manager, "UAS_shot_manager_displayAbout", icon_value=icon.icon_id, icon_only=True)
         row.operator("uas_shot_manager.about", text="", icon_value=icon.icon_id)
 
         if props.use_project_settings:
@@ -823,7 +822,7 @@ class UAS_MT_ShotManager_Shots_ToolsMenu(Menu):
 
         row = layout.row(align=True)
         row.operator_context = "INVOKE_DEFAULT"
-        row.operator("uasotio.openfilebrowser", text="Create Shots From OTIO")
+        row.operator("uasotio.openfilebrowser", text="Create Shots From OTIO").importMode = "CREATE_SHOTS"
 
         # wkip debug - to remove:
         if config.uasDebug:
