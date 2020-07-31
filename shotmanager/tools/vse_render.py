@@ -184,7 +184,7 @@ class UAS_Vse_Render(PropertyGroup):
 
     def getMediaType(self, filePath):
         """ Return the type of media according to the extension of the provided file path
-            Eg: 'IMAGE', 'SOUND', 'MOVIE'
+            Rturned types: 'MOVIE', 'IMAGES_SEQUENCE', 'IMAGE', 'SOUND', 'UNKNOWN'
         """
         mediaType = "UNKNOWN"
 
@@ -196,13 +196,25 @@ class UAS_Vse_Render(PropertyGroup):
                 mediaType = "IMAGES_SEQUENCE"
             else:
                 mediaType = "IMAGE"
-        elif mediaExt in (".mp3", ".wav"):
+        elif mediaExt in (".mp3", ".wav", ".aif", ".aiff"):
             mediaType = "SOUND"
         return mediaType
 
     # a clip is called a sequence in VSE
     def createNewClip(
-        self, scene, mediaPath, channelInd, atFrame, offsetStart=0, offsetEnd=0, cameraScene=None, cameraObject=None
+        self,
+        scene,
+        mediaPath,
+        channelInd,
+        atFrame,
+        offsetStart=0,
+        offsetEnd=0,
+        trimmedClipDuration=0,
+        cameraScene=None,
+        cameraObject=None,
+        clipName="",
+        importVideo=True,
+        importSound=True,
     ):
         """
             A strip is placed at a specified time in the edit by putting its media start at the place where
@@ -212,7 +224,9 @@ class UAS_Vse_Render(PropertyGroup):
             Both offsetStart and offsetEnd are relative to the start time of the media.
         """
 
-        def _new_camera(scene, name, channelInd, atFrame, offsetStart, offsetEnd, cameraScene, cameraObject):
+        def _new_camera_sequence(scene, name, channelInd, atFrame, offsetStart, offsetEnd, cameraScene, cameraObject):
+            """ Create the camera sequence
+            """
             # !!! When the 3D scence range is not starting at zero the camera strip is clipped at the begining...
             OriRangeStart = cameraScene.frame_start
             OriRangeEnd = cameraScene.frame_end
@@ -229,7 +243,9 @@ class UAS_Vse_Render(PropertyGroup):
 
             return camSeq
 
-        def _new_images_sequence(scene, seqName, images_path, channelInd, atFrame):
+        def _new_images_sequence(scene, clipName, images_path, channelInd, atFrame):
+            """ Find the name template for the specified images sequence in order to create it
+            """
             import re
             from pathlib import Path
 
@@ -281,7 +297,7 @@ class UAS_Vse_Render(PropertyGroup):
                 frame_keys = list(frames.keys())  # As of python 3.7 should be in the insertion order.
                 if frames:
                     seq = scene.sequence_editor.sequences.new_image(
-                        seqName, str(frames[frame_keys[0]]), channelInd, atFrame
+                        clipName, str(frames[frame_keys[0]]), channelInd, atFrame
                     )
 
                     for i in range(min_frame + 1, max_frame + 1):
@@ -292,36 +308,62 @@ class UAS_Vse_Render(PropertyGroup):
 
             return seq
 
+        # Clip creation
+        ##########
+
         newClip = None
         mediaType = self.getMediaType(mediaPath)
-        print("media Type: ", mediaType)
-        print("media Path: ", mediaPath)
-        if "MOVIE" == mediaType:
-            newClip = scene.sequence_editor.sequences.new_movie("myVideo", mediaPath, channelInd, atFrame)
-            newClip.frame_offset_start = offsetStart
-            newClip.frame_offset_end = offsetEnd
-            newClip = scene.sequence_editor.sequences.new_sound("myVideoSound", mediaPath, channelInd + 1, atFrame)
-            newClip.frame_offset_start = offsetStart
-            newClip.frame_offset_end = offsetEnd
-        if "IMAGE" == mediaType:
-            newClip = scene.sequence_editor.sequences.new_image("myImage", mediaPath, channelInd, atFrame)
-            newClip.frame_offset_start = offsetStart
-            newClip.frame_offset_end = offsetEnd
-        if "IMAGES_SEQUENCE" == mediaType:
-            newClip = _new_images_sequence(scene, "mySequence", mediaPath, channelInd, atFrame)
-            # newClip = scene.sequence_editor.sequences.new_image("myVideo", mediaPath, channelInd, atFrame)
-            newClip.frame_offset_start = offsetStart
-            newClip.frame_offset_end = offsetEnd
-        if "SOUND" == mediaType:
-            newClip = scene.sequence_editor.sequences.new_sound("mySound", mediaPath, channelInd, atFrame)
-            if 0 != offsetEnd:
-                newClip.frame_final_duration = offsetEnd
         if "UNKNOWN" == mediaType:
             if cameraScene is not None and cameraObject is not None:
                 mediaType = "CAMERA"
-                newClip = _new_camera(
-                    scene, "myCamera", channelInd, atFrame, offsetStart, offsetEnd, cameraScene, cameraObject
+
+        print(f"  Media Type: {mediaType}, path: {mediaPath}")
+
+        if "MOVIE" == mediaType:
+            newClipName = clipName if "" != clipName else "myMovie"
+            if importVideo:
+                newClip = scene.sequence_editor.sequences.new_movie(
+                    newClipName + "Video", mediaPath, channelInd, atFrame
                 )
+                newClip.frame_offset_start = offsetStart
+                newClip.frame_offset_end = offsetEnd
+            if importSound:
+                newClip = scene.sequence_editor.sequences.new_sound(
+                    newClipName + "Sound", mediaPath, channelInd + 1, atFrame
+                )
+                newClip.frame_offset_start = offsetStart
+                newClip.frame_offset_end = offsetEnd
+
+        elif "IMAGE" == mediaType:
+            newClipName = clipName if "" != clipName else "myImage"
+            newClip = scene.sequence_editor.sequences.new_image(newClipName, mediaPath, channelInd, atFrame)
+            newClip.frame_offset_start = offsetStart
+            newClip.frame_offset_end = offsetEnd
+
+        elif "IMAGES_SEQUENCE" == mediaType:
+            newClipName = clipName if "" != clipName else "myImagesSequence"
+            newClip = _new_images_sequence(scene, newClipName, mediaPath, channelInd, atFrame)
+            # newClip = scene.sequence_editor.sequences.new_image("myVideo", mediaPath, channelInd, atFrame)
+            newClip.frame_offset_start = offsetStart
+            newClip.frame_offset_end = offsetEnd
+
+        elif "SOUND" == mediaType:
+            newClipName = clipName if "" != clipName else "mySound"
+            newClip = scene.sequence_editor.sequences.new_sound(newClipName, mediaPath, channelInd, atFrame)
+            # if 0 != offsetEnd:
+            newClip.frame_offset_start = offsetStart
+            # newClip.frame_offset_end = offsetEnd
+            newClip.frame_final_duration = trimmedClipDuration
+
+        elif "CAMERA" == mediaType:
+            newClipName = clipName if "" != clipName else "myCamera"
+            newClip = _new_camera_sequence(
+                scene, newClipName, channelInd, atFrame, offsetStart, offsetEnd, cameraScene, cameraObject
+            )
+
+        elif "UNKNOWN" == mediaType:
+            print("\n *** UNKNOWN media sent to Shot Manager - createNewClip(): ", mediaPath)
+            pass
 
         # if newClip is not None and mediaType != "SOUNDS":
         #     newClip.frame_offset_start = offsetStart

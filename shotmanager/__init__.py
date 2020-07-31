@@ -1,3 +1,7 @@
+import logging
+import os
+from pathlib import Path
+
 import bpy
 from bpy.app.handlers import persistent
 
@@ -32,9 +36,10 @@ from .tools import vse_render
 
 from .ui import sm_ui
 
-from .utils import utils_render
 from .utils import utils
+from .utils import utils_render
 from .utils import utils_handlers
+from .utils import utils_operators
 
 from . import videoshotmanager
 
@@ -55,6 +60,61 @@ bl_info = {
     "warning": "",
     "category": "UAS",
 }
+
+__version__ = f"v{bl_info['version'][0]}.{bl_info['version'][1]}.{bl_info['version'][2]}"
+
+
+###########
+# Logging
+###########
+
+_logger = logging.getLogger(__name__)
+_logger.propagate = False
+MODULE_PATH = Path(__file__).parent.parent
+logging.basicConfig(level=logging.DEBUG)
+_logger.setLevel(logging.INFO)  # CRITICAL ERROR WARNING INFO DEBUG NOTSET
+
+
+class Formatter(logging.Formatter):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+    def format(self, record: logging.LogRecord):
+        """
+        The role of this custom formatter is:
+        - append filepath and lineno to logging format but shorten path to files, to make logs more clear
+        - to append "./" at the begining to permit going to the line quickly with VS Code CTRL+click from terminal
+        """
+        s = super().format(record)
+        pathname = Path(record.pathname).relative_to(MODULE_PATH)
+        s += f" [{os.curdir}{os.sep}{pathname}:{record.lineno}]"
+        return s
+
+
+# def get_logs_directory():
+#     def _get_logs_directory():
+#         import tempfile
+
+#         if "MIXER_USER_LOGS_DIR" in os.environ:
+#             username = os.getlogin()
+#             base_shared_path = Path(os.environ["MIXER_USER_LOGS_DIR"])
+#             if os.path.exists(base_shared_path):
+#                 return os.path.join(os.fspath(base_shared_path), username)
+#             logger.error(
+#                 f"MIXER_USER_LOGS_DIR env var set to {base_shared_path}, but directory does not exists. Falling back to default location."
+#             )
+#         return os.path.join(os.fspath(tempfile.gettempdir()), "mixer")
+
+#     dir = _get_logs_directory()
+#     if not os.path.exists(dir):
+#         os.makedirs(dir)
+#     return dir
+
+
+# def get_log_file():
+#     from mixer.share_data import share_data
+
+#     return os.path.join(get_logs_directory(), f"mixer_logs_{share_data.run_id}.log")
 
 
 ###########
@@ -146,6 +206,21 @@ def register():
     verbose = config.uasDebug
 
     ###################
+    # logging
+    ###################
+
+    if len(_logger.handlers) == 0:
+        _logger.setLevel(logging.WARNING)
+        formatter = Formatter("{asctime} {levelname[0]} {name:<36}  - {message:<80}", style="{")
+        handler = logging.StreamHandler()
+        handler.setFormatter(formatter)
+        _logger.addHandler(handler)
+
+        # handler = logging.FileHandler(get_log_file())
+        # handler.setFormatter(formatter)
+        # _logger.addHandler(handler)
+
+    ###################
     # update data
     ###################
 
@@ -199,6 +274,7 @@ def register():
     # for cls in classes:
     #     bpy.utils.register_class(cls)
 
+    utils_operators.register()
     # operators
     takes.register()
     shots.register()
@@ -213,7 +289,6 @@ def register():
     sm_ui.register()
     rrs.register()
     retimer_ui.register()
-    utils.register()
 
     rendering.register()
     otio.register()
@@ -276,7 +351,6 @@ def unregister():
     otio.unregister()
     rendering.unregister()
 
-    utils.unregister()
     retimer_ui.unregister()
     rrs.unregister()
     sm_ui.unregister()
@@ -290,6 +364,7 @@ def unregister():
     shots_global_settings.unregister()
     shots.unregister()
     takes.unregister()
+    utils_operators.unregister()
 
     # for cls in reversed(classes):
     #     bpy.utils.unregister_class(cls)

@@ -1,12 +1,15 @@
+import logging
+
+from pathlib import Path
+from urllib.parse import unquote_plus, urlparse
+import re
+
 import bpy
 import opentimelineio
 
 from ..utils import utils
 
-from pathlib import Path
-from urllib.parse import unquote_plus, urlparse
-import re
-import logging
+_logger = logging.getLogger(__name__)
 
 
 def createShotsFromOtio(
@@ -164,14 +167,45 @@ def importOtioToVSE(otioFile, vse, importAtFrame=0, importVideoTracks=True, impo
 
             if media_path.exists():
                 media_path = str(media_path)
+
+                # local clip infos:
+
+                _logger.info("Logger info")
+                _logger.warning(f"logger warning")
+                _logger.error("logger error")
+
                 start = opentimelineio.opentime.to_frames(clip.range_in_parent().start_time) + importAtFrame
                 end = opentimelineio.opentime.to_frames(clip.range_in_parent().end_time_inclusive()) + importAtFrame
                 duration = opentimelineio.opentime.to_frames(clip.available_range().end_time_inclusive())
-                durdur = opentimelineio.opentime.to_frames(clip.duration())
-                print(f"   start: {start}, end: {end}, duration: {duration}, durdur: {durdur}")
+
+                # local clip infos:
+                otio_clipSourceRange = clip.source_range
+                # clip cut in in local clip time ref (= relatively to clip start)
+                otio_clipLocalCutStart = opentimelineio.opentime.to_frames(clip.source_range.start_time)
+                # clip cut out in local clip time ref (= relatively to clip start)
+                otio_clipLocalCutEnd = None  # opentimelineio.opentime.to_frames(clip.source_range.end_time())
+                otio_clipLocalCutEndInclus = opentimelineio.opentime.to_frames(clip.source_range.end_time_inclusive())
+                print(
+                    f"\n   otio_clipSourceRange: {otio_clipSourceRange}, otio_clipLocalCutStart: {otio_clipLocalCutStart}, otio_clipLocalCutEnd: {otio_clipLocalCutEnd}, otio_clipLocalCutEndInclus: {otio_clipLocalCutEndInclus}"
+                )
+
+                trucSourceRangeEnd = opentimelineio.opentime.to_frames(clip.source_range.end_time_inclusive())
+                trimmedClipDuration = opentimelineio.opentime.to_frames(clip.duration())
+                print(
+                    f"   start: {start}, end: {end}, duration: {duration}, trimmedClipDuration: {trimmedClipDuration}, otio_clipSourceRange: {otio_clipSourceRange}, trucSourceRangeEnd: {trucSourceRangeEnd}"
+                )
+                print("otio_clipSourceRange[0][0]: ", otio_clipSourceRange.start_time)
+                print(
+                    "otio_clipSourceRange[0][0]: ", opentimelineio.opentime.to_frames(otio_clipSourceRange.start_time)
+                )
                 # print(f"   range_from_start_end_time: {clip.range_in_parent().range_from_start_end_time()}")
                 bpy.context.window_manager.UAS_vse_render.createNewClip(
-                    bpy.context.scene, media_path, trackInd, start, offsetStart=start, offsetEnd=durdur,
+                    bpy.context.scene,
+                    media_path,
+                    trackInd,
+                    start - otio_clipLocalCutStart,
+                    offsetStart=otio_clipLocalCutStart,
+                    trimmedClipDuration=trimmedClipDuration,
                 )
 
         pass
