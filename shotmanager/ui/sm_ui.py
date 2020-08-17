@@ -570,9 +570,11 @@ class UAS_PT_ShotManager_ShotProperties(Panel):
             shot = props.getShot(props.selected_shot_index)
 
         layout = self.layout
+        layout.use_property_decorate = False
 
         if shot is not None:
             box = layout.box()
+            box.use_property_decorate = False
 
             # name and color
             row = box.row()
@@ -633,7 +635,7 @@ class UAS_PT_ShotManager_ShotProperties(Panel):
                 grid_flow.alert = False
             grid_flow.scale_x = 1.0
             grid_flow.prop(props, "display_lens_in_shotlist", text="")
-            row.separator(factor=0.5)  # prevents stange look when panel is narrow
+            row.separator(factor=0.5)  # prevents strange look when panel is narrow
 
             box.separator(factor=0.5)
 
@@ -654,6 +656,7 @@ class UAS_PT_ShotManager_ShotProperties(Panel):
 
             if props.display_camerabgtools_in_properties and shot.camera is not None:
                 box = layout.box()
+                box.use_property_decorate = False
                 row = box.row()
                 row.separator(factor=1.0)
                 c = row.column()
@@ -701,6 +704,7 @@ class UAS_PT_ShotManager_ShotsGlobalSettings(Panel):
         props = scene.UAS_shot_manager_props
 
         layout = self.layout
+        layout.prop(props.shotsGlobalSettings, "alsoApplyToDisabledShots")
 
         # Camera background images
         ######################
@@ -708,16 +712,26 @@ class UAS_PT_ShotManager_ShotsGlobalSettings(Panel):
         if props.display_camerabgtools_in_properties:
 
             layout.label(text="Camera Background Images:")
+
             box = layout.box()
+            box.use_property_decorate = False
 
             row = box.row()
             row.separator(factor=1.0)
             c = row.column()
-            grid_flow = c.grid_flow(align=False, columns=4, even_columns=False)
+            grid_flow = c.grid_flow(align=False, columns=3, even_columns=False)
             grid_flow.operator("uas_shots_settings.use_background", text="Turn On").useBackground = True
             grid_flow.operator("uas_shots_settings.use_background", text="Turn Off").useBackground = False
             grid_flow.prop(props.shotsGlobalSettings, "backgroundAlpha", text="Alpha")
+            row.separator(factor=0.5)  # prevents stange look when panel is narrow
+
+            row = box.row()
+            row.separator(factor=1.0)
+            c = row.column()
+            grid_flow = c.grid_flow(align=False, columns=3, even_columns=False)
             grid_flow.prop(props.shotsGlobalSettings, "proxyRenderSize")
+
+            grid_flow.operator("uas_shot_manager.remove_bg_images", text="", icon="PANEL_CLOSE", emboss=True)
 
             row.separator(factor=0.5)  # prevents stange look when panel is narrow
 
@@ -759,26 +773,6 @@ class UAS_ShotManager_OpenFileBrowserForCamBG(Operator):  # from bpy_extras.io_u
         shot.bgImages_linkToShotStart = shot.bgImages_linkToShotStart
         shot.bgImages_offset = shot.bgImages_offset
 
-        return {"FINISHED"}
-
-
-class UAS_ShotManager_RemoveBGImages(Operator):
-    bl_idname = "uas_shot_manager.remove_bg_images"
-    bl_label = "Remove BG Images"
-    bl_description = "Remove the camera background images"
-    bl_options = {"INTERNAL", "REGISTER", "UNDO"}
-
-    shotIndex: IntProperty()
-
-    def invoke(self, context, event):
-        props = context.scene.UAS_shot_manager_props
-        shot = props.getShot(self.shotIndex)
-        if shot.camera is not None and len(shot.camera.data.background_images):
-            # if shot.camera.data.background_images[0].clip is not None:
-            shot.camera.data.show_background_images = False
-            # shot.camera.data.background_images[0].clip = None
-            shot.camera.data.background_images.clear()
-            # shot.camera.data.background_images[0].clip.filepath = ""
         return {"FINISHED"}
 
 
@@ -860,12 +854,12 @@ class UAS_MT_ShotManager_Shots_ToolsMenu(Menu):
 
         row = layout.row(align=True)
         row.operator_context = "INVOKE_DEFAULT"
-        row.operator("uasotio.openfilebrowser", text="Create Shots From OTIO").importMode = "CREATE_SHOTS"
+        row.operator("uasotio.openfilebrowser", text="Create Shots From EDL").importMode = "CREATE_SHOTS"
 
         # wkip debug - to remove:
         if config.uasDebug:
             row = layout.row(align=True)
-            row.operator("uasshotmanager.createshotsfromotio", text="Create Shots From OTIO - Debug")
+            row.operator("uasshotmanager.createshotsfromotio", text="Create Shots From EDL - Debug")
 
         # tools for precut ###
         layout.separator()
@@ -942,7 +936,6 @@ classes = (
     UAS_ShotManager_DrawCameras_UI,
     #  UAS_Retimer,
     UAS_ShotManager_OpenFileBrowserForCamBG,
-    UAS_ShotManager_RemoveBGImages,
 )
 
 

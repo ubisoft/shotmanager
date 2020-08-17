@@ -437,6 +437,43 @@ class UAS_ShotManager_Actions(Operator):
 
 
 ########################
+# for shot properties
+########################
+
+
+class UAS_ShotManager_RemoveBGImages(Operator):
+    bl_idname = "uas_shot_manager.remove_bg_images"
+    bl_label = "Remove BG Images"
+    bl_description = "Remove the camera background images of the specified shots"
+    bl_options = {"INTERNAL", "REGISTER", "UNDO"}
+
+    shotIndex: IntProperty(default=-1)
+
+    def invoke(self, context, event):
+        props = context.scene.UAS_shot_manager_props
+        shotList = []
+
+        print("Remove BG images: shotIndex: ", self.shotIndex)
+        if 0 > self.shotIndex:
+            take = context.scene.UAS_shot_manager_props.getCurrentTake()
+            shotList = take.getShotList(ignoreDisabled=props.shotsGlobalSettings.alsoApplyToDisabledShots)
+        else:
+            shot = props.getShot(self.shotIndex)
+            if shot is not None:
+                shotList.append(shot)
+
+        for shot in shotList:
+            #    print("   shot name: ", shot.name)
+            if shot.camera is not None and len(shot.camera.data.background_images):
+                # if shot.camera.data.background_images[0].clip is not None:
+                shot.camera.data.show_background_images = False
+                # shot.camera.data.background_images[0].clip = None
+                shot.camera.data.background_images.clear()
+                # shot.camera.data.background_images[0].clip.filepath = ""
+        return {"FINISHED"}
+
+
+########################
 # for shot actions
 ########################
 
@@ -843,6 +880,8 @@ _classes = (
     UAS_ShotManager_ShotDuplicate,
     UAS_ShotManager_RemoveShot,
     UAS_ShotManager_Actions,
+    # for shot properties:
+    UAS_ShotManager_RemoveBGImages,
     # for shot actions:
     UAS_ShotManager_ShotRemoveMultiple,
     UAS_ShotManager_Shots_SelectCamera,
