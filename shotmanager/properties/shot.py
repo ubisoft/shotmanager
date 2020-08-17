@@ -194,7 +194,7 @@ class UAS_ShotManager_Shot(PropertyGroup):
         self.selectShotInUI()
 
     enabled: BoolProperty(
-        name="Enabled",
+        name="Enable / Disable Shots",
         description="Use - or not - the shot in the edit",
         update=_update_enabled,
         default=True,
@@ -253,6 +253,8 @@ class UAS_ShotManager_Shot(PropertyGroup):
         self.selectShotInUI()
 
     color: FloatVectorProperty(
+        name="Set the Camera (or Shot) Color",
+        description="Color of the camera used by the shot or, according to\nthe settings, color of the shot",
         subtype="COLOR",
         min=0.0,
         max=1.0,

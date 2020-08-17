@@ -321,6 +321,8 @@ class UAS_UL_ShotManager_Items(bpy.types.UIList):
         cam = "Cam" if current_shot_index == index else ""
         currentFrame = context.scene.frame_current
 
+        # draw the Duration components
+
         if item.enabled:
             icon = config.icons_col[f"ShotMan_Enabled{cam}"]
             if item.start <= context.scene.frame_current <= item.end:
@@ -358,7 +360,7 @@ class UAS_UL_ShotManager_Items(bpy.types.UIList):
 
         row = layout.row(align=True)
         row.scale_x = 2.0
-        grid_flow = row.grid_flow(align=True, columns=6, even_columns=False)
+        grid_flow = row.grid_flow(align=True, columns=7, even_columns=False)
         grid_flow.use_property_split = False
         button_x_factor = 0.6
 
@@ -398,30 +400,34 @@ class UAS_UL_ShotManager_Items(bpy.types.UIList):
         # duration
         ###########
 
-        grid_flow.scale_x = button_x_factor - 0.1
-        grid_flow.prop(
-            item,
-            "durationLocked",
-            text="",
-            icon="DECORATE_LOCKED" if item.durationLocked else "DECORATE_UNLOCKED",
-            toggle=True,
-        )
+        # display_duration_after_time_range
+        if not props.display_duration_after_time_range:
+            grid_flow.scale_x = button_x_factor - 0.1
+            grid_flow.prop(
+                item,
+                "durationLocked",
+                text="",
+                icon="DECORATE_LOCKED" if item.durationLocked else "DECORATE_UNLOCKED",
+                toggle=True,
+            )
 
-        if (
-            item.start < currentFrame
-            and currentFrame < item.end
-            or (item.start == item.end and currentFrame == item.start)
-        ):
-            if props.highlight_all_shot_frames or current_shot_index == index:
-                grid_flow.alert = True
+            if (
+                item.start < currentFrame
+                and currentFrame < item.end
+                or (item.start == item.end and currentFrame == item.start)
+            ):
+                if props.highlight_all_shot_frames or current_shot_index == index:
+                    grid_flow.alert = True
 
-        if props.display_duration_in_shotlist:
-            grid_flow.scale_x = 0.3
-            grid_flow.prop(item, "duration_fp", text="")
+            if props.display_duration_in_shotlist:
+                grid_flow.scale_x = 0.3
+                grid_flow.prop(item, "duration_fp", text="")
+            else:
+                grid_flow.scale_x = 0.05
+                grid_flow.operator("uas_shot_manager.shot_duration", text="").index = index
+            grid_flow.alert = False
         else:
-            grid_flow.scale_x = 0.05
-            grid_flow.operator("uas_shot_manager.shot_duration", text="").index = index
-        grid_flow.alert = False
+            grid_flow.scale_x = 1.5
 
         # end
         ###########
@@ -452,6 +458,38 @@ class UAS_UL_ShotManager_Items(bpy.types.UIList):
                 grid_flow.operator(
                     "uas_shot_manager.getsetcurrentframe", text="", icon="TRIA_DOWN_BAR"
                 ).shotSource = f"[{index},1]"
+
+        if props.display_duration_after_time_range:
+            row = layout.row(align=True)
+            grid_flow = row.grid_flow(align=True, columns=2, even_columns=False)
+            grid_flow.use_property_split = False
+            # grid_flow.scale_x = button_x_factor - 0.1
+            if props.display_duration_in_shotlist:
+                grid_flow.scale_x = 1.5
+            grid_flow.prop(
+                item,
+                "durationLocked",
+                text="",
+                icon="DECORATE_LOCKED" if item.durationLocked else "DECORATE_UNLOCKED",
+                toggle=True,
+            )
+
+            if (
+                item.start < currentFrame
+                and currentFrame < item.end
+                or (item.start == item.end and currentFrame == item.start)
+            ):
+                if props.highlight_all_shot_frames or current_shot_index == index:
+                    grid_flow.alert = True
+
+            if props.display_duration_in_shotlist:
+                grid_flow.scale_x = 0.6
+                grid_flow.prop(item, "duration_fp", text="")
+            else:
+                pass
+                # grid_flow.scale_x = 0.1
+                # grid_flow.operator("uas_shot_manager.shot_duration", text="").index = index
+            grid_flow.alert = False
 
         # camera
         ###########
@@ -872,7 +910,6 @@ class UAS_MT_ShotManager_Shots_ToolsMenu(Menu):
         # else: row.enabled = True
         # row.operator_context = 'INVOKE_DEFAULT'
         # row.operator("cameramanager.camera_tools",text='Clear All').tool='CLEARALL'
-        ## ]Clear menu entries
 
 
 #########

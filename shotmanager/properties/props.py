@@ -200,6 +200,9 @@ class UAS_ShotManager_Props(PropertyGroup):
     display_lens_in_shotlist: BoolProperty(name="Display Camera Lens in Shot List", default=False, options=set())
 
     display_duration_in_shotlist: BoolProperty(name="Display Shot Duration in Shot List", default=True, options=set())
+    display_duration_after_time_range: BoolProperty(
+        name="Display Shot Duration After Time Range", default=True, options=set()
+    )
 
     display_color_in_shotlist: BoolProperty(name="Display Color in Shot List", default=True, options=set())
 
@@ -302,7 +305,7 @@ class UAS_ShotManager_Props(PropertyGroup):
 
     current_shot_index: IntProperty(default=-1)
 
-    selected_shot_index: IntProperty(default=-1)
+    selected_shot_index: IntProperty(name="Shot Name", default=-1)
 
     current_shot_properties_mode: bpy.props.EnumProperty(
         name="Display Shot Properties Mode",
@@ -958,7 +961,6 @@ class UAS_ShotManager_Props(PropertyGroup):
                     self.setCurrentShotByIndex(selectedShotInd - 1)
 
                 shots.remove(selectedShotInd)
-                #  self.selected_shot_index = selectedShotInd - 1
                 self.setSelectedShotByIndex(selectedShotInd - 1)
             else:
                 if currentShotInd >= selectedShotInd:
