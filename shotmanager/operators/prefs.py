@@ -306,14 +306,34 @@ class UAS_ShotManager_Shots_Prefs(Operator):
         layout.separator(factor=1)
         layout.label(text="Additional Properties and Tools by Themes:")
         box = layout.box()
+
+        # row = box.column_flow(columns=2)
+        # c = row.column()
         row = box.row()
+        # row.separator(factor=2)
+        # subrow.separator(factor=25)
+        subrow = row.row()
+        subrow.scale_x = 0.8
+        subrow.label(text=" ")
 
+        subrow = row.row()
+        subrow.scale_x = 1.5
+        subrow.prop(props, "display_notes_in_properties", text="", icon="TEXT")
+
+        row.label(text="Shot Notes")
         # row.use_property_split = True
-        row.alignment = "CENTER"
-        row.label(text="Camera Backgrounds")
-        row.scale_x = 1.5
-        row.prop(props, "display_camerabgtools_in_properties", text="", icon="VIEW_CAMERA")
 
+        row = box.row()
+        # row.separator(factor=2)
+        subrow = row.row()
+        subrow.scale_x = 0.8
+        subrow.label(text=" ")
+
+        subrow = row.row()
+        subrow.scale_x = 1.5
+        subrow.prop(props, "display_camerabgtools_in_properties", text="", icon="VIEW_CAMERA")
+
+        row.label(text="Camera Backgrounds")
         # col.prop(
         #     props, "display_selectbut_in_shotlist", text="Display Camera Select Button",
         # )

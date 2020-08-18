@@ -96,7 +96,6 @@ class UAS_ShotManager_Shot(PropertyGroup):
         self["start"] = value
         if self.durationLocked:
             self["end"] = self.start + duration - 1
-            print("here")
         else:
             if self.start > self.end:
                 self["end"] = self.start
@@ -343,3 +342,14 @@ class UAS_ShotManager_Shot(PropertyGroup):
         currentTakeInd = self.parentScene.UAS_shot_manager_props.getCurrentTakeIndex()
         if currentTakeInd == self.parentTakeIndex:
             self.parentScene.UAS_shot_manager_props.setSelectedShot(self)
+
+    #############
+    # notes #####
+    #############
+
+    note01: StringProperty(name="Note 1", description="")
+    note02: StringProperty(name="Note 2", description="")
+    note03: StringProperty(name="Note 3", description="")
+
+    def hasNotes(self):
+        return "" != self.note01 or "" != self.note02 or "" != self.note03

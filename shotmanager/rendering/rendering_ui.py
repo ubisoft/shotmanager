@@ -86,7 +86,7 @@ class UAS_PT_ShotManagerRenderPanel(Panel):
         row = layout.row()
         row = layout.row(align=True)
         row.prop(props, "displayOtioProps", text="", icon="SEQ_STRIP_DUPLICATE")
-        row.operator("uas_shot_manager.render", text="Render Otio File").renderMode = "OTIO"
+        row.operator("uas_shot_manager.render", text="Render EDL File").renderMode = "OTIO"
 
         layout.separator(factor=1)
 
@@ -132,10 +132,10 @@ class UAS_PT_ShotManagerRenderPanel(Panel):
 
             row.prop(props.renderSettingsAll, "renderOtioFile")
 
-        # OTIO ###
+        # EDL ###
         elif props.displayOtioProps:
             row = layout.row()
-            row.label(text="Render OTIO File:")
+            row.label(text="Render EDL File:")
 
             box = layout.box()
             row = box.row()

@@ -1,3 +1,7 @@
+import os
+from pathlib import Path
+import subprocess
+
 import bpy
 from bpy.types import Operator
 from bpy.props import StringProperty

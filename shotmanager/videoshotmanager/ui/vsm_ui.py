@@ -268,7 +268,7 @@ class UAS_MT_VideoShotManager_ToolsMenu(Menu):
 
         row = layout.row(align=True)
         row.operator_context = "INVOKE_DEFAULT"
-        row.operator("uasotio.openfilebrowser", text="Import Edit From OTIO").importMode = "IMPORT_EDIT"
+        row.operator("uasotio.openfilebrowser", text="Import Edit From EDL").importMode = "IMPORT_EDIT"
 
         layout.separator()
 

@@ -60,7 +60,7 @@ class UAS_PT_ShotManager_Render(Operator):
     renderMode: EnumProperty(
         name="Display Shot Properties Mode",
         description="Update the content of the Shot Properties panel either on the current shot\nor on the shot seleted in the shots list",
-        items=(("STILL", "Still", ""), ("ANIMATION", "Animation", ""), ("ALL", "All Edits", ""), ("OTIO", "Otio", ""),),
+        items=(("STILL", "Still", ""), ("ANIMATION", "Animation", ""), ("ALL", "All Edits", ""), ("OTIO", "OTIO", ""),),
         default="STILL",
     )
 

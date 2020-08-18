@@ -335,7 +335,11 @@ class UAS_UL_ShotManager_Items(bpy.types.UIList):
         else:
             icon = config.icons_col[f"ShotMan_Disabled{cam}"]
 
+        if item.camera is None:
+            layout.alert = True
+
         row = layout.row()
+
         row.operator("uas_shot_manager.set_current_shot", icon_value=icon.icon_id, text="").index = index
 
         if props.display_selectbut_in_shotlist or props.display_color_in_shotlist:
@@ -343,6 +347,22 @@ class UAS_UL_ShotManager_Items(bpy.types.UIList):
             row.scale_x = 1.0
             if props.display_selectbut_in_shotlist:
                 row.operator("uas_shot_manager.shots_selectcamera", text="", icon="RESTRICT_SELECT_OFF").index = index
+
+            if props.display_notes_in_shotlist:
+                row = row.row(align=True)
+                row.scale_x = 1.0
+
+                if item.hasNotes():
+                    notesIcon = "TEXT"
+                    notesIcon = "OUTLINER_DATA_GP_LAYER"
+                    notesIcon = "ALIGN_TOP"
+                    row.operator("uas_shot_manager.shots_shownotes", text="", icon=notesIcon).index = index
+                else:
+                    emptyIcon = config.icons_col["General_Empty_32"]
+                    row.operator(
+                        "uas_shot_manager.shots_shownotes", text="", icon_value=emptyIcon.icon_id
+                    ).index = index
+                row.scale_x = 0.9
 
             if props.display_color_in_shotlist:
                 row = row.row(align=True)
@@ -652,9 +672,35 @@ class UAS_PT_ShotManager_ShotProperties(Panel):
             grid_flow.label(text="Output: ")
             grid_flow.label(text=str(shot.getOutputFileName()))
             grid_flow.operator("uas_shot_manager.open_explorer", emboss=True, icon_value=iconExplorer.icon_id, text="")
-            row.separator(factor=0.5)  # prevents stange look when panel is narrow
+            row.separator(factor=0.5)  # prevents strange look when panel is narrow
 
             # row.prop ( context.props, "display_duration_in_shotlist", text = "" )
+
+            # Notes
+            ######################
+            if props.display_notes_in_properties and shot.camera is not None:
+                box = layout.box()
+                box.use_property_decorate = False
+                row = box.row()
+                row.separator(factor=1.0)
+                c = row.column()
+                # grid_flow = c.grid_flow(align=False, columns=3, even_columns=False)
+                subrow = c.row()
+                subrow.label(text="Notes:")
+                subrow.prop(props, "display_notes_in_shotlist", text="")
+                subrow.separator(factor=0.5)  # prevents strange look when panel is narrow
+                row = box.row()
+                row.separator(factor=1.0)
+                row.prop(shot, "note01", text="")
+                row.separator(factor=1.0)
+                row = box.row()
+                row.separator(factor=1.0)
+                row.prop(shot, "note02", text="")
+                row.separator(factor=1.0)
+                row = box.row()
+                row.separator(factor=1.0)
+                row.prop(shot, "note03", text="")
+                row.separator(factor=1.0)
 
             # Camera background images
             ######################
