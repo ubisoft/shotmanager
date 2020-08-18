@@ -9,10 +9,13 @@ from bpy.props import (
     PointerProperty,
 )
 
+from ..utils.utils import getSceneVSE
 
 # ------------------------------------------------------------------------#
 #                                debug Panel                              #
 # ------------------------------------------------------------------------#
+
+
 class UAS_PT_Shot_Manager_Debug(Panel):
     bl_idname = "UAS_PT_shot_manager_debug"
     bl_label = "Shot Manager Debug"
@@ -99,6 +102,52 @@ class UAS_PT_Shot_Manager_Debug(Panel):
         row = layout.row()
         row.operator("uas_utils.run_script", text="API RRS").path = "//../api/api_rrs_samples.py"
 
+        layout.separator()
+        row = layout.row()
+        row.operator("uas.motiontrackingtab", text="Open Motion Tracking")
+
+
+class UAS_MotionTrackingTab(Operator):
+    bl_idname = "uas.motiontrackingtab"
+    bl_label = "fff"
+    bl_description = ""
+
+    def execute(self, context):
+        """UAS_VSETruc"""
+        print(" Open VSE")
+        #    getSceneVSE(bpy.context.scene.name)
+        # getSceneMotionTracking(bpy.context.scene.name)
+
+        previousType = bpy.context.area.ui_type
+        bpy.context.area.ui_type = "SEQUENCE_EDITOR"
+
+        bpy.context.object.data.background_images[0].clip.use_proxy = True
+        bpy.context.object.data.background_images[0].clip.proxy.build_50 = True
+
+        bpy.context.object.data.background_images[0].clip_user.proxy_render_size = "PROXY_50"
+
+        for area in bpy.context.screen.areas:
+            if area.type == "SEQUENCE_EDITOR":
+                ctx = bpy.context.copy()
+                # ctx = {"area": area}
+                ctx["area"] = area
+                print("totototo")
+                # bpy.ops.clip.rebuild_proxy("EXEC_AREA")
+                bpy.ops.sequencer.rebuild_proxy(ctx)
+                break
+
+        # bpy.context.area.ui_type = "CLIP_EDITOR"
+        # # bpy.context.object.data.background_images[0].clip.proxy
+        # # ctx = bpy.context.copy()
+        # # ctx["area"] = bpy.context.area
+        # bpy.ops.clip.rebuild_proxy()
+
+        bpy.context.area.ui_type = previousType
+
+        # bpy.context.object.data.proxy_render_size = 'PROXY_25'
+
+        return {"FINISHED"}
+
 
 class UAS_VSETruc(Operator):
     bl_idname = "vse.truc"
@@ -112,7 +161,7 @@ class UAS_VSETruc(Operator):
         return {"FINISHED"}
 
 
-_classes = (UAS_PT_Shot_Manager_Debug,)
+_classes = (UAS_PT_Shot_Manager_Debug, UAS_MotionTrackingTab)
 
 
 def register():

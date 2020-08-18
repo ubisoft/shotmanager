@@ -141,6 +141,17 @@ class UAS_ShotManager_ShotTimeInEdit(Operator):
 ########################
 
 
+def list_cameras_for_new_shot(self, context):
+    res = list()
+    res.append(("NEW_CAMERA", "New Camera", "Create new camera", 0))
+    for i, cam in enumerate([c for c in context.scene.objects if c.type == "CAMERA"]):
+        res.append(
+            (cam.name, cam.name, 'Use the exising scene camera named "' + cam.name + '"\nfor the new shot', i + 1)
+        )
+
+    return res
+
+
 class UAS_ShotManager_ShotAdd(Operator):
     bl_idname = "uas_shot_manager.add_shot"
     bl_label = "Add New Shot"
@@ -151,7 +162,7 @@ class UAS_ShotManager_ShotAdd(Operator):
     bl_options = {"INTERNAL", "REGISTER", "UNDO"}
 
     name: StringProperty(name="Name")
-    cameraName: EnumProperty(items=list_cameras, name="Camera", description="Select a Camera")
+    cameraName: EnumProperty(items=list_cameras_for_new_shot, name="Camera", description="New Shot Camera")
     #     name = "Camera",
     #     description = "Select a Camera",
     #     type = bpy.types.Object,
@@ -161,10 +172,10 @@ class UAS_ShotManager_ShotAdd(Operator):
     end: IntProperty(name="End")
 
     color: FloatVectorProperty(
-        name="Color",
+        name="Shot Color",
         subtype="COLOR",
         size=3,
-        description="Shot Color",
+        description="According to your preferences it can be a unique shot color\nor the color of the camera object (default)",
         min=0.0,
         max=1.0,
         precision=2,
@@ -187,6 +198,7 @@ class UAS_ShotManager_ShotAdd(Operator):
 
         self.color = (uniform(0, 1), uniform(0, 1), uniform(0, 1))
 
+        self.cameraName = "NEW_CAMERA"
         #     cameras = props.getSceneCameras()
         #    # selectedObjs = []  #bpy.context.view_layer.objects.active    # wkip get the selection
         #     currentCam = None
@@ -213,10 +225,6 @@ class UAS_ShotManager_ShotAdd(Operator):
         col.label(text="New Shot Name:")
         col = grid_flow.column(align=False)
         col.prop(self, "name", text="")
-        col = grid_flow.column(align=False)
-        col.label(text="Camera:")
-        col = grid_flow.column(align=False)
-        col.prop(self, "cameraName", text="")
 
         col.separator(factor=1)
         col = grid_flow.column(align=False)
@@ -228,11 +236,20 @@ class UAS_ShotManager_ShotAdd(Operator):
         col = grid_flow.column(align=False)
         col.prop(self, "end", text="")
 
-        if not context.scene.UAS_shot_manager_props.use_camera_color:
-            col = grid_flow.column(align=False)
-            col.label(text="Color:")
-            col = grid_flow.column(align=True)
-            col.prop(self, "color", text="")
+        col.separator()
+        col = grid_flow.column(align=False)
+        col.label(text="Camera:")
+        col = grid_flow.column(align=False)
+        col.prop(self, "cameraName", text="")
+
+        row = box.row(align=True)
+        grid_flow = row.grid_flow(align=True, row_major=True, columns=2, even_columns=False)
+
+        grid_flow.enabled = not context.scene.UAS_shot_manager_props.use_camera_color or "NEW_CAMERA" == self.cameraName
+        col = grid_flow.column(align=False)
+        col.label(text="Color:")
+        col = grid_flow.column(align=True)
+        col.prop(self, "color", text="")
 
         layout.separator()
 
@@ -245,14 +262,21 @@ class UAS_ShotManager_ShotAdd(Operator):
         cam = None
         col = [self.color[0], self.color[1], self.color[2], 1]
 
-        if "" != self.cameraName:
+        if "NEW_CAMERA" == self.cameraName:
+            cam = utils.create_new_camera("Cam_" + self.name)
+        else:
+            cam = bpy.context.scene.objects[self.cameraName]
+            if cam is None or "" == self.cameraName:
+                utils.ShowMessageBox("Camera with specified name not found in scene", "New Shot Creation Canceled")
+                return ()
+
             cam = bpy.context.scene.objects[self.cameraName]
             if props.use_camera_color:
                 col[0] = cam.color[0]
                 col[1] = cam.color[1]
                 col[2] = cam.color[2]
 
-        props.addShot(
+        newShot = props.addShot(
             atIndex=newShotInd,
             name=self.name,
             # name=props.getUniqueShotName(self.name),
@@ -262,6 +286,14 @@ class UAS_ShotManager_ShotAdd(Operator):
             camera=cam,
             color=col,
         )
+
+        # make new camera name match possible changes in shot name
+        if "NEW_CAMERA" == self.cameraName and newShot.name != self.name:
+            cam.name = "Cam_" + newShot.name
+            cam.data.name = cam.name
+
+        utils.clear_selection()
+        utils.add_to_selection(cam)
 
         # removed, now done in addShot
         # props.setCurrentShotByIndex(newShotInd)
@@ -299,7 +331,7 @@ class UAS_ShotManager_ShotDuplicate(Operator):
 
     def draw(self, context):
         layout = self.layout
-        scene = context.scene
+        # scene = context.scene
 
         box = layout.box()
         box.separator(factor=0.2)
@@ -437,6 +469,43 @@ class UAS_ShotManager_Actions(Operator):
 
 
 ########################
+# for shot properties
+########################
+
+
+class UAS_ShotManager_RemoveBGImages(Operator):
+    bl_idname = "uas_shot_manager.remove_bg_images"
+    bl_label = "Remove BG Images"
+    bl_description = "Remove the camera background images of the specified shots"
+    bl_options = {"INTERNAL", "REGISTER", "UNDO"}
+
+    shotIndex: IntProperty(default=-1)
+
+    def invoke(self, context, event):
+        props = context.scene.UAS_shot_manager_props
+        shotList = []
+
+        print("Remove BG images: shotIndex: ", self.shotIndex)
+        if 0 > self.shotIndex:
+            take = context.scene.UAS_shot_manager_props.getCurrentTake()
+            shotList = take.getShotList(ignoreDisabled=props.shotsGlobalSettings.alsoApplyToDisabledShots)
+        else:
+            shot = props.getShot(self.shotIndex)
+            if shot is not None:
+                shotList.append(shot)
+
+        for shot in shotList:
+            #    print("   shot name: ", shot.name)
+            if shot.camera is not None and len(shot.camera.data.background_images):
+                # if shot.camera.data.background_images[0].clip is not None:
+                shot.camera.data.show_background_images = False
+                # shot.camera.data.background_images[0].clip = None
+                shot.camera.data.background_images.clear()
+                # shot.camera.data.background_images[0].clip.filepath = ""
+        return {"FINISHED"}
+
+
+########################
 # for shot actions
 ########################
 
@@ -476,7 +545,7 @@ class UAS_ShotManager_ShotRemoveMultiple(Operator):
 
     def draw(self, context):
         layout = self.layout
-        scene = context.scene
+        # scene = context.scene
 
         box = layout.box()
         row = box.row(align=True)
@@ -774,7 +843,7 @@ class UAS_ShotManager_Shots_RemoveCamera(Operator):
                         s.camera = None
         else:
             currentTake = props.getCurrentTake()
-            if None != currentTake:
+            if currentTake is not None:
                 for s in currentTake.shots:
                     if s.camera == cam:
                         s.camera = None
@@ -843,6 +912,8 @@ _classes = (
     UAS_ShotManager_ShotDuplicate,
     UAS_ShotManager_RemoveShot,
     UAS_ShotManager_Actions,
+    # for shot properties:
+    UAS_ShotManager_RemoveBGImages,
     # for shot actions:
     UAS_ShotManager_ShotRemoveMultiple,
     UAS_ShotManager_Shots_SelectCamera,

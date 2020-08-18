@@ -239,3 +239,28 @@ def duplicateObject(sourceObject):
         (sourceObject.users_scene)[0].collection.objects.link(newObject)
     return newObject
 
+
+def create_new_camera(camera_name):
+    cam = bpy.data.cameras.new(camera_name)
+    cam_ob = bpy.data.objects.new(cam.name, cam)
+    cam_ob.name = cam.name
+    bpy.context.collection.objects.link(cam_ob)
+    bpy.data.cameras[cam.name].lens = 40
+    cam_ob.location = (0.0, 0.0, 0.0)
+    # cam_ob.data.name = cam.name
+
+    return cam_ob
+
+
+def clear_selection():
+    bpy.context.active_object.select_set(False)
+    for obj in bpy.context.selected_objects:
+        bpy.context.view_layer.objects.active = obj
+
+
+def add_to_selection(obj):
+    # bpy.data.objects[obj.name].select_set(True)
+    # bpy.context.view_layer.objects.active = bpy.data.objects['Sphere']
+    obj.select_set(True)
+    # to set the active object
+    bpy.context.view_layer.objects.active = obj

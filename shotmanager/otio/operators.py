@@ -71,8 +71,8 @@ class UAS_ShotManager_Export_OTIO(Operator):
 
 class UAS_ShotManager_OT_Create_Shots_From_OTIO(Operator):
     bl_idname = "uasshotmanager.createshotsfromotio"
-    bl_label = "Import/Update Shots from OTIO File"
-    bl_description = "Open OTIO file to import a set of shots"
+    bl_label = "Import/Update Shots from EDL File"
+    bl_description = "Open EDL file (Final Cut XML, OTIO...) to import a set of shots"
     bl_options = {"INTERNAL", "REGISTER", "UNDO"}
 
     pathProp: StringProperty()
@@ -202,8 +202,8 @@ class UAS_ShotManager_OT_Create_Shots_From_OTIO(Operator):
 
 class UAS_ShotManager_OT_Import_Edit_From_OTIO(Operator):
     bl_idname = "uasshotmanager.importeditfromotio"
-    bl_label = "Import Edit from OTIO File"
-    bl_description = "Open OTIO file to import its content"
+    bl_label = "Import Edit from EDL file"
+    bl_description = "Open EDL file (Final Cut XML, OTIO...) to import its content"
     bl_options = {"INTERNAL", "REGISTER", "UNDO"}
 
     otioFile: StringProperty()
@@ -304,7 +304,7 @@ class UAS_ShotManager_OT_ImportSound_OTIO(Operator):
         return {"RUNNING_MODAL"}
 
     def execute(self, context):
-        """Open OTIO file to import a set of shots"""
+        """Open EDL file (Final Cut XML, OTIO...) to import a set of shots"""
         filename, extension = os.path.splitext(self.filepath)
         print("Selected file:", self.filepath)
         print("File name:", filename)
@@ -330,8 +330,8 @@ class UAS_ShotManager_OT_ImportSound_OTIO(Operator):
 # See https://sinestesia.co/blog/tutorials/using-blenders-filebrowser-with-python/
 class UAS_OTIO_OpenFileBrowser(Operator, ImportHelper):  # from bpy_extras.io_utils import ImportHelper
     bl_idname = "uasotio.openfilebrowser"
-    bl_label = "Open Otio File"
-    bl_description = "Open OTIO file to import a set of shots"
+    bl_label = "Open EDL File"
+    bl_description = "Open EDL file (Final Cut XML, OTIO...) to import a set of shots"
 
     importMode: EnumProperty(
         name="Import Mode",
@@ -368,7 +368,7 @@ class UAS_OTIO_OpenFileBrowser(Operator, ImportHelper):  # from bpy_extras.io_ut
         return {"RUNNING_MODAL"}
 
     def execute(self, context):
-        """Open OTIO file to import a set of shots"""
+        """Open EDL file (Final Cut XML, OTIO...) to import a set of shots"""
         filename, extension = os.path.splitext(self.filepath)
         print("ex Selected file:", self.filepath)
         print("ex File name:", filename)

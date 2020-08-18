@@ -45,6 +45,7 @@ class UAS_ShotManager_General_Prefs(Operator):
         layout.alert = False
 
         box = layout.box()
+        box.use_property_decorate = False
         col = box.column()
         col.use_property_split = True
         # col.use_property_decorate = False
@@ -60,6 +61,7 @@ class UAS_ShotManager_General_Prefs(Operator):
             # layout.label(text="Others")
             pass
         box = layout.box()
+        box.use_property_decorate = False
         box.enabled = not props.use_project_settings
         col = box.column()
         col.use_property_split = True
@@ -97,6 +99,7 @@ class UAS_ShotManager_ProjectSettings_Prefs(Operator):
 
         layout.prop(props, "use_project_settings")
         box = layout.box()
+        box.use_property_decorate = False
         box.enabled = props.use_project_settings
         col = box.column()
         col.use_property_split = True
@@ -181,7 +184,7 @@ class UAS_ShotManager_Playbar_Prefs(Operator):
     bl_options = {"INTERNAL"}
 
     def invoke(self, context, event):
-        return context.window_manager.invoke_props_dialog(self, width=400)
+        return context.window_manager.invoke_props_dialog(self, width=500)
 
     def draw(self, context):
         props = context.scene.UAS_shot_manager_props
@@ -205,6 +208,7 @@ class UAS_ShotManager_Playbar_Prefs(Operator):
         # layout.separator(factor=1)
         layout.label(text="Shot Play Mode:")
         box = layout.box()
+        box.use_property_decorate = False
         col = box.column()
 
         col.use_property_split = True
@@ -214,6 +218,7 @@ class UAS_ShotManager_Playbar_Prefs(Operator):
         # layout.separator(factor=1)
         layout.label(text="Timeline:")
         box = layout.box()
+        box.use_property_decorate = False
         col = box.column()
 
         col.use_property_split = True
@@ -226,6 +231,7 @@ class UAS_ShotManager_Playbar_Prefs(Operator):
         layout.separator(factor=1)
         layout.label(text="Edit:")
         box = layout.box()
+        box.use_property_decorate = False
         col = box.column()
 
         col.use_property_split = True
@@ -245,7 +251,7 @@ class UAS_ShotManager_Shots_Prefs(Operator):
     bl_options = {"INTERNAL"}
 
     def invoke(self, context, event):
-        return context.window_manager.invoke_props_dialog(self, width=400)
+        return context.window_manager.invoke_props_dialog(self, width=500)
 
     def draw(self, context):
         props = context.scene.UAS_shot_manager_props
@@ -260,6 +266,7 @@ class UAS_ShotManager_Shots_Prefs(Operator):
         ##############
         layout.label(text="Shot List:")
         box = layout.box()
+        box.use_property_decorate = False
         col = box.column()
 
         col.separator(factor=0.5)
@@ -271,6 +278,7 @@ class UAS_ShotManager_Shots_Prefs(Operator):
 
         col.separator(factor=1.7)
         col.prop(props, "highlight_all_shot_frames", text="Highlight Framing Values When Equal to Current Time")
+        col.prop(props, "display_duration_after_time_range", text="Display Shot Duration After Time Range")
 
         col.separator(factor=1.0)
         col.prop(props, "use_camera_color", text="Use Camera Color for Shots ")

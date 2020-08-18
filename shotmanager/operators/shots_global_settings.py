@@ -4,13 +4,23 @@ from bpy.props import EnumProperty, BoolProperty, FloatProperty
 
 
 class UAS_ShotManager_ShotsGlobalSettings(PropertyGroup):
+
+    alsoApplyToDisabledShots: BoolProperty(
+        name="Also Apply to Disabled Shots",
+        description="Apply Global Settings changes to disabled shots as well as to enabled ones",
+        default=True,
+    )
+
     def _update_backgroundAlpha(self, context):
         take = context.scene.UAS_shot_manager_props.getCurrentTake()
         shotList = take.getShotList(ignoreDisabled=False)
 
         for shot in shotList:
-            if shot.camera is not None and len(shot.camera.data.background_images):
-                shot.camera.data.background_images[0].alpha = self.backgroundAlpha
+            if shot.enabled or props.shotsGlobalSettings.alsoApplyToDisabledShots:
+                if shot.camera is not None and len(shot.camera.data.background_images):
+                    # shot.camera.data.background_images[0].alpha = self.backgroundAlpha
+                    gamma = 2.2
+                    shot.camera.data.background_images[0].alpha = pow(self.backgroundAlpha, gamma)
 
     backgroundAlpha: FloatProperty(
         name="Background Images Alpha",
@@ -29,8 +39,9 @@ class UAS_ShotManager_ShotsGlobalSettings(PropertyGroup):
         shotList = take.getShotList(ignoreDisabled=False)
 
         for shot in shotList:
-            if shot.camera is not None and len(shot.camera.data.background_images):
-                shot.camera.data.background_images[0].clip_user.proxy_render_size = self.proxyRenderSize
+            if shot.enabled or props.shotsGlobalSettings.alsoApplyToDisabledShots:
+                if shot.camera is not None and len(shot.camera.data.background_images):
+                    shot.camera.data.background_images[0].clip_user.proxy_render_size = self.proxyRenderSize
 
     proxyRenderSize: EnumProperty(
         name="Proxy Render Size",
@@ -43,7 +54,8 @@ class UAS_ShotManager_ShotsGlobalSettings(PropertyGroup):
             ("FULL", "None, Full render", ""),
         ),
         update=_update_proxyRenderSize,
-        default="PROXY_50",
+        # default="PROXY_50",
+        default="FULL",
     )
 
 
@@ -62,8 +74,9 @@ class UAS_ShotsSettings_UseBackground(Operator):
         shotList = take.getShotList(ignoreDisabled=False)
 
         for shot in shotList:
-            if shot.camera is not None:
-                shot.camera.data.show_background_images = self.useBackground
+            if shot.enabled or props.shotsGlobalSettings.alsoApplyToDisabledShots:
+                if shot.camera is not None:
+                    shot.camera.data.show_background_images = self.useBackground
 
         return {"FINISHED"}
 

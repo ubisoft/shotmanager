@@ -1,3 +1,5 @@
+import logging
+
 import os
 
 import bpy
@@ -23,6 +25,8 @@ from ..retimer.retimer_props import UAS_Retimer_Properties
 
 from ..utils import utils
 
+_logger = logging.getLogger(__name__)
+
 
 class UAS_ShotManager_Props(PropertyGroup):
     def version(self):
@@ -38,7 +42,7 @@ class UAS_ShotManager_Props(PropertyGroup):
     )
 
     def initialize_shot_manager(self):
-        print("\nInitializing Shot Manager...\n")
+        _logger.info("\nInitializing Shot Manager...\n")
         self.parentScene = self.getParentScene()
         self.dataVersion = bpy.context.window_manager.UAS_shot_manager_version
         self.createDefaultTake()
@@ -66,7 +70,7 @@ class UAS_ShotManager_Props(PropertyGroup):
         parentScn = None
         try:
             parentScn = self.parentScene
-        except:
+        except Exception:  # as e
             print("Unexpected error:", sys.exc_info()[0])
 
         if parentScn is not None:
@@ -200,6 +204,9 @@ class UAS_ShotManager_Props(PropertyGroup):
     display_lens_in_shotlist: BoolProperty(name="Display Camera Lens in Shot List", default=False, options=set())
 
     display_duration_in_shotlist: BoolProperty(name="Display Shot Duration in Shot List", default=True, options=set())
+    display_duration_after_time_range: BoolProperty(
+        name="Display Shot Duration After Time Range", default=True, options=set()
+    )
 
     display_color_in_shotlist: BoolProperty(name="Display Color in Shot List", default=True, options=set())
 
@@ -237,8 +244,6 @@ class UAS_ShotManager_Props(PropertyGroup):
     )
 
     def _get_useLockCameraView(self):
-        #   print("\n*** useLockCameraView: New state: ", self.useLockCameraView)
-
         # Can also use area.spaces.active to get the space assoc. with the area
         for area in bpy.context.screen.areas:
             if area.type == "VIEW_3D":
@@ -252,7 +257,6 @@ class UAS_ShotManager_Props(PropertyGroup):
         return realVal
 
     def _set_useLockCameraView(self, value):
-        #  print("\n*** useLockCameraView: New state: ", self.useLockCameraView)
         self["useLockCameraView"] = value
         for area in bpy.context.screen.areas:
             if area.type == "VIEW_3D":
@@ -302,7 +306,7 @@ class UAS_ShotManager_Props(PropertyGroup):
 
     current_shot_index: IntProperty(default=-1)
 
-    selected_shot_index: IntProperty(default=-1)
+    selected_shot_index: IntProperty(name="Shot Name", default=-1)
 
     current_shot_properties_mode: bpy.props.EnumProperty(
         name="Display Shot Properties Mode",
@@ -431,14 +435,12 @@ class UAS_ShotManager_Props(PropertyGroup):
         return takeInd
 
     def getCurrentTakeIndex(self):
-        #   print("getCurrentTakeIndex")
         takeInd = -1
         if 0 < len(self.takes):
             takeInd = 0
             #      print(" self.takes[0]: " + str(self.takes[takeInd].name) + ", type: " + str(type(self.takes[takeInd])) )
             #     print(" self.current_take_name: " + str(self.current_take_name) + ", type: " + str(type(self.current_take_name)) )
             while takeInd < len(self.takes) and self.takes[takeInd].name != self.current_take_name:
-                #         print("  toto06: takeInd: ", takeInd)
                 takeInd += 1
             if takeInd >= len(self.takes):
                 takeInd = -1
@@ -456,7 +458,6 @@ class UAS_ShotManager_Props(PropertyGroup):
             self.current_take_name = ""
 
     def getCurrentTake(self):
-        #    print("getCurrentTake")
         currentTakeInd = self.getCurrentTakeIndex()
         if -1 == currentTakeInd:
             return None
@@ -570,7 +571,7 @@ class UAS_ShotManager_Props(PropertyGroup):
     def isRenderRootPathValid(self, renderRootFilePath=None):
         pathIsValid = False
 
-        rootPath = self.renderRootPath if None == renderRootFilePath else renderRootFilePath
+        rootPath = self.renderRootPath if renderRootFilePath is None else renderRootFilePath
         if "" != rootPath:
             if os.path.exists(rootPath) or rootPath.startswith("//"):
                 pathIsValid = True
@@ -855,8 +856,7 @@ class UAS_ShotManager_Props(PropertyGroup):
             Return the newly added shot
             Since this function works also with takes that are not the current one the current shot is not taken into account not modified
         """
-        # wkip wip fix for early backward compatibility - to remove
-        # self.fixShotsParent()
+
         currentTakeInd = self.getCurrentTakeIndex()
         takeInd = (
             currentTakeInd
@@ -889,6 +889,10 @@ class UAS_ShotManager_Props(PropertyGroup):
         if takeInd == currentTakeInd:
             self.setCurrentShotByIndex(newShotInd)
             self.setSelectedShotByIndex(newShotInd)
+
+        # warning: by reordering the shots it looks like newShot is not pointing anymore on the new shot
+        # we then get it again
+        newShot = self.getShot(newShotInd)
 
         return newShot
 
@@ -945,9 +949,9 @@ class UAS_ShotManager_Props(PropertyGroup):
         # update the current take if needed
         if takeInd == currentTakeInd:
             currentShotInd = self.current_shot_index
-            currentShot = shots[currentShotInd]
+            #   currentShot = shots[currentShotInd]
             selectedShotInd = self.getSelectedShotIndex()
-            selectedShot = shots[selectedShotInd]
+            #   selectedShot = shots[selectedShotInd]
 
             if shotInd != selectedShotInd:
                 self.setSelectedShotByIndex(shotInd)
@@ -958,7 +962,6 @@ class UAS_ShotManager_Props(PropertyGroup):
                     self.setCurrentShotByIndex(selectedShotInd - 1)
 
                 shots.remove(selectedShotInd)
-                #  self.selected_shot_index = selectedShotInd - 1
                 self.setSelectedShotByIndex(selectedShotInd - 1)
             else:
                 if currentShotInd >= selectedShotInd:
@@ -997,7 +1000,7 @@ class UAS_ShotManager_Props(PropertyGroup):
 
         shots = self.get_shots(takeIndex=takeInd)
         currentShotInd = self.getCurrentShotIndex()
-        selectedShotInd = self.getSelectedShotIndex()
+        # selectedShotInd = self.getSelectedShotIndex()
         shotInd = self.getShotIndex(shot)
         newInd = max(0, newIndex)
         newInd = min(newInd, len(shots) - 1)
@@ -1419,7 +1422,7 @@ class UAS_ShotManager_Props(PropertyGroup):
         if not len(self.get_shots()):
             return ()
 
-        nextShot = None
+        #   nextShot = None
         nextShotInd = -1
         newFrame = currentFrame
 
@@ -1473,7 +1476,7 @@ class UAS_ShotManager_Props(PropertyGroup):
         if not len(self.get_shots()):
             return ()
 
-        previousShot = None
+        #  previousShot = None
         previousShotInd = -1
         newFrame = currentFrame
 
@@ -1525,7 +1528,7 @@ class UAS_ShotManager_Props(PropertyGroup):
         if not len(self.get_shots()):
             return ()
 
-        nextShot = None
+        #  nextShot = None
         nextShotInd = -1
         newFrame = currentFrame
 
