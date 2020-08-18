@@ -146,14 +146,14 @@ class UAS_ShotManager_Props(PropertyGroup):
 
     # settings coming from production
     project_name: StringProperty(name="Project Name", default="My Project")
-    project_fps: FloatProperty(name="Project Fps", default=25.0)
-    project_resolution_x: IntProperty(name="Res. X", default=1280)
-    project_resolution_y: IntProperty(name="Res. Y", default=720)
-    project_resolution_framed_x: IntProperty(name="Res. Framed X", default=1280)
-    project_resolution_framed_y: IntProperty(name="Res. Framed Y", default=720)
+    project_fps: FloatProperty(name="Project Fps", min=0.5, max=200.0, default=25.0)
+    project_resolution_x: IntProperty(name="Res. X", min=0, default=1280)
+    project_resolution_y: IntProperty(name="Res. Y", min=0, default=720)
+    project_resolution_framed_x: IntProperty(name="Res. Framed X", min=0, default=1280)
+    project_resolution_framed_y: IntProperty(name="Res. Framed Y", min=0, default=720)
     project_shot_format: StringProperty(name="Shot Format", default=r"Act{:02}_Seq{:04}_Sh{:04}")
 
-    project_shot_handle_duration: IntProperty(name="Project Handle Duration", default=10)
+    project_shot_handle_duration: IntProperty(name="Project Handle Duration", min=0, soft_max=50, default=10)
 
     project_output_format: StringProperty(name="Output Format", default="")
     project_color_space: StringProperty(name="Color Space", default="")
