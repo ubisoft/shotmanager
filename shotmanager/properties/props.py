@@ -856,8 +856,7 @@ class UAS_ShotManager_Props(PropertyGroup):
             Return the newly added shot
             Since this function works also with takes that are not the current one the current shot is not taken into account not modified
         """
-        # wkip wip fix for early backward compatibility - to remove
-        # self.fixShotsParent()
+
         currentTakeInd = self.getCurrentTakeIndex()
         takeInd = (
             currentTakeInd
@@ -890,6 +889,10 @@ class UAS_ShotManager_Props(PropertyGroup):
         if takeInd == currentTakeInd:
             self.setCurrentShotByIndex(newShotInd)
             self.setSelectedShotByIndex(newShotInd)
+
+        # warning: by reordering the shots it looks like newShot is not pointing anymore on the new shot
+        # we then get it again
+        newShot = self.getShot(newShotInd)
 
         return newShot
 
