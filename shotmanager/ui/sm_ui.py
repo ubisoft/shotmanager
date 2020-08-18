@@ -5,7 +5,7 @@ from bpy.types import Panel, Operator, Menu
 from bpy.props import StringProperty
 
 from ..config import config
-from ..viewport_3d.ogl_ui import UAS_ShotManager_DrawTimeline, UAS_ShotManager_DrawCameras_UI
+from ..viewport_3d.ogl_ui import UAS_ShotManager_DrawTimeline
 
 from ..utils import utils
 
@@ -348,7 +348,7 @@ class UAS_UL_ShotManager_Items(bpy.types.UIList):
             if props.display_selectbut_in_shotlist:
                 row.operator("uas_shot_manager.shots_selectcamera", text="", icon="RESTRICT_SELECT_OFF").index = index
 
-            if props.display_notes_in_shotlist:
+            if props.display_notes_in_properties and props.display_notes_in_shotlist:
                 row = row.row(align=True)
                 row.scale_x = 1.0
 
@@ -989,7 +989,6 @@ classes = (
     UAS_MT_ShotManager_Shots_ToolsMenu,
     UAS_ShotManager_DrawTimeline,
     UAS_PT_ShotManager_Initialize,
-    UAS_ShotManager_DrawCameras_UI,
     #  UAS_Retimer,
     UAS_ShotManager_OpenFileBrowserForCamBG,
 )

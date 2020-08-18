@@ -1,6 +1,4 @@
 import bpy
-from bpy.props import BoolProperty
-import bpy.utils.previews
 
 from .operators import tracks
 from .operators import prefs
@@ -16,7 +14,7 @@ from .ui import vsm_ui
 
 
 def register():
-    print("       - Registering Video Shot Manager Package\n")
+    print("       - Registering Video Shot Manager Package")
     # for cls in classes:
     #     bpy.utils.register_class(cls)
 

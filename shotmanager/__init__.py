@@ -42,6 +42,7 @@ from .utils import utils_handlers
 from .utils import utils_operators
 
 from . import videoshotmanager
+from . import viewport_3d
 
 from .scripts import rrs
 
@@ -300,6 +301,7 @@ def register():
     vse_render.register()
     utils_render.register()
     general.register()
+    viewport_3d.register()
     videoshotmanager.register()
     prefs.register()
     about.register()
@@ -350,6 +352,7 @@ def unregister():
     about.unregister()
     prefs.unregister()
     videoshotmanager.unregister()
+    viewport_3d.unregister()
     general.unregister()
     utils_render.unregister()
     vse_render.unregister()
