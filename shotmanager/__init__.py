@@ -54,7 +54,7 @@ bl_info = {
     "author": "Julien Blervaque (aka Werwack), Romain Carriquiry Borchiari",
     "description": "Manage a sequence of shots and cameras in the 3D View - Ubisoft Animation Studio",
     "blender": (2, 83, 1),
-    "version": (1, 3, 14),
+    "version": (1, 3, 15),
     "location": "View3D > UAS Shot Manager",
     "wiki_url": "https://gitlab-ncsa.ubisoft.org/animation-studio/blender/shotmanager-addon/-/wikis/home",
     "warning": "",
@@ -180,6 +180,11 @@ def checkDataVersion_post_load_handler(self, context):
             # set right data version
             # props.dataVersion = bpy.context.window_manager.UAS_shot_manager_version
             # print("       Data upgraded to version V. ", props.dataVersion)
+
+    props = bpy.context.scene.UAS_shot_manager_props
+    if props is not None:
+        if props.display_shotname_in_3dviewport:
+            bpy.ops.uas_shot_manager.draw_cameras_ui("INVOKE_DEFAULT")
 
 
 # wkip doesn t work!!! Property values changed right before the save are not saved in the file!
