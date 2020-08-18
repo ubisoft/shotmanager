@@ -18,7 +18,9 @@ class UAS_ShotManager_ShotsGlobalSettings(PropertyGroup):
         for shot in shotList:
             if shot.enabled or props.shotsGlobalSettings.alsoApplyToDisabledShots:
                 if shot.camera is not None and len(shot.camera.data.background_images):
-                    shot.camera.data.background_images[0].alpha = self.backgroundAlpha
+                    # shot.camera.data.background_images[0].alpha = self.backgroundAlpha
+                    gamma = 2.2
+                    shot.camera.data.background_images[0].alpha = pow(self.backgroundAlpha, gamma)
 
     backgroundAlpha: FloatProperty(
         name="Background Images Alpha",
@@ -52,7 +54,8 @@ class UAS_ShotManager_ShotsGlobalSettings(PropertyGroup):
             ("FULL", "None, Full render", ""),
         ),
         update=_update_proxyRenderSize,
-        default="PROXY_50",
+        # default="PROXY_50",
+        default="FULL",
     )
 
 

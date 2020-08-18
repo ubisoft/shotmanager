@@ -1,11 +1,16 @@
+import logging
+
 import bpy
 from bpy.types import Panel, Operator, Menu
-from bpy.props import StringProperty, IntProperty
+from bpy.props import StringProperty
 
 from ..config import config
 from ..viewport_3d.ogl_ui import UAS_ShotManager_DrawTimeline, UAS_ShotManager_DrawCameras_UI
 
 from ..utils import utils
+
+_logger = logging.getLogger(__name__)
+
 
 ######
 # Shot Manager main panel #
@@ -728,10 +733,17 @@ class UAS_PT_ShotManager_ShotsGlobalSettings(Panel):
             row = box.row()
             row.separator(factor=1.0)
             c = row.column()
-            grid_flow = c.grid_flow(align=False, columns=3, even_columns=False)
-            grid_flow.prop(props.shotsGlobalSettings, "proxyRenderSize")
+            c.enabled = False
+            c.prop(props.shotsGlobalSettings, "proxyRenderSize")
 
-            grid_flow.operator("uas_shot_manager.remove_bg_images", text="", icon="PANEL_CLOSE", emboss=True)
+            c = row.column()
+            c.operator("uas_shot_manager.remove_bg_images", text="", icon="PANEL_CLOSE", emboss=True)
+
+            # c = row.column()
+            # grid_flow = c.grid_flow(align=False, columns=3, even_columns=False)
+            # grid_flow.prop(props.shotsGlobalSettings, "proxyRenderSize")
+
+            # grid_flow.operator("uas_shot_manager.remove_bg_images", text="", icon="PANEL_CLOSE", emboss=True)
 
             row.separator(factor=0.5)  # prevents stange look when panel is narrow
 
@@ -787,12 +799,10 @@ class UAS_MT_ShotManager_Shots_ToolsMenu(Menu):
     bl_description = "Shots Tools"
 
     def draw(self, context):
-        scene = context.scene
-
         # marker_list         = context.scene.timeline_markers
         # list_marked_cameras = [o.camera for o in marker_list if o != None]
 
-        ## Copy menu entries[ ---
+        # Copy menu entries[ ---
         layout = self.layout
         row = layout.row(align=True)
 

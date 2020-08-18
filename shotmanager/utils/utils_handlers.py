@@ -115,7 +115,7 @@ def displayHandlers(handlerCategName=""):
 def removeAllHandlerOccurences(handlerFunction, handlerCateg=None):
     handlerCat = handlerCateg
 
-    if None == handlerCat:
+    if handlerCat is None:
         pass
         # wkip to do: passer dans toutes les categs
     else:
@@ -136,13 +136,13 @@ def getHandlerByFunction(handlerFunction, handlerCateg=None):
     myHandlerFunc = None
 
     # search in all handler categories
-    if None == handlerCat:
+    if handlerCat is None:
         pass
         # wkip to do: passer dans toutes les categs
     else:
         i = 0
-        # while i < len(bpy.app.handlers.render_init) and None == myHandlerFunc:
-        while i < len(handlerCateg) and None == myHandlerFunc:
+        # while i < len(bpy.app.handlers.render_init) and myHandlerFunc is None:
+        while i < len(handlerCateg) and myHandlerFunc is None:
             if handlerFunction.__name__ == handlerCateg[i].__name__:
                 myHandlerFunc = handlerCateg[i]
             else:

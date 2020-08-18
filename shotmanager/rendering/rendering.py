@@ -310,7 +310,7 @@ def launchRender(renderMode, renderRootFilePath="", useStampInfo=True):
                 setRRS_StampInfoSettings(scene)
 
                 # set current cam
-                # if None != shot.camera:
+                # if shot.camera is not None:
             #    props.setCurrentShot(shot)
 
             # editingCurrentTime = props.getEditCurrentTime( ignoreDisabled = False )

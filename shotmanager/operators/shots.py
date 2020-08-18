@@ -299,7 +299,7 @@ class UAS_ShotManager_ShotDuplicate(Operator):
 
     def draw(self, context):
         layout = self.layout
-        scene = context.scene
+        # scene = context.scene
 
         box = layout.box()
         box.separator(factor=0.2)
@@ -811,7 +811,7 @@ class UAS_ShotManager_Shots_RemoveCamera(Operator):
                         s.camera = None
         else:
             currentTake = props.getCurrentTake()
-            if None != currentTake:
+            if currentTake is not None:
                 for s in currentTake.shots:
                     if s.camera == cam:
                         s.camera = None
