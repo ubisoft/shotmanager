@@ -101,6 +101,12 @@ def launchRenderWithVSEComposite(renderMode, takeIndex=-1, filePath="", useStamp
             # render stamped info
             if preset_useStampInfo:
                 RRS_StampInfo.takeName = take.getName_PathCompliant()
+
+                RRS_StampInfo.notesUsed = shot.hasNotes()
+                RRS_StampInfo.notesLine01 = shot.note01
+                RRS_StampInfo.notesLine02 = shot.note02
+                RRS_StampInfo.notesLine03 = shot.note03
+
                 #    print("RRS_StampInfo.takeName: ", RRS_StampInfo.takeName)
             #        RRS_StampInfo.shotName = f"{props.renderShotPrefix()}_{shot.name}"
             #        print("RRS_StampInfo.renderRootPath: ", RRS_StampInfo.renderRootPath)
@@ -269,7 +275,7 @@ def launchRender(renderMode, renderRootFilePath="", useStampInfo=True):
         print("   ALL, preset: ", preset.name)
     else:
         preset = props.renderSettingsOtio
-        print("   OTIO, preset: ", preset.name)
+        print("   EDL, preset: ", preset.name)
 
     # with utils.PropertyRestoreCtx ( (scene.render, "filepath"),
     #                         ( scene, "frame_start"),

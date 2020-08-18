@@ -27,7 +27,8 @@ def initGlobalVariables():
 
     uasDebug = False
 
-    print("UAS debug: ", uasDebug)
+    if uasDebug:
+        print("UAS debug: ", uasDebug)
 
 
 def releaseGlobalVariables():

@@ -118,8 +118,8 @@ class UAS_ShotManager_ShotTimeInEdit(Operator):
         props = context.scene.UAS_shot_manager_props
         argArr = json.loads(self.shotSource)
 
-        print("shotSource: ", self.shotSource)
-        print("argArr: ", argArr)
+        # print("shotSource: ", self.shotSource)
+        # print("argArr: ", argArr)
         shot = props.getShot(argArr[0])
 
         if context.window_manager.UAS_shot_manager_shots_play_mode:
@@ -133,6 +133,20 @@ class UAS_ShotManager_ShotTimeInEdit(Operator):
             elif 1 == argArr[1]:
                 context.scene.frame_current = shot.end
 
+        return {"FINISHED"}
+
+
+class UAS_ShotManager_ShowNotes(Operator):
+    bl_idname = "uas_shot_manager.shots_shownotes"
+    bl_label = "Show Shot notes"
+    bl_options = {"INTERNAL"}
+
+    index: IntProperty(default=0)
+
+    def invoke(self, context, event):
+        props = context.scene.UAS_shot_manager_props
+        shot = props.getShot(self.index)
+        shot.selectShotInUI()
         return {"FINISHED"}
 
 
@@ -907,6 +921,7 @@ _classes = (
     UAS_ShotManager_GetSetCurrentFrame,
     UAS_ShotManager_NoLens,
     UAS_ShotManager_ShotTimeInEdit,
+    UAS_ShotManager_ShowNotes,
     # for shot manipulation:
     UAS_ShotManager_ShotAdd,
     UAS_ShotManager_ShotDuplicate,

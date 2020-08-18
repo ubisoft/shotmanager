@@ -237,11 +237,20 @@ class UAS_ShotManager_Props(PropertyGroup):
     )
 
     display_camerabgtools_in_properties: BoolProperty(
-        name="Display Camera Background Image Tools in Shot Prpperties",
+        name="Display Camera Background Image Tools in Shot Properties",
         description="Display the Camera Background Image Tools in the shot properties panels",
         default=False,
         options=set(),
     )
+
+    display_notes_in_properties: BoolProperty(
+        name="Display Shot Notes in Shot Properties",
+        description="Display shot notes in the shot properties panels",
+        default=False,
+        options=set(),
+    )
+
+    display_notes_in_shotlist: BoolProperty(name="Display Color in Shot List", default=True, options=set())
 
     def _get_useLockCameraView(self):
         # Can also use area.spaces.active to get the space assoc. with the area

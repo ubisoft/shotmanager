@@ -25,7 +25,7 @@ class UAS_ShotManager_RenderSettings(PropertyGroup):
 
     writeToDisk: BoolProperty(name="Write to Disk", default=False)
 
-    renderOtioFile: BoolProperty(name="Render Otio File", default=False)
+    renderOtioFile: BoolProperty(name="Render EDL File", default=False)
 
     otioFileType: EnumProperty(
         name="File Type",
