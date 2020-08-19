@@ -176,20 +176,17 @@ class UAS_ShotManager_AddShot_GetCurrentFrameFor(Operator):
 
     def execute(self, context):
         scene = context.scene
-        props = scene.UAS_shot_manager_props
-        retimerProps = props.retimer
+        # props = scene.UAS_shot_manager_props
+        prefs = context.preferences.addons["shotmanager"].preferences
 
         currentFrame = scene.frame_current
 
-        if "start_frame" == self.propertyToUpdate:
-            # retimerProps.start_frame = currentFrame
-
-            pass
-        elif "end_frame" == self.propertyToUpdate:
-            pass
-            # retimerProps.end_frame = currentFrame
-        # else:
-        #     retimerProps[self.propertyToUpdate] = currentFrame
+        if "addShot_start" == self.propertyToUpdate:
+            prefs.addShot_start = min(prefs.addShot_end, currentFrame)
+        elif "addShot_end" == self.propertyToUpdate:
+            prefs.addShot_end = max(prefs.addShot_start, currentFrame)
+        else:
+            prefs[self.propertyToUpdate] = currentFrame
 
         return {"FINISHED"}
 
@@ -205,13 +202,6 @@ class UAS_ShotManager_ShotAdd(Operator):
 
     name: StringProperty(name="Name")
     cameraName: EnumProperty(items=list_cameras_for_new_shot, name="Camera", description="New Shot Camera")
-    #     name = "Camera",
-    #     description = "Select a Camera",
-    #     type = bpy.types.Object,
-    #     poll = lambda self, obj: True if obj.type == "CAMERA" else False )
-    # camera: PointerProperty (
-    start: IntProperty(name="Start")
-    end: IntProperty(name="End")
 
     color: FloatVectorProperty(
         name="Shot Color",
@@ -237,12 +227,21 @@ class UAS_ShotManager_ShotAdd(Operator):
 
     def invoke(self, context, event):
         wm = context.window_manager
-        props = context.scene.UAS_shot_manager_props
+        scene = context.scene
+        props = scene.UAS_shot_manager_props
+        prefs = context.preferences.addons["shotmanager"].preferences
+        selectedShot = props.getSelectedShot()
 
         # self.name = f"{props.new_shot_prefix}{len ( props.getShotsList() ) + 1:02}" + "0"
         self.name = (props.project_shot_format.split("_")[2]).format((len(props.getShotsList()) + 1) * 10)
-        self.start = max(context.scene.frame_current, 10)
-        self.end = self.start + props.new_shot_duration
+
+        # prefs.addShot_start = max(scene.frame_current, 10)
+        if selectedShot is None:
+            prefs.addShot_start = scene.frame_current
+        else:
+            prefs.addShot_start = selectedShot.end + 1
+
+        prefs.addShot_end = prefs.addShot_start + props.new_shot_duration
 
         camName = props.getActiveCameraName()
         if "" != camName:
@@ -266,8 +265,11 @@ class UAS_ShotManager_ShotAdd(Operator):
         return wm.invoke_props_dialog(self)
 
     def draw(self, context):
+        # scene = context.scene
+        # props = scene.UAS_shot_manager_props
+        prefs = context.preferences.addons["shotmanager"].preferences
+
         layout = self.layout
-        #    props = context.scene.UAS_shot_manager_props
 
         box = layout.box()
         row = box.row(align=True)
@@ -284,17 +286,20 @@ class UAS_ShotManager_ShotAdd(Operator):
         col.label(text="Start:")
         col = grid_flow.column(align=False)
         row = col.row(align=True)
-        # row = box.row(align=True)
-        row.prop(self, "start", text="")
-        # row.prop(props.getSelectedShot(), "start", text="")
+        row.prop(prefs, "addShot_start", text="")
         row.operator(
             "uas_shot_manager.addshot_getcurrentframefor", text="", icon="TRIA_UP_BAR"
-        ).propertyToUpdate = "start_frame"
+        ).propertyToUpdate = "addShot_start"
 
+        col.separator(factor=1)
         col = grid_flow.column(align=False)
         col.label(text="End:")
         col = grid_flow.column(align=False)
-        col.prop(self, "end", text="")
+        row = col.row(align=True)
+        row.prop(prefs, "addShot_end", text="")
+        row.operator(
+            "uas_shot_manager.addshot_getcurrentframefor", text="", icon="TRIA_UP_BAR"
+        ).propertyToUpdate = "addShot_end"
 
         col.separator()
         col = grid_flow.column(align=False)
@@ -318,9 +323,9 @@ class UAS_ShotManager_ShotAdd(Operator):
         layout.separator()
 
     def execute(self, context):
-        # return {"FINISHED"}
         scene = context.scene
         props = scene.UAS_shot_manager_props
+        prefs = context.preferences.addons["shotmanager"].preferences
         selectedShotInd = props.getSelectedShotIndex()
         newShotInd = selectedShotInd + 1
 
@@ -345,8 +350,8 @@ class UAS_ShotManager_ShotAdd(Operator):
             atIndex=newShotInd,
             name=self.name,
             # name=props.getUniqueShotName(self.name),
-            start=self.start,
-            end=self.end,
+            start=prefs.addShot_start,
+            end=prefs.addShot_end,
             #            camera  = scene.objects[ self.camera ] if self.camera else None,
             camera=cam,
             color=col,

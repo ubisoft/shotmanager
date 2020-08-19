@@ -91,14 +91,20 @@ class UAS_ShotManager_Shot(PropertyGroup):
         val = self.get("start", 25)
         return val
 
+    # *** behavior here must match the one of start and end of shot preferences ***
     def _set_start(self, value):
         duration = self.getDuration()
         self["start"] = value
         if self.durationLocked:
             self["end"] = self.start + duration - 1
         else:
+            # increase end value if start is superior to end
+            # if self.start > self.end:
+            #     self["end"] = self.start
+
+            # prevent start to go above end (more user error proof)
             if self.start > self.end:
-                self["end"] = self.start
+                self["start"] = self.end
 
     def _update_start(self, context):
         self.selectShotInUI()
@@ -110,7 +116,7 @@ class UAS_ShotManager_Shot(PropertyGroup):
 
     start: IntProperty(
         name="Start",
-        description="Index of the first included frame of the shot",
+        description="Index of the first included frame of the shot.\nNote that start frame cannot exceed end frame",
         get=_get_start,
         set=_set_start,
         update=_update_start,
@@ -124,21 +130,27 @@ class UAS_ShotManager_Shot(PropertyGroup):
         val = self.get("end", 30)
         return val
 
+    # *** behavior here must match the one of start and end of shot preferences ***
     def _set_end(self, value):
         duration = self.getDuration()
         self["end"] = value
         if self.durationLocked:
             self["start"] = self.end - duration + 1
         else:
+            # reduce start value if end is lowr than start
+            # if self.start > self.end:
+            #    self["start"] = self.end
+
+            # prevent end to go below start (more user error proof)
             if self.start > self.end:
-                self["start"] = self.end
+                self["end"] = self.start
 
     def _update_end(self, context):
         self.selectShotInUI()
 
     end: IntProperty(
         name="End",
-        description="Index of the last included frame of the shot",
+        description="Index of the last included frame of the shot.\nNote that end frame cannot be lower than start frame",
         get=_get_end,
         set=_set_end,
         update=_update_end,

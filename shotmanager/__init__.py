@@ -26,6 +26,7 @@ from .operators import prefs
 from .operators import about
 
 from .properties import props
+from .properties import addon_prefs
 
 from .retimer import retimer_ui
 from .retimer import retimer_props
@@ -289,7 +290,10 @@ def register():
     # for cls in classes:
     #     bpy.utils.register_class(cls)
 
+    addon_prefs.register()
+
     utils_operators.register()
+
     # operators
     takes.register()
     shots.register()
@@ -390,6 +394,8 @@ def unregister():
     shots.unregister()
     takes.unregister()
     utils_operators.unregister()
+
+    addon_prefs.unregister()
 
     # for cls in reversed(classes):
     #     bpy.utils.unregister_class(cls)

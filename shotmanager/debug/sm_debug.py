@@ -131,7 +131,6 @@ class UAS_MotionTrackingTab(Operator):
                 ctx = bpy.context.copy()
                 # ctx = {"area": area}
                 ctx["area"] = area
-                print("totototo")
                 # bpy.ops.clip.rebuild_proxy("EXEC_AREA")
                 bpy.ops.sequencer.rebuild_proxy(ctx)
                 break
