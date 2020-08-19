@@ -146,14 +146,14 @@ class UAS_ShotManager_Props(PropertyGroup):
 
     # settings coming from production
     project_name: StringProperty(name="Project Name", default="My Project")
-    project_fps: FloatProperty(name="Project Fps", default=25.0)
-    project_resolution_x: IntProperty(name="Res. X", default=1280)
-    project_resolution_y: IntProperty(name="Res. Y", default=720)
-    project_resolution_framed_x: IntProperty(name="Res. Framed X", default=1280)
-    project_resolution_framed_y: IntProperty(name="Res. Framed Y", default=720)
+    project_fps: FloatProperty(name="Project Fps", min=0.5, max=200.0, default=25.0)
+    project_resolution_x: IntProperty(name="Res. X", min=0, default=1280)
+    project_resolution_y: IntProperty(name="Res. Y", min=0, default=720)
+    project_resolution_framed_x: IntProperty(name="Res. Framed X", min=0, default=1280)
+    project_resolution_framed_y: IntProperty(name="Res. Framed Y", min=0, default=720)
     project_shot_format: StringProperty(name="Shot Format", default=r"Act{:02}_Seq{:04}_Sh{:04}")
 
-    project_shot_handle_duration: IntProperty(name="Project Handle Duration", default=10)
+    project_shot_handle_duration: IntProperty(name="Project Handle Duration", min=0, soft_max=50, default=10)
 
     project_output_format: StringProperty(name="Output Format", default="")
     project_color_space: StringProperty(name="Color Space", default="")
@@ -233,6 +233,19 @@ class UAS_ShotManager_Props(PropertyGroup):
         description="Display the name of the shots near the camera object or frame in the 3D viewport",
         default=True,
         update=_update_display_shotname_in_3dviewport,
+        options=set(),
+    )
+
+    def _update_display_hud_in_3dviewport(self, context):
+        # print("\n*** Stamp Info updated. New state: ", self.stampInfoUsed)
+        if self.display_shotname_in_3dviewport:
+            bpy.ops.uas_shot_manager.draw_hud("INVOKE_DEFAULT")
+
+    display_hud_in_3dviewport: BoolProperty(
+        name="Display HUD in 3D Viewports",
+        description="Display global infos in the 3D viewport",
+        default=True,
+        update=_update_display_hud_in_3dviewport,
         options=set(),
     )
 
@@ -929,6 +942,7 @@ class UAS_ShotManager_Props(PropertyGroup):
         shots = self.get_shots(takeIndex=takeInd)
 
         newShot = shots.add()  # shot is added at the end
+        newShot.parentScene = shot.parentScene
         newShot.parentTakeIndex = takeInd
         newShot.name = shot.name
         newShot.enabled = shot.enabled
@@ -1119,6 +1133,19 @@ class UAS_ShotManager_Props(PropertyGroup):
                 shotList.append(shot)
 
         return shotList
+
+    def getNumShots(self, ignoreDisabled=False, takeIndex=-1):
+        """ Return the number of shots of the specified take
+        """
+        takeInd = (
+            self.getCurrentTakeIndex()
+            if -1 == takeIndex
+            else (takeIndex if 0 <= takeIndex and takeIndex < len(self.getTakes()) else -1)
+        )
+        if -1 == takeInd:
+            return 0
+
+        return self.takes[takeInd].getNumShots(ignoreDisabled=ignoreDisabled)
 
     def getCurrentShotIndex(self, ignoreDisabled=False, takeIndex=-1):
         """ Return the index of the current shot in the enabled shot list of the current take
@@ -1342,6 +1369,20 @@ class UAS_ShotManager_Props(PropertyGroup):
             nextShotInd = -1
 
         return nextShotInd
+
+    def getShotsUsingCamera(self, cam, ignoreDisabled=False, takeIndex=-1):
+        """ Return the list of all the shots used by the specified camera in the specified take
+        """
+        takeInd = (
+            self.getCurrentTakeIndex()
+            if -1 == takeIndex
+            else (takeIndex if 0 <= takeIndex and takeIndex < len(self.getTakes()) else -1)
+        )
+        shotList = []
+        if -1 == takeInd:
+            return shotList
+
+        return self.takes[takeInd].getShotsUsingCamera(cam, ignoreDisabled=ignoreDisabled)
 
     def deleteShotCamera(self, shot):
         """ Check in all takes if the camera is used by another shot and if not then delete it
@@ -1705,14 +1746,15 @@ class UAS_ShotManager_Props(PropertyGroup):
 
     def selectCamera(self, shotIndex):
         shot = self.getShot(shotIndex)
-        if shot is not None and shot.camera is not None:
-            if bpy.context.active_object.mode != "OBJECT":
-                bpy.ops.object.mode_set(mode="OBJECT")
-                # if bpy.context.active_object is None or bpy.context.active_object.mode == "OBJECT":
+        if shot is not None:
             bpy.ops.object.select_all(action="DESELECT")
-            camObj = bpy.context.scene.objects[shot.camera.name]
-            bpy.context.view_layer.objects.active = camObj
-            camObj.select_set(True)
+            if shot.camera is not None:
+                if bpy.context.active_object is not None and bpy.context.active_object.mode != "OBJECT":
+                    bpy.ops.object.mode_set(mode="OBJECT")
+                    # if bpy.context.active_object is None or bpy.context.active_object.mode == "OBJECT":
+                camObj = bpy.context.scene.objects[shot.camera.name]
+                bpy.context.view_layer.objects.active = camObj
+                camObj.select_set(True)
 
     def getActiveCameraName(self):
         cameras = self.getSceneCameras()

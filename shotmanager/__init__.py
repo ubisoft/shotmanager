@@ -26,6 +26,7 @@ from .operators import prefs
 from .operators import about
 
 from .properties import props
+from .properties import addon_prefs
 
 from .retimer import retimer_ui
 from .retimer import retimer_props
@@ -42,6 +43,7 @@ from .utils import utils_handlers
 from .utils import utils_operators
 
 from . import videoshotmanager
+from . import viewport_3d
 
 from .scripts import rrs
 
@@ -54,7 +56,7 @@ bl_info = {
     "author": "Julien Blervaque (aka Werwack), Romain Carriquiry Borchiari",
     "description": "Manage a sequence of shots and cameras in the 3D View - Ubisoft Animation Studio",
     "blender": (2, 83, 1),
-    "version": (1, 3, 14),
+    "version": (1, 3, 16),
     "location": "View3D > UAS Shot Manager",
     "wiki_url": "https://gitlab-ncsa.ubisoft.org/animation-studio/blender/shotmanager-addon/-/wikis/home",
     "warning": "",
@@ -181,6 +183,20 @@ def checkDataVersion_post_load_handler(self, context):
             # props.dataVersion = bpy.context.window_manager.UAS_shot_manager_version
             # print("       Data upgraded to version V. ", props.dataVersion)
 
+    props = bpy.context.scene.UAS_shot_manager_props
+    if props is not None:
+        if props.display_shotname_in_3dviewport:
+            try:
+                bpy.ops.uas_shot_manager.draw_cameras_ui("INVOKE_DEFAULT")
+            except Exception as e:
+                print("Paf in draw cameras ui  *")
+
+        if props.display_hud_in_3dviewport:
+            try:
+                bpy.ops.uas_shot_manager.draw_hud("INVOKE_DEFAULT")
+            except Exception as e:
+                print("Paf in draw hud  *")
+
 
 # wkip doesn t work!!! Property values changed right before the save are not saved in the file!
 # @persistent
@@ -274,7 +290,10 @@ def register():
     # for cls in classes:
     #     bpy.utils.register_class(cls)
 
+    addon_prefs.register()
+
     utils_operators.register()
+
     # operators
     takes.register()
     shots.register()
@@ -295,6 +314,7 @@ def register():
     vse_render.register()
     utils_render.register()
     general.register()
+    viewport_3d.register()
     videoshotmanager.register()
     prefs.register()
     about.register()
@@ -337,6 +357,14 @@ def register():
 
 def unregister():
 
+    print("\n*** --- Unregistering UAS Shot Manager Add-on --- ***\n")
+
+    #    bpy.context.scene.UAS_shot_manager_props.display_shotname_in_3dviewport = False
+
+    utils_handlers.removeAllHandlerOccurences(
+        checkDataVersion_post_load_handler, handlerCateg=bpy.app.handlers.load_post
+    )
+
     # debug tools
     if config.uasDebug:
         sm_debug.unregister()
@@ -345,6 +373,7 @@ def unregister():
     about.unregister()
     prefs.unregister()
     videoshotmanager.unregister()
+    viewport_3d.unregister()
     general.unregister()
     utils_render.unregister()
     vse_render.unregister()
@@ -365,6 +394,8 @@ def unregister():
     shots.unregister()
     takes.unregister()
     utils_operators.unregister()
+
+    addon_prefs.unregister()
 
     # for cls in reversed(classes):
     #     bpy.utils.unregister_class(cls)

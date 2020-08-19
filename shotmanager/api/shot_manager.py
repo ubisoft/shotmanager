@@ -153,6 +153,12 @@ def get_shots_list(shot_manager, ignore_disabled=False, take_index=-1):
     return shot_manager.getShotsList(ignoreDisabled=ignore_disabled, takeIndex=take_index)
 
 
+def get_num_shots(shot_manager, ignore_disabled=False, take_index=-1):
+    """ Return the number of shots of the specified take
+    """
+    return shot_manager.getNumShots(ignoreDisabled=ignore_disabled, takeIndex=take_index)
+
+
 def get_current_shot_index(shot_manager, ignore_disabled=False, take_index=-1):
     """ Return the index of the current shot in the enabled shot list of the current take
         Use this function instead of a direct call to shot_manager.current_shot_index
@@ -283,6 +289,12 @@ def get_first_shot_index_after_frame(shot_manager, frame_index, ignore_disabled=
         frameIndex is not in a shot), -1 if not found
     """
     return shot_manager.getFirstShotIndexAfterFrame(frame_index, ignoreDisabled=ignore_disabled)
+
+
+def get_shots_using_camera(cam, ignore_disabled=False, take_index=-1):
+    """ Return the list of all the shots used by the specified camera in the specified take
+    """
+    return shot_manager.getShotsUsingCamera(self, cam, ignoreDisabled=ignore_disabled, takeIndex=take_index)
 
 
 ####################

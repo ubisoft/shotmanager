@@ -2,6 +2,7 @@ import bpy
 
 import os
 from pathlib import Path
+import bpy.utils.previews
 
 
 def initGlobalVariables():
@@ -25,7 +26,7 @@ def initGlobalVariables():
     else:
         uasDebug = True
 
-    uasDebug = False
+    uasDebug = True
 
     if uasDebug:
         print("UAS debug: ", uasDebug)

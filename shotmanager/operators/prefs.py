@@ -300,6 +300,7 @@ class UAS_ShotManager_Shots_Prefs(Operator):
 
         col.use_property_split = True
         col.prop(props, "display_shotname_in_3dviewport", text="Display Shot name in 3D Viewport")
+        col.prop(props, "display_hud_in_3dviewport", text="Display HUD in 3D Viewport")
 
         # Properties themes
         ###############

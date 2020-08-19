@@ -5,7 +5,7 @@ from bpy.types import Panel, Operator, Menu
 from bpy.props import StringProperty
 
 from ..config import config
-from ..viewport_3d.ogl_ui import UAS_ShotManager_DrawTimeline, UAS_ShotManager_DrawCameras_UI
+from ..viewport_3d.ogl_ui import UAS_ShotManager_DrawTimeline
 
 from ..utils import utils
 
@@ -211,8 +211,10 @@ class UAS_PT_ShotManager(Panel):
         if len(props.takes):
             box = layout.box()
             row = box.row()
-            numShots = len(props.getShotsList(ignoreDisabled=False))
-            numEnabledShots = len(props.getShotsList(ignoreDisabled=True))
+            # numShots = len(props.getShotsList(ignoreDisabled=False))
+            # numEnabledShots = len(props.getShotsList(ignoreDisabled=True))
+            numShots = props.getNumShots()
+            numEnabledShots = props.getNumShots(ignoreDisabled=True)
 
             column_flow = row.column_flow(columns=3)
             subrow = column_flow.row()
@@ -326,6 +328,14 @@ class UAS_UL_ShotManager_Items(bpy.types.UIList):
         cam = "Cam" if current_shot_index == index else ""
         currentFrame = context.scene.frame_current
 
+        # check if the camera still exists in the scene
+        if item.camera is not None:
+            try:
+                if bpy.context.scene.objects[item.camera.name] is None:
+                    item.camera = None
+            except Exception as e:
+                item.camera = None
+
         # draw the Duration components
 
         if item.enabled:
@@ -348,7 +358,7 @@ class UAS_UL_ShotManager_Items(bpy.types.UIList):
             if props.display_selectbut_in_shotlist:
                 row.operator("uas_shot_manager.shots_selectcamera", text="", icon="RESTRICT_SELECT_OFF").index = index
 
-            if props.display_notes_in_shotlist:
+            if props.display_notes_in_properties and props.display_notes_in_shotlist:
                 row = row.row(align=True)
                 row.scale_x = 1.0
 
@@ -989,7 +999,6 @@ classes = (
     UAS_MT_ShotManager_Shots_ToolsMenu,
     UAS_ShotManager_DrawTimeline,
     UAS_PT_ShotManager_Initialize,
-    UAS_ShotManager_DrawCameras_UI,
     #  UAS_Retimer,
     UAS_ShotManager_OpenFileBrowserForCamBG,
 )
