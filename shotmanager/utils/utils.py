@@ -228,9 +228,12 @@ def duplicateObject(sourceObject):
     """ Duplicate (deepcopy) an object and place it in the same collection
     """
     newObject = sourceObject.copy()
-    newObject.animation_data.action = sourceObject.animation_data.action.copy()
+    if newObject.animation_data is not None:
+        newObject.animation_data.action = sourceObject.animation_data.action.copy()
+
     newObject.data = sourceObject.data.copy()
-    newObject.data.animation_data.action = sourceObject.data.animation_data.action.copy()
+    if newObject.data.animation_data is not None:
+        newObject.data.animation_data.action = sourceObject.data.animation_data.action.copy()
 
     sourceCollections = sourceObject.users_collection
     if len(sourceCollections):
@@ -246,14 +249,34 @@ def create_new_camera(camera_name):
     cam_ob.name = cam.name
     bpy.context.collection.objects.link(cam_ob)
     bpy.data.cameras[cam.name].lens = 40
-    cam_ob.location = (0.0, 0.0, 0.0)
+
+    cam_ob.location = (0.0, -2.5, 0.0)
+    cam_ob.location = bpy.context.scene.cursor.location
+
+    import math
+    import mathutils
+
+    eul = mathutils.Euler((math.radians(90.0), 0.0, 0.0), "XYZ")
+
+    if cam_ob.rotation_mode == "QUATERNION":
+        cam_ob.rotation_quaternion = eul.to_quaternion()
+    elif cam_ob.rotation_mode == "AXIS_ANGLE":
+        q = eul.to_quaternion()
+        cam_ob.rotation_axis_angle[0] = q.angle
+        cam_ob.rotation_axis_angle[1:] = q.axis
+    else:
+        cam_ob.rotation_euler = (
+            eul if eul.order == cam_ob.rotation_mode else (eul.to_quaternion().to_euler(cam_ob.rotation_mode))
+        )
+
     # cam_ob.data.name = cam.name
 
     return cam_ob
 
 
 def clear_selection():
-    bpy.context.active_object.select_set(False)
+    if bpy.context.active_object is not None:
+        bpy.context.active_object.select_set(False)
     for obj in bpy.context.selected_objects:
         bpy.context.view_layer.objects.active = obj
 

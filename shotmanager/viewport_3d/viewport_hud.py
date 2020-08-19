@@ -54,7 +54,6 @@ class UAS_ShotManager_DrawCameras_UI(bpy.types.Operator):
         self.unregister_handlers(context)
 
     def draw_camera_ui(self, context):
-        self.draw_shots_names(context)
         try:
             if bpy.context.space_data.overlay.show_overlays:
                 self.draw_shots_names(context)

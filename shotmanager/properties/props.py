@@ -942,6 +942,7 @@ class UAS_ShotManager_Props(PropertyGroup):
         shots = self.get_shots(takeIndex=takeInd)
 
         newShot = shots.add()  # shot is added at the end
+        newShot.parentScene = shot.parentScene
         newShot.parentTakeIndex = takeInd
         newShot.name = shot.name
         newShot.enabled = shot.enabled

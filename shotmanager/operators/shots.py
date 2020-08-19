@@ -375,7 +375,7 @@ class UAS_ShotManager_ShotDuplicate(Operator):
     bl_idname = "uas_shot_manager.duplicate_shot"
     bl_label = "Duplicate Selected Shot"
     bl_description = "Duplicate the shot selected in the shot list." "\nThe new shot is put after the selected shot"
-    bl_options = {"REGISTER", "UNDO"}
+    bl_options = {"UNDO"}
 
     name: StringProperty(name="Name")
     startAtCurrentTime: BoolProperty(name="Start At Current Frame", default=True)
