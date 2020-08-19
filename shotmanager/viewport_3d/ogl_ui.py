@@ -583,6 +583,9 @@ class BL_UI_Timeline:
             offset_x += int(self.width * float(shot.end + 1 - shot.start) / total_range)
 
     def draw(self):
+        if not bpy.context.space_data.overlay.show_overlays:
+            return
+
         self.width = self.context.area.width
         area_height = self.get_area_height()
 
@@ -614,6 +617,9 @@ class BL_UI_Timeline:
         self.frame_cursor.draw()
 
     def handle_event(self, event):
+        if not bpy.context.space_data.overlay.show_overlays:
+            return
+
         if self.frame_cursor.handle_event(event):
             return True
 
