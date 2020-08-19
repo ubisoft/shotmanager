@@ -2,6 +2,7 @@ import bpy
 
 import os
 from pathlib import Path
+import bpy.utils.previews
 
 
 def initGlobalVariables():

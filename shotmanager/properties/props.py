@@ -236,6 +236,19 @@ class UAS_ShotManager_Props(PropertyGroup):
         options=set(),
     )
 
+    def _update_display_hud_in_3dviewport(self, context):
+        # print("\n*** Stamp Info updated. New state: ", self.stampInfoUsed)
+        if self.display_shotname_in_3dviewport:
+            bpy.ops.uas_shot_manager.draw_hud("INVOKE_DEFAULT")
+
+    display_hud_in_3dviewport: BoolProperty(
+        name="Display HUD in 3D Viewports",
+        description="Display global infos in the 3D viewport",
+        default=True,
+        update=_update_display_hud_in_3dviewport,
+        options=set(),
+    )
+
     display_camerabgtools_in_properties: BoolProperty(
         name="Display Camera Background Image Tools in Shot Properties",
         description="Display the Camera Background Image Tools in the shot properties panels",
@@ -1120,6 +1133,19 @@ class UAS_ShotManager_Props(PropertyGroup):
 
         return shotList
 
+    def getNumShots(self, ignoreDisabled=False, takeIndex=-1):
+        """ Return the number of shots of the specified take
+        """
+        takeInd = (
+            self.getCurrentTakeIndex()
+            if -1 == takeIndex
+            else (takeIndex if 0 <= takeIndex and takeIndex < len(self.getTakes()) else -1)
+        )
+        if -1 == takeInd:
+            return 0
+
+        return self.takes[takeInd].getNumShots(ignoreDisabled=ignoreDisabled)
+
     def getCurrentShotIndex(self, ignoreDisabled=False, takeIndex=-1):
         """ Return the index of the current shot in the enabled shot list of the current take
             Use this function instead of a direct call to self.current_shot_index
@@ -1342,6 +1368,20 @@ class UAS_ShotManager_Props(PropertyGroup):
             nextShotInd = -1
 
         return nextShotInd
+
+    def getShotsUsingCamera(self, cam, ignoreDisabled=False, takeIndex=-1):
+        """ Return the list of all the shots used by the specified camera in the specified take
+        """
+        takeInd = (
+            self.getCurrentTakeIndex()
+            if -1 == takeIndex
+            else (takeIndex if 0 <= takeIndex and takeIndex < len(self.getTakes()) else -1)
+        )
+        shotList = []
+        if -1 == takeInd:
+            return shotList
+
+        return self.takes[takeInd].getShotsUsingCamera(cam, ignoreDisabled=ignoreDisabled)
 
     def deleteShotCamera(self, shot):
         """ Check in all takes if the camera is used by another shot and if not then delete it
@@ -1705,14 +1745,15 @@ class UAS_ShotManager_Props(PropertyGroup):
 
     def selectCamera(self, shotIndex):
         shot = self.getShot(shotIndex)
-        if shot is not None and shot.camera is not None:
-            if bpy.context.active_object.mode != "OBJECT":
-                bpy.ops.object.mode_set(mode="OBJECT")
-                # if bpy.context.active_object is None or bpy.context.active_object.mode == "OBJECT":
+        if shot is not None:
             bpy.ops.object.select_all(action="DESELECT")
-            camObj = bpy.context.scene.objects[shot.camera.name]
-            bpy.context.view_layer.objects.active = camObj
-            camObj.select_set(True)
+            if shot.camera is not None:
+                if bpy.context.active_object is not None and bpy.context.active_object.mode != "OBJECT":
+                    bpy.ops.object.mode_set(mode="OBJECT")
+                    # if bpy.context.active_object is None or bpy.context.active_object.mode == "OBJECT":
+                camObj = bpy.context.scene.objects[shot.camera.name]
+                bpy.context.view_layer.objects.active = camObj
+                camObj.select_set(True)
 
     def getActiveCameraName(self):
         cameras = self.getSceneCameras()

@@ -166,6 +166,34 @@ def list_cameras_for_new_shot(self, context):
     return res
 
 
+class UAS_ShotManager_AddShot_GetCurrentFrameFor(Operator):
+    bl_idname = "uas_shot_manager.addshot_getcurrentframefor"
+    bl_label = "Get Current Frame"
+    bl_description = "Use the current frame for the specifed component"
+    bl_options = {"INTERNAL"}
+
+    propertyToUpdate: StringProperty()
+
+    def execute(self, context):
+        scene = context.scene
+        props = scene.UAS_shot_manager_props
+        retimerProps = props.retimer
+
+        currentFrame = scene.frame_current
+
+        if "start_frame" == self.propertyToUpdate:
+            # retimerProps.start_frame = currentFrame
+
+            pass
+        elif "end_frame" == self.propertyToUpdate:
+            pass
+            # retimerProps.end_frame = currentFrame
+        # else:
+        #     retimerProps[self.propertyToUpdate] = currentFrame
+
+        return {"FINISHED"}
+
+
 class UAS_ShotManager_ShotAdd(Operator):
     bl_idname = "uas_shot_manager.add_shot"
     bl_label = "Add New Shot"
@@ -173,7 +201,7 @@ class UAS_ShotManager_ShotAdd(Operator):
         "Add a new shot starting at the current frame and using the selected camera"
         "\nThe new shot is put after the selected shot"
     )
-    bl_options = {"INTERNAL", "REGISTER", "UNDO"}
+    bl_options = {"INTERNAL", "UNDO"}
 
     name: StringProperty(name="Name")
     cameraName: EnumProperty(items=list_cameras_for_new_shot, name="Camera", description="New Shot Camera")
@@ -187,13 +215,23 @@ class UAS_ShotManager_ShotAdd(Operator):
 
     color: FloatVectorProperty(
         name="Shot Color",
+        description="According to your preferences it can be a unique shot color\nor the color of the camera object (default)",
         subtype="COLOR",
         size=3,
-        description="According to your preferences it can be a unique shot color\nor the color of the camera object (default)",
         min=0.0,
         max=1.0,
         precision=2,
         # default=(uniform(0, 1), uniform(0, 1), uniform(0, 1)),
+        default=(1.0, 1.0, 1.0),
+    )
+    colorFromExistingCam: FloatVectorProperty(
+        name="Shot Color",
+        description="Color of the chosen camera",
+        subtype="COLOR",
+        size=3,
+        min=0.0,
+        max=1.0,
+        precision=2,
         default=(1.0, 1.0, 1.0),
     )
 
@@ -229,6 +267,7 @@ class UAS_ShotManager_ShotAdd(Operator):
 
     def draw(self, context):
         layout = self.layout
+        #    props = context.scene.UAS_shot_manager_props
 
         box = layout.box()
         row = box.row(align=True)
@@ -244,7 +283,14 @@ class UAS_ShotManager_ShotAdd(Operator):
         col = grid_flow.column(align=False)
         col.label(text="Start:")
         col = grid_flow.column(align=False)
-        col.prop(self, "start", text="")
+        row = col.row(align=True)
+        # row = box.row(align=True)
+        row.prop(self, "start", text="")
+        # row.prop(props.getSelectedShot(), "start", text="")
+        row.operator(
+            "uas_shot_manager.addshot_getcurrentframefor", text="", icon="TRIA_UP_BAR"
+        ).propertyToUpdate = "start_frame"
+
         col = grid_flow.column(align=False)
         col.label(text="End:")
         col = grid_flow.column(align=False)
@@ -263,11 +309,16 @@ class UAS_ShotManager_ShotAdd(Operator):
         col = grid_flow.column(align=False)
         col.label(text="Color:")
         col = grid_flow.column(align=True)
-        col.prop(self, "color", text="")
+        if "NEW_CAMERA" == self.cameraName:
+            col.prop(self, "color", text="")
+        else:
+            self.colorFromExistingCam = bpy.context.scene.objects[self.cameraName].color[0:3]
+            col.prop(self, "colorFromExistingCam", text="")
 
         layout.separator()
 
     def execute(self, context):
+        # return {"FINISHED"}
         scene = context.scene
         props = scene.UAS_shot_manager_props
         selectedShotInd = props.getSelectedShotIndex()
@@ -308,6 +359,10 @@ class UAS_ShotManager_ShotAdd(Operator):
 
         utils.clear_selection()
         utils.add_to_selection(cam)
+
+        if 0 < props.getNumShots() and props.display_shotname_in_3dviewport:
+            bpy.ops.uas_shot_manager.draw_cameras_ui("INVOKE_DEFAULT")
+            bpy.ops.uas_shot_manager.draw_hud("INVOKE_DEFAULT")
 
         # removed, now done in addShot
         # props.setCurrentShotByIndex(newShotInd)
@@ -669,7 +724,7 @@ class UAS_ShotManager_CreateNShots(Operator):
     bl_idname = "uas_shot_manager.create_n_shots"
     bl_label = "Create Specifed Number of Shots"
     bl_description = "Create a specified number of shots with the same camera"
-    bl_options = {"REGISTER", "UNDO"}
+    bl_options = {"REGISTER"}
 
     name: StringProperty(name="Name")
     cameraName: EnumProperty(items=list_cameras, name="Camera", description="Select a Camera")
@@ -790,7 +845,7 @@ class UAS_ShotManager_CreateNShots(Operator):
 
         props.setCurrentShotByIndex(newShotInd - 1)
         props.setSelectedShotByIndex(newShotInd - 1)
-
+        bpy.ops.ed.undo_push()
         return {"FINISHED"}
 
 
@@ -809,7 +864,7 @@ class UAS_ShotManager_Shots_SelectCamera(Operator):
 
     def execute(self, context):
         context.scene.UAS_shot_manager_props.setSelectedShotByIndex(self.index)
-        if context.active_object.mode != "OBJECT":
+        if context.active_object is not None and context.active_object.mode != "OBJECT":
             bpy.ops.object.mode_set(mode="OBJECT")
         context.scene.UAS_shot_manager_props.selectCamera(self.index)
         return {"FINISHED"}
@@ -923,6 +978,7 @@ _classes = (
     UAS_ShotManager_ShotTimeInEdit,
     UAS_ShotManager_ShowNotes,
     # for shot manipulation:
+    UAS_ShotManager_AddShot_GetCurrentFrameFor,
     UAS_ShotManager_ShotAdd,
     UAS_ShotManager_ShotDuplicate,
     UAS_ShotManager_RemoveShot,

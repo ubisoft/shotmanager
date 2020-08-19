@@ -211,8 +211,10 @@ class UAS_PT_ShotManager(Panel):
         if len(props.takes):
             box = layout.box()
             row = box.row()
-            numShots = len(props.getShotsList(ignoreDisabled=False))
-            numEnabledShots = len(props.getShotsList(ignoreDisabled=True))
+            # numShots = len(props.getShotsList(ignoreDisabled=False))
+            # numEnabledShots = len(props.getShotsList(ignoreDisabled=True))
+            numShots = props.getNumShots()
+            numEnabledShots = props.getNumShots(ignoreDisabled=True)
 
             column_flow = row.column_flow(columns=3)
             subrow = column_flow.row()
@@ -325,6 +327,14 @@ class UAS_UL_ShotManager_Items(bpy.types.UIList):
 
         cam = "Cam" if current_shot_index == index else ""
         currentFrame = context.scene.frame_current
+
+        # check if the camera still exists in the scene
+        if item.camera is not None:
+            try:
+                if bpy.context.scene.objects[item.camera.name] is None:
+                    item.camera = None
+            except Exception as e:
+                item.camera = None
 
         # draw the Duration components
 

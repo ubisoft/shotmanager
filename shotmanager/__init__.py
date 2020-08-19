@@ -185,7 +185,16 @@ def checkDataVersion_post_load_handler(self, context):
     props = bpy.context.scene.UAS_shot_manager_props
     if props is not None:
         if props.display_shotname_in_3dviewport:
-            bpy.ops.uas_shot_manager.draw_cameras_ui("INVOKE_DEFAULT")
+            try:
+                bpy.ops.uas_shot_manager.draw_cameras_ui("INVOKE_DEFAULT")
+            except Exception as e:
+                print("Paf in draw cameras ui  *")
+
+        if props.display_hud_in_3dviewport:
+            try:
+                bpy.ops.uas_shot_manager.draw_hud("INVOKE_DEFAULT")
+            except Exception as e:
+                print("Paf in draw hud  *")
 
 
 # wkip doesn t work!!! Property values changed right before the save are not saved in the file!
@@ -343,6 +352,14 @@ def register():
 
 
 def unregister():
+
+    print("\n*** --- Unregistering UAS Shot Manager Add-on --- ***\n")
+
+    #    bpy.context.scene.UAS_shot_manager_props.display_shotname_in_3dviewport = False
+
+    utils_handlers.removeAllHandlerOccurences(
+        checkDataVersion_post_load_handler, handlerCateg=bpy.app.handlers.load_post
+    )
 
     # debug tools
     if config.uasDebug:

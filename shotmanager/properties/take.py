@@ -93,3 +93,28 @@ class UAS_ShotManager_Take(PropertyGroup):
     name: StringProperty(name="Name", get=_get_name, set=_set_name)
 
     shots: CollectionProperty(type=UAS_ShotManager_Shot)
+
+    def getNumShots(self, ignoreDisabled=False):
+        """ Return the number of shots of the take
+        """
+        numShots = 0
+        if ignoreDisabled:
+            for shot in self.shots:
+                if shot.enabled:
+                    numShots += 1
+        else:
+            if self.shots is None:
+                numShots = 0
+            else:
+                numShots = len(self.shots)
+        return numShots
+
+    def getShotsUsingCamera(self, cam, ignoreDisabled=False):
+        """ Return the list of all the shots used by the specified camera
+        """
+        shotList = []
+        for shot in self.shots:
+            if cam == shot.camera and (not ignoreDisabled or shot.enabled):
+                shotList.append(shot)
+
+        return shotList
