@@ -73,9 +73,9 @@ class UAS_ShotManager_OT_Create_Shots_From_OTIO(Operator):
     bl_idname = "uasshotmanager.createshotsfromotio"
     bl_label = "Import/Update Shots from EDL File"
     bl_description = "Open EDL file (Final Cut XML, OTIO...) to import a set of shots"
-    bl_options = {"INTERNAL", "REGISTER", "UNDO"}
+    bl_options = {"INTERNAL", "UNDO"}
 
-    pathProp: StringProperty()
+    otioFile: StringProperty()
     filepath: StringProperty(subtype="FILE_PATH")
     filter_glob: StringProperty(default="*.xml;*.otio", options={"HIDDEN"})
 
@@ -204,7 +204,7 @@ class UAS_ShotManager_OT_Import_Edit_From_OTIO(Operator):
     bl_idname = "uasshotmanager.importeditfromotio"
     bl_label = "Import Edit from EDL file"
     bl_description = "Open EDL file (Final Cut XML, OTIO...) to import its content"
-    bl_options = {"INTERNAL", "REGISTER", "UNDO"}
+    bl_options = {"INTERNAL", "UNDO"}
 
     otioFile: StringProperty()
     importAtFrame: IntProperty(
@@ -285,14 +285,14 @@ class UAS_ShotManager_OT_ImportSound_OTIO(Operator):
     bl_description = "Import sound tracks from OTIO File"
     bl_options = {"INTERNAL", "REGISTER", "UNDO"}
 
-    pathProp: StringProperty()
+    otioFile: StringProperty()
     filepath: StringProperty(subtype="FILE_PATH")
     filter_glob: StringProperty(default="*.xml;*.otio", options={"HIDDEN"})
 
     def invoke(self, context, event):
 
-        # if self.pathProp in context.window_manager.UAS_vse_render:
-        #     self.filepath = context.window_manager.UAS_vse_render[self.pathProp]
+        # if self.otioFile in context.window_manager.UAS_vse_render:
+        #     self.filepath = context.window_manager.UAS_vse_render[self.otioFile]
         # else:
         self.filepath = ""
         # https://docs.blender.org/api/current/bpy.types.WindowManager.html
@@ -340,14 +340,14 @@ class UAS_OTIO_OpenFileBrowser(Operator, ImportHelper):  # from bpy_extras.io_ut
         default="CREATE_SHOTS",
     )
 
-    pathProp: StringProperty()
+    otioFile: StringProperty()
     filepath: StringProperty(subtype="FILE_PATH")
     filter_glob: StringProperty(default="*.xml;*.otio", options={"HIDDEN"})
 
     def invoke(self, context, event):
 
-        # if self.pathProp in context.window_manager.UAS_vse_render:
-        #     self.filepath = context.window_manager.UAS_vse_render[self.pathProp]
+        # if self.otioFile in context.window_manager.UAS_vse_render:
+        #     self.filepath = context.window_manager.UAS_vse_render[self.otioFile]
         # else:
         self.filepath = ""
         # https://docs.blender.org/api/current/bpy.types.WindowManager.html
