@@ -270,6 +270,20 @@ class UAS_MT_VideoShotManager_ToolsMenu(Menu):
         row.operator_context = "INVOKE_DEFAULT"
         row.operator("uasotio.openfilebrowser", text="Import Edit From EDL").importMode = "IMPORT_EDIT"
 
+        # wkip debug - to remove:
+        if config.uasDebug:
+            row = layout.row(align=True)
+            row.operator("uasshotmanager.importeditfromotio", text="Import Edit From EDL - Debug")
+
+        row = layout.row(align=True)
+        row.operator_context = "INVOKE_DEFAULT"
+        row.operator("uasotio.openfilebrowser", text="Parse Edit From EDL").importMode = "PARSE_EDIT"
+
+        # wkip debug - to remove:
+        if config.uasDebug:
+            row = layout.row(align=True)
+            row.operator("uasshotmanager.parseeditfromotio", text="Import Edit From EDL - Debug").otioFile = ""
+
         layout.separator()
 
 

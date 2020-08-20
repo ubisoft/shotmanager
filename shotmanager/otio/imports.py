@@ -7,9 +7,43 @@ import re
 import bpy
 import opentimelineio
 
+
 from ..utils import utils
 
+from . import otio_wrapper as ow
+
 _logger = logging.getLogger(__name__)
+
+
+def getSequenceListFromOtio(otioFile):
+
+    timeline = opentimelineio.adapters.read_from_file(otioFile)
+
+    media_list = ow.get_media_list(timeline, track_type="VIDEO")
+
+    import os
+
+    # get file names only
+    file_list = list()
+    for item in media_list:
+        filename = os.path.split(item)[1]
+        file_list.append(os.path.splitext(filename)[0])
+        # print(item)
+
+    # get sequences
+    seq_list = list()
+    seq_pattern = "_seq"
+    for item in file_list:
+        if seq_pattern in item.lower():
+            itemSplited = item.split("_")
+            if 2 <= len(itemSplited):
+                if itemSplited[1] not in seq_list:
+                    seq_list.append(itemSplited[1])
+
+    for item in seq_list:
+        print(item)
+
+    return seq_list
 
 
 def createShotsFromOtio(
@@ -68,7 +102,7 @@ def createShotsFromOtio(
                     # add media as camera background
                     if useMediaAsCameraBG:
                         print("Import Otio clip.media_reference.target_url: ", clip.media_reference.target_url)
-                        media_path = Path(utils.file_path_from_uri(clip.media_reference.target_url))
+                        media_path = Path(utils.file_path_from_url(clip.media_reference.target_url))
                         print("Import Otio media_path: ", media_path)
                         if not media_path.exists():
                             # Lets find it inside next to the xml
@@ -149,14 +183,14 @@ def importOtioToVSE(otioFile, vse, importAtFrame=0, importVideoTracks=True, impo
 
     import opentimelineio
 
-    def importAudioTrack(track, trackInd, importAtFrame):
+    def importTrack(track, trackInd, importAtFrame):
         for i, clip in enumerate(track.each_clip()):
             clipName = clip.name
             print("   Clip name: ", clipName)
             print("   Clip ind: ", i)
 
             print("Import Otio clip.media_reference.target_url: ", clip.media_reference.target_url)
-            media_path = Path(utils.file_path_from_uri(clip.media_reference.target_url))
+            media_path = Path(utils.file_path_from_url(clip.media_reference.target_url))
             print("Import Otio media_path: ", media_path)
             print("  Import at frame: ", importAtFrame)
             if not media_path.exists():
@@ -215,11 +249,17 @@ def importOtioToVSE(otioFile, vse, importAtFrame=0, importVideoTracks=True, impo
     # if len(timeline.video_tracks()):
     #     track = timeline.video_tracks()[0]  # Assume the first one contains the shots.
 
+    # video
+    if importVideoTracks:
+        for trackInd, editTrack in enumerate(timeline.video_tracks()):
+            print(f"\nChannel Name: {editTrack.name}, {trackInd}")
+            importTrack(editTrack, trackInd + 1, importAtFrame)
+
     # audio
     if importAudioTracks:
         for trackInd, editTrack in enumerate(timeline.audio_tracks()):
             print(f"\nChannel Name: {editTrack.name}, {trackInd}")
-            importAudioTrack(editTrack, trackInd + 1, importAtFrame)
+            importTrack(editTrack, trackInd + 1, importAtFrame)
 
 
 def import_otio(scene, filepath, old_dir, new_dir):

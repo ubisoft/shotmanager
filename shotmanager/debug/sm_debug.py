@@ -106,6 +106,37 @@ class UAS_PT_Shot_Manager_Debug(Panel):
         row = layout.row()
         row.operator("uas.motiontrackingtab", text="Open Motion Tracking")
 
+        layout.separator()
+        row = layout.row()
+        row.operator("uas.debug_runfunction", text="parseOtioFile").functionName = "parseOtioFile"
+
+
+class UAS_Debug_RunFunction(Operator):
+    bl_idname = "uas.debug_runfunction"
+    bl_label = "fff"
+    bl_description = ""
+
+    functionName: StringProperty()
+
+    def execute(self, context):
+        print("\n----------------------------------------------------")
+        print("\nUAS_Debug_RunFunction: ", self.functionName)
+        print("\n")
+
+        if "parseOtioFile" == self.functionName:
+            from ..otio.otio_wrapper import parseOtioFile
+            from ..otio.imports import getSequenceListFromOtio
+
+            otioFile = (
+                r"Z:\EvalSofts\Blender\DevPython_Data\UAS_ShotManager_Data\ImportEDLPremiere\ImportEDLPremiere.xml"
+            )
+            otioFile = r"C:\_UAS_ROOT\RRSpecial\04_ActsPredec\Act01\Exports\RRSpecial_ACT01_AQ_XML_200730\RRSpecial_ACT01_AQ_200730__FromPremiere.xml"
+
+            getSequenceListFromOtio(otioFile)
+            # parseOtioFile(otioFile)
+
+        return {"FINISHED"}
+
 
 class UAS_MotionTrackingTab(Operator):
     bl_idname = "uas.motiontrackingtab"
@@ -160,7 +191,11 @@ class UAS_VSETruc(Operator):
         return {"FINISHED"}
 
 
-_classes = (UAS_PT_Shot_Manager_Debug, UAS_MotionTrackingTab)
+_classes = (
+    UAS_PT_Shot_Manager_Debug,
+    UAS_MotionTrackingTab,
+    UAS_Debug_RunFunction,
+)
 
 
 def register():
