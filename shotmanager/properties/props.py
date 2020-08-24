@@ -42,8 +42,13 @@ class UAS_ShotManager_Props(PropertyGroup):
     )
 
     def initialize_shot_manager(self):
-        _logger.info("\nInitializing Shot Manager...\n")
-        self.parentScene = self.getParentScene()
+        _logger.info(f"\nInitializing Shot Manager... Scene: {bpy.context.scene.name}")
+        # self.parentScene = self.getParentScene()
+
+        if self.parentScene is None:
+            self.parentScene = self.findParentScene()
+        _logger.info(f"\n  self.parentScene : {self.parentScene}")
+
         self.dataVersion = bpy.context.window_manager.UAS_shot_manager_version
         self.createDefaultTake()
         self.createRenderSettings()
@@ -66,6 +71,16 @@ class UAS_ShotManager_Props(PropertyGroup):
 
     parentScene: PointerProperty(type=Scene)
 
+    def findParentScene(self):
+        for scn in bpy.data.scenes:
+            if "UAS_shot_manager_props" in scn:
+                props = scn.UAS_shot_manager_props
+                if self == props:
+                    #    print("findParentScene: Scene found")
+                    return scn
+        # print("findParentScene: Scene NOT found")
+        return None
+
     def getParentScene(self):
         parentScn = None
         try:
@@ -73,18 +88,14 @@ class UAS_ShotManager_Props(PropertyGroup):
         except Exception:  # as e
             print("Unexpected error:", sys.exc_info()[0])
 
-        if parentScn is not None:
-            return parentScn
+        # if parentScn is not None:
+        #     return parentScn
+        if parentScn is None:
+            print("\n\n WkError: parentScn in None in Props !!! *** ")
 
-        for scn in bpy.data.scenes:
-            if "UAS_shot_manager_props" in scn:
-                props = scn.UAS_shot_manager_props
-                if self == props:
-                    #    print("getParentScene: Scene found")
-                    self.parentScene = scn
-                    return scn
-        # print("getParentScene: Scene NOT found")
-        return None
+        # findParentScene is done in initialize function
+
+        return parentScn
 
     retimer: PointerProperty(type=UAS_Retimer_Properties)
 

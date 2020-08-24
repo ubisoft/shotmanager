@@ -1,9 +1,13 @@
+import logging
+
 import os
 import json
 
 import bpy
 from shotmanager.otio.exports import exportOtio
 from shotmanager.rendering import rendering
+
+_logger = logging.getLogger(__name__)
 
 
 def verbose_set(key: str, default: bool, override: str, verbose: bool = True) -> None:
@@ -74,7 +78,13 @@ def initializeForRRS(override_existing: bool, verbose=False):
 
 def publishRRS(prodFilePath, takeIndex=-1, verbose=False, useCache=False, fileListOnly=False):
     """ Return a dictionary with the rendered and the failed file paths
-        The dictionary have the following entries: rendered_files, failed_files, edl_files
+        The dictionary have the following entries:
+            - rendered_files_in_cache: rendered files when cache is used
+            - failed_files_in_cache: failed files when cache is used
+            - rendered_files: rendered files (either from direct rendering or from copy from cache)
+            - failed_files: failed files (either from direct rendering or from copy from cache)
+            - edl_files: edl files
+            - other_files: json dumped file list
     """
     import os
     import errno
@@ -148,12 +158,25 @@ def publishRRS(prodFilePath, takeIndex=-1, verbose=False, useCache=False, fileLi
 
     # wkip beurk pour récuperer le bon contexte de scene
     bpy.context.window.scene = scene
-    renderedOtioFile = exportOtio(scene, takeIndex=takeIndex, filePath=renderDir)
-
+    renderedOtioFile = exportOtio(scene, takeIndex=takeIndex, filePath=renderDir, fileListOnly=fileListOnly)
     renderedFilesDict["edl_files"] = [renderedOtioFile]
 
-    if verbose:
-        print("\nNewMediaList = ", renderedFilesDict)
+    # if verbose:
+    #     print("\nNewMediaList = ", generatedFilesDict)
+
+    ################
+    # keep track of files
+    ################
+
+    generatedFilesDict = dict()
+    if useCache:
+        generatedFilesDict["rendered_files_in_cache"] = renderedFilesDict["rendered_files"]
+        generatedFilesDict["failed_files_in_cache"] = renderedFilesDict["failed_files"]
+        generatedFilesDict["edl_files_in_cache"] = renderedFilesDict["edl_files"]
+    else:
+        generatedFilesDict["rendered_files_in_cache"] = []
+        generatedFilesDict["failed_files_in_cache"] = []
+        generatedFilesDict["edl_files_in_cache"] = []
 
     ################
     # copy files to the network
@@ -182,29 +205,53 @@ def publishRRS(prodFilePath, takeIndex=-1, verbose=False, useCache=False, fileLi
                 target += "\\"
             target += tail
 
-            if verbose:
-                print("target: ", target)
-            try:
-                shutil.copyfile(f, target)
+            # if verbose:
+            #     print("target: ", target)
+
+            if fileListOnly:
                 copiedFiles.append(target)
-            except Exception as e:
-                print("*** File cannot be copied: ", e)
-                notCopiedFiles.append(target)
+            else:
+                try:
+                    shutil.copyfile(f, target)
+                    copiedFiles.append(target)
+                except Exception as e:
+                    print("*** File cannot be copied: ", e)
+                    notCopiedFiles.append(target)
 
         copiedFiles = []
         notCopiedFiles = []
         for f in renderedFilesDict["rendered_files"]:
             _MoveFile(f)
 
-        renderedFilesDict = {"rendered_files": copiedFiles, "failed_files": notCopiedFiles}
+        # copiedFiles = []
+        # notCopiedFiles = []
+        # _MoveFile(renderedOtioFile)
+
+        # renderedFilesDict = {"rendered_files": copiedFiles, "failed_files": notCopiedFiles}
+        generatedFilesDict["rendered_files"] = copiedFiles
+        generatedFilesDict["failed_files"] = notCopiedFiles
 
         copiedFiles = []
         notCopiedFiles = []
         _MoveFile(renderedOtioFile)
-        renderedFilesDict["edl_files"] = copiedFiles if len(copiedFiles) else []
+        generatedFilesDict["edl_files"] = copiedFiles if len(copiedFiles) else []
 
     # if dump rendered file list
-    with open(prodFilePath + "/renderedFiles.json", "w") as fp:
-        json.dump(renderedFilesDict, fp, indent=4)
+    # if not fileListOnly:
+    if True:
+        # json dumped file is also added to the list of the rendered files
+        jsonFile = prodFilePath
+        if not jsonFile.endswith("\\"):
+            jsonFile += "\\"
+        jsonFile += "renderedFiles.json"
+        otherFiles = []
+        otherFiles.append(jsonFile)
+        generatedFilesDict["other_files"] = otherFiles
 
-    return renderedFilesDict
+        with open(jsonFile, "w") as fp:
+            json.dump(generatedFilesDict, fp, indent=4)
+
+    if verbose:
+        print("\n  generatedFilesDict = ", generatedFilesDict)
+
+    return generatedFilesDict
