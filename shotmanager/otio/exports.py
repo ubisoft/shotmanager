@@ -4,12 +4,12 @@ import bpy
 import opentimelineio
 
 
-def exportOtio(scene, takeIndex=-1, filePath="", fileName="", addTakeNameToPath=True, fps=-1):
+def exportOtio(scene, takeIndex=-1, filePath="", fileName="", addTakeNameToPath=True, fps=-1, fileListOnly=False):
     """ Create an OpenTimelineIO XML file for the specified take
         Return the file path of the created file
         If file_name is left to default then the rendered file will be a .xml
     """
-    print("  ** -- ** exportOtio")
+    print("  ** -- ** exportOtio, fileListOnly: ", fileListOnly)
     props = scene.UAS_shot_manager_props
 
     sceneFps = fps if fps != -1 else scene.render.fps
@@ -18,16 +18,7 @@ def exportOtio(scene, takeIndex=-1, filePath="", fileName="", addTakeNameToPath=
 
     take = props.getCurrentTake() if -1 == takeIndex else props.getTakeByIndex(takeIndex)
     shotList = take.getShotList(ignoreDisabled=True)
-
     take_name = take.getName_PathCompliant()
-
-    # wkip note: scene.frame_start probablement à remplacer par start du premier shot enabled!!!
-    startFrame = 0
-    timeline = opentimelineio.schema.Timeline(
-        name=scene.name + "_" + take_name, global_start_time=opentimelineio.opentime.from_frames(startFrame, sceneFps)
-    )
-    track = opentimelineio.schema.Track()
-    timeline.tracks.append(track)
 
     renderPath = filePath if "" != filePath else props.renderRootPath
     otioRenderPath = renderPath
@@ -45,6 +36,17 @@ def exportOtio(scene, takeIndex=-1, filePath="", fileName="", addTakeNameToPath=
             otioRenderPath += ".otio"
 
     print("   OTIO otioRenderPath:", otioRenderPath)
+
+    if fileListOnly:
+        return otioRenderPath
+
+    # wkip note: scene.frame_start probablement à remplacer par start du premier shot enabled!!!
+    startFrame = 0
+    timeline = opentimelineio.schema.Timeline(
+        name=scene.name + "_" + take_name, global_start_time=opentimelineio.opentime.from_frames(startFrame, sceneFps)
+    )
+    track = opentimelineio.schema.Track()
+    timeline.tracks.append(track)
 
     clips = list()
     playhead = 0
