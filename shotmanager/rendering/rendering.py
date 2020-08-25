@@ -1,3 +1,7 @@
+import logging
+
+_logger = logging.getLogger(__name__)
+
 import os
 import json
 
@@ -16,8 +20,8 @@ def launchRenderWithVSEComposite(renderMode, takeIndex=-1, filePath="", useStamp
     scene = bpy.context.scene
     props = scene.UAS_shot_manager_props
 
-    print(" *** launchRenderWithVSEComposite")
-    print("    render_shot_prefix:", props.renderShotPrefix())
+    _logger.info(f" *** launchRenderWithVSEComposite")
+    _logger.info(f"    render_shot_prefix: {props.renderShotPrefix()}")
 
     projectFps = scene.render.fps
 
@@ -88,8 +92,9 @@ def launchRenderWithVSEComposite(renderMode, takeIndex=-1, filePath="", useStamp
         # bpy.ops.wm.redraw_timer(type="DRAW_WIN_SWAP", iterations=2)
 
         if shot.enabled:
-            print("\n----------------------------------------------------")
-            print("\n  Shot rendered: ", shot.name)
+            if not fileListOnly:
+                print("\n----------------------------------------------------")
+                print("\n  Shot rendered: ", shot.name)
 
             # set scene as current
             bpy.context.window.scene = scene
@@ -122,7 +127,8 @@ def launchRenderWithVSEComposite(renderMode, takeIndex=-1, filePath="", useStamp
             scene.frame_end = shot.end + props.handles
 
             newTempRenderPath = rootPath + take.getName_PathCompliant() + "\\" + shot.getName_PathCompliant() + "\\"
-            print("newTempRenderPath: ", newTempRenderPath)
+            if not fileListOnly:
+                print("newTempRenderPath: ", newTempRenderPath)
 
             for currentFrame in range(scene.frame_start, scene.frame_end + 1):
                 scene.camera = shot.camera
@@ -132,10 +138,11 @@ def launchRenderWithVSEComposite(renderMode, takeIndex=-1, filePath="", useStamp
                 scene.render.filepath = shot.getOutputFileName(
                     frameIndex=scene.frame_current, fullPath=True, rootFilePath=rootPath
                 )
-                print("      ------------------------------------------")
-                print("      \nFrame: ", currentFrame)
-                print("      \nscene.render.filepath: ", scene.render.filepath)
-                print("      Current Scene:", scene.name)
+                if not fileListOnly:
+                    print("      ------------------------------------------")
+                    print("      \nFrame: ", currentFrame)
+                    print("      \nscene.render.filepath: ", scene.render.filepath)
+                    print("      Current Scene:", scene.name)
 
                 if preset_useStampInfo:
                     RRS_StampInfo.shotName = f"{props.renderShotPrefix()}_{shot.name}"
@@ -144,8 +151,8 @@ def launchRenderWithVSEComposite(renderMode, takeIndex=-1, filePath="", useStamp
                     scene.render.resolution_y = 960
                     RRS_StampInfo.edit3DFrame = props.getEditTime(shot, currentFrame)
 
-                    print("RRS_StampInfo.takeName: ", RRS_StampInfo.takeName)
-                    print("RRS_StampInfo.renderRootPath: ", RRS_StampInfo.renderRootPath)
+                    # print("RRS_StampInfo.takeName: ", RRS_StampInfo.takeName)
+                    # print("RRS_StampInfo.renderRootPath: ", RRS_StampInfo.renderRootPath)
                     RRS_StampInfo.renderRootPath = newTempRenderPath
 
                     if not fileListOnly:
@@ -207,7 +214,7 @@ def launchRenderWithVSEComposite(renderMode, takeIndex=-1, filePath="", useStamp
                 except Exception:
                     print("Cannot delete Dir: ", newTempRenderPath)
 
-            print(f"shot.getEditStart: {shot.getEditStart()}, props.handles: {props.handles}")
+            # print(f"shot.getEditStart: {shot.getEditStart()}, props.handles: {props.handles}")
 
             if not fileListOnly:
                 vse_render.createNewClip(

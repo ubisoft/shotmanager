@@ -44,13 +44,13 @@ class UAS_LaunchRRSRender(Operator):
         # publish_rrs.publishRRS( context.scene.UAS_shot_manager_props.renderRootPath )
         props = context.scene.UAS_shot_manager_props
 
-        if props.rrs_useRenderRoot:
+        if props.rrs_useRenderRoot:  # used in SM UI in the debug panel
             print("Publish at render root")
             publish_rrs.publishRRS(
                 bpy.path.abspath(props.renderRootPath),
                 verbose=True,
                 takeIndex=self.takeIndex,
-                useCache=False,
+                useCache=True,
                 fileListOnly=False,
             )
         else:

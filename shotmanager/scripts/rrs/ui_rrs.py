@@ -1,4 +1,4 @@
-import bpy
+from ...config import config
 
 from bpy.types import Panel
 
@@ -31,9 +31,10 @@ class UAS_PT_ShotManager_RRS_Debug(Panel):
         )
         row.alert = False
 
-        row = layout.row(align=False)
-        # row.enabled = False
-        row.prop(context.window_manager, "UAS_shot_manager_progressbar", text="Rendering...")
+        if config.uasDebug:
+            row = layout.row(align=False)
+            # row.enabled = False
+            row.prop(context.window_manager, "UAS_shot_manager_progressbar", text="Rendering...")
 
         layout.separator(factor=1)
 
