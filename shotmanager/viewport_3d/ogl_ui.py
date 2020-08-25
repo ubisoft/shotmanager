@@ -124,7 +124,7 @@ class Square:
 #
 # Blender windows system utils
 #
-def get_region_at_xy(context, x, y):
+def get_region_at_xy ( context, x, y, area_type = "VIEW_3D" ):
     """
     Does not support quadview right now
 
@@ -134,7 +134,7 @@ def get_region_at_xy(context, x, y):
     :return: the region and the area containing this region
     """
     for area in context.screen.areas:
-        if area.type != "VIEW_3D":
+        if area.type != area_type:
             continue
         # is_quadview = len ( area.spaces.active.region_quadviews ) == 0
         i = -1
