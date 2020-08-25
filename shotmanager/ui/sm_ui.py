@@ -1,5 +1,7 @@
 import logging
 
+_logger = logging.getLogger(__name__)
+
 import bpy
 from bpy.types import Panel, Operator, Menu
 from bpy.props import StringProperty
@@ -8,8 +10,6 @@ from ..config import config
 from ..viewport_3d.ogl_ui import UAS_ShotManager_DrawTimeline
 
 from ..utils import utils
-
-_logger = logging.getLogger(__name__)
 
 
 ######
@@ -326,16 +326,14 @@ class UAS_UL_ShotManager_Items(bpy.types.UIList):
         props = context.scene.UAS_shot_manager_props
         current_shot_index = props.current_shot_index
 
+        itemHasWarnings = False
+
         cam = "Cam" if current_shot_index == index else ""
         currentFrame = context.scene.frame_current
 
         # check if the camera still exists in the scene
-        if item.camera is not None:
-            try:
-                if bpy.context.scene.objects[item.camera.name] is None:
-                    item.camera = None
-            except Exception as e:
-                item.camera = None
+        cameraIsValid = item.isCameraValid()
+        itemHasWarnings = not cameraIsValid
 
         # draw the Duration components
 
@@ -346,7 +344,7 @@ class UAS_UL_ShotManager_Items(bpy.types.UIList):
         else:
             icon = config.icons_col[f"ShotMan_Disabled{cam}"]
 
-        if item.camera is None:
+        if item.camera is None or itemHasWarnings:
             layout.alert = True
 
         row = layout.row()
@@ -591,6 +589,23 @@ class UAS_PT_ShotManager_ShotProperties(Panel):
             propertiesModeStr = "Selected Shot Properties"
         row.label(text=propertiesModeStr)
 
+    def draw_header_preset(self, context):
+        scene = context.scene
+        props = scene.UAS_shot_manager_props
+        shot = None
+        # if shotPropertiesModeIsCurrent is true then the displayed shot properties are taken from the CURRENT shot, else from the SELECTED one
+        if not ("SELECTED" == props.current_shot_properties_mode):
+            shot = props.getCurrentShot()
+        else:
+            shot = props.getShot(props.selected_shot_index)
+
+        cameraIsValid = shot.isCameraValid()
+        itemHasWarnings = not cameraIsValid
+
+        if itemHasWarnings:
+            self.layout.alert = True
+            self.layout.label(text="*** Warning: Camera not in scene !*** ")
+
     def draw(self, context):
         scene = context.scene
         props = scene.UAS_shot_manager_props
@@ -648,14 +663,17 @@ class UAS_PT_ShotManager_ShotProperties(Panel):
             row.separator(factor=0.5)  # prevents stange look when panel is narrow
 
             # camera and lens
+
+            cameraIsValid = shot.isCameraValid()
+
             row = box.row()
             row.separator(factor=1.0)
             c = row.column()
             grid_flow = c.grid_flow(align=False, columns=4, even_columns=False)
-            if shot.camera is None:
+            if not cameraIsValid:
                 grid_flow.alert = True
             grid_flow.prop(shot, "camera", text="Camera")
-            if shot.camera is None:
+            if not cameraIsValid:
                 grid_flow.alert = False
             grid_flow.prop(props, "display_camera_in_shotlist", text="")
 
@@ -663,12 +681,12 @@ class UAS_PT_ShotManager_ShotProperties(Panel):
             grid_flow.scale_x = 0.7
             #     row.label ( text = "Lens: " )
             grid_flow.use_property_decorate = True
-            if shot.camera is not None:
-                grid_flow.prop(shot.camera.data, "lens", text="Lens")
-            else:
+            if not cameraIsValid:
                 grid_flow.alert = True
                 grid_flow.operator("uas_shot_manager.nolens", text="No Lens")
                 grid_flow.alert = False
+            else:
+                grid_flow.prop(shot.camera.data, "lens", text="Lens")
             grid_flow.scale_x = 1.0
             grid_flow.prop(props, "display_lens_in_shotlist", text="")
             row.separator(factor=0.5)  # prevents strange look when panel is narrow
