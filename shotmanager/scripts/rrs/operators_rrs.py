@@ -50,8 +50,8 @@ class UAS_LaunchRRSRender(Operator):
                 bpy.path.abspath(props.renderRootPath),
                 verbose=True,
                 takeIndex=self.takeIndex,
-                useCache=True,
-                fileListOnly=False,
+                useCache=False,
+                fileListOnly=True,
             )
         else:
             publish_rrs.publishRRS(
