@@ -106,13 +106,13 @@ def add_shot(
     )
 
 
-def copy_shot(shot_manager, shot, at_index=-1, take_index=-1):
+def copy_shot(shot_manager, shot, at_index=-1, target_take_index=-1):
     """ Copy a shot after the current shot if possible or at the end of the shot list otherwise (case of an add in a take
         that is not the current one)
         Return the newly added shot
         Since this function works also with takes that are not the current one the current shot is not taken into account not modified
     """
-    return shot_manager.copyShot(shot, atIndex=at_index, takeIndex=take_index)
+    return shot_manager.copyShot(shot, atIndex=at_index, targetTakeIndex=target_take_index)
 
 
 def remove_shot(shot_manager, shot):
