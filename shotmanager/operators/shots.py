@@ -236,12 +236,16 @@ class UAS_ShotManager_ShotAdd(Operator):
         self.name = (props.project_shot_format.split("_")[2]).format((len(props.getShotsList()) + 1) * 10)
 
         # prefs.addShot_start = max(scene.frame_current, 10)
+
+        # required otherwise start will be clamped to end value (cf prefs properties)
+        prefs.addShot_end = 9999999
+
         if selectedShot is None:
             prefs.addShot_start = scene.frame_current
         else:
             prefs.addShot_start = selectedShot.end + 1
 
-        prefs.addShot_end = prefs.addShot_start + props.new_shot_duration
+        prefs.addShot_end = prefs.addShot_start + prefs.new_shot_duration
 
         camName = props.getActiveCameraName()
         if "" != camName:
@@ -757,11 +761,12 @@ class UAS_ShotManager_CreateNShots(Operator):
     def invoke(self, context, event):
         wm = context.window_manager
         props = context.scene.UAS_shot_manager_props
+        prefs = context.preferences.addons["shotmanager"].preferences
 
         # self.name = f"{props.new_shot_prefix}{len ( props.getShotsList() ) + 1:02}" + "0"
         self.name = (props.project_shot_format.split("_")[2]).format((len(props.getShotsList()) + 1) * 10)
         self.start = max(context.scene.frame_current, 10)
-        self.duration = props.new_shot_duration
+        self.duration = prefs.new_shot_duration
 
         camName = props.getActiveCameraName()
         if "" != camName:
