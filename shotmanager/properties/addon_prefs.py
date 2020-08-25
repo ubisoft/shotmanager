@@ -11,6 +11,14 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
     bl_idname = "shotmanager"
 
     ##################
+    # general ###
+    ##################
+
+    new_shot_duration: IntProperty(
+        min=0, default=50,
+    )
+
+    ##################
     # add new shot ###
     ##################
 
@@ -54,6 +62,13 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
 
     def draw(self, context):
         layout = self.layout
+        prefs = context.preferences.addons["shotmanager"].preferences
+
+        box = layout.box()
+        box.use_property_decorate = False
+        col = box.column()
+        col.use_property_split = True
+        col.prop(prefs, "new_shot_duration", text="Default Shot Length")
 
         layout.label(
             text="Temporary preference values (for dialogs for instance) are only visible when global variable uasDebug is True."

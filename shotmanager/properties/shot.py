@@ -1,3 +1,8 @@
+import logging
+
+_logger = logging.getLogger(__name__)
+
+
 import bpy
 
 from bpy.types import Scene
@@ -212,6 +217,10 @@ class UAS_ShotManager_Shot(PropertyGroup):
         options=set(),
     )
 
+    ##############
+    # camera
+    ##############
+
     def _filter_cameras(self, object):
         """ Return true only for cameras from the same scene as the shot
         """
@@ -228,6 +237,27 @@ class UAS_ShotManager_Shot(PropertyGroup):
         # poll=lambda self, obj: True if obj.type == "CAMERA" else False,
         poll=_filter_cameras,
     )
+
+    def isCameraValid(self):
+        """ Sometimes a pointed camera can seem to work but the camera object doesn't exist anymore in the scene.
+            Return True if the camera is really there, False otherwise
+            Note: This doesn't change the camera attribute of the shot
+        """
+        cameraIsInvalid = not self.camera is None
+        if self.camera is not None:
+            try:
+                if bpy.context.scene.objects[self.camera.name] is None:
+                    self.camera = None
+            except Exception as e:
+                # item.camera = None     # not working, often invalid context to write in
+                cameraIsInvalid = False
+            # _logger.error(f"Error: Shot {self.name} uses a camera {self.camera.name} not found in the scene")
+
+        return cameraIsInvalid
+
+    ##############
+    # color
+    ##############
 
     def _get_color(self):
         defaultVal = [1.0, 1.0, 1.0, 1.0]
