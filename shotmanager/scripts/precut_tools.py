@@ -9,6 +9,7 @@ from bpy.props import IntProperty, StringProperty, EnumProperty, BoolProperty, P
 from ..operators import shots
 from ..operators.shots import list_cameras
 
+
 class UAS_ShotManager_PredecTools_CreateShotsFromSingleCamera(Operator):
     bl_idname = "uas_shot_manager.predec_shots_from_single_cam"
     bl_label = "Create Shots From Single Camera"
@@ -98,8 +99,10 @@ class UAS_ShotManager_PredecTools_CreateShotsFromSingleCamera(Operator):
 
     def invoke(self, context, event):
         wm = context.window_manager
+        prefs = context.preferences.addons["shotmanager"].preferences
+
         self.start = context.scene.frame_current
-        self.end = context.scene.frame_current + 20  # context.scene.UAS_shot_manager_props.new_shot_duration
+        self.end = context.scene.frame_current + prefs.new_shot_duration
 
         camName = context.scene.UAS_shot_manager_props.getActiveCameraName()
         if "" != camName:

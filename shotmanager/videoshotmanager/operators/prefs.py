@@ -36,6 +36,8 @@ class UAS_VideoShotManager_General_Prefs(Operator):
 
     def draw(self, context):
         props = context.scene.UAS_shot_manager_props
+        prefs = context.preferences.addons["shotmanager"].preferences
+
         layout = self.layout
 
         layout.alert = True
@@ -47,7 +49,7 @@ class UAS_VideoShotManager_General_Prefs(Operator):
         col.use_property_split = True
         # col.use_property_decorate = False
 
-        col.prop(props, "new_shot_duration", text="Default Shot Length")
+        col.prop(prefs, "new_shot_duration", text="Default Shot Length")
 
         layout.separator()
         if props.use_project_settings:
