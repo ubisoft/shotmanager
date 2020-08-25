@@ -169,27 +169,20 @@ def publishRRS(prodFilePath, takeIndex=-1, verbose=False, useCache=False, fileLi
     # keep track of files
     ################
 
-    generatedFilesDict = dict()
-    if useCache:
-        generatedFilesDict["rendered_files_in_cache"] = renderedFilesDict["rendered_files"]
-        generatedFilesDict["failed_files_in_cache"] = renderedFilesDict["failed_files"]
-        generatedFilesDict["edl_files_in_cache"] = renderedFilesDict["edl_files"]
-    else:
-        generatedFilesDict["rendered_files_in_cache"] = []
-        generatedFilesDict["failed_files_in_cache"] = []
-        generatedFilesDict["edl_files_in_cache"] = []
-
     ################
     # copy files to the network
     ################
 
-    # from distutils.dir_util import copy_tree
-    # copy_tree(renderDir, prodFilePath, update=1)
+    generatedFilesDict = dict()
 
     if useCache:
         import shutil
         import os
         import errno
+
+        generatedFilesDict["rendered_files_in_cache"] = renderedFilesDict["rendered_files"]
+        generatedFilesDict["failed_files_in_cache"] = renderedFilesDict["failed_files"]
+        generatedFilesDict["edl_files_in_cache"] = renderedFilesDict["edl_files"]
 
         # create dirs
         if not os.path.exists(os.path.dirname(prodFilePath)):
@@ -224,11 +217,6 @@ def publishRRS(prodFilePath, takeIndex=-1, verbose=False, useCache=False, fileLi
         for f in renderedFilesDict["rendered_files"]:
             _MoveFile(f)
 
-        # copiedFiles = []
-        # notCopiedFiles = []
-        # _MoveFile(renderedOtioFile)
-
-        # renderedFilesDict = {"rendered_files": copiedFiles, "failed_files": notCopiedFiles}
         generatedFilesDict["rendered_files"] = copiedFiles
         generatedFilesDict["failed_files"] = notCopiedFiles
 
@@ -237,22 +225,37 @@ def publishRRS(prodFilePath, takeIndex=-1, verbose=False, useCache=False, fileLi
         _MoveFile(renderedOtioFile)
         generatedFilesDict["edl_files"] = copiedFiles if len(copiedFiles) else []
 
-    # if dump rendered file list
-    # if not fileListOnly:
-    if True:
-        # json dumped file is also added to the list of the rendered files
-        jsonFile = prodFilePath
-        if not jsonFile.endswith("\\"):
-            jsonFile += "\\"
-        jsonFile += "renderedFiles.json"
-        otherFiles = []
-        otherFiles.append(jsonFile)
-        generatedFilesDict["other_files"] = otherFiles
+    # if cache is not used
+    else:
+        generatedFilesDict["rendered_files_in_cache"] = []
+        generatedFilesDict["failed_files_in_cache"] = []
+        generatedFilesDict["edl_files_in_cache"] = []
+        generatedFilesDict["rendered_files"] = renderedFilesDict["rendered_files"]
+        generatedFilesDict["failed_files"] = renderedFilesDict["failed_files"]
+        generatedFilesDict["edl_files"] = renderedFilesDict["edl_files"]
 
+    # json dumped file is also added to the list of the rendered files
+    jsonFile = prodFilePath
+    if not jsonFile.endswith("\\"):
+        jsonFile += "\\"
+    jsonFile += "renderedFiles.json"
+    otherFiles = []
+    otherFiles.append(jsonFile)
+    generatedFilesDict["other_files"] = otherFiles
+
+    if not fileListOnly:
         with open(jsonFile, "w") as fp:
             json.dump(generatedFilesDict, fp, indent=4)
 
     if verbose:
-        print("\n  generatedFilesDict = ", generatedFilesDict)
+        print("\n")
+        for k in generatedFilesDict:
+            if len(generatedFilesDict[k]):
+                print(f" {k}:")
+                for item in generatedFilesDict[k]:
+                    print(f"   {item}")
+            else:
+                print(f" {k}: []")
+        print(" ")
 
     return generatedFilesDict
