@@ -85,7 +85,7 @@ def draw_all_shots_names(context, cam, pos_x, pos_y, vertical=False):
     props = context.scene.UAS_shot_manager_props
     current_shot = props.getCurrentShot()
     hud_offset_x = 19
-    hud_offset_y = 0
+    hud_offset_y = 12
 
     x_horizontal_offset = 80
 
