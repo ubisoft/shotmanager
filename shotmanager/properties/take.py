@@ -84,7 +84,7 @@ class UAS_ShotManager_Take(PropertyGroup):
     def _set_name(self, value):
         """ Set a unique name to the shot
         """
-        takes = self.parentScene.UAS_shot_manager_props.getTakes()
+        takes = self.getParentScene().UAS_shot_manager_props.getTakes()
         newName = findFirstUniqueName(self, value, takes)
         self["name"] = newName
 
