@@ -1,5 +1,6 @@
 import logging
 
+import os
 from pathlib import Path
 from urllib.parse import unquote_plus, urlparse
 import re
@@ -15,13 +16,82 @@ from . import otio_wrapper as ow
 _logger = logging.getLogger(__name__)
 
 
+class OtioSequence:
+    """ Custom sequence to contain the clips related to the shots
+    """
+
+    name = ""
+    clipList = list()
+
+    def printInfo(self):
+        print(f"\nSeq: ")
+
+
 def getSequenceListFromOtio(otioFile):
 
     timeline = opentimelineio.adapters.read_from_file(otioFile)
+    return getSequenceListFromOtioTimeline(timeline)
 
-    media_list = ow.get_media_list(timeline, track_type="VIDEO")
 
-    import os
+def getSequenceClassListFromOtioTimeline(timeline):
+
+    otioFile = r"Z:\_UAS_Dev\Exports\RRSpecial_ACT01_AQ_XML_200730\RRSpecial_ACT01_AQ_200730__FromPremiere.xml"
+    timeline = opentimelineio.adapters.read_from_file(otioFile)
+
+    if timeline is None:
+        _logger.error("getSequenceClassListFromOtioTimeline: Timeline is None!")
+        return
+
+    sequenceList = list()
+
+    def _getParentSeqIndex(seqList, seqName):
+        for i, seq in enumerate(seqList):
+            if seqName in seq.name:
+                return i
+
+        return -1
+
+    tracks = timeline.video_tracks()
+    for track in tracks:
+        for clip in track:
+            if isinstance(clip, opentimelineio.schema.Clip):
+                # print(clip.media_reference)
+                media_path = Path(utils.file_path_from_url(clip.media_reference.target_url))
+                # print(f"{media_path}")
+
+                # get media name
+                filename = os.path.split(media_path)[1]
+                media_name = (os.path.splitext(filename)[0]).lower()
+
+                # get parent sequence
+                seq_pattern = "_seq"
+                if seq_pattern in media_name:
+                    print(f"media_name: {media_name}")
+
+                    media_name_splited = media_name.split("_")
+                    if 2 <= len(media_name_splited):
+                        parentSeqInd = _getParentSeqIndex(sequenceList, media_name_splited)
+
+                        # add new seq
+                        if -1 == parentSeqInd:
+                            seqName = getSequenceNameFromString(media_name)
+                            if "" != seqName:
+                                newSeq = OtioSequence()
+                                newSeq.name = seqName
+                                clipList.append(clip)
+                                sequenceList.append(newSeq)
+
+                # if media_path not in m_list:
+                #     m_list.append(media_path)
+
+                # print(f"{tab2}clip.media_reference.target_url: {clip.media_reference.target_url}")
+                # media_path = Path(utils.file_path_from_url(clip.media_reference.target_url))
+                # print(f"{tab2}media_path: {media_path}")
+
+    for seq in sequenceList:
+        seq.printInfo()
+
+    return sequenceList
 
     # get file names only
     file_list = list()
@@ -40,8 +110,39 @@ def getSequenceListFromOtio(otioFile):
                 if itemSplited[1] not in seq_list:
                     seq_list.append(itemSplited[1])
 
-    for item in seq_list:
-        print(item)
+    # for item in seq_list:
+    #     print(item)
+
+    return seq_list
+
+
+def getSequenceListFromOtioTimeline(timeline):
+
+    if timeline is None:
+        _logger.error("getSequenceListFromOtioTimeline: Timeline is None!")
+        return
+
+    media_list = ow.get_media_list(timeline, track_type="VIDEO")
+
+    # get file names only
+    file_list = list()
+    for item in media_list:
+        filename = os.path.split(item)[1]
+        file_list.append(os.path.splitext(filename)[0])
+        # print(item)
+
+    # get sequences
+    seq_list = list()
+    seq_pattern = "_seq"
+    for item in file_list:
+        if seq_pattern in item.lower():
+            itemSplited = item.split("_")
+            if 2 <= len(itemSplited):
+                if itemSplited[1] not in seq_list:
+                    seq_list.append(itemSplited[1])
+
+    # for item in seq_list:
+    #     print(item)
 
     return seq_list
 

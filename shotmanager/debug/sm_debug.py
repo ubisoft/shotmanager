@@ -126,13 +126,15 @@ class UAS_Debug_RunFunction(Operator):
         if "parseOtioFile" == self.functionName:
             from ..otio.otio_wrapper import parseOtioFile
             from ..otio.imports import getSequenceListFromOtio
+            from ..otio.imports import getSequenceClassListFromOtioTimeline
 
             otioFile = (
                 r"Z:\EvalSofts\Blender\DevPython_Data\UAS_ShotManager_Data\ImportEDLPremiere\ImportEDLPremiere.xml"
             )
             otioFile = r"C:\_UAS_ROOT\RRSpecial\04_ActsPredec\Act01\Exports\RRSpecial_ACT01_AQ_XML_200730\RRSpecial_ACT01_AQ_200730__FromPremiere.xml"
-
-            getSequenceListFromOtio(otioFile)
+            otioFile = r"Z:\_UAS_Dev\Exports\RRSpecial_ACT01_AQ_XML_200730\RRSpecial_ACT01_AQ_200730__FromPremiere.xml"
+            getSequenceClassListFromOtioTimeline(None)
+            # getSequenceListFromOtio(otioFile)
             # parseOtioFile(otioFile)
 
         return {"FINISHED"}

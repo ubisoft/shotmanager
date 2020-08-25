@@ -925,7 +925,15 @@ class UAS_MT_ShotManager_Shots_ToolsMenu(Menu):
         # wkip debug - to remove:
         if config.uasDebug:
             row = layout.row(align=True)
-            row.operator("uasshotmanager.createshotsfromotio", text="Create Shots From EDL - Debug")
+            row.operator("uasshotmanager.createshotsfromotio_rrs", text="Create Shots From EDL - Debug")
+
+        if config.uasDebug:
+            row = layout.row(align=True)
+            row.operator(
+                "uasshotmanager.createshotsfromotio_rrs", text="Create Shots From EDL - Debug + file"
+            ).otioFile = (
+                r"Z:\_UAS_Dev\Exports\RRSpecial_ACT01_AQ_XML_200730\RRSpecial_ACT01_AQ_200730__FromPremiere.xml"
+            )
 
         # tools for precut ###
         layout.separator()
