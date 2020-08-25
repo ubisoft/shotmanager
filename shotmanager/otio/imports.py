@@ -1,5 +1,7 @@
 import logging
 
+_logger = logging.getLogger(__name__)
+
 from pathlib import Path
 from urllib.parse import unquote_plus, urlparse
 import re
@@ -204,9 +206,9 @@ def importOtioToVSE(otioFile, vse, importAtFrame=0, importVideoTracks=True, impo
 
                 # local clip infos:
 
-                _logger.info("Logger info")
+                _logger.info(f"Logger info")
                 _logger.warning(f"logger warning")
-                _logger.error("logger error")
+                _logger.error(f"logger error")
 
                 start = opentimelineio.opentime.to_frames(clip.range_in_parent().start_time) + importAtFrame
                 end = opentimelineio.opentime.to_frames(clip.range_in_parent().end_time_inclusive()) + importAtFrame
