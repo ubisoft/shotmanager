@@ -81,7 +81,7 @@ class UAS_ShotManager_DuplicateTake(Operator):
     bl_description = "Duplicate the current take"
     bl_options = {"REGISTER", "UNDO"}
 
-    name: StringProperty(name="Name")
+    newTakeName: StringProperty(name="New Take Name")
 
     def draw(self, context):
         layout = self.layout
@@ -94,7 +94,7 @@ class UAS_ShotManager_DuplicateTake(Operator):
         col.scale_x = 0.6
         col.label(text="New Take Name:")
         col = grid_flow.column(align=True)
-        col.prop(self, "name", text="")
+        col.prop(self, "newTakeName", text="")
 
         layout.separator()
 
@@ -106,11 +106,11 @@ class UAS_ShotManager_DuplicateTake(Operator):
         currentShotIndex = props.getCurrentShotIndex()
 
         newTake = takes.add()
-        newTake.name = props.getUniqueTakeName(self.name)
+        newTake.name = props.getUniqueTakeName(self.newTakeName)
         newTakeInd = props.getTakeIndex(newTake)
         for shot in shots:
-            newShot = props.copyShot(shot, takeIndex=newTakeInd)
-        props.current_take_name = self.name
+            newShot = props.copyShot(shot, targetTakeIndex=newTakeInd)
+        props.current_take_name = newTake.name
 
         props.setCurrentShotByIndex(currentShotIndex)
 
@@ -119,9 +119,9 @@ class UAS_ShotManager_DuplicateTake(Operator):
     def invoke(self, context, event):
         takes = context.scene.UAS_shot_manager_props.getTakes()
         if len(takes) <= 0:
-            self.name = "Main Take"
+            self.newTakeName = "Main Take"
         else:
-            self.name = f"Take_{len ( context.scene.UAS_shot_manager_props.getTakes() ) - 1 + 1:02}"
+            self.newTakeName = f"Take_{len(context.scene.UAS_shot_manager_props.getTakes()) - 1 + 1:02}"
         return context.window_manager.invoke_props_dialog(self)
 
 

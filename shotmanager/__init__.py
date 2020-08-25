@@ -48,6 +48,7 @@ from . import viewport_3d
 from .scripts import rrs
 
 from .data_patches.data_patch_to_v1_2_25 import data_patch_to_v1_2_25
+from .data_patches.data_patch_to_v1_3_16 import data_patch_to_v1_3_16
 
 from .debug import sm_debug
 
@@ -71,10 +72,17 @@ __version__ = f"v{bl_info['version'][0]}.{bl_info['version'][1]}.{bl_info['versi
 ###########
 
 _logger = logging.getLogger(__name__)
-_logger.propagate = False
+_logger.propagate = True
 MODULE_PATH = Path(__file__).parent.parent
 logging.basicConfig(level=logging.DEBUG)
 _logger.setLevel(logging.INFO)  # CRITICAL ERROR WARNING INFO DEBUG NOTSET
+
+pil_logger = logging.getLogger("PIL")
+pil_logger.setLevel(logging.INFO)
+
+# _logger.info("Logger info")
+# _logger.warning(f"logger warning")
+# _logger.error("logger error")
 
 
 class Formatter(logging.Formatter):
@@ -158,7 +166,7 @@ def checkDataVersion_post_load_handler(self, context):
         print("\nNew file loaded")
     else:
         print("\nExisting file loaded: ", bpy.path.basename(bpy.context.blend_data.filepath))
-        print("  - Shot Manager is checking the version used to create the loaded scene data...")
+        _logger.info("  - Shot Manager is checking the version used to create the loaded scene data...")
 
         numScenesToUpgrade = 0
         for scn in bpy.data.scenes:
@@ -168,16 +176,23 @@ def checkDataVersion_post_load_handler(self, context):
                 props = scn.UAS_shot_manager_props
                 #   print("     Data version: ", props.dataVersion)
                 #   print("     Shot Manager version: ", bpy.context.window_manager.UAS_shot_manager_version)
-                if props.dataVersion <= 0 or props.dataVersion < bpy.context.window_manager.UAS_shot_manager_version:
-                    print("     *** Shot Manager Data Version is lower than the current Shot Manager version")
+                # if props.dataVersion <= 0 or props.dataVersion < bpy.context.window_manager.UAS_shot_manager_version:
+                if props.dataVersion <= 0 or props.dataVersion < 1003016:
+                    _logger.info("     *** Shot Manager Data Version is lower than the current Shot Manager version")
                     numScenesToUpgrade += 1
                 #    props.dataVersion = -5
 
         if numScenesToUpgrade:
             # apply patch and apply new data version
             # wkip patch strategy to re-think. Collect the data versions and apply the respective patches?
-            print("       Applying data patch to file")
-            data_patch_to_v1_2_25()
+
+            if props.dataVersion < 1002026:
+                print("       Applying data patch to file: upgrade to 1002025")
+                data_patch_to_v1_2_25()
+
+            if props.dataVersion < 1003016:
+                print("       Applying data patch to file: upgrade to 1002025")
+                data_patch_to_v1_3_16()
 
             # set right data version
             # props.dataVersion = bpy.context.window_manager.UAS_shot_manager_version
