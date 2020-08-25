@@ -1,5 +1,7 @@
 import logging
 
+_logger = logging.getLogger(__name__)
+
 import os
 from pathlib import Path
 from urllib.parse import unquote_plus, urlparse
@@ -13,18 +15,36 @@ from ..utils import utils
 
 from . import otio_wrapper as ow
 
-_logger = logging.getLogger(__name__)
-
 
 class OtioSequence:
     """ Custom sequence to contain the clips related to the shots
     """
 
     name = ""
-    clipList = list()
+    clipList = None
+    start = -1
+    end = -1
+
+    # warning: clips may not be on the same track, hence they may not be ordered!!
+    def setStartAndEnd(self):
+        if len(self.clipList):
+            # start
+            self.start = ow.get_timeline_clip_start(self.clipList[0])
+            for clip in self.clipList:
+                if ow.get_timeline_clip_start(clip) < self.start:
+                    self.start = ow.get_timeline_clip_start(clip)
+
+            # end
+            self.end = ow.get_timeline_clip_end_inclusive(self.clipList[0])
+            for clip in self.clipList:
+                if ow.get_timeline_clip_end_inclusive(clip) > self.end:
+                    self.end = ow.get_timeline_clip_end_inclusive(clip)
 
     def printInfo(self):
-        print(f"\nSeq: ")
+        print(f"\nSeq: {self.name}, start: {self.start}, end: {self.end}")
+        if self.clipList is not None:
+            for item in self.clipList:
+                print(f"  - {item.media_reference.target_url}")
 
 
 def getSequenceListFromOtio(otioFile):
@@ -33,9 +53,21 @@ def getSequenceListFromOtio(otioFile):
     return getSequenceListFromOtioTimeline(timeline)
 
 
+def getSequenceNameFromMediaName(fileName):
+    seqName = ""
+
+    seq_pattern = "Seq"
+    media_name_splited = fileName.split("_")
+    if 2 <= len(media_name_splited):
+        seqName = media_name_splited[1]
+
+    return seqName
+
+
 def getSequenceClassListFromOtioTimeline(timeline):
 
-    otioFile = r"Z:\_UAS_Dev\Exports\RRSpecial_ACT01_AQ_XML_200730\RRSpecial_ACT01_AQ_200730__FromPremiere.xml"
+    # otioFile = r"Z:\_UAS_Dev\Exports\RRSpecial_ACT01_AQ_XML_200730\RRSpecial_ACT01_AQ_200730__FromPremiere.xml"
+    otioFile = r"C:\_UAS_ROOT\RRSpecial\04_ActsPredec\Act01\Exports\RRSpecial_ACT01_AQ_XML_200730\RRSpecial_ACT01_AQ_200730__FromPremiere.xml"
     timeline = opentimelineio.adapters.read_from_file(otioFile)
 
     if timeline is None:
@@ -45,8 +77,11 @@ def getSequenceClassListFromOtioTimeline(timeline):
     sequenceList = list()
 
     def _getParentSeqIndex(seqList, seqName):
+        print("\n_getParentSeqIndex: seqName: ", seqName)
         for i, seq in enumerate(seqList):
-            if seqName in seq.name:
+            if seqName in seq.name.lower():
+                print(f"    : {seq.name}, i: {i}")
+
                 return i
 
         return -1
@@ -61,25 +96,44 @@ def getSequenceClassListFromOtioTimeline(timeline):
 
                 # get media name
                 filename = os.path.split(media_path)[1]
-                media_name = (os.path.splitext(filename)[0]).lower()
+                media_name = os.path.splitext(filename)[0]
+                media_name_lower = media_name.lower()
 
                 # get parent sequence
                 seq_pattern = "_seq"
-                if seq_pattern in media_name:
-                    print(f"media_name: {media_name}")
+                if seq_pattern in media_name_lower:
+                    #    print(f"media_name: {media_name}")
 
-                    media_name_splited = media_name.split("_")
+                    media_name_splited = media_name_lower.split("_")
                     if 2 <= len(media_name_splited):
-                        parentSeqInd = _getParentSeqIndex(sequenceList, media_name_splited)
+                        parentSeqInd = _getParentSeqIndex(sequenceList, media_name_splited[1])
 
-                        # add new seq
+                        # add new seq if not found
+                        newSeq = None
                         if -1 == parentSeqInd:
-                            seqName = getSequenceNameFromString(media_name)
-                            if "" != seqName:
-                                newSeq = OtioSequence()
-                                newSeq.name = seqName
-                                clipList.append(clip)
-                                sequenceList.append(newSeq)
+                            newSeq = OtioSequence()
+                            seqName = getSequenceNameFromMediaName(media_name)
+                            newSeq.name = seqName
+                            print("ici")
+                            cList = list()
+                            # cList.append(clip)
+                            newSeq.clipList = cList
+                            # newSeq.clipList.append(clip)
+                            # newSeq.name = media_name_splited[1]
+                            sequenceList.append(newSeq)
+
+                        else:
+                            newSeq = sequenceList[parentSeqInd]
+
+                        newSeq.clipList.append(clip)
+
+                        # seqName = getSequenceNameFromMediaName(media_name)
+                        # print(" seqName: ", seqName)
+                        # if "" != seqName:
+                        #     newSeq = OtioSequence()
+                        #     newSeq.name = seqName
+                        #     newSeq.clipList.append(clip)
+                        #     sequenceList.append(newSeq)
 
                 # if media_path not in m_list:
                 #     m_list.append(media_path)
@@ -88,7 +142,10 @@ def getSequenceClassListFromOtioTimeline(timeline):
                 # media_path = Path(utils.file_path_from_url(clip.media_reference.target_url))
                 # print(f"{tab2}media_path: {media_path}")
 
+    # get the start and end of every seq
+
     for seq in sequenceList:
+        seq.setStartAndEnd()
         seq.printInfo()
 
     return sequenceList
