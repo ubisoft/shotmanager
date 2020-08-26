@@ -112,7 +112,7 @@ def parseTrack(timeline, track_type, track_index):
             print(f"\n{tab}Clip: {ind}, {clip.name}")
 
             print(f"{tab2}clip.media_reference.target_url: {clip.media_reference.target_url}")
-            media_path = Path(utils.file_path_from_url(clip.media_reference.target_url))
+            media_path = get_media_path_from_clip(clip)
             print(f"{tab2}media_path: {media_path}")
             if not media_path.exists():
                 # Lets find it inside next to the xml
@@ -225,6 +225,12 @@ def get_media_occurence(timeline, media_name, track_type="ALL", last_occurence=F
     return found_clip
 
 
+def get_media_path_from_clip(clip):
+    # media_path = clip.media_reference.target_url
+    media_path = Path(utils.file_path_from_url(clip.media_reference.target_url))
+    return media_path
+
+
 def get_timeline_clip_start(clip):
     return opentimelineio.opentime.to_frames(clip.range_in_parent().start_time)
 
@@ -253,14 +259,10 @@ def get_media_list(timeline, track_type="ALL"):
             for clip in track:
                 if isinstance(clip, opentimelineio.schema.Clip):
                     # print(clip.media_reference)
-                    media_path = Path(utils.file_path_from_url(clip.media_reference.target_url))
+                    media_path = get_media_path_from_clip(clip)
                     # print(f"{media_path}")
                     if media_path not in m_list:
                         m_list.append(media_path)
-
-                    # print(f"{tab2}clip.media_reference.target_url: {clip.media_reference.target_url}")
-                    # media_path = Path(utils.file_path_from_url(clip.media_reference.target_url))
-                    # print(f"{tab2}media_path: {media_path}")
         return m_list
 
     tracks = timeline.tracks

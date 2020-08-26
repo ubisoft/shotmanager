@@ -75,7 +75,7 @@ def getSequenceNameFromMediaName(fileName):
 
 
 # wkip to rename!!!!
-def getSequenceClassListFromOtioTimeline(otioFile):
+def getSequenceClassListFromOtioTimeline(otioFile, verbose=False):
 
     # wkip to remove!!
     # otioFile = r"Z:\_UAS_Dev\Exports\RRSpecial_ACT01_AQ_XML_200730\RRSpecial_ACT01_AQ_200730__FromPremiere.xml"
@@ -94,11 +94,10 @@ def getSequenceClassListFromOtioTimeline(otioFile):
     sequenceList = otioTimeline.sequenceList
 
     def _getParentSeqIndex(seqList, seqName):
-        print("\n_getParentSeqIndex: seqName: ", seqName)
+        #    print("\n_getParentSeqIndex: seqName: ", seqName)
         for i, seq in enumerate(seqList):
             if seqName in seq.name.lower():
-                print(f"    : {seq.name}, i: {i}")
-
+                #    print(f"    : {seq.name}, i: {i}")
                 return i
 
         return -1
@@ -131,7 +130,6 @@ def getSequenceClassListFromOtioTimeline(otioFile):
                             newSeq = OtioSequence()
                             seqName = getSequenceNameFromMediaName(media_name)
                             newSeq.name = seqName
-                            print("ici")
                             cList = list()
                             # cList.append(clip)
                             newSeq.clipList = cList
@@ -144,26 +142,11 @@ def getSequenceClassListFromOtioTimeline(otioFile):
 
                         newSeq.clipList.append(clip)
 
-                        # seqName = getSequenceNameFromMediaName(media_name)
-                        # print(" seqName: ", seqName)
-                        # if "" != seqName:
-                        #     newSeq = OtioSequence()
-                        #     newSeq.name = seqName
-                        #     newSeq.clipList.append(clip)
-                        #     sequenceList.append(newSeq)
-
-                # if media_path not in m_list:
-                #     m_list.append(media_path)
-
-                # print(f"{tab2}clip.media_reference.target_url: {clip.media_reference.target_url}")
-                # media_path = Path(utils.file_path_from_url(clip.media_reference.target_url))
-                # print(f"{tab2}media_path: {media_path}")
-
-    # get the start and end of every seq
-
     for seq in sequenceList:
+        # get the start and end of every seq
         seq.setStartAndEnd()
-        seq.printInfo()
+        if verbose:
+            seq.printInfo()
 
     return otioTimeline
 
@@ -249,13 +232,8 @@ def createShotsFromOtio(
 
             cam = None
             if not createCameras:  # Create Default Camera
-                # bpy.ops.object.camera_add(location=[0, 0, 0], rotation=[0, 0, 0])  # doesn't return a cam...
-                cam = bpy.data.cameras.new("Camera")
-                cam_ob = bpy.data.objects.new(cam.name, cam)
-                bpy.context.collection.objects.link(cam_ob)
-                bpy.data.cameras[cam.name].lens = 40
-                cam_ob.location = (0.0, 0.0, 0.0)
-                cam_ob.rotation_euler = (radians(90), 0.0, radians(90))
+                cam_ob = utils.create_new_camera("Camera", location=[0, 0, 0])
+                cam = cam_ob.data
 
             shot_re = re.compile(r"sh_?(\d+)", re.IGNORECASE)
             for i, clip in enumerate(track.each_clip()):
@@ -266,12 +244,9 @@ def createShotsFromOtio(
                         if match:
                             clipName = scene.UAS_shot_manager_props.new_shot_prefix + match.group(1)
 
-                    cam = bpy.data.cameras.new("Cam_" + clipName)
-                    cam_ob = bpy.data.objects.new(cam.name, cam)
-                    bpy.context.collection.objects.link(cam_ob)
-                    bpy.data.cameras[cam.name].lens = 40
+                    cam_ob = utils.create_new_camera("Cam_" + clipName, location=[0.0, i, 0.0])
+                    cam = cam_ob.data
                     cam_ob.color = [uniform(0, 1), uniform(0, 1), uniform(0, 1), 1]
-                    cam_ob.location = (0.0, i, 0.0)
                     cam_ob.rotation_euler = (radians(90), 0.0, radians(90))
 
                     # add media as camera background
@@ -299,7 +274,7 @@ def createShotsFromOtio(
                     start=opentimelineio.opentime.to_frames(clip.range_in_parent().start_time) + importAtFrame,
                     end=opentimelineio.opentime.to_frames(clip.range_in_parent().end_time_inclusive()) + importAtFrame,
                     camera=cam_ob,
-                    color=cam_ob.color,  # (cam_ob.color[0], cam_ob.color[1], cam_ob.color[2]),
+                    color=cam_ob.color,
                 )
                 # bpy.ops.uas_shot_manager.add_shot(
                 #     name=clipName,
@@ -335,8 +310,8 @@ def createShotsFromOtioTimelineClass(
     otioTimelineClass,
     sequenceName,
     clipList,
-    fromFrame,
-    toFrame,
+    timeRange=None,
+    offsetTime=True,
     importAtFrame=0,
     reformatShotNames=False,
     createCameras=True,
@@ -345,12 +320,27 @@ def createShotsFromOtioTimelineClass(
     mediaHandlesDuration=0,
     importSoundInVSE=True,
 ):
+    """
+        timeRange: use a 2 elments array
+        When offsetTime is True and a range is used then the start of the extracted edit range will be
+        placed at the frame specified by importAtFrame
+    """
+
     # filePath="", fileName=""):
 
-    print(f"Import Otio File: {otioTimelineClass.otioFile}, from {fromFrame} to {toFrame}, num clips: {len(clipList)}")
-    print("clipList:", clipList)
-    # for item in clipList:
-    #     print("  item:", item.name)
+    offsetFrameNumber = 0
+    if offsetTime:
+        if timeRange is None:
+            offsetFrameNumber = importAtFrame
+        else:
+            offsetFrameNumber = importAtFrame - timeRange[0]
+
+    print(f"Import Otio File: {otioTimelineClass.otioFile}, num clips: {len(clipList)}")
+    if timeRange is not None:
+        print(f"   from {timeRange[0]} to {timeRange[1]}")
+
+    # print("clipList:", clipList)
+
     from random import uniform
     from math import radians
 
@@ -366,18 +356,12 @@ def createShotsFromOtioTimelineClass(
 
             cam = None
             if not createCameras:  # Create Default Camera
-                # bpy.ops.object.camera_add(location=[0, 0, 0], rotation=[0, 0, 0])  # doesn't return a cam...
-                cam = bpy.data.cameras.new("Camera")
-                cam_ob = bpy.data.objects.new(cam.name, cam)
-                bpy.context.collection.objects.link(cam_ob)
-                bpy.data.cameras[cam.name].lens = 40
-                cam_ob.location = (0.0, 0.0, 0.0)
-                cam_ob.rotation_euler = (radians(90), 0.0, radians(90))
+                cam_ob = utils.create_new_camera("Camera", location=[0, 0, 0])
+                cam = cam_ob.data
 
             shot_re = re.compile(r"sh_?(\d+)", re.IGNORECASE)
             # for i, clip in enumerate(track.each_clip()):
             for i, clip in enumerate(clipList):
-                print(f"clip: {clip}, type:{type(clip)}")
                 clipName = clip.name
                 if createCameras:
                     if reformatShotNames:
@@ -385,18 +369,14 @@ def createShotsFromOtioTimelineClass(
                         if match:
                             clipName = scene.UAS_shot_manager_props.new_shot_prefix + match.group(1)
 
-                    cam = bpy.data.cameras.new("Cam_" + clipName)
-                    cam_ob = bpy.data.objects.new(cam.name, cam)
-                    bpy.context.collection.objects.link(cam_ob)
-                    bpy.data.cameras[cam.name].lens = 40
+                    cam_ob = utils.create_new_camera("Cam_" + clipName, location=[0.0, i, 0.0])
+                    cam = cam_ob.data
                     cam_ob.color = [uniform(0, 1), uniform(0, 1), uniform(0, 1), 1]
-                    cam_ob.location = (0.0, i, 0.0)
                     cam_ob.rotation_euler = (radians(90), 0.0, radians(90))
 
                     # add media as camera background
                     if useMediaAsCameraBG:
-                        print("Import Otio clip.media_reference.target_url: ", clip.media_reference.target_url)
-                        media_path = Path(utils.file_path_from_url(clip.media_reference.target_url))
+                        media_path = ow.get_media_path_from_clip(clip)
                         print("Import Otio media_path: ", media_path)
                         if not media_path.exists():
                             # Lets find it inside next to the xml
@@ -404,9 +384,7 @@ def createShotsFromOtioTimelineClass(
                             print("** not found, so Path(self.otioFile).parent: ", Path(otioFile).parent)
                             print("   and new media_path: ", media_path)
 
-                        handlesDuration = 0
-                        if mediaHaveHandles:
-                            handlesDuration = mediaHandlesDuration
+                        handlesDuration = mediaHandlesDuration if mediaHaveHandles else 0
 
                         # start frame of the background video is not set here since it will be linked to the shot start frame
                         utils.add_background_video_to_cam(
@@ -415,25 +393,19 @@ def createShotsFromOtioTimelineClass(
 
                 shot = props.addShot(
                     name=clipName,
-                    start=opentimelineio.opentime.to_frames(clip.range_in_parent().start_time) + importAtFrame,
-                    end=opentimelineio.opentime.to_frames(clip.range_in_parent().end_time_inclusive()) + importAtFrame,
+                    start=ow.get_timeline_clip_start(clip) + offsetFrameNumber,
+                    end=ow.get_timeline_clip_end_inclusive(clip) + offsetFrameNumber,
                     camera=cam_ob,
-                    color=cam_ob.color,  # (cam_ob.color[0], cam_ob.color[1], cam_ob.color[2]),
+                    color=cam_ob.color,
                 )
-                # bpy.ops.uas_shot_manager.add_shot(
-                #     name=clipName,
-                #     start=opentimelineio.opentime.to_frames(clip.range_in_parent().start_time) + importAtFrame,
-                #     end=opentimelineio.opentime.to_frames(clip.range_in_parent().end_time_inclusive()) + importAtFrame,
-                #     cameraName=cam.name,
-                #     color=(cam_ob.color[0], cam_ob.color[1], cam_ob.color[2]),
-                # )
+
                 shot.bgImages_linkToShotStart = True
                 shot.bgImages_offset = -1 * handlesDuration
 
                 # wkip maybe to remove
-                scene.frame_start = importAtFrame
+                scene.frame_start = offsetFrameNumber
                 scene.frame_end = (
-                    opentimelineio.opentime.to_frames(clip.range_in_parent().end_time_inclusive()) + importAtFrame
+                    opentimelineio.opentime.to_frames(clip.range_in_parent().end_time_inclusive()) + offsetFrameNumber
                 )
 
             if importSoundInVSE:
@@ -441,7 +413,7 @@ def createShotsFromOtioTimelineClass(
                 vse = utils.getSceneVSE(scene.name)
                 # bpy.context.space_data.show_seconds = False
                 bpy.context.window.workspace = bpy.data.workspaces["Video Editing"]
-                importOtioToVSE(otioFile, vse, importAtFrame=importAtFrame, importVideoTracks=False)
+                importOtioToVSE(otioFile, vse, importAtFrame=offsetFrameNumber, importVideoTracks=False)
 
         # except opentimelineio.exceptions.NoKnownAdapterForExtensionError:
         #     from ..utils.utils import ShowMessageBox

@@ -243,33 +243,37 @@ def duplicateObject(sourceObject):
     return newObject
 
 
-def create_new_camera(camera_name):
+def create_new_camera(camera_name, location=[0, 0, 0], locate_on_cursor=False):
     cam = bpy.data.cameras.new(camera_name)
     cam_ob = bpy.data.objects.new(cam.name, cam)
     cam_ob.name = cam.name
     bpy.context.collection.objects.link(cam_ob)
+
     bpy.data.cameras[cam.name].lens = 40
 
-    cam_ob.location = (0.0, -2.5, 0.0)
-    cam_ob.location = bpy.context.scene.cursor.location
+    cam_ob.location = location
+    if locate_on_cursor:
+        cam_ob.location = bpy.context.scene.cursor.location
 
-    import math
-    import mathutils
+    from math import radians
 
-    eul = mathutils.Euler((math.radians(90.0), 0.0, 0.0), "XYZ")
+    cam_ob.rotation_euler = (radians(90), 0.0, radians(90))
 
-    if cam_ob.rotation_mode == "QUATERNION":
-        cam_ob.rotation_quaternion = eul.to_quaternion()
-    elif cam_ob.rotation_mode == "AXIS_ANGLE":
-        q = eul.to_quaternion()
-        cam_ob.rotation_axis_angle[0] = q.angle
-        cam_ob.rotation_axis_angle[1:] = q.axis
-    else:
-        cam_ob.rotation_euler = (
-            eul if eul.order == cam_ob.rotation_mode else (eul.to_quaternion().to_euler(cam_ob.rotation_mode))
-        )
+    # import math
+    # import mathutils
 
-    # cam_ob.data.name = cam.name
+    # eul = mathutils.Euler((math.radians(90.0), 0.0, 0.0), "XYZ")
+
+    # if cam_ob.rotation_mode == "QUATERNION":
+    #     cam_ob.rotation_quaternion = eul.to_quaternion()
+    # elif cam_ob.rotation_mode == "AXIS_ANGLE":
+    #     q = eul.to_quaternion()
+    #     cam_ob.rotation_axis_angle[0] = q.angle
+    #     cam_ob.rotation_axis_angle[1:] = q.axis
+    # else:
+    #     cam_ob.rotation_euler = (
+    #         eul if eul.order == cam_ob.rotation_mode else (eul.to_quaternion().to_euler(cam_ob.rotation_mode))
+    #     )
 
     return cam_ob
 

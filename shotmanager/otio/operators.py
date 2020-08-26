@@ -107,19 +107,23 @@ class UAS_ShotManager_OT_Create_Shots_From_OTIO_RRS(Operator):
     filter_glob: StringProperty(default="*.xml;*.otio", options={"HIDDEN"})
 
     otioFile: StringProperty()
-    importAtFrame: IntProperty(
-        name="Import at Frame",
-        description="Make the imported edit start at the specified frame",
-        soft_min=0,
-        min=0,
-        default=25,
-    )
 
     sequenceList: EnumProperty(
         name="Sequence",
         description="Sequences available in the specified EDL file",
         # items=(("NO_SEQ", "No Sequence Found", ""),),
         items=(list_sequences_from_edl),
+    )
+
+    offsetTime: BoolProperty(
+        name="Offset Time", description="Offset the imported part of edit to start at the specified time", default=True,
+    )
+    importAtFrame: IntProperty(
+        name="Import at Frame",
+        description="Frame at which the imported edit has to start",
+        soft_min=0,
+        min=0,
+        default=25,
     )
 
     reformatShotNames: BoolProperty(
@@ -154,15 +158,13 @@ class UAS_ShotManager_OT_Create_Shots_From_OTIO_RRS(Operator):
         wm = context.window_manager
 
         if "" != self.otioFile and Path(self.otioFile).exists():
-            config.gOtioTimeline = getSequenceClassListFromOtioTimeline(self.otioFile)
+            config.gOtioTimeline = getSequenceClassListFromOtioTimeline(self.otioFile, verbose=False)
 
             config.gSeqEnumList = list()
             for i, item in enumerate(config.gOtioTimeline.sequenceList):
                 config.gSeqEnumList.append((str(i), item.name, "My seq", i + 1))
 
             self.sequenceList = config.gSeqEnumList[0][0]
-
-            print("cooll!")
 
         #    seqList = getSequenceListFromOtioTimeline(config.gOtioTimeline)
         #  self.sequenceList.items = list_sequences_from_edl(context, seqList)
@@ -206,10 +208,16 @@ class UAS_ShotManager_OT_Create_Shots_From_OTIO_RRS(Operator):
         else:
             labelText = f"Start: {-1}, End: {-1}, Num Shots: {0}"
 
-        subrow = box.row(align=True)
-        subrow.label(text=labelText)
+        row = box.row(align=True)
+        row.label(text=labelText)
 
-        box.prop(self, "importAtFrame")
+        row = box.row(align=True)
+        row.prop(self, "offsetTime")
+        # row.separator(factor=3)
+        subrow = row.row(align=True)
+        subrow.enabled = self.offsetTime
+        subrow.prop(self, "importAtFrame")
+
         box.prop(self, "reformatShotNames")
         box.prop(self, "createCameras")
 
@@ -218,15 +226,16 @@ class UAS_ShotManager_OT_Create_Shots_From_OTIO_RRS(Operator):
             row = layout.row(align=True)
             box = row.box()
             box.prop(self, "useMediaAsCameraBG")
+
             row = box.row()
             row.enabled = self.useMediaAsCameraBG
-            row.separator()
+            row.separator(factor=3)
             row.prop(self, "mediaHaveHandles")
-            row = box.row()
-            row.enabled = self.useMediaAsCameraBG and self.mediaHaveHandles
-            row.separator(factor=4)
-            row.prop(self, "mediaHandlesDuration")
-        #                if self.mediaHaveHandles:
+
+            subrow = row.row(align=True)
+            # subrow.separator(factor=3)
+            subrow.enabled = self.useMediaAsCameraBG and self.mediaHaveHandles
+            subrow.prop(self, "mediaHandlesDuration")
 
         layout.label(text="Sound:")
         row = layout.row(align=True)
@@ -251,13 +260,17 @@ class UAS_ShotManager_OT_Create_Shots_From_OTIO_RRS(Operator):
         # importOtio(
         selSeq = config.gOtioTimeline.sequenceList[int(self.sequenceList)]
         print("selSeq: ", selSeq)
+
+        useTimeRange = True
+        timeRange = [selSeq.start, selSeq.end] if useTimeRange else None
+
         createShotsFromOtioTimelineClass(
             context.scene,
             config.gOtioTimeline,
             selSeq.name,
             config.gOtioTimeline.sequenceList[int(self.sequenceList)].clipList,
-            selSeq.start,
-            selSeq.end,
+            timeRange=timeRange,
+            offsetTime=self.offsetTime,
             importAtFrame=self.importAtFrame,
             reformatShotNames=self.reformatShotNames,
             createCameras=self.createCameras,
