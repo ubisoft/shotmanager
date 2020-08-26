@@ -89,6 +89,8 @@ class ShotClip:
         self._highlight = False
         self.clip_mesh = None
         self.contour_mesh = None
+        self.start_interaction_mesh = None
+        self.end_interaction_mesh = None
         self.origin = None
         self.sm_props = sm_props
         self.update ( )
@@ -110,15 +112,18 @@ class ShotClip:
         UNIFORM_SHADER_2D.uniform_float ( "color", color )
         self.clip_mesh.draw ( UNIFORM_SHADER_2D, context.region )
 
+        self.start_interaction_mesh.draw ( UNIFORM_SHADER_2D, context.region )
+        self.end_interaction_mesh.draw ( UNIFORM_SHADER_2D, context.region )
+
         if self.shot.name == self.sm_props.getCurrentShot ( ).name:
-            UNIFORM_SHADER_2D.uniform_float ( "color", ( .6, .6, .9, .75 ) )
+            UNIFORM_SHADER_2D.uniform_float ( "color", ( .6, .6, .9, .9 ) )
             self.contour_mesh.draw ( UNIFORM_SHADER_2D, context.region, "LINES" )
 
         bgl.glDisable ( bgl.GL_BLEND )
 
         blf.color ( 0, .99, .99, .99, 1 )
         blf.size ( 0, 11, 72 )
-        blf.position ( 0, *context.region.view2d.view_to_region ( self.origin.x + .01, self.origin.y + 3 ), 0 )
+        blf.position ( 0, *context.region.view2d.view_to_region ( self.origin.x + 1.01, self.origin.y + 4 ), 0 )
         blf.draw ( 0, self.shot.name )
 
     def get_region ( self, x, y ):
@@ -153,6 +158,8 @@ class ShotClip:
         self.width = self.shot.end - self.shot.start + 1
         self.origin = Vector ( [ self.shot.start, get_lane_origin_y ( self.lane ) ] )
         self.clip_mesh = build_rectangle_mesh ( self.origin, self.width, self.height )
+        self.start_interaction_mesh = build_rectangle_mesh ( self.origin, 1, self.height )
+        self.end_interaction_mesh = build_rectangle_mesh ( self.origin + Vector ( [ self.width - 1, 0 ] ), 1, self.height )
         self.contour_mesh = build_rectangle_mesh ( self.origin, self.width, self.height, True )
 
 
