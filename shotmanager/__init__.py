@@ -342,6 +342,12 @@ def register():
         update=timeline_valueChanged,
     )
 
+    bpy.types.WindowManager.UAS_shot_manager_toggle_montage_interaction = BoolProperty(
+        name="montage_interaction",
+        description="Disable or enable montage like timeline interaction",
+        default=True,
+    )
+
     bpy.types.WindowManager.UAS_shot_manager_progressbar = FloatProperty(
         name="progressbar",
         description="Value of the progress bar",

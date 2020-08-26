@@ -188,12 +188,14 @@ class UAS_ShotManager_DrawMontageTimeline ( bpy.types.Operator ):
 
         self.frame_under_mouse = None
 
-        self.disable_interation = False
-
     def modal ( self, context, event ):
         for area in context.screen.areas:
             if area.type == "DOPESHEET_EDITOR":
                 area.tag_redraw ( )
+
+        if not context.window_manager.UAS_shot_manager_toggle_montage_interaction:
+            return { "PASS_THROUGH" }
+
 
         event_handled = False
         region, area = get_region_at_xy ( context, event.mouse_x, event.mouse_y, "DOPESHEET_EDITOR" )
@@ -242,7 +244,7 @@ class UAS_ShotManager_DrawMontageTimeline ( bpy.types.Operator ):
             self.build_clips ( )  # Assume that when the mouse got out of the region shots may be edited
             self.active_clip = None
 
-        if event_handled and not self.disable_interation:
+        if event_handled:
             return {"RUNNING_MODAL"}
 
         if not context.window_manager.UAS_shot_manager_display_timeline:
@@ -260,7 +262,6 @@ class UAS_ShotManager_DrawMontageTimeline ( bpy.types.Operator ):
         self.context = context
         self.sm_props = context.scene.UAS_shot_manager_props
         self.build_clips ( )
-
         return { 'RUNNING_MODAL' }
 
     def build_clips ( self ):
