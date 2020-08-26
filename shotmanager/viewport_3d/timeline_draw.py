@@ -71,9 +71,9 @@ def build_rectangle_mesh ( position, width, height ):
     return Mesh2D ( vertices, indices )
 
 
-LANE_HEIGHT = 15
+LANE_HEIGHT = 18
 def get_lane_origin_y ( lane ):
-    return -LANE_HEIGHT * lane - 35 # 35 is an offset to put it under timeline ruler.
+    return -LANE_HEIGHT * lane - 39 # an offset to put it under timeline ruler.
 
 
 class ShotClip:
@@ -98,23 +98,46 @@ class ShotClip:
         self._highlight = value
 
     def draw ( self, context ):
+        bgl.glEnable ( bgl.GL_BLEND )
         UNIFORM_SHADER_2D.bind ( )
         color = ( self.shot.color[ 0 ], self.shot.color[ 1 ], self.shot.color[ 2 ], .5 )
         if self.highlight:
-            color = ( 1, 1, 1, .5 )
+            color = ( .9, .9, .9, .5 )
         UNIFORM_SHADER_2D.uniform_float ( "color", color )
         self.clip_mesh.draw ( UNIFORM_SHADER_2D, context.region )
+        bgl.glDisable ( bgl.GL_BLEND )
 
         blf.color ( 0, .99, .99, .99, 1 )
         blf.size ( 0, 11, 72 )
         blf.position ( 0, *context.region.view2d.view_to_region ( self.origin.x + .01, self.origin.y + 3 ), 0 )
         blf.draw ( 0, self.shot.name )
 
-    def is_inside ( self, x, y ):
-        if self.shot.start<= x < self.shot.end and self.origin.y <= y < self.origin.y + self.height:
-            return True
+    def get_region ( self, x, y ):
+        """
+        Return the region the mouse is on -1 for start, 0 for move, 1 for end. None else
+        :param x:
+        :param y:
+        :return:
+        """
+        if self.shot.start <= x < self.shot.end and self.origin.y <= y < self.origin.y + self.height:
+            if self.shot.start <= x < self.shot.start + 1:
+                return -1
+            elif self.shot.end - 1 <= x < self.shot.end:
+                return 1
+            else:
+                return 0
 
-        return False
+        return None
+
+    def handle_mouse_interaction ( self, region, mouse_disp ):
+        if region == -1:
+            self.shot.start += mouse_disp
+        elif region == 1:
+            self.shot.end += mouse_disp
+        else:
+            # Very important, don't use properties for changing both start and ends. Depending of the amount of displacement duration can change.
+            self.shot[ "end" ] += mouse_disp
+            self.shot[ "start" ] += mouse_disp
 
     def update ( self ):
         self.width = self.shot.end - self.shot.start
@@ -143,6 +166,7 @@ class UAS_ShotManager_DrawMontageTimeline ( bpy.types.Operator ):
         self.prev_click = 0
 
         self.active_clip = None
+        self.active_clip_region = None
 
     def modal ( self, context, event ):
         for area in context.screen.areas:
@@ -156,9 +180,11 @@ class UAS_ShotManager_DrawMontageTimeline ( bpy.types.Operator ):
             if event.type == "LEFTMOUSE":
                 if event.value == "PRESS":
                     for clip in self.clips:
-                        if clip.is_inside ( mouse_x, mouse_y ):
+                        active_clip_region = clip.get_region ( mouse_x, mouse_y )
+                        if active_clip_region is not None:
                             clip.highlight = True
                             self.active_clip = clip
+                            self.active_clip_region = active_clip_region
                             event_handled = True
                         else:
                             clip.highlight = False
@@ -172,12 +198,9 @@ class UAS_ShotManager_DrawMontageTimeline ( bpy.types.Operator ):
             elif event.type == "MOUSEMOVE":
                 if event.value == "PRESS":
                     if self.active_clip:
-                        event_handled = True
                         mouse_frame = int ( region.view2d.region_to_view ( event.mouse_x - region.x, 0 )[ 0 ] )
                         prev_mouse_frame = int ( region.view2d.region_to_view ( self.prev_mouse_x, 0 )[ 0 ] )
-                        self.active_clip.shot.start += mouse_frame - prev_mouse_frame
-                        self.active_clip.shot.end += mouse_frame - prev_mouse_frame
-
+                        self.active_clip.handle_mouse_interaction ( self.active_clip_region, mouse_frame - prev_mouse_frame)
                         self.active_clip.update ( )
                         event_handled = True
                 elif event.value == "RELEASE":
@@ -239,11 +262,10 @@ class UAS_ShotManager_DrawMontageTimeline ( bpy.types.Operator ):
 
 
     def draw ( self, context ):
-        bgl.glEnable ( bgl.GL_BLEND )
         for clip in self.clips:
             clip.draw ( context )
 
-        bgl.glDisable ( bgl.GL_BLEND )
+
 
 
 _classes = ( UAS_ShotManager_DrawMontageTimeline, )
