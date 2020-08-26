@@ -275,3 +275,19 @@ def get_media_list(timeline, track_type="ALL"):
     #     print(item)
 
     return media_list
+
+
+def get_clips_in_range(timeline, track_type="ALL", mode="STRICTLY"):
+    """ Return the clips in the specified range
+        track_type can be "ALL", "VIDEO" or "AUDIO"
+        mode: "STRICTLY", "OVERLAPPING"
+        *** Warning: track owner is not kept at the moment ***
+    """
+
+    if "ALL" == track_type or "VIDEO" == track_type:
+        pass
+    elif "ALL" == track_type or "AUDIO" == track_type:
+        pass
+
+    return
+

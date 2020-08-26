@@ -932,7 +932,8 @@ class UAS_MT_ShotManager_Shots_ToolsMenu(Menu):
             row.operator(
                 "uasshotmanager.createshotsfromotio_rrs", text="Create Shots From EDL - Debug + file"
             ).otioFile = (
-                r"Z:\_UAS_Dev\Exports\RRSpecial_ACT01_AQ_XML_200730\RRSpecial_ACT01_AQ_200730__FromPremiere.xml"
+                # r"Z:\_UAS_Dev\Exports\RRSpecial_ACT01_AQ_XML_200730\RRSpecial_ACT01_AQ_200730__FromPremiere.xml"
+                r"C:\_UAS_ROOT\RRSpecial\04_ActsPredec\Act01\Exports\RRSpecial_ACT01_AQ_XML_200730\RRSpecial_ACT01_AQ_200730__FromPremiere.xml"
             )
 
         # tools for precut ###

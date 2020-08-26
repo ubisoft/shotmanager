@@ -11,7 +11,8 @@ from .exports import exportOtio
 
 # from shotmanager.otio import imports
 from .imports import createShotsFromOtio, importSound, importOtioToVSE
-from .imports import getSequenceListFromOtioTimeline
+from .imports import getSequenceListFromOtioTimeline, getSequenceClassListFromOtioTimeline
+from .imports import createShotsFromOtioTimelineClass
 
 from ..utils import utils
 
@@ -91,7 +92,7 @@ def list_sequences_from_edl(self, context):
     #         (cam.name, cam.name, 'Use the exising scene camera named "' + cam.name + '"\nfor the new shot', i + 1)
     #     )
 
-    if 0 == len(res):
+    if res is None or 0 == len(res):
         res = nothingList
     return res
 
@@ -153,12 +154,13 @@ class UAS_ShotManager_OT_Create_Shots_From_OTIO_RRS(Operator):
         wm = context.window_manager
 
         if "" != self.otioFile and Path(self.otioFile).exists():
-            config.gOtioTimeline = opentimelineio.adapters.read_from_file(self.otioFile)
+            config.gOtioTimeline = getSequenceClassListFromOtioTimeline(self.otioFile)
 
             config.gSeqEnumList = list()
-            seqList = getSequenceListFromOtioTimeline(config.gOtioTimeline)
-            for i, item in enumerate(seqList):
-                config.gSeqEnumList.append((item, item, "My seq", i + 1))
+            for i, item in enumerate(config.gOtioTimeline.sequenceList):
+                config.gSeqEnumList.append((str(i), item.name, "My seq", i + 1))
+
+            self.sequenceList = config.gSeqEnumList[0][0]
 
             print("cooll!")
 
@@ -181,7 +183,7 @@ class UAS_ShotManager_OT_Create_Shots_From_OTIO_RRS(Operator):
         box.prop(self, "otioFile", text="")
 
         if config.gOtioTimeline is not None:
-            timeline = config.gOtioTimeline
+            timeline = config.gOtioTimeline.timeline
             time = timeline.duration()
             rate = int(time.rate)
 
@@ -196,6 +198,17 @@ class UAS_ShotManager_OT_Create_Shots_From_OTIO_RRS(Operator):
         box = row.box()
         box.separator(factor=0.2)
         box.prop(self, "sequenceList")
+
+        # print("self.sequenceList: ", self.sequenceList)
+        if config.gOtioTimeline is not None:
+            selSeq = config.gOtioTimeline.sequenceList[int(self.sequenceList)]
+            labelText = f"Start: {selSeq.start}, End: {selSeq.end}, Num Shots: {len(selSeq.clipList)}"
+        else:
+            labelText = f"Start: {-1}, End: {-1}, Num Shots: {0}"
+
+        subrow = box.row(align=True)
+        subrow.label(text=labelText)
+
         box.prop(self, "importAtFrame")
         box.prop(self, "reformatShotNames")
         box.prop(self, "createCameras")
@@ -236,9 +249,15 @@ class UAS_ShotManager_OT_Create_Shots_From_OTIO_RRS(Operator):
         # print("ex File extension:", extension)
 
         # importOtio(
-        createShotsFromOtio(
+        selSeq = config.gOtioTimeline.sequenceList[int(self.sequenceList)]
+        print("selSeq: ", selSeq)
+        createShotsFromOtioTimelineClass(
             context.scene,
-            self.otioFile,
+            config.gOtioTimeline,
+            selSeq.name,
+            config.gOtioTimeline.sequenceList[int(self.sequenceList)].clipList,
+            selSeq.start,
+            selSeq.end,
             importAtFrame=self.importAtFrame,
             reformatShotNames=self.reformatShotNames,
             createCameras=self.createCameras,
@@ -247,6 +266,17 @@ class UAS_ShotManager_OT_Create_Shots_From_OTIO_RRS(Operator):
             mediaHandlesDuration=self.mediaHandlesDuration,
             importSoundInVSE=self.importSoundInVSE,
         )
+        # createShotsFromOtio(
+        #     context.scene,
+        #     self.otioFile,
+        #     importAtFrame=self.importAtFrame,
+        #     reformatShotNames=self.reformatShotNames,
+        #     createCameras=self.createCameras,
+        #     useMediaAsCameraBG=self.useMediaAsCameraBG,
+        #     mediaHaveHandles=self.mediaHaveHandles,
+        #     mediaHandlesDuration=self.mediaHandlesDuration,
+        #     importSoundInVSE=self.importSoundInVSE,
+        # )
 
         return {"FINISHED"}
 

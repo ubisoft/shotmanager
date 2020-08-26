@@ -908,6 +908,7 @@ class UAS_ShotManager_Props(PropertyGroup):
         newShot.parentTakeIndex = takeInd
         newShot.name = name
         newShot.enabled = enabled
+        newShot.end = 9999999  # mandatory cause start is clamped by end
         newShot.start = start
         newShot.end = end
         newShot.camera = camera
