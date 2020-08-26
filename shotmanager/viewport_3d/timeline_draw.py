@@ -42,16 +42,16 @@ class Mesh2D:
     def texcoords ( self ):
         return list ( self._texcoords )
 
-    def draw ( self, shader, region = None ):
+    def draw ( self, shader, region = None, draw_types = "TRIS" ):
         transformed_vertices = self._vertices
         if region:
             transformed_vertices = [ region.view2d.view_to_region ( *clamp_to_region ( x, y, region ), clip = True ) for x, y in transformed_vertices ]
 
-        batch = batch_for_shader ( shader, "TRIS", { "pos": transformed_vertices }, indices = self._indices )
+        batch = batch_for_shader ( shader, draw_types, { "pos": transformed_vertices }, indices = self._indices )
         batch.draw ( shader )
 
 
-def build_rectangle_mesh ( position, width, height ):
+def build_rectangle_mesh ( position, width, height, as_lines = False ):
     """
 
     :param position:
@@ -66,7 +66,10 @@ def build_rectangle_mesh ( position, width, height ):
     x4, y4 = position.x + width, position.y + height
 
     vertices =  ( ( x1, y1 ), ( x2, y2 ), ( x3, y3 ), ( x4, y4 ) )
-    indices = ( ( 0, 1, 2 ), ( 2, 1, 3 ) )
+    if as_lines:
+        indices = ( ( 0, 1 ), ( 0, 2 ), ( 2, 3 ), ( 1, 3 ) )
+    else:
+        indices = ( ( 0, 1, 2 ), ( 2, 1, 3 ) )
 
     return Mesh2D ( vertices, indices )
 
@@ -77,16 +80,17 @@ def get_lane_origin_y ( lane ):
 
 
 class ShotClip:
-    def __init__ ( self, context, shot, lane ):
+    def __init__ ( self, context, shot, lane, sm_props ):
         self.context = context
         self.shot = shot
         self.height = LANE_HEIGHT
-        self.width = shot.end - shot.start
+        self.width = 0
         self.lane = lane
         self._highlight = False
         self.clip_mesh = None
+        self.contour_mesh = None
         self.origin = None
-
+        self.sm_props = sm_props
         self.update ( )
 
     @property
@@ -105,6 +109,11 @@ class ShotClip:
             color = ( .9, .9, .9, .5 )
         UNIFORM_SHADER_2D.uniform_float ( "color", color )
         self.clip_mesh.draw ( UNIFORM_SHADER_2D, context.region )
+
+        if self.shot.name == self.sm_props.getCurrentShot ( ).name:
+            UNIFORM_SHADER_2D.uniform_float ( "color", ( .6, .6, .9, .75 ) )
+            self.contour_mesh.draw ( UNIFORM_SHADER_2D, context.region, "LINES" )
+
         bgl.glDisable ( bgl.GL_BLEND )
 
         blf.color ( 0, .99, .99, .99, 1 )
@@ -119,30 +128,32 @@ class ShotClip:
         :param y:
         :return:
         """
-        if self.shot.start <= x < self.shot.end and self.origin.y <= y < self.origin.y + self.height:
-            if self.shot.start <= x < self.shot.start + 1:
-                return -1
-            elif self.shot.end - 1 <= x < self.shot.end:
+        if self.shot.start <= x < self.shot.end + 1 and self.origin.y <= y < self.origin.y + self.height:
+            # Test order is important for the case of start and end are the same. We want to prioritize moving the end.
+            if self.shot.end <= x < self.shot.end + 1:
                 return 1
+            elif self.shot.start <= x < self.shot.start + 1:
+                return -1
             else:
                 return 0
 
         return None
 
     def handle_mouse_interaction ( self, region, mouse_disp ):
-        if region == -1:
-            self.shot.start += mouse_disp
-        elif region == 1:
+        if region == 1:
             self.shot.end += mouse_disp
+        elif region == -1:
+            self.shot.start += mouse_disp
         else:
             # Very important, don't use properties for changing both start and ends. Depending of the amount of displacement duration can change.
             self.shot[ "end" ] += mouse_disp
             self.shot[ "start" ] += mouse_disp
 
     def update ( self ):
-        self.width = self.shot.end - self.shot.start
+        self.width = self.shot.end - self.shot.start + 1
         self.origin = Vector ( [ self.shot.start, get_lane_origin_y ( self.lane ) ] )
         self.clip_mesh = build_rectangle_mesh ( self.origin, self.width, self.height )
+        self.contour_mesh = build_rectangle_mesh ( self.origin, self.width, self.height, True )
 
 
 
@@ -168,6 +179,10 @@ class UAS_ShotManager_DrawMontageTimeline ( bpy.types.Operator ):
         self.active_clip = None
         self.active_clip_region = None
 
+        self.frame_under_mouse = None
+
+        self.disable_interation = False
+
     def modal ( self, context, event ):
         for area in context.screen.areas:
             if area.type == "DOPESHEET_EDITOR":
@@ -185,6 +200,7 @@ class UAS_ShotManager_DrawMontageTimeline ( bpy.types.Operator ):
                             clip.highlight = True
                             self.active_clip = clip
                             self.active_clip_region = active_clip_region
+                            self.sm_props.setSelectedShot ( self.active_clip.shot )
                             event_handled = True
                         else:
                             clip.highlight = False
@@ -193,6 +209,7 @@ class UAS_ShotManager_DrawMontageTimeline ( bpy.types.Operator ):
                     if self.active_clip and counter - self.prev_click < .2: # Double click.
                         self.sm_props.setCurrentShot ( self.active_clip.shot )
                         event_handled = True
+
                     self.prev_click = counter
 
             elif event.type == "MOUSEMOVE":
@@ -202,11 +219,14 @@ class UAS_ShotManager_DrawMontageTimeline ( bpy.types.Operator ):
                         prev_mouse_frame = int ( region.view2d.region_to_view ( self.prev_mouse_x, 0 )[ 0 ] )
                         self.active_clip.handle_mouse_interaction ( self.active_clip_region, mouse_frame - prev_mouse_frame)
                         self.active_clip.update ( )
+                        if self.active_clip_region != 0:
+                            self.frame_under_mouse = mouse_frame
                         event_handled = True
                 elif event.value == "RELEASE":
                     if self.active_clip:
                         self.active_clip.highlight = False
                         self.active_clip = None
+                        self.frame_under_mouse = None
 
 
             self.prev_mouse_x = event.mouse_x - region.x
@@ -215,7 +235,7 @@ class UAS_ShotManager_DrawMontageTimeline ( bpy.types.Operator ):
             self.build_clips ( )  # Assume that when the mouse got out of the region shots may be edited
             self.active_clip = None
 
-        if event_handled:
+        if event_handled and not self.disable_interation:
             return {"RUNNING_MODAL"}
 
         if not context.window_manager.UAS_shot_manager_display_timeline:
@@ -255,15 +275,21 @@ class UAS_ShotManager_DrawMontageTimeline ( bpy.types.Operator ):
                         lane = max ( shots_from_lane ) + 1 # No free lane, make a new one.
                 shots_from_lane[ lane ].append ( shot )
 
-                self.clips.append ( ShotClip ( self.context, shot, lane ) )
+                self.clips.append ( ShotClip ( self.context, shot, lane, self.sm_props ) )
         else:
             for i, shot in enumerate ( self.sm_props.getShotsList ( ignoreDisabled = True ) ):
-                self.clips.append ( ShotClip ( self.context, shot, i ) )
+                self.clips.append ( ShotClip ( self.context, shot, i, self.sm_props ) )
 
 
     def draw ( self, context ):
         for clip in self.clips:
             clip.draw ( context )
+
+        if self.frame_under_mouse is not None:
+            blf.color ( 0, .99, .99, .99, 1 )
+            blf.size ( 0, 11, 72 )
+            blf.position ( 0, self.prev_mouse_x + 4, self.prev_mouse_y + 10, 0 )
+            blf.draw ( 0, str ( self.frame_under_mouse ) )
 
 
 
