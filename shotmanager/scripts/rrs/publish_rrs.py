@@ -251,11 +251,11 @@ def publishRRS(prodFilePath, takeIndex=-1, verbose=False, useCache=False, fileLi
         print("\n")
         for k in generatedFilesDict:
             if len(generatedFilesDict[k]):
-                print(f" {k}:")
+                print(f" - {k}:")
                 for item in generatedFilesDict[k]:
-                    print(f"   {item}")
+                    print(f"       {item}")
             else:
-                print(f" {k}: []")
+                print(f" - {k}: []")
         print(" ")
 
     return generatedFilesDict

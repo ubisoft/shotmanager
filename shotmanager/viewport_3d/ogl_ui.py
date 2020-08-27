@@ -4,6 +4,11 @@ Draw a timeline in viewport
 !!! Very Dirty code.
 """
 
+import logging
+
+_logger = logging.getLogger(__name__)
+
+
 from collections import defaultdict
 from statistics import mean
 
@@ -778,6 +783,9 @@ class UAS_ShotManager_DrawTimeline(bpy.types.Operator):
 
     # Draw handler to paint onto the screen
     def draw_callback_px(self, op, context):
-        for widget in self.widgets:
-            widget.draw()
+        try:
+            for widget in self.widgets:
+                widget.draw()
+        except Exception as e:
+            _logger.error(f"*** Crash in ogl context ***")
 

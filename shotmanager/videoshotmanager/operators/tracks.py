@@ -11,7 +11,8 @@ def _list_scenes(self, context):
     res = list()
     # print("Self: ", self)
     for i, scn in enumerate([c for c in bpy.data.scenes]):
-        if "UAS_shot_manager_props" in scn and scn is not context.scene:
+        if "UAS_shot_manager_props" in scn:
+            # if scn is not context.scene:  # required for camera clips use
             res.append((scn.name, scn.name, "", i))
     # if not len(res):
     #     res.append(("", "", "", 0))
@@ -20,6 +21,7 @@ def _list_scenes(self, context):
 
 def _list_takes(self, context):
     res = list()
+    print("*** self.sceneName: ", self.sceneName)
     for i, take in enumerate([c for c in bpy.data.scenes[self.sceneName].UAS_shot_manager_props.takes]):
         res.append((take.name, take.name, "", i))
     # if not len(res):
