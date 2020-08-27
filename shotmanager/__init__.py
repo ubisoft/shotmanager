@@ -72,7 +72,7 @@ __version__ = f"v{bl_info['version'][0]}.{bl_info['version'][1]}.{bl_info['versi
 ###########
 
 _logger = logging.getLogger(__name__)
-_logger.propagate = True
+_logger.propagate = False
 MODULE_PATH = Path(__file__).parent.parent
 logging.basicConfig(level=logging.DEBUG)
 _logger.setLevel(logging.INFO)  # CRITICAL ERROR WARNING INFO DEBUG NOTSET

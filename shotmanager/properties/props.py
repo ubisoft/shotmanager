@@ -315,8 +315,6 @@ class UAS_ShotManager_Props(PropertyGroup):
     # prefs
     #############
 
-    new_shot_duration: IntProperty(default=50, options=set())
-
     use_camera_color: BoolProperty(
         name="Use Camera Color",
         description="If True the color used by a shot is based on the color of its camera (default).\n"
