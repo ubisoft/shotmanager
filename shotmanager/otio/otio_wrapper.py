@@ -92,6 +92,10 @@ def parseOtioFile(otioFile):
         parseTrack(timeline, "VIDEO", i)
 
 
+def get_timeline_from_file(otioFile):
+    return opentimelineio.adapters.read_from_file(otioFile)
+
+
 def parseTrack(timeline, track_type, track_index):
     """ Display the track information
         track_type can be "VIDEO" or "AUDIO"
@@ -282,7 +286,8 @@ def get_media_list(timeline, track_type="ALL"):
 def get_clips_in_range(timeline, track_type="ALL", mode="STRICTLY"):
     """ Return the clips in the specified range
         track_type can be "ALL", "VIDEO" or "AUDIO"
-        mode: "STRICTLY", "OVERLAPPING"
+        mode: "STRICTLY": start and end of clip are inside the range or equal to its boundaries
+        mode: "OVERLAPPING": start, end or frames inbetweens are in the range
         *** Warning: track owner is not kept at the moment ***
     """
 

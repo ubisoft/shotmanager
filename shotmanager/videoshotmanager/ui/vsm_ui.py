@@ -273,7 +273,17 @@ class UAS_MT_VideoShotManager_ToolsMenu(Menu):
         # wkip debug - to remove:
         if config.uasDebug:
             row = layout.row(align=True)
-            row.operator("uasshotmanager.importeditfromotio", text="Import Edit From EDL - Debug")
+            row.operator("uas_video_shot_manager.importeditfromotio", text="Import Edit From EDL - Debug")
+
+        if config.uasDebug:
+            row = layout.row(align=True)
+            row.operator(
+                "uas_video_shot_manager.importeditfromotio", text="Import Edit From EDL - Debug + file"
+            ).otioFile = (
+                # r"Z:\_UAS_Dev\Exports\RRSpecial_ACT01_AQ_XML_200730\RRSpecial_ACT01_AQ_200730__FromPremiere.xml"
+                r"Z:\EvalSofts\Blender\DevPython_Data\UAS_ShotManager_Data\ImportEDLPremiere\ImportEDLPremiere.xml"
+                # r"C:\_UAS_ROOT\RRSpecial\04_ActsPredec\Act01\Exports\RRSpecial_ACT01_AQ_XML_200730\RRSpecial_ACT01_AQ_200730__FromPremiere_to40.xml"  # _to40
+            )
 
         row = layout.row(align=True)
         row.operator_context = "INVOKE_DEFAULT"
@@ -282,7 +292,7 @@ class UAS_MT_VideoShotManager_ToolsMenu(Menu):
         # wkip debug - to remove:
         if config.uasDebug:
             row = layout.row(align=True)
-            row.operator("uasshotmanager.parseeditfromotio", text="Import Edit From EDL - Debug").otioFile = ""
+            row.operator("uas_video_shot_manager.parseeditfromotio", text="Import Edit From EDL - Debug").otioFile = ""
 
         layout.separator()
 

@@ -1,3 +1,7 @@
+import logging
+
+_logger = logging.getLogger(__name__)
+
 import os
 from pathlib import Path
 
@@ -10,13 +14,15 @@ import opentimelineio
 from .exports import exportOtio
 
 # from shotmanager.otio import imports
-from .imports import createShotsFromOtio, importSound, importOtioToVSE
+from .imports import createShotsFromOtio, importOtioToVSE
 from .imports import getSequenceListFromOtioTimeline, getSequenceClassListFromOtioTimeline
 from .imports import createShotsFromOtioTimelineClass
 
 from ..utils import utils
 
 from ..config import config
+
+from . import otio_wrapper as ow
 
 
 class UAS_ShotManager_Export_OTIO(Operator):
@@ -146,17 +152,16 @@ class UAS_ShotManager_OT_Create_Shots_From_OTIO_RRS(Operator):
         name="Handles Duration", description="", soft_min=0, min=0, default=10,
     )
 
-    importSoundInVSE: BoolProperty(
+    importAudioInVSE: BoolProperty(
         name="Import sound In VSE",
         description="Import sound clips directly into the VSE of the current scene",
         default=True,
     )
 
-    # otioTimeline: PointerProperty(Type=opentimelineio._otio.Timeline)
-
     def invoke(self, context, event):
         wm = context.window_manager
 
+        config.gOtioTimeline = None
         if "" != self.otioFile and Path(self.otioFile).exists():
             config.gOtioTimeline = getSequenceClassListFromOtioTimeline(self.otioFile, verbose=False)
 
@@ -243,7 +248,7 @@ class UAS_ShotManager_OT_Create_Shots_From_OTIO_RRS(Operator):
         row = box.row()
         # if 0 != self.mediaHandlesDuration and
         #     row.enabled = False
-        row.prop(self, "importSoundInVSE")
+        row.prop(self, "importAudioInVSE")
 
         layout.separator()
 
@@ -277,7 +282,7 @@ class UAS_ShotManager_OT_Create_Shots_From_OTIO_RRS(Operator):
             useMediaAsCameraBG=self.useMediaAsCameraBG,
             mediaHaveHandles=self.mediaHaveHandles,
             mediaHandlesDuration=self.mediaHandlesDuration,
-            importSoundInVSE=self.importSoundInVSE,
+            importSoundInVSE=self.importAudioInVSE,
         )
         # createShotsFromOtio(
         #     context.scene,
@@ -288,7 +293,7 @@ class UAS_ShotManager_OT_Create_Shots_From_OTIO_RRS(Operator):
         #     useMediaAsCameraBG=self.useMediaAsCameraBG,
         #     mediaHaveHandles=self.mediaHaveHandles,
         #     mediaHandlesDuration=self.mediaHandlesDuration,
-        #     importSoundInVSE=self.importSoundInVSE,
+        #     importSoundInVSE=self.importAudioInVSE,
         # )
 
         return {"FINISHED"}
@@ -332,7 +337,7 @@ class UAS_ShotManager_OT_Create_Shots_From_OTIO(Operator):
         name="Handles Duration", description="", soft_min=0, min=0, default=10,
     )
 
-    importSoundInVSE: BoolProperty(
+    importAudioInVSE: BoolProperty(
         name="Import sound In VSE",
         description="Import sound clips directly into the VSE of the current scene",
         default=True,
@@ -400,7 +405,7 @@ class UAS_ShotManager_OT_Create_Shots_From_OTIO(Operator):
         row = box.row()
         # if 0 != self.mediaHandlesDuration and
         #     row.enabled = False
-        row.prop(self, "importSoundInVSE")
+        row.prop(self, "importAudioInVSE")
 
         layout.separator()
 
@@ -424,195 +429,8 @@ class UAS_ShotManager_OT_Create_Shots_From_OTIO(Operator):
             useMediaAsCameraBG=self.useMediaAsCameraBG,
             mediaHaveHandles=self.mediaHaveHandles,
             mediaHandlesDuration=self.mediaHandlesDuration,
-            importSoundInVSE=self.importSoundInVSE,
+            importSoundInVSE=self.importAudioInVSE,
         )
-
-        return {"FINISHED"}
-
-
-class UAS_ShotManager_OT_Import_Edit_From_OTIO(Operator):
-    bl_idname = "uasshotmanager.importeditfromotio"
-    bl_label = "Import Edit from EDL file"
-    bl_description = "Open EDL file (Final Cut XML, OTIO...) to import its content"
-    bl_options = {"INTERNAL", "UNDO"}
-
-    otioFile: StringProperty()
-    importAtFrame: IntProperty(
-        name="Import at Frame",
-        description="Make the imported edit start at the specified frame",
-        soft_min=0,
-        min=0,
-        default=25,
-    )
-
-    importVideoInVSE: BoolProperty(
-        name="Import Video In VSE",
-        description="Import video clips directly into the VSE of the current scene",
-        default=True,
-    )
-
-    importSoundInVSE: BoolProperty(
-        name="Import Sound In VSE",
-        description="Import sound clips directly into the VSE of the current scene",
-        default=True,
-    )
-
-    def invoke(self, context, event):
-        wm = context.window_manager
-        wm.invoke_props_dialog(self, width=500)
-        #    res = bpy.ops.uasotio.openfilebrowser("INVOKE_DEFAULT")
-        return {"RUNNING_MODAL"}
-
-    def draw(self, context):
-        layout = self.layout
-        row = layout.row(align=True)
-
-        box = row.box()
-        box.label(text="OTIO File")
-        box.prop(self, "otioFile", text="")
-
-        from pathlib import Path
-
-        if "" != self.otioFile and Path(self.otioFile).exists():
-            timeline = opentimelineio.adapters.read_from_file(self.otioFile)
-            time = timeline.duration()
-            rate = int(time.rate)
-
-            if rate != context.scene.render.fps:
-                box.alert = True
-                box.label(
-                    text="!!! Scene fps is " + str(context.scene.render.fps) + ", imported edit is " + str(rate) + "!!"
-                )
-                box.alert = False
-
-        box.separator(factor=0.2)
-        box.prop(self, "importAtFrame")
-
-        layout.label(text="Video:")
-        row = layout.row(align=True)
-        box = row.box()
-        row = box.row()
-        row.prop(self, "importVideoInVSE")
-
-        layout.label(text="Sound:")
-        row = layout.row(align=True)
-        box = row.box()
-        row = box.row()
-        row.prop(self, "importSoundInVSE")
-
-        layout.separator()
-
-    def execute(self, context):
-
-        # creation VSE si existe pas
-        vse = utils.getSceneVSE(context.scene.name)
-        # bpy.context.space_data.show_seconds = False
-        bpy.context.window.workspace = bpy.data.workspaces["Video Editing"]
-        # bpy.context.window.space_data.show_seconds = False
-
-        importOtioToVSE(
-            self.otioFile,
-            vse,
-            importAtFrame=self.importAtFrame,
-            importVideoTracks=self.importVideoInVSE,
-            importAudioTracks=self.importSoundInVSE,
-        )
-
-        return {"FINISHED"}
-
-
-class UAS_ShotManager_OT_Parse_Edit_From_OTIO(Operator):
-    bl_idname = "uasshotmanager.parseeditfromotio"
-    bl_label = "Parse Edit from EDL file"
-    bl_description = "Open EDL file (Final Cut XML, OTIO...) to import its content"
-    bl_options = {"INTERNAL"}
-
-    otioFile: StringProperty()
-
-    def invoke(self, context, event):
-        wm = context.window_manager
-        wm.invoke_props_dialog(self, width=500)
-        #    res = bpy.ops.uasotio.openfilebrowser("INVOKE_DEFAULT")
-        return {"RUNNING_MODAL"}
-
-    def draw(self, context):
-        layout = self.layout
-        row = layout.row(align=True)
-
-        box = row.box()
-        box.label(text="OTIO File")
-        box.prop(self, "otioFile", text="")
-
-        from pathlib import Path
-
-        if "" != self.otioFile and Path(self.otioFile).exists():
-            timeline = opentimelineio.adapters.read_from_file(self.otioFile)
-            time = timeline.duration()
-            rate = int(time.rate)
-
-            if rate != context.scene.render.fps:
-                box.alert = True
-                box.label(
-                    text="!!! Scene fps is " + str(context.scene.render.fps) + ", imported edit is " + str(rate) + "!!"
-                )
-                box.alert = False
-
-        # layout.label(text="Video:")
-        # row = layout.row(align=True)
-        # box = row.box()
-        # row = box.row()
-        # row.prop(self, "importVideoInVSE")
-
-        layout.separator()
-
-    def execute(self, context):
-        parseOtioFile(self.otioFile)
-        return {"FINISHED"}
-
-
-class UAS_ShotManager_OT_ImportSound_OTIO(Operator):
-    bl_idname = "uasshotmanager.importsoundotio"
-    bl_label = "Import sound tracks from OTIO File"
-    bl_description = "Import sound tracks from OTIO File"
-    bl_options = {"INTERNAL", "REGISTER", "UNDO"}
-
-    otioFile: StringProperty()
-    filepath: StringProperty(subtype="FILE_PATH")
-    filter_glob: StringProperty(default="*.xml;*.otio", options={"HIDDEN"})
-
-    def invoke(self, context, event):
-
-        # if self.otioFile in context.window_manager.UAS_vse_render:
-        #     self.filepath = context.window_manager.UAS_vse_render[self.otioFile]
-        # else:
-        self.filepath = ""
-        # https://docs.blender.org/api/current/bpy.types.WindowManager.html
-        #    self.directory = bpy.context.scene.UAS_shot_manager_props.renderRootPath
-
-        # to popup the window
-        context.window_manager.fileselect_add(self)
-        # return {"FINISHED"}
-        return {"RUNNING_MODAL"}
-
-    def execute(self, context):
-        """Open EDL file (Final Cut XML, OTIO...) to import a set of shots"""
-        filename, extension = os.path.splitext(self.filepath)
-        print("Selected file:", self.filepath)
-        print("File name:", filename)
-        print("File extension:", extension)
-
-        # pathOtio = r"Z:\EvalSofts\Blender\DevPython_Data\UAS_ShotManager_Data\ImportSounds\ExportSounds.xml"
-        # importSound(context.scene, pathOtio)
-        # or:
-        importSound(context.scene, self.filepath)
-
-        # import_otio(
-        #     context.scene,
-        #     self.filepath,
-        #     "",
-        #     # "D:/Work/EvalSofts/Blender/DevPython_Data/UAS_ShotManager_Data/ImportSounds/",
-        #     r"C:/_UAS_ROOT/RRSpecial/04_ActsPredec/Act01/Act01_Seq0010_Intro/Act01_Seq0010_Exports/",
-        # )
 
         return {"FINISHED"}
 
@@ -672,9 +490,9 @@ class UAS_OTIO_OpenFileBrowser(Operator, ImportHelper):  # from bpy_extras.io_ut
         if "CREATE_SHOTS" == self.importMode:
             bpy.ops.uasshotmanager.createshotsfromotio("INVOKE_DEFAULT", otioFile=self.filepath)
         elif "IMPORT_EDIT" == self.importMode:
-            bpy.ops.uasshotmanager.importeditfromotio("INVOKE_DEFAULT", otioFile=self.filepath)
+            bpy.ops.uas_video_shot_manager.importeditfromotio("INVOKE_DEFAULT", otioFile=self.filepath)
         elif "PARSE_EDIT" == self.importMode:
-            bpy.ops.uasshotmanager.parseeditfromotio("INVOKE_DEFAULT", otioFile=self.filepath)
+            bpy.ops.uas_video_shot_manager.parseeditfromotio("INVOKE_DEFAULT", otioFile=self.filepath)
 
         return {"FINISHED"}
 
@@ -683,9 +501,6 @@ _classes = (
     UAS_ShotManager_Export_OTIO,
     UAS_ShotManager_OT_Create_Shots_From_OTIO,
     UAS_ShotManager_OT_Create_Shots_From_OTIO_RRS,
-    UAS_ShotManager_OT_Import_Edit_From_OTIO,
-    UAS_ShotManager_OT_ImportSound_OTIO,
-    UAS_ShotManager_OT_Parse_Edit_From_OTIO,
     UAS_OTIO_OpenFileBrowser,
 )
 

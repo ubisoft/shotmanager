@@ -291,3 +291,13 @@ def add_to_selection(obj):
     obj.select_set(True)
     # to set the active object
     bpy.context.view_layer.objects.active = obj
+
+
+def segment_is_in_range(segment_start, segment_end, range_start, range_end, partly_inside=True):
+    if partly_inside:
+        if segment_start < range_start:
+            return segment_end >= range_start
+        else:
+            return segment_start <= range_end  # < ?
+    else:
+        return segment_start >= range_start and segment_end <= range_end
