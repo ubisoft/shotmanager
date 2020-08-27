@@ -23,23 +23,29 @@ def launchRenderWithVSEComposite(renderMode, takeIndex=-1, filePath="", useStamp
     _logger.info(f" *** launchRenderWithVSEComposite")
     _logger.info(f"    render_shot_prefix: {props.renderShotPrefix()}")
 
-    projectFps = scene.render.fps
+    take = props.getCurrentTake() if -1 == takeIndex else props.getTakeByIndex(takeIndex)
+    takeName = take.getName_PathCompliant()
+    shotList = take.getShotList(ignoreDisabled=True)
 
-    if props.useProjectRenderSettings:
+    projectFps = scene.render.fps
+    sequenceFileName = props.renderShotPrefix() + takeName
+    print("  sequenceFileName 1: ", sequenceFileName)
+
+    if props.use_project_settings:
         props.restoreProjectSettings()
         scene.render.image_settings.file_format = "PNG"
         projectFps = scene.render.fps
+        sequenceFileName = props.renderShotPrefix()
 
-    take = props.getCurrentTake() if -1 == takeIndex else props.getTakeByIndex(takeIndex)
-    shotList = take.getShotList(ignoreDisabled=True)
-
+    print("  sequenceFileName 2: ", sequenceFileName)
     newMediaFiles = []
 
     rootPath = filePath if "" != filePath else os.path.dirname(bpy.data.filepath)
     if not rootPath.endswith("\\"):
         rootPath += "\\"
 
-    sequenceOutputFullPath = f"{rootPath}{take.getName_PathCompliant()}\\{props.renderShotPrefix()}.mp4"
+    sequenceOutputFullPath = f"{rootPath}{takeName}\\{sequenceFileName}.mp4"
+    print("  sequenceOutputFullPath: ", sequenceOutputFullPath)
 
     preset_useStampInfo = False
     RRS_StampInfo = None
@@ -99,11 +105,11 @@ def launchRenderWithVSEComposite(renderMode, takeIndex=-1, filePath="", useStamp
 
         if shot.enabled:
 
-            newTempRenderPath = rootPath + take.getName_PathCompliant() + "\\" + shot.getName_PathCompliant() + "\\"
+            newTempRenderPath = rootPath + takeName + "\\" + shot.getName_PathCompliant() + "\\"
 
             # compositedMediaPath = shot.getOutputFileName(fullPath=True, rootFilePath=rootPath)     # if we use that the shot .mp4 is rendered in the shot dir
             # here we render in the take dir
-            compositedMediaPath = f"{rootPath}{take.getName_PathCompliant()}\\{shot.getOutputFileName(fullPath=False)}"
+            compositedMediaPath = f"{rootPath}{takeName}\\{shot.getOutputFileName(fullPath=False)}"
             newMediaFiles.append(compositedMediaPath)
 
             if not fileListOnly:
@@ -121,7 +127,7 @@ def launchRenderWithVSEComposite(renderMode, takeIndex=-1, filePath="", useStamp
 
                 # render stamped info
                 if preset_useStampInfo:
-                    RRS_StampInfo.takeName = take.getName_PathCompliant()
+                    RRS_StampInfo.takeName = takeName
 
                     RRS_StampInfo.notesUsed = shot.hasNotes()
                     RRS_StampInfo.notesLine01 = shot.note01
@@ -132,14 +138,15 @@ def launchRenderWithVSEComposite(renderMode, takeIndex=-1, filePath="", useStamp
                 #        RRS_StampInfo.shotName = f"{props.renderShotPrefix()}_{shot.name}"
                 #        print("RRS_StampInfo.renderRootPath: ", RRS_StampInfo.renderRootPath)
                 # RRS_StampInfo.renderRootPath = (
-                #     rootPath + "\\" + take.getName_PathCompliant() + "\\" + shot.getName_PathCompliant() + "\\"
+                #     rootPath + "\\" + takeName + "\\" + shot.getName_PathCompliant() + "\\"
                 # )
                 # newTempRenderPath = (
-                #     rootPath + "\\" + take.getName_PathCompliant() + "\\" + shot.getName_PathCompliant() + "\\"
+                #     rootPath + "\\" + takeName + "\\" + shot.getName_PathCompliant() + "\\"
                 # )
                 # print("newTempRenderPath: ", newTempRenderPath)
 
-                for currentFrame in range(scene.frame_start, scene.frame_end + 1):
+                numFramesInShot = scene.frame_end - scene.frame_start + 1  # shot.getDuration()
+                for f, currentFrame in enumerate(range(scene.frame_start, scene.frame_end + 1)):
                     scene.camera = shot.camera
                     scene.frame_start = shot.start - props.handles
                     scene.frame_end = shot.end + props.handles
@@ -149,7 +156,9 @@ def launchRenderWithVSEComposite(renderMode, takeIndex=-1, filePath="", useStamp
                     )
                     if not fileListOnly:
                         print("      ------------------------------------------")
-                        print("      \nFrame: ", currentFrame)
+                        print(
+                            f"      \nFrame: {currentFrame}    ( {f + 1} / {numFramesInShot} )    -     Shot: {shot.name}"
+                        )
                     #    print("      \nscene.render.filepath: ", scene.render.filepath)
                     #    print("      Current Scene:", scene.name)
 
@@ -177,14 +186,18 @@ def launchRenderWithVSEComposite(renderMode, takeIndex=-1, filePath="", useStamp
 
                 # render sound
                 audioFilePath = newTempRenderPath + f"{props.renderShotPrefix()}_{shot.name}" + ".wav"
-                print("audioFilePath: ", audioFilePath)
+                print(f"\n Sound for shot {shot.name}:")
+                print("    audioFilePath: ", audioFilePath)
                 # bpy.ops.sound.mixdown(filepath=audioFilePath, relative_path=True, container='WAV', codec='PCM')
+                # if my_file.exists():
+                #     import os.path
+                # os.path.exists(file_path)
                 bpy.ops.sound.mixdown(filepath=audioFilePath, relative_path=False, container="WAV", codec="PCM")
 
                 # use vse_render to store all the elements to composite
                 vse_render = context.window_manager.UAS_vse_render
                 vse_render.inputOverMediaPath = (scene.render.filepath)[0:-8] + "####" + ".png"
-                print("inputOverMediaPath: ", vse_render.inputOverMediaPath)
+                #    print("inputOverMediaPath: ", vse_render.inputOverMediaPath)
                 vse_render.inputOverResolution = (1280, 720)
                 vse_render.inputBGMediaPath = newTempRenderPath + "_tmp_StampInfo.####.png"
                 vse_render.inputBGResolution = (1280, 960)
@@ -206,13 +219,15 @@ def launchRenderWithVSEComposite(renderMode, takeIndex=-1, filePath="", useStamp
                 files_in_directory = os.listdir(newTempRenderPath)
                 filtered_files = [file for file in files_in_directory if file.endswith(".png") or file.endswith(".wav")]
 
-                for file in filtered_files:
-                    path_to_file = os.path.join(newTempRenderPath, file)
-                    os.remove(path_to_file)
-                try:
-                    os.rmdir(newTempRenderPath)
-                except Exception:
-                    print("Cannot delete Dir: ", newTempRenderPath)
+                deleteTempFiles = True
+                if deleteTempFiles:
+                    for file in filtered_files:
+                        path_to_file = os.path.join(newTempRenderPath, file)
+                        os.remove(path_to_file)
+                    try:
+                        os.rmdir(newTempRenderPath)
+                    except Exception:
+                        print("Cannot delete Dir: ", newTempRenderPath)
 
                 # print(f"shot.getEditStart: {shot.getEditStart()}, props.handles: {props.handles}")
 
@@ -223,6 +238,19 @@ def launchRenderWithVSEComposite(renderMode, takeIndex=-1, filePath="", useStamp
                     shot.getEditStart() - props.handles,
                     offsetStart=props.handles,
                     offsetEnd=props.handles,
+                    importVideo=False,
+                    importAudio=True,
+                )
+
+                vse_render.createNewClip(
+                    sequenceScene,
+                    compositedMediaPath,
+                    sequenceScene.frame_start,
+                    shot.getEditStart() - props.handles,
+                    offsetStart=props.handles,
+                    offsetEnd=props.handles,
+                    importVideo=True,
+                    importAudio=False,
                 )
 
     if not fileListOnly:
@@ -304,7 +332,7 @@ def launchRender(renderMode, renderRootFilePath="", useStampInfo=True):
         context.window_manager.UAS_shot_manager_shots_play_mode = False
         context.window_manager.UAS_shot_manager_display_timeline = False
 
-        if props.useProjectRenderSettings:
+        if props.use_project_settings:
             props.restoreProjectSettings()
 
             if preset_useStampInfo:  # framed output resolution is used only when StampInfo is used
@@ -335,7 +363,7 @@ def launchRender(renderMode, renderRootFilePath="", useStampInfo=True):
             #        stampInfoSettings.activateStampInfo = True
             #      stampInfoSettings.stampInfoUsed = True
 
-            if props.useProjectRenderSettings:
+            if props.use_project_settings:
                 scene.render.image_settings.file_format = props.project_images_output_format
 
             # bpy.ops.render.opengl ( animation = True )
@@ -372,7 +400,7 @@ def launchRender(renderMode, renderRootFilePath="", useStampInfo=True):
                 stampInfoSettings.takeName = take_name
 
             # wkip
-            if props.useProjectRenderSettings:
+            if props.use_project_settings:
                 scene.render.image_settings.file_format = "FFMPEG"
                 scene.render.ffmpeg.format = "MPEG4"
 
@@ -393,7 +421,7 @@ def launchRender(renderMode, renderRootFilePath="", useStampInfo=True):
 
             shots = props.get_shots()
 
-            if props.useProjectRenderSettings:
+            if props.use_project_settings:
                 scene.render.image_settings.file_format = "FFMPEG"
                 scene.render.ffmpeg.format = "MPEG4"
 

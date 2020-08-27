@@ -209,12 +209,12 @@ class UAS_Vse_Render(PropertyGroup):
         atFrame,
         offsetStart=0,
         offsetEnd=0,
-        trimmedClipDuration=0,
+        trimmedClipDuration=-1,
         cameraScene=None,
         cameraObject=None,
         clipName="",
         importVideo=True,
-        importSound=True,
+        importAudio=False,
     ):
         """
             A strip is placed at a specified time in the edit by putting its media start at the place where
@@ -317,8 +317,6 @@ class UAS_Vse_Render(PropertyGroup):
             if cameraScene is not None and cameraObject is not None:
                 mediaType = "CAMERA"
 
-        print(f"  Media Type: {mediaType}, path: {mediaPath}")
-
         if "MOVIE" == mediaType:
             newClipName = clipName if "" != clipName else "myMovie"
             if importVideo:
@@ -327,7 +325,7 @@ class UAS_Vse_Render(PropertyGroup):
                 )
                 newClip.frame_offset_start = offsetStart
                 newClip.frame_offset_end = offsetEnd
-            if importSound:
+            if importAudio:
                 newClip = scene.sequence_editor.sequences.new_sound(
                     newClipName + "Sound", mediaPath, channelInd + 1, atFrame
                 )
@@ -352,8 +350,10 @@ class UAS_Vse_Render(PropertyGroup):
             newClip = scene.sequence_editor.sequences.new_sound(newClipName, mediaPath, channelInd, atFrame)
             # if 0 != offsetEnd:
             newClip.frame_offset_start = offsetStart
-            # newClip.frame_offset_end = offsetEnd
-            newClip.frame_final_duration = trimmedClipDuration
+            if -1 != trimmedClipDuration:
+                newClip.frame_final_duration = trimmedClipDuration  # required for shot creation
+            else:
+                newClip.frame_offset_end = offsetEnd  # required for the publish
 
         elif "CAMERA" == mediaType:
             newClipName = clipName if "" != clipName else "myCamera"
@@ -364,6 +364,12 @@ class UAS_Vse_Render(PropertyGroup):
         elif "UNKNOWN" == mediaType:
             print("\n *** UNKNOWN media sent to Shot Manager - createNewClip(): ", mediaPath)
             pass
+
+        mediaInfo = f"   - Name: {newClip.name}, Media Type: {mediaType}, path: {mediaPath}"
+        print(mediaInfo)
+        print(
+            f"           frame_offset_start: {newClip.frame_offset_start}, frame_offset_end: {newClip.frame_offset_end}, frame_final_duration: {newClip.frame_final_duration}"
+        )
 
         # if newClip is not None and mediaType != "SOUNDS":
         #     newClip.frame_offset_start = offsetStart
