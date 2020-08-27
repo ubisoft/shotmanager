@@ -39,6 +39,8 @@ except ModuleNotFoundError:
 
 from . import operators
 
+from . import otio_wrapper
+
 from pathlib import Path
 
 

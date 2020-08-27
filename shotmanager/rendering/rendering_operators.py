@@ -40,15 +40,17 @@ class UAS_OT_OpenPathBrowser(Operator):
     def invoke(self, context, event):  # See comments at end  [1]
         #  self.filepath = bpy.context.scene.UAS_shot_manager_props.renderRootPath
         # https://docs.blender.org/api/current/bpy.types.WindowManager.html
+
         self.directory = context.scene.UAS_shot_manager_props.renderRootPath
+
         context.window_manager.fileselect_add(self)
+
+        return {"RUNNING_MODAL"}
 
     def execute(self, context):
         """Open a path browser to define the directory to use to render the images"""
         context.scene.UAS_shot_manager_props.renderRootPath = self.directory
         return {"FINISHED"}
-
-        return {"RUNNING_MODAL"}
 
 
 class UAS_PT_ShotManager_Render(Operator):

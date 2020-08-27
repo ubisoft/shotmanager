@@ -84,6 +84,13 @@ class UAS_PT_ShotManager(Panel):
         scene = context.scene
         props = scene.UAS_shot_manager_props
 
+        if config.uasDebug:
+            row = layout.row()
+            row.alignment = "CENTER"
+            row.alert = True
+            row.label(text=" *** Debug Mode ***")
+            row.alert = False
+
         # if not "UAS_shot_manager_props" in context.scene:
         if not props.isInitialized:
             layout.separator()
@@ -943,7 +950,16 @@ class UAS_MT_ShotManager_Shots_ToolsMenu(Menu):
         # wkip debug - to remove:
         if config.uasDebug:
             row = layout.row(align=True)
-            row.operator("uasshotmanager.createshotsfromotio", text="Create Shots From EDL - Debug")
+            row.operator("uasshotmanager.createshotsfromotio_rrs", text="Create Shots From EDL - Debug")
+
+        if config.uasDebug:
+            row = layout.row(align=True)
+            row.operator(
+                "uasshotmanager.createshotsfromotio_rrs", text="Create Shots From EDL - Debug + file"
+            ).otioFile = (
+                # r"Z:\_UAS_Dev\Exports\RRSpecial_ACT01_AQ_XML_200730\RRSpecial_ACT01_AQ_200730__FromPremiere.xml"
+                r"C:\_UAS_ROOT\RRSpecial\04_ActsPredec\Act01\Exports\RRSpecial_ACT01_AQ_XML_200730\RRSpecial_ACT01_AQ_200730__FromPremiere_to40.xml"  # _to40
+            )
 
         # tools for precut ###
         layout.separator()
