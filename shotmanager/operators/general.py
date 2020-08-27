@@ -1,8 +1,8 @@
-import os
-
 import bpy
 from bpy.types import Operator
+from bpy.props import BoolProperty
 
+from shotmanager.config import config
 from ..utils.utils import getSceneVSE
 
 
@@ -34,7 +34,23 @@ class UAS_ShotManager_GoToVideoShotManager(Operator):
         return {"FINISHED"}
 
 
-_classes = (UAS_ShotManager_GoToVideoShotManager,)
+class UAS_ShotManager_OT_EnableDebug(Operator):
+    bl_idname = "uas_shot_manager.enable_debug"
+    bl_label = "Enable Debug Mode"
+    bl_description = "Enable or disable debug mode"
+    bl_options = {"INTERNAL"}
+
+    enable_debug: BoolProperty(name="Enable Debug Mode", description="Enable or disable debug mode", default=False)
+
+    def execute(self, context):
+        config.uasDebug = self.enable_debug
+        return {"FINISHED"}
+
+
+_classes = (
+    UAS_ShotManager_GoToVideoShotManager,
+    UAS_ShotManager_OT_EnableDebug,
+)
 
 
 def register():

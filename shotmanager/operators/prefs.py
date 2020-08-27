@@ -72,6 +72,18 @@ class UAS_ShotManager_General_Prefs(Operator):
         col.prop(props, "render_shot_prefix")
         col.prop(props, "handles", text="Handles Duration")
 
+        box = layout.box()
+        box.use_property_decorate = False
+        row = box.row()
+        row.label(text="Debug Mode:")
+        subrow = row.row()
+        subrow.operator("uas_shot_manager.enable_debug", text="On").enable_debug = True
+        subrow.operator("uas_shot_manager.enable_debug", text="Off").enable_debug = False
+
+        # col.use_property_split = True
+        # col.o
+        # col.use_property_decorate = False
+
         layout.separator(factor=1)
 
     def execute(self, context):

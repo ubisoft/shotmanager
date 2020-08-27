@@ -14,10 +14,10 @@ import opentimelineio
 from ..utils import utils
 
 from . import otio_wrapper as ow
-from . import otio_timeline_classes
+from . import otio_timeline_classes as otc
 
 
-def importTrack(track, trackInd, timeRange=None, offsetFrameNumber=0, alternative_media_folder=""):
+def importTrack(track, trackInd, track_type, timeRange=None, offsetFrameNumber=0, alternative_media_folder=""):
 
     range_start = -9999999
     range_end = 9999999
@@ -38,10 +38,10 @@ def importTrack(track, trackInd, timeRange=None, offsetFrameNumber=0, alternativ
         isInRange = utils.segment_is_in_range(clip_start, clip_end, range_start, range_end, partly_inside=True)
 
         mediaExt = Path(media_path).suffix
-        if mediaExt == ".wav" or not isInRange:
+        if not isInRange:  # or mediaExt == ".wav":
             excludInfo = "    ** Media exluded: "
-            if mediaExt == ".wav":
-                excludInfo += ".wav,"
+            # if mediaExt == ".wav":
+            #     excludInfo += ".wav,"
             if not isInRange:
                 excludInfo += " not in range"
             print(f"{excludInfo}")
@@ -91,7 +91,10 @@ def importTrack(track, trackInd, timeRange=None, offsetFrameNumber=0, alternativ
                     trackInd,
                     start - otio_clipLocalCutStart,
                     offsetStart=otio_clipLocalCutStart,
+                    # offsetEnd=end - otio_clipLocalCutStart + trimmedClipDuration,
                     trimmedClipDuration=trimmedClipDuration,
+                    importVideo=track_type == "VIDEO",
+                    importAudio=track_type == "AUDIO",
                 )
 
     pass
@@ -112,6 +115,7 @@ def importToVSE(timeline, vse, timeRange=None, offsetFrameNumber=0, track_type="
             importTrack(
                 editTrack,
                 trackInd + 1,
+                "VIDEO",
                 timeRange=timeRange,
                 offsetFrameNumber=offsetFrameNumber,
                 alternative_media_folder=alternative_media_folder,
@@ -124,6 +128,7 @@ def importToVSE(timeline, vse, timeRange=None, offsetFrameNumber=0, track_type="
             importTrack(
                 editTrack,
                 trackInd + 1,
+                "AUDIO",
                 timeRange=timeRange,
                 offsetFrameNumber=offsetFrameNumber,
                 alternative_media_folder=alternative_media_folder,
@@ -152,8 +157,8 @@ def getSequenceClassListFromOtioTimeline(otioFile, verbose=False):
 
     # wkip to remove!!
     # otioFile = r"Z:\_UAS_Dev\Exports\RRSpecial_ACT01_AQ_XML_200730\RRSpecial_ACT01_AQ_200730__FromPremiere.xml"
-    otioFile = r"C:\_UAS_ROOT\RRSpecial\04_ActsPredec\Act01\Exports\RRSpecial_ACT01_AQ_XML_200730\RRSpecial_ACT01_AQ_200730__FromPremiere.xml"
-    otioFile = r"C:\_UAS_ROOT\RRSpecial\04_ActsPredec\Act01\Exports\RRSpecial_ACT01_AQ_XML_200730\RRSpecial_ACT01_AQ_200730__FromPremiere_to40.xml"
+    # otioFile = r"C:\_UAS_ROOT\RRSpecial\04_ActsPredec\Act01\Exports\RRSpecial_ACT01_AQ_XML_200730\RRSpecial_ACT01_AQ_200730__FromPremiere.xml"
+    # otioFile = r"C:\_UAS_ROOT\RRSpecial\04_ActsPredec\Act01\Exports\RRSpecial_ACT01_AQ_XML_200730\RRSpecial_ACT01_AQ_200730__FromPremiere_to40.xml"
 
     # timeline = opentimelineio.adapters.read_from_file(otioFile)
     timeline = ow.get_timeline_from_file(otioFile)
@@ -162,7 +167,7 @@ def getSequenceClassListFromOtioTimeline(otioFile, verbose=False):
         _logger.error("getSequenceClassListFromOtioTimeline: Timeline is None!")
         return
 
-    otioTimeline = OtioTimeline()
+    otioTimeline = otc.OtioTimeline()
     otioTimeline.otioFile = otioFile
     otioTimeline.timeline = timeline
     otioTimeline.sequenceList = list()
@@ -202,7 +207,7 @@ def getSequenceClassListFromOtioTimeline(otioFile, verbose=False):
                         # add new seq if not found
                         newSeq = None
                         if -1 == parentSeqInd:
-                            newSeq = OtioSequence()
+                            newSeq = otc.OtioSequence()
                             seqName = getSequenceNameFromMediaName(media_name)
                             newSeq.name = seqName
                             cList = list()
@@ -486,11 +491,14 @@ def createShotsFromOtioTimelineClass(
                 )
 
             if importSoundInVSE:
+                # store current workspace cause it may not be the Layout one
+                currentWorkspace = bpy.context.window.workspace
+
                 # creation VSE si existe pas
                 vse = utils.getSceneVSE(scene.name)
-                # bpy.context.space_data.show_seconds = False
                 bpy.context.window.workspace = bpy.data.workspaces["Video Editing"]
-                # importOtioToVSE(otioFile, vse, importAtFrame=offsetFrameNumber, importVideoTracks=False)
+                # bpy.context.space_data.show_seconds = False
+
                 importToVSE(
                     otioTimelineClass.timeline,
                     vse,
@@ -499,6 +507,15 @@ def createShotsFromOtioTimelineClass(
                     track_type="AUDIO",
                     alternative_media_folder=Path(otioTimelineClass.otioFile).parent,
                 )
+
+                # restore workspace
+                # bpy.context.window.workspace = bpy.data.workspaces["Layout"]
+                bpy.context.window.workspace = currentWorkspace
+
+            # restore context
+            # wkip ajouter time range original
+            props.setCurrentShotByIndex(0)
+            props.setSelectedShotByIndex(0)
 
         # except opentimelineio.exceptions.NoKnownAdapterForExtensionError:
         #     from ..utils.utils import ShowMessageBox
@@ -579,13 +596,13 @@ def importOtioToVSE(otioFile, vse, importAtFrame=0, importVideoTracks=True, impo
     if importVideoTracks:
         for trackInd, editTrack in enumerate(timeline.video_tracks()):
             print(f"\nDeprec Channel Name: {editTrack.name}, {trackInd}")
-            importTrack(editTrack, trackInd + 1, importAtFrame)
+        #   importTrack(editTrack, trackInd + 1, importAtFrame)
 
     # audio
     if importAudioTracks:
         for trackInd, editTrack in enumerate(timeline.audio_tracks()):
             print(f"\nDeprec Channel Name: {editTrack.name}, {trackInd}")
-            importTrack(editTrack, trackInd + 1, importAtFrame)
+        #  importTrack(editTrack, trackInd + 1, importAtFrame)
 
 
 def import_otio(scene, filepath, old_dir, new_dir):

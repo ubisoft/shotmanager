@@ -1,5 +1,7 @@
 import logging
 
+_logger = logging.getLogger(__name__)
+
 import bpy
 from bpy.types import Panel, Operator, Menu
 from bpy.props import StringProperty
@@ -8,8 +10,6 @@ from ..config import config
 from ..viewport_3d.ogl_ui import UAS_ShotManager_DrawTimeline
 
 from ..utils import utils
-
-_logger = logging.getLogger(__name__)
 
 
 ######
@@ -83,6 +83,13 @@ class UAS_PT_ShotManager(Panel):
         layout = self.layout
         scene = context.scene
         props = scene.UAS_shot_manager_props
+
+        if config.uasDebug:
+            row = layout.row()
+            row.alignment = "CENTER"
+            row.alert = True
+            row.label(text=" *** Debug Mode ***")
+            row.alert = False
 
         # if not "UAS_shot_manager_props" in context.scene:
         if not props.isInitialized:

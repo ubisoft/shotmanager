@@ -51,7 +51,7 @@ class UAS_LaunchRRSRender(Operator):
                 verbose=True,
                 takeIndex=self.takeIndex,
                 useCache=False,
-                fileListOnly=True,
+                fileListOnly=False,
             )
         else:
             publish_rrs.publishRRS(

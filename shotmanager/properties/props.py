@@ -563,9 +563,9 @@ class UAS_ShotManager_Props(PropertyGroup):
     #############
 
     # can be overriden by the project settings
-    useProjectRenderSettings: BoolProperty(
-        name="Use Render Project Settings", description="Use Render Project Settings", default=True,
-    )
+    # use ProjectRenderSettings: BoolProperty(
+    #     name="Use Render Project Settings", description="Use Render Project Settings", default=True,
+    # )
 
     def get_useStampInfoDuringRendering(self):
         #  return self.useStampInfoDuringRendering
@@ -632,7 +632,7 @@ class UAS_ShotManager_Props(PropertyGroup):
         if self.use_project_settings:
             used = self.project_use_stampinfo
         else:
-            used = self.useProjectRenderSettings
+            used = False  # self.useProjectRenderSettings
 
         used = used and self.isStampInfoAvailable()
 

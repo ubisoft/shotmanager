@@ -284,18 +284,7 @@ class UAS_ShotManager_OT_Create_Shots_From_OTIO_RRS(Operator):
             mediaHandlesDuration=self.mediaHandlesDuration,
             importSoundInVSE=self.importAudioInVSE,
         )
-        # createShotsFromOtio(
-        #     context.scene,
-        #     self.otioFile,
-        #     importAtFrame=self.importAtFrame,
-        #     reformatShotNames=self.reformatShotNames,
-        #     createCameras=self.createCameras,
-        #     useMediaAsCameraBG=self.useMediaAsCameraBG,
-        #     mediaHaveHandles=self.mediaHaveHandles,
-        #     mediaHandlesDuration=self.mediaHandlesDuration,
-        #     importSoundInVSE=self.importAudioInVSE,
-        # )
-
+        
         return {"FINISHED"}
 
 
@@ -488,7 +477,8 @@ class UAS_OTIO_OpenFileBrowser(Operator, ImportHelper):  # from bpy_extras.io_ut
         print("ex File extension:", extension)
 
         if "CREATE_SHOTS" == self.importMode:
-            bpy.ops.uasshotmanager.createshotsfromotio("INVOKE_DEFAULT", otioFile=self.filepath)
+            # bpy.ops.uasshotmanager.createshotsfromotio("INVOKE_DEFAULT", otioFile=self.filepath)
+            bpy.ops.uasshotmanager.createshotsfromotio_rrs("INVOKE_DEFAULT", otioFile=self.filepath)
         elif "IMPORT_EDIT" == self.importMode:
             bpy.ops.uas_video_shot_manager.importeditfromotio("INVOKE_DEFAULT", otioFile=self.filepath)
         elif "PARSE_EDIT" == self.importMode:

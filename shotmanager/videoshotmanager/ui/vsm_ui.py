@@ -69,6 +69,10 @@ class UAS_PT_VideoShotManager(Panel):
         ################
         # tracks
 
+        row = layout.row()
+        row.alert = True
+        row.label(text=" !!! EXPERIMENTAL !!!")
+
         row = layout.row()  # just to give some space...
         vseFirstFrame = scene.frame_start
         if vseFirstFrame != 0:

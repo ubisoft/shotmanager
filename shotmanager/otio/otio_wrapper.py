@@ -1,5 +1,7 @@
 import logging
 
+_logger = logging.getLogger(__name__)
+
 import opentimelineio
 
 from pathlib import Path
@@ -7,8 +9,6 @@ from urllib.parse import unquote_plus, urlparse
 import re
 
 from ..utils import utils
-
-_logger = logging.getLogger(__name__)
 
 
 def parseOtioFile(otioFile):
