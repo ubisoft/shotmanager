@@ -1,6 +1,7 @@
 import bpy
 
 from . import viewport_hud
+from . import timeline_draw
 
 # from .ui import vsm_ui
 
@@ -16,10 +17,12 @@ def register():
     #     bpy.utils.register_class(cls)
 
     viewport_hud.register()
+    timeline_draw.register ( )
 
 
 def unregister():
     viewport_hud.unregister()
+    timeline_draw.unregister()
 
     # for cls in reversed(classes):
     #     bpy.utils.unregister_class(cls)

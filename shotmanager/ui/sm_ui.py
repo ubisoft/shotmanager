@@ -112,6 +112,7 @@ class UAS_PT_ShotManager(Panel):
             icon="ANIM",
         )
         row.prop(context.window_manager, "UAS_shot_manager_display_timeline", text="", toggle=True, icon="TIME")
+        row.prop(context.window_manager, "UAS_shot_manager_toggle_montage_interaction", text="", toggle=True )
 
         row.emboss = "PULLDOWN_MENU"
         row.operator("uas_shot_manager.playbar_prefs", text="", icon="SETTINGS")
