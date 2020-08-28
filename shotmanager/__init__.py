@@ -136,6 +136,7 @@ def timeline_valueChanged(self, context):
     print("  timeline_valueChanged:  self.UAS_shot_manager_display_timeline: ", self.UAS_shot_manager_display_timeline)
     if self.UAS_shot_manager_display_timeline:
         bpy.ops.uas_shot_manager.draw_timeline("INVOKE_DEFAULT")
+        bpy.ops.uas_shot_manager.draw_montage_timeline("INVOKE_DEFAULT")
         # bpy.ops.uas_shot_manager.draw_cameras_ui("INVOKE_DEFAULT")
 
 
@@ -356,6 +357,10 @@ def register():
         description="Display a timeline in the 3D Viewport with the shots in the specified order",
         default=False,
         update=timeline_valueChanged,
+    )
+
+    bpy.types.WindowManager.UAS_shot_manager_toggle_montage_interaction = BoolProperty(
+        name="montage_interaction", description="Disable or enable montage like timeline interaction", default=True,
     )
 
     bpy.types.WindowManager.UAS_shot_manager_progressbar = FloatProperty(
