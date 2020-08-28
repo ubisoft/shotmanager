@@ -134,6 +134,23 @@ class UAS_ShotManager_Props(PropertyGroup):
 
         return warningList
 
+    def sceneIsReady(self):
+        renderWarnings = ""
+        if self.renderRootPath.startswith("//"):
+            if "" == bpy.data.filepath:
+                renderWarnings = "*** Save file first ***"
+        elif "" == self.renderRootPath:
+            renderWarnings = "*** Invalid Output File Name ***"
+
+        if "" != renderWarnings:
+            from ..utils.utils import ShowMessageBox
+
+            ShowMessageBox(renderWarnings, "Render Aborted", "ERROR")
+            print("Render aborted before start: " + renderWarnings)
+            return False
+
+        return True
+
     def dontRefreshUI(self):
         res = not self.refreshUIDuringPlay and bpy.context.screen.is_animation_playing
         return res
