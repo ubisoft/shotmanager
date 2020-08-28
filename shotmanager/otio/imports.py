@@ -480,6 +480,7 @@ def createShotsFromOtioTimelineClass(
                     camera=cam_ob,
                     color=cam_ob.color,
                 )
+                shot.durationLocked = True
 
                 shot.bgImages_linkToShotStart = True
                 shot.bgImages_offset = -1 * handlesDuration
