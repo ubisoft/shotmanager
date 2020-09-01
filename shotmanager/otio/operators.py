@@ -85,7 +85,7 @@ def list_sequences_from_edl(self, context):
     res = config.gSeqEnumList
     # res = list()
     nothingList = list()
-    nothingList.append(("NO_SEQ", "No Sequence Found 02", "No sequence found in the sepecified EDL file", 0))
+    nothingList.append(("NO_SEQ", "No Sequence Found", "No sequence found in the specified EDL file", 0))
 
     # seqList = getSequenceListFromOtioTimeline(config.gOtioTimeline)
     # for i, item in enumerate(seqList):
@@ -158,6 +158,26 @@ class UAS_ShotManager_OT_Create_Shots_From_OTIO_RRS(Operator):
         default=True,
     )
 
+    # -Pistes sons 1 à 3 : voix humaines
+    # -Pistes sons 4 à 7 : voix lapins
+    # -Piste 8 : vide
+    # -Pistes 9 à 15 : bruitages
+    # -Piste 16 : vide
+    # -Pistes 17 et 18 : musiques
+
+    importAudio_HumanVoices: BoolProperty(
+        name="Human Voices", description="Import tracks (1 to 3)", default=True,
+    )
+    importAudio_RabbidVoices: BoolProperty(
+        name="Rabbid Voices", description="Import tracks (4 to 7)", default=True,
+    )
+    importAudio_Sounds: BoolProperty(
+        name="Sounds", description="Import tracks (9 to 15)", default=True,
+    )
+    importAudio_Music: BoolProperty(
+        name="Music", description="Import tracks (17 to 18)", default=False,
+    )
+
     def invoke(self, context, event):
         wm = context.window_manager
 
@@ -190,16 +210,27 @@ class UAS_ShotManager_OT_Create_Shots_From_OTIO_RRS(Operator):
         box.prop(self, "otioFile", text="")
 
         if config.gOtioTimeline is not None:
-            timeline = config.gOtioTimeline.timeline
-            time = timeline.duration()
+            numSeqs = len(config.gOtioTimeline.sequenceList)
+            numVideoTracks = len(config.gOtioTimeline.timeline.video_tracks())
+            numAudioTracks = len(config.gOtioTimeline.timeline.audio_tracks())
+            time = config.gOtioTimeline.timeline.duration()
+            duration = int(time.value)
             rate = int(time.rate)
 
+            row = box.row()
+            row.label(text=f"Timeline: {config.gOtioTimeline.timeline.name}")
+            # row = box.row()
+            row.label(text=f"Video Tracks: {numVideoTracks},  Audio Tracks: {numAudioTracks}")
+            row = box.row()
+            row.label(text=f"Duration: {duration} frames at {rate} fps")
+
             if rate != context.scene.render.fps:
-                box.alert = True
-                box.label(
-                    text="!!! Scene fps is " + str(context.scene.render.fps) + ", imported edit is " + str(rate) + "!!"
-                )
-                box.alert = False
+                row.alert = True
+                row.label(text=f"!! Scene has a different framerate: {context.scene.render.fps} fps !!")
+                row.alert = False
+
+            row = box.row()
+            row.label(text=f"Num. Sequences: {numSeqs}")
 
         row = layout.row(align=True)
         box = row.box()
@@ -249,6 +280,16 @@ class UAS_ShotManager_OT_Create_Shots_From_OTIO_RRS(Operator):
         # if 0 != self.mediaHandlesDuration and
         #     row.enabled = False
         row.prop(self, "importAudioInVSE")
+        row = box.row()
+        row.enabled = self.importAudioInVSE
+        row.separator(factor=3)
+        row.prop(self, "importAudio_HumanVoices")
+        row.prop(self, "importAudio_RabbidVoices")
+        row = box.row()
+        row.enabled = self.importAudioInVSE
+        row.separator(factor=3)
+        row.prop(self, "importAudio_Sounds")
+        row.prop(self, "importAudio_Music")
 
         layout.separator()
 
@@ -269,6 +310,20 @@ class UAS_ShotManager_OT_Create_Shots_From_OTIO_RRS(Operator):
         useTimeRange = True
         timeRange = [selSeq.start, selSeq.end] if useTimeRange else None
 
+        # track indices are starting from 1, not 0!!
+        videoTracksToImport = [1]
+        audioTracksToImport = []
+        if self.importAudio_HumanVoices:
+            audioTracksToImport.extend(list(range(1, 6)))
+        if self.importAudio_RabbidVoices:
+            audioTracksToImport.extend(list(range(6, 13)))
+        if self.importAudio_Sounds:
+            audioTracksToImport.extend(list(range(14, 26)))
+        if self.importAudio_Music:
+            audioTracksToImport.extend(list(range(28, 30)))
+
+        audioTracksToImport = [19, 20]
+
         createShotsFromOtioTimelineClass(
             context.scene,
             config.gOtioTimeline,
@@ -283,8 +338,10 @@ class UAS_ShotManager_OT_Create_Shots_From_OTIO_RRS(Operator):
             mediaHaveHandles=self.mediaHaveHandles,
             mediaHandlesDuration=self.mediaHandlesDuration,
             importSoundInVSE=self.importAudioInVSE,
+            videoTracksList=videoTracksToImport,
+            audioTracksList=audioTracksToImport,
         )
-        
+
         return {"FINISHED"}
 
 
