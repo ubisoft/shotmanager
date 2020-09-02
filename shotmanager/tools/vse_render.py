@@ -209,7 +209,6 @@ class UAS_Vse_Render(PropertyGroup):
         atFrame,
         offsetStart=0,
         offsetEnd=0,
-        trimmedClipDuration=-1,
         cameraScene=None,
         cameraObject=None,
         clipName="",
@@ -348,12 +347,8 @@ class UAS_Vse_Render(PropertyGroup):
         elif "SOUND" == mediaType:
             newClipName = clipName if "" != clipName else "mySound"
             newClip = scene.sequence_editor.sequences.new_sound(newClipName, mediaPath, channelInd, atFrame)
-            # if 0 != offsetEnd:
             newClip.frame_offset_start = offsetStart
-            if -1 != trimmedClipDuration:
-                newClip.frame_final_duration = trimmedClipDuration  # required for shot creation
-            else:
-                newClip.frame_offset_end = offsetEnd  # required for the publish
+            newClip.frame_offset_end = offsetEnd
 
         elif "CAMERA" == mediaType:
             newClipName = clipName if "" != clipName else "myCamera"

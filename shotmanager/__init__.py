@@ -74,8 +74,8 @@ __version__ = f"v{bl_info['version'][0]}.{bl_info['version'][1]}.{bl_info['versi
 _logger = logging.getLogger(__name__)
 _logger.propagate = False
 MODULE_PATH = Path(__file__).parent.parent
-logging.basicConfig(level=logging.DEBUG)
-_logger.setLevel(logging.INFO)  # CRITICAL ERROR WARNING INFO DEBUG NOTSET
+logging.basicConfig(level=logging.INFO)
+_logger.setLevel(logging.DEBUG)  # CRITICAL ERROR WARNING INFO DEBUG NOTSET
 
 pil_logger = logging.getLogger("PIL")
 pil_logger.setLevel(logging.INFO)
@@ -96,6 +96,7 @@ class Formatter(logging.Formatter):
         - to append "./" at the begining to permit going to the line quickly with VS Code CTRL+click from terminal
         """
         s = super().format(record)
+        # s = record
         pathname = Path(record.pathname).relative_to(MODULE_PATH)
         s += f" [{os.curdir}{os.sep}{pathname}:{record.lineno}]"
         return s

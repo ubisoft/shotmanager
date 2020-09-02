@@ -322,7 +322,7 @@ class UAS_ShotManager_OT_Create_Shots_From_OTIO_RRS(Operator):
         if self.importAudio_Music:
             audioTracksToImport.extend(list(range(28, 30)))
 
-        audioTracksToImport = [19, 20]
+        #  audioTracksToImport = [19, 20]
 
         createShotsFromOtioTimelineClass(
             context.scene,

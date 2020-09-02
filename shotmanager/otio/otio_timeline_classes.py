@@ -39,10 +39,10 @@ class OtioSequence:
     def setStartAndEnd(self):
         if len(self.clipList):
             # start
-            self.start = ow.get_timeline_clip_start(self.clipList[0])
+            self.start = ow.get_clip_frame_final_start(self.clipList[0])
             for clip in self.clipList:
-                if ow.get_timeline_clip_start(clip) < self.start:
-                    self.start = ow.get_timeline_clip_start(clip)
+                if ow.get_clip_frame_final_start(clip) < self.start:
+                    self.start = ow.get_clip_frame_final_start(clip)
 
             # end
             self.end = ow.get_timeline_clip_end_inclusive(self.clipList[0])
