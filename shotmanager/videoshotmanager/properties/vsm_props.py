@@ -14,6 +14,35 @@ from .track import UAS_VideoShotManager_Track
 
 
 class UAS_VSM_Props(PropertyGroup):
+    def _get_numTracks(self):
+        val = self.get("numTracks", 0)
+        val = len(self.tracks)
+        return val
+
+    def _set_numTracks(self, value):
+        if value > len(self.tracks):
+            v = value
+            while v > len(self.tracks):
+                self.addTrack(trackType="STANDARD",)
+            self["numTracks"] = value
+        else:
+            self["numTracks"] = len(self.tracks)
+
+    def _update_numTracks(self, context):
+
+        # while self.numTracks > len(self.tracks):
+        #     self.addTrack(trackType="STANDARD",)
+        pass
+
+    numTracks: IntProperty(
+        name="Num Tracks",
+        min=0,
+        soft_max=20,
+        get=_get_numTracks,
+        set=_set_numTracks,
+        update=_update_numTracks,
+        default=5,
+    )
 
     tracks: CollectionProperty(type=UAS_VideoShotManager_Track)
 
@@ -59,7 +88,7 @@ class UAS_VSM_Props(PropertyGroup):
         camera=None,
         color=(0.2, 0.6, 0.8, 1),
         enabled=True,
-        trackType=None,
+        trackType="STANDARD",
         sceneName="",
         sceneTakeName="",
     ):
@@ -86,6 +115,8 @@ class UAS_VSM_Props(PropertyGroup):
 
         if -1 != atIndex:  # move track at specified index
             trackList.move(len(trackList) - 1, atIndex)
+
+        #  self.numTracks += 1
 
         return newTrack
 

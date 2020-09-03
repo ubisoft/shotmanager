@@ -21,11 +21,14 @@ def _list_scenes(self, context):
 
 def _list_takes(self, context):
     res = list()
-    print("*** self.sceneName: ", self.sceneName)
+    # print("*** self.sceneName: ", self.sceneName)
     for i, take in enumerate([c for c in bpy.data.scenes[self.sceneName].UAS_shot_manager_props.takes]):
-        res.append((take.name, take.name, "", i))
-    # if not len(res):
-    #     res.append(("", "", "", 0))
+        item = (take.name, take.name, "")
+        print(f"_list_takes: {item}")
+        res.append(item)
+    if not len(res):
+        # res = None
+        res.append(("NOTAKE", "No Take Found", ""))
     #     print("Toto")
     return res
 
@@ -54,13 +57,14 @@ class UAS_VideoShotManager_TrackAdd(Operator):
         name="Track Type",
         description="Type of the track",
         items=(
+            ("STANDARD", "Standard", ""),
             ("RENDERED_SHOTS", "Rendered Shots", ""),
             ("SHOT_CAMERAS", "Shot Cameras", ""),
             ("CAM_FROM_SCENE", "Camera From Scene", ""),
             ("CAM_BG", "Camera Backgrounds", ""),
             ("CUSTOM", "Custom", ""),
         ),
-        default="CAM_BG",
+        default="STANDARD",
         options=set(),
     )
 
@@ -84,7 +88,12 @@ class UAS_VideoShotManager_TrackAdd(Operator):
 
         takeNames = _list_takes(self, context)
         if len(takeNames):
-            self.sceneTakeName = takeNames[0][0]
+            self.sceneTakeName = (takeNames[0])[0]
+
+        # if takeNames is not None and len(takeNames):
+        #     self.sceneTakeName = takeNames[0][0]
+        # else:
+        #     takeNames = None
 
         return wm.invoke_props_dialog(self, width=400)
 
@@ -282,10 +291,11 @@ class UAS_VideoShotManager_Actions(Operator):
 
     action: bpy.props.EnumProperty(items=(("UP", "Up", ""), ("DOWN", "Down", "")))
 
-    def invoke(self, context, event):
+    def execute(self, context):
         scene = context.scene
         vsm_props = scene.UAS_vsm_props
         tracks = vsm_props.getTracks()
+        numTracks = len(tracks)
         currentTrackInd = vsm_props.getCurrentTrackIndex()
         selectedTrackInd = vsm_props.getSelectedTrackIndex()
 
@@ -296,6 +306,9 @@ class UAS_VideoShotManager_Actions(Operator):
             pass
         else:
             if self.action == "DOWN" and selectedTrackInd < len(tracks) - 1:
+                bpy.context.window_manager.UAS_vse_render.swapChannels(
+                    scene, numTracks - selectedTrackInd, numTracks - selectedTrackInd - 1
+                )
                 tracks.move(selectedTrackInd, selectedTrackInd + 1)
                 if currentTrackInd == selectedTrackInd:
                     vsm_props.setCurrentTrackByIndex(currentTrackInd + 1)
@@ -304,6 +317,9 @@ class UAS_VideoShotManager_Actions(Operator):
                 vsm_props.setSelectedTrackByIndex(selectedTrackInd + 1)
 
             elif self.action == "UP" and selectedTrackInd >= 1:
+                bpy.context.window_manager.UAS_vse_render.swapChannels(
+                    scene, numTracks - selectedTrackInd, numTracks - selectedTrackInd + 1
+                )
                 tracks.move(selectedTrackInd, selectedTrackInd - 1)
                 if currentTrackInd == selectedTrackInd:
                     vsm_props.setCurrentTrackByIndex(currentTrackInd - 1)
@@ -385,7 +401,7 @@ class UAS_VideoShotManager_ClearVSETrack(Operator):
     def invoke(self, context, event):
         vsm_props = context.scene.UAS_vsm_props
         print("trackName: ", vsm_props.tracks[vsm_props.selected_track_index].name)
-        vsm_props.tracks[vsm_props.selected_track_index].clearTrackContent()
+        vsm_props.tracks[vsm_props.selected_track_index].clearContent()
 
         return {"FINISHED"}
 
@@ -415,11 +431,17 @@ class UAS_VideoShotManager_ClearAll(Operator):
     bl_options = {"INTERNAL", "REGISTER", "UNDO"}
 
     def invoke(self, context, event):
-        vsm_sceneName = "VideoShotManger"
-        vsm_scene = bpy.data.scenes[vsm_sceneName]
+        # vsm_sceneName = "VideoShotManger"
+        # vsm_scene = bpy.data.scenes[vsm_sceneName]
+        vsm_scene = bpy.context.scene
         vsm_scene.sequence_editor_clear()
         vsm_scene.sequence_editor_create()
 
+        for area in bpy.context.screen.areas:
+            if area.type == "SEQUENCE_EDITOR":
+                area.tag_redraw()
+        #     space_data = area.spaces.active
+        # bpy.context.scene.sequence_editor.tag_redraw()
         return {"FINISHED"}
 
 

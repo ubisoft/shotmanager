@@ -383,6 +383,40 @@ class UAS_Vse_Render(PropertyGroup):
 
         bpy.ops.sequencer.refresh_all()
 
+    def getChannelClips(self, scene, channelIndex):
+        sequencesList = list()
+        for seq in scene.sequence_editor.sequences:
+            if channelIndex == seq.channel:
+                sequencesList.append(seq)
+
+        return sequencesList
+
+    def getChannelClipsNumber(self, scene, channelIndex):
+        sequencesList = self.getChannelClips(scene, channelIndex)
+        return len(sequencesList)
+
+    def changeClipsChannel(self, scene, sourceChannelIndex, targetChannelIndex):
+        sourceSequencesList = self.getChannelClips(scene, sourceChannelIndex)
+        targetSequencesList = list()
+
+        if len(sourceSequencesList):
+            targetSequencesList = self.getChannelClips(scene, targetChannelIndex)
+
+            # we need to clear the target channel before doing the switch otherwise some clips may get moved to another channel
+            if len(targetSequencesList):
+                self.clearChannel(self.parentScene, targetChannelIndex)
+
+            for clip in sourceSequencesList:
+                clip.channel = targetChannelIndex
+
+        return targetSequencesList
+
+    def swapChannels(self, scene, channelIndexA, channelIndexB):
+        tempChannelInd = 0
+        self.changeClipsChannel(scene, channelIndexA, tempChannelInd)
+        self.changeClipsChannel(scene, channelIndexB, channelIndexA)
+        self.changeClipsChannel(scene, tempChannelInd, channelIndexB)
+
     def compositeVideoInVSE(self, fps, frame_start, frame_end, output_filepath, postfixSceneName=""):
         # Add new scene
         scene = bpy.data.scenes.new(name="Tmp_VSE_RenderScene" + postfixSceneName)
