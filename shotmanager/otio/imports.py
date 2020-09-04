@@ -14,7 +14,6 @@ import opentimelineio
 from ..utils import utils
 
 from . import otio_wrapper as ow
-from . import otio_timeline_classes as otc
 
 from shotmanager.rrs_specific.montage.montage_otio import MontageOtio
 
@@ -23,16 +22,17 @@ def importTrack(track, trackInd, track_type, timeRange=None, offsetFrameNumber=0
 
     range_start = -9999999
     range_end = 9999999
+    fps = 25
     if timeRange is not None:
         range_start = timeRange[0]
         range_end = timeRange[1]
 
     for i, clip in enumerate(track.each_clip()):
-        clip_start = ow.get_clip_frame_final_start(clip)
+        clip_start = ow.get_clip_frame_final_start(clip, fps)
         clip_end = ow.get_timeline_clip_end_inclusive(clip)
 
         clipName = clip.name
-        media_path = ow.get_media_path_from_clip(clip)
+        media_path = ow.get_clip_media_path(clip)
         clipInfo = f"\n-----------------------------"
         clipInfo += f"- Clip name: {clipName}, Clip ind: {i}, media: {Path(media_path).name}\n"
 
@@ -85,14 +85,14 @@ def importTrack(track, trackInd, track_type, timeRange=None, offsetFrameNumber=0
                     - opentimelineio.opentime.to_frames(clip.source_range.start_time)
                 )
 
-                frameStart = ow.get_clip_frame_start(clip)
-                frameEnd = ow.get_clip_frame_end(clip)
-                frameFinalStart = ow.get_clip_frame_final_start(clip)
-                frameFinalEnd = ow.get_clip_frame_final_end(clip)
-                frameOffsetStart = ow.get_clip_frame_offset_start(clip)
-                frameOffsetEnd = ow.get_clip_frame_offset_end(clip)
-                frameDuration = ow.get_clip_frame_duration(clip)
-                frameFinalDuration = ow.get_clip_frame_final_duration(clip)
+                frameStart = ow.get_clip_frame_start(clip, fps)
+                frameEnd = ow.get_clip_frame_end(clip, fps)
+                frameFinalStart = ow.get_clip_frame_final_start(clip, fps)
+                frameFinalEnd = ow.get_clip_frame_final_end(clip, fps)
+                frameOffsetStart = ow.get_clip_frame_offset_start(clip, fps)
+                frameOffsetEnd = ow.get_clip_frame_offset_end(clip, fps)
+                frameDuration = ow.get_clip_frame_duration(clip, fps)
+                frameFinalDuration = ow.get_clip_frame_final_duration(clip, fps)
 
                 frameStart += offsetFrameNumber
                 frameEnd += offsetFrameNumber
@@ -192,6 +192,7 @@ def getSequenceListFromOtio(otioFile):
 
 
 def getSequenceNameFromMediaName(fileName):
+    print("\n\n **** Deprecated : imports.py getSequenceNameFromMediaName !!!")
     seqName = ""
 
     seq_pattern = "Seq"
@@ -204,7 +205,7 @@ def getSequenceNameFromMediaName(fileName):
 
 # wkip to rename!!!!
 def getSequenceClassListFromOtioTimeline(otioFile, verbose=False):
-
+    print("\n\n **** Deprecated : imports.py getSequenceClassListFromOtioTimeline !!!")
     # wkip to remove!!
     # otioFile = r"Z:\_UAS_Dev\Exports\RRSpecial_ACT01_AQ_XML_200730\RRSpecial_ACT01_AQ_200730__FromPremiere.xml"
     # otioFile = r"C:\_UAS_ROOT\RRSpecial\04_ActsPredec\Act01\Exports\RRSpecial_ACT01_AQ_XML_200730\RRSpecial_ACT01_AQ_200730__FromPremiere.xml"
@@ -217,7 +218,6 @@ def getSequenceClassListFromOtioTimeline(otioFile, verbose=False):
         _logger.error("getSequenceClassListFromOtioTimeline: Timeline is None!")
         return
 
-    # otioTimeline = otc.OtioTimeline()
     otioTimeline = MontageOtio()
     otioTimeline.otioFile = otioFile
     otioTimeline.timeline = timeline
@@ -258,27 +258,18 @@ def getSequenceClassListFromOtioTimeline(otioFile, verbose=False):
                         # add new seq if not found
                         newSeq = None
                         if -1 == parentSeqInd:
-                            # newSeq = otc.OtioSequence()
                             newSeq = otioTimeline.newSequence()
                             newSeq.name = getSequenceNameFromMediaName(media_name)
-                            # cList = list()
-                            # cList.append(clip)
-                            # newSeq.clipList = cList
-                            # newSeq.clipList.append(clip)
-                            # newSeq.name = media_name_splited[1]
-                            # sequenceList.append(newSeq)
 
                         else:
                             newSeq = sequenceList[parentSeqInd]
-
-                        # newSeq.clipList.append(clip)
                         newSeq.newShot(clip)
 
-    for seq in sequenceList:
-        # get the start and end of every seq
-        seq.setStartAndEnd()
-        if verbose:
-            seq.printInfo()
+    # for seq in sequenceList:
+    #     # get the start and end of every seq
+    #     seq.setStartAndEnd()
+    #     if verbose:
+    #         seq.printInfo()
 
     return otioTimeline
 
@@ -307,6 +298,7 @@ def getSequenceClassListFromOtioTimeline(otioFile, verbose=False):
 
 def getSequenceListFromOtioTimeline(timeline):
 
+    print("\n\n **** Deprecated : imports.py getSequenceClassListFromOtioTimeline !!!")
     if timeline is None:
         _logger.error("getSequenceListFromOtioTimeline: Timeline is None!")
         return
@@ -349,7 +341,7 @@ def createShotsFromOtio(
 ):
     # filePath="", fileName=""):
 
-    print("Import Otio File: ", otioFile)
+    print("Import Otio File createShotsFromOtio: ", otioFile)
     from random import uniform
     from math import radians
 
@@ -489,6 +481,7 @@ def createShotsFromOtioTimelineClass(
     # try:
     if True:
         timeline = otioTimelineClass.timeline
+        fps = 25
         if len(timeline.video_tracks()):
             # track = timeline.video_tracks()[0]  # Assume the first one contains the shots.
 
@@ -514,7 +507,7 @@ def createShotsFromOtioTimelineClass(
 
                     # add media as camera background
                     if useMediaAsCameraBG:
-                        media_path = ow.get_media_path_from_clip(clip.clip)
+                        media_path = ow.get_clip_media_path(clip.clip)
                         print("Import Otio media_path: ", media_path)
                         if not media_path.exists():
                             # Lets find it inside next to the xml
@@ -529,7 +522,7 @@ def createShotsFromOtioTimelineClass(
 
                 shot = props.addShot(
                     name=clipName,
-                    start=ow.get_clip_frame_final_start(clip.clip) + offsetFrameNumber,
+                    start=ow.get_clip_frame_final_start(clip.clip, fps) + offsetFrameNumber,
                     end=ow.get_timeline_clip_end_inclusive(clip.clip) + offsetFrameNumber,
                     camera=cam_ob,
                     color=cam_ob.color,

@@ -90,7 +90,7 @@ def list_sequences_from_edl(self, context):
     nothingList = list()
     nothingList.append(("NO_SEQ", "No Sequence Found", "No sequence found in the specified EDL file", 0))
 
-    # seqList = getSequenceListFromOtioTimeline(config.gOtioTimeline)
+    # seqList = getSequenceListFromOtioTimeline(config.gMontageOtio)
     # for i, item in enumerate(seqList):
     #     res.append((item, item, "My seq", i + 1))
 
@@ -184,20 +184,22 @@ class UAS_ShotManager_OT_Create_Shots_From_OTIO_RRS(Operator):
     def invoke(self, context, event):
         wm = context.window_manager
 
-        config.gOtioTimeline = None
+        config.gMontageOtio = None
         if "" != self.otioFile and Path(self.otioFile).exists():
-            # config.gOtioTimeline = getSequenceClassListFromOtioTimeline(self.otioFile, verbose=False)
+            # config.gMontageOtio = getSequenceClassListFromOtioTimeline(self.otioFile, verbose=False)
 
-            config.gOtioTimeline = MontageOtio()
-            config.gOtioTimeline.fillMontageInfoFromOtioFile(self.otioFile, verboseInfo=False)
+            config.gMontageOtio = MontageOtio()
+            config.gMontageOtio.fillMontageInfoFromOtioFile(self.otioFile, verboseInfo=False)
+
+            # config.gMontageOtio.printInfo()
 
             config.gSeqEnumList = list()
-            for i, seq in enumerate(config.gOtioTimeline.sequencesList):
-                config.gSeqEnumList.append((str(i), seq.name, "My seq", i + 1))
+            for i, seq in enumerate(config.gMontageOtio.sequencesList):
+                config.gSeqEnumList.append((str(i), seq.get_name(), f"Import sequence {seq.get_name()}", i + 1))
 
             self.sequenceList = config.gSeqEnumList[0][0]
 
-        #    seqList = getSequenceListFromOtioTimeline(config.gOtioTimeline)
+        #    seqList = getSequenceListFromOtioTimeline(config.gMontageOtio)
         #  self.sequenceList.items = list_sequences_from_edl(context, seqList)
 
         wm.invoke_props_dialog(self, width=500)
@@ -215,28 +217,26 @@ class UAS_ShotManager_OT_Create_Shots_From_OTIO_RRS(Operator):
         box.label(text="OTIO File")
         box.prop(self, "otioFile", text="")
 
-        if config.gOtioTimeline is not None:
-            numSeqs = len(config.gOtioTimeline.sequencesList)
-            numVideoTracks = len(config.gOtioTimeline.timeline.video_tracks())
-            numAudioTracks = len(config.gOtioTimeline.timeline.audio_tracks())
-            time = config.gOtioTimeline.timeline.duration()
-            duration = int(time.value)
-            rate = int(time.rate)
+        if config.gMontageOtio is not None:
+            numVideoTracks = len(config.gMontageOtio.timeline.video_tracks())
+            numAudioTracks = len(config.gMontageOtio.timeline.audio_tracks())
 
             row = box.row()
-            row.label(text=f"Timeline: {config.gOtioTimeline.timeline.name}")
+            row.label(text=f"Timeline: {config.gMontageOtio.timeline.name}")
             # row = box.row()
             row.label(text=f"Video Tracks: {numVideoTracks},  Audio Tracks: {numAudioTracks}")
             row = box.row()
-            row.label(text=f"Duration: {duration} frames at {rate} fps")
+            row.label(
+                text=f"Duration: {config.gMontageOtio.get_frame_duration()} frames at {config.gMontageOtio.get_fps()} fps"
+            )
 
-            if rate != context.scene.render.fps:
+            if config.gMontageOtio.get_fps() != context.scene.render.fps:
                 row.alert = True
                 row.label(text=f"!! Scene has a different framerate: {context.scene.render.fps} fps !!")
                 row.alert = False
 
             row = box.row()
-            row.label(text=f"Num. Sequences: {numSeqs}")
+            row.label(text=f"Num. Sequences: {len(config.gMontageOtio.sequencesList)}")
 
         row = layout.row(align=True)
         box = row.box()
@@ -244,9 +244,9 @@ class UAS_ShotManager_OT_Create_Shots_From_OTIO_RRS(Operator):
         box.prop(self, "sequenceList")
 
         # print("self.sequenceList: ", self.sequenceList)
-        if config.gOtioTimeline is not None:
-            selSeq = config.gOtioTimeline.sequencesList[int(self.sequenceList)]
-            labelText = f"Start: {selSeq.start}, End: {selSeq.end}, Num Shots: {len(selSeq.shotsList)}"
+        if config.gMontageOtio is not None:
+            selSeq = config.gMontageOtio.sequencesList[int(self.sequenceList)]
+            labelText = f"Start: {selSeq.get_frame_start()}, End: {selSeq.get_frame_end()}, Duration: {selSeq.get_frame_duration()}, Num Shots: {len(selSeq.shotsList)}"
         else:
             labelText = f"Start: {-1}, End: {-1}, Num Shots: {0}"
 
@@ -310,11 +310,10 @@ class UAS_ShotManager_OT_Create_Shots_From_OTIO_RRS(Operator):
         # print("ex File extension:", extension)
 
         # importOtio(
-        selSeq = config.gOtioTimeline.sequencesList[int(self.sequenceList)]
-        print("selSeq: ", selSeq)
+        selSeq = config.gMontageOtio.sequencesList[int(self.sequenceList)]
 
         useTimeRange = True
-        timeRange = [selSeq.start, selSeq.end] if useTimeRange else None
+        timeRange = [selSeq.get_frame_start(), selSeq.get_frame_end()] if useTimeRange else None
 
         # track indices are starting from 1, not 0!!
         videoTracksToImport = [1]
@@ -328,13 +327,13 @@ class UAS_ShotManager_OT_Create_Shots_From_OTIO_RRS(Operator):
         if self.importAudio_Music:
             audioTracksToImport.extend(list(range(28, 30)))
 
-        #  audioTracksToImport = [19, 20]
+        audioTracksToImport = [19, 20]
 
         createShotsFromOtioTimelineClass(
             context.scene,
-            config.gOtioTimeline,
-            selSeq.name,
-            config.gOtioTimeline.sequencesList[int(self.sequenceList)].shotsList,
+            config.gMontageOtio,
+            selSeq.get_name(),
+            config.gMontageOtio.sequencesList[int(self.sequenceList)].shotsList,
             timeRange=timeRange,
             offsetTime=self.offsetTime,
             importAtFrame=self.importAtFrame,

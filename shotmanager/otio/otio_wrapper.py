@@ -118,7 +118,7 @@ def parseTrack(timeline, track_type, track_index):
             print(f"\n{tab}Clip: {ind}, {clip.name}")
 
             print(f"{tab2}clip.media_reference.target_url: {clip.media_reference.target_url}")
-            media_path = get_media_path_from_clip(clip)
+            media_path = get_clip_media_path(clip)
             print(f"{tab2}media_path: {media_path}")
             if not media_path.exists():
                 # Lets find it inside next to the xml
@@ -231,19 +231,25 @@ def get_media_occurence(timeline, media_name, track_type="ALL", last_occurence=F
     return found_clip
 
 
-def get_media_path_from_clip(clip):
+def get_clip_media_path(clip):
     # media_path = clip.media_reference.target_url
     media_path = Path(utils.file_path_from_url(clip.media_reference.target_url))
     return media_path
 
 
-def get_clip_frame_start(clip):
+def get_clip_empty_duration(clip, fps):
+    """For some strange reason some media (.wav) have a long empty time before their content. This has
+    to be removed when used as sequence
+    """
+    return int(round(clip.available_range().start_time.value_rescaled_to(fps)))
+
+
+def get_clip_frame_start(clip, fps):
     # relatif to media, usually 0:
     # frame = opentimelineio.opentime.to_frames(clip.available_range().start_time)
 
-    clipEmptyDuration = int(round(clip.available_range().start_time.value_rescaled_to(25)))
+    clipEmptyDuration = get_clip_empty_duration(clip, fps)
 
-    print("clipEmptyDuration: ", clipEmptyDuration)
     # absolute in track, clip frame final start:
     frame_final_start = opentimelineio.opentime.to_frames(clip.range_in_parent().start_time)
 
@@ -253,26 +259,26 @@ def get_clip_frame_start(clip):
     return frame_final_start - frame_offset_start + clipEmptyDuration
 
 
-def get_clip_frame_end(clip):
+def get_clip_frame_end(clip, fps):
     """
         Exclusive
         Doesn't exist in blender
     """
     # absolute in track, clip frame final start:
-    frame_start = get_clip_frame_start(clip)
+    frame_start = get_clip_frame_start(clip, fps)
 
-    duration = get_clip_frame_duration(clip)
+    duration = get_clip_frame_duration(clip, fps)
 
     # duration =
 
     return frame_start + duration
 
 
-def get_clip_frame_final_start(clip):
+def get_clip_frame_final_start(clip, fps):
     return opentimelineio.opentime.to_frames(clip.range_in_parent().start_time)
 
 
-def get_clip_frame_final_end(clip):
+def get_clip_frame_final_end(clip, fps):
     """
         Exclusive
     """
@@ -284,25 +290,25 @@ def get_clip_frame_final_end(clip):
     return frame_final_start + final_duration
 
 
-def get_clip_frame_offset_start(clip):
-    print("wkip get_clip_frame_offset_start: mettre un framerate au lieu de 25!!!")
+def get_clip_frame_offset_start(clip, fps):
+    #  print("wkip get_clip_frame_offset_start: mettre un framerate au lieu de 25!!!")
     return int(math.ceil(clip.source_range.start_time.value)) - int(
-        math.ceil(clip.available_range().start_time.value_rescaled_to(25))
+        math.ceil(clip.available_range().start_time.value_rescaled_to(fps))
     )
 
 
-def get_clip_frame_offset_end(clip):
-    frame_end = get_clip_frame_end(clip)
-    frame_final_end = get_clip_frame_final_end(clip)
+def get_clip_frame_offset_end(clip, fps):
+    frame_end = get_clip_frame_end(clip, fps)
+    frame_final_end = get_clip_frame_final_end(clip, fps)
     return frame_end - frame_final_end
 
 
-def get_clip_frame_duration(clip):
+def get_clip_frame_duration(clip, fps):
     # get_clip_frame_end(clip) - get_clip_frame_start(clip)
     # print("get_clip_duration: clip.available_range():", clip.available_range())
     # computedDuration = clip.available_range().duration.value_rescaled_to(25)
     # print("get_clip_duration: computedDuration:", computedDuration)
-    computedDuration = int(math.ceil((clip.available_range().duration.value_rescaled_to(25))))
+    computedDuration = int(math.ceil((clip.available_range().duration.value_rescaled_to(fps))))
     # print("get_clip_duration: computedDuration:", computedDuration)
 
     # endExclusive = opentimelineio.opentime.to_frames(clip.range_in_parent().end_time_exclusive())
@@ -313,11 +319,8 @@ def get_clip_frame_duration(clip):
     return computedDuration
 
 
-def get_clip_frame_final_duration(clip):
+def get_clip_frame_final_duration(clip, fps):
     return int(math.ceil(opentimelineio.opentime.to_frames(clip.range_in_parent().duration)))
-
-
-# ----------------------------------
 
 
 def get_timeline_clip_end_inclusive(clip):
@@ -326,6 +329,9 @@ def get_timeline_clip_end_inclusive(clip):
 
 def get_timeline_clip_end_exclusive(clip):
     return opentimelineio.opentime.to_frames(clip.range_in_parent().end_time_exclusive())
+
+
+# ----------------------------------
 
 
 def get_media_list(timeline, track_type="ALL"):
@@ -344,7 +350,7 @@ def get_media_list(timeline, track_type="ALL"):
             for clip in track:
                 if isinstance(clip, opentimelineio.schema.Clip):
                     # print(clip.media_reference)
-                    media_path = get_media_path_from_clip(clip)
+                    media_path = get_clip_media_path(clip)
                     # print(f"{media_path}")
                     if media_path not in m_list:
                         m_list.append(media_path)

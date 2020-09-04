@@ -26,14 +26,14 @@ def initGlobalVariables():
     else:
         uasDebug = True
 
-    uasDebug = True
+    uasDebug = False
 
     if uasDebug:
         print("UAS debug: ", uasDebug)
 
     # import otio ############
-    global gOtioTimeline
-    gOtioTimeline = None
+    global gMontageOtio
+    gMontageOtio = None
 
     global gSeqEnumList
     gSeqEnumList = None
