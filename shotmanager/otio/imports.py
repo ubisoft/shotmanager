@@ -16,6 +16,8 @@ from ..utils import utils
 from . import otio_wrapper as ow
 from . import otio_timeline_classes as otc
 
+from shotmanager.rrs_specific.montage.montage_otio import MontageOtio
+
 
 def importTrack(track, trackInd, track_type, timeRange=None, offsetFrameNumber=0, alternative_media_folder=""):
 
@@ -215,11 +217,12 @@ def getSequenceClassListFromOtioTimeline(otioFile, verbose=False):
         _logger.error("getSequenceClassListFromOtioTimeline: Timeline is None!")
         return
 
-    otioTimeline = otc.OtioTimeline()
+    # otioTimeline = otc.OtioTimeline()
+    otioTimeline = MontageOtio()
     otioTimeline.otioFile = otioFile
     otioTimeline.timeline = timeline
-    otioTimeline.sequenceList = list()
-    sequenceList = otioTimeline.sequenceList
+    # otioTimeline.sequenceList = list()
+    sequenceList = otioTimeline.sequencesList
 
     def _getParentSeqIndex(seqList, seqName):
         #    print("\n_getParentSeqIndex: seqName: ", seqName)
@@ -255,20 +258,21 @@ def getSequenceClassListFromOtioTimeline(otioFile, verbose=False):
                         # add new seq if not found
                         newSeq = None
                         if -1 == parentSeqInd:
-                            newSeq = otc.OtioSequence()
-                            seqName = getSequenceNameFromMediaName(media_name)
-                            newSeq.name = seqName
-                            cList = list()
+                            # newSeq = otc.OtioSequence()
+                            newSeq = otioTimeline.newSequence()
+                            newSeq.name = getSequenceNameFromMediaName(media_name)
+                            # cList = list()
                             # cList.append(clip)
-                            newSeq.clipList = cList
+                            # newSeq.clipList = cList
                             # newSeq.clipList.append(clip)
                             # newSeq.name = media_name_splited[1]
-                            sequenceList.append(newSeq)
+                            # sequenceList.append(newSeq)
 
                         else:
                             newSeq = sequenceList[parentSeqInd]
 
-                        newSeq.clipList.append(clip)
+                        # newSeq.clipList.append(clip)
+                        newSeq.newShot(clip)
 
     for seq in sequenceList:
         # get the start and end of every seq
@@ -496,7 +500,7 @@ def createShotsFromOtioTimelineClass(
             shot_re = re.compile(r"sh_?(\d+)", re.IGNORECASE)
             # for i, clip in enumerate(track.each_clip()):
             for i, clip in enumerate(clipList):
-                clipName = clip.name
+                clipName = clip.clip.name
                 if createCameras:
                     if reformatShotNames:
                         match = shot_re.search(clipName)
@@ -510,7 +514,7 @@ def createShotsFromOtioTimelineClass(
 
                     # add media as camera background
                     if useMediaAsCameraBG:
-                        media_path = ow.get_media_path_from_clip(clip)
+                        media_path = ow.get_media_path_from_clip(clip.clip)
                         print("Import Otio media_path: ", media_path)
                         if not media_path.exists():
                             # Lets find it inside next to the xml
@@ -525,8 +529,8 @@ def createShotsFromOtioTimelineClass(
 
                 shot = props.addShot(
                     name=clipName,
-                    start=ow.get_clip_frame_final_start(clip) + offsetFrameNumber,
-                    end=ow.get_timeline_clip_end_inclusive(clip) + offsetFrameNumber,
+                    start=ow.get_clip_frame_final_start(clip.clip) + offsetFrameNumber,
+                    end=ow.get_timeline_clip_end_inclusive(clip.clip) + offsetFrameNumber,
                     camera=cam_ob,
                     color=cam_ob.color,
                 )
@@ -538,7 +542,8 @@ def createShotsFromOtioTimelineClass(
                 # wkip maybe to remove
                 scene.frame_start = offsetFrameNumber
                 scene.frame_end = (
-                    opentimelineio.opentime.to_frames(clip.range_in_parent().end_time_inclusive()) + offsetFrameNumber
+                    opentimelineio.opentime.to_frames(clip.clip.range_in_parent().end_time_inclusive())
+                    + offsetFrameNumber
                 )
 
             if importSoundInVSE:
