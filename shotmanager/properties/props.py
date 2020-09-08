@@ -207,6 +207,13 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
 
     project_images_output_format: StringProperty(name="Images Output Format", default="PNG")
 
+    bypass_rendering_project_settings: BoolProperty(
+        name="Bypass Project Settings",
+        description="When Project Settings are used this allows the use of custom rendering settings",
+        default=False,
+        options=set(),
+    )
+
     # playbar
     #############
     restartPlay: BoolProperty(default=False)
@@ -1722,6 +1729,31 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         )
 
         return fileName
+
+    def getTakeOutputFilePath(self, rootFilePath="", takeIndex=-1):
+        takeInd = (
+            self.getCurrentTakeIndex()
+            if -1 == takeIndex
+            else (takeIndex if 0 <= takeIndex and takeIndex < len(self.getTakes()) else -1)
+        )
+        filePath = ""
+        if -1 == takeInd:
+            return filePath
+
+        if "" == rootFilePath:
+            #  head, tail = os.path.split(bpy.path.abspath(bpy.data.filepath))
+            # wkip we assume renderRootPath is valid...
+            head, tail = os.path.split(bpy.path.abspath(self.renderRootPath))
+            filePath = head + "\\"
+        else:
+            # wkip tester le chemin
+            filePath = rootFilePath
+            if not filePath.endswith("\\"):
+                filePath += "\\"
+
+        filePath += f"{self.getTakeName_PathCompliant(takeIndex=takeInd)}" + "\\"
+
+        return filePath
 
     def getShotOutputFileName(self, shot, frameIndex=-1, fullPath=False, fullPathOnly=False, rootFilePath=""):
         resultStr = ""
