@@ -202,77 +202,6 @@ def getSequenceNameFromMediaName(fileName):
 
     return seqName
 
-
-# wkip to rename!!!!
-def getSequenceClassListFromOtioTimeline(otioFile, verbose=False):
-    print("\n\n **** Deprecated : imports.py getSequenceClassListFromOtioTimeline !!!")
-    # wkip to remove!!
-    # otioFile = r"Z:\_UAS_Dev\Exports\RRSpecial_ACT01_AQ_XML_200730\RRSpecial_ACT01_AQ_200730__FromPremiere.xml"
-    # otioFile = r"C:\_UAS_ROOT\RRSpecial\04_ActsPredec\Act01\Exports\RRSpecial_ACT01_AQ_XML_200730\RRSpecial_ACT01_AQ_200730__FromPremiere.xml"
-    # otioFile = r"C:\_UAS_ROOT\RRSpecial\04_ActsPredec\Act01\Exports\RRSpecial_ACT01_AQ_XML_200730\RRSpecial_ACT01_AQ_200730__FromPremiere_to40.xml"
-
-    # timeline = opentimelineio.adapters.read_from_file(otioFile)
-    timeline = ow.get_timeline_from_file(otioFile)
-
-    if timeline is None:
-        _logger.error("getSequenceClassListFromOtioTimeline: Timeline is None!")
-        return
-
-    otioTimeline = MontageOtio()
-    otioTimeline.otioFile = otioFile
-    otioTimeline.timeline = timeline
-    # otioTimeline.sequenceList = list()
-    sequenceList = otioTimeline.sequencesList
-
-    def _getParentSeqIndex(seqList, seqName):
-        #    print("\n_getParentSeqIndex: seqName: ", seqName)
-        for i, seq in enumerate(seqList):
-            if seqName in seq.name.lower():
-                #    print(f"    : {seq.name}, i: {i}")
-                return i
-
-        return -1
-
-    tracks = timeline.video_tracks()
-    for track in tracks:
-        for clip in track:
-            if isinstance(clip, opentimelineio.schema.Clip):
-                # print(clip.media_reference)
-                media_path = Path(utils.file_path_from_url(clip.media_reference.target_url))
-                # print(f"{media_path}")
-
-                # get media name
-                filename = os.path.split(media_path)[1]
-                media_name = os.path.splitext(filename)[0]
-                media_name_lower = media_name.lower()
-
-                # get parent sequence
-                seq_pattern = "_seq"
-                if seq_pattern in media_name_lower:
-                    #    print(f"media_name: {media_name}")
-
-                    media_name_splited = media_name_lower.split("_")
-                    if 2 <= len(media_name_splited):
-                        parentSeqInd = _getParentSeqIndex(sequenceList, media_name_splited[1])
-
-                        # add new seq if not found
-                        newSeq = None
-                        if -1 == parentSeqInd:
-                            newSeq = otioTimeline.newSequence()
-                            newSeq.name = getSequenceNameFromMediaName(media_name)
-
-                        else:
-                            newSeq = sequenceList[parentSeqInd]
-                        newSeq.newShot(clip)
-
-    # for seq in sequenceList:
-    #     # get the start and end of every seq
-    #     seq.setStartAndEnd()
-    #     if verbose:
-    #         seq.printInfo()
-
-    return otioTimeline
-
     # get file names only
     file_list = list()
     for item in media_list:
@@ -298,7 +227,7 @@ def getSequenceClassListFromOtioTimeline(otioFile, verbose=False):
 
 def getSequenceListFromOtioTimeline(timeline):
 
-    print("\n\n **** Deprecated : imports.py getSequenceClassListFromOtioTimeline !!!")
+    print("\n\n **** Deprecated : imports.py getSequenceListFromOtioTimeline !!!")
     if timeline is None:
         _logger.error("getSequenceListFromOtioTimeline: Timeline is None!")
         return

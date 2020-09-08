@@ -39,6 +39,19 @@ class UAS_ShotManager_PredecTools_CreateShotsFromSingleCamera(Operator):
         items=list_cameras, name="Camera", description="Camera that will be used for every new shot"
     )
 
+    def invoke(self, context, event):
+        wm = context.window_manager
+        prefs = context.preferences.addons["shotmanager"].preferences
+
+        self.start = context.scene.frame_current
+        self.end = context.scene.frame_current + prefs.new_shot_duration
+
+        camName = context.scene.UAS_shot_manager_props.getActiveCameraName()
+        if "" != camName:
+            self.cameraName = camName
+
+        return wm.invoke_props_dialog(self)
+
     def draw(self, context):
         layout = self.layout
         box = layout.box()
@@ -97,21 +110,29 @@ class UAS_ShotManager_PredecTools_CreateShotsFromSingleCamera(Operator):
 
         return {"FINISHED"}
 
-    def invoke(self, context, event):
-        wm = context.window_manager
-        prefs = context.preferences.addons["shotmanager"].preferences
 
-        self.start = context.scene.frame_current
-        self.end = context.scene.frame_current + prefs.new_shot_duration
+class UAS_ShotManager_OT_PredecTools_PrintMontageInfo(Operator):
+    bl_idname = "uas_shot_manager.print_montage_info"
+    bl_label = "Print Montage Info"
+    bl_description = "Print montage information in the console"
+    bl_options = {"INTERNAL"}
 
-        camName = context.scene.UAS_shot_manager_props.getActiveCameraName()
-        if "" != camName:
-            self.cameraName = camName
+    def execute(self, context):
+        scene = context.scene
+        props = scene.UAS_shot_manager_props
 
-        return wm.invoke_props_dialog(self)
+        # sm_montage = MontageShotManager()
+        # sm_montage.initialize(scene, props.getCurrentTake())
+
+        props.printInfo()
+
+        return {"FINISHED"}
 
 
-_classes = (UAS_ShotManager_PredecTools_CreateShotsFromSingleCamera,)
+_classes = (
+    UAS_ShotManager_PredecTools_CreateShotsFromSingleCamera,
+    UAS_ShotManager_OT_PredecTools_PrintMontageInfo,
+)
 
 
 def register():

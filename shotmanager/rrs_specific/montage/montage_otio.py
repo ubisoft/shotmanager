@@ -7,25 +7,18 @@ from pathlib import Path
 from urllib.parse import unquote_plus, urlparse
 import re
 
-import bpy
+from shotmanager.utils import utils
+from .montage_interface import MontageInterface, SequenceInterface, ShotInterface
+from shotmanager.otio import otio_wrapper as ow
 import opentimelineio
 
-from .montage_interface import MontageInterface, SequenceInterface, ShotInterface
 
-from shotmanager.utils import utils
-
-from shotmanager.otio import otio_wrapper as ow
-
-
-# was OtioTimeline
 class MontageOtio(MontageInterface):
     """ 
     """
 
     def __init__(self):
         super().__init__()
-
-        self.montageType = "OTIO"
 
         # new properties:
         self.otioFile = None
@@ -38,6 +31,9 @@ class MontageOtio(MontageInterface):
         if read:
             self.timeline = ow.get_timeline_from_file(self.otioFile)
             self._name = self.timeline.name
+
+    def get_montage_type(self):
+        return "OTIO"
 
     def get_fps(self):
         time = self.timeline.duration()
@@ -66,8 +62,6 @@ class MontageOtio(MontageInterface):
         return seqName
 
     def fillMontageInfoFromOtioFile(self, otioFile, verboseInfo=False):
-        # wkip code taken from getSequenceClassListFromOtioTimeline
-
         self.initialize(otioFile)
 
         if self.timeline is None:
@@ -163,15 +157,16 @@ class ShotOtio(ShotInterface):
     """
 
     def __init__(self, parent, shot):
-        super().__init__(parent)
+        super().__init__()
+        self.initialize(parent)
         self.clip = shot
         pass
 
     def get_name(self):
         return self.clip.name
 
-    def printInfo(self):
-        super().printInfo()
+    def printInfo(self, only_clip_info=False):
+        super().printInfo(only_clip_info=only_clip_info)
         infoStr = f"             - Media: {ow.get_clip_media_path(self.clip)}"
         emptyDuration = ow.get_clip_empty_duration(self.clip, self.parent.parent.get_fps())
         if 0 != emptyDuration:
@@ -182,6 +177,7 @@ class ShotOtio(ShotInterface):
         return ow.get_clip_frame_start(self.clip, self.parent.parent.get_fps())
 
     def get_frame_end(self):
+        # get_clip_frame_end is exclusive
         return ow.get_clip_frame_end(self.clip, self.parent.parent.get_fps())
 
     def get_frame_duration(self):
@@ -191,6 +187,7 @@ class ShotOtio(ShotInterface):
         return ow.get_clip_frame_final_start(self.clip, self.parent.parent.get_fps())
 
     def get_frame_final_end(self):
+        # get_clip_frame_final_end is exclusive
         return ow.get_clip_frame_final_end(self.clip, self.parent.parent.get_fps())
 
     def get_frame_final_duration(self):

@@ -10,9 +10,10 @@ from bpy.types import PropertyGroup
 from bpy.props import StringProperty, IntProperty, BoolProperty, PointerProperty, FloatVectorProperty
 
 from shotmanager.utils.utils import findFirstUniqueName
+from shotmanager.rrs_specific.montage.montage_interface import ShotInterface
 
 
-class UAS_ShotManager_Shot(PropertyGroup):
+class UAS_ShotManager_Shot(ShotInterface, PropertyGroup):
     # def _get_parentScene(self):
     #     val = self.get("parentScene", None)
     #     if val is None:
@@ -395,3 +396,97 @@ class UAS_ShotManager_Shot(PropertyGroup):
 
     def hasNotes(self):
         return "" != self.note01 or "" != self.note02 or "" != self.note03
+
+    #############
+    # interface for Montage #####
+    # Note: Shot inherits from ShotInterface
+    #############
+
+    # def __init__(self, parent, shot):      # cannot use this constructor since new shots are added directly to the array of take
+    def __init__(self):
+        """
+            parent: reference to the parent take
+        """
+      #  self.parent = None
+        print(" icicicic parent in shot")
+        super().__init__()
+        pass
+
+    def initialize(self, parent):
+        """ Parent is the parent take
+        """
+        # if "parent" not in self:
+        # props = self.parentScene.UAS_shot_manager_props
+        # #  print(" icicicic parent in shot")
+
+        # UAS_ShotManager_Shot.parent = property(lambda self: parent)
+        # self.parent = parent
+        pass
+
+    #  print(" icicicic self.parent:", self.parent)
+
+    def get_index_in_parent(self):
+        # print(" get_index_in_parent in Shot ")
+        props = self.parentScene.UAS_shot_manager_props
+        # if "parent" in self:
+        #     #  print("Toto")
+        #     # parentTake = self.parentScene.UAS_shot_manager_props.getTakeByIndex(self.parentTakeIndex)
+        #     # UAS_ShotManager_Shot.parent = property(lambda self: parentTake)
+        #     #  print("UAS_ShotManager_Shot.parent: ", UAS_ShotManager_Shot.parent)
+        #     pass
+        # else:
+        #     #   print("Not parent")
+        #     parentTake = props.getTakeByIndex(self.parentTakeIndex)
+        #     UAS_ShotManager_Shot.parent = property(lambda self: parentTake)
+        # #   print("UAS_ShotManager_Shot.parent else: ", UAS_ShotManager_Shot.parent)
+
+        # print("UAS_ShotManager_Shot.parent 02: ", UAS_ShotManager_Shot.parent)
+
+        # if self in self.parent.shots:
+        #     return self.parent.shots.index(self)
+        return props.getShotIndex(self)
+        # else:
+        #     print(f"*** Error in Shot.get_index_in_parent: current shot {shot.name} not found in parent take array ***")
+        #     return -1
+
+    def get_name(self):
+        return self.name
+
+    def printInfo(self, only_clip_info=False):
+        super().printInfo(only_clip_info=True)
+
+    #   infoStr = f"             - Media:"
+    #   print(infoStr)
+
+    ############
+    # Note that all these interface functions are refering to timings in the EDIT, not in the 3D environment !!
+    ############
+
+    def get_frame_start(self):
+        return self.getEditStart()
+
+    def get_frame_end(self):
+        """get_frame_end is exclusive in order to follow the Blender implementation of get_frame_end for its clips
+        """
+        return self.getEditEnd() + 1
+
+    def get_frame_duration(self):
+        return self.getDuration()
+
+    def get_frame_final_start(self):
+        return self.get_frame_start()
+
+    def get_frame_final_end(self):
+        """get_frame_final_end is exclusive in order to follow the Blender implementation of get_frame_end for its clips
+        """
+        return self.get_frame_end()
+
+    def get_frame_final_duration(self):
+        return self.get_frame_duration()
+
+    def get_frame_offset_start(self):
+        return 0
+
+    def get_frame_offset_end(self):
+        return 0
+

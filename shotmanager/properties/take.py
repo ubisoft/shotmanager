@@ -7,9 +7,10 @@ from bpy.props import StringProperty, CollectionProperty, PointerProperty
 from .shot import UAS_ShotManager_Shot
 
 from shotmanager.utils.utils import findFirstUniqueName
+from shotmanager.rrs_specific.montage.montage_interface import SequenceInterface
 
 
-class UAS_ShotManager_Take(PropertyGroup):
+class UAS_ShotManager_Take(SequenceInterface, PropertyGroup):
     # def _get_parentScene(self):
     #     val = self.get("parentScene", None)
     #     if val is None:
@@ -118,3 +119,58 @@ class UAS_ShotManager_Take(PropertyGroup):
                 shotList.append(shot)
 
         return shotList
+
+    def getShotsList(self, ignoreDisabled=False):
+        shotList = list()
+        for shot in self.shots:
+            if not ignoreDisabled or shot.enabled:
+                shotList.append(shot)
+
+        return shotList
+
+    def getEditShots(self):
+        return self.getShotsList(ignoreDisabled=True)
+
+    #############
+    # interface for Montage #####
+    # Note: Take inherits from SequenceInterface
+    #############
+
+    def __init__(self, parent):
+        super().__init__(parent)
+        self.shotsList = self.shots
+
+        pass
+
+    def get_name(self):
+        return self.name
+
+    def set_name(self, name):
+        self.name = name
+
+    def printInfo(self, printChildren=True):
+        infoStr = f"\n    - Take: {self.get_name()}, Start: {self.get_frame_start()}, End(Incl.):{self.get_frame_end() - 1}, Duration: {self.get_frame_duration()}, Shots: {len(self.getEditShots())}"
+        print(infoStr)
+        if printChildren:
+            for shot in self.getEditShots():
+                print("")
+                shot.printInfo()
+
+    def newShot(self, shot):
+        print("*** Take.newShot: To implement !! ***")
+        return newShot
+
+    def get_frame_start(self):
+        return self.parentScene.UAS_shot_manager_props.editStartFrame
+
+    def get_frame_end(self):
+        return (
+            self.parentScene.UAS_shot_manager_props.editStartFrame
+            + self.parentScene.UAS_shot_manager_props.getEditDuration()
+        )
+
+    def get_frame_duration(self):
+        """ Same as self.getEditDuration()
+        """
+        return self.get_frame_end() - self.get_frame_start()
+

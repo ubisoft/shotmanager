@@ -15,7 +15,7 @@ from .exports import exportOtio
 
 # from shotmanager.otio import imports
 from .imports import createShotsFromOtio, importOtioToVSE
-from .imports import getSequenceListFromOtioTimeline, getSequenceClassListFromOtioTimeline
+from .imports import getSequenceListFromOtioTimeline
 from .imports import createShotsFromOtioTimelineClass
 
 from shotmanager.utils import utils
@@ -183,15 +183,13 @@ class UAS_ShotManager_OT_Create_Shots_From_OTIO_RRS(Operator):
 
     def invoke(self, context, event):
         wm = context.window_manager
+        scene = context.scene
+        props = scene.UAS_shot_manager_props
 
         config.gMontageOtio = None
         if "" != self.otioFile and Path(self.otioFile).exists():
-            # config.gMontageOtio = getSequenceClassListFromOtioTimeline(self.otioFile, verbose=False)
-
             config.gMontageOtio = MontageOtio()
             config.gMontageOtio.fillMontageInfoFromOtioFile(self.otioFile, verboseInfo=False)
-
-            # config.gMontageOtio.printInfo()
 
             config.gSeqEnumList = list()
             for i, seq in enumerate(config.gMontageOtio.sequencesList):
@@ -210,6 +208,8 @@ class UAS_ShotManager_OT_Create_Shots_From_OTIO_RRS(Operator):
         return {"RUNNING_MODAL"}
 
     def draw(self, context):
+        scene = context.scene
+        props = scene.UAS_shot_manager_props
         layout = self.layout
         row = layout.row(align=True)
 
@@ -247,6 +247,13 @@ class UAS_ShotManager_OT_Create_Shots_From_OTIO_RRS(Operator):
         if config.gMontageOtio is not None:
             selSeq = config.gMontageOtio.sequencesList[int(self.sequenceList)]
             labelText = f"Start: {selSeq.get_frame_start()}, End: {selSeq.get_frame_end()}, Duration: {selSeq.get_frame_duration()}, Num Shots: {len(selSeq.shotsList)}"
+
+            # sm_montage.printInfo()
+
+            # config.gMontageOtio.printInfo()
+            # config.gMontageOtio.compareWithMontage(props, selSeq)
+            box.operator("uasshotmanager.compare_otio_and_current_montage").sequenceName = selSeq.get_name()
+
         else:
             labelText = f"Start: {-1}, End: {-1}, Num Shots: {0}"
 
@@ -327,7 +334,7 @@ class UAS_ShotManager_OT_Create_Shots_From_OTIO_RRS(Operator):
         if self.importAudio_Music:
             audioTracksToImport.extend(list(range(28, 30)))
 
-        audioTracksToImport = [19, 20]
+        # audioTracksToImport = [19, 20]
 
         createShotsFromOtioTimelineClass(
             context.scene,
@@ -347,6 +354,21 @@ class UAS_ShotManager_OT_Create_Shots_From_OTIO_RRS(Operator):
             audioTracksList=audioTracksToImport,
         )
 
+        return {"FINISHED"}
+
+
+class UAS_ShotManager_OT_CompareOtioAndCurrentMontage(Operator):
+    bl_idname = "uasshotmanager.compare_otio_and_current_montage"
+    bl_label = "Print Comparison"
+    bl_description = (
+        "Print the differences between the current sequence in the scene and the imported EDL file into the console"
+    )
+    bl_options = {"INTERNAL"}
+
+    sequenceName: StringProperty(default="")
+
+    def execute(self, context):
+        context.scene.UAS_shot_manager_props.compareWithMontage(config.gMontageOtio, self.sequenceName)
         return {"FINISHED"}
 
 
@@ -553,6 +575,7 @@ _classes = (
     UAS_ShotManager_Export_OTIO,
     UAS_ShotManager_OT_Create_Shots_From_OTIO,
     UAS_ShotManager_OT_Create_Shots_From_OTIO_RRS,
+    UAS_ShotManager_OT_CompareOtioAndCurrentMontage,
     UAS_OTIO_OpenFileBrowser,
 )
 

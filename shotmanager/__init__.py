@@ -56,11 +56,11 @@ bl_info = {
     "name": "UAS Shot Manager",
     "author": "Julien Blervaque (aka Werwack), Romain Carriquiry Borchiari",
     "description": "Manage a sequence of shots and cameras in the 3D View - Ubisoft Animation Studio",
-    "blender": (2, 83, 1),
-    "version": (1, 3, 24),
+    "blender": (2, 90, 0),
+    "version": (1, 3, 25),
     "location": "View3D > UAS Shot Manager",
     "wiki_url": "https://gitlab-ncsa.ubisoft.org/animation-studio/blender/shotmanager-addon/-/wikis/home",
-    "warning": "",
+    # "warning": "BETA Version - Fais gaffe à tes données !!!",
     "category": "UAS",
 }
 

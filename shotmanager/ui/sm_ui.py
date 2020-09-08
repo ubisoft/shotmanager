@@ -84,6 +84,21 @@ class UAS_PT_ShotManager(Panel):
         scene = context.scene
         props = scene.UAS_shot_manager_props
 
+        import addon_utils
+
+        addonWarning = [
+            addon.bl_info.get("warning", "")
+            for addon in addon_utils.modules()
+            if addon.bl_info["name"] == "UAS Shot Manager"
+        ]
+
+        if "" != addonWarning[0]:
+            row = layout.row()
+            row.alignment = "CENTER"
+            row.alert = True
+            row.label(text=f" ***  {addonWarning[0]}  ***")
+            row.alert = False
+
         if config.uasDebug:
             row = layout.row()
             row.alignment = "CENTER"
@@ -971,6 +986,10 @@ class UAS_MT_ShotManager_Shots_ToolsMenu(Menu):
         row = layout.row(align=True)
         row.operator_context = "INVOKE_DEFAULT"
         row.operator("uas_shot_manager.predec_shots_from_single_cam")
+
+        row = layout.row(align=True)
+        row.operator_context = "INVOKE_DEFAULT"
+        row.operator("uas_shot_manager.print_montage_info")
 
         # row = layout.row(align=True)
         # row.enabled = False

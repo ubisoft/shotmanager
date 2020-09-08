@@ -4,14 +4,16 @@ _logger = logging.getLogger(__name__)
 
 
 # was OtioTimeline
-class MontageInterface:
+class MontageInterface(object):
     """ 
     """
 
     def __init__(self):
-        self.montageType = "INTERFACE"
         self._name = ""
         self.sequencesList = list()
+
+    def get_montage_type(self):
+        return "INTERFACE"
 
     def get_name(self):
         return self._name
@@ -21,13 +23,19 @@ class MontageInterface:
 
     def printInfo(self, printChildren=True):
         infoStr = "\n\n-----------------------------"
-        infoStr += f"\n\n Montage: {self.get_name()}    -     Type: {self.montageType}"
-        infoStr += f"\n    Start: {self.get_frame_start()}, End:{self.get_frame_end()}, Duration: {self.get_frame_duration()}, fps: {self.get_fps()}, Sequences: {len(self.sequencesList)}"
+        # infoStr += (
+        #     f"\nNote: All the end values are EXCLUSIVE (= not the last used frame of the range but the one after)"
+        # )
+        infoStr += f"\n\n Montage: {self.get_name()}    -     Type: {self.get_montage_type()}"
+        infoStr += f"\n    Start: {self.get_frame_start()}, End (incl.):{self.get_frame_end() - 1}, Duration: {self.get_frame_duration()}, fps: {self.get_fps()}, Sequences: {self.get_num_sequences()}"
         print(infoStr)
 
         if printChildren:
-            for seq in self.sequencesList:
-                seq.printInfo()
+            self.printChildrenInfo()
+
+    def printChildrenInfo(self):
+        for seq in self.sequencesList:
+            seq.printInfo()
 
     def get_fps(self):
         return -1
@@ -47,6 +55,12 @@ class MontageInterface:
     def get_frame_duration(self):
         return -1
 
+    def get_num_sequences(self):
+        return len(self.sequencesList)
+
+    def get_sequences(self):
+        return self.sequencesList
+
     def newSequence(self):
         if self.sequencesList is None:
             self.sequencesList = list()
@@ -54,8 +68,75 @@ class MontageInterface:
         self.sequencesList.append(newSeq)
         return newSeq
 
+    def get_sequence_by_name(self, sequence_name):
+        refSeq = None
 
-class SequenceInterface:
+        sequences = self.get_sequences()
+        for seq in sequences:
+            #  print(f"seq: {seq}, sequence_name: {sequence_name}")
+            if seq.get_name() == sequence_name:
+                refSeq = seq
+                break
+        return refSeq
+
+    def compareWithMontage(self, ref_montage, ref_sequence_name=""):
+        """
+            Compare current montage with specified montage
+            If ref_sequence_name is specified then only this sequence is compared
+        """
+
+        def printInfoLine(col00, col01, col02):
+            print(f"{col00: >10} {col01: >30}       - {col02: >30}")
+
+        infoStr = f"\n\n ------ ------ ------ ------ ------ ------ ------ ------ ------ "
+        infoStr += f"\n\n Comparing montages:\n"
+        print(infoStr)
+
+        # infoStr += (
+        #     f"\nNote: All the end values are EXCLUSIVE (= not the last used frame of the range but the one after)"
+        # )
+        # infoStr += f"\n        Ref: {ref_montage.get_name(): >30}       -  {self.get_name() : >30}"
+        colRef = ref_montage.get_name()
+        colSelf = self.get_name()
+        printInfoLine("", colRef, colSelf)
+
+        refSeq = ref_montage.get_sequence_by_name(ref_sequence_name)
+
+        # selfSeq = self.get_sequence_by_name(ref_sequence_name)
+        selfSeq = self.get_sequences()  # wkip limité à 1 take pour l'instant
+        if "" != ref_sequence_name:
+            if refSeq is not None:
+                print(f"  Ref Sequence: {refSeq.get_name()} \n")
+
+        comparedShotsList = selfSeq.copy()
+
+        if refSeq is not None:
+            for i, shot in enumerate(refSeq.getEditShots()):
+                shotRef = shot
+                colRef = shotRef.get_name()
+
+                shotSelf = None
+                for sh in comparedShotsList:
+                    if sh.get_name() == shotRef.get_name():
+                        shotSelf = sh
+                        break
+
+                if shotSelf is None:
+                    colSelf = "-"
+                else:
+                    colSelf = shotSelf.get_name() + "  "
+                    if shotSelf.get_frame_final_duration() != shotRef.get_frame_final_duration():
+                        colSelf += "Different duration"
+
+                # wkip wkip here mettre les diffs
+
+                printInfoLine(str(i), colRef, colSelf)
+            # print(f"Shot: {shot.get_name()}")
+        #         pass
+        print("")
+
+
+class SequenceInterface(object):
     """ 
     """
 
@@ -77,12 +158,17 @@ class SequenceInterface:
     def newShot(self, shot):
         if self.shotsList is None:
             self.shotsList = list()
-        newShot = ShotInterface(self)
+        newShot = ShotInterface()
+        # newShot = ShotInterface(self)
+        self.initialize(self)
         self.shotsList.append(newShot)
         return newShot
 
+    def getEditShots(self):
+        return self.shotsList
+
     def printInfo(self, printChildren=True):
-        infoStr = f"\n    - Sequence: {self.get_name()}, Start: {self.get_frame_start()}, End:{self.get_frame_end()}, Duration: {self.get_frame_duration()}, Shots: {len(self.shotsList)}"
+        infoStr = f"\n    - Sequence: {self.get_name()}, Start: {self.get_frame_start()}, End(incl.):{self.get_frame_end() - 1}, Duration: {self.get_frame_duration()}, Shots: {len(self.shotsList)}"
         print(infoStr)
         if printChildren:
             for shot in self.shotsList:
@@ -117,32 +203,47 @@ class SequenceInterface:
         return self.get_frame_end() - self.get_frame_start()
 
 
-class ShotInterface:
+class ShotInterface(object):
     """ 
     """
 
-    def __init__(self, parent):
+    def __init__(self):
+        # print(" *** self Init in ShotInterface *** ")
         # parent sequence
-        self.parent = parent
+        self.parent = None
 
         pass
+
+    def initialize(self, parent):
+        self.parent = parent
+
+    # def __init__(self, parent):
+    #     print(" *** Init parent in ShotInterface *** ")
+    #     # parent sequence
+    #     self.parent = parent
+
+    #     pass
 
     def get_name(self):
         return ""
 
     def get_index_in_parent(self):
+        # if "parent" in self:
         if self in self.parent.shotsList:
             return self.parent.shotsList.index(self)
         else:
             return -1
+        # else:
+        #     return -1
 
-    def printInfo(self):
-        infoStr = f"        - Shot {self.get_index_in_parent()}:    Name: {self.get_name()}"
-        infoStr += f"\n             - Start: {self.get_frame_start()}, End: {self.get_frame_end()}, Duration: {self.get_frame_duration()}"
-        infoStr += f"\n             - Final Start: {self.get_frame_final_start()}, Final End: {self.get_frame_final_end()}, Final Duration: {self.get_frame_final_duration()}"
-        infoStr += (
-            f"\n             - Offset Start: {self.get_frame_offset_start()}, Offset End: {self.get_frame_offset_end()}"
-        )
+    def printInfo(self, only_clip_info=False):
+        infoStr = ""
+        infoStr += f"        - Shot {self.get_index_in_parent()}:    Name: {self.get_name()}"
+        if not only_clip_info:
+            infoStr += f"\n             - Start: {self.get_frame_start()}, End(Incl.): {self.get_frame_end() - 1}, Duration: {self.get_frame_duration()}"
+        infoStr += f"\n             - Final Start: {self.get_frame_final_start()}, Final End(Incl.): {self.get_frame_final_end() - 1}, Final Duration: {self.get_frame_final_duration()}"
+        if not only_clip_info:
+            infoStr += f"\n             - Offset Start: {self.get_frame_offset_start()}, Offset End: {self.get_frame_offset_end()}"
         print(infoStr)
 
     def get_frame_start(self):
