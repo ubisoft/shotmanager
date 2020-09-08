@@ -84,6 +84,21 @@ class UAS_PT_ShotManager(Panel):
         scene = context.scene
         props = scene.UAS_shot_manager_props
 
+        import addon_utils
+
+        addonWarning = [
+            addon.bl_info.get("warning", "")
+            for addon in addon_utils.modules()
+            if addon.bl_info["name"] == "UAS Shot Manager"
+        ]
+
+        if "" != addonWarning[0]:
+            row = layout.row()
+            row.alignment = "CENTER"
+            row.alert = True
+            row.label(text=f" ***  {addonWarning[0]}  ***")
+            row.alert = False
+
         if config.uasDebug:
             row = layout.row()
             row.alignment = "CENTER"
@@ -112,7 +127,7 @@ class UAS_PT_ShotManager(Panel):
             icon="ANIM",
         )
         row.prop(context.window_manager, "UAS_shot_manager_display_timeline", text="", toggle=True, icon="TIME")
-        row.prop(context.window_manager, "UAS_shot_manager_toggle_montage_interaction", text="", toggle=True )
+        row.prop(context.window_manager, "UAS_shot_manager_toggle_montage_interaction", text="", toggle=True)
 
         row.emboss = "PULLDOWN_MENU"
         row.operator("uas_shot_manager.playbar_prefs", text="", icon="SETTINGS")
@@ -959,7 +974,8 @@ class UAS_MT_ShotManager_Shots_ToolsMenu(Menu):
                 "uasshotmanager.createshotsfromotio_rrs", text="Create Shots From EDL - Debug + file"
             ).otioFile = (
                 # r"Z:\_UAS_Dev\Exports\RRSpecial_ACT01_AQ_XML_200730\RRSpecial_ACT01_AQ_200730__FromPremiere.xml"
-                r"C:\_UAS_ROOT\RRSpecial\04_ActsPredec\Act01\Exports\RRSpecial_ACT01_AQ_XML_200730\RRSpecial_ACT01_AQ_200730__FromPremiere_to40.xml"  # _to40
+                # r"C:\_UAS_ROOT\RRSpecial\04_ActsPredec\Act01\Exports\RRSpecial_ACT01_AQ_XML_200730\RRSpecial_ACT01_AQ_200730__FromPremiere_to40.xml"  # _to40
+                r"C:\_UAS_ROOT\RRSpecial\04_ActsPredec\Act01\Exports\RRSpecial_ACT01_AQ_XML_200730\PredecAct01_To40_RefDebug.xml"  # _to40
             )
 
         # tools for precut ###
@@ -970,6 +986,10 @@ class UAS_MT_ShotManager_Shots_ToolsMenu(Menu):
         row = layout.row(align=True)
         row.operator_context = "INVOKE_DEFAULT"
         row.operator("uas_shot_manager.predec_shots_from_single_cam")
+
+        row = layout.row(align=True)
+        row.operator_context = "INVOKE_DEFAULT"
+        row.operator("uas_shot_manager.print_montage_info")
 
         # row = layout.row(align=True)
         # row.enabled = False

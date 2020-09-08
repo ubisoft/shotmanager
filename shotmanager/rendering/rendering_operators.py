@@ -79,19 +79,21 @@ class UAS_PT_ShotManager_Render(Operator):
         elif "OTIO" == self.renderMode:
             props.displayOtioProps = True
 
-        renderWarnings = ""
-        if props.renderRootPath.startswith("//"):
-            if "" == bpy.data.filepath:
-                renderWarnings = "*** Save file first ***"
-        elif "" == props.renderRootPath:
-            renderWarnings = "*** Invalid Output File Name ***"
-
-        if "" != renderWarnings:
-            from ..utils.utils import ShowMessageBox
-
-            ShowMessageBox(renderWarnings, "Render Aborted", "ERROR")
-            print("Render aborted before start: " + renderWarnings)
+        if not props.sceneIsReady():
             return {"CANCELLED"}
+        # renderWarnings = ""
+        # if props.renderRootPath.startswith("//"):
+        #     if "" == bpy.data.filepath:
+        #         renderWarnings = "*** Save file first ***"
+        # elif "" == props.renderRootPath:
+        #     renderWarnings = "*** Invalid Output File Name ***"
+
+        # if "" != renderWarnings:
+        #     from ..utils.utils import ShowMessageBox
+
+        #     ShowMessageBox(renderWarnings, "Render Aborted", "ERROR")
+        #     print("Render aborted before start: " + renderWarnings)
+        #     return {"CANCELLED"}
 
         if "OTIO" == self.renderMode:
             bpy.ops.uas_shot_manager.export_otio()

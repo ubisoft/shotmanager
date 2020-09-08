@@ -56,11 +56,11 @@ bl_info = {
     "name": "UAS Shot Manager",
     "author": "Julien Blervaque (aka Werwack), Romain Carriquiry Borchiari",
     "description": "Manage a sequence of shots and cameras in the 3D View - Ubisoft Animation Studio",
-    "blender": (2, 83, 1),
-    "version": (1, 3, 20),
+    "blender": (2, 90, 0),
+    "version": (1, 3, 25),
     "location": "View3D > UAS Shot Manager",
     "wiki_url": "https://gitlab-ncsa.ubisoft.org/animation-studio/blender/shotmanager-addon/-/wikis/home",
-    "warning": "",
+    # "warning": "BETA Version - Fais gaffe à tes données !!!",
     "category": "UAS",
 }
 
@@ -74,8 +74,8 @@ __version__ = f"v{bl_info['version'][0]}.{bl_info['version'][1]}.{bl_info['versi
 _logger = logging.getLogger(__name__)
 _logger.propagate = False
 MODULE_PATH = Path(__file__).parent.parent
-logging.basicConfig(level=logging.DEBUG)
-_logger.setLevel(logging.INFO)  # CRITICAL ERROR WARNING INFO DEBUG NOTSET
+logging.basicConfig(level=logging.INFO)
+_logger.setLevel(logging.DEBUG)  # CRITICAL ERROR WARNING INFO DEBUG NOTSET
 
 pil_logger = logging.getLogger("PIL")
 pil_logger.setLevel(logging.INFO)
@@ -96,6 +96,7 @@ class Formatter(logging.Formatter):
         - to append "./" at the begining to permit going to the line quickly with VS Code CTRL+click from terminal
         """
         s = super().format(record)
+        # s = record
         pathname = Path(record.pathname).relative_to(MODULE_PATH)
         s += f" [{os.curdir}{os.sep}{pathname}:{record.lineno}]"
         return s
@@ -131,12 +132,14 @@ class Formatter(logging.Formatter):
 # Handlers
 ###########
 
+
 def timeline_valueChanged(self, context):
     print("  timeline_valueChanged:  self.UAS_shot_manager_display_timeline: ", self.UAS_shot_manager_display_timeline)
     if self.UAS_shot_manager_display_timeline:
         bpy.ops.uas_shot_manager.draw_timeline("INVOKE_DEFAULT")
         bpy.ops.uas_shot_manager.draw_montage_timeline("INVOKE_DEFAULT")
         # bpy.ops.uas_shot_manager.draw_cameras_ui("INVOKE_DEFAULT")
+
 
 def install_shot_handler(self, context):
     if self.UAS_shot_manager_shots_play_mode and jump_to_shot not in bpy.app.handlers.frame_change_pre:
@@ -358,9 +361,7 @@ def register():
     )
 
     bpy.types.WindowManager.UAS_shot_manager_toggle_montage_interaction = BoolProperty(
-        name="montage_interaction",
-        description="Disable or enable montage like timeline interaction",
-        default=True,
+        name="montage_interaction", description="Disable or enable montage like timeline interaction", default=True,
     )
 
     bpy.types.WindowManager.UAS_shot_manager_progressbar = FloatProperty(

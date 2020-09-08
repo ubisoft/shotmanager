@@ -14,24 +14,27 @@ import opentimelineio
 from ..utils import utils
 
 from . import otio_wrapper as ow
-from . import otio_timeline_classes as otc
+
+from shotmanager.rrs_specific.montage.montage_otio import MontageOtio
 
 
 def importTrack(track, trackInd, track_type, timeRange=None, offsetFrameNumber=0, alternative_media_folder=""):
 
     range_start = -9999999
     range_end = 9999999
+    fps = 25
     if timeRange is not None:
         range_start = timeRange[0]
         range_end = timeRange[1]
 
     for i, clip in enumerate(track.each_clip()):
-        clip_start = ow.get_timeline_clip_start(clip)
+        clip_start = ow.get_clip_frame_final_start(clip, fps)
         clip_end = ow.get_timeline_clip_end_inclusive(clip)
 
         clipName = clip.name
-        media_path = ow.get_media_path_from_clip(clip)
-        print(f"     - Clip name: {clipName}, Clip ind: {i}, media: {Path(media_path).name}")
+        media_path = ow.get_clip_media_path(clip)
+        clipInfo = f"\n-----------------------------"
+        clipInfo += f"- Clip name: {clipName}, Clip ind: {i}, media: {Path(media_path).name}\n"
 
         #   print(f"       Import Otio media_path: {media_path}")
 
@@ -44,11 +47,14 @@ def importTrack(track, trackInd, track_type, timeRange=None, offsetFrameNumber=0
             #     excludInfo += ".wav,"
             if not isInRange:
                 excludInfo += " not in range"
-            print(f"{excludInfo}")
+        # print(f"{clipInfo}")
+        # print(f"{excludInfo}")
 
         else:
             # print("       Clip is in range")
-            _logger.debug(f"       Import at frame: {offsetFrameNumber}")
+            print(f"{clipInfo}")
+            # offsetFrameNumber = 2
+            print(f"       Import at frame: offsetFrameNumber: {offsetFrameNumber}")
             if not media_path.exists():
                 # Lets find it inside next to the xml
                 # media_path = Path(otioFile).parent.joinpath(media_path.name)
@@ -59,48 +65,87 @@ def importTrack(track, trackInd, track_type, timeRange=None, offsetFrameNumber=0
             if media_path.exists():
                 media_path = str(media_path)
 
-                start = ow.get_timeline_clip_start(clip) + offsetFrameNumber
+                # start = ow.get_clip_frame_final_start(clip) + offsetFrameNumber
+                start = opentimelineio.opentime.to_frames(clip.range_in_parent().start_time)
                 end = ow.get_timeline_clip_end_inclusive(clip) + offsetFrameNumber
-                duration = opentimelineio.opentime.to_frames(clip.available_range().end_time_inclusive())
+                availableRange = clip.available_range()
+                # _logger.debug(f"  clip.available_range(): {clip.available_range()}")
+                # _logger.debug(f"  clip.available_range().duration: {clip.available_range().duration}")
+                # _logger.debug(
+                #     f"  clip.available_range().rescaled_to(25): {(clip.available_range().end_time_inclusive()).rescaled_to(25)}"
+                # )
+                # _logger.debug(
+                #     f"  clip.available_range().value_rescaled_to(25): {clip.available_range().end_time_exclusive().value_rescaled_to(25)}"
+                # )
 
-                # local clip infos:
-                otio_clipSourceRange = clip.source_range
-                # clip cut in in local clip time ref (= relatively to clip start)
-                otio_clipLocalCutStart = opentimelineio.opentime.to_frames(clip.source_range.start_time)
-                # clip cut out in local clip time ref (= relatively to clip start)
-                otio_clipLocalCutEnd = None  # opentimelineio.opentime.to_frames(clip.source_range.end_time())
-                otio_clipLocalCutEndInclus = opentimelineio.opentime.to_frames(clip.source_range.end_time_inclusive())
-                _logger.debug(
-                    f"\n   otio_clipSourceRange: {otio_clipSourceRange}, otio_clipLocalCutStart: {otio_clipLocalCutStart}, otio_clipLocalCutEnd: {otio_clipLocalCutEnd}, otio_clipLocalCutEndInclus: {otio_clipLocalCutEndInclus}"
+                offsetEnd = (
+                    start
+                    + clip.available_range().end_time_exclusive().value_rescaled_to(25)
+                    - opentimelineio.opentime.to_frames(clip.range_in_parent().end_time_exclusive())
+                    - opentimelineio.opentime.to_frames(clip.source_range.start_time)
                 )
 
-                trucSourceRangeEnd = opentimelineio.opentime.to_frames(clip.source_range.end_time_inclusive())
-                trimmedClipDuration = opentimelineio.opentime.to_frames(clip.duration())
+                frameStart = ow.get_clip_frame_start(clip, fps)
+                frameEnd = ow.get_clip_frame_end(clip, fps)
+                frameFinalStart = ow.get_clip_frame_final_start(clip, fps)
+                frameFinalEnd = ow.get_clip_frame_final_end(clip, fps)
+                frameOffsetStart = ow.get_clip_frame_offset_start(clip, fps)
+                frameOffsetEnd = ow.get_clip_frame_offset_end(clip, fps)
+                frameDuration = ow.get_clip_frame_duration(clip, fps)
+                frameFinalDuration = ow.get_clip_frame_final_duration(clip, fps)
+
+                frameStart += offsetFrameNumber
+                frameEnd += offsetFrameNumber
+                frameFinalStart += offsetFrameNumber
+                frameFinalEnd += offsetFrameNumber
+
                 _logger.debug(
-                    f"   start: {start}, end: {end}, duration: {duration}, trimmedClipDuration: {trimmedClipDuration}, otio_clipSourceRange: {otio_clipSourceRange}, trucSourceRangeEnd: {trucSourceRangeEnd}"
+                    f"Abs clip values: clip frameStart: {frameStart}, frameFinalStart:{frameFinalStart}, frameFinalEnd:{frameFinalEnd}, frameEnd: {frameEnd}"
                 )
-                _logger.debug(f"otio_clipSourceRange[0][0]: {otio_clipSourceRange.start_time}")
                 _logger.debug(
-                    f"otio_clipSourceRange[0][0]: {opentimelineio.opentime.to_frames(otio_clipSourceRange.start_time)}"
+                    f"Rel clip values: clip frameOffsetStart: {frameOffsetStart}, frameOffsetEnd:{frameOffsetEnd}"
                 )
-                # print(f"   range_from_start_end_time: {clip.range_in_parent().range_from_start_end_time()}")
+                _logger.debug(
+                    f"Duration clip values: clip frameDuration: {frameDuration}, frameFinalDuration:{frameFinalDuration}"
+                )
 
                 bpy.context.window_manager.UAS_vse_render.createNewClip(
                     bpy.context.scene,
                     media_path,
                     trackInd,
-                    start - otio_clipLocalCutStart,
-                    offsetStart=otio_clipLocalCutStart,
-                    # offsetEnd=end - otio_clipLocalCutStart + trimmedClipDuration,
-                    trimmedClipDuration=trimmedClipDuration,
+                    frameStart,
+                    offsetStart=frameOffsetStart,
+                    offsetEnd=frameOffsetEnd,
                     importVideo=track_type == "VIDEO",
                     importAudio=track_type == "AUDIO",
                 )
 
+                # bpy.context.window_manager.UAS_vse_render.createNewClip(
+                #     bpy.context.scene,
+                #     media_path,
+                #     trackInd,
+                #     start - otio_clipLocalCutStart,
+                #     offsetStart=otio_clipLocalCutStart,
+                #     offsetEnd=offsetEnd,
+                #     # offsetEnd=end - otio_clipLocalCutStart + trimmedClipDuration,
+                #     # trimmedClipDuration=trimmedClipDuration,
+                #     importVideo=track_type == "VIDEO",
+                #     importAudio=track_type == "AUDIO",
+                # )
+
     pass
 
 
-def importToVSE(timeline, vse, timeRange=None, offsetFrameNumber=0, track_type="ALL", alternative_media_folder=""):
+def importToVSE(
+    timeline,
+    vse,
+    timeRange=None,
+    offsetFrameNumber=0,
+    track_type="ALL",
+    videoTracksList=None,
+    audioTracksList=None,
+    alternative_media_folder="",
+):
     """
         track_type can be "ALL", "VIDEO" or "AUDIO"
     """
@@ -108,31 +153,36 @@ def importToVSE(timeline, vse, timeRange=None, offsetFrameNumber=0, track_type="
 
     # alternative_media_folder = Path(otioFile).parent
 
+    # bpy.context.scene.frame_start = -999999
+    # bpy.context.scene.frame_end = 999999
+
     # video
     if "ALL" == track_type or "VIDEO" == track_type:
         for trackInd, editTrack in enumerate(timeline.video_tracks()):
-            print(f"\nChannel Name: {editTrack.name}, {trackInd + 1}, video")
-            importTrack(
-                editTrack,
-                trackInd + 1,
-                "VIDEO",
-                timeRange=timeRange,
-                offsetFrameNumber=offsetFrameNumber,
-                alternative_media_folder=alternative_media_folder,
-            )
+            if videoTracksList is None or (trackInd + 1) in videoTracksList:
+                print(f"\nChannel Name: {editTrack.name}, {trackInd + 1}, video")
+                importTrack(
+                    editTrack,
+                    trackInd + 1,
+                    "VIDEO",
+                    timeRange=timeRange,
+                    offsetFrameNumber=offsetFrameNumber,
+                    alternative_media_folder=alternative_media_folder,
+                )
 
     # audio
     if "ALL" == track_type or "AUDIO" == track_type:
         for trackInd, editTrack in enumerate(timeline.audio_tracks()):
-            print(f"\nChannel Name: {editTrack.name}, {trackInd + 1}, audio")
-            importTrack(
-                editTrack,
-                trackInd + 1,
-                "AUDIO",
-                timeRange=timeRange,
-                offsetFrameNumber=offsetFrameNumber,
-                alternative_media_folder=alternative_media_folder,
-            )
+            if audioTracksList is None or (trackInd + 1) in audioTracksList:
+                print(f"\nChannel Name: {editTrack.name}, {trackInd + 1}, audio")
+                importTrack(
+                    editTrack,
+                    trackInd + 1,
+                    "AUDIO",
+                    timeRange=timeRange,
+                    offsetFrameNumber=offsetFrameNumber,
+                    alternative_media_folder=alternative_media_folder,
+                )
 
 
 def getSequenceListFromOtio(otioFile):
@@ -142,6 +192,7 @@ def getSequenceListFromOtio(otioFile):
 
 
 def getSequenceNameFromMediaName(fileName):
+    print("\n\n **** Deprecated : imports.py getSequenceNameFromMediaName !!!")
     seqName = ""
 
     seq_pattern = "Seq"
@@ -150,85 +201,6 @@ def getSequenceNameFromMediaName(fileName):
         seqName = media_name_splited[1]
 
     return seqName
-
-
-# wkip to rename!!!!
-def getSequenceClassListFromOtioTimeline(otioFile, verbose=False):
-
-    # wkip to remove!!
-    # otioFile = r"Z:\_UAS_Dev\Exports\RRSpecial_ACT01_AQ_XML_200730\RRSpecial_ACT01_AQ_200730__FromPremiere.xml"
-    # otioFile = r"C:\_UAS_ROOT\RRSpecial\04_ActsPredec\Act01\Exports\RRSpecial_ACT01_AQ_XML_200730\RRSpecial_ACT01_AQ_200730__FromPremiere.xml"
-    # otioFile = r"C:\_UAS_ROOT\RRSpecial\04_ActsPredec\Act01\Exports\RRSpecial_ACT01_AQ_XML_200730\RRSpecial_ACT01_AQ_200730__FromPremiere_to40.xml"
-
-    # timeline = opentimelineio.adapters.read_from_file(otioFile)
-    timeline = ow.get_timeline_from_file(otioFile)
-
-    if timeline is None:
-        _logger.error("getSequenceClassListFromOtioTimeline: Timeline is None!")
-        return
-
-    otioTimeline = otc.OtioTimeline()
-    otioTimeline.otioFile = otioFile
-    otioTimeline.timeline = timeline
-    otioTimeline.sequenceList = list()
-    sequenceList = otioTimeline.sequenceList
-
-    def _getParentSeqIndex(seqList, seqName):
-        #    print("\n_getParentSeqIndex: seqName: ", seqName)
-        for i, seq in enumerate(seqList):
-            if seqName in seq.name.lower():
-                #    print(f"    : {seq.name}, i: {i}")
-                return i
-
-        return -1
-
-    tracks = timeline.video_tracks()
-    for track in tracks:
-        for clip in track:
-            if isinstance(clip, opentimelineio.schema.Clip):
-                # print(clip.media_reference)
-                media_path = Path(utils.file_path_from_url(clip.media_reference.target_url))
-                # print(f"{media_path}")
-
-                # get media name
-                filename = os.path.split(media_path)[1]
-                media_name = os.path.splitext(filename)[0]
-                media_name_lower = media_name.lower()
-
-                # get parent sequence
-                seq_pattern = "_seq"
-                if seq_pattern in media_name_lower:
-                    #    print(f"media_name: {media_name}")
-
-                    media_name_splited = media_name_lower.split("_")
-                    if 2 <= len(media_name_splited):
-                        parentSeqInd = _getParentSeqIndex(sequenceList, media_name_splited[1])
-
-                        # add new seq if not found
-                        newSeq = None
-                        if -1 == parentSeqInd:
-                            newSeq = otc.OtioSequence()
-                            seqName = getSequenceNameFromMediaName(media_name)
-                            newSeq.name = seqName
-                            cList = list()
-                            # cList.append(clip)
-                            newSeq.clipList = cList
-                            # newSeq.clipList.append(clip)
-                            # newSeq.name = media_name_splited[1]
-                            sequenceList.append(newSeq)
-
-                        else:
-                            newSeq = sequenceList[parentSeqInd]
-
-                        newSeq.clipList.append(clip)
-
-    for seq in sequenceList:
-        # get the start and end of every seq
-        seq.setStartAndEnd()
-        if verbose:
-            seq.printInfo()
-
-    return otioTimeline
 
     # get file names only
     file_list = list()
@@ -255,6 +227,7 @@ def getSequenceClassListFromOtioTimeline(otioFile, verbose=False):
 
 def getSequenceListFromOtioTimeline(timeline):
 
+    print("\n\n **** Deprecated : imports.py getSequenceListFromOtioTimeline !!!")
     if timeline is None:
         _logger.error("getSequenceListFromOtioTimeline: Timeline is None!")
         return
@@ -297,7 +270,7 @@ def createShotsFromOtio(
 ):
     # filePath="", fileName=""):
 
-    print("Import Otio File: ", otioFile)
+    print("Import Otio File createShotsFromOtio: ", otioFile)
     from random import uniform
     from math import radians
 
@@ -399,6 +372,8 @@ def createShotsFromOtioTimelineClass(
     mediaHaveHandles=False,
     mediaHandlesDuration=0,
     importSoundInVSE=True,
+    videoTracksList=None,
+    audioTracksList=None,
 ):
     """
         timeRange: use a 2 elments array
@@ -435,6 +410,7 @@ def createShotsFromOtioTimelineClass(
     # try:
     if True:
         timeline = otioTimelineClass.timeline
+        fps = 25
         if len(timeline.video_tracks()):
             # track = timeline.video_tracks()[0]  # Assume the first one contains the shots.
 
@@ -446,7 +422,7 @@ def createShotsFromOtioTimelineClass(
             shot_re = re.compile(r"sh_?(\d+)", re.IGNORECASE)
             # for i, clip in enumerate(track.each_clip()):
             for i, clip in enumerate(clipList):
-                clipName = clip.name
+                clipName = clip.clip.name
                 if createCameras:
                     if reformatShotNames:
                         match = shot_re.search(clipName)
@@ -460,7 +436,7 @@ def createShotsFromOtioTimelineClass(
 
                     # add media as camera background
                     if useMediaAsCameraBG:
-                        media_path = ow.get_media_path_from_clip(clip)
+                        media_path = ow.get_clip_media_path(clip.clip)
                         print("Import Otio media_path: ", media_path)
                         if not media_path.exists():
                             # Lets find it inside next to the xml
@@ -475,11 +451,12 @@ def createShotsFromOtioTimelineClass(
 
                 shot = props.addShot(
                     name=clipName,
-                    start=ow.get_timeline_clip_start(clip) + offsetFrameNumber,
-                    end=ow.get_timeline_clip_end_inclusive(clip) + offsetFrameNumber,
+                    start=ow.get_clip_frame_final_start(clip.clip, fps) + offsetFrameNumber,
+                    end=ow.get_timeline_clip_end_inclusive(clip.clip) + offsetFrameNumber,
                     camera=cam_ob,
                     color=cam_ob.color,
                 )
+                shot.durationLocked = True
 
                 shot.bgImages_linkToShotStart = True
                 shot.bgImages_offset = -1 * handlesDuration
@@ -487,7 +464,8 @@ def createShotsFromOtioTimelineClass(
                 # wkip maybe to remove
                 scene.frame_start = offsetFrameNumber
                 scene.frame_end = (
-                    opentimelineio.opentime.to_frames(clip.range_in_parent().end_time_inclusive()) + offsetFrameNumber
+                    opentimelineio.opentime.to_frames(clip.clip.range_in_parent().end_time_inclusive())
+                    + offsetFrameNumber
                 )
 
             if importSoundInVSE:
@@ -505,6 +483,7 @@ def createShotsFromOtioTimelineClass(
                     timeRange=timeRange,
                     offsetFrameNumber=offsetFrameNumber,
                     track_type="AUDIO",
+                    audioTracksList=audioTracksList,
                     alternative_media_folder=Path(otioTimelineClass.otioFile).parent,
                 )
 
@@ -566,10 +545,10 @@ def importOtioToVSE(otioFile, vse, importAtFrame=0, importVideoTracks=True, impo
     #                 f"\n   otio_clipSourceRange: {otio_clipSourceRange}, otio_clipLocalCutStart: {otio_clipLocalCutStart}, otio_clipLocalCutEnd: {otio_clipLocalCutEnd}, otio_clipLocalCutEndInclus: {otio_clipLocalCutEndInclus}"
     #             )
 
-    #             trucSourceRangeEnd = opentimelineio.opentime.to_frames(clip.source_range.end_time_inclusive())
+    #             otio_clipLocalCutEndInclus = opentimelineio.opentime.to_frames(clip.source_range.end_time_inclusive())
     #             trimmedClipDuration = opentimelineio.opentime.to_frames(clip.duration())
     #             print(
-    #                 f"   start: {start}, end: {end}, duration: {duration}, trimmedClipDuration: {trimmedClipDuration}, otio_clipSourceRange: {otio_clipSourceRange}, trucSourceRangeEnd: {trucSourceRangeEnd}"
+    #                 f"   start: {start}, end: {end}, duration: {duration}, trimmedClipDuration: {trimmedClipDuration}, otio_clipSourceRange: {otio_clipSourceRange}, otio_clipLocalCutEndInclus: {otio_clipLocalCutEndInclus}"
     #             )
     #             print("otio_clipSourceRange[0][0]: ", otio_clipSourceRange.start_time)
     #             print(

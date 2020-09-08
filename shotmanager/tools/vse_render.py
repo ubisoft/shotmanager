@@ -209,7 +209,6 @@ class UAS_Vse_Render(PropertyGroup):
         atFrame,
         offsetStart=0,
         offsetEnd=0,
-        trimmedClipDuration=-1,
         cameraScene=None,
         cameraObject=None,
         clipName="",
@@ -348,12 +347,8 @@ class UAS_Vse_Render(PropertyGroup):
         elif "SOUND" == mediaType:
             newClipName = clipName if "" != clipName else "mySound"
             newClip = scene.sequence_editor.sequences.new_sound(newClipName, mediaPath, channelInd, atFrame)
-            # if 0 != offsetEnd:
             newClip.frame_offset_start = offsetStart
-            if -1 != trimmedClipDuration:
-                newClip.frame_final_duration = trimmedClipDuration  # required for shot creation
-            else:
-                newClip.frame_offset_end = offsetEnd  # required for the publish
+            newClip.frame_offset_end = offsetEnd
 
         elif "CAMERA" == mediaType:
             newClipName = clipName if "" != clipName else "myCamera"
@@ -387,6 +382,40 @@ class UAS_Vse_Render(PropertyGroup):
             scene.sequence_editor.sequences.remove(seq)
 
         bpy.ops.sequencer.refresh_all()
+
+    def getChannelClips(self, scene, channelIndex):
+        sequencesList = list()
+        for seq in scene.sequence_editor.sequences:
+            if channelIndex == seq.channel:
+                sequencesList.append(seq)
+
+        return sequencesList
+
+    def getChannelClipsNumber(self, scene, channelIndex):
+        sequencesList = self.getChannelClips(scene, channelIndex)
+        return len(sequencesList)
+
+    def changeClipsChannel(self, scene, sourceChannelIndex, targetChannelIndex):
+        sourceSequencesList = self.getChannelClips(scene, sourceChannelIndex)
+        targetSequencesList = list()
+
+        if len(sourceSequencesList):
+            targetSequencesList = self.getChannelClips(scene, targetChannelIndex)
+
+            # we need to clear the target channel before doing the switch otherwise some clips may get moved to another channel
+            if len(targetSequencesList):
+                self.clearChannel(self.parentScene, targetChannelIndex)
+
+            for clip in sourceSequencesList:
+                clip.channel = targetChannelIndex
+
+        return targetSequencesList
+
+    def swapChannels(self, scene, channelIndexA, channelIndexB):
+        tempChannelInd = 0
+        self.changeClipsChannel(scene, channelIndexA, tempChannelInd)
+        self.changeClipsChannel(scene, channelIndexB, channelIndexA)
+        self.changeClipsChannel(scene, tempChannelInd, channelIndexB)
 
     def compositeVideoInVSE(self, fps, frame_start, frame_end, output_filepath, postfixSceneName=""):
         # Add new scene

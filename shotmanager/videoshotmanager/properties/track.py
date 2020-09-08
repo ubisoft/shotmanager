@@ -6,6 +6,8 @@ from bpy.props import StringProperty, IntProperty, BoolProperty, PointerProperty
 
 from shotmanager.properties.take import UAS_ShotManager_Take
 
+from shotmanager.utils.utils import findFirstUniqueName
+
 
 class UAS_VideoShotManager_Track(PropertyGroup):
 
@@ -34,23 +36,32 @@ class UAS_VideoShotManager_Track(PropertyGroup):
         return val
 
     def set_name(self, value):
-        newName = value
-        foundDuplicateName = False
-
+        """ Set a unique name to the track
+        """
         tracks = self.videoShotManager().getTracksList()
 
-        for track in tracks:
-            if track != self and newName == track.name:
-                foundDuplicateName = True
-        if foundDuplicateName:
-            newName += "_1"
+        # newName = value
+        # foundDuplicateName = False
+        # for track in tracks:
+        #     if track != self and newName == track.name:
+        #         foundDuplicateName = True
+        # if foundDuplicateName:
+        #     newName += "_1"
+
+        newName = findFirstUniqueName(self, value, tracks)
 
         self["name"] = newName
 
     name: StringProperty(name="Name", get=get_name, set=set_name)
 
     def _update_enabled(self, context):
-        context.scene.UAS_vsm_props.selected_track_index = context.scene.UAS_vsm_props.getTrackIndex(self)
+        selectedTrackIndex = context.scene.UAS_vsm_props.getTrackIndex(self)
+        for item in bpy.context.scene.sequence_editor.sequences:
+            print(f"Item Channel: {item.channel}, selectedTrackIndex: {selectedTrackIndex}")
+            if (len(context.scene.UAS_vsm_props.tracks) - selectedTrackIndex) == item.channel:
+                item.mute = not self.enabled
+
+        context.scene.UAS_vsm_props.selected_track_index = selectedTrackIndex
 
     enabled: BoolProperty(
         name="Enabled", description="Use - or not - the track in the edit", update=_update_enabled, default=True
@@ -82,13 +93,14 @@ class UAS_VideoShotManager_Track(PropertyGroup):
         name="Track Type",
         description="Type of the track",
         items=(
+            ("STANDARD", "Standard", ""),
             ("RENDERED_SHOTS", "Rendered Shots", ""),
             ("SHOT_CAMERAS", "Shot Cameras", ""),
             ("CAM_FROM_SCENE", "Camera From Scene", ""),
             ("CAM_BG", "Camera Backgrounds", ""),
             ("CUSTOM", "Custom", ""),
         ),
-        default="CAM_BG",
+        default="STANDARD",
         options=set(),
     )
 
@@ -123,6 +135,11 @@ class UAS_VideoShotManager_Track(PropertyGroup):
             for i, take in enumerate([t.name for t in props.takes]):
                 res.append((take, take, "", i))
 
+        if not len(res):
+            # res = None
+            res.append(("NOTAKE", "No Take Found", ""))
+        #     print("Toto")
+
         return res
 
     # def _current_take_changed(self, context):
@@ -140,7 +157,7 @@ class UAS_VideoShotManager_Track(PropertyGroup):
         takeInd = props.getTakeIndex(props.takes[self.sceneTakeName])
         shotsList = props.getShotsList(ignoreDisabled=True, takeIndex=takeInd)
 
-        self.clearTrackContent()
+        self.clearContent()
 
         if "CAM_BG" == self.trackType:
             for shot in shotsList:
@@ -187,5 +204,18 @@ class UAS_VideoShotManager_Track(PropertyGroup):
         elif "RENDERED_SHOTS":
             pass
 
-    def clearTrackContent(self):
+    def clearContent(self):
         bpy.context.window_manager.UAS_vse_render.clearChannel(self.parentScene, self.vseTrackIndex)
+
+    # wkip rajouter un range?
+    def getClips(self):
+        return bpy.context.window_manager.UAS_vse_render.getChannelClips(self.parentScene, self.vseTrackIndex)
+
+    def getClipsNumber(self):
+        return bpy.context.window_manager.UAS_vse_render.getChannelClipsNumber(self.parentScene, self.vseTrackIndex)
+
+    def changeClipsTrack(self, targetTrackIndex):
+        return bpy.context.window_manager.UAS_vse_render.changeClipsChannel(
+            self.parentScene, self.vseTrackIndex, targetTrackIndex
+        )
+

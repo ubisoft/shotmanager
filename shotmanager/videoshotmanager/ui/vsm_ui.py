@@ -82,6 +82,7 @@ class UAS_PT_VideoShotManager(Panel):
         row = layout.row()  # just to give some space...
         row.label(text="Tracks")
 
+        row.prop(vsm_props, "numTracks")
         row.operator("uas_video_shot_manager.clear_all")
 
         box = layout.box()
@@ -141,7 +142,7 @@ class UAS_UL_VideoShotManager_Items(bpy.types.UIList):
 
         grid_flow.prop(item, "trackType", text="")
 
-        if not "CUSTOM" == item.trackType:
+        if not "CUSTOM" == item.trackType and not "STANDARD" == item.trackType:
             if item.shotManagerScene is None:
                 grid_flow.alert = True
             grid_flow.prop(item, "shotManagerScene", text="")

@@ -16,6 +16,8 @@ from bpy.props import (
 )
 
 # from shotmanager.operators import shots
+from shotmanager.rrs_specific.montage.montage_interface import MontageInterface
+
 from .media import UAS_ShotManager_Media
 from shotmanager.rendering.rendering_props import UAS_ShotManager_RenderSettings
 from .shot import UAS_ShotManager_Shot
@@ -25,10 +27,11 @@ from ..retimer.retimer_props import UAS_Retimer_Properties
 
 from ..utils import utils
 
+
 _logger = logging.getLogger(__name__)
 
 
-class UAS_ShotManager_Props(PropertyGroup):
+class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
     def version(self):
         return utils.addonVersion("UAS Shot Manager")
 
@@ -49,6 +52,7 @@ class UAS_ShotManager_Props(PropertyGroup):
             self.parentScene = self.findParentScene()
         _logger.info(f"\n  self.parentScene : {self.parentScene}")
 
+        self.initialize()
         self.dataVersion = bpy.context.window_manager.UAS_shot_manager_version
         self.createDefaultTake()
         self.createRenderSettings()
@@ -86,7 +90,7 @@ class UAS_ShotManager_Props(PropertyGroup):
         try:
             parentScn = self.parentScene
         except Exception:  # as e
-            print("Unexpected error:", sys.exc_info()[0])
+            print("Error - parentScene property is None is props.getParentScene():", sys.exc_info()[0])
 
         # if parentScn is not None:
         #     return parentScn
@@ -133,6 +137,23 @@ class UAS_ShotManager_Props(PropertyGroup):
         # wkip to do: check if some camera markets are used in the scene
 
         return warningList
+
+    def sceneIsReady(self):
+        renderWarnings = ""
+        if self.renderRootPath.startswith("//"):
+            if "" == bpy.data.filepath:
+                renderWarnings = "*** Save file first ***"
+        elif "" == self.renderRootPath:
+            renderWarnings = "*** Invalid Output File Name ***"
+
+        if "" != renderWarnings:
+            from ..utils.utils import ShowMessageBox
+
+            ShowMessageBox(renderWarnings, "Render Aborted", "ERROR")
+            print("Render aborted before start: " + renderWarnings)
+            return False
+
+        return True
 
     def dontRefreshUI(self):
         res = not self.refreshUIDuringPlay and bpy.context.screen.is_animation_playing
@@ -846,6 +867,9 @@ class UAS_ShotManager_Props(PropertyGroup):
 
         return self.getEditTime(shot, bpy.context.scene.frame_current)
 
+    def getEditShots(self, ignoreDisabled=True):
+        return self.getShotsList(ignoreDisabled=ignoreDisabled)
+
     ####################
     # shots
     ####################
@@ -904,6 +928,7 @@ class UAS_ShotManager_Props(PropertyGroup):
         newShot = shots.add()  # shot is added at the end
         newShot.parentScene = self.getParentScene()
         newShot.parentTakeIndex = takeInd
+        newShot.initialize(self.getTakeByIndex(currentTakeInd))
         newShot.name = name
         newShot.enabled = enabled
         newShot.end = 9999999  # mandatory cause start is clamped by end
@@ -1137,12 +1162,12 @@ class UAS_ShotManager_Props(PropertyGroup):
         if -1 == takeInd:
             return shotList
 
-        for shot in self.takes[takeInd].shots:
-            # if shot.enabled or self.context.scene.UAS_shot_manager_props.display_disabledshots_in_timeline:
-            if not ignoreDisabled or shot.enabled:
-                shotList.append(shot)
+        # for shot in self.takes[takeInd].shots:
+        #     # if shot.enabled or self.context.scene.UAS_shot_manager_props.display_disabledshots_in_timeline:
+        #     if not ignoreDisabled or shot.enabled:
+        #         shotList.append(shot)
 
-        return shotList
+        return self.takes[takeInd].getShotsList(ignoreDisabled=ignoreDisabled)
 
     def getNumShots(self, ignoreDisabled=False, takeIndex=-1):
         """ Return the number of shots of the specified take
@@ -1981,6 +2006,67 @@ class UAS_ShotManager_Props(PropertyGroup):
         # if '' == bpy.data.filepath:
 
         bpy.context.scene.render.filepath = f"//{self.getTakeName_PathCompliant()}"
+
+    ##############################
+    # Montage ###
+    ##############################
+
+    # def rebuildMontage(self):
+    #     self._montage = MontageShotManager()
+    #     self._montage.initialize(context.scene, props.getCurrentTake())
+
+    # def get_montage(self):
+    #     return self._montage
+
+    def __init__(self):
+        super().__init__()
+
+    # def initialize(self, scene, take):
+    def initialize(self):
+        # self.sequencesList =
+        #        UAS_ShotManager_Props.montageType = property(lambda self: "SHOTMANAGER")
+
+        pass
+
+    def get_montage_type(self):
+        return "SHOTMANAGER"
+
+    def printChildrenInfo(self):
+        self.getCurrentTake().printInfo()
+
+    def get_name(self):
+        return self.parentScene.name + "_" + self.takes[self.getCurrentTakeIndex()].get_name()
+
+    def get_fps(self):
+        return self.parentScene.render.fps
+
+    def get_frame_start(self):
+        return self.parentScene.UAS_shot_manager_props.editStartFrame
+
+    def get_frame_end(self):
+        # editShotsList = self.getShotsList(ignoreDisabled=True)
+        # if len(self.takes) and len(editShotsList):
+        #     return self.sequencesList[len(self.sequencesList) - 1].get_frame_end()
+        # else:
+        #     return -1
+        return self.get_frame_start() + self.getEditDuration()
+
+    def get_frame_duration(self):
+        return self.getEditDuration()
+
+    def get_num_sequences(self):
+        return 1
+
+    def get_sequences(self):
+        return [self.getCurrentTake()]
+
+    def newSequence(self):
+        # if self.sequencesList is None:
+        #     self.sequencesList = list()
+        # newSeq = SequenceShotManager(self)
+        # self.sequencesList.append(newSeq)
+        # return newSeq
+        return None
 
 
 _classes = (

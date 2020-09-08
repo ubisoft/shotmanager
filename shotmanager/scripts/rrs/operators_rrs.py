@@ -41,8 +41,10 @@ class UAS_LaunchRRSRender(Operator):
         """Launch RRS Publish script"""
         print(" UAS_LaunchRRSRender")
 
-        # publish_rrs.publishRRS( context.scene.UAS_shot_manager_props.renderRootPath )
         props = context.scene.UAS_shot_manager_props
+
+        if not props.sceneIsReady():
+            return {"CANCELLED"}
 
         if props.rrs_useRenderRoot:  # used in SM UI in the debug panel
             print("Publish at render root")

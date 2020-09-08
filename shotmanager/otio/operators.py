@@ -15,12 +15,15 @@ from .exports import exportOtio
 
 # from shotmanager.otio import imports
 from .imports import createShotsFromOtio, importOtioToVSE
-from .imports import getSequenceListFromOtioTimeline, getSequenceClassListFromOtioTimeline
+from .imports import getSequenceListFromOtioTimeline
 from .imports import createShotsFromOtioTimelineClass
 
-from ..utils import utils
+from shotmanager.utils import utils
 
-from ..config import config
+from shotmanager.config import config
+
+from shotmanager.rrs_specific.montage.montage_otio import MontageOtio
+
 
 from . import otio_wrapper as ow
 
@@ -85,9 +88,9 @@ def list_sequences_from_edl(self, context):
     res = config.gSeqEnumList
     # res = list()
     nothingList = list()
-    nothingList.append(("NO_SEQ", "No Sequence Found 02", "No sequence found in the sepecified EDL file", 0))
+    nothingList.append(("NO_SEQ", "No Sequence Found", "No sequence found in the specified EDL file", 0))
 
-    # seqList = getSequenceListFromOtioTimeline(config.gOtioTimeline)
+    # seqList = getSequenceListFromOtioTimeline(config.gMontageOtio)
     # for i, item in enumerate(seqList):
     #     res.append((item, item, "My seq", i + 1))
 
@@ -158,20 +161,43 @@ class UAS_ShotManager_OT_Create_Shots_From_OTIO_RRS(Operator):
         default=True,
     )
 
+    # -Pistes sons 1 à 3 : voix humaines
+    # -Pistes sons 4 à 7 : voix lapins
+    # -Piste 8 : vide
+    # -Pistes 9 à 15 : bruitages
+    # -Piste 16 : vide
+    # -Pistes 17 et 18 : musiques
+
+    importAudio_HumanVoices: BoolProperty(
+        name="Human Voices", description="Import tracks (1 to 3)", default=True,
+    )
+    importAudio_RabbidVoices: BoolProperty(
+        name="Rabbid Voices", description="Import tracks (4 to 7)", default=True,
+    )
+    importAudio_Sounds: BoolProperty(
+        name="Sounds", description="Import tracks (9 to 15)", default=True,
+    )
+    importAudio_Music: BoolProperty(
+        name="Music", description="Import tracks (17 to 18)", default=False,
+    )
+
     def invoke(self, context, event):
         wm = context.window_manager
+        scene = context.scene
+        props = scene.UAS_shot_manager_props
 
-        config.gOtioTimeline = None
+        config.gMontageOtio = None
         if "" != self.otioFile and Path(self.otioFile).exists():
-            config.gOtioTimeline = getSequenceClassListFromOtioTimeline(self.otioFile, verbose=False)
+            config.gMontageOtio = MontageOtio()
+            config.gMontageOtio.fillMontageInfoFromOtioFile(self.otioFile, verboseInfo=False)
 
             config.gSeqEnumList = list()
-            for i, item in enumerate(config.gOtioTimeline.sequenceList):
-                config.gSeqEnumList.append((str(i), item.name, "My seq", i + 1))
+            for i, seq in enumerate(config.gMontageOtio.sequencesList):
+                config.gSeqEnumList.append((str(i), seq.get_name(), f"Import sequence {seq.get_name()}", i + 1))
 
             self.sequenceList = config.gSeqEnumList[0][0]
 
-        #    seqList = getSequenceListFromOtioTimeline(config.gOtioTimeline)
+        #    seqList = getSequenceListFromOtioTimeline(config.gMontageOtio)
         #  self.sequenceList.items = list_sequences_from_edl(context, seqList)
 
         wm.invoke_props_dialog(self, width=500)
@@ -182,6 +208,8 @@ class UAS_ShotManager_OT_Create_Shots_From_OTIO_RRS(Operator):
         return {"RUNNING_MODAL"}
 
     def draw(self, context):
+        scene = context.scene
+        props = scene.UAS_shot_manager_props
         layout = self.layout
         row = layout.row(align=True)
 
@@ -189,17 +217,26 @@ class UAS_ShotManager_OT_Create_Shots_From_OTIO_RRS(Operator):
         box.label(text="OTIO File")
         box.prop(self, "otioFile", text="")
 
-        if config.gOtioTimeline is not None:
-            timeline = config.gOtioTimeline.timeline
-            time = timeline.duration()
-            rate = int(time.rate)
+        if config.gMontageOtio is not None:
+            numVideoTracks = len(config.gMontageOtio.timeline.video_tracks())
+            numAudioTracks = len(config.gMontageOtio.timeline.audio_tracks())
 
-            if rate != context.scene.render.fps:
-                box.alert = True
-                box.label(
-                    text="!!! Scene fps is " + str(context.scene.render.fps) + ", imported edit is " + str(rate) + "!!"
-                )
-                box.alert = False
+            row = box.row()
+            row.label(text=f"Timeline: {config.gMontageOtio.timeline.name}")
+            # row = box.row()
+            row.label(text=f"Video Tracks: {numVideoTracks},  Audio Tracks: {numAudioTracks}")
+            row = box.row()
+            row.label(
+                text=f"Duration: {config.gMontageOtio.get_frame_duration()} frames at {config.gMontageOtio.get_fps()} fps"
+            )
+
+            if config.gMontageOtio.get_fps() != context.scene.render.fps:
+                row.alert = True
+                row.label(text=f"!! Scene has a different framerate: {context.scene.render.fps} fps !!")
+                row.alert = False
+
+            row = box.row()
+            row.label(text=f"Num. Sequences: {len(config.gMontageOtio.sequencesList)}")
 
         row = layout.row(align=True)
         box = row.box()
@@ -207,9 +244,16 @@ class UAS_ShotManager_OT_Create_Shots_From_OTIO_RRS(Operator):
         box.prop(self, "sequenceList")
 
         # print("self.sequenceList: ", self.sequenceList)
-        if config.gOtioTimeline is not None:
-            selSeq = config.gOtioTimeline.sequenceList[int(self.sequenceList)]
-            labelText = f"Start: {selSeq.start}, End: {selSeq.end}, Num Shots: {len(selSeq.clipList)}"
+        if config.gMontageOtio is not None:
+            selSeq = config.gMontageOtio.sequencesList[int(self.sequenceList)]
+            labelText = f"Start: {selSeq.get_frame_start()}, End: {selSeq.get_frame_end()}, Duration: {selSeq.get_frame_duration()}, Num Shots: {len(selSeq.shotsList)}"
+
+            # sm_montage.printInfo()
+
+            # config.gMontageOtio.printInfo()
+            # config.gMontageOtio.compareWithMontage(props, selSeq)
+            box.operator("uasshotmanager.compare_otio_and_current_montage").sequenceName = selSeq.get_name()
+
         else:
             labelText = f"Start: {-1}, End: {-1}, Num Shots: {0}"
 
@@ -249,6 +293,16 @@ class UAS_ShotManager_OT_Create_Shots_From_OTIO_RRS(Operator):
         # if 0 != self.mediaHandlesDuration and
         #     row.enabled = False
         row.prop(self, "importAudioInVSE")
+        row = box.row()
+        row.enabled = self.importAudioInVSE
+        row.separator(factor=3)
+        row.prop(self, "importAudio_HumanVoices")
+        row.prop(self, "importAudio_RabbidVoices")
+        row = box.row()
+        row.enabled = self.importAudioInVSE
+        row.separator(factor=3)
+        row.prop(self, "importAudio_Sounds")
+        row.prop(self, "importAudio_Music")
 
         layout.separator()
 
@@ -263,17 +317,30 @@ class UAS_ShotManager_OT_Create_Shots_From_OTIO_RRS(Operator):
         # print("ex File extension:", extension)
 
         # importOtio(
-        selSeq = config.gOtioTimeline.sequenceList[int(self.sequenceList)]
-        print("selSeq: ", selSeq)
+        selSeq = config.gMontageOtio.sequencesList[int(self.sequenceList)]
 
         useTimeRange = True
-        timeRange = [selSeq.start, selSeq.end] if useTimeRange else None
+        timeRange = [selSeq.get_frame_start(), selSeq.get_frame_end()] if useTimeRange else None
+
+        # track indices are starting from 1, not 0!!
+        videoTracksToImport = [1]
+        audioTracksToImport = []
+        if self.importAudio_HumanVoices:
+            audioTracksToImport.extend(list(range(1, 6)))
+        if self.importAudio_RabbidVoices:
+            audioTracksToImport.extend(list(range(6, 13)))
+        if self.importAudio_Sounds:
+            audioTracksToImport.extend(list(range(14, 26)))
+        if self.importAudio_Music:
+            audioTracksToImport.extend(list(range(28, 30)))
+
+        # audioTracksToImport = [19, 20]
 
         createShotsFromOtioTimelineClass(
             context.scene,
-            config.gOtioTimeline,
-            selSeq.name,
-            config.gOtioTimeline.sequenceList[int(self.sequenceList)].clipList,
+            config.gMontageOtio,
+            selSeq.get_name(),
+            config.gMontageOtio.sequencesList[int(self.sequenceList)].shotsList,
             timeRange=timeRange,
             offsetTime=self.offsetTime,
             importAtFrame=self.importAtFrame,
@@ -283,8 +350,25 @@ class UAS_ShotManager_OT_Create_Shots_From_OTIO_RRS(Operator):
             mediaHaveHandles=self.mediaHaveHandles,
             mediaHandlesDuration=self.mediaHandlesDuration,
             importSoundInVSE=self.importAudioInVSE,
+            videoTracksList=videoTracksToImport,
+            audioTracksList=audioTracksToImport,
         )
-        
+
+        return {"FINISHED"}
+
+
+class UAS_ShotManager_OT_CompareOtioAndCurrentMontage(Operator):
+    bl_idname = "uasshotmanager.compare_otio_and_current_montage"
+    bl_label = "Print Comparison"
+    bl_description = (
+        "Print the differences between the current sequence in the scene and the imported EDL file into the console"
+    )
+    bl_options = {"INTERNAL"}
+
+    sequenceName: StringProperty(default="")
+
+    def execute(self, context):
+        context.scene.UAS_shot_manager_props.compareWithMontage(config.gMontageOtio, self.sequenceName)
         return {"FINISHED"}
 
 
@@ -491,6 +575,7 @@ _classes = (
     UAS_ShotManager_Export_OTIO,
     UAS_ShotManager_OT_Create_Shots_From_OTIO,
     UAS_ShotManager_OT_Create_Shots_From_OTIO_RRS,
+    UAS_ShotManager_OT_CompareOtioAndCurrentMontage,
     UAS_OTIO_OpenFileBrowser,
 )
 

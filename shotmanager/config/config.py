@@ -32,8 +32,8 @@ def initGlobalVariables():
         print("UAS debug: ", uasDebug)
 
     # import otio ############
-    global gOtioTimeline
-    gOtioTimeline = None
+    global gMontageOtio
+    gMontageOtio = None
 
     global gSeqEnumList
     gSeqEnumList = None

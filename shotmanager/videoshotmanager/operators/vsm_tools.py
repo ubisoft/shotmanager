@@ -12,7 +12,6 @@ from bpy_extras.io_utils import ImportHelper
 
 import opentimelineio
 from shotmanager.otio import otio_wrapper as ow
-from shotmanager.otio import otio_timeline_classes as otc
 from shotmanager.otio.exports import exportOtio
 from shotmanager.otio.imports import importToVSE
 
@@ -68,13 +67,13 @@ class UAS_VideoShotManager_OT_Import_Edit_From_OTIO(Operator):
     def invoke(self, context, event):
         wm = context.window_manager
 
-        config.gOtioTimeline = None
+        config.gMontageOtio = None
         if "" != self.otioFile and Path(self.otioFile).exists():
             timeline = ow.get_timeline_from_file(self.otioFile)
             if timeline is not None:
-                config.gOtioTimeline = otc.OtioTimeline()
-                config.gOtioTimeline.otioFile = self.otioFile
-                config.gOtioTimeline.timeline = timeline
+                config.gMontageOtio = otc.OtioTimeline()
+                config.gMontageOtio.otioFile = self.otioFile
+                config.gMontageOtio.timeline = timeline
 
         wm.invoke_props_dialog(self, width=500)
         #    res = bpy.ops.uasotio.openfilebrowser("INVOKE_DEFAULT")
@@ -88,8 +87,8 @@ class UAS_VideoShotManager_OT_Import_Edit_From_OTIO(Operator):
         box.label(text="OTIO File")
         box.prop(self, "otioFile", text="")
 
-        if config.gOtioTimeline is not None:
-            timeline = config.gOtioTimeline.timeline
+        if config.gMontageOtio is not None:
+            timeline = config.gMontageOtio.timeline
             time = timeline.duration()
             rate = int(time.rate)
 
@@ -129,7 +128,7 @@ class UAS_VideoShotManager_OT_Import_Edit_From_OTIO(Operator):
 
     def execute(self, context):
 
-        if config.gOtioTimeline is None:
+        if config.gMontageOtio is None:
             return
 
         # creation VSE si existe pas
@@ -149,7 +148,7 @@ class UAS_VideoShotManager_OT_Import_Edit_From_OTIO(Operator):
             else:
                 offsetFrameNumber = importAtFrame - timeRange[0]
 
-        # print(f"Import Otio File: {config.gOtioTimeline.otioFile}, num clips: {len(clipList)}")
+        # print(f"Import Otio File: {config.gMontageOtio.otioFile}, num clips: {len(clipList)}")
         if timeRange is not None:
             print(f"   from {timeRange[0]} to {timeRange[1]}")
 
@@ -160,7 +159,7 @@ class UAS_VideoShotManager_OT_Import_Edit_From_OTIO(Operator):
             trackType = "AUDIO"
 
         importToVSE(
-            config.gOtioTimeline.timeline,
+            config.gMontageOtio.timeline,
             vse,
             timeRange=timeRange,
             offsetFrameNumber=offsetFrameNumber,

@@ -89,7 +89,7 @@ def _stretch_frames(fcurve: FCurve, start_frame, end_frame, factor, pivot_value,
             _remove_frames(fcurve, min(remove_post_end), max(remove_post_end), False)
     else:
         if factor > 1:
-            _offset_frames ( fcurve, end_frame + 1, compute_offset ( end_frame, pivot_value, factor ) )
+            _offset_frames(fcurve, end_frame + 1, compute_offset(end_frame, pivot_value, factor))
 
     for i in range(len(fcurve)):
         coordinates = fcurve.get_key_coordinates(i)
@@ -100,8 +100,8 @@ def _stretch_frames(fcurve: FCurve, start_frame, end_frame, factor, pivot_value,
             handles[0][0] += compute_offset(handles[0][0], pivot_value, factor)
             handles[1][0] += compute_offset(handles[1][0], pivot_value, factor)
 
-    if factor < 1.:
-        _offset_frames ( fcurve, end_frame, compute_offset ( end_frame, pivot_value, factor ) )
+    if factor < 1.0:
+        _offset_frames(fcurve, end_frame, compute_offset(end_frame, pivot_value, factor))
 
 
 def _remove_frames(fcurve: FCurve, start_frame, end_frame, remove_gap):
@@ -155,11 +155,20 @@ def retime_shot(shot, mode, start_frame=0, end_frame=0, remove_gap=True, factor=
 
     if mode == "INSERT":
         offset = end_frame - start_frame
-        # important to offset end first!!
-        if start_frame < shot.end:
-            shot.end += offset
-        if start_frame < shot.start:
-            shot.start += offset
+
+        if shot.durationLocked:
+            if start_frame < shot.start:
+                shot.start += offset
+            elif start_frame < shot.end:
+                shot.durationLocked = False
+                shot.end += offset
+                shot.durationLocked = True
+        else:
+            # important to offset end first!!
+            if start_frame < shot.end:
+                shot.end += offset
+            if start_frame < shot.start:
+                shot.start += offset
 
     elif mode == "FREEZE":
         pass
@@ -187,68 +196,162 @@ def retime_shot(shot, mode, start_frame=0, end_frame=0, remove_gap=True, factor=
         print(" DELETE: start_frame, end: ", start_frame, end_frame)
         offset = end_frame - start_frame
 
-        if shot.start <= start_frame:
-            if shot.end <= start_frame:
-                pass
-            elif shot.end < end_frame:
-                shot.end = start_frame  # goes to a non deleted part
-            elif shot.end == end_frame:
-                shot.end = start_frame  # goes to a non deleted part
-            else:
-                shot.end -= offset
+        if shot.durationLocked:
+            if shot.start <= start_frame:
+                if shot.end <= start_frame:
+                    pass
+                elif shot.end <= end_frame:
+                    shot.durationLocked = False
+                    shot.end = start_frame  # goes to a non deleted part
+                    shot.durationLocked = True
+                else:
+                    shot.durationLocked = False
+                    shot.end -= offset
+                    shot.durationLocked = True
 
-        elif start_frame < shot.start and shot.start < end_frame:
-            shot.start = start_frame
+            elif start_frame < shot.start and shot.start < end_frame:
+                if shot.end <= end_frame:
+                    shot.durationLocked = False
+                    shot.start = start_frame
+                    shot.end = start_frame
+                    shot.durationLocked = True
+                    shot.enabled = False
+                else:
+                    shot.durationLocked = False
+                    shot.start = start_frame
+                    shot.end -= offset
+                    shot.durationLocked = True
 
-            if shot.end <= end_frame:
-                shot.end = start_frame
-                shot.enabled = False
             else:
-                shot.end -= offset
+                shot.start -= offset
 
         else:
-            offset = end_frame - start_frame
-            shot.start -= offset
-            shot.end -= offset
+            if shot.start <= start_frame:
+                if shot.end <= start_frame:
+                    pass
+                elif shot.end <= end_frame:
+                    shot.end = start_frame  # goes to a non deleted part
+                else:
+                    shot.end -= offset
+
+            elif start_frame < shot.start and shot.start < end_frame:
+                shot.start = start_frame
+
+                if shot.end <= end_frame:
+                    shot.end = start_frame
+                    shot.enabled = False
+                else:
+                    shot.end -= offset
+
+            else:
+                shot.start -= offset
+                shot.end -= offset
 
     elif mode == "RESCALE":
         offset = (end_frame - start_frame) * (factor - 1)
 
-        if offset > 0:
-            # important to offset END first!!
-            if end_frame < shot.end:
-                shot.end += offset
-            elif start_frame < shot.end and shot.end <= end_frame:
-                shot.end = (shot.end - pivot) * factor + pivot
-            else:
-                pass
+        if shot.durationLocked:
+            if offset > 0:
+                # important to offset END first!!
+                if end_frame < shot.end:
+                    if end_frame < shot.start:
+                        shot.start += offset
+                    elif start_frame < shot.start and shot.start <= end_frame:
+                        shot.durationLocked = False
+                        shot.end += offset
+                        shot.start = (shot.start - pivot) * factor + pivot
+                        shot.durationLocked = True
+                    else:
+                        shot.durationLocked = False
+                        shot.end += offset
+                        shot.durationLocked = True
 
-            if end_frame < shot.start:
-                shot.start += offset
-            elif start_frame < shot.start and shot.start <= end_frame:
-                shot.start = (shot.start - pivot) * factor + pivot
+                elif start_frame < shot.end and shot.end <= end_frame:
+                    if start_frame < shot.start and shot.start <= end_frame:
+                        shot.durationLocked = False
+                        shot.end = (shot.end - pivot) * factor + pivot
+                        shot.start = (shot.start - pivot) * factor + pivot
+                        shot.durationLocked = True
+                    else:
+                        shot.durationLocked = False
+                        shot.end = (shot.end - pivot) * factor + pivot
+                        shot.durationLocked = True
+
+                else:
+                    pass
+
             else:
-                pass
+                # important to offset START first!!
+                if end_frame < shot.start:
+                    shot.start += offset
+                elif start_frame < shot.start and shot.start <= end_frame:
+                    if end_frame < shot.end:
+                        shot.durationLocked = False
+                        shot.start = (
+                            (shot.start - pivot) * factor + pivot + 0.005
+                        )  # approximation to make sure the rounded value is done to the upper value
+                        shot.end += offset
+                        shot.durationLocked = True
+                    else:
+                        shot.durationLocked = False
+                        shot.start = (
+                            (shot.start - pivot) * factor + pivot + 0.005
+                        )  # approximation to make sure the rounded value is done to the upper value
+                        shot.end = (
+                            (shot.end - pivot) * factor + pivot + 0.005
+                        )  # approximation to make sure the rounded value is done to the upper value
+                        shot.durationLocked = True
+
+                else:
+                    if end_frame < shot.end:
+                        shot.durationLocked = False
+                        shot.end += offset
+                        shot.durationLocked = True
+                    elif start_frame < shot.end and shot.end <= end_frame:
+                        shot.durationLocked = False
+                        shot.end = (
+                            (shot.end - pivot) * factor + pivot + 0.005
+                        )  # approximation to make sure the rounded value is done to the upper value
+                        shot.durationLocked = True
+                    else:
+                        pass
 
         else:
-            # important to offset START first!!
-            if end_frame < shot.start:
-                shot.start += offset
-            elif start_frame < shot.start and shot.start <= end_frame:
-                shot.start = (
-                    (shot.start - pivot) * factor + pivot + 0.005
-                )  # approximation to make sure the rounded value is done to the upper value
-            else:
-                pass
+            if offset > 0:
+                # important to offset END first!!
+                if end_frame < shot.end:
+                    shot.end += offset
+                elif start_frame < shot.end and shot.end <= end_frame:
+                    shot.end = (shot.end - pivot) * factor + pivot
+                else:
+                    pass
 
-            if end_frame < shot.end:
-                shot.end += offset
-            elif start_frame < shot.end and shot.end <= end_frame:
-                shot.end = (
-                    (shot.end - pivot) * factor + pivot + 0.005
-                )  # approximation to make sure the rounded value is done to the upper value
+                if end_frame < shot.start:
+                    shot.start += offset
+                elif start_frame < shot.start and shot.start <= end_frame:
+                    shot.start = (shot.start - pivot) * factor + pivot
+                else:
+                    pass
+
             else:
-                pass
+                # important to offset START first!!
+                if end_frame < shot.start:
+                    shot.start += offset
+                elif start_frame < shot.start and shot.start <= end_frame:
+                    shot.start = (
+                        (shot.start - pivot) * factor + pivot + 0.005
+                    )  # approximation to make sure the rounded value is done to the upper value
+                else:
+                    pass
+
+                if end_frame < shot.end:
+                    shot.end += offset
+                elif start_frame < shot.end and shot.end <= end_frame:
+                    shot.end = (
+                        (shot.end - pivot) * factor + pivot + 0.005
+                    )  # approximation to make sure the rounded value is done to the upper value
+                else:
+                    pass
 
     elif mode == "CLEAR_ANIM":
         pass
