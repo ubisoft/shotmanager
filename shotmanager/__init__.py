@@ -1,4 +1,5 @@
 import logging
+
 import os
 from pathlib import Path
 
@@ -84,13 +85,10 @@ _logger.setLevel(logging.INFO)  # CRITICAL ERROR WARNING INFO DEBUG NOTSET
 # if config.uasDebug:
 _logger.setLevel(logging.DEBUG)  # CRITICAL ERROR WARNING INFO DEBUG NOTSET
 
-pil_logger = logging.getLogger("PIL")
-pil_logger.setLevel(logging.INFO)
-
-# _logger.info("Logger info")
-# _logger.warning(f"logger warning")
-# _logger.error("logger error")
-# _logger.debug("logger error")
+# _logger.info(f"Logger {}")
+# _logger.warning(f"logger {}")
+# _logger.error(f"error {}")
+# _logger.debug(f"debug {}")
 
 
 class Formatter(logging.Formatter):
@@ -356,7 +354,6 @@ def register():
     about.register()
 
     # debug tools
-
     if config.uasDebug:
         sm_debug.register()
 

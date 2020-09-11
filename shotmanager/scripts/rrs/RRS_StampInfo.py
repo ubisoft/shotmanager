@@ -63,7 +63,7 @@ def setRRS_StampInfoSettings(scene):
             stampInfoSettings.edit3DFrameUsed = True
             # stampInfoSettings.edit3DFrame = props.     # set in the render loop
             stampInfoSettings.edit3DTotalNumberUsed = True
-            stampInfoSettings.edit3DTotalNumber = props.getEditDuration()
+            # stampInfoSettings.edit3DTotalNumber = props.getEditDuration()
 
             stampInfoSettings.framerateUsed = True
 
@@ -83,7 +83,7 @@ def setRRS_StampInfoSettings(scene):
             stampInfoSettings.currentFrameUsed = True
             stampInfoSettings.frameRangeUsed = True
             stampInfoSettings.frameHandlesUsed = True
-            stampInfoSettings.shotHandles = props.handles
+            # stampInfoSettings.shotHandles = props.handles
 
             stampInfoSettings.debug_DrawTextLines = False
 

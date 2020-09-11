@@ -1787,7 +1787,9 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
             fileFullName += "_" + f"{(frameIndex):04d}"
             fileFullName += ".png"
         else:
-            fileFullName += ".mp4"
+            # fileFullName += ".mp4"
+            # fileFullName += "_"
+            pass
 
         filePath = ""
         if fullPath or fullPathOnly:

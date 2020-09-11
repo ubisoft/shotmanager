@@ -84,8 +84,9 @@ class UAS_ShotManager_RenderGlobalContext(PropertyGroup):
             bpy.context.scene.eevee.taa_samples = 2
 
             # workbench
-            bpy.context.scene.render_aa = "FXAA"
-            bpy.context.scene.viewport_aa = "OFF"
+            # if "BLENDER_WORKBENCH" == bpy.context.scene.render.engine:
+            bpy.context.scene.display.render_aa = "FXAA"
+            bpy.context.scene.display.viewport_aa = "OFF"
 
             # cycles
             bpy.context.scene.cycles.samples = 6
@@ -97,8 +98,9 @@ class UAS_ShotManager_RenderGlobalContext(PropertyGroup):
             bpy.context.scene.eevee.taa_samples = 16
 
             # workbench
-            bpy.context.scene.render_aa = "5"
-            bpy.context.scene.viewport_aa = "FXAA"
+            # if "BLENDER_WORKBENCH" == bpy.context.scene.render.engine:
+            bpy.context.scene.display.render_aa = "5"
+            bpy.context.scene.display.viewport_aa = "FXAA"
 
             # cycles
             bpy.context.scene.cycles.samples = 64
@@ -110,8 +112,9 @@ class UAS_ShotManager_RenderGlobalContext(PropertyGroup):
             bpy.context.scene.eevee.taa_samples = 32
 
             # workbench
-            bpy.context.scene.render_aa = "16"
-            bpy.context.scene.viewport_aa = "5"
+            #            if "BLENDER_WORKBENCH" == bpy.context.scene.render.engine:
+            bpy.context.scene.display.render_aa = "16"
+            bpy.context.scene.display.viewport_aa = "5"
 
             # cycles
             bpy.context.scene.cycles.samples = 128

@@ -4,7 +4,7 @@ from bpy.types import Operator
 from ..utils import utils
 
 
-class UAS_ShotManager_About(Operator):
+class UAS_ShotManager_OT_About(Operator):
     bl_idname = "uas_shot_manager.about"
     bl_label = "About UAS Shot Manager..."
     bl_description = "More information about UAS Shot Manager..."
@@ -68,7 +68,7 @@ class UAS_ShotManager_About(Operator):
         else:
             row.label(text="Add-on not found")
 
-        row.separator()
+        box.separator()
 
         layout.separator(factor=1)
 
@@ -76,7 +76,7 @@ class UAS_ShotManager_About(Operator):
         return {"FINISHED"}
 
 
-_classes = (UAS_ShotManager_About,)
+_classes = (UAS_ShotManager_OT_About,)
 
 
 def register():
