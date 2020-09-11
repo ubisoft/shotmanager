@@ -443,9 +443,33 @@ class UAS_Vse_Render(PropertyGroup):
         scene.render.ffmpeg.audio_codec = "AC3"
         scene.render.filepath = output_filepath
 
-        bgClip = self.createNewClip(scene, self.inputBGMediaPath, 1, 1)
+        bgClip = None
+        try:
+            print(f"self.inputBGMediaPath: {self.inputBGMediaPath}")
+            bgClip = self.createNewClip(scene, self.inputBGMediaPath, 1, 1)
+            print("BG Media OK")
+        except Exception as e:
+            print(f" *** Rendered shot not found: {self.inputBGMediaPath}")
 
-        overClip = self.createNewClip(scene, self.inputOverMediaPath, 2, 1)
+        # bgClip = None
+        # if os.path.exists(self.inputBGMediaPath):
+        #     bgClip = self.createNewClip(scene, self.inputBGMediaPath, 1, 1)
+        # else:
+        #     print(f" *** Rendered shot not found: {self.inputBGMediaPath}")
+
+        print(f"self.inputBGMediaPath: {self.inputOverMediaPath}")
+        overClip = None
+        try:
+            overClip = self.createNewClip(scene, self.inputOverMediaPath, 2, 1)
+            print("Over Media OK")
+        except Exception as e:
+            print(f" *** Rendered shot not found: {self.inputOverMediaPath}")
+        # overClip = None
+        # if os.path.exists(self.inputOverMediaPath):
+        #     overClip = self.createNewClip(scene, self.inputOverMediaPath, 2, 1)
+        # else:
+        #     print(f" *** Rendered shot not found: {self.inputOverMediaPath}")
+
         if overClip is not None:
             overClip.use_crop = True
             overClip.crop.min_x = -1 * int((self.inputBGResolution[0] - self.inputOverResolution[0]) / 2)
@@ -455,7 +479,11 @@ class UAS_Vse_Render(PropertyGroup):
 
             overClip.blend_type = "OVER_DROP"
 
-        audioClip = self.createNewClip(scene, self.inputAudioMediaPath, 3, 1)
+        audioClip = None
+        if os.path.exists(self.inputAudioMediaPath):
+            audioClip = self.createNewClip(scene, self.inputAudioMediaPath, 3, 1)
+        else:
+            print(f" *** Rendered shot not found: {self.inputAudioMediaPath}")
 
         # bpy.context.scene.sequence_editor.sequences
         # get res of video: bpy.context.scene.sequence_editor.sequences[1].elements[0].orig_width

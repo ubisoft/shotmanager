@@ -66,7 +66,16 @@ class UAS_PT_ShotManagerRenderPanel(Panel):
         # render engine
         ##############
         row = layout.row(align=True)
-        row.prop(bpy.context.scene.render, "engine")
+        row.prop(props, "renderComputationMode", text="Mode")
+        row.separator()
+        row.prop(bpy.context.scene.render, "engine", text="Engine")
+        # row = layout.row(align=True)
+        # row.prop(props, "renderComputationMode", text="Comput. Mode")
+
+        row = layout.row(align=True)
+        row.separator(factor=5)
+        row.prop(props, "useOverlays", text="With Overlays")
+        row.prop(props.renderContext, "renderQuality", text="Quality")
 
         row = layout.row(align=True)
         row.scale_y = 1.6
@@ -153,6 +162,9 @@ class UAS_PT_ShotManagerRenderPanel(Panel):
             row = layout.row()
             row.label(text="Render All:")
             box = layout.box()
+
+            row = box.row()
+            box.prop(props.renderSettingsAll, "generateEditVideo")
 
             if props.use_project_settings:
                 box.prop(props, "bypass_rendering_project_settings")

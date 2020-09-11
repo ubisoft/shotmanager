@@ -21,6 +21,23 @@ class UAS_MT_ShotManager_Prefs_MainMenu(Menu):
         row = layout.row(align=True)
         row.operator("uas_shot_manager.project_settings_prefs", text="Project Settings...")
 
+        if config.uasDebug:
+            layout.separator()
+            row = layout.row(align=True)
+            row.label(text="Tools for Debug:")
+
+            row = layout.row(align=True)
+            row.operator_context = "INVOKE_DEFAULT"
+            row.label(text="Add debug operator here")
+            # row.operator("uas_shot_manager.predec_shots_from_single_cam")
+
+        layout.separator()
+        row = layout.row(align=True)
+
+        row = layout.row(align=True)
+        row.operator_context = "INVOKE_DEFAULT"
+        row.operator("uas_shot_manager.file_info", text="File Info...")
+
         layout.separator()
         row = layout.row(align=True)
 

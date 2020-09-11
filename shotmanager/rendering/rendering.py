@@ -10,8 +10,12 @@ import bpy
 from ..config import config
 from ..scripts.rrs.RRS_StampInfo import setRRS_StampInfoSettings
 
+from shotmanager.utils import utils
 
-def launchRenderWithVSEComposite(renderMode, takeIndex=-1, filePath="", useStampInfo=True, fileListOnly=False):
+
+def launchRenderWithVSEComposite(
+    renderMode, takeIndex=-1, filePath="", useStampInfo=True, fileListOnly=False, generateSequenceVideo=True
+):
     """ Generate the media for the specified take
         Return a dictionary with a list of all the created files and a list of failed ones
         filesDict = {"rendered_files": newMediaFiles, "failed_files": failedFiles}
@@ -20,6 +24,7 @@ def launchRenderWithVSEComposite(renderMode, takeIndex=-1, filePath="", useStamp
     scene = bpy.context.scene
     props = scene.UAS_shot_manager_props
 
+    fileListOnly = False
     import time
 
     startRenderintTime = time.monotonic()
@@ -47,6 +52,9 @@ def launchRenderWithVSEComposite(renderMode, takeIndex=-1, filePath="", useStamp
     newMediaFiles = []
 
     rootPath = filePath if "" != filePath else os.path.dirname(bpy.data.filepath)
+    # use absolute path
+    rootPath = bpy.path.abspath(rootPath)
+
     if not rootPath.endswith("\\"):
         rootPath += "\\"
 
@@ -74,42 +82,68 @@ def launchRenderWithVSEComposite(renderMode, takeIndex=-1, filePath="", useStamp
                 RRS_StampInfo.renderRootPath = rootPath
                 setRRS_StampInfoSettings(scene)
 
-        # sequence composite scene
-        sequenceScene = bpy.data.scenes.new(name="VSE_SequenceRenderScene")
-        if not sequenceScene.sequence_editor:
-            sequenceScene.sequence_editor_create()
-        sequenceScene.render.fps = projectFps
-        sequenceScene.render.resolution_x = 1280
-        sequenceScene.render.resolution_y = 960
-        sequenceScene.frame_start = 0
-        sequenceScene.frame_end = props.getEditDuration() - 1
-        sequenceScene.render.image_settings.file_format = "FFMPEG"
-        sequenceScene.render.ffmpeg.format = "MPEG4"
-        sequenceScene.render.ffmpeg.constant_rate_factor = "PERC_LOSSLESS"  # "PERC_LOSSLESS"
-        sequenceScene.render.ffmpeg.gopsize = 5  # keyframe interval
-        sequenceScene.render.ffmpeg.audio_codec = "AC3"
-        sequenceScene.render.filepath = sequenceOutputFullPath
+        if preset_useStampInfo:  # framed output resolution is used only when StampInfo is used
+            RRS_StampInfo.clearRenderHandlers()
+
+        sequenceScene = None
+        if generateSequenceVideo:
+            # sequence composite scene
+            sequenceScene = bpy.data.scenes.new(name="VSE_SequenceRenderScene")
+            if not sequenceScene.sequence_editor:
+                sequenceScene.sequence_editor_create()
+            sequenceScene.render.fps = projectFps
+            sequenceScene.render.resolution_x = 1280
+            sequenceScene.render.resolution_y = 960
+            sequenceScene.frame_start = 0
+            sequenceScene.frame_end = props.getEditDuration() - 1
+            sequenceScene.render.image_settings.file_format = "FFMPEG"
+            sequenceScene.render.ffmpeg.format = "MPEG4"
+            sequenceScene.render.ffmpeg.constant_rate_factor = "PERC_LOSSLESS"  # "PERC_LOSSLESS"
+            sequenceScene.render.ffmpeg.gopsize = 5  # keyframe interval
+            sequenceScene.render.ffmpeg.audio_codec = "AC3"
+            sequenceScene.render.filepath = sequenceOutputFullPath
 
         context.window_manager.UAS_shot_manager_shots_play_mode = False
         context.window_manager.UAS_shot_manager_display_timeline = False
-
-        if preset_useStampInfo:  # framed output resolution is used only when StampInfo is used
-            if "UAS_PROJECT_RESOLUTIONFRAMED" in os.environ.keys():
-                resolution = json.loads(os.environ["UAS_PROJECT_RESOLUTIONFRAMED"])
-                scene.render.resolution_x = resolution[0]
-                scene.render.resolution_y = resolution[1]
-
-        # if props.useProjectRenderSettings:
-        #     scene.render.image_settings.file_format = "FFMPEG"
-        #     scene.render.ffmpeg.format = "MPEG4"
-        if preset_useStampInfo:
-            RRS_StampInfo.clearRenderHandlers()
 
     previousTakeRenderTime = time.monotonic()
     currentTakeRenderTime = previousTakeRenderTime
 
     previousShotRenderTime = time.monotonic()
     currentShotRenderTime = previousShotRenderTime
+
+    bpy.context.scene.use_preview_range = False
+
+    renderFrameByFrame = "PLAYBLAST_LOOP" == props.renderComputationMode or "ENGINE_LOOP" == props.renderComputationMode
+    renderWithOpengl = (
+        "PLAYBLAST_LOOP" == props.renderComputationMode or "PLAYBLAST_ANIM" == props.renderComputationMode
+    )
+
+    userRenderSettings = {}
+
+    def _storeUserRenderSettings():
+        userRenderSettings["show_overlays"] = bpy.context.space_data.overlay.show_overlays
+
+        # eevee
+        ##############
+        userRenderSettings["eevee_taa_render_samples"] = bpy.context.scene.eevee.taa_render_samples
+        userRenderSettings["eevee_taa_samples"] = bpy.context.scene.eevee.taa_samples
+
+        return
+
+    def _restoreUserRenderSettings():
+        bpy.context.space_data.overlay.show_overlays = userRenderSettings["show_overlays"]
+
+        # eevee
+        ##############
+        bpy.context.scene.eevee.taa_render_samples = userRenderSettings["eevee_taa_render_samples"]
+        bpy.context.scene.eevee.taa_samples = userRenderSettings["eevee_taa_samples"]
+
+        return
+
+    _storeUserRenderSettings()
+
+    props.renderContext.applyRenderQualitySettings()
 
     for i, shot in enumerate(shotList):
         # context.window_manager.UAS_shot_manager_progressbar = (i + 1) / len(shotList) * 100.0
@@ -136,102 +170,91 @@ def launchRenderWithVSEComposite(renderMode, takeIndex=-1, filePath="", useStamp
 
                 scene.frame_start = shot.start - props.handles
                 scene.frame_end = shot.end + props.handles
+                scene.camera = shot.camera
+                print("Scene.name:", scene.name)
+                print("Scene.camera:", scene.camera)
+                utils.setCurrentCameraToViewport()
+                # props.setCurrentShot(shot)
 
-                # render stamped info
-                if preset_useStampInfo:
-                    RRS_StampInfo.takeName = takeName
-
-                    RRS_StampInfo.notesUsed = shot.hasNotes()
-                    RRS_StampInfo.notesLine01 = shot.note01
-                    RRS_StampInfo.notesLine02 = shot.note02
-                    RRS_StampInfo.notesLine03 = shot.note03
-
-                    #    print("RRS_StampInfo.takeName: ", RRS_StampInfo.takeName)
-                #        RRS_StampInfo.shotName = f"{props.renderShotPrefix()}_{shot.name}"
-                #        print("RRS_StampInfo.renderRootPath: ", RRS_StampInfo.renderRootPath)
-                # RRS_StampInfo.renderRootPath = (
-                #     rootPath + "\\" + takeName + "\\" + shot.getName_PathCompliant() + "\\"
-                # )
-                # newTempRenderPath = (
-                #     rootPath + "\\" + takeName + "\\" + shot.getName_PathCompliant() + "\\"
-                # )
-                # print("newTempRenderPath: ", newTempRenderPath)
-
-                numFramesInShot = scene.frame_end - scene.frame_start + 1  # shot.getDuration()
+                numFramesInShot = scene.frame_end - scene.frame_start + 1
                 previousFrameRenderTime = time.monotonic()
                 currentFrameRenderTime = previousFrameRenderTime
 
+                #######################
                 # render image only
+                #######################
+
                 renderShotContent = True
                 if renderShotContent and not fileListOnly:
                     scene.render.resolution_x = 1280
                     scene.render.resolution_y = 720
 
-                    renderFrameByFrame = True
                     if renderFrameByFrame:
                         for f, currentFrame in enumerate(range(scene.frame_start, scene.frame_end + 1)):
-                            #    bpy.ops.render.render(animation=False, write_still=True)
-                            bpy.ops.render.render("INVOKE_DEFAULT", animation=False, write_still=True)
-                            # bpy.ops.render.opengl("INVOKE_DEFAULT", animation=True, write_still=True)
-
-                            currentFrameRenderTime = time.monotonic()
-                            print(
-                                f"      \nFrame render time: {(currentFrameRenderTime - previousFrameRenderTime):0.2f} sec."
+                            # scene.frame_current = currentFrame
+                            scene.frame_set(currentFrame)
+                            scene.render.filepath = shot.getOutputFileName(
+                                frameIndex=scene.frame_current, fullPath=True, rootFilePath=rootPath
                             )
-                            previousFrameRenderTime = currentFrameRenderTime
+                            print("      ------------------------------------------")
+                            print(
+                                f"      \nFrame: {currentFrame}    ( {f + 1} / {numFramesInShot} )    -     Shot: {shot.name}"
+                            )
+
+                            print("scene.render.filepath: ", scene.render.filepath)
+                            if renderWithOpengl:
+                                #     _logger.debug("ici loop playblast")
+
+                                bpy.ops.render.opengl(animation=False, write_still=True)
+
+                            else:
+                                #     _logger.debug("ici loop pas playblast")
+                                bpy.ops.render.render(animation=False, write_still=True)
+                                # bpy.ops.render.render(animation=False, write_still=True)
+
+                                currentFrameRenderTime = time.monotonic()
+                                print(
+                                    f"      \nFrame render time: {(currentFrameRenderTime - previousFrameRenderTime):0.2f} sec."
+                                )
+                                previousFrameRenderTime = currentFrameRenderTime
+
+                            # currentFrameRenderTime = time.monotonic()
+                            # print(
+                            #     f"      \nFrame render time: {(currentFrameRenderTime - previousFrameRenderTime):0.2f} sec."
+                            # )
+                            # previousFrameRenderTime = currentFrameRenderTime
 
                     # render all in one anim pass
                     else:
-                        pass
-
-                # render stamp info
-                if preset_useStampInfo:
-
-                    for f, currentFrame in enumerate(range(scene.frame_start, scene.frame_end + 1)):
-                    scene.camera = shot.camera
-                    scene.frame_start = shot.start - props.handles
-                    scene.frame_end = shot.end + props.handles
-                    scene.frame_current = currentFrame
-                    scene.render.filepath = shot.getOutputFileName(
-                        frameIndex=scene.frame_current, fullPath=True, rootFilePath=rootPath
-                    )
-                    if not fileListOnly:
-                        print("      ------------------------------------------")
-                        print(
-                            f"      \nFrame: {currentFrame}    ( {f + 1} / {numFramesInShot} )    -     Shot: {shot.name}"
+                        scene.render.filepath = shot.getOutputFileName(
+                            frameIndex=-1, fullPath=True, rootFilePath=rootPath
                         )
-                    #    print("      \nscene.render.filepath: ", scene.render.filepath)
-                    #    print("      Current Scene:", scene.name)
+                        print("scene.render.filepath: ", scene.render.filepath)
+                        #   _logger.debug("ici PAS loop")
+                        if renderWithOpengl == props.renderComputationMode:
+                            #    _logger.debug("ici PAS loop Playblast opengl")
+                            # print(f"scene.frame_start: {scene.frame_start}")
+                            # print(f"scene.frame_end: {scene.frame_end}")
 
-                    if preset_useStampInfo:
-                        RRS_StampInfo.shotName = f"{props.renderShotPrefix()}_{shot.name}"
-                        RRS_StampInfo.cameraName = shot.camera.name
-                        scene.render.resolution_x = 1280
-                        scene.render.resolution_y = 960
-                        RRS_StampInfo.edit3DFrame = props.getEditTime(shot, currentFrame)
+                            bpy.ops.render.opengl(animation=True, write_still=False)
 
-                        # print("RRS_StampInfo.takeName: ", RRS_StampInfo.takeName)
-                        # print("RRS_StampInfo.renderRootPath: ", RRS_StampInfo.renderRootPath)
-                        RRS_StampInfo.renderRootPath = newTempRenderPath
+                        # _logger.debug("Render Opengl done")
+                        else:
+                            # _logger.debug("ici PAS loop pas playblast")
+                            bpy.ops.render.render(animation=True, write_still=False)
 
-                        if not fileListOnly:
-                            RRS_StampInfo.renderTmpImageWithStampedInfo(scene, currentFrame)
+                #######################
+                # render stamped info
+                #######################
 
-                    # area.spaces[0].region_3d.view_perspective = 'CAMERA'
+                if preset_useStampInfo:
+                    renderStampedInfoForShot(
+                        RRS_StampInfo, props, takeName, shot, rootPath, newTempRenderPath, verbose=False
+                    )
 
-                    # scene.render.resolution_x = 1280
-                    # scene.render.resolution_y = 720
-
-                    # if not fileListOnly:
-                    #     #    bpy.ops.render.render(animation=False, write_still=True)
-                    #     bpy.ops.render.render("INVOKE_DEFAULT", animation=False, write_still=True)
-                    #     # bpy.ops.render.opengl("INVOKE_DEFAULT", animation=True, write_still=True)
-
-                    #     currentFrameRenderTime = time.monotonic()
-                    #     print(
-                    #         f"      \nFrame render time: {(currentFrameRenderTime - previousFrameRenderTime):0.2f} sec."
-                    #     )
-                    #     previousFrameRenderTime = currentFrameRenderTime
+                #######################
+                # print info
+                #######################
 
                 if not fileListOnly:
                     currentShotRenderTime = time.monotonic()
@@ -242,7 +265,9 @@ def launchRenderWithVSEComposite(renderMode, takeIndex=-1, filePath="", useStamp
                     previousShotRenderTime = currentShotRenderTime
 
                 # render sound
-                audioFilePath = newTempRenderPath + f"{props.renderShotPrefix()}_{shot.name}" + ".wav"
+                audioFilePath = (
+                    newTempRenderPath + f"{props.renderShotPrefix()}_{shot.getName_PathCompliant()}" + ".wav"
+                )
                 print(f"\n Sound for shot {shot.name}:")
                 print("    audioFilePath: ", audioFilePath)
                 # bpy.ops.sound.mixdown(filepath=audioFilePath, relative_path=True, container='WAV', codec='PCM')
@@ -276,7 +301,7 @@ def launchRenderWithVSEComposite(renderMode, takeIndex=-1, filePath="", useStamp
                 files_in_directory = os.listdir(newTempRenderPath)
                 filtered_files = [file for file in files_in_directory if file.endswith(".png") or file.endswith(".wav")]
 
-                deleteTempFiles = True
+                deleteTempFiles = False
                 if deleteTempFiles:
                     for file in filtered_files:
                         path_to_file = os.path.join(newTempRenderPath, file)
@@ -315,8 +340,14 @@ def launchRenderWithVSEComposite(renderMode, takeIndex=-1, filePath="", useStamp
     if not fileListOnly:
         # render full sequence
         # Note that here we are back to the sequence scene, not anymore in the shot scene
-        bpy.context.window.scene = sequenceScene
-        bpy.ops.render.opengl(animation=True, sequencer=True)
+
+        #######################
+        # render sequence video
+        #######################
+
+        if generateSequenceVideo:
+            bpy.context.window.scene = sequenceScene
+            bpy.ops.render.opengl(animation=True, sequencer=True)
 
         currentTakeRenderTime = time.monotonic()
         print(f"      \nTake render time: {(currentTakeRenderTime - previousTakeRenderTime):0.2f} sec.")
@@ -333,7 +364,60 @@ def launchRenderWithVSEComposite(renderMode, takeIndex=-1, filePath="", useStamp
 
     filesDict = {"rendered_files": newMediaFiles, "failed_files": failedFiles}
 
+    _restoreUserRenderSettings()
+
     return filesDict
+
+
+def renderStampedInfoForFrame(scene, shot):
+    pass
+
+
+def renderStampedInfoForShot(
+    stampInfoSettings, shotManagerProps, takeName, shot, rootPath, newTempRenderPath, verbose=False
+):
+    props = shotManagerProps
+    scene = props.parentScene
+
+    stampInfoSettings.takeName = takeName
+
+    stampInfoSettings.notesUsed = shot.hasNotes()
+    stampInfoSettings.notesLine01 = shot.note01
+    stampInfoSettings.notesLine02 = shot.note02
+    stampInfoSettings.notesLine03 = shot.note03
+
+    scene.camera = shot.camera
+    scene.frame_start = shot.start - props.handles
+    scene.frame_end = shot.end + props.handles
+    numFramesInShot = scene.frame_end - scene.frame_start + 1
+
+    if props.use_project_settings:
+        scene.render.resolution_x = props.project_resolution_framed_x
+        scene.render.resolution_y = props.project_resolution_framed_y
+
+    for f, currentFrame in enumerate(range(scene.frame_start, scene.frame_end + 1)):
+
+        # to do
+        renderStampedInfoForFrame(scene, currentFrame)
+
+        # scene.frame_current = currentFrame
+        scene.frame_set(currentFrame)
+
+        scene.render.filepath = shot.getOutputFileName(
+            frameIndex=scene.frame_current, fullPath=True, rootFilePath=rootPath
+        )
+
+        if verbose:
+            print("      ------------------------------------------")
+            print(
+                f"      \nStamp Info Frame: {currentFrame}    ( {f + 1} / {numFramesInShot} )    -     Shot: {shot.name}"
+            )
+
+        stampInfoSettings.shotName = f"{props.renderShotPrefix()}_{shot.name}"
+        stampInfoSettings.cameraName = shot.camera.name
+        stampInfoSettings.edit3DFrame = props.getEditTime(shot, currentFrame)
+        stampInfoSettings.renderRootPath = newTempRenderPath
+        stampInfoSettings.renderTmpImageWithStampedInfo(scene, currentFrame)
 
 
 def launchRenderWithVSEComposite_old(renderMode, takeIndex=-1, filePath="", useStampInfo=True, fileListOnly=False):
@@ -435,6 +519,8 @@ def launchRenderWithVSEComposite_old(renderMode, takeIndex=-1, filePath="", useS
 
     previousShotRenderTime = time.monotonic()
     currentShotRenderTime = previousShotRenderTime
+
+    props.renderContext.applyRenderQualitySettings()
 
     for i, shot in enumerate(shotList):
         # context.window_manager.UAS_shot_manager_progressbar = (i + 1) / len(shotList) * 100.0
@@ -695,17 +781,18 @@ def launchRender(renderMode, renderRootFilePath="", useStampInfo=True):
         context.window_manager.UAS_shot_manager_shots_play_mode = False
         context.window_manager.UAS_shot_manager_display_timeline = False
 
-        if props.use_project_settings:
-            props.restoreProjectSettings()
+        # if props.use_project_settings:
+        #     props.restoreProjectSettings()
 
-            if preset_useStampInfo:  # framed output resolution is used only when StampInfo is used
-                if "UAS_PROJECT_RESOLUTIONFRAMED" in os.environ.keys():
-                    resolution = json.loads(os.environ["UAS_PROJECT_RESOLUTIONFRAMED"])
-                    scene.render.resolution_x = resolution[0]
-                    scene.render.resolution_y = resolution[1]
+        #     if preset_useStampInfo:  # framed output resolution is used only when StampInfo is used
+        #         if "UAS_PROJECT_RESOLUTIONFRAMED" in os.environ.keys():
+        #             resolution = json.loads(os.environ["UAS_PROJECT_RESOLUTIONFRAMED"])
+        #             scene.render.resolution_x = resolution[0]
+        #             scene.render.resolution_y = resolution[1]
 
         # render window
         if "STILL" == preset.renderMode:
+            print("Render Still")
             shot = props.getCurrentShot()
 
             if preset_useStampInfo:
@@ -739,6 +826,7 @@ def launchRender(renderMode, renderRootFilePath="", useStampInfo=True):
         #                bpy.ops.render.render(animation=False, use_viewport=True, write_still = preset.writeToDisk)
 
         elif "ANIMATION" == preset.renderMode:
+            _logger.debug("Render Animation")
 
             shot = props.getCurrentShot()
 
@@ -772,46 +860,66 @@ def launchRender(renderMode, renderRootFilePath="", useStampInfo=True):
 
             bpy.ops.render.render("INVOKE_DEFAULT", animation=True)
 
+        elif "ALL" == preset.renderMode:
+            print("Render All")
+
+            renderedFilesDict = launchRenderWithVSEComposite(
+                "PROJECT",
+                takeIndex=-1,
+                filePath=props.renderRootPath,
+                fileListOnly=False,
+                generateSequenceVideo=preset.generateEditVideo,
+            )
+
+            if preset.renderOtioFile():
+                from shotmanager.otio.exports import exportOtio
+
+                bpy.context.window.scene = scene
+                renderedOtioFile = exportOtio(scene, takeIndex=-1, filePath=props.renderRootPath, fileListOnly=False)
+                # renderedFilesDict["edl_files"] = [renderedOtioFile]
+
+            # #   wkip to remove
+            # shot = props.getCurrentShot()
+            # if preset_useStampInfo:
+            #     stampInfoSettings.stampInfoUsed = False
+            #     stampInfoSettings.activateStampInfo = False
+            #     setRRS_StampInfoSettings(scene)
+            #     stampInfoSettings.activateStampInfo = True
+            #     stampInfoSettings.stampInfoUsed = True
+
+            # shots = props.get_shots()
+
+            # if props.use_project_settings:
+            #     scene.render.image_settings.file_format = "FFMPEG"
+            #     scene.render.ffmpeg.format = "MPEG4"
+
+            # for i, shot in enumerate(shots):
+            #     if shot.enabled:
+            #         print("\n  Shot rendered: ", shot.name)
+            #         #     props.setCurrentShotByIndex(i)
+            #         #     props.setSelectedShotByIndex(i)
+
+            #         scene.camera = shot.camera
+
+            #         if preset_useStampInfo:
+            #             stampInfoSettings.shotName = shot.name
+            #             stampInfoSettings.takeName = take_name
+            #             print("stampInfoSettings.takeName: ", stampInfoSettings.takeName)
+
+            #         # area.spaces[0].region_3d.view_perspective = 'CAMERA'
+            #         scene.frame_current = shot.start
+            #         scene.frame_start = shot.start - props.handles
+            #         scene.frame_end = shot.end + props.handles
+            #         scene.render.filepath = shot.getOutputFileName(fullPath=True, rootFilePath=rootPath)
+            #         print("scene.render.filepath: ", scene.render.filepath)
+
+            #         # bpy.ops.render.render(animation=True)
+            #         bpy.ops.render.render("INVOKE_DEFAULT", animation=True)
+
+            # bpy.ops.render.opengl ( animation = True )
+
         else:
-            #   wkip to remove
-            shot = props.getCurrentShot()
-            if preset_useStampInfo:
-                stampInfoSettings.stampInfoUsed = False
-                stampInfoSettings.activateStampInfo = False
-                setRRS_StampInfoSettings(scene)
-                stampInfoSettings.activateStampInfo = True
-                stampInfoSettings.stampInfoUsed = True
-
-            shots = props.get_shots()
-
-            if props.use_project_settings:
-                scene.render.image_settings.file_format = "FFMPEG"
-                scene.render.ffmpeg.format = "MPEG4"
-
-            for i, shot in enumerate(shots):
-                if shot.enabled:
-                    print("\n  Shot rendered: ", shot.name)
-                    #     props.setCurrentShotByIndex(i)
-                    #     props.setSelectedShotByIndex(i)
-
-                    scene.camera = shot.camera
-
-                    if preset_useStampInfo:
-                        stampInfoSettings.shotName = shot.name
-                        stampInfoSettings.takeName = take_name
-                        print("stampInfoSettings.takeName: ", stampInfoSettings.takeName)
-
-                    # area.spaces[0].region_3d.view_perspective = 'CAMERA'
-                    scene.frame_current = shot.start
-                    scene.frame_start = shot.start - props.handles
-                    scene.frame_end = shot.end + props.handles
-                    scene.render.filepath = shot.getOutputFileName(fullPath=True, rootFilePath=rootPath)
-                    print("scene.render.filepath: ", scene.render.filepath)
-
-                    # bpy.ops.render.render(animation=True)
-                    bpy.ops.render.render("INVOKE_DEFAULT", animation=True)
-
-                    # bpy.ops.render.opengl ( animation = True )
+            pass
 
         # xwkip to remove
         if preset_useStampInfo:

@@ -19,7 +19,7 @@ from bpy.props import (
 from shotmanager.rrs_specific.montage.montage_interface import MontageInterface
 
 from .media import UAS_ShotManager_Media
-from shotmanager.rendering.rendering_props import UAS_ShotManager_RenderSettings
+from shotmanager.rendering.rendering_props import UAS_ShotManager_RenderSettings, UAS_ShotManager_RenderGlobalContext
 from .shot import UAS_ShotManager_Shot
 from .take import UAS_ShotManager_Take
 from ..operators.shots_global_settings import UAS_ShotManager_ShotsGlobalSettings
@@ -33,6 +33,11 @@ _logger = logging.getLogger(__name__)
 
 class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
     def version(self):
+        """ Return the add-on version in the form of a tupple made by: 
+                - a string x.y.z (eg: "1.21.3")
+                - an integer. x.y.z becomes xxyyyzzz (eg: "1.21.3" becomes 1021003)
+            Return None if the addon has not been found
+        """
         return utils.addonVersion("UAS Shot Manager")
 
     dataVersion: IntProperty(
@@ -620,6 +625,36 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         options=set(),
     )
 
+    renderComputationMode: EnumProperty(
+        name="Render Mode",
+        description="Use the specified render engine or the playblast mode",
+        items=(
+            ("PLAYBLAST_ANIM", "Playblast Anim.", "Use opengl render playblast (animation mode)"),
+            ("PLAYBLAST_LOOP", "Playblast Loop", "Use opengl render playblast, images are computed in a custom loop"),
+            ("ENGINE_ANIM", "Engine Anim", "Use specified renderer (animation mode)"),
+            ("ENGINE_LOOP", "Engine Loop", "Use specified renderer, images are computed in a custom loop"),
+        ),
+        default="PLAYBLAST_ANIM",
+        options=set(),
+    )
+
+    ############
+    # render properties for UI
+    useOverlays: BoolProperty(
+        name="With Overlays",
+        description="Also render overlays when the rendering is a playblast",
+        default=False,
+        options=set(),
+    )
+
+    # renderComputationMode: EnumProperty(
+    #     name="Computation Mode",
+    #     description="Render in a custom loop or in an animation raw",
+    #     items=(("LOOP", "Loop", ""), ("ANIMRAW", "Animation Raw", "")),
+    #     default="LOOP",
+    #     options=set(),
+    # )
+
     renderRootPath: StringProperty(
         name="Render Root Path",
         description="Directory where the rendered files will be placed.\n"
@@ -667,6 +702,8 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
     def addRenderSettings(self):
         newRenderSettings = self.renderSettingsList.add()
         return newRenderSettings
+
+    renderContext: PointerProperty(type=UAS_ShotManager_RenderGlobalContext)
 
     # renderSettingsStill: CollectionProperty (
     #   type = UAS_ShotManager_RenderSettings )
@@ -988,6 +1025,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         newShot.parentTakeIndex = takeInd
         newShot.name = shot.name
         newShot.enabled = shot.enabled
+        newShot.end = 9999999  # mandatory cause start is clamped by end
         newShot.start = shot.start
         newShot.end = shot.end
         newShot.camera = shot.camera
@@ -1090,11 +1128,12 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
 
             if shotList[currentShotIndex].camera is not None and bpy.context.screen is not None:
                 # set the current camera in the 3D view: [‘PERSP’, ‘ORTHO’, ‘CAMERA’]
-                area = next(area for area in bpy.context.screen.areas if area.type == "VIEW_3D")
-
-                area.spaces[0].use_local_camera = False
                 scene.camera = shotList[currentShotIndex].camera
-                area.spaces[0].region_3d.view_perspective = "CAMERA"
+                utils.setCurrentCameraToViewport()
+                # area = next(area for area in bpy.context.screen.areas if area.type == "VIEW_3D")
+
+                # area.spaces[0].use_local_camera = False
+                # area.spaces[0].region_3d.view_perspective = "CAMERA"
 
             # bpy.context.scene.objects["Camera_Sapin"]
 
@@ -2027,6 +2066,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         self.renderSettingsAll.renderWithHandles = False
         self.renderSettingsAll.renderOtioFile = True
         self.renderSettingsAll.otioFileType = "XML"
+        self.renderSettingsAll.generateEditVideo = True
 
         # Otio
         self.renderSettingsOtio.name = "Otio Preset"
@@ -2105,7 +2145,6 @@ _classes = (
     UAS_ShotManager_Media,
     UAS_ShotManager_Shot,
     UAS_ShotManager_Take,
-    UAS_ShotManager_RenderSettings,
     UAS_ShotManager_Props,
 )
 

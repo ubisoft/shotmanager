@@ -217,11 +217,9 @@ def getSceneVSE(vsm_sceneName):
     return vsm_scene
 
 
-def cameras_from_scene(scene):
-    """ Return the list of all the cameras in the scene
-    """
-    camList = [c for c in scene.objects if c.type == "CAMERA"]
-    return camList
+###################
+# Objects
+###################
 
 
 def duplicateObject(sourceObject):
@@ -241,6 +239,27 @@ def duplicateObject(sourceObject):
     else:
         (sourceObject.users_scene)[0].collection.objects.link(newObject)
     return newObject
+
+
+###################
+# Cameras
+###################
+
+
+def cameras_from_scene(scene):
+    """ Return the list of all the cameras in the scene
+    """
+    camList = [c for c in scene.objects if c.type == "CAMERA"]
+    return camList
+
+
+def setCurrentCameraToViewport():
+    area = next(area for area in bpy.context.screen.areas if area.type == "VIEW_3D")
+
+    area.spaces[0].use_local_camera = False
+    area.spaces[0].region_3d.view_perspective = "CAMERA"
+
+    return
 
 
 def create_new_camera(camera_name, location=[0, 0, 0], locate_on_cursor=False):
