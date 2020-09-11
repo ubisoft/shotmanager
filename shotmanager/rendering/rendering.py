@@ -114,34 +114,74 @@ def launchRenderWithVSEComposite(
 
     bpy.context.scene.use_preview_range = False
 
-    renderFrameByFrame = "PLAYBLAST_LOOP" == props.renderComputationMode or "ENGINE_LOOP" == props.renderComputationMode
-    renderWithOpengl = (
-        "PLAYBLAST_LOOP" == props.renderComputationMode or "PLAYBLAST_ANIM" == props.renderComputationMode
+    renderFrameByFrame = (
+        "PLAYBLAST_LOOP" == props.renderContext.renderComputationMode
+        or "ENGINE_LOOP" == props.renderContext.renderComputationMode
     )
+    renderWithOpengl = (
+        "PLAYBLAST_LOOP" == props.renderContext.renderComputationMode
+        or "PLAYBLAST_ANIM" == props.renderContext.renderComputationMode
+    )
+
+    if (
+        "PLAYBLAST_LOOP" == props.renderContext.renderComputationMode
+        or "PLAYBLAST_ANIM" == props.renderContext.renderComputationMode
+    ):
+        if not "CUSTOM" == props.renderContext.renderEngineOpengl:
+            bpy.context.scene.render.engine = props.renderContext.renderEngineOpengl
+    else:
+        if not "CUSTOM" == props.renderContext.renderEngine:
+            bpy.context.scene.render.engine = props.renderContext.renderEngine
 
     userRenderSettings = {}
 
     def _storeUserRenderSettings():
         userRenderSettings["show_overlays"] = bpy.context.space_data.overlay.show_overlays
+        userRenderSettings["resolution_x"] = bpy.context.scene.render.resolution_x
+        userRenderSettings["resolution_y"] = bpy.context.scene.render.resolution_y
+        userRenderSettings["render_engine"] = bpy.context.scene.render.engine
 
         # eevee
         ##############
         userRenderSettings["eevee_taa_render_samples"] = bpy.context.scene.eevee.taa_render_samples
         userRenderSettings["eevee_taa_samples"] = bpy.context.scene.eevee.taa_samples
 
-        return
+        # workbench
+        ##############
+        userRenderSettings["workbench_render_aa"] = bpy.context.scene.render_aa
+        userRenderSettings["workbench_viewport_aa"] = bpy.context.scene.viewport_aa
 
-    def _restoreUserRenderSettings():
+        # cycles
+        ##############
+        userRenderSettings["cycles_samples"] = bpy.context.scene.cycles.samples
+        userRenderSettings["cycles_preview_samples"] = bpy.context.scene.cycles.preview_samples
+
+        return userRenderSettings
+
+    def _restoreUserRenderSettings(userRenderSettings):
         bpy.context.space_data.overlay.show_overlays = userRenderSettings["show_overlays"]
+        bpy.context.scene.render.resolution_x = userRenderSettings["resolution_x"]
+        bpy.context.scene.render.resolution_y = userRenderSettings["resolution_y"]
+        bpy.context.scene.render.engine = userRenderSettings["render_engine"]
 
         # eevee
         ##############
         bpy.context.scene.eevee.taa_render_samples = userRenderSettings["eevee_taa_render_samples"]
         bpy.context.scene.eevee.taa_samples = userRenderSettings["eevee_taa_samples"]
 
+        # workbench
+        ##############
+        bpy.context.scene.render_aa = userRenderSettings["workbench_render_aa"]
+        bpy.context.scene.viewport_aa = userRenderSettings["workbench_viewport_aa"]
+
+        # cycles
+        ##############
+        bpy.context.scene.cycles.samples = userRenderSettings["cycles_samples"]
+        bpy.context.scene.cycles.preview_samples = userRenderSettings["cycles_preview_samples"]
+
         return
 
-    _storeUserRenderSettings()
+    userRenderSettings = _storeUserRenderSettings()
 
     props.renderContext.applyRenderQualitySettings()
 
@@ -231,7 +271,7 @@ def launchRenderWithVSEComposite(
                         )
                         print("scene.render.filepath: ", scene.render.filepath)
                         #   _logger.debug("ici PAS loop")
-                        if renderWithOpengl == props.renderComputationMode:
+                        if renderWithOpengl:
                             #    _logger.debug("ici PAS loop Playblast opengl")
                             # print(f"scene.frame_start: {scene.frame_start}")
                             # print(f"scene.frame_end: {scene.frame_end}")
@@ -301,7 +341,7 @@ def launchRenderWithVSEComposite(
                 files_in_directory = os.listdir(newTempRenderPath)
                 filtered_files = [file for file in files_in_directory if file.endswith(".png") or file.endswith(".wav")]
 
-                deleteTempFiles = False
+                deleteTempFiles = True
                 if deleteTempFiles:
                     for file in filtered_files:
                         path_to_file = os.path.join(newTempRenderPath, file)
@@ -364,7 +404,7 @@ def launchRenderWithVSEComposite(
 
     filesDict = {"rendered_files": newMediaFiles, "failed_files": failedFiles}
 
-    _restoreUserRenderSettings()
+    _restoreUserRenderSettings(userRenderSettings)
 
     return filesDict
 
@@ -871,7 +911,7 @@ def launchRender(renderMode, renderRootFilePath="", useStampInfo=True):
                 generateSequenceVideo=preset.generateEditVideo,
             )
 
-            if preset.renderOtioFile():
+            if preset.renderOtioFile:
                 from shotmanager.otio.exports import exportOtio
 
                 bpy.context.window.scene = scene

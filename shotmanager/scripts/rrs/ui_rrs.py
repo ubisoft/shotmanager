@@ -1,4 +1,4 @@
-from ...config import config
+from shotmanager.config import config
 
 from bpy.types import Panel
 
@@ -14,7 +14,8 @@ class UAS_PT_ShotManager_RRS_Debug(Panel):
     @classmethod
     def poll(cls, context):
         props = context.scene.UAS_shot_manager_props
-        return not props.dontRefreshUI()
+        displayPanel = not props.dontRefreshUI() and config.uasDebug
+        return displayPanel
 
     def draw(self, context):
         props = context.scene.UAS_shot_manager_props

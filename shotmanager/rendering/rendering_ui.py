@@ -66,11 +66,19 @@ class UAS_PT_ShotManagerRenderPanel(Panel):
         # render engine
         ##############
         row = layout.row(align=True)
-        row.prop(props, "renderComputationMode", text="Mode")
+        # row.label(text="Mode:")
+        row.prop(props.renderContext, "renderComputationMode", text="Mode")
         row.separator()
-        row.prop(bpy.context.scene.render, "engine", text="Engine")
-        # row = layout.row(align=True)
-        # row.prop(props, "renderComputationMode", text="Comput. Mode")
+        # row.prop(bpy.context.scene.render, "engine", text="Engine")
+
+        if (
+            "PLAYBLAST_ANIM" == props.renderContext.renderComputationMode
+            or "PLAYBLAST_LOOP" == props.renderContext.renderComputationMode
+        ):
+            row.prop(props.renderContext, "renderEngineOpengl", text="Playblast Engine")
+        # row.prop(props.renderContext, "renderEngine", text="Engine")
+        else:
+            row.prop(props.renderContext, "renderEngine", text="Engine")
 
         row = layout.row(align=True)
         row.separator(factor=5)

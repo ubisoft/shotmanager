@@ -3,7 +3,59 @@ from bpy.types import PropertyGroup
 from bpy.props import StringProperty, BoolProperty, EnumProperty
 
 
+# def list_available_render_engines(self, context):
+#     engineList = list()
+
+#     engineList.append(("EEVEE", "Eevee", "", 0))
+#     engineList.append(("WORKBENCH", "Workbench", "", 1))
+#     if "ENGINE_ANIM" == self.renderComputationMode or "ENGINE_LOOP" == self.renderComputationMode:
+#         engineList.append(("CYCLES", "Cycles", "", 2))
+#     return engineList
+
+
 class UAS_ShotManager_RenderGlobalContext(PropertyGroup):
+
+    renderComputationMode: EnumProperty(
+        name="Render Mode",
+        description="Use the specified render engine or the playblast mode",
+        items=(
+            ("PLAYBLAST_ANIM", "Playblast Anim.", "Use opengl render playblast (animation mode)"),
+            ("PLAYBLAST_LOOP", "Playblast Loop", "Use opengl render playblast, images are computed in a custom loop"),
+            ("ENGINE_ANIM", "Engine Anim", "Use specified renderer (animation mode)"),
+            ("ENGINE_LOOP", "Engine Loop", "Use specified renderer, images are computed in a custom loop"),
+        ),
+        default="PLAYBLAST_ANIM",
+        options=set(),
+    )
+
+    def _update_renderEngine(self, context):
+        pass
+
+    renderEngine: EnumProperty(
+        name="Render Engine",
+        description="Set the Render Engine to use for the rendering",
+        items=(
+            ("BLENDER_EEVEE", "Eevee", ""),
+            ("BLENDER_WORKBENCH", "Workbench", ""),
+            ("CYCLES", "Cycles", ""),
+            ("CUSTOM", "Custom", "Use the settings present in the scene. No other settings are applied"),
+        ),
+        default="BLENDER_EEVEE",
+        update=_update_renderEngine,
+    )
+
+    renderEngineOpengl: EnumProperty(
+        name="Render Engine Opengl",
+        description="Set the Render Engine to use for the playblast rendering",
+        items=(
+            ("BLENDER_EEVEE", "Eevee", ""),
+            ("BLENDER_WORKBENCH", "Workbench", ""),
+            ("CUSTOM", "Custom", "Use the settings present in the scene. No other settings are applied"),
+        ),
+        default="BLENDER_EEVEE",
+        # update=_update_renderEngine,
+    )
+
     def _update_renderQuality(self, context):
         self.applyRenderQualitySettings()
 
@@ -22,6 +74,7 @@ class UAS_ShotManager_RenderGlobalContext(PropertyGroup):
 
     def applyRenderQualitySettings(self, renderWithOpengl=True):
         # wkip les Quality Settings devraient etre globales au fichier
+        # wkip faire une distinction avec le moteur courant pour l'application des settings
         props = bpy.context.scene.UAS_shot_manager_props
         bpy.context.space_data.overlay.show_overlays = props.useOverlays
 
@@ -30,15 +83,39 @@ class UAS_ShotManager_RenderGlobalContext(PropertyGroup):
             bpy.context.scene.eevee.taa_render_samples = 6
             bpy.context.scene.eevee.taa_samples = 2
 
+            # workbench
+            bpy.context.scene.render_aa = "FXAA"
+            bpy.context.scene.viewport_aa = "OFF"
+
+            # cycles
+            bpy.context.scene.cycles.samples = 6
+            bpy.context.scene.cycles.preview_samples = 2
+
         elif "MEDIUM" == self.renderQuality:
             # eevee
             bpy.context.scene.eevee.taa_render_samples = 64
             bpy.context.scene.eevee.taa_samples = 16
 
+            # workbench
+            bpy.context.scene.render_aa = "5"
+            bpy.context.scene.viewport_aa = "FXAA"
+
+            # cycles
+            bpy.context.scene.cycles.samples = 64
+            bpy.context.scene.cycles.preview_samples = 16
+
         elif "HIGH" == self.renderQuality:
             # eevee
             bpy.context.scene.eevee.taa_render_samples = 128
             bpy.context.scene.eevee.taa_samples = 32
+
+            # workbench
+            bpy.context.scene.render_aa = "16"
+            bpy.context.scene.viewport_aa = "5"
+
+            # cycles
+            bpy.context.scene.cycles.samples = 128
+            bpy.context.scene.cycles.preview_samples = 32
 
         # CUSTOM
         else:

@@ -625,19 +625,6 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         options=set(),
     )
 
-    renderComputationMode: EnumProperty(
-        name="Render Mode",
-        description="Use the specified render engine or the playblast mode",
-        items=(
-            ("PLAYBLAST_ANIM", "Playblast Anim.", "Use opengl render playblast (animation mode)"),
-            ("PLAYBLAST_LOOP", "Playblast Loop", "Use opengl render playblast, images are computed in a custom loop"),
-            ("ENGINE_ANIM", "Engine Anim", "Use specified renderer (animation mode)"),
-            ("ENGINE_LOOP", "Engine Loop", "Use specified renderer, images are computed in a custom loop"),
-        ),
-        default="PLAYBLAST_ANIM",
-        options=set(),
-    )
-
     ############
     # render properties for UI
     useOverlays: BoolProperty(
@@ -646,14 +633,6 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         default=False,
         options=set(),
     )
-
-    # renderComputationMode: EnumProperty(
-    #     name="Computation Mode",
-    #     description="Render in a custom loop or in an animation raw",
-    #     items=(("LOOP", "Loop", ""), ("ANIMRAW", "Animation Raw", "")),
-    #     default="LOOP",
-    #     options=set(),
-    # )
 
     renderRootPath: StringProperty(
         name="Render Root Path",
