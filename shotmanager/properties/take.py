@@ -2,7 +2,7 @@ import bpy
 
 from bpy.types import Scene
 from bpy.types import PropertyGroup
-from bpy.props import StringProperty, CollectionProperty, PointerProperty
+from bpy.props import StringProperty, CollectionProperty, PointerProperty, BoolProperty
 
 from .shot import UAS_ShotManager_Shot
 
@@ -130,6 +130,21 @@ class UAS_ShotManager_Take(SequenceInterface, PropertyGroup):
 
     def getEditShots(self):
         return self.getShotsList(ignoreDisabled=True)
+
+    #############
+    # notes #####
+    #############
+
+    note01: StringProperty(name="Note 1", description="")
+    note02: StringProperty(name="Note 2", description="")
+    note03: StringProperty(name="Note 3", description="")
+
+    def hasNotes(self):
+        return "" != self.note01 or "" != self.note02 or "" != self.note03
+
+    showNotes: BoolProperty(
+        name="Show Take Notes", description="Show or hide current take notes", default=False,
+    )
 
     #############
     # interface for Montage #####

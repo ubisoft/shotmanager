@@ -402,9 +402,9 @@ class UAS_ShotManager_ShotDuplicate(Operator):
         selectedShot = context.scene.UAS_shot_manager_props.getSelectedShot()
         if selectedShot is None:
             return {"CANCELLED"}
-        self.name = selectedShot.name + "_copy"
+        self.name = selectedShot.name + "_duplicate"
         if selectedShot.camera is not None:
-            self.camName = selectedShot.camera.name + "_copy"
+            self.camName = selectedShot.camera.name + "_duplicate"
         return context.window_manager.invoke_props_dialog(self, width=350)
 
     def draw(self, context):
@@ -449,7 +449,7 @@ class UAS_ShotManager_ShotDuplicate(Operator):
             return {"CANCELLED"}
 
         newShotInd = len(props.get_shots()) if self.addToEndOfList else selectedShotInd + 1
-        newShot = props.copyShot(selectedShot, atIndex=newShotInd)
+        newShot = props.copyShot(selectedShot, atIndex=newShotInd, copyCamera=self.duplicateCam)
 
         # newShot.name = props.getUniqueShotName(self.name)
         newShot.name = self.name
@@ -457,10 +457,10 @@ class UAS_ShotManager_ShotDuplicate(Operator):
             newShot.start = context.scene.frame_current
             newShot.end = newShot.start + selectedShot.end - selectedShot.start
 
-        if self.duplicateCam and newShot.camera is not None:
-            newCam = utils.duplicateObject(newShot.camera)
-            newCam.name = self.camName
-            newShot.camera = newCam
+        # if self.duplicateCam and newShot.camera is not None:
+        #     newCam = utils.duplicateObject(newShot.camera)
+        #     newCam.name = self.camName
+        #     newShot.camera = newCam
 
         props.setCurrentShotByIndex(newShotInd)
         props.setSelectedShotByIndex(newShotInd)

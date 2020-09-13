@@ -579,14 +579,51 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
             newTake = self.createDefaultTake()
         else:
             newTakeName = self.getUniqueTakeName(name)
+
+            #######
+            # important note: newTake points to the slot in takes array, not to the take itself
             newTake = takes.add()
             newTake.parentScene = self.getParentScene()
-            newTake.name = newTakeName
+            newTake.name = "" + newTakeName
 
         # self.current_take_name = newTake.name
+        # print(f"new added take name: {newTake.name}")
 
-        if -1 != atIndex:  # move shot at specified index
-            takes.move(len(takes) - 1, atIndex)
+        # move take at specified index
+        # !!! warning: newTake has to be updated !!!
+        if -1 != atIndex:
+            atValidIndex = max(atIndex, 0)
+            atValidIndex = min(atValidIndex, len(takes) - 1)
+            takes.move(len(takes) - 1, atValidIndex)
+            newTake = takes[atValidIndex]
+
+        # after a move newTake is different!
+        # print(f"new added take name02: {newTake.name}")
+
+        return newTake
+
+    def copyTake(self, take, atIndex=-1, copyCamera=False):
+        """ Copy a take after the current take if possible or at the end of the takes list otherwise
+            Return the newly added take
+        """
+
+        def _copyString(str1):
+            resStr = ""
+            for c in str1:
+                resStr += c
+            return resStr
+
+        newTake = self.addTake(atIndex=atIndex, name=take.name + "_copy")
+        newTake.note01 = _copyString(take.note01)
+        newTake.note02 = _copyString(take.note02)
+        newTake.note03 = _copyString(take.note03)
+        newTake.showNotes = take.showNotes
+
+        newTakeInd = self.getTakeIndex(newTake)
+
+        shots = take.getShotsList()
+        for shot in shots:
+            self.copyShot(shot, targetTakeIndex=newTakeInd, copyCamera=copyCamera)
 
         return newTake
 
@@ -960,10 +997,15 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         newShot.camera = camera
         newShot.color = color
 
+        # move shot at specified index
+        # !!! warning: newShot has to be updated !!!
         newShotInd = len(shots) - 1
-        if -1 != atIndex:  # move shot at specified index
-            shots.move(newShotInd, atIndex)
-            newShotInd = atIndex
+        if -1 != atIndex:
+            atValidIndex = max(atIndex, 0)
+            atValidIndex = min(atValidIndex, len(shots) - 1)
+            shots.move(len(shots) - 1, atValidIndex)
+            newShot = shots[atValidIndex]
+            newShotInd = atValidIndex
 
         # update the current take if needed
         if takeInd == currentTakeInd:
@@ -972,11 +1014,11 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
 
         # warning: by reordering the shots it looks like newShot is not pointing anymore on the new shot
         # we then get it again
-        newShot = self.getShot(newShotInd)
+        # newShot = self.getShot(newShotInd)
 
         return newShot
 
-    def copyShot(self, shot, atIndex=-1, targetTakeIndex=-1):
+    def copyShot(self, shot, atIndex=-1, targetTakeIndex=-1, copyCamera=False):
         """ Copy a shot after the current shot if possible or at the end of the shot list otherwise (case of an add in a take
             that is not the current one)
             Return the newly added shot
@@ -986,7 +1028,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         # wkip wip fix for early backward compatibility - to remove
         # self.fixShotsParent()
 
-        currentTakeInd = self.getCurrentTakeIndex()
+        #  currentTakeInd = self.getCurrentTakeIndex()
         sourceTakeInd = shot.parentTakeIndex
         takeInd = (
             sourceTakeInd
@@ -996,29 +1038,48 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         if -1 == takeInd:
             return None
 
-        newShot = None
-        shots = self.get_shots(takeIndex=takeInd)
+        # newShot = None
+        # shots = self.get_shots(takeIndex=takeInd)
 
-        newShot = shots.add()  # shot is added at the end
-        newShot.parentScene = shot.parentScene
-        newShot.parentTakeIndex = takeInd
-        newShot.name = shot.name
-        newShot.enabled = shot.enabled
-        newShot.end = 9999999  # mandatory cause start is clamped by end
-        newShot.start = shot.start
-        newShot.end = shot.end
-        newShot.camera = shot.camera
-        newShot.color = shot.color
+        cam = shot.camera
+        if copyCamera and shot.camera is not None:
+            newCam = utils.duplicateObject(cam)
+            newCam.name = cam.name + "_copy"
+            # wkipwkipwkip
+            # newCam.color = utils.slightlyRandomizeColor(cam.color)
+            cam = newCam
 
-        newShotInd = len(shots) - 1
-        if -1 != atIndex:  # move shot at specified index
-            shots.move(len(shots) - 1, atIndex)
-            newShotInd = self.getShotIndex(newShot)
+        newShot = self.addShot(
+            atIndex=atIndex,
+            takeIndex=targetTakeIndex,
+            name=shot.name + "_copy",
+            start=shot.start,
+            end=shot.end,
+            camera=cam,
+            color=shot.color,
+            enabled=shot.enabled,
+        )
+
+        # newShot = shots.add()  # shot is added at the end
+        # newShot.parentScene = shot.parentScene
+        # newShot.parentTakeIndex = takeInd
+        # newShot.name = shot.name
+        # newShot.enabled = shot.enabled
+        # newShot.end = 9999999  # mandatory cause start is clamped by end
+        # newShot.start = shot.start
+        # newShot.end = shot.end
+        # newShot.camera = shot.camera
+        # newShot.color = shot.color
+
+        # newShotInd = len(shots) - 1
+        # if -1 != atIndex:  # move shot at specified index
+        #     shots.move(newShotInd, atIndex)
+        #     newShotInd = self.getShotIndex(newShot)
 
         # update the current take if needed
-        if takeInd == currentTakeInd:
-            self.setCurrentShotByIndex(newShotInd)
-            self.setSelectedShotByIndex(newShotInd)
+        # if takeInd == currentTakeInd:
+        #     self.setCurrentShotByIndex(newShotInd)
+        #     self.setSelectedShotByIndex(newShotInd)
 
         return newShot
 

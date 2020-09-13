@@ -8,6 +8,7 @@ def setRRS_StampInfoSettings(scene):
 
         props = scene.UAS_shot_manager_props
 
+        wkipwkipwkip
         projProp_Name = props.project_name
         projProp_resolution_x = 1280
         projProp_resolution_y = 720

@@ -349,7 +349,9 @@ class UAS_ShotManager_Shots_Prefs(Operator):
 
         subrow = row.row()
         subrow.scale_x = 1.5
-        subrow.prop(props, "display_notes_in_properties", text="", icon="TEXT")
+        notesIcon = "TEXT"
+        notesIcon = "WORDWRAP_OFF"
+        subrow.prop(props, "display_notes_in_properties", text="", icon=notesIcon)
 
         row.label(text="Shot Notes")
         # row.use_property_split = True

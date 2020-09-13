@@ -83,6 +83,7 @@ class UAS_PT_ShotManager(Panel):
         layout = self.layout
         scene = context.scene
         props = scene.UAS_shot_manager_props
+        currentTake = props.getCurrentTake()
 
         import addon_utils
 
@@ -221,13 +222,66 @@ class UAS_PT_ShotManager(Panel):
 
         # takes
         ################
-        row = layout.row()  # just to give some space...
+        layout.separator(factor=0.3)
         box = layout.box()
-        row = box.row()
+        row = box.row(align=False)
+        row.label(text="Take:")
+        subrow = row.row(align=True)
         #    row.scale_y = 1.5
-        row.prop(props, "current_take_name")
+        subrow.scale_x = 2.0
+
+        subsubrow = subrow.row(align=False)
+        subsubrow.scale_x = 0.8
+        if currentTake is not None and currentTake.hasNotes():
+            # if item.hasNotes():
+            notesIcon = "ALIGN_TOP"
+            notesIcon = "ALIGN_JUSTIFY"
+            notesIcon = "WORDWRAP_OFF"
+            # notesIcon = "TEXT"
+            # notesIcon = "OUTLINER_DATA_GP_LAYER"
+            subsubrow.prop(currentTake, "showNotes", text="", icon=notesIcon, emboss=currentTake.showNotes)
+        else:
+            subsubrow.enabled = currentTake is not None
+
+            notesIcon = "WORDWRAP_ON"
+            notesIcon = "MESH_PLANE"
+            subsubrow.prop(currentTake, "showNotes", text="", icon=notesIcon, emboss=currentTake.showNotes)
+            # emptyIcon = config.icons_col["General_Empty_32"]
+            # row.operator(
+            #     "uas_shot_manager.shots_shownotes", text="", icon_value=emptyIcon.icon_id
+            # ).index = index
+
+        subrow.prop(props, "current_take_name", text="")
         #    row.menu(UAS_MT_ShotManager_Takes_ToolsMenu.bl_idname,text="Tools",icon='TOOL_SETTINGS')
+
+        # row = row.row(align=False)
         row.menu("UAS_MT_Shot_Manager_takes_toolsmenu", icon="TOOL_SETTINGS", text="")
+
+        # Notes
+        ######################
+        if currentTake.showNotes:
+            box = box.box()
+            box.use_property_decorate = False
+            row = box.row()
+            row.separator(factor=1.0)
+            c = row.column()
+            # grid_flow = c.grid_flow(align=False, columns=3, even_columns=False)
+            subrow = c.row()
+            subrow.label(text="Take Notes:")
+            subrow.separator(factor=0.5)  # prevents strange look when panel is narrow
+            row = box.row()
+            row.separator(factor=1.0)
+            row.prop(currentTake, "note01", text="")
+            row.separator(factor=1.0)
+            row = box.row()
+            row.separator(factor=1.0)
+            row.prop(currentTake, "note02", text="")
+            row.separator(factor=1.0)
+            row = box.row()
+            row.separator(factor=1.0)
+            row.prop(currentTake, "note03", text="")
+            row.separator(factor=1.0)
+            box.separator(factor=0.1)
 
         # shots
         ################
@@ -276,7 +330,7 @@ class UAS_PT_ShotManager(Panel):
 
             row = box.row()
             row.template_list(
-                "UAS_UL_ShotManager_Items", "", props.getCurrentTake(), "shots", props, "selected_shot_index", rows=6
+                "UAS_UL_ShotManager_Items", "", currentTake, "shots", props, "selected_shot_index", rows=6
             )
 
             col = row.column(align=True)
@@ -384,15 +438,21 @@ class UAS_UL_ShotManager_Items(bpy.types.UIList):
                 row.scale_x = 1.0
 
                 if item.hasNotes():
-                    notesIcon = "TEXT"
-                    notesIcon = "OUTLINER_DATA_GP_LAYER"
                     notesIcon = "ALIGN_TOP"
+                    notesIcon = "ALIGN_JUSTIFY"
+                    notesIcon = "WORDWRAP_OFF"
+                    notesIcon = "WORDWRAP_OFF"
+                    # notesIcon = "TEXT"
+                    # notesIcon = "OUTLINER_DATA_GP_LAYER"
                     row.operator("uas_shot_manager.shots_shownotes", text="", icon=notesIcon).index = index
                 else:
-                    emptyIcon = config.icons_col["General_Empty_32"]
-                    row.operator(
-                        "uas_shot_manager.shots_shownotes", text="", icon_value=emptyIcon.icon_id
-                    ).index = index
+                    notesIcon = "WORDWRAP_ON"
+                    notesIcon = "MESH_PLANE"
+                    row.operator("uas_shot_manager.shots_shownotes", text="", icon=notesIcon).index = index
+                    # emptyIcon = config.icons_col["General_Empty_32"]
+                    # row.operator(
+                    #     "uas_shot_manager.shots_shownotes", text="", icon_value=emptyIcon.icon_id
+                    # ).index = index
                 row.scale_x = 0.9
 
             if props.display_color_in_shotlist:
@@ -729,7 +789,7 @@ class UAS_PT_ShotManager_ShotProperties(Panel):
 
             # Notes
             ######################
-            if props.display_notes_in_properties and shot.camera is not None:
+            if props.display_notes_in_properties:
                 box = layout.box()
                 box.use_property_decorate = False
                 row = box.row()
@@ -752,6 +812,7 @@ class UAS_PT_ShotManager_ShotProperties(Panel):
                 row.separator(factor=1.0)
                 row.prop(shot, "note03", text="")
                 row.separator(factor=1.0)
+                box.separator(factor=0.1)
 
             # Camera background images
             ######################
