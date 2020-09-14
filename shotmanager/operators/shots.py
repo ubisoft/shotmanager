@@ -389,7 +389,7 @@ class UAS_ShotManager_ShotDuplicate(Operator):
     name: StringProperty(name="Name")
     startAtCurrentTime: BoolProperty(name="Start At Current Frame", default=True)
     addToEndOfList: BoolProperty(name="Add At The End Of The List")
-    duplicateCam: BoolProperty(name="Also Duplicate Camera")
+    duplicateCam: BoolProperty(name="Duplicate Camera")
     camName: StringProperty(name="Camera Name")
 
     @classmethod

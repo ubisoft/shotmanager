@@ -602,7 +602,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
 
         return newTake
 
-    def copyTake(self, take, atIndex=-1, copyCamera=False):
+    def copyTake(self, take, atIndex=-1, copyCamera=False, ignoreDisabled=False):
         """ Copy a take after the current take if possible or at the end of the takes list otherwise
             Return the newly added take
         """
@@ -621,7 +621,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
 
         newTakeInd = self.getTakeIndex(newTake)
 
-        shots = take.getShotsList()
+        shots = take.getShotsList(ignoreDisabled=ignoreDisabled)
         for shot in shots:
             self.copyShot(shot, targetTakeIndex=newTakeInd, copyCamera=copyCamera)
 
@@ -962,6 +962,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         name="defaultShot",
         start=10,
         end=20,
+        durationLocked=False,
         camera=None,
         color=(0.2, 0.6, 0.8, 1),
         enabled=True,
@@ -994,6 +995,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         newShot.end = 9999999  # mandatory cause start is clamped by end
         newShot.start = start
         newShot.end = end
+        newShot.durationLocked = durationLocked
         newShot.camera = camera
         newShot.color = color
 
@@ -1024,6 +1026,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
             Return the newly added shot
             Since this function works also with takes that are not the current one the current shot is not taken into account not modified
             Specifying a value to targetTakeIndex allows the copy of a shot to another take
+            When a shot is copied in the same take its name will be suffixed by "_copy". When copied to another take its name is not modified.
         """
         # wkip wip fix for early backward compatibility - to remove
         # self.fixShotsParent()
@@ -1044,21 +1047,34 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         cam = shot.camera
         if copyCamera and shot.camera is not None:
             newCam = utils.duplicateObject(cam)
-            newCam.name = cam.name + "_copy"
+            if targetTakeIndex == sourceTakeInd:
+                newCam.name = cam.name + "_copy"
             # wkipwkipwkip
             # newCam.color = utils.slightlyRandomizeColor(cam.color)
             cam = newCam
 
+        nameSuffix = ""
+        if targetTakeIndex == sourceTakeInd:
+            nameSuffix = "_copy"
+
         newShot = self.addShot(
             atIndex=atIndex,
             takeIndex=targetTakeIndex,
-            name=shot.name + "_copy",
+            name=shot.name + nameSuffix,
             start=shot.start,
             end=shot.end,
+            durationLocked=shot.durationLocked,
             camera=cam,
             color=shot.color,
             enabled=shot.enabled,
         )
+
+        newShot.bgImages_offset = shot.bgImages_offset
+        newShot.bgImages_linkToShotStart = shot.bgImages_linkToShotStart
+
+        newShot.note01 = shot.note01
+        newShot.note03 = shot.note02
+        newShot.note03 = shot.note03
 
         # newShot = shots.add()  # shot is added at the end
         # newShot.parentScene = shot.parentScene

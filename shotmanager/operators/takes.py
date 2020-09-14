@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import bpy
 from bpy.types import Panel, Operator
-from bpy.props import CollectionProperty, StringProperty
+from bpy.props import CollectionProperty, StringProperty, BoolProperty
 
 # import shotmanager.operators.shots as shots
 
@@ -82,6 +82,8 @@ class UAS_ShotManager_DuplicateTake(Operator):
     bl_options = {"INTERNAL", "UNDO"}
 
     newTakeName: StringProperty(name="New Take Name")
+    alsoDisabled: BoolProperty(name="Also Apply to Disabled Shots", default=True)
+    duplicateCam: BoolProperty(name="Duplicate Cameras", default=False)
 
     def invoke(self, context, event):
         takes = context.scene.UAS_shot_manager_props.getTakes()
@@ -107,6 +109,12 @@ class UAS_ShotManager_DuplicateTake(Operator):
         col = grid_flow.column(align=True)
         col.prop(self, "newTakeName", text="")
 
+        row = box.row(align=True)
+        row.separator(factor=2.5)
+        subgrid_flow = row.grid_flow(align=True, row_major=True, columns=1, even_columns=False)
+        subgrid_flow.prop(self, "alsoDisabled")
+        subgrid_flow.prop(self, "duplicateCam")
+
         layout.separator()
 
     def execute(self, context):
@@ -117,7 +125,12 @@ class UAS_ShotManager_DuplicateTake(Operator):
         currentTakeInd = props.getCurrentTakeIndex()
 
         if currentTake is not None:
-            newTake = props.copyTake(currentTake, atIndex=currentTakeInd + 1)
+            newTake = props.copyTake(
+                currentTake,
+                atIndex=currentTakeInd + 1,
+                copyCamera=self.duplicateCam,
+                ignoreDisabled=not self.alsoDisabled,
+            )
             newTake.name = self.newTakeName
             props.current_take_name = newTake.name
             props.setCurrentShotByIndex(currentShotIndex)
