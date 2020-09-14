@@ -297,6 +297,11 @@ def create_new_camera(camera_name, location=[0, 0, 0], locate_on_cursor=False):
     return cam_ob
 
 
+###################
+# Scene content
+###################
+
+
 def clear_selection():
     if bpy.context.active_object is not None:
         bpy.context.active_object.select_set(False)
@@ -310,6 +315,51 @@ def add_to_selection(obj):
     obj.select_set(True)
     # to set the active object
     bpy.context.view_layer.objects.active = obj
+
+
+###################
+# Color
+###################
+
+
+def slightlyRandomizeColor(refColor, weight=0.8):
+    """
+        refColor is supposed to be linear, returned color is linear too
+        refColor can be RGB or RGBA. Alpha is not modified.
+    """
+    from random import uniform
+
+    newColor = [uniform(0, 1), uniform(0, 1), uniform(0, 1)]
+    for i in range(0, 3):
+        newColor[i] = refColor[i] * weight + newColor[i] * (1.0 - weight)
+
+    if len(refColor) == 4:
+        newColor.append(refColor[3])
+
+    return newColor
+
+
+def darken_color(color):
+    factor = 0.6
+    d_color = (color[0] * factor, color[1] * factor, color[2] * factor, color[3] * 1.0)
+    return d_color
+
+
+def linearizeColor(color):
+    gamma = 0.45
+    d_color = (pow(color[0], gamma), pow(color[1], gamma), pow(color[2], gamma), color[3] * 1.0)
+    return d_color
+
+
+def sRGBColor(color):
+    gamma = 1.0 / 0.45
+    d_color = (pow(color[0], gamma), pow(color[1], gamma), pow(color[2], gamma), color[3] * 1.0)
+    return d_color
+
+
+###################
+# Various
+###################
 
 
 def segment_is_in_range(segment_start, segment_end, range_start, range_end, partly_inside=True):

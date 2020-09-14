@@ -1049,8 +1049,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
             newCam = utils.duplicateObject(cam)
             if targetTakeIndex == sourceTakeInd:
                 newCam.name = cam.name + "_copy"
-            # wkipwkipwkip
-            # newCam.color = utils.slightlyRandomizeColor(cam.color)
+            newCam.color = utils.sRGBColor(utils.slightlyRandomizeColor(utils.linearizeColor(cam.color)))
             cam = newCam
 
         nameSuffix = ""
@@ -1065,7 +1064,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
             end=shot.end,
             durationLocked=shot.durationLocked,
             camera=cam,
-            color=shot.color,
+            color=newCam.color,
             enabled=shot.enabled,
         )
 
