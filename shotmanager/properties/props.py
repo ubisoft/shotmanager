@@ -437,14 +437,14 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
 
         return res
 
-    def _current_take_changed(self, context):
+    def _update_current_take_name(self, context):
         self.setCurrentShotByIndex(0)
         self.setSelectedShotByIndex(0)
 
     takes: CollectionProperty(type=UAS_ShotManager_Take)
 
     current_take_name: EnumProperty(
-        items=_list_takes, name="Takes", description="Select a take", update=_current_take_changed
+        name="Takes", description="Select a take", items=_list_takes, update=_update_current_take_name,
     )
 
     handles: IntProperty(default=10, min=0, options=set())
@@ -486,6 +486,14 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
             return take
         return self.takes[takeInd]
 
+    def getTakeByName(self, takeName):
+        """ Return the first take with the specified name, None if not found
+        """
+        for t in self.takes:
+            if t.name == takeName:
+                return t
+        return None
+
     def getTakeIndex(self, take):
         takeInd = -1
 
@@ -497,6 +505,15 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
                 takeInd = -1
 
         return takeInd
+
+    def getTakeIndexByName(self, takeName):
+        """ Return the index of the first take with the specified name, -1 if not found
+        """
+        if len(self.takes):
+            for i in range(0, len(self.takes) + 1):
+                if self.takes[i].name == takeName:
+                    return i
+        return -1
 
     def getCurrentTakeIndex(self):
         takeInd = -1
@@ -1064,7 +1081,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
             end=shot.end,
             durationLocked=shot.durationLocked,
             camera=cam,
-            color=newCam.color,
+            color=cam.color,
             enabled=shot.enabled,
         )
 

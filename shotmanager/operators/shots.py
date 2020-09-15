@@ -170,7 +170,7 @@ class UAS_ShotManager_AddShot_GetCurrentFrameFor(Operator):
     bl_idname = "uas_shot_manager.addshot_getcurrentframefor"
     bl_label = "Get Current Frame"
     bl_description = "Use the current frame for the specifed component"
-    bl_options = {"INTERNAL"}
+    bl_options = {"INTERNAL", "UNDO"}
 
     propertyToUpdate: StringProperty()
 
@@ -384,7 +384,7 @@ class UAS_ShotManager_ShotDuplicate(Operator):
     bl_idname = "uas_shot_manager.duplicate_shot"
     bl_label = "Duplicate Selected Shot"
     bl_description = "Duplicate the shot selected in the shot list." "\nThe new shot is put after the selected shot"
-    bl_options = {"UNDO"}
+    bl_options = {"INTERNAL", "UNDO"}
 
     name: StringProperty(name="Name")
     startAtCurrentTime: BoolProperty(name="Start At Current Frame", default=True)
@@ -472,7 +472,7 @@ class UAS_ShotManager_RemoveShot(Operator):
     bl_idname = "uas_shot_manager.remove_shot"
     bl_label = "Remove Selected Shot"
     bl_description = "Remove the shot selected in the shot list."
-    bl_options = {"REGISTER", "UNDO"}
+    bl_options = {"INTERNAL", "UNDO"}
 
     @classmethod
     def poll(cls, context):
@@ -496,7 +496,7 @@ class UAS_ShotManager_Actions(Operator):
     bl_idname = "uas_shot_manager.list_action"
     bl_label = "List Actions"
     bl_description = "Move shots up and down in the take, in other words before or after in the edit"
-    bl_options = {"REGISTER", "UNDO"}
+    bl_options = {"INTERNAL", "UNDO"}
 
     action: bpy.props.EnumProperty(items=(("UP", "Up", ""), ("DOWN", "Down", "")))
 
@@ -555,7 +555,7 @@ class UAS_ShotManager_RemoveBGImages(Operator):
     bl_idname = "uas_shot_manager.remove_bg_images"
     bl_label = "Remove BG Images"
     bl_description = "Remove the camera background images of the specified shots"
-    bl_options = {"INTERNAL", "REGISTER", "UNDO"}
+    bl_options = {"INTERNAL", "UNDO"}
 
     shotIndex: IntProperty(default=-1)
 
@@ -588,109 +588,11 @@ class UAS_ShotManager_RemoveBGImages(Operator):
 ########################
 
 
-class UAS_ShotManager_ShotRemoveMultiple(Operator):
-    bl_idname = "uas_shot_manager.remove_multiple_shots"
-    bl_label = "Remove Shots"
-    bl_description = "Remove the specified shots from the current take"
-    bl_options = {"REGISTER", "UNDO"}
-
-    action: EnumProperty(items=(("ALL", "ALL", ""), ("DISABLED", "DISABLED", "")), default="ALL")
-
-    deleteCameras: BoolProperty(
-        name="Delete Shots Cameras",
-        description="When deleting a shot, also delete the associated camera, if not used by another shot",
-        default=False,
-    )
-
-    @classmethod
-    def description(self, context, properties):
-        descr = "_"
-        # print("properties: ", properties)
-        # print("properties action: ", properties.action)
-        if "ALL" == properties.action:
-            descr = "Remove all shots from the current take"
-        elif "DISABLED" == properties.action:
-            descr = "Remove only disabled shots from the current take"
-        return descr
-
-    @classmethod
-    def poll(cls, context):
-        shots = context.scene.UAS_shot_manager_props.get_shots()
-        return len(shots)
-
-    def invoke(self, context, event):
-        return context.window_manager.invoke_props_dialog(self, width=400)
-
-    def draw(self, context):
-        layout = self.layout
-        # scene = context.scene
-
-        box = layout.box()
-        row = box.row(align=True)
-        grid_flow = row.grid_flow(align=True, row_major=True, columns=2, even_columns=False)
-
-        col = grid_flow.column(align=False)
-        col.scale_x = 0.6
-        col.label(text="Delete Associated Camera:")
-        col = grid_flow.column(align=False)
-        col.prop(self, "deleteCameras", text="")
-
-        # row = box.row(align=True)
-        # grid_flow = row.grid_flow(align=True, row_major=True, columns=1, even_columns=False)
-        # # grid_flow.separator( factor=0.5)
-        # grid_flow.use_property_split = True
-        # grid_flow.prop(self, "startAtCurrentTime")
-        # grid_flow.prop(self, "addToEndOfList")
-
-        layout.separator()
-
-    def execute(self, context):
-        scene = context.scene
-        props = scene.UAS_shot_manager_props
-        shots = props.get_shots()
-        currentShotInd = props.current_shot_index
-        selectedShotInd = props.getSelectedShotIndex()
-
-        props.setCurrentShotByIndex(-1)
-
-        try:
-            item = shots[selectedShotInd]
-        except IndexError:
-            pass
-        else:
-            if self.action == "ALL":
-                props.setCurrentShotByIndex(-1)
-                i = len(shots) - 1
-                while i > -1:
-                    if self.deleteCameras:
-                        props.deleteShotCamera(shots[i])
-                    shots.remove(i)
-                    i -= 1
-                props.setSelectedShotByIndex(-1)
-            elif self.action == "DISABLED":
-                i = len(shots) - 1
-                while i > -1:
-                    if not shots[i].enabled:
-                        if currentShotInd == len(shots) - 1 and currentShotInd == selectedShotInd:
-                            pass
-                        if self.deleteCameras:
-                            props.deleteShotCamera(shots[i])
-                        shots.remove(i)
-                    i -= 1
-                if 0 < len(shots):  # wkip pas parfait, on devrait conserver la sel currente
-                    props.setCurrentShotByIndex(0)
-                    props.setSelectedShotByIndex(0)
-
-        #  print(" ** removed shots, len(props.get_shots()): ", len(props.get_shots()))
-
-        return {"FINISHED"}
-
-
 class UAS_ShotManager_CreateShotsFromEachCamera(Operator):
     bl_idname = "uas_shot_manager.create_shots_from_each_camera"
     bl_label = "Create Shots From Existing Cameras"
     bl_description = "Create a new shot for each camera in the scene.\nThe edit made with these shots will cover the current animation range."
-    bl_options = {"REGISTER", "UNDO"}
+    bl_options = {"INTERNAL", "UNDO"}
 
     def invoke(self, context, event):
         scene = context.scene
@@ -731,9 +633,9 @@ class UAS_ShotManager_CreateShotsFromEachCamera(Operator):
 
 class UAS_ShotManager_CreateNShots(Operator):
     bl_idname = "uas_shot_manager.create_n_shots"
-    bl_label = "Create Specifed Number of Shots"
+    bl_label = "Create Specifed Number of Shots..."
     bl_description = "Create a specified number of shots with the same camera"
-    bl_options = {"REGISTER"}
+    bl_options = {"REGISTER", "UNDO"}
 
     name: StringProperty(name="Name")
     cameraName: EnumProperty(items=list_cameras, name="Camera", description="Select a Camera")
@@ -859,6 +761,217 @@ class UAS_ShotManager_CreateNShots(Operator):
         return {"FINISHED"}
 
 
+def list_target_takes(self, context):
+    props = context.scene.UAS_shot_manager_props
+    takes = props.getTakes()
+    currentTake = props.getCurrentTake()
+    res = list()
+    for i, t in enumerate(takes):
+        if t != currentTake:
+            # res.append((t.getName_PathCompliant(), t.name, "", i))
+            res.append((t.name, t.name, "", i))
+    return res
+
+
+def list_target_take_shots(self, context):
+    """ first index is -1 to define the take start
+    """
+    props = context.scene.UAS_shot_manager_props
+    take = props.getTakeByName(self.targetTake)
+    res = list()
+    if take is not None:
+        res.append(("-1", "Edit Start", "Insert duplicated shots right after the start of the take", 0))
+        for i, s in enumerate(take.shots):
+            res.append((str(i), s.name, "", i + 1))
+
+    # res = list()
+    # res.append(("NEW_CAMERA", "New Camera", "Create new camera", 0))
+    return res
+
+
+class UAS_ShotManager_DuplicateShotsToOtherTake(Operator):
+    bl_idname = "uas_shot_manager.duplicate_shots_to_other_take"
+    bl_label = "Duplicate Enabled Shots to Another Take..."
+    bl_description = "Duplicate enabled shots to the specified take"
+    bl_options = {"INTERNAL", "UNDO"}
+
+    targetTake: EnumProperty(
+        name="Target Take", description="Take in which the shots will be duplicated", items=(list_target_takes),
+    )
+
+    insertAfterShot: EnumProperty(
+        name="Insert After Shot",
+        description="Shot in the target take after which the shots will be duplicated",
+        items=(list_target_take_shots),
+    )
+
+    duplicateCam: BoolProperty(name="Duplicate Cameras", default=False)
+
+    @classmethod
+    def poll(cls, context):
+        # shots = context.scene.UAS_shot_manager_props.get_shots()
+        shots = context.scene.UAS_shot_manager_props.getShotsList(ignoreDisabled=True)
+        takes = context.scene.UAS_shot_manager_props.getTakes()
+        return len(shots) and len(takes) > 1
+
+    def invoke(self, context, event):
+        targetTakes = list_target_takes(self, context)
+        self.targetTake = targetTakes[0][0]
+        afterShots = list_target_take_shots(self, context)
+        self.insertAfterShot = afterShots[0][0]
+
+        return context.window_manager.invoke_props_dialog(self)
+
+    def draw(self, context):
+        layout = self.layout
+
+        box = layout.box()
+        row = box.row(align=True)
+
+        grid_flow = row.grid_flow(align=True, columns=2, even_columns=False)
+        col = grid_flow.column(align=False)
+        col.scale_x = 0.6
+        col.label(text="Target Take:")
+        col = grid_flow.column(align=True)
+        col.prop(self, "targetTake", text="")
+
+        row = box.row(align=True)
+        grid_flow = row.grid_flow(align=True, columns=2, even_columns=False)
+        col = grid_flow.column(align=False)
+        col.scale_x = 0.6
+        col.label(text="Insert After Shot:")
+        col = grid_flow.column(align=True)
+        col.prop(self, "insertAfterShot", text="")
+
+        row = box.row(align=True)
+        row.separator(factor=2.5)
+        subgrid_flow = row.grid_flow(align=True, row_major=True, columns=1, even_columns=False)
+        subgrid_flow.prop(self, "duplicateCam")
+
+        layout.separator()
+
+    def execute(self, context):
+        props = context.scene.UAS_shot_manager_props
+        enabledShots = props.getShotsList(ignoreDisabled=True)
+        targetTakeInd = props.getTakeIndexByName(self.targetTake)
+        # print(f"targetTakeInd: {targetTakeInd}")
+        # print(f"insertAfterShot: {self.insertAfterShot}")
+
+        insertAfterShotInd = int(self.insertAfterShot) + 1
+        insertAtInd = insertAfterShotInd
+        for shot in enabledShots:
+            # print(f"insertAtInd: {insertAtInd}")
+
+            newShot = props.copyShot(
+                shot, atIndex=insertAtInd, copyCamera=self.duplicateCam, targetTakeIndex=targetTakeInd
+            )
+            insertAtInd += 1
+
+        props.setCurrentTakeByIndex(targetTakeInd)
+        props.setCurrentShotByIndex(insertAfterShotInd)
+        props.setSelectedShotByIndex(insertAfterShotInd)
+
+        return {"FINISHED"}
+
+
+class UAS_ShotManager_ShotRemoveMultiple(Operator):
+    bl_idname = "uas_shot_manager.remove_multiple_shots"
+    bl_label = "Remove Shots"
+    bl_description = "Remove the specified shots from the current take"
+    bl_options = {"INTERNAL", "UNDO"}
+
+    action: EnumProperty(items=(("ALL", "ALL", ""), ("DISABLED", "DISABLED", "")), default="ALL")
+
+    deleteCameras: BoolProperty(
+        name="Delete Shots Cameras",
+        description="When deleting a shot, also delete the associated camera, if not used by another shot",
+        default=False,
+    )
+
+    @classmethod
+    def description(self, context, properties):
+        descr = "_"
+        # print("properties: ", properties)
+        # print("properties action: ", properties.action)
+        if "ALL" == properties.action:
+            descr = "Remove all shots from the current take"
+        elif "DISABLED" == properties.action:
+            descr = "Remove only disabled shots from the current take"
+        return descr
+
+    @classmethod
+    def poll(cls, context):
+        shots = context.scene.UAS_shot_manager_props.get_shots()
+        return len(shots)
+
+    def invoke(self, context, event):
+        return context.window_manager.invoke_props_dialog(self, width=400)
+
+    def draw(self, context):
+        layout = self.layout
+        # scene = context.scene
+
+        box = layout.box()
+        row = box.row(align=True)
+        grid_flow = row.grid_flow(align=True, row_major=True, columns=2, even_columns=False)
+
+        col = grid_flow.column(align=False)
+        col.scale_x = 0.6
+        col.label(text="Delete Associated Camera:")
+        col = grid_flow.column(align=False)
+        col.prop(self, "deleteCameras", text="")
+
+        # row = box.row(align=True)
+        # grid_flow = row.grid_flow(align=True, row_major=True, columns=1, even_columns=False)
+        # # grid_flow.separator( factor=0.5)
+        # grid_flow.use_property_split = True
+        # grid_flow.prop(self, "startAtCurrentTime")
+        # grid_flow.prop(self, "addToEndOfList")
+
+        layout.separator()
+
+    def execute(self, context):
+        scene = context.scene
+        props = scene.UAS_shot_manager_props
+        shots = props.get_shots()
+        currentShotInd = props.current_shot_index
+        selectedShotInd = props.getSelectedShotIndex()
+
+        props.setCurrentShotByIndex(-1)
+
+        try:
+            item = shots[selectedShotInd]
+        except IndexError:
+            pass
+        else:
+            if self.action == "ALL":
+                props.setCurrentShotByIndex(-1)
+                i = len(shots) - 1
+                while i > -1:
+                    if self.deleteCameras:
+                        props.deleteShotCamera(shots[i])
+                    shots.remove(i)
+                    i -= 1
+                props.setSelectedShotByIndex(-1)
+            elif self.action == "DISABLED":
+                i = len(shots) - 1
+                while i > -1:
+                    if not shots[i].enabled:
+                        if currentShotInd == len(shots) - 1 and currentShotInd == selectedShotInd:
+                            pass
+                        if self.deleteCameras:
+                            props.deleteShotCamera(shots[i])
+                        shots.remove(i)
+                    i -= 1
+                if 0 < len(shots):  # wkip pas parfait, on devrait conserver la sel currente
+                    props.setCurrentShotByIndex(0)
+                    props.setSelectedShotByIndex(0)
+
+        #  print(" ** removed shots, len(props.get_shots()): ", len(props.get_shots()))
+
+        return {"FINISHED"}
+
+
 class UAS_ShotManager_Shots_SelectCamera(Operator):
     bl_idname = "uas_shot_manager.shots_selectcamera"
     bl_label = "Select Camera"
@@ -884,7 +997,7 @@ class UAS_ShotManager_Shots_RemoveCamera(Operator):
     bl_idname = "uas_shot_manager.shots_removecamera"
     bl_label = "Remove Camera From All Shots..."
     bl_description = "Remove the camera of the selected shot from all the shots."
-    bl_options = {"INTERNAL", "REGISTER", "UNDO"}
+    bl_options = {"INTERNAL", "UNDO"}
 
     removeFromOtherTakes: BoolProperty(name="Also Remove From Other Takes", default=False)
 
@@ -934,7 +1047,7 @@ class UAS_ShotManager_UniqueCameras(Operator):
     bl_idname = "uas_shot_manager.unique_cameras"
     bl_label = "Make All Cameras Unique"
     bl_description = "Make cameras unique per shot"
-    bl_options = {"INTERNAL", "REGISTER", "UNDO"}
+    bl_options = {"INTERNAL", "UNDO"}
 
     @classmethod
     def poll(cls, context):
@@ -996,11 +1109,12 @@ _classes = (
     # for shot properties:
     UAS_ShotManager_RemoveBGImages,
     # for shot actions:
+    UAS_ShotManager_CreateShotsFromEachCamera,
+    UAS_ShotManager_CreateNShots,
+    UAS_ShotManager_DuplicateShotsToOtherTake,
     UAS_ShotManager_ShotRemoveMultiple,
     UAS_ShotManager_Shots_SelectCamera,
     UAS_ShotManager_Shots_RemoveCamera,
-    UAS_ShotManager_CreateShotsFromEachCamera,
-    UAS_ShotManager_CreateNShots,
     UAS_ShotManager_UniqueCameras,
 )
 

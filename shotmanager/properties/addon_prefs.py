@@ -6,6 +6,10 @@ from ..config import config
 
 
 class UAS_ShotManager_AddonPrefs(AddonPreferences):
+    """
+        Use prefs = context.preferences.addons["shotmanager"].preferences to get these prefs
+    """
+
     # this must match the add-on name, use '__package__'
     # when defining this in a submodule of a python package
     bl_idname = "shotmanager"
@@ -17,6 +21,8 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
     new_shot_duration: IntProperty(
         min=0, default=50,
     )
+
+    take_properties_extended: BoolProperty(default=False,)
 
     ##################
     # add new shot ###

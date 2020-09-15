@@ -83,6 +83,7 @@ class UAS_PT_ShotManager(Panel):
         layout = self.layout
         scene = context.scene
         props = scene.UAS_shot_manager_props
+        prefs = context.preferences.addons["shotmanager"].preferences
         currentTake = props.getCurrentTake()
 
         import addon_utils
@@ -222,9 +223,12 @@ class UAS_PT_ShotManager(Panel):
 
         # takes
         ################
+        panelIcon = "TRIA_DOWN" if prefs.take_properties_extended else "TRIA_RIGHT"
+
         layout.separator(factor=0.3)
         box = layout.box()
         row = box.row(align=False)
+        row.prop(prefs, "take_properties_extended", text="", icon=panelIcon, emboss=False)
         row.label(text="Take:")
         subrow = row.row(align=True)
         #    row.scale_y = 1.5
@@ -232,6 +236,7 @@ class UAS_PT_ShotManager(Panel):
 
         subsubrow = subrow.row(align=False)
         subsubrow.scale_x = 0.8
+
         if currentTake is not None and currentTake.hasNotes():
             # if item.hasNotes():
             notesIcon = "ALIGN_TOP"
@@ -242,10 +247,11 @@ class UAS_PT_ShotManager(Panel):
             subsubrow.prop(currentTake, "showNotes", text="", icon=notesIcon, emboss=currentTake.showNotes)
         else:
             subsubrow.enabled = currentTake is not None
+            embossButton = currentTake.showNotes if currentTake is not None else False
 
             notesIcon = "WORDWRAP_ON"
             notesIcon = "MESH_PLANE"
-            subsubrow.prop(currentTake, "showNotes", text="", icon=notesIcon, emboss=currentTake.showNotes)
+            subsubrow.prop(currentTake, "showNotes", text="", icon=notesIcon, emboss=embossButton)
             # emptyIcon = config.icons_col["General_Empty_32"]
             # row.operator(
             #     "uas_shot_manager.shots_shownotes", text="", icon_value=emptyIcon.icon_id
@@ -256,6 +262,10 @@ class UAS_PT_ShotManager(Panel):
 
         # row = row.row(align=False)
         row.menu("UAS_MT_Shot_Manager_takes_toolsmenu", icon="TOOL_SETTINGS", text="")
+
+        if prefs.take_properties_extended:
+            row = box.row()
+            row.label(text="Take Properties")
 
         # Notes
         ######################
@@ -968,11 +978,23 @@ class UAS_MT_ShotManager_Shots_ToolsMenu(Menu):
 
         row = layout.row(align=True)
         row.operator_context = "INVOKE_DEFAULT"
-        row.operator("uas_shot_manager.remove_multiple_shots", text="Remove Disabled Shots...").action = "DISABLED"
+        row.operator("uas_shot_manager.create_shots_from_each_camera", icon="ADD")
 
         row = layout.row(align=True)
         row.operator_context = "INVOKE_DEFAULT"
-        row.operator("uas_shot_manager.remove_multiple_shots", text="Remove All Shots...").action = "ALL"
+        row.operator("uas_shot_manager.create_n_shots", icon="ADD")
+
+        row = layout.row(align=True)
+        row.operator_context = "INVOKE_DEFAULT"
+        row.operator("uas_shot_manager.duplicate_shots_to_other_take", icon="DUPLICATE")
+
+        row = layout.row(align=True)
+        row.operator_context = "INVOKE_DEFAULT"
+        row.operator("uas_shot_manager.remove_multiple_shots", text="Remove Disabled Shots...", icon="REMOVE")
+
+        row = layout.row(align=True)
+        row.operator_context = "INVOKE_DEFAULT"
+        row.operator("uas_shot_manager.remove_multiple_shots", text="Remove All Shots...", icon="REMOVE").action = "ALL"
 
         layout.separator()
 
@@ -997,14 +1019,6 @@ class UAS_MT_ShotManager_Shots_ToolsMenu(Menu):
         # tools for shots ###
         row = layout.row(align=True)
         row.label(text="Tools for Shots:")
-
-        row = layout.row(align=True)
-        row.operator_context = "INVOKE_DEFAULT"
-        row.operator("uas_shot_manager.create_shots_from_each_camera")
-
-        row = layout.row(align=True)
-        row.operator_context = "INVOKE_DEFAULT"
-        row.operator("uas_shot_manager.create_n_shots")
 
         row = layout.row(align=True)
         row.operator_context = "INVOKE_DEFAULT"
