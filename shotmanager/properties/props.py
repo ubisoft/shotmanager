@@ -1195,8 +1195,13 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         self.current_shot_index = currentShotIndex
 
         if -1 < currentShotIndex and len(shotList) > currentShotIndex:
-            if self.change_time:
+            prefs = bpy.context.preferences.addons["shotmanager"].preferences
+
+            if prefs.current_shot_changes_current_time:
                 scene.frame_current = shotList[currentShotIndex].start
+
+            if prefs.current_shot_changes_time_range and scene.use_preview_range:
+                bpy.ops.uas_shot_manager.scenerangefromshot()
 
             if shotList[currentShotIndex].camera is not None and bpy.context.screen is not None:
                 # set the current camera in the 3D view: [‘PERSP’, ‘ORTHO’, ‘CAMERA’]

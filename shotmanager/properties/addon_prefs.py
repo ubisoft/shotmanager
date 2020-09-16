@@ -7,7 +7,8 @@ from ..config import config
 
 class UAS_ShotManager_AddonPrefs(AddonPreferences):
     """
-        Use prefs = context.preferences.addons["shotmanager"].preferences to get these prefs
+        Use this to get these prefs:
+        prefs = context.preferences.addons["shotmanager"].preferences
     """
 
     # this must match the add-on name, use '__package__'
@@ -23,6 +24,13 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
     )
 
     take_properties_extended: BoolProperty(default=False,)
+
+    current_shot_changes_current_time: BoolProperty(
+        name="Set Current Frame To Shot Start When Current Shot Is Changed", description="", default=True,
+    )
+    current_shot_changes_time_range: BoolProperty(
+        name="Set Time Range To Shot Range When Current Shot Is Changed", description="", default=False,
+    )
 
     ##################
     # add new shot ###

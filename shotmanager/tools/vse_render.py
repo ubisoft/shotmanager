@@ -417,6 +417,78 @@ class UAS_Vse_Render(PropertyGroup):
         self.changeClipsChannel(scene, channelIndexB, channelIndexA)
         self.changeClipsChannel(scene, tempChannelInd, channelIndexB)
 
+    def get_frame_end_from_content(self, scene):
+
+        videoChannelClips = self.getChannelClips(scene, 2)
+        frame_end = -1
+
+        if len(videoChannelClips):
+            frame_end = videoChannelClips[len(videoChannelClips) - 1].frame_final_end
+
+        return frame_end
+
+    def buildSequenceVideo(self, mediaFiles, outputFile, handles, fps):
+        # props = bpy.context.scene.UAS_shot_manager_props
+        # scene = .sequence_editor
+
+        sequenceScene = None
+        # sequence composite scene
+        sequenceScene = bpy.data.scenes.new(name="VSE_SequenceRenderScene")
+
+        if not sequenceScene.sequence_editor:
+            sequenceScene.sequence_editor_create()
+
+        bpy.context.window.scene = sequenceScene
+
+        sequenceScene.render.fps = fps  # projectFps
+        sequenceScene.render.resolution_x = 1280
+        sequenceScene.render.resolution_y = 960
+        sequenceScene.frame_start = 0
+        # sequenceScene.frame_end = props.getEditDuration() - 1
+        sequenceScene.render.image_settings.file_format = "FFMPEG"
+        sequenceScene.render.ffmpeg.format = "MPEG4"
+        sequenceScene.render.ffmpeg.constant_rate_factor = "PERC_LOSSLESS"  # "PERC_LOSSLESS"
+        sequenceScene.render.ffmpeg.gopsize = 5  # keyframe interval
+        sequenceScene.render.ffmpeg.audio_codec = "AC3"
+        sequenceScene.render.filepath = outputFile
+
+        for mediaPath in mediaFiles:
+            # sequenceScene.sequence_editor
+            frameToPaste = self.get_frame_end_from_content(sequenceScene)
+            # audio clip
+            self.createNewClip(
+                sequenceScene,
+                mediaPath,
+                sequenceScene.frame_start,
+                frameToPaste,  # shot.getEditStart() - handles,
+                offsetStart=handles,
+                offsetEnd=handles,
+                importVideo=False,
+                importAudio=True,
+            )
+
+            # video clip
+            self.createNewClip(
+                sequenceScene,
+                mediaPath,
+                sequenceScene.frame_start,
+                frameToPaste,  # shot.getEditStart() - handles,
+                offsetStart=handles,
+                offsetEnd=handles,
+                importVideo=True,
+                importAudio=False,
+            )
+
+            sequenceScene.frame_end = self.get_frame_end_from_content(sequenceScene)
+
+            bpy.ops.render.opengl(animation=True, sequencer=True)
+
+            # cleaning current file from temp scenes
+            if not config.uasDebug:
+                # current scene is sequenceScene
+                # bpy.ops.scene.delete()
+                pass
+
     def compositeVideoInVSE(self, fps, frame_start, frame_end, output_filepath, postfixSceneName=""):
         # Add new scene
         scene = bpy.data.scenes.new(name="Tmp_VSE_RenderScene" + postfixSceneName)

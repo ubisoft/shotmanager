@@ -281,7 +281,7 @@ class UAS_ShotManager_Shots_Prefs(Operator):
     bl_options = {"INTERNAL"}
 
     def invoke(self, context, event):
-        return context.window_manager.invoke_props_dialog(self, width=500)
+        return context.window_manager.invoke_props_dialog(self, width=580)
 
     def draw(self, context):
         props = context.scene.UAS_shot_manager_props
@@ -313,13 +313,24 @@ class UAS_ShotManager_Shots_Prefs(Operator):
         col.separator(factor=1.0)
         col.prop(props, "use_camera_color", text="Use Camera Color for Shots ")
 
-        col.separator(factor=1.0)
-        col.prop(props, "change_time", text="Set Current Frame To Shot Start When Current Shot Is Changed")
-
         col.use_property_split = True
         col.separator(factor=1.7)
         col.prop(props, "current_shot_properties_mode")
         box.separator(factor=0.5)
+
+        # User Prefs at addon level
+        ###############
+        prefs = bpy.context.preferences.addons["shotmanager"].preferences
+        col.separator(factor=2.0)
+        col.label(text="User Preferenes (in Preference Add-on Window):")
+        col.prop(
+            prefs,
+            "current_shot_changes_current_time",
+            text="Set Current Frame To Shot Start When Current Shot Is Changed",
+        )
+        col.prop(
+            prefs, "current_shot_changes_time_range", text="Set Time Range To Shot Range When Current Shot Is Changed"
+        )
 
         # Shot infos displayed in viewport
         ###############

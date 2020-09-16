@@ -247,7 +247,9 @@ class UAS_PT_ShotManager(Panel):
             subsubrow.prop(currentTake, "showNotes", text="", icon=notesIcon, emboss=currentTake.showNotes)
         else:
             subsubrow.enabled = currentTake is not None
-            embossButton = currentTake.showNotes if currentTake is not None else False
+            embossButton = False
+            if currentTake is not None:
+                embossButton = currentTake.showNotes
 
             notesIcon = "WORDWRAP_ON"
             notesIcon = "MESH_PLANE"
