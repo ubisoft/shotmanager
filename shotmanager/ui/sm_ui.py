@@ -228,7 +228,8 @@ class UAS_PT_ShotManager(Panel):
         layout.separator(factor=0.3)
         box = layout.box()
         row = box.row(align=False)
-        row.prop(prefs, "take_properties_extended", text="", icon=panelIcon, emboss=False)
+        if config.uasDebug:
+            row.prop(prefs, "take_properties_extended", text="", icon=panelIcon, emboss=False)
         row.label(text="Take:")
         subrow = row.row(align=True)
         #    row.scale_y = 1.5
@@ -237,27 +238,23 @@ class UAS_PT_ShotManager(Panel):
         subsubrow = subrow.row(align=False)
         subsubrow.scale_x = 0.8
 
-        if currentTake is not None and currentTake.hasNotes():
-            # if item.hasNotes():
-            notesIcon = "ALIGN_TOP"
-            notesIcon = "ALIGN_JUSTIFY"
-            notesIcon = "WORDWRAP_OFF"
-            # notesIcon = "TEXT"
-            # notesIcon = "OUTLINER_DATA_GP_LAYER"
-            subsubrow.prop(currentTake, "showNotes", text="", icon=notesIcon, emboss=currentTake.showNotes)
-        else:
-            subsubrow.enabled = currentTake is not None
-            embossButton = False
-            if currentTake is not None:
-                embossButton = currentTake.showNotes
-
-            notesIcon = "WORDWRAP_ON"
-            notesIcon = "MESH_PLANE"
-            subsubrow.prop(currentTake, "showNotes", text="", icon=notesIcon, emboss=embossButton)
-            # emptyIcon = config.icons_col["General_Empty_32"]
-            # row.operator(
-            #     "uas_shot_manager.shots_shownotes", text="", icon_value=emptyIcon.icon_id
-            # ).index = index
+        if currentTake is not None:
+            if currentTake.hasNotes():
+                # if item.hasNotes():
+                notesIcon = "ALIGN_TOP"
+                notesIcon = "ALIGN_JUSTIFY"
+                notesIcon = "WORDWRAP_OFF"
+                # notesIcon = "TEXT"
+                # notesIcon = "OUTLINER_DATA_GP_LAYER"
+                subsubrow.prop(currentTake, "showNotes", text="", icon=notesIcon, emboss=currentTake.showNotes)
+            else:
+                notesIcon = "WORDWRAP_ON"
+                notesIcon = "MESH_PLANE"
+                subsubrow.prop(currentTake, "showNotes", text="", icon=notesIcon, emboss=currentTake.showNotes)
+                # emptyIcon = config.icons_col["General_Empty_32"]
+                # row.operator(
+                #     "uas_shot_manager.shots_shownotes", text="", icon_value=emptyIcon.icon_id
+                # ).index = index
 
         subrow.prop(props, "current_take_name", text="")
         #    row.menu(UAS_MT_ShotManager_Takes_ToolsMenu.bl_idname,text="Tools",icon='TOOL_SETTINGS')
@@ -271,7 +268,7 @@ class UAS_PT_ShotManager(Panel):
 
         # Notes
         ######################
-        if currentTake.showNotes:
+        if currentTake is not None and currentTake.showNotes:
             box = box.box()
             box.use_property_decorate = False
             row = box.row()

@@ -89,6 +89,7 @@ class UAS_ShotManager_General_Prefs(Operator):
         # row.label(text="Handles:")
         col.prop(props, "render_shot_prefix")
         col.prop(props, "handles", text="Handles Duration")
+        col.prop(props, "renderSingleFrameShotAsImage")
 
         box = layout.box()
         box.use_property_decorate = False

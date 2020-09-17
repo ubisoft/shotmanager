@@ -175,6 +175,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
     #############
 
     rrs_useRenderRoot: BoolProperty(name="Use Render Root", default=True)
+    rrs_fileListOnly: BoolProperty(name="File List Only", default=False)
 
     # project settings
     #############
@@ -196,18 +197,31 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
     project_color_space: StringProperty(name="Color Space", default="")
     project_asset_name: StringProperty(name="Asset Name", default="")
 
-    # built-in settings
+    # built-in project settings
     project_use_stampinfo: BoolProperty(
         name="Use Stamp Info Add-on",
         description="Use UAS Stamp Info add-on - if available - to write data on rendered images.\nNote: If Stamp Info is not installed then warnings will be displayed",
         default=False,
     )
 
+    # built-in settings
     new_shot_prefix: StringProperty(default="Sh")
+
+    renderSingleFrameShotAsImage: BoolProperty(
+        name="Render Single Frame Shot as Image",
+        description="Render single frame shot as an image, not as a video",
+        default=True,
+    )
 
     # overriden by project settings
     render_shot_prefix: StringProperty(
         name="Render Shot Prefix", description="Prefix added to the shot names at render time", default=""
+    )
+
+    project_renderSingleFrameShotAsImage: BoolProperty(
+        name="Project Render Single Frame Shot as Image",
+        description="Render single frame shot as an image, not as a video",
+        default=True,
     )
 
     project_images_output_format: StringProperty(name="Images Output Format", default="PNG")
@@ -1186,7 +1200,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
             self.setCurrentShotByIndex(newInd)
         self.setSelectedShotByIndex(newInd)
 
-    def setCurrentShotByIndex(self, currentShotIndex):
+    def setCurrentShotByIndex(self, currentShotIndex, changeTime=None):
         """ Changing the current shot doesn't affect the selected one
         """
         scene = bpy.context.scene
@@ -1197,7 +1211,10 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         if -1 < currentShotIndex and len(shotList) > currentShotIndex:
             prefs = bpy.context.preferences.addons["shotmanager"].preferences
 
-            if prefs.current_shot_changes_current_time:
+            if changeTime is None:
+                if prefs.current_shot_changes_current_time:
+                    scene.frame_current = shotList[currentShotIndex].start
+            elif changeTime:
                 scene.frame_current = shotList[currentShotIndex].start
 
             if prefs.current_shot_changes_time_range and scene.use_preview_range:
@@ -1216,7 +1233,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
 
     def setCurrentShot(self, currentShot):
         shotInd = self.getShotIndex(currentShot)
-        #    print("setCurrentShot: shotInd:", shotInd)
+        print("setCurrentShot: shotInd:", shotInd)
         self.setCurrentShotByIndex(shotInd)
 
     def getShotIndex(self, shot):

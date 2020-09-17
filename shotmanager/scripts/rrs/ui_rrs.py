@@ -23,7 +23,9 @@ class UAS_PT_ShotManager_RRS_Debug(Panel):
         layout = self.layout
         row = layout.row(align=False)
         row.label(text="RRS Specific (debug temp):")
+        row = layout.row(align=False)
         row.prop(props, "rrs_useRenderRoot")
+        row.prop(props, "rrs_fileListOnly")
         row = layout.row(align=False)
         row.alert = True
         row.operator("uas_shot_manager.initialize_rrs_project", text="Debug - RRS Initialyze")

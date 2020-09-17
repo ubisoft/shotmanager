@@ -54,6 +54,8 @@ from .scripts import rrs
 from .data_patches.data_patch_to_v1_2_25 import data_patch_to_v1_2_25
 from .data_patches.data_patch_to_v1_3_16 import data_patch_to_v1_3_16
 
+# from .data_patches.data_patch_to_v1_3_31 import data_patch_to_v1_3_31
+
 from .debug import sm_debug
 
 bl_info = {
@@ -61,7 +63,7 @@ bl_info = {
     "author": "Julien Blervaque (aka Werwack), Romain Carriquiry Borchiari",
     "description": "Manage a sequence of shots and cameras in the 3D View - Ubisoft Animation Studio",
     "blender": (2, 90, 0),
-    "version": (1, 3, 31),
+    "version": (1, 3, 33),
     "location": "View3D > UAS Shot Manager",
     "wiki_url": "https://gitlab-ncsa.ubisoft.org/animation-studio/blender/shotmanager-addon/-/wikis/home",
     "warning": "BETA Version - Fais gaffe à tes données !!!",
@@ -211,6 +213,11 @@ def checkDataVersion_post_load_handler(self, context):
                 print("       Applying data patch to file: upgrade to 1002025")
                 data_patch_to_v1_3_16()
                 lowerSceneVersion = 1003016
+
+            # if lowerSceneVersion < 1003031:
+            #     print("       Applying data patch to file: upgrade to 1002031")
+            #     data_patch_to_v1_3_31()
+            #     lowerSceneVersion = 1003031
 
             # current version, no patch required but data version is updated
             if lowerSceneVersion < props.version()[1]:

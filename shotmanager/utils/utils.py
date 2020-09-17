@@ -186,8 +186,9 @@ def findFirstUniqueName(originalItem, name, itemsArray):
     return newName
 
 
-def getSceneVSE(vsm_sceneName):
-    """ Return a VSE in the scene specified by its name (creates it if needed)
+def getSceneVSE(vsm_sceneName, createVseTab=True):
+    """ Return the scene that has the name held by vsm_sceneName and adds a VSE in it if there is not already one.
+        Use <returned scene>.sequence_editor to get the vse of the scene
     """
     # vsm_sceneName = "VideoShotManger"
     vsm_scene = None
@@ -201,18 +202,20 @@ def getSceneVSE(vsm_sceneName):
     if not vsm_scene.sequence_editor:
         vsm_scene.sequence_editor_create()
 
-    startup_blend = os.path.join(
-        bpy.utils.resource_path("LOCAL"),
-        "scripts",
-        "startup",
-        "bl_app_templates_system",
-        "Video_Editing",
-        "startup.blend",
-    )
-
     bpy.context.window.scene = vsm_scene
-    if "Video Editing" not in bpy.data.workspaces:
-        bpy.ops.workspace.append_activate(idname="Video Editing", filepath=startup_blend)
+
+    if createVseTab:
+        startup_blend = os.path.join(
+            bpy.utils.resource_path("LOCAL"),
+            "scripts",
+            "startup",
+            "bl_app_templates_system",
+            "Video_Editing",
+            "startup.blend",
+        )
+
+        if "Video Editing" not in bpy.data.workspaces:
+            bpy.ops.workspace.append_activate(idname="Video Editing", filepath=startup_blend)
 
     return vsm_scene
 
