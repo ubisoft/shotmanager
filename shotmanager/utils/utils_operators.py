@@ -27,21 +27,31 @@ class UAS_Utils_RunScript(Operator):
 class UAS_ShotManager_OpenExplorer(Operator):
     bl_idname = "uas_shot_manager.open_explorer"
     bl_label = "Open Explorer"
-    bl_description = "Open an Explorer window located at the render output directory"
+    bl_description = "Open an Explorer window located at the render output directory.\nShift + Click: Copy the path into the clipboard"
 
     path: StringProperty()
 
-    def execute(self, context):
-        pathToOpen = self.path
-        absPathToOpen = bpy.path.abspath(pathToOpen)
+    def invoke(self, context, event):
+        absPathToOpen = bpy.path.abspath(self.path)
         head, tail = os.path.split(absPathToOpen)
-        # wkip pouvoir ouvrir path relatif
         absPathToOpen = head + "\\"
 
-        if Path(absPathToOpen).exists():
-            subprocess.Popen(f'explorer "{absPathToOpen}"')
+        if event.shift:
+
+            def _copy_to_clipboard(txt):
+                cmd = "echo " + txt.strip() + "|clip"
+                return subprocess.check_call(cmd, shell=True)
+
+            _copy_to_clipboard(absPathToOpen)
+
         else:
-            print('Open Explorer failed: Path not found: "' + absPathToOpen + '"')
+            if Path(absPathToOpen).exists():
+                subprocess.Popen(f'explorer "{absPathToOpen}"')
+            else:
+                print('Open Explorer failed: Path not found: "' + absPathToOpen + '"')
+                from ..utils.utils import ShowMessageBox
+
+                ShowMessageBox(f"{absPathToOpen} not found", "Open Explorer - Directory not found", "ERROR")
 
         return {"FINISHED"}
 

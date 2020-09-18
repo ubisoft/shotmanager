@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import bpy
 from bpy.types import Panel, Operator
-from bpy.props import CollectionProperty, StringProperty
+from bpy.props import CollectionProperty, StringProperty, BoolProperty
 
 # import shotmanager.operators.shots as shots
 
@@ -22,7 +22,7 @@ class UAS_ShotManager_AddTake(Operator):
     bl_idname = "uas_shot_manager.add_take"
     bl_label = "Add New Take"
     bl_description = "Add a new take"
-    bl_options = {"REGISTER", "UNDO"}
+    bl_options = {"INTERNAL", "UNDO"}
 
     name: StringProperty(name="Name")
 
@@ -34,6 +34,14 @@ class UAS_ShotManager_AddTake(Operator):
     #     if  len(props.getTakes()) <= 0 or currentTakeInd <= 0:
     #         return False
     #     return True
+
+    def invoke(self, context, event):
+        takes = context.scene.UAS_shot_manager_props.getTakes()
+        if len(takes) <= 0:
+            self.name = "Main Take"
+        else:
+            self.name = f"Take_{len ( context.scene.UAS_shot_manager_props.getTakes() ) - 1 + 1:02}"
+        return context.window_manager.invoke_props_dialog(self)
 
     def draw(self, context):
         layout = self.layout
@@ -66,22 +74,27 @@ class UAS_ShotManager_AddTake(Operator):
         context.scene.UAS_shot_manager_props.current_take_name = newTake.name
         return {"FINISHED"}
 
-    def invoke(self, context, event):
-        takes = context.scene.UAS_shot_manager_props.getTakes()
-        if len(takes) <= 0:
-            self.name = "Main Take"
-        else:
-            self.name = f"Take_{len ( context.scene.UAS_shot_manager_props.getTakes() ) - 1 + 1:02}"
-        return context.window_manager.invoke_props_dialog(self)
-
 
 class UAS_ShotManager_DuplicateTake(Operator):
     bl_idname = "uas_shot_manager.duplicate_take"
     bl_label = "Duplicate Current Take"
     bl_description = "Duplicate the current take"
-    bl_options = {"REGISTER", "UNDO"}
+    bl_options = {"INTERNAL", "UNDO"}
 
     newTakeName: StringProperty(name="New Take Name")
+    alsoDisabled: BoolProperty(name="Also Apply to Disabled Shots", default=True)
+    duplicateCam: BoolProperty(name="Duplicate Cameras", default=False)
+
+    def invoke(self, context, event):
+        takes = context.scene.UAS_shot_manager_props.getTakes()
+        if len(takes) <= 0:
+            self.newTakeName = "Main Take"
+        else:
+            currentTake = context.scene.UAS_shot_manager_props.getCurrentTake()
+            # name based on number of takes
+            # self.newTakeName = f"Take_{len(context.scene.UAS_shot_manager_props.getTakes()) - 1 + 1:02}"
+            self.newTakeName = currentTake.name + "_duplicate"
+        return context.window_manager.invoke_props_dialog(self)
 
     def draw(self, context):
         layout = self.layout
@@ -96,40 +109,40 @@ class UAS_ShotManager_DuplicateTake(Operator):
         col = grid_flow.column(align=True)
         col.prop(self, "newTakeName", text="")
 
+        row = box.row(align=True)
+        row.separator(factor=2.5)
+        subgrid_flow = row.grid_flow(align=True, row_major=True, columns=1, even_columns=False)
+        subgrid_flow.prop(self, "alsoDisabled")
+        subgrid_flow.prop(self, "duplicateCam")
+
         layout.separator()
 
     def execute(self, context):
         props = context.scene.UAS_shot_manager_props
-        takes = props.getTakes()
-        shots = props.getShotsList()
 
         currentShotIndex = props.getCurrentShotIndex()
+        currentTake = props.getCurrentTake()
+        currentTakeInd = props.getCurrentTakeIndex()
 
-        newTake = takes.add()
-        newTake.name = props.getUniqueTakeName(self.newTakeName)
-        newTakeInd = props.getTakeIndex(newTake)
-        for shot in shots:
-            newShot = props.copyShot(shot, targetTakeIndex=newTakeInd)
-        props.current_take_name = newTake.name
-
-        props.setCurrentShotByIndex(currentShotIndex)
+        if currentTake is not None:
+            newTake = props.copyTake(
+                currentTake,
+                atIndex=currentTakeInd + 1,
+                copyCamera=self.duplicateCam,
+                ignoreDisabled=not self.alsoDisabled,
+            )
+            newTake.name = self.newTakeName
+            props.current_take_name = newTake.name
+            props.setCurrentShotByIndex(currentShotIndex)
 
         return {"FINISHED"}
-
-    def invoke(self, context, event):
-        takes = context.scene.UAS_shot_manager_props.getTakes()
-        if len(takes) <= 0:
-            self.newTakeName = "Main Take"
-        else:
-            self.newTakeName = f"Take_{len(context.scene.UAS_shot_manager_props.getTakes()) - 1 + 1:02}"
-        return context.window_manager.invoke_props_dialog(self)
 
 
 class UAS_ShotManager_RemoveTake(Operator):
     bl_idname = "uas_shot_manager.remove_take"
     bl_label = "Remove Current Take"
     bl_description = "Remove the current take.\nMain Take, as the base take, cannot be removed"
-    bl_options = {"REGISTER", "UNDO"}
+    bl_options = {"INTERNAL", "UNDO"}
 
     @classmethod
     def poll(cls, context):
@@ -145,7 +158,6 @@ class UAS_ShotManager_RemoveTake(Operator):
         props.setCurrentShotByIndex(-1)
 
         currentTakeInd = props["current_take_name"]
-        newTakeInd = 0
 
         if props["current_take_name"] == 0:
             if 1 < len(props.takes):
@@ -166,7 +178,7 @@ class UAS_ShotManager_RenameTake(Operator):
     bl_idname = "uas_shot_manager.rename_take"
     bl_label = "Rename Take"
     bl_description = "Rename the current take.\nMain Take, as the base take, cannot be renamed"
-    bl_options = {"INTERNAL", "REGISTER", "UNDO"}
+    bl_options = {"INTERNAL", "UNDO"}
 
     name: StringProperty(name="Name")
 
@@ -179,6 +191,10 @@ class UAS_ShotManager_RenameTake(Operator):
             return False
         return True
 
+    def invoke(self, context, event):
+        self.name = context.scene.UAS_shot_manager_props.getCurrentTake().name
+        return context.window_manager.invoke_props_dialog(self)
+
     def execute(self, context):
         props = context.scene.UAS_shot_manager_props
         currentTake = props.getCurrentTake()
@@ -188,10 +204,6 @@ class UAS_ShotManager_RenameTake(Operator):
             currentTake.name = self.name
 
         return {"FINISHED"}
-
-    def invoke(self, context, event):
-        self.name = context.scene.UAS_shot_manager_props.getCurrentTake().name
-        return context.window_manager.invoke_props_dialog(self)
 
 
 class UAS_ShotManager_Debug_FixShotsParent(Operator):
@@ -213,7 +225,10 @@ class UAS_ShotManager_ResetTakesToDefault(Operator):
     bl_idname = "uas_shot_manager.reset_takes_to_default"
     bl_label = "Reset Takes to Default"
     bl_description = "Clear all exisiting takes"
-    bl_options = {"INTERNAL", "REGISTER", "UNDO"}
+    bl_options = {"INTERNAL", "UNDO"}
+
+    def invoke(self, context, event):
+        return context.window_manager.invoke_props_dialog(self)
 
     def draw(self, context):
         layout = self.layout
@@ -238,9 +253,6 @@ class UAS_ShotManager_ResetTakesToDefault(Operator):
         #         bpy.data.collections.remove(c)
 
         return {"FINISHED"}
-
-    def invoke(self, context, event):
-        return context.window_manager.invoke_props_dialog(self)
 
 
 _classes = (

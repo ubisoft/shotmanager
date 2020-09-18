@@ -69,6 +69,13 @@ def add_take(shot_manager, at_index=-1, name="New Take"):
     return shot_manager.addTake(atIndex=at_index, name=name)
 
 
+def copy_take(shot_manager, take, at_index=-1, copy_camera=False):
+    """ Copy a take after the current take if possible or at the end of the takes list otherwise
+        Return the newly added take
+    """
+    return shot_manager.copyTake(take, atIndex=at_index, copyCamera=copy_camera)
+
+
 ####################
 # shots
 ####################
@@ -106,13 +113,13 @@ def add_shot(
     )
 
 
-def copy_shot(shot_manager, shot, at_index=-1, target_take_index=-1):
+def copy_shot(shot_manager, shot, at_index=-1, target_take_index=-1, copy_camera=False):
     """ Copy a shot after the current shot if possible or at the end of the shot list otherwise (case of an add in a take
         that is not the current one)
         Return the newly added shot
         Since this function works also with takes that are not the current one the current shot is not taken into account not modified
     """
-    return shot_manager.copyShot(shot, atIndex=at_index, targetTakeIndex=target_take_index)
+    return shot_manager.copyShot(shot, atIndex=at_index, targetTakeIndex=target_take_index, copyCamera=copy_camera)
 
 
 def remove_shot(shot_manager, shot):

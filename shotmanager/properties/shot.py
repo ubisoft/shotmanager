@@ -227,9 +227,11 @@ class UAS_ShotManager_Shot(ShotInterface, PropertyGroup):
         """
         # print("self", str(self))  # this shot
         # print("object", str(object))  # all the objects of the property type
-        camList = [c for c in self.parentScene.objects if c.type == "CAMERA"]
-        self.selectShotInUI()
-        return object in camList
+
+        if object.type == "CAMERA" and object.name in self.parentScene.objects:
+            return True
+        else:
+            return False
 
     camera: PointerProperty(
         name="Camera",
@@ -407,7 +409,7 @@ class UAS_ShotManager_Shot(ShotInterface, PropertyGroup):
         """
             parent: reference to the parent take
         """
-      #  self.parent = None
+        #  self.parent = None
         print(" icicicic parent in shot")
         super().__init__()
         pass

@@ -186,8 +186,9 @@ def findFirstUniqueName(originalItem, name, itemsArray):
     return newName
 
 
-def getSceneVSE(vsm_sceneName):
-    """ Return a VSE in the scene specified by its name (creates it if needed)
+def getSceneVSE(vsm_sceneName, createVseTab=True):
+    """ Return the scene that has the name held by vsm_sceneName and adds a VSE in it if there is not already one.
+        Use <returned scene>.sequence_editor to get the vse of the scene
     """
     # vsm_sceneName = "VideoShotManger"
     vsm_scene = None
@@ -201,27 +202,27 @@ def getSceneVSE(vsm_sceneName):
     if not vsm_scene.sequence_editor:
         vsm_scene.sequence_editor_create()
 
-    startup_blend = os.path.join(
-        bpy.utils.resource_path("LOCAL"),
-        "scripts",
-        "startup",
-        "bl_app_templates_system",
-        "Video_Editing",
-        "startup.blend",
-    )
-
     bpy.context.window.scene = vsm_scene
-    if "Video Editing" not in bpy.data.workspaces:
-        bpy.ops.workspace.append_activate(idname="Video Editing", filepath=startup_blend)
+
+    if createVseTab:
+        startup_blend = os.path.join(
+            bpy.utils.resource_path("LOCAL"),
+            "scripts",
+            "startup",
+            "bl_app_templates_system",
+            "Video_Editing",
+            "startup.blend",
+        )
+
+        if "Video Editing" not in bpy.data.workspaces:
+            bpy.ops.workspace.append_activate(idname="Video Editing", filepath=startup_blend)
 
     return vsm_scene
 
 
-def cameras_from_scene(scene):
-    """ Return the list of all the cameras in the scene
-    """
-    camList = [c for c in scene.objects if c.type == "CAMERA"]
-    return camList
+###################
+# Objects
+###################
 
 
 def duplicateObject(sourceObject):
@@ -241,6 +242,66 @@ def duplicateObject(sourceObject):
     else:
         (sourceObject.users_scene)[0].collection.objects.link(newObject)
     return newObject
+
+
+###################
+# Cameras
+###################
+
+
+def cameras_from_scene(scene):
+    """ Return the list of all the cameras in the scene
+    """
+    camList = [c for c in scene.objects if c.type == "CAMERA"]
+    return camList
+
+
+def setCurrentCameraToViewport(context, area=None):
+
+    print(f"setCurrentCameraToViewport: Num Windows: {len(bpy.context.window_manager.windows)}, area: {area}")
+
+    # area = bpy.context.window_manager.windows[-1].screen.areas[0]
+    #         area.type = "IMAGE_EDITOR"
+    targetArea = None
+    if area is not None:
+        rightWin = None
+        if area.type != "VIEW_3D":
+            for win in bpy.context.window_manager.windows:
+                for winArea in win.screen.areas:
+                    if winArea == area:
+                        rightWin = win
+                        break
+                if rightWin is not None:
+                    break
+
+            if rightWin is not None:
+                for winArea in rightWin.screen.areas:
+                    print(f"Area Type in right win: {winArea.type}")
+                    if winArea.type == "VIEW_3D":
+                        targetArea = winArea
+                    break
+
+    if targetArea is None:
+        for win in bpy.context.window_manager.windows:
+            for winArea in win.screen.areas:
+                print(f"Area Type: {winArea.type}")
+                if winArea.type == "VIEW_3D":
+                    targetArea = winArea
+                    break
+            if targetArea is not None:
+                break
+
+        # for area in context.screen.areas:
+        #     print(f"Area Type: {area.type}")
+        #     # if area.type == "VIEW_3D"
+
+        # area = next(area for area in context.screen.areas if area.type == "VIEW_3D")
+
+    if targetArea is not None:
+        targetArea.spaces[0].use_local_camera = False
+        targetArea.spaces[0].region_3d.view_perspective = "CAMERA"
+
+    return
 
 
 def create_new_camera(camera_name, location=[0, 0, 0], locate_on_cursor=False):
@@ -278,6 +339,11 @@ def create_new_camera(camera_name, location=[0, 0, 0], locate_on_cursor=False):
     return cam_ob
 
 
+###################
+# Scene content
+###################
+
+
 def clear_selection():
     if bpy.context.active_object is not None:
         bpy.context.active_object.select_set(False)
@@ -291,6 +357,51 @@ def add_to_selection(obj):
     obj.select_set(True)
     # to set the active object
     bpy.context.view_layer.objects.active = obj
+
+
+###################
+# Color
+###################
+
+
+def slightlyRandomizeColor(refColor, weight=0.8):
+    """
+        refColor is supposed to be linear, returned color is linear too
+        refColor can be RGB or RGBA. Alpha is not modified.
+    """
+    from random import uniform
+
+    newColor = [uniform(0, 1), uniform(0, 1), uniform(0, 1)]
+    for i in range(0, 3):
+        newColor[i] = refColor[i] * weight + newColor[i] * (1.0 - weight)
+
+    if len(refColor) == 4:
+        newColor.append(refColor[3])
+
+    return newColor
+
+
+def darken_color(color):
+    factor = 0.6
+    d_color = (color[0] * factor, color[1] * factor, color[2] * factor, color[3] * 1.0)
+    return d_color
+
+
+def linearizeColor(color):
+    gamma = 0.45
+    d_color = (pow(color[0], gamma), pow(color[1], gamma), pow(color[2], gamma), color[3] * 1.0)
+    return d_color
+
+
+def sRGBColor(color):
+    gamma = 1.0 / 0.45
+    d_color = (pow(color[0], gamma), pow(color[1], gamma), pow(color[2], gamma), color[3] * 1.0)
+    return d_color
+
+
+###################
+# Various
+###################
 
 
 def segment_is_in_range(segment_start, segment_end, range_start, range_end, partly_inside=True):

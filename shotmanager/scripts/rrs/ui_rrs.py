@@ -1,4 +1,4 @@
-from ...config import config
+from shotmanager.config import config
 
 from bpy.types import Panel
 
@@ -14,7 +14,8 @@ class UAS_PT_ShotManager_RRS_Debug(Panel):
     @classmethod
     def poll(cls, context):
         props = context.scene.UAS_shot_manager_props
-        return not props.dontRefreshUI()
+        displayPanel = not props.dontRefreshUI() and config.uasDebug
+        return displayPanel
 
     def draw(self, context):
         props = context.scene.UAS_shot_manager_props
@@ -22,7 +23,10 @@ class UAS_PT_ShotManager_RRS_Debug(Panel):
         layout = self.layout
         row = layout.row(align=False)
         row.label(text="RRS Specific (debug temp):")
+        row = layout.row(align=False)
         row.prop(props, "rrs_useRenderRoot")
+        row.prop(props, "rrs_fileListOnly")
+        row.prop(props, "rrs_rerenderExistingShotVideos")
         row = layout.row(align=False)
         row.alert = True
         row.operator("uas_shot_manager.initialize_rrs_project", text="Debug - RRS Initialyze")
@@ -31,10 +35,10 @@ class UAS_PT_ShotManager_RRS_Debug(Panel):
         )
         row.alert = False
 
-        if config.uasDebug:
-            row = layout.row(align=False)
-            # row.enabled = False
-            row.prop(context.window_manager, "UAS_shot_manager_progressbar", text="Rendering...")
+        # if config.uasDebug:
+        #     row = layout.row(align=False)
+        #     # row.enabled = False
+        #     row.prop(context.window_manager, "UAS_shot_manager_progressbar", text="Rendering...")
 
         layout.separator(factor=1)
 

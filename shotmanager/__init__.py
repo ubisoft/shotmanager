@@ -1,4 +1,5 @@
 import logging
+
 import os
 from pathlib import Path
 
@@ -7,12 +8,12 @@ from bpy.app.handlers import persistent
 
 from bpy.props import BoolProperty, IntProperty, FloatProperty
 
-from . import otio
-from . import rendering
 
 from .config import config
 
 from .handlers import jump_to_shot
+
+from . import otio
 
 from .operators import takes
 from .operators import shots
@@ -30,6 +31,9 @@ from .properties import addon_prefs
 
 from .retimer import retimer_ui
 from .retimer import retimer_props
+
+from . import rendering
+from .rendering import rendering_ui
 
 from .scripts import precut_tools
 
@@ -50,6 +54,8 @@ from .scripts import rrs
 from .data_patches.data_patch_to_v1_2_25 import data_patch_to_v1_2_25
 from .data_patches.data_patch_to_v1_3_16 import data_patch_to_v1_3_16
 
+# from .data_patches.data_patch_to_v1_3_31 import data_patch_to_v1_3_31
+
 from .debug import sm_debug
 
 bl_info = {
@@ -57,10 +63,10 @@ bl_info = {
     "author": "Julien Blervaque (aka Werwack), Romain Carriquiry Borchiari",
     "description": "Manage a sequence of shots and cameras in the 3D View - Ubisoft Animation Studio",
     "blender": (2, 90, 0),
-    "version": (1, 3, 25),
+    "version": (1, 3, 34),
     "location": "View3D > UAS Shot Manager",
     "wiki_url": "https://gitlab-ncsa.ubisoft.org/animation-studio/blender/shotmanager-addon/-/wikis/home",
-    # "warning": "BETA Version - Fais gaffe à tes données !!!",
+    #  "warning": "BETA Version - Fais gaffe à tes données !!!",
     "category": "UAS",
 }
 
@@ -71,18 +77,20 @@ __version__ = f"v{bl_info['version'][0]}.{bl_info['version'][1]}.{bl_info['versi
 # Logging
 ###########
 
+# https://docs.python.org/fr/3/howto/logging.html
 _logger = logging.getLogger(__name__)
 _logger.propagate = False
 MODULE_PATH = Path(__file__).parent.parent
 logging.basicConfig(level=logging.INFO)
+_logger.setLevel(logging.INFO)  # CRITICAL ERROR WARNING INFO DEBUG NOTSET
+
+# if config.uasDebug:
 _logger.setLevel(logging.DEBUG)  # CRITICAL ERROR WARNING INFO DEBUG NOTSET
 
-pil_logger = logging.getLogger("PIL")
-pil_logger.setLevel(logging.INFO)
-
-# _logger.info("Logger info")
-# _logger.warning(f"logger warning")
-# _logger.error("logger error")
+# _logger.info(f"Logger {}")
+# _logger.warning(f"logger {}")
+# _logger.error(f"error {}")
+# _logger.debug(f"debug {}")
 
 
 class Formatter(logging.Formatter):
@@ -171,6 +179,7 @@ def checkDataVersion_post_load_handler(self, context):
         _logger.info("  - Shot Manager is checking the version used to create the loaded scene data...")
 
         numScenesToUpgrade = 0
+        lowerSceneVersion = -1
         for scn in bpy.data.scenes:
             # if "UAS_shot_manager_props" in scn:
             if getattr(bpy.context.scene, "UAS_shot_manager_props", None) is not None:
@@ -182,23 +191,37 @@ def checkDataVersion_post_load_handler(self, context):
                 if props.dataVersion <= 0 or props.dataVersion < 1003016:
                     _logger.info("     *** Shot Manager Data Version is lower than the current Shot Manager version")
                     numScenesToUpgrade += 1
-                #    props.dataVersion = -5
+                    if -1 == lowerSceneVersion or props.dataVersion < lowerSceneVersion:
+                        lowerSceneVersion = props.dataVersion
+                else:
+                    if props.dataVersion < props.version()[1]:
+                        props.dataVersion = props.version()[1]
+                    # set right data version
+                    # props.dataVersion = bpy.context.window_manager.UAS_shot_manager_version
+                    # print("       Data upgraded to version V. ", props.dataVersion)
 
         if numScenesToUpgrade:
             # apply patch and apply new data version
             # wkip patch strategy to re-think. Collect the data versions and apply the respective patches?
 
-            if props.dataVersion < 1002026:
+            if lowerSceneVersion < 1002026:
                 print("       Applying data patch to file: upgrade to 1002025")
                 data_patch_to_v1_2_25()
+                lowerSceneVersion = 1002026
 
-            if props.dataVersion < 1003016:
+            if lowerSceneVersion < 1003016:
                 print("       Applying data patch to file: upgrade to 1002025")
                 data_patch_to_v1_3_16()
+                lowerSceneVersion = 1003016
 
-            # set right data version
-            # props.dataVersion = bpy.context.window_manager.UAS_shot_manager_version
-            # print("       Data upgraded to version V. ", props.dataVersion)
+            # if lowerSceneVersion < 1003031:
+            #     print("       Applying data patch to file: upgrade to 1002031")
+            #     data_patch_to_v1_3_31()
+            #     lowerSceneVersion = 1003031
+
+            # current version, no patch required but data version is updated
+            if lowerSceneVersion < props.version()[1]:
+                props.dataVersion = props.version()[1]
 
     props = bpy.context.scene.UAS_shot_manager_props
     if props is not None:
@@ -312,6 +335,7 @@ def register():
     utils_operators.register()
 
     # operators
+    rendering.register()
     takes.register()
     shots.register()
     shots_global_settings.register()
@@ -325,8 +349,8 @@ def register():
     sm_ui.register()
     rrs.register()
     retimer_ui.register()
+    rendering_ui.register()
 
-    rendering.register()
     otio.register()
     vse_render.register()
     utils_render.register()
@@ -337,7 +361,6 @@ def register():
     about.register()
 
     # debug tools
-
     if config.uasDebug:
         sm_debug.register()
 
@@ -399,13 +422,14 @@ def unregister():
     utils_render.unregister()
     vse_render.unregister()
     otio.unregister()
-    rendering.unregister()
 
+    rendering_ui.unregister()
     retimer_ui.unregister()
     rrs.unregister()
     sm_ui.unregister()
 
     # operators
+    rendering.unregister()
     shots_toolbar.unregister()
     props.unregister()
     retimer_props.unregister()

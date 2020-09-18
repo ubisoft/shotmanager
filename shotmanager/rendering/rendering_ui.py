@@ -62,6 +62,29 @@ class UAS_PT_ShotManagerRenderPanel(Panel):
         row.separator()
         layout.separator()
 
+        ##############
+        # render engine
+        ##############
+        row = layout.row(align=True)
+        # row.label(text="Mode:")
+        row.prop(props.renderContext, "renderComputationMode", text="Mode")
+        row.separator()
+        # row.prop(bpy.context.scene.render, "engine", text="Engine")
+
+        if (
+            "PLAYBLAST_ANIM" == props.renderContext.renderComputationMode
+            or "PLAYBLAST_LOOP" == props.renderContext.renderComputationMode
+        ):
+            row.prop(props.renderContext, "renderEngineOpengl", text="Playblast Engine")
+        # row.prop(props.renderContext, "renderEngine", text="Engine")
+        else:
+            row.prop(props.renderContext, "renderEngine", text="Engine")
+
+        row = layout.row(align=True)
+        row.separator(factor=5)
+        row.prop(props, "useOverlays", text="With Overlays")
+        row.prop(props.renderContext, "renderQuality", text="Quality")
+
         row = layout.row(align=True)
         row.scale_y = 1.6
         # row.operator ( renderProps.UAS_PT_ShotManager_RenderDialog.bl_idname, text = "Render Active", icon = "RENDER_ANIMATION" ).only_active = True
@@ -90,14 +113,26 @@ class UAS_PT_ShotManagerRenderPanel(Panel):
 
         layout.separator(factor=1)
 
+        display_bypass_options = True
+
         # STILL ###
         if props.displayStillProps:
             row = layout.row()
             row.label(text="Render Image:")
-
             box = layout.box()
-            row = box.row()
-            row.prop(props.renderSettingsStill, "writeToDisk")
+
+            if props.use_project_settings:
+                box.prop(props.renderSettingsStill, "bypass_rendering_project_settings")
+                if props.renderSettingsStill.bypass_rendering_project_settings:
+                    subbox = box.box()
+                    row = subbox.row()
+                else:
+                    display_bypass_options = False
+            else:
+                row = box.row()
+
+            if display_bypass_options:
+                row.prop(props.renderSettingsStill, "writeToDisk")
 
             row = box.row()
             filePath = props.getCurrentShot().getOutputFileName(
@@ -110,10 +145,20 @@ class UAS_PT_ShotManagerRenderPanel(Panel):
         elif props.displayAnimationProps:
             row = layout.row()
             row.label(text="Render Current Shot:")
-
             box = layout.box()
-            row = box.row()
-            row.prop(props.renderSettingsAnim, "renderWithHandles")
+
+            if props.use_project_settings:
+                box.prop(props.renderSettingsAnim, "bypass_rendering_project_settings")
+                if props.renderSettingsAnim.bypass_rendering_project_settings:
+                    subbox = box.box()
+                    row = subbox.row()
+                else:
+                    display_bypass_options = False
+            else:
+                row = box.row()
+
+            if display_bypass_options:
+                row.prop(props.renderSettingsAnim, "renderHandles")
 
             row = box.row()
             filePath = props.getCurrentShot().getOutputFileName(fullPath=True)
@@ -124,13 +169,32 @@ class UAS_PT_ShotManagerRenderPanel(Panel):
         elif props.displayAllEditsProps:
             row = layout.row()
             row.label(text="Render All:")
-
             box = layout.box()
-            row = box.row()
-            row.prop(props.renderSettingsAll, "renderAllTakes")
-            row.prop(props.renderSettingsAll, "renderAlsoDisabled")
 
-            row.prop(props.renderSettingsAll, "renderOtioFile")
+            row = box.row()
+            row.prop(props.renderSettingsAll, "rerenderExistingShotVideos")
+            row = box.row()
+            row.prop(props.renderSettingsAll, "generateEditVideo")
+
+            if props.use_project_settings:
+                box.prop(props.renderSettingsAll, "bypass_rendering_project_settings")
+                if props.renderSettingsAll.bypass_rendering_project_settings:
+                    subbox = box.box()
+                    row = subbox.row()
+                else:
+                    display_bypass_options = False
+            else:
+                row = box.row()
+
+            if display_bypass_options:
+                row.prop(props.renderSettingsAll, "renderAllTakes")
+                # row.prop(props.renderSettingsAll, "renderAlsoDisabled")
+                row.prop(props.renderSettingsAll, "renderOtioFile")
+
+            row = box.row()
+            filePath = props.getTakeOutputFilePath()
+            row.label(text="Rendering Folder: " + filePath)
+            row.operator("uas_shot_manager.open_explorer", text="", icon_value=iconExplorer.icon_id).path = filePath
 
         # EDL ###
         elif props.displayOtioProps:

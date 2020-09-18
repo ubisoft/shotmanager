@@ -19,7 +19,7 @@ from bpy.props import (
 from shotmanager.rrs_specific.montage.montage_interface import MontageInterface
 
 from .media import UAS_ShotManager_Media
-from shotmanager.rendering.rendering_props import UAS_ShotManager_RenderSettings
+from shotmanager.rendering.rendering_props import UAS_ShotManager_RenderSettings, UAS_ShotManager_RenderGlobalContext
 from .shot import UAS_ShotManager_Shot
 from .take import UAS_ShotManager_Take
 from ..operators.shots_global_settings import UAS_ShotManager_ShotsGlobalSettings
@@ -33,6 +33,11 @@ _logger = logging.getLogger(__name__)
 
 class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
     def version(self):
+        """ Return the add-on version in the form of a tupple made by: 
+                - a string x.y.z (eg: "1.21.3")
+                - an integer. x.y.z becomes xxyyyzzz (eg: "1.21.3" becomes 1021003)
+            Return None if the addon has not been found
+        """
         return utils.addonVersion("UAS Shot Manager")
 
     dataVersion: IntProperty(
@@ -170,6 +175,8 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
     #############
 
     rrs_useRenderRoot: BoolProperty(name="Use Render Root", default=True)
+    rrs_fileListOnly: BoolProperty(name="File List Only", default=False)
+    rrs_rerenderExistingShotVideos: BoolProperty(name="Force Re-render", default=True)
 
     # project settings
     #############
@@ -185,24 +192,62 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
     project_resolution_framed_y: IntProperty(name="Res. Framed Y", min=0, default=720)
     project_shot_format: StringProperty(name="Shot Format", default=r"Act{:02}_Seq{:04}_Sh{:04}")
 
-    project_shot_handle_duration: IntProperty(name="Project Handle Duration", min=0, soft_max=50, default=10)
+    project_shot_handle_duration: IntProperty(
+        name="Project Handles Duration",
+        description="Duration of the handles used by the project, in number of frames",
+        min=0,
+        soft_max=50,
+        default=10,
+    )
 
     project_output_format: StringProperty(name="Output Format", default="")
     project_color_space: StringProperty(name="Color Space", default="")
     project_asset_name: StringProperty(name="Asset Name", default="")
 
-    # built-in settings
+    # built-in project settings
     project_use_stampinfo: BoolProperty(
         name="Use Stamp Info Add-on",
         description="Use UAS Stamp Info add-on - if available - to write data on rendered images.\nNote: If Stamp Info is not installed then warnings will be displayed",
         default=False,
     )
 
+    project_use_handles: BoolProperty(
+        name="Use Handles",
+        description="Use or not shot handles for the project.\nWhen not used, not reference to the handles will appear in Shot Manager user interface",
+        default=True,
+    )
+
+    # built-in settings
+    use_handles: BoolProperty(
+        name="Use Handles",
+        description="Use or not shot handles.\nWhen not used, not reference to the handles will appear in Shot Manager user interface",
+        default=False,
+    )
+    handles: IntProperty(
+        name="Handles Duration",
+        description="Duration of the handles, in number of frames",
+        default=10,
+        min=0,
+        options=set(),
+    )
+
     new_shot_prefix: StringProperty(default="Sh")
+
+    renderSingleFrameShotAsImage: BoolProperty(
+        name="Render Single Frame Shot as Image",
+        description="Render single frame shot as an image, not as a video",
+        default=True,
+    )
 
     # overriden by project settings
     render_shot_prefix: StringProperty(
         name="Render Shot Prefix", description="Prefix added to the shot names at render time", default=""
+    )
+
+    project_renderSingleFrameShotAsImage: BoolProperty(
+        name="Project Render Single Frame Shot as Image",
+        description="Render single frame shot as an image, not as a video",
+        default=True,
     )
 
     project_images_output_format: StringProperty(name="Images Output Format", default="PNG")
@@ -425,17 +470,15 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
 
         return res
 
-    def _current_take_changed(self, context):
+    def _update_current_take_name(self, context):
         self.setCurrentShotByIndex(0)
         self.setSelectedShotByIndex(0)
 
     takes: CollectionProperty(type=UAS_ShotManager_Take)
 
     current_take_name: EnumProperty(
-        items=_list_takes, name="Takes", description="Select a take", update=_current_take_changed
+        name="Takes", description="Select a take", items=_list_takes, update=_update_current_take_name,
     )
-
-    handles: IntProperty(default=10, min=0, options=set())
 
     ####################
     # takes
@@ -474,6 +517,14 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
             return take
         return self.takes[takeInd]
 
+    def getTakeByName(self, takeName):
+        """ Return the first take with the specified name, None if not found
+        """
+        for t in self.takes:
+            if t.name == takeName:
+                return t
+        return None
+
     def getTakeIndex(self, take):
         takeInd = -1
 
@@ -485,6 +536,15 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
                 takeInd = -1
 
         return takeInd
+
+    def getTakeIndexByName(self, takeName):
+        """ Return the index of the first take with the specified name, -1 if not found
+        """
+        if len(self.takes):
+            for i in range(0, len(self.takes) + 1):
+                if self.takes[i].name == takeName:
+                    return i
+        return -1
 
     def getCurrentTakeIndex(self):
         takeInd = -1
@@ -567,14 +627,51 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
             newTake = self.createDefaultTake()
         else:
             newTakeName = self.getUniqueTakeName(name)
+
+            #######
+            # important note: newTake points to the slot in takes array, not to the take itself
             newTake = takes.add()
             newTake.parentScene = self.getParentScene()
-            newTake.name = newTakeName
+            newTake.name = "" + newTakeName
 
         # self.current_take_name = newTake.name
+        # print(f"new added take name: {newTake.name}")
 
-        if -1 != atIndex:  # move shot at specified index
-            takes.move(len(takes) - 1, atIndex)
+        # move take at specified index
+        # !!! warning: newTake has to be updated !!!
+        if -1 != atIndex:
+            atValidIndex = max(atIndex, 0)
+            atValidIndex = min(atValidIndex, len(takes) - 1)
+            takes.move(len(takes) - 1, atValidIndex)
+            newTake = takes[atValidIndex]
+
+        # after a move newTake is different!
+        # print(f"new added take name02: {newTake.name}")
+
+        return newTake
+
+    def copyTake(self, take, atIndex=-1, copyCamera=False, ignoreDisabled=False):
+        """ Copy a take after the current take if possible or at the end of the takes list otherwise
+            Return the newly added take
+        """
+
+        def _copyString(str1):
+            resStr = ""
+            for c in str1:
+                resStr += c
+            return resStr
+
+        newTake = self.addTake(atIndex=atIndex, name=take.name + "_copy")
+        newTake.note01 = _copyString(take.note01)
+        newTake.note02 = _copyString(take.note02)
+        newTake.note03 = _copyString(take.note03)
+        newTake.showNotes = take.showNotes
+
+        newTakeInd = self.getTakeIndex(newTake)
+
+        shots = take.getShotsList(ignoreDisabled=ignoreDisabled)
+        for shot in shots:
+            self.copyShot(shot, targetTakeIndex=newTakeInd, copyCamera=copyCamera)
 
         return newTake
 
@@ -610,6 +707,15 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         get=get_useStampInfoDuringRendering,  # removed cause the use of Stamp Info in this add-on is independent from the one of Stamp Info add-on itself
         set=set_useStampInfoDuringRendering,
         # update = useStampInfoDuringRendering_StateChanged,
+        options=set(),
+    )
+
+    ############
+    # render properties for UI
+    useOverlays: BoolProperty(
+        name="With Overlays",
+        description="Also render overlays when the rendering is a playblast",
+        default=False,
         options=set(),
     )
 
@@ -660,6 +766,8 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
     def addRenderSettings(self):
         newRenderSettings = self.renderSettingsList.add()
         return newRenderSettings
+
+    renderContext: PointerProperty(type=UAS_ShotManager_RenderGlobalContext)
 
     # renderSettingsStill: CollectionProperty (
     #   type = UAS_ShotManager_RenderSettings )
@@ -902,6 +1010,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         name="defaultShot",
         start=10,
         end=20,
+        durationLocked=False,
         camera=None,
         color=(0.2, 0.6, 0.8, 1),
         enabled=True,
@@ -934,13 +1043,19 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         newShot.end = 9999999  # mandatory cause start is clamped by end
         newShot.start = start
         newShot.end = end
+        newShot.durationLocked = durationLocked
         newShot.camera = camera
         newShot.color = color
 
+        # move shot at specified index
+        # !!! warning: newShot has to be updated !!!
         newShotInd = len(shots) - 1
-        if -1 != atIndex:  # move shot at specified index
-            shots.move(newShotInd, atIndex)
-            newShotInd = atIndex
+        if -1 != atIndex:
+            atValidIndex = max(atIndex, 0)
+            atValidIndex = min(atValidIndex, len(shots) - 1)
+            shots.move(len(shots) - 1, atValidIndex)
+            newShot = shots[atValidIndex]
+            newShotInd = atValidIndex
 
         # update the current take if needed
         if takeInd == currentTakeInd:
@@ -949,21 +1064,22 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
 
         # warning: by reordering the shots it looks like newShot is not pointing anymore on the new shot
         # we then get it again
-        newShot = self.getShot(newShotInd)
+        # newShot = self.getShot(newShotInd)
 
         return newShot
 
-    def copyShot(self, shot, atIndex=-1, targetTakeIndex=-1):
+    def copyShot(self, shot, atIndex=-1, targetTakeIndex=-1, copyCamera=False):
         """ Copy a shot after the current shot if possible or at the end of the shot list otherwise (case of an add in a take
             that is not the current one)
             Return the newly added shot
             Since this function works also with takes that are not the current one the current shot is not taken into account not modified
             Specifying a value to targetTakeIndex allows the copy of a shot to another take
+            When a shot is copied in the same take its name will be suffixed by "_copy". When copied to another take its name is not modified.
         """
         # wkip wip fix for early backward compatibility - to remove
         # self.fixShotsParent()
 
-        currentTakeInd = self.getCurrentTakeIndex()
+        #  currentTakeInd = self.getCurrentTakeIndex()
         sourceTakeInd = shot.parentTakeIndex
         takeInd = (
             sourceTakeInd
@@ -973,28 +1089,60 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         if -1 == takeInd:
             return None
 
-        newShot = None
-        shots = self.get_shots(takeIndex=takeInd)
+        # newShot = None
+        # shots = self.get_shots(takeIndex=takeInd)
 
-        newShot = shots.add()  # shot is added at the end
-        newShot.parentScene = shot.parentScene
-        newShot.parentTakeIndex = takeInd
-        newShot.name = shot.name
-        newShot.enabled = shot.enabled
-        newShot.start = shot.start
-        newShot.end = shot.end
-        newShot.camera = shot.camera
-        newShot.color = shot.color
+        cam = shot.camera
+        if copyCamera and shot.camera is not None:
+            newCam = utils.duplicateObject(cam)
+            if targetTakeIndex == sourceTakeInd:
+                newCam.name = cam.name + "_copy"
+            newCam.color = utils.sRGBColor(utils.slightlyRandomizeColor(utils.linearizeColor(cam.color)))
+            cam = newCam
 
-        newShotInd = len(shots) - 1
-        if -1 != atIndex:  # move shot at specified index
-            shots.move(len(shots) - 1, atIndex)
-            newShotInd = self.getShotIndex(newShot)
+        nameSuffix = ""
+        if targetTakeIndex == sourceTakeInd:
+            nameSuffix = "_copy"
+
+        newShot = self.addShot(
+            atIndex=atIndex,
+            takeIndex=targetTakeIndex,
+            name=shot.name + nameSuffix,
+            start=shot.start,
+            end=shot.end,
+            durationLocked=shot.durationLocked,
+            camera=cam,
+            color=cam.color,
+            enabled=shot.enabled,
+        )
+
+        newShot.bgImages_offset = shot.bgImages_offset
+        newShot.bgImages_linkToShotStart = shot.bgImages_linkToShotStart
+
+        newShot.note01 = shot.note01
+        newShot.note03 = shot.note02
+        newShot.note03 = shot.note03
+
+        # newShot = shots.add()  # shot is added at the end
+        # newShot.parentScene = shot.parentScene
+        # newShot.parentTakeIndex = takeInd
+        # newShot.name = shot.name
+        # newShot.enabled = shot.enabled
+        # newShot.end = 9999999  # mandatory cause start is clamped by end
+        # newShot.start = shot.start
+        # newShot.end = shot.end
+        # newShot.camera = shot.camera
+        # newShot.color = shot.color
+
+        # newShotInd = len(shots) - 1
+        # if -1 != atIndex:  # move shot at specified index
+        #     shots.move(newShotInd, atIndex)
+        #     newShotInd = self.getShotIndex(newShot)
 
         # update the current take if needed
-        if takeInd == currentTakeInd:
-            self.setCurrentShotByIndex(newShotInd)
-            self.setSelectedShotByIndex(newShotInd)
+        # if takeInd == currentTakeInd:
+        #     self.setCurrentShotByIndex(newShotInd)
+        #     self.setSelectedShotByIndex(newShotInd)
 
         return newShot
 
@@ -1069,32 +1217,42 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
             self.setCurrentShotByIndex(newInd)
         self.setSelectedShotByIndex(newInd)
 
-    def setCurrentShotByIndex(self, currentShotIndex):
+    def setCurrentShotByIndex(self, currentShotIndex, changeTime=None, area=None):
         """ Changing the current shot doesn't affect the selected one
         """
         scene = bpy.context.scene
+        area = area if area is not None else bpy.context.area
 
         shotList = self.get_shots()
         self.current_shot_index = currentShotIndex
 
         if -1 < currentShotIndex and len(shotList) > currentShotIndex:
-            if self.change_time:
+            prefs = bpy.context.preferences.addons["shotmanager"].preferences
+
+            if changeTime is None:
+                if prefs.current_shot_changes_current_time:
+                    scene.frame_current = shotList[currentShotIndex].start
+            elif changeTime:
                 scene.frame_current = shotList[currentShotIndex].start
+
+            if prefs.current_shot_changes_time_range and scene.use_preview_range:
+                bpy.ops.uas_shot_manager.scenerangefromshot()
 
             if shotList[currentShotIndex].camera is not None and bpy.context.screen is not None:
                 # set the current camera in the 3D view: [‘PERSP’, ‘ORTHO’, ‘CAMERA’]
-                area = next(area for area in bpy.context.screen.areas if area.type == "VIEW_3D")
-
-                area.spaces[0].use_local_camera = False
                 scene.camera = shotList[currentShotIndex].camera
-                area.spaces[0].region_3d.view_perspective = "CAMERA"
+                utils.setCurrentCameraToViewport(bpy.context, area)
+                # area = next(area for area in bpy.context.screen.areas if area.type == "VIEW_3D")
+
+                # area.spaces[0].use_local_camera = False
+                # area.spaces[0].region_3d.view_perspective = "CAMERA"
 
             # bpy.context.scene.objects["Camera_Sapin"]
 
-    def setCurrentShot(self, currentShot):
+    def setCurrentShot(self, currentShot, changeTime=None, area=None):
         shotInd = self.getShotIndex(currentShot)
-        #    print("setCurrentShot: shotInd:", shotInd)
-        self.setCurrentShotByIndex(shotInd)
+        print("setCurrentShot: shotInd:", shotInd)
+        self.setCurrentShotByIndex(shotInd, changeTime=changeTime, area=area)
 
     def getShotIndex(self, shot):
         """Return the shot index in its parent take
@@ -1723,6 +1881,31 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
 
         return fileName
 
+    def getTakeOutputFilePath(self, rootFilePath="", takeIndex=-1):
+        takeInd = (
+            self.getCurrentTakeIndex()
+            if -1 == takeIndex
+            else (takeIndex if 0 <= takeIndex and takeIndex < len(self.getTakes()) else -1)
+        )
+        filePath = ""
+        if -1 == takeInd:
+            return filePath
+
+        if "" == rootFilePath:
+            #  head, tail = os.path.split(bpy.path.abspath(bpy.data.filepath))
+            # wkip we assume renderRootPath is valid...
+            head, tail = os.path.split(bpy.path.abspath(self.renderRootPath))
+            filePath = head + "\\"
+        else:
+            # wkip tester le chemin
+            filePath = rootFilePath
+            if not filePath.endswith("\\"):
+                filePath += "\\"
+
+        filePath += f"{self.getTakeName_PathCompliant(takeIndex=takeInd)}" + "\\"
+
+        return filePath
+
     def getShotOutputFileName(self, shot, frameIndex=-1, fullPath=False, fullPathOnly=False, rootFilePath=""):
         resultStr = ""
 
@@ -1737,7 +1920,9 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
             fileFullName += "_" + f"{(frameIndex):04d}"
             fileFullName += ".png"
         else:
-            fileFullName += ".mp4"
+            # fileFullName += ".mp4"
+            # fileFullName += "_"
+            pass
 
         filePath = ""
         if fullPath or fullPathOnly:
@@ -1992,9 +2177,10 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         self.renderSettingsAll.renderAllTakes = False
         self.renderSettingsAll.renderAllShots = False
         self.renderSettingsAll.renderAlsoDisabled = False
-        self.renderSettingsAll.renderWithHandles = False
+        self.renderSettingsAll.renderHandles = False
         self.renderSettingsAll.renderOtioFile = True
         self.renderSettingsAll.otioFileType = "XML"
+        self.renderSettingsAll.generateEditVideo = True
 
         # Otio
         self.renderSettingsOtio.name = "Otio Preset"
@@ -2073,7 +2259,6 @@ _classes = (
     UAS_ShotManager_Media,
     UAS_ShotManager_Shot,
     UAS_ShotManager_Take,
-    UAS_ShotManager_RenderSettings,
     UAS_ShotManager_Props,
 )
 

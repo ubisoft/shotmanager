@@ -21,6 +21,23 @@ class UAS_MT_ShotManager_Prefs_MainMenu(Menu):
         row = layout.row(align=True)
         row.operator("uas_shot_manager.project_settings_prefs", text="Project Settings...")
 
+        if config.uasDebug:
+            layout.separator()
+            row = layout.row(align=True)
+            row.label(text="Tools for Debug:")
+
+            row = layout.row(align=True)
+            row.operator_context = "INVOKE_DEFAULT"
+            row.label(text="Add debug operator here")
+            # row.operator("uas_shot_manager.predec_shots_from_single_cam")
+
+        layout.separator()
+        row = layout.row(align=True)
+
+        row = layout.row(align=True)
+        row.operator_context = "INVOKE_DEFAULT"
+        row.operator("uas_shot_manager.file_info", text="File Info...")
+
         layout.separator()
         row = layout.row(align=True)
 
@@ -53,6 +70,10 @@ class UAS_ShotManager_General_Prefs(Operator):
 
         col.prop(prefs, "new_shot_duration", text="Default Shot Length")
 
+        ##################
+        # Overriden by project settings
+        ##################
+
         layout.separator()
         if props.use_project_settings:
             row = layout.row()
@@ -71,7 +92,15 @@ class UAS_ShotManager_General_Prefs(Operator):
         # row = layout.row()
         # row.label(text="Handles:")
         col.prop(props, "render_shot_prefix")
-        col.prop(props, "handles", text="Handles Duration")
+        col.prop(props, "renderSingleFrameShotAsImage")
+
+        col.separator()
+        row = col.row()
+        row.prop(props, "use_handles", text="Use Handles")
+        subrow = row.row()
+        subrow.enabled = props.project_use_handles
+        subrow.prop(props, "handles", text="Handles")
+        col.separator()
 
         box = layout.box()
         box.use_property_decorate = False
@@ -127,7 +156,13 @@ class UAS_ShotManager_ProjectSettings_Prefs(Operator):
         col.prop(props, "project_resolution_framed_y")
         col.prop(props, "project_shot_format")
 
-        col.prop(props, "project_shot_handle_duration")
+        col.separator(factor=1)
+        row = col.row()
+        row.prop(props, "project_use_handles")
+        subrow = row.row()
+        subrow.enabled = props.project_use_handles
+        subrow.prop(props, "project_shot_handle_duration", text="Handles")
+        col.separator(factor=1)
 
         col.prop(props, "project_output_format")
         col.prop(props, "project_color_space")
@@ -264,7 +299,7 @@ class UAS_ShotManager_Shots_Prefs(Operator):
     bl_options = {"INTERNAL"}
 
     def invoke(self, context, event):
-        return context.window_manager.invoke_props_dialog(self, width=500)
+        return context.window_manager.invoke_props_dialog(self, width=580)
 
     def draw(self, context):
         props = context.scene.UAS_shot_manager_props
@@ -296,13 +331,24 @@ class UAS_ShotManager_Shots_Prefs(Operator):
         col.separator(factor=1.0)
         col.prop(props, "use_camera_color", text="Use Camera Color for Shots ")
 
-        col.separator(factor=1.0)
-        col.prop(props, "change_time", text="Set Current Frame To Shot Start When Current Shot Is Changed")
-
         col.use_property_split = True
         col.separator(factor=1.7)
         col.prop(props, "current_shot_properties_mode")
         box.separator(factor=0.5)
+
+        # User Prefs at addon level
+        ###############
+        prefs = bpy.context.preferences.addons["shotmanager"].preferences
+        col.separator(factor=2.0)
+        col.label(text="User Preferenes (in Preference Add-on Window):")
+        col.prop(
+            prefs,
+            "current_shot_changes_current_time",
+            text="Set Current Frame To Shot Start When Current Shot Is Changed",
+        )
+        col.prop(
+            prefs, "current_shot_changes_time_range", text="Set Time Range To Shot Range When Current Shot Is Changed"
+        )
 
         # Shot infos displayed in viewport
         ###############
@@ -332,7 +378,9 @@ class UAS_ShotManager_Shots_Prefs(Operator):
 
         subrow = row.row()
         subrow.scale_x = 1.5
-        subrow.prop(props, "display_notes_in_properties", text="", icon="TEXT")
+        notesIcon = "TEXT"
+        notesIcon = "WORDWRAP_OFF"
+        subrow.prop(props, "display_notes_in_properties", text="", icon=notesIcon)
 
         row.label(text="Shot Notes")
         # row.use_property_split = True

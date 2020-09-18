@@ -53,7 +53,8 @@ class UAS_LaunchRRSRender(Operator):
                 verbose=True,
                 takeIndex=self.takeIndex,
                 useCache=False,
-                fileListOnly=False,
+                fileListOnly=props.rrs_fileListOnly,
+                rerenderExistingShotVideos=props.rrs_rerenderExistingShotVideos,
             )
         else:
             publish_rrs.publishRRS(
@@ -61,7 +62,8 @@ class UAS_LaunchRRSRender(Operator):
                 verbose=self.verbose,
                 takeIndex=self.takeIndex,
                 useCache=self.useCache,
-                fileListOnly=False,
+                fileListOnly=props.rrs_fileListOnly,
+                rerenderExistingShotVideos=props.rrs_rerenderExistingShotVideos,
             )
 
         print("End of Publish")
