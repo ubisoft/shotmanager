@@ -5,7 +5,9 @@ def initialize_for_rrs(override_existing=True, verbose=False):
     publish_rrs.initializeForRRS(override_existing, verbose=verbose)
 
 
-def publishRRS(prodFilePath, take_index=-1, verbose=False, use_cache=False, fileListOnly=False):
+def publishRRS(
+    prodFilePath, take_index=-1, verbose=False, use_cache=False, fileListOnly=False, rerender_existing_shot_videos=True
+):
     """ Return a dictionary with the rendered and the failed file paths
         The dictionary have the following entries:
             - rendered_files_in_cache: rendered files when cache is used
@@ -17,5 +19,10 @@ def publishRRS(prodFilePath, take_index=-1, verbose=False, use_cache=False, file
             - other_files: json dumped file list
     """
     return publish_rrs.publishRRS(
-        prodFilePath, takeIndex=take_index, verbose=verbose, useCache=use_cache, fileListOnly=fileListOnly
+        prodFilePath,
+        takeIndex=take_index,
+        verbose=verbose,
+        useCache=use_cache,
+        fileListOnly=fileListOnly,
+        rerenderExistingShotVideos=rerender_existing_shot_videos,
     )
