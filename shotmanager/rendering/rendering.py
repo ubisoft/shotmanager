@@ -212,16 +212,17 @@ def launchRenderWithVSEComposite(
     def _deleteTempFiles(dirPath):
         # delete unsused rendered frames
         _logger.debug(f"Cleaning shot temp dir: ", dirPath)
-        files_in_directory = os.listdir(dirPath)
-        filtered_files = [file for file in files_in_directory if file.endswith(".png") or file.endswith(".wav")]
+        if os.path.exists(dirPath):
+            files_in_directory = os.listdir(dirPath)
+            filtered_files = [file for file in files_in_directory if file.endswith(".png") or file.endswith(".wav")]
 
-        for file in filtered_files:
-            path_to_file = os.path.join(dirPath, file)
-            os.remove(path_to_file)
-        try:
-            os.rmdir(dirPath)
-        except Exception:
-            print("Cannot delete Dir: ", dirPath)
+            for file in filtered_files:
+                path_to_file = os.path.join(dirPath, file)
+                os.remove(path_to_file)
+            try:
+                os.rmdir(dirPath)
+            except Exception:
+                print("Cannot delete Dir: ", dirPath)
 
     userRenderSettings = _storeUserRenderSettings(context)
 
