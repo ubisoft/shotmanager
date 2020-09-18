@@ -183,6 +183,12 @@ class UAS_Vse_Render(PropertyGroup):
 
     inputAudioMediaPath: StringProperty(name="Input Audio Media Path", default="")
 
+    def clearMedia(self, scene):
+        inputOverMediaPath = None
+        inputBGMediaPath = None
+        inputAudioMediaPath = None
+        self.clearAllChannels(scene)
+
     def getMediaType(self, filePath):
         """ Return the type of media according to the extension of the provided file path
             Rturned types: 'MOVIE', 'IMAGES_SEQUENCE', 'IMAGE', 'SOUND', 'UNKNOWN'
@@ -364,15 +370,21 @@ class UAS_Vse_Render(PropertyGroup):
 
         mediaInfo = f"   - Name: {newClip.name}, Media Type: {mediaType}, path: {mediaPath}"
         print(mediaInfo)
-        print(
-            f"           frame_offset_start: {newClip.frame_offset_start}, frame_offset_end: {newClip.frame_offset_end}, frame_final_duration: {newClip.frame_final_duration}"
-        )
+        # print(
+        #     f"           frame_offset_start: {newClip.frame_offset_start}, frame_offset_end: {newClip.frame_offset_end}, frame_final_duration: {newClip.frame_final_duration}"
+        # )
 
         # if newClip is not None and mediaType != "SOUNDS":
         #     newClip.frame_offset_start = offsetStart
         #     newClip.frame_offset_end = offsetEnd
 
         return newClip
+
+    def clearAllChannels(self, scene):
+        for seq in scene.sequence_editor.sequences:
+            scene.sequence_editor.sequences.remove(seq)
+
+        bpy.ops.sequencer.refresh_all()
 
     def clearChannel(self, scene, channelIndex):
         sequencesList = list()
@@ -421,11 +433,14 @@ class UAS_Vse_Render(PropertyGroup):
 
     def get_frame_end_from_content(self, scene):
 
-        videoChannelClips = self.getChannelClips(scene, 2)
-        frame_end = -1
+        videoChannelClips = self.getChannelClips(scene, 1)
+        scene_frame_start = scene.frame_start  # scene.sequence_editor.sequences
 
+        frame_end = scene_frame_start
         if len(videoChannelClips):
             frame_end = videoChannelClips[len(videoChannelClips) - 1].frame_final_end
+
+        frame_end = max(frame_end, scene_frame_start)
 
         return frame_end
 
@@ -457,41 +472,43 @@ class UAS_Vse_Render(PropertyGroup):
         for mediaPath in mediaFiles:
             # sequenceScene.sequence_editor
             frameToPaste = self.get_frame_end_from_content(sequenceScene)
-            # audio clip
-            self.createNewClip(
-                sequenceScene,
-                mediaPath,
-                sequenceScene.frame_start,
-                frameToPaste,  # shot.getEditStart() - handles,
-                offsetStart=handles,
-                offsetEnd=handles,
-                importVideo=False,
-                importAudio=True,
-            )
-
+            print("\n---- Importing video ----")
+            print(f"  frametopaste: {frameToPaste}")
             # video clip
             self.createNewClip(
                 sequenceScene,
                 mediaPath,
-                sequenceScene.frame_start,
-                frameToPaste,  # shot.getEditStart() - handles,
+                0,
+                frameToPaste - handles,  # shot.getEditStart() - handles,
                 offsetStart=handles,
                 offsetEnd=handles,
                 importVideo=True,
                 importAudio=False,
             )
 
-            sequenceScene.frame_end = self.get_frame_end_from_content(sequenceScene)
+            # audio clip
+            self.createNewClip(
+                sequenceScene,
+                mediaPath,
+                1,
+                frameToPaste - handles,  # shot.getEditStart() - handles,
+                offsetStart=handles,
+                offsetEnd=handles,
+                importVideo=False,
+                importAudio=True,
+            )
 
-            bpy.ops.render.opengl(animation=True, sequencer=True)
+        sequenceScene.frame_end = self.get_frame_end_from_content(sequenceScene) - 1
 
-            # cleaning current file from temp scenes
-            if not config.uasDebug:
-                # current scene is sequenceScene
-                bpy.ops.scene.delete()
-                pass
+        bpy.ops.render.opengl(animation=True, sequencer=True, write_still=False)
 
-            bpy.context.window.scene = previousScene
+        # cleaning current file from temp scenes
+        if not config.uasDebug:
+            # current scene is sequenceScene
+            bpy.ops.scene.delete()
+            pass
+
+        bpy.context.window.scene = previousScene
 
     def compositeVideoInVSE(self, fps, frame_start, frame_end, output_filepath, postfixSceneName=""):
 
@@ -534,46 +551,51 @@ class UAS_Vse_Render(PropertyGroup):
         vse_scene.render.use_file_extension = False
 
         bgClip = None
-        try:
-            print(f"self.inputBGMediaPath: {self.inputBGMediaPath}")
-            bgClip = self.createNewClip(vse_scene, self.inputBGMediaPath, 1, 1)
-            print("BG Media OK")
-        except Exception as e:
-            print(f" *** Rendered shot not found: {self.inputBGMediaPath}")
+        if self.inputBGMediaPath is not None:
+            try:
+                print(f"self.inputBGMediaPath: {self.inputBGMediaPath}")
+                bgClip = self.createNewClip(vse_scene, self.inputBGMediaPath, 1, 1)
+                print("BG Media OK")
+            except Exception as e:
+                print(f" *** Rendered shot not found: {self.inputBGMediaPath}")
 
-        # bgClip = None
-        # if os.path.exists(self.inputBGMediaPath):
-        #     bgClip = self.createNewClip(vse_scene, self.inputBGMediaPath, 1, 1)
-        # else:
-        #     print(f" *** Rendered shot not found: {self.inputBGMediaPath}")
+            # bgClip = None
+            # if os.path.exists(self.inputBGMediaPath):
+            #     bgClip = self.createNewClip(vse_scene, self.inputBGMediaPath, 1, 1)
+            # else:
+            #     print(f" *** Rendered shot not found: {self.inputBGMediaPath}")
 
-        print(f"self.inputBGMediaPath: {self.inputOverMediaPath}")
-        overClip = None
-        try:
-            overClip = self.createNewClip(vse_scene, self.inputOverMediaPath, 2, 1)
-            print("Over Media OK")
-        except Exception as e:
-            print(f" *** Rendered shot not found: {self.inputOverMediaPath}")
-        # overClip = None
-        # if os.path.exists(self.inputOverMediaPath):
-        #     overClip = self.createNewClip(vse_scene, self.inputOverMediaPath, 2, 1)
-        # else:
-        #     print(f" *** Rendered shot not found: {self.inputOverMediaPath}")
+        #    print(f"self.inputBGMediaPath: {self.inputOverMediaPath}")
 
-        if overClip is not None:
-            overClip.use_crop = True
-            overClip.crop.min_x = -1 * int((self.inputBGResolution[0] - self.inputOverResolution[0]) / 2)
-            overClip.crop.max_x = overClip.crop.min_x
-            overClip.crop.min_y = -1 * int((self.inputBGResolution[1] - self.inputOverResolution[1]) / 2)
-            overClip.crop.max_y = overClip.crop.min_y
+        if self.inputOverMediaPath is not None:
+            overClip = None
+            try:
+                overClip = self.createNewClip(vse_scene, self.inputOverMediaPath, 2, 1)
+                print("Over Media OK")
+            except Exception as e:
+                print(f" *** Rendered shot not found: {self.inputOverMediaPath}")
+            # overClip = None
+            # if os.path.exists(self.inputOverMediaPath):
+            #     overClip = self.createNewClip(vse_scene, self.inputOverMediaPath, 2, 1)
+            # else:
+            #     print(f" *** Rendered shot not found: {self.inputOverMediaPath}")
 
-            overClip.blend_type = "OVER_DROP"
+            if overClip is not None:
+                overClip.use_crop = True
+                overClip.crop.min_x = -1 * int((self.inputBGResolution[0] - self.inputOverResolution[0]) / 2)
+                overClip.crop.max_x = overClip.crop.min_x
+                overClip.crop.min_y = -1 * int((self.inputBGResolution[1] - self.inputOverResolution[1]) / 2)
+                overClip.crop.max_y = overClip.crop.min_y
 
-        audioClip = None
-        if os.path.exists(self.inputAudioMediaPath):
-            audioClip = self.createNewClip(vse_scene, self.inputAudioMediaPath, 3, 1)
-        else:
-            print(f" *** Rendered shot not found: {self.inputAudioMediaPath}")
+                overClip.blend_type = "OVER_DROP"
+
+        if self.inputAudioMediaPath is not None:
+            if specificFrame is None:
+                audioClip = None
+                if os.path.exists(self.inputAudioMediaPath):
+                    audioClip = self.createNewClip(vse_scene, self.inputAudioMediaPath, 3, 1)
+                else:
+                    print(f" *** Rendered shot not found: {self.inputAudioMediaPath}")
 
         # bpy.context.scene.sequence_editor.sequences
         # get res of video: bpy.context.scene.sequence_editor.sequences[1].elements[0].orig_width
@@ -600,22 +622,27 @@ class UAS_Vse_Render(PropertyGroup):
         #     show_multiview=False,
         # )
 
-        # Call user prefs window
-        bpy.ops.screen.userpref_show("INVOKE_DEFAULT")
-        # Change area type
-        area = bpy.context.window_manager.windows[-1].screen.areas[0]
-        area.type = "IMAGE_EDITOR"
+        if specificFrame is not None:
+            # if True:
+            # Call user prefs window
+            #     previousContext = bpy.context.screen
+            bpy.ops.screen.userpref_show("INVOKE_DEFAULT")
+            # Change area type
+            area = bpy.context.window_manager.windows[-1].screen.areas[0]
+            area.type = "IMAGE_EDITOR"
 
-        # bpy.ops.render.view_show()
-        bpy.ops.image.open(filepath=output_filepath, relative_path=False, show_multiview=False)
+            # bpy.ops.render.view_show()
+            bpy.ops.image.open(filepath=output_filepath, relative_path=False, show_multiview=False)
 
-        # bpy.data.images.[image_name].reload()
-        from pathlib import Path
+            # bpy.data.images.[image_name].reload()
+            from pathlib import Path
 
-        print(f"Path(output_filepath).name: {Path(output_filepath).name}")
-        myImg = bpy.data.images[Path(output_filepath).name]
-        print("myImg:" + str(myImg))
-        bpy.context.area.spaces.active.image = myImg
+            print(f"Path(output_filepath).name: {Path(output_filepath).name}")
+            myImg = bpy.data.images[Path(output_filepath).name]
+            print("myImg:" + str(myImg))
+            bpy.context.area.spaces.active.image = myImg
+            # bpy.ops.screen.screen_set(0)
+        #    bpy.context.screen = previousContext
 
 
 _classes = (

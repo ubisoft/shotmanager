@@ -33,7 +33,7 @@ from bpy.types import Operator
 class UAS_ShotManager_EnableDisableAll(Operator):
     bl_idname = "uas_shot_manager.enabledisableall"
     bl_label = "Enable / Disable All Shots"
-    bl_description = "Enable all shots,\nClick + Ctrl: Disable all shots,\nClick + Shift: Invert shots state"
+    bl_description = "Enable all shots,\nShift + Click: Invert shots state,\nCtrl + Click: Disable all shots,\nAlt + Click: Isolate Selected Shot,"
     bl_options = {"INTERNAL", "REGISTER", "UNDO"}
 
     def invoke(self, context, event):
@@ -41,12 +41,14 @@ class UAS_ShotManager_EnableDisableAll(Operator):
         props = scene.UAS_shot_manager_props
 
         enableMode = "ENABLEALL"
-        if event.shift:
+        if event.shift and not event.ctrl and not event.alt:
             enableMode = "INVERT"
-        elif event.ctrl:
+        elif event.ctrl and not event.shift and not event.alt:
             enableMode = "DISABLEALL"
+        elif event.alt and not event.shift and not event.ctrl:
+            enableMode = "ENABLEONLYCSELECTED"
 
-        selectedShotInd = props.getSelectedShotIndex()
+        selectedShot = props.getSelectedShot()
         shotsList = props.getShotsList()
         for shot in shotsList:
             if "ENABLEALL" == enableMode:
@@ -55,8 +57,10 @@ class UAS_ShotManager_EnableDisableAll(Operator):
                 shot.enabled = False
             elif "INVERT" == enableMode:
                 shot.enabled = not shot.enabled
+            elif "ENABLEONLYCSELECTED" == enableMode:
+                shot.enabled = shot == selectedShot
 
-        props.setSelectedShotByIndex(selectedShotInd)
+        props.setSelectedShot(selectedShot)
 
         return {"FINISHED"}
 

@@ -122,8 +122,8 @@ class UAS_PT_ShotManagerRenderPanel(Panel):
             box = layout.box()
 
             if props.use_project_settings:
-                box.prop(props, "bypass_rendering_project_settings")
-                if props.bypass_rendering_project_settings:
+                box.prop(props.renderSettingsStill, "bypass_rendering_project_settings")
+                if props.renderSettingsStill.bypass_rendering_project_settings:
                     subbox = box.box()
                     row = subbox.row()
                 else:
@@ -148,8 +148,8 @@ class UAS_PT_ShotManagerRenderPanel(Panel):
             box = layout.box()
 
             if props.use_project_settings:
-                box.prop(props, "bypass_rendering_project_settings")
-                if props.bypass_rendering_project_settings:
+                box.prop(props.renderSettingsAnim, "bypass_rendering_project_settings")
+                if props.renderSettingsAnim.bypass_rendering_project_settings:
                     subbox = box.box()
                     row = subbox.row()
                 else:
@@ -158,7 +158,7 @@ class UAS_PT_ShotManagerRenderPanel(Panel):
                 row = box.row()
 
             if display_bypass_options:
-                row.prop(props.renderSettingsAnim, "renderWithHandles")
+                row.prop(props.renderSettingsAnim, "renderHandles")
 
             row = box.row()
             filePath = props.getCurrentShot().getOutputFileName(fullPath=True)
@@ -172,11 +172,13 @@ class UAS_PT_ShotManagerRenderPanel(Panel):
             box = layout.box()
 
             row = box.row()
-            box.prop(props.renderSettingsAll, "generateEditVideo")
+            row.prop(props.renderSettingsAll, "rerenderExistingShotVideos")
+            row = box.row()
+            row.prop(props.renderSettingsAll, "generateEditVideo")
 
             if props.use_project_settings:
-                box.prop(props, "bypass_rendering_project_settings")
-                if props.bypass_rendering_project_settings:
+                box.prop(props.renderSettingsAll, "bypass_rendering_project_settings")
+                if props.renderSettingsAll.bypass_rendering_project_settings:
                     subbox = box.box()
                     row = subbox.row()
                 else:

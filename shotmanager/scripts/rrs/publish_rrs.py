@@ -76,7 +76,9 @@ def initializeForRRS(override_existing: bool, verbose=False):
     print_project_env()
 
 
-def publishRRS(prodFilePath, takeIndex=-1, verbose=False, useCache=False, fileListOnly=False):
+def publishRRS(
+    prodFilePath, takeIndex=-1, verbose=False, useCache=False, fileListOnly=False, rerenderExistingShotVideos=True
+):
     """ Return a dictionary with the rendered and the failed file paths
         The dictionary have the following entries:
             - rendered_files_in_cache: rendered files when cache is used
@@ -150,7 +152,13 @@ def publishRRS(prodFilePath, takeIndex=-1, verbose=False, useCache=False, fileLi
 
     # shot videos are rendered in the directory of the take, not anymore in a directory with the shot name
     renderedFilesDict = rendering.launchRenderWithVSEComposite(
-        "PROJECT", takeIndex=takeIndex, filePath=renderDir, fileListOnly=fileListOnly
+        bpy.context,
+        "PROJECT",
+        takeIndex=takeIndex,
+        filePath=renderDir,
+        fileListOnly=fileListOnly,
+        rerenderExistingShotVideos=rerenderExistingShotVideos,
+        area=bpy.context.area,
     )
 
     ################

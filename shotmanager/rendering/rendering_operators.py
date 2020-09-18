@@ -106,7 +106,9 @@ class UAS_PT_ShotManager_Render(Operator):
                 filePath += "\\"
 
             # if props.isRenderRootPathValid():
-            launchRender(self.renderMode, renderRootFilePath=filePath, useStampInfo=props.useStampInfoDuringRendering)
+            launchRender(
+                context, self.renderMode, renderRootFilePath=filePath, useStampInfo=props.useStampInfoDuringRendering
+            )
 
         return {"FINISHED"}
 

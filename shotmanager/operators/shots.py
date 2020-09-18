@@ -34,18 +34,17 @@ class UAS_ShotManager_SetCurrentShot(Operator):
 
     def invoke(self, context, event):
         props = context.scene.UAS_shot_manager_props
-        val = 5
-        if event.alt:
-            props.setCurrentShotByIndex(self.index, changeTime=False)
-            props.setSelectedShotByIndex(self.index)
-        elif event.shift:
+        if event.shift and not event.ctrl and not event.alt:
             shot = props.getShot(self.index)
             shot.enabled = not shot.enabled
-        elif event.ctrl:
+        elif event.ctrl and not event.shift and not event.alt:
             context.scene.UAS_shot_manager_props.setSelectedShotByIndex(self.index)
             context.scene.UAS_shot_manager_props.selectCamera(self.index)
+        elif event.alt and not event.shift and not event.ctrl:
+            props.setCurrentShotByIndex(self.index, changeTime=False, area=context.area)
+            props.setSelectedShotByIndex(self.index)
         else:
-            props.setCurrentShotByIndex(self.index)
+            props.setCurrentShotByIndex(self.index, area=context.area)
             props.setSelectedShotByIndex(self.index)
 
         return {"FINISHED"}

@@ -256,11 +256,50 @@ def cameras_from_scene(scene):
     return camList
 
 
-def setCurrentCameraToViewport():
-    area = next(area for area in bpy.context.screen.areas if area.type == "VIEW_3D")
+def setCurrentCameraToViewport(context, area=None):
 
-    area.spaces[0].use_local_camera = False
-    area.spaces[0].region_3d.view_perspective = "CAMERA"
+    print(f"setCurrentCameraToViewport: Num Windows: {len(bpy.context.window_manager.windows)}, area: {area}")
+
+    # area = bpy.context.window_manager.windows[-1].screen.areas[0]
+    #         area.type = "IMAGE_EDITOR"
+    targetArea = None
+    if area is not None:
+        rightWin = None
+        if area.type != "VIEW_3D":
+            for win in bpy.context.window_manager.windows:
+                for winArea in win.screen.areas:
+                    if winArea == area:
+                        rightWin = win
+                        break
+                if rightWin is not None:
+                    break
+
+            if rightWin is not None:
+                for winArea in rightWin.screen.areas:
+                    print(f"Area Type in right win: {winArea.type}")
+                    if winArea.type == "VIEW_3D":
+                        targetArea = winArea
+                    break
+
+    if targetArea is None:
+        for win in bpy.context.window_manager.windows:
+            for winArea in win.screen.areas:
+                print(f"Area Type: {winArea.type}")
+                if winArea.type == "VIEW_3D":
+                    targetArea = winArea
+                    break
+            if targetArea is not None:
+                break
+
+        # for area in context.screen.areas:
+        #     print(f"Area Type: {area.type}")
+        #     # if area.type == "VIEW_3D"
+
+        # area = next(area for area in context.screen.areas if area.type == "VIEW_3D")
+
+    if targetArea is not None:
+        targetArea.spaces[0].use_local_camera = False
+        targetArea.spaces[0].region_3d.view_perspective = "CAMERA"
 
     return
 

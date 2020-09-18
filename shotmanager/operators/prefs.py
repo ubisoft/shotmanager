@@ -70,6 +70,10 @@ class UAS_ShotManager_General_Prefs(Operator):
 
         col.prop(prefs, "new_shot_duration", text="Default Shot Length")
 
+        ##################
+        # Overriden by project settings
+        ##################
+
         layout.separator()
         if props.use_project_settings:
             row = layout.row()
@@ -88,8 +92,15 @@ class UAS_ShotManager_General_Prefs(Operator):
         # row = layout.row()
         # row.label(text="Handles:")
         col.prop(props, "render_shot_prefix")
-        col.prop(props, "handles", text="Handles Duration")
         col.prop(props, "renderSingleFrameShotAsImage")
+
+        col.separator()
+        row = col.row()
+        row.prop(props, "use_handles", text="Use Handles")
+        subrow = row.row()
+        subrow.enabled = props.project_use_handles
+        subrow.prop(props, "handles", text="Handles")
+        col.separator()
 
         box = layout.box()
         box.use_property_decorate = False
@@ -145,7 +156,13 @@ class UAS_ShotManager_ProjectSettings_Prefs(Operator):
         col.prop(props, "project_resolution_framed_y")
         col.prop(props, "project_shot_format")
 
-        col.prop(props, "project_shot_handle_duration")
+        col.separator(factor=1)
+        row = col.row()
+        row.prop(props, "project_use_handles")
+        subrow = row.row()
+        subrow.enabled = props.project_use_handles
+        subrow.prop(props, "project_shot_handle_duration", text="Handles")
+        col.separator(factor=1)
 
         col.prop(props, "project_output_format")
         col.prop(props, "project_color_space")

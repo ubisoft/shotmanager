@@ -176,6 +176,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
 
     rrs_useRenderRoot: BoolProperty(name="Use Render Root", default=True)
     rrs_fileListOnly: BoolProperty(name="File List Only", default=False)
+    rrs_rerenderExistingShotVideos: BoolProperty(name="Force Re-render", default=True)
 
     # project settings
     #############
@@ -191,7 +192,13 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
     project_resolution_framed_y: IntProperty(name="Res. Framed Y", min=0, default=720)
     project_shot_format: StringProperty(name="Shot Format", default=r"Act{:02}_Seq{:04}_Sh{:04}")
 
-    project_shot_handle_duration: IntProperty(name="Project Handle Duration", min=0, soft_max=50, default=10)
+    project_shot_handle_duration: IntProperty(
+        name="Project Handles Duration",
+        description="Duration of the handles used by the project, in number of frames",
+        min=0,
+        soft_max=50,
+        default=10,
+    )
 
     project_output_format: StringProperty(name="Output Format", default="")
     project_color_space: StringProperty(name="Color Space", default="")
@@ -204,7 +211,26 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         default=False,
     )
 
+    project_use_handles: BoolProperty(
+        name="Use Handles",
+        description="Use or not shot handles for the project.\nWhen not used, not reference to the handles will appear in Shot Manager user interface",
+        default=True,
+    )
+
     # built-in settings
+    use_handles: BoolProperty(
+        name="Use Handles",
+        description="Use or not shot handles.\nWhen not used, not reference to the handles will appear in Shot Manager user interface",
+        default=False,
+    )
+    handles: IntProperty(
+        name="Handles Duration",
+        description="Duration of the handles, in number of frames",
+        default=10,
+        min=0,
+        options=set(),
+    )
+
     new_shot_prefix: StringProperty(default="Sh")
 
     renderSingleFrameShotAsImage: BoolProperty(
@@ -225,13 +251,6 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
     )
 
     project_images_output_format: StringProperty(name="Images Output Format", default="PNG")
-
-    bypass_rendering_project_settings: BoolProperty(
-        name="Bypass Project Settings",
-        description="When Project Settings are used this allows the use of custom rendering settings",
-        default=False,
-        options=set(),
-    )
 
     # playbar
     #############
@@ -460,8 +479,6 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
     current_take_name: EnumProperty(
         name="Takes", description="Select a take", items=_list_takes, update=_update_current_take_name,
     )
-
-    handles: IntProperty(default=10, min=0, options=set())
 
     ####################
     # takes
@@ -1200,10 +1217,11 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
             self.setCurrentShotByIndex(newInd)
         self.setSelectedShotByIndex(newInd)
 
-    def setCurrentShotByIndex(self, currentShotIndex, changeTime=None):
+    def setCurrentShotByIndex(self, currentShotIndex, changeTime=None, area=None):
         """ Changing the current shot doesn't affect the selected one
         """
         scene = bpy.context.scene
+        area = area if area is not None else bpy.context.area
 
         shotList = self.get_shots()
         self.current_shot_index = currentShotIndex
@@ -1223,7 +1241,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
             if shotList[currentShotIndex].camera is not None and bpy.context.screen is not None:
                 # set the current camera in the 3D view: [‘PERSP’, ‘ORTHO’, ‘CAMERA’]
                 scene.camera = shotList[currentShotIndex].camera
-                utils.setCurrentCameraToViewport()
+                utils.setCurrentCameraToViewport(bpy.context, area)
                 # area = next(area for area in bpy.context.screen.areas if area.type == "VIEW_3D")
 
                 # area.spaces[0].use_local_camera = False
@@ -1231,10 +1249,10 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
 
             # bpy.context.scene.objects["Camera_Sapin"]
 
-    def setCurrentShot(self, currentShot):
+    def setCurrentShot(self, currentShot, changeTime=None, area=None):
         shotInd = self.getShotIndex(currentShot)
         print("setCurrentShot: shotInd:", shotInd)
-        self.setCurrentShotByIndex(shotInd)
+        self.setCurrentShotByIndex(shotInd, changeTime=changeTime, area=area)
 
     def getShotIndex(self, shot):
         """Return the shot index in its parent take
@@ -2159,7 +2177,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         self.renderSettingsAll.renderAllTakes = False
         self.renderSettingsAll.renderAllShots = False
         self.renderSettingsAll.renderAlsoDisabled = False
-        self.renderSettingsAll.renderWithHandles = False
+        self.renderSettingsAll.renderHandles = False
         self.renderSettingsAll.renderOtioFile = True
         self.renderSettingsAll.otioFileType = "XML"
         self.renderSettingsAll.generateEditVideo = True

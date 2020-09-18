@@ -5,6 +5,7 @@ _logger = logging.getLogger(__name__)
 import os
 import json
 
+from pathlib import Path
 import bpy
 
 from ..config import config
@@ -14,33 +15,54 @@ from shotmanager.utils import utils
 
 
 def launchRenderWithVSEComposite(
+    context,
     renderMode,
     takeIndex=-1,
     filePath="",
     useStampInfo=True,
+    rerenderExistingShotVideos=True,
     fileListOnly=False,
     generateSequenceVideo=True,
     specificShotList=None,
     specificFrame=None,
-    handles=0,
+    render_handles=True,
+    area=None,
 ):
     """ Generate the media for the specified take
         Return a dictionary with a list of all the created files and a list of failed ones
         filesDict = {"rendered_files": newMediaFiles, "failed_files": failedFiles}
         specificFrame: When specified, only this frame is rendered. Handles are ignored and the resulting media in an image, not a video
     """
-    context = bpy.context
-    scene = bpy.context.scene
+    # context = bpy.context
+    scene = context.scene
     props = scene.UAS_shot_manager_props
+    vse_render = context.window_manager.UAS_vse_render
+
+    currentShot = props.getCurrentShot()
 
     videoFileFormat = "mp4"
+
+    import time
+
+    # it is possible to have handles but not to render them (case of still frame),
+    # it is also possible not to use the handles, whitch is different on stamp info
+    useHandles = props.project_use_handles if props.use_project_settings else props.use_handles
+    handles = 0
+    if useHandles:
+        handles = props.project_shot_handle_duration if props.use_project_settings else props.handles
+        handles = max(0, handles)
+
+    # we verify anyway if handles are used
+    renderHandles = render_handles and useHandles
+
     if specificFrame is not None:
+        renderHandles = False
         if props.use_project_settings:
             videoFileFormat = props.project_images_output_format
         else:
             videoFileFormat = "png"
 
-    import time
+    viewportArea = area if area is not None else bpy.context.area
 
     startRenderintTime = time.monotonic()
 
@@ -104,7 +126,7 @@ def launchRenderWithVSEComposite(
     previousShotRenderTime = time.monotonic()
     currentShotRenderTime = previousShotRenderTime
 
-    bpy.context.scene.use_preview_range = False
+    context.scene.use_preview_range = False
 
     renderFrameByFrame = (
         "PLAYBLAST_LOOP" == props.renderContext.renderComputationMode
@@ -120,70 +142,90 @@ def launchRenderWithVSEComposite(
         or "PLAYBLAST_ANIM" == props.renderContext.renderComputationMode
     ):
         if not "CUSTOM" == props.renderContext.renderEngineOpengl:
-            bpy.context.scene.render.engine = props.renderContext.renderEngineOpengl
+            context.scene.render.engine = props.renderContext.renderEngineOpengl
     else:
         if not "CUSTOM" == props.renderContext.renderEngine:
-            bpy.context.scene.render.engine = props.renderContext.renderEngine
+            context.scene.render.engine = props.renderContext.renderEngine
 
     userRenderSettings = {}
 
-    def _storeUserRenderSettings():
-        userRenderSettings["show_overlays"] = bpy.context.space_data.overlay.show_overlays
-        userRenderSettings["resolution_x"] = bpy.context.scene.render.resolution_x
-        userRenderSettings["resolution_y"] = bpy.context.scene.render.resolution_y
-        userRenderSettings["render_engine"] = bpy.context.scene.render.engine
+    def _storeUserRenderSettings(context):
+        #    userRenderSettings["show_overlays"] = bpy.context.space_data.overlay.show_overlays
+        userRenderSettings["resolution_x"] = context.scene.render.resolution_x
+        userRenderSettings["resolution_y"] = context.scene.render.resolution_y
+        userRenderSettings["render_engine"] = context.scene.render.engine
+
+        userRenderSettings["frame_start"] = scene.frame_start
+        userRenderSettings["frame_end"] = scene.frame_end
 
         # eevee
         ##############
         # if "BLENDER_EEVEE" == bpy.context.scene.render.engine:
-        userRenderSettings["eevee_taa_render_samples"] = bpy.context.scene.eevee.taa_render_samples
-        userRenderSettings["eevee_taa_samples"] = bpy.context.scene.eevee.taa_samples
+        userRenderSettings["eevee_taa_render_samples"] = context.scene.eevee.taa_render_samples
+        userRenderSettings["eevee_taa_samples"] = context.scene.eevee.taa_samples
 
         # workbench
         ##############
         # if "BLENDER_WORKBENCH" == bpy.context.scene.render.engine:
-        userRenderSettings["workbench_render_aa"] = bpy.context.scene.display.render_aa
-        userRenderSettings["workbench_viewport_aa"] = bpy.context.scene.display.viewport_aa
+        userRenderSettings["workbench_render_aa"] = context.scene.display.render_aa
+        userRenderSettings["workbench_viewport_aa"] = context.scene.display.viewport_aa
 
         # cycles
         ##############
         #  if "CYCLES" == bpy.context.scene.render.engine:
-        userRenderSettings["cycles_samples"] = bpy.context.scene.cycles.samples
-        userRenderSettings["cycles_preview_samples"] = bpy.context.scene.cycles.preview_samples
+        userRenderSettings["cycles_samples"] = context.scene.cycles.samples
+        userRenderSettings["cycles_preview_samples"] = context.scene.cycles.preview_samples
 
         return userRenderSettings
 
-    def _restoreUserRenderSettings(userRenderSettings):
+    def _restoreUserRenderSettings(context, userRenderSettings):
         # wkip bug here dans certaines conditions vse
         #    bpy.context.space_data.overlay.show_overlays = userRenderSettings["show_overlays"]
 
-        bpy.context.scene.render.resolution_x = userRenderSettings["resolution_x"]
-        bpy.context.scene.render.resolution_y = userRenderSettings["resolution_y"]
-        bpy.context.scene.render.engine = userRenderSettings["render_engine"]
+        context.scene.render.resolution_x = userRenderSettings["resolution_x"]
+        context.scene.render.resolution_y = userRenderSettings["resolution_y"]
+        context.scene.render.engine = userRenderSettings["render_engine"]
+
+        scene.frame_start = userRenderSettings["frame_start"]
+        scene.frame_end = userRenderSettings["frame_end"]
 
         # eevee
         ##############
         #   if "BLENDER_EEVEE" == bpy.context.scene.render.engine:
-        bpy.context.scene.eevee.taa_render_samples = userRenderSettings["eevee_taa_render_samples"]
-        bpy.context.scene.eevee.taa_samples = userRenderSettings["eevee_taa_samples"]
+        context.scene.eevee.taa_render_samples = userRenderSettings["eevee_taa_render_samples"]
+        context.scene.eevee.taa_samples = userRenderSettings["eevee_taa_samples"]
 
         # workbench
         ##############
         # if "BLENDER_WORKBENCH" == bpy.context.scene.render.engine:
-        bpy.context.scene.display.render_aa = userRenderSettings["workbench_render_aa"]
-        bpy.context.scene.display.viewport_aa = userRenderSettings["workbench_viewport_aa"]
+        context.scene.display.render_aa = userRenderSettings["workbench_render_aa"]
+        context.scene.display.viewport_aa = userRenderSettings["workbench_viewport_aa"]
 
         # cycles
         ##############
         #        if "CYCLES" == bpy.context.scene.render.engine:
-        bpy.context.scene.cycles.samples = userRenderSettings["cycles_samples"]
-        bpy.context.scene.cycles.preview_samples = userRenderSettings["cycles_preview_samples"]
+        context.scene.cycles.samples = userRenderSettings["cycles_samples"]
+        context.scene.cycles.preview_samples = userRenderSettings["cycles_preview_samples"]
 
         return
 
-    userRenderSettings = _storeUserRenderSettings()
+    def _deleteTempFiles(dirPath):
+        # delete unsused rendered frames
+        _logger.debug(f"Cleaning shot temp dir: ", dirPath)
+        files_in_directory = os.listdir(dirPath)
+        filtered_files = [file for file in files_in_directory if file.endswith(".png") or file.endswith(".wav")]
 
-    props.renderContext.applyRenderQualitySettings()
+        for file in filtered_files:
+            path_to_file = os.path.join(dirPath, file)
+            os.remove(path_to_file)
+        try:
+            os.rmdir(dirPath)
+        except Exception:
+            print("Cannot delete Dir: ", dirPath)
+
+    userRenderSettings = _storeUserRenderSettings(context)
+
+    props.renderContext.applyRenderQualitySettings(context)
 
     for i, shot in enumerate(shotList):
         # context.window_manager.UAS_shot_manager_progressbar = (i + 1) / len(shotList) * 100.0
@@ -202,20 +244,31 @@ def launchRenderWithVSEComposite(
 
         newMediaFiles.append(compositedMediaPath)
 
+        if not rerenderExistingShotVideos:
+            if Path(compositedMediaPath).exists():
+                print(f" - File {Path(compositedMediaPath).name} already computed")
+                continue
+
         if not fileListOnly:
             print("\n----------------------------------------------------")
             print("\n  Shot rendered: ", shot.name)
             print("newTempRenderPath: ", newTempRenderPath)
             print("compositedMediaPath: ", compositedMediaPath)
 
+            _deleteTempFiles(newTempRenderPath)
+
             # set scene as current
-            bpy.context.window.scene = scene
+            context.window.scene = scene
             #     props.setCurrentShotByIndex(i)
             #     props.setSelectedShotByIndex(i)
 
             if specificFrame is None:
-                scene.frame_start = shot.start - handles
-                scene.frame_end = shot.end + handles
+                if renderHandles:
+                    scene.frame_start = shot.start - handles
+                    scene.frame_end = shot.end + handles
+                else:
+                    scene.frame_start = shot.start
+                    scene.frame_end = shot.end
             else:
                 scene.frame_start = specificFrame
                 scene.frame_end = specificFrame
@@ -223,7 +276,7 @@ def launchRenderWithVSEComposite(
             scene.camera = shot.camera
             print("Scene.name:", scene.name)
             print("Scene.camera:", scene.camera)
-            utils.setCurrentCameraToViewport()
+            utils.setCurrentCameraToViewport(context, viewportArea)
             # props.setCurrentShot(shot)
 
             numFramesInShot = scene.frame_end - scene.frame_start + 1
@@ -244,15 +297,9 @@ def launchRenderWithVSEComposite(
                         # scene.frame_current = currentFrame
                         scene.frame_set(currentFrame)
 
-                        if specificFrame is None:
-                            scene.render.filepath = shot.getOutputFileName(
-                                frameIndex=scene.frame_current, fullPath=True, rootFilePath=rootPath
-                            )
-                        else:
-                            scene.render.filepath = shot.getOutputFileName(
-                                frameIndex=scene.frame_current, fullPath=True, rootFilePath=rootPath
-                            )
-
+                        scene.render.filepath = shot.getOutputFileName(
+                            frameIndex=scene.frame_current, fullPath=True, rootFilePath=rootPath
+                        )
                         print("      ------------------------------------------")
                         print(
                             f"      \nFrame: {currentFrame}    ( {f + 1} / {numFramesInShot} )    -     Shot: {shot.name}"
@@ -303,7 +350,6 @@ def launchRenderWithVSEComposite(
             #######################
             # render stamped info
             #######################
-
             if preset_useStampInfo:
                 renderStampedInfoForShot(
                     RRS_StampInfo,
@@ -313,8 +359,9 @@ def launchRenderWithVSEComposite(
                     rootPath,
                     newTempRenderPath,
                     handles,
-                    verbose=False,
+                    render_handles=renderHandles,
                     specificFrame=specificFrame,
+                    verbose=False,
                 )
 
             #######################
@@ -342,25 +389,43 @@ def launchRenderWithVSEComposite(
                 bpy.ops.sound.mixdown(filepath=audioFilePath, relative_path=False, container="WAV", codec="PCM")
 
             # use vse_render to store all the elements to composite
-            vse_render = context.window_manager.UAS_vse_render
+
             frameIndStr = "####" if specificFrame is None else f"{specificFrame:04}"
-            vse_render.inputOverMediaPath = (scene.render.filepath)[0:-8] + frameIndStr + ".png"
-            print(f"vse_render.inputOverMediaPath: {vse_render.inputOverMediaPath}")
+            vse_render.clearMedia(scene)
+
+            # vse_render.inputOverMediaPath = (scene.render.filepath)[0:-8] + frameIndStr + ".png"
+            vse_render.inputOverMediaPath = (
+                newTempRenderPath + shot.getOutputFileName(fullPath=False) + "_" + frameIndStr + ".png"
+            )
+
+            # if specificFrame is None:
+            #     scene.render.filepath = shot.getOutputFileName(
+            #         frameIndex=scene.frame_current, fullPath=True, rootFilePath=rootPath
+            #     )
+            # else:
+            #     scene.render.filepath = shot.getOutputFileName(
+            #         frameIndex=scene.frame_current, fullPath=True, rootFilePath=rootPath
+            #     )
+
+            print(f"----- vse_render.inputOverMediaPath: {vse_render.inputOverMediaPath}")
 
             #    print("inputOverMediaPath: ", vse_render.inputOverMediaPath)
             vse_render.inputOverResolution = (1280, 720)
-            vse_render.inputBGMediaPath = newTempRenderPath + "_tmp_StampInfo." + frameIndStr + ".png"
-            vse_render.inputBGResolution = (1280, 960)
+
+            if preset_useStampInfo:
+                vse_render.inputBGMediaPath = newTempRenderPath + "_tmp_StampInfo." + frameIndStr + ".png"
+                vse_render.inputBGResolution = (1280, 960)
+
             if specificFrame is None:
                 vse_render.inputAudioMediaPath = audioFilePath
 
             if specificFrame is None:
+                video_frame_end = shot.end - shot.start + 1
+                if renderHandles:
+                    video_frame_end += 2 * handles
+
                 vse_render.compositeVideoInVSE(
-                    projectFps,
-                    1,
-                    shot.end - shot.start + 2 * handles + 1,
-                    compositedMediaPath,
-                    shot.getName_PathCompliant(),
+                    projectFps, 1, video_frame_end, compositedMediaPath, shot.getName_PathCompliant(),
                 )
             else:
                 print(f"compositedMediaPath: {compositedMediaPath}")
@@ -372,25 +437,15 @@ def launchRenderWithVSEComposite(
             # bpy.ops.render.render('INVOKE_DEFAULT', animation = True)
             # bpy.ops.render.opengl ( animation = True )
 
-            # delete unsused rendered frames
-            files_in_directory = os.listdir(newTempRenderPath)
-            filtered_files = [file for file in files_in_directory if file.endswith(".png") or file.endswith(".wav")]
-
             deleteTempFiles = False
             if deleteTempFiles:
-                for file in filtered_files:
-                    path_to_file = os.path.join(newTempRenderPath, file)
-                    os.remove(path_to_file)
-                try:
-                    os.rmdir(newTempRenderPath)
-                except Exception:
-                    print("Cannot delete Dir: ", newTempRenderPath)
+                _deleteTempFiles(newTempRenderPath)
 
     #######################
     # render sequence video
     #######################
 
-    if specificFrame is None:
+    if generateSequenceVideo and specificFrame is None:
         sequenceOutputFullPath = f"{rootPath}{takeName}\\{sequenceFileName}.{videoFileFormat}"
         print("  sequenceOutputFullPath: ", sequenceOutputFullPath)
 
@@ -409,7 +464,8 @@ def launchRenderWithVSEComposite(
 
     filesDict = {"rendered_files": newMediaFiles, "failed_files": failedFiles}
 
-    _restoreUserRenderSettings(userRenderSettings)
+    _restoreUserRenderSettings(context, userRenderSettings)
+    props.setCurrentShot(currentShot, changeTime=False)
 
     return filesDict
 
@@ -426,9 +482,11 @@ def renderStampedInfoForShot(
     rootPath,
     newTempRenderPath,
     handles,
-    verbose=False,
+    render_handles=True,
     specificFrame=None,
+    verbose=False,
 ):
+    print("\n - * - *renderStampedInfoForShot *** ")
     props = shotManagerProps
     scene = props.parentScene
 
@@ -461,12 +519,8 @@ def renderStampedInfoForShot(
 
     scene.camera = shot.camera
 
-    #  if specificFrame is None:
     scene.frame_start = shot.start - handles
     scene.frame_end = shot.end + handles
-    # else:
-    #     scene.frame_start = specificFrame
-    #     scene.frame_end = specificFrame
 
     scene.render.resolution_x = 1280
     scene.render.resolution_y = 960
@@ -477,8 +531,17 @@ def renderStampedInfoForShot(
         scene.render.resolution_x = props.project_resolution_framed_x
         scene.render.resolution_y = props.project_resolution_framed_y
 
-    render_frame_start = scene.frame_start if specificFrame is None else specificFrame
-    render_frame_end = scene.frame_end if specificFrame is None else specificFrame
+    render_frame_start = scene.frame_start
+    if specificFrame is not None:
+        render_frame_start = specificFrame
+    elif not render_handles:
+        render_frame_start = shot.start
+
+    render_frame_end = scene.frame_end
+    if specificFrame is not None:
+        render_frame_end = specificFrame
+    elif not render_handles:
+        render_frame_end = shot.end
 
     for f, currentFrame in enumerate(range(render_frame_start, render_frame_end + 1)):
 
@@ -516,7 +579,7 @@ def renderStampedInfoForShot(
     scene.render.resolution_y = previousResY
 
 
-def launchRender(renderMode, renderRootFilePath="", useStampInfo=True):
+def launchRender(context, renderMode, renderRootFilePath="", useStampInfo=True):
     print("\n\n*** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** ***")
     print("\n*** uas_shot_manager launchRender ***\n")
     context = bpy.context
@@ -592,6 +655,7 @@ def launchRender(renderMode, renderRootFilePath="", useStampInfo=True):
             shot = props.getCurrentShot()
 
             renderedFilesDict = launchRenderWithVSEComposite(
+                context,
                 "PROJECT",
                 takeIndex=-1,
                 filePath=props.renderRootPath,
@@ -600,43 +664,7 @@ def launchRender(renderMode, renderRootFilePath="", useStampInfo=True):
                 specificShotList=[shot],
                 specificFrame=scene.frame_current,
             )
-
-            import json
-
             print(json.dumps(renderedFilesDict, indent=4))
-
-            # print("Render Still")
-            # shot = props.getCurrentShot()
-
-            # if preset_useStampInfo:
-            #     setRRS_StampInfoSettings(scene)
-
-            # set current cam
-            # if shot.camera is not None:
-            #    props.setCurrentShot(shot)
-
-            # editingCurrentTime = props.getEditCurrentTime( ignoreDisabled = False )
-            # editingDuration = props.getEditDuration( ignoreDisabled = True )
-            # set_StampInfoShotSettings(  scene, shot.name, take.name,
-            #                             #shot.notes,
-            #                             shot.camera.name, scene.camera.data.lens,
-            #                             edit3DFrame = editingCurrentTime,
-            #                             edit3DTotalNumber = editingDuration )
-
-            #        stampInfoSettings.activateStampInfo = True
-            #      stampInfoSettings.stampInfoUsed = True
-
-        #     if props.use_project_settings:
-        #         scene.render.image_settings.file_format = props.project_images_output_format
-
-        #     # bpy.ops.render.opengl ( animation = True )
-        #     scene.render.filepath = shot.getOutputFileName(
-        #         frameIndex=scene.frame_current, fullPath=True, rootFilePath=rootPath
-        #     )
-
-        #     bpy.ops.render.render("INVOKE_DEFAULT", animation=False, write_still=preset.writeToDisk)
-        # #                bpy.ops.render.view_show()
-        #                bpy.ops.render.render(animation=False, use_viewport=True, write_still = preset.writeToDisk)
 
         elif "ANIMATION" == preset.renderMode:
             _logger.debug("Render Animation")
@@ -644,17 +672,15 @@ def launchRender(renderMode, renderRootFilePath="", useStampInfo=True):
             shot = props.getCurrentShot()
 
             renderedFilesDict = launchRenderWithVSEComposite(
+                context,
                 "PROJECT",
                 takeIndex=-1,
                 filePath=props.renderRootPath,
                 fileListOnly=False,
                 generateSequenceVideo=False,
                 specificShotList=[shot],
-                handles=props.handles if preset.renderWithHandles else 0,
+                render_handles=preset.renderHandles if preset.bypass_rendering_project_settings else True,
             )
-
-            import json
-
             print(json.dumps(renderedFilesDict, indent=4))
 
         elif "ALL" == preset.renderMode:
@@ -668,12 +694,13 @@ def launchRender(renderMode, renderRootFilePath="", useStampInfo=True):
 
             for takeInd in takesToRender:
                 renderedFilesDict = launchRenderWithVSEComposite(
+                    context,
                     "PROJECT",
                     takeIndex=takeInd,
                     filePath=props.renderRootPath,
                     fileListOnly=False,
+                    rerenderExistingShotVideos=preset.rerenderExistingShotVideos,
                     generateSequenceVideo=preset.generateEditVideo,
-                    handles=props.handles,  # if preset.renderWithHandles else 0
                 )
 
                 if preset.renderOtioFile:
@@ -684,9 +711,6 @@ def launchRender(renderMode, renderRootFilePath="", useStampInfo=True):
                         scene, takeIndex=takeInd, filePath=props.renderRootPath, fileListOnly=False
                     )
                     # renderedFilesDict["edl_files"] = [renderedOtioFile]
-
-            import json
-
             print(json.dumps(renderedFilesDict, indent=4))
 
         else:

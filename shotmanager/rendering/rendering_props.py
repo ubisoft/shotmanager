@@ -57,7 +57,7 @@ class UAS_ShotManager_RenderGlobalContext(PropertyGroup):
     )
 
     def _update_renderQuality(self, context):
-        self.applyRenderQualitySettings()
+        self.applyRenderQualitySettings(context)
 
     renderQuality: EnumProperty(
         name="Render Quality",
@@ -72,53 +72,53 @@ class UAS_ShotManager_RenderGlobalContext(PropertyGroup):
         update=_update_renderQuality,
     )
 
-    def applyRenderQualitySettings(self, renderWithOpengl=True):
+    def applyRenderQualitySettings(self, context, renderWithOpengl=True):
         # wkip les Quality Settings devraient etre globales au fichier
         # wkip faire une distinction avec le moteur courant pour l'application des settings
-        props = bpy.context.scene.UAS_shot_manager_props
-        bpy.context.space_data.overlay.show_overlays = props.useOverlays
+        props = context.scene.UAS_shot_manager_props
+        #  bpy.context.space_data.overlay.show_overlays = props.useOverlays
 
         if "LOW" == self.renderQuality:
             # eevee
-            bpy.context.scene.eevee.taa_render_samples = 6
-            bpy.context.scene.eevee.taa_samples = 2
+            context.scene.eevee.taa_render_samples = 6
+            context.scene.eevee.taa_samples = 2
 
             # workbench
             # if "BLENDER_WORKBENCH" == bpy.context.scene.render.engine:
-            bpy.context.scene.display.render_aa = "FXAA"
-            bpy.context.scene.display.viewport_aa = "OFF"
+            context.scene.display.render_aa = "FXAA"
+            context.scene.display.viewport_aa = "OFF"
 
             # cycles
-            bpy.context.scene.cycles.samples = 6
-            bpy.context.scene.cycles.preview_samples = 2
+            context.scene.cycles.samples = 6
+            context.scene.cycles.preview_samples = 2
 
         elif "MEDIUM" == self.renderQuality:
             # eevee
-            bpy.context.scene.eevee.taa_render_samples = 64
-            bpy.context.scene.eevee.taa_samples = 16
+            context.scene.eevee.taa_render_samples = 64
+            context.scene.eevee.taa_samples = 16
 
             # workbench
             # if "BLENDER_WORKBENCH" == bpy.context.scene.render.engine:
-            bpy.context.scene.display.render_aa = "5"
-            bpy.context.scene.display.viewport_aa = "FXAA"
+            context.scene.display.render_aa = "5"
+            context.scene.display.viewport_aa = "FXAA"
 
             # cycles
-            bpy.context.scene.cycles.samples = 64
-            bpy.context.scene.cycles.preview_samples = 16
+            context.scene.cycles.samples = 64
+            context.scene.cycles.preview_samples = 16
 
         elif "HIGH" == self.renderQuality:
             # eevee
-            bpy.context.scene.eevee.taa_render_samples = 128
-            bpy.context.scene.eevee.taa_samples = 32
+            context.scene.eevee.taa_render_samples = 128
+            context.scene.eevee.taa_samples = 32
 
             # workbench
             #            if "BLENDER_WORKBENCH" == bpy.context.scene.render.engine:
-            bpy.context.scene.display.render_aa = "16"
-            bpy.context.scene.display.viewport_aa = "5"
+            context.scene.display.render_aa = "16"
+            context.scene.display.viewport_aa = "5"
 
             # cycles
-            bpy.context.scene.cycles.samples = 128
-            bpy.context.scene.cycles.preview_samples = 32
+            context.scene.cycles.samples = 128
+            context.scene.cycles.preview_samples = 32
 
         # CUSTOM
         else:
@@ -147,11 +147,20 @@ class UAS_ShotManager_RenderSettings(PropertyGroup):
 
     renderAlsoDisabled: BoolProperty(name="Render Also Disabled", default=False)
 
-    renderWithHandles: BoolProperty(name="Render With Handles", default=False)
+    renderHandles: BoolProperty(name="Render With Handles", default=False)
 
     writeToDisk: BoolProperty(name="Write to Disk", default=False)
 
     renderOtioFile: BoolProperty(name="Render EDL File", default=False)
+
+    rerenderExistingShotVideos: BoolProperty(name="Re-render Exisiting Shot Videos", default=True)
+
+    bypass_rendering_project_settings: BoolProperty(
+        name="Bypass Project Settings",
+        description="When Project Settings are used this allows the use of custom rendering settings",
+        default=False,
+        options=set(),
+    )
 
     generateEditVideo: BoolProperty(
         name="Generate Edit Video(s)",
