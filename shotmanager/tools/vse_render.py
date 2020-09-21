@@ -187,7 +187,6 @@ class UAS_Vse_Render(PropertyGroup):
         inputOverMediaPath = None
         inputBGMediaPath = None
         inputAudioMediaPath = None
-        self.clearAllChannels(scene)
 
     def getMediaType(self, filePath):
         """ Return the type of media according to the extension of the provided file path
@@ -519,12 +518,15 @@ class UAS_Vse_Render(PropertyGroup):
         previousScene = bpy.context.window.scene
 
         # Add new scene
-        vse_scene = bpy.data.scenes.new(name="Tmp_VSE_RenderScene" + postfixSceneName)
+        # vse_scene = bpy.data.scenes.new(name="Tmp_VSE_RenderScene" + postfixSceneName)
+        vse_scene = utils.getSceneVSE("Tmp_VSE_RenderScene" + postfixSceneName)
+        self.clearAllChannels(vse_scene)
+
         vse_scene.render.fps = fps
         # Make "My New Scene" the active one
         #    bpy.context.window.scene = vse_scene
 
-        vse_scene = utils.getSceneVSE(vse_scene.name, createVseTab=config.uasDebug)
+        #    vse_scene = utils.getSceneVSE(vse_scene.name, createVseTab=config.uasDebug)
         # if not vse_scene.sequence_editor:
         #     vse_scene.sequence_editor_create()
 

@@ -68,8 +68,8 @@ def launchRenderWithVSEComposite(
 
     print(f"Start Time: {startRenderintTime}")
 
-    _logger.info(f" *** launchRenderWithVSEComposite")
-    _logger.info(f"    render_shot_prefix: {props.renderShotPrefix()}")
+    # _logger.info(f" *** launchRenderWithVSEComposite")
+    # _logger.info(f"    render_shot_prefix: {props.renderShotPrefix()}")
 
     take = props.getCurrentTake() if -1 == takeIndex else props.getTakeByIndex(takeIndex)
     takeName = take.getName_PathCompliant()
@@ -77,7 +77,6 @@ def launchRenderWithVSEComposite(
 
     projectFps = scene.render.fps
     sequenceFileName = props.renderShotPrefix() + takeName
-    print("  sequenceFileName 1: ", sequenceFileName)
 
     if props.use_project_settings:
         props.restoreProjectSettings()
@@ -85,7 +84,6 @@ def launchRenderWithVSEComposite(
         projectFps = scene.render.fps
         sequenceFileName = props.renderShotPrefix()
 
-    print("  sequenceFileName 2: ", sequenceFileName)
     newMediaFiles = []
 
     rootPath = filePath if "" != filePath else os.path.dirname(bpy.data.filepath)
@@ -211,7 +209,9 @@ def launchRenderWithVSEComposite(
 
     def _deleteTempFiles(dirPath):
         # delete unsused rendered frames
-        _logger.debug(f"Cleaning shot temp dir: ", dirPath)
+        if config.uasDebug:
+            print(f"Cleaning shot temp dir: {dirPath}")
+
         if os.path.exists(dirPath):
             files_in_directory = os.listdir(dirPath)
             filtered_files = [file for file in files_in_directory if file.endswith(".png") or file.endswith(".wav")]
@@ -252,9 +252,10 @@ def launchRenderWithVSEComposite(
 
         if not fileListOnly:
             print("\n----------------------------------------------------")
-            print("\n  Shot rendered: ", shot.name)
-            print("newTempRenderPath: ", newTempRenderPath)
-            print("compositedMediaPath: ", compositedMediaPath)
+            print("\n  Rendering Shot: ", shot.name)
+            print("  ---------------")
+            print("\n     newTempRenderPath: ", newTempRenderPath)
+            print("     compositedMediaPath: ", compositedMediaPath)
 
             _deleteTempFiles(newTempRenderPath)
 
@@ -438,7 +439,7 @@ def launchRenderWithVSEComposite(
             # bpy.ops.render.render('INVOKE_DEFAULT', animation = True)
             # bpy.ops.render.opengl ( animation = True )
 
-            deleteTempFiles = False
+            deleteTempFiles = not (not config.uasDebug and False)
             if deleteTempFiles:
                 _deleteTempFiles(newTempRenderPath)
 
@@ -581,14 +582,12 @@ def renderStampedInfoForShot(
 
 
 def launchRender(context, renderMode, renderRootFilePath="", useStampInfo=True):
-    print("\n\n*** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** ***")
-    print("\n*** uas_shot_manager launchRender ***\n")
     context = bpy.context
     scene = bpy.context.scene
     props = scene.UAS_shot_manager_props
+    renderDisplayInfo = ""
 
     rootPath = renderRootFilePath if "" != renderRootFilePath else os.path.dirname(bpy.data.filepath)
-    print("   rootPath: ", rootPath)
 
     stampInfoSettings = None
     preset_useStampInfo = False
@@ -604,19 +603,42 @@ def launchRender(context, renderMode, renderRootFilePath="", useStampInfo=True):
     elif props.isStampInfoAvailable():
         scene.UAS_StampInfo_Settings.activateStampInfo = False
 
+    renderDisplayInfo += "\n\n*** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** ***\n"
+    renderDisplayInfo += "\n                                 *** UAS Shot Manager V " + props.version()[0] + " - "
+
     preset = None
+    # renderDisplayInfo += "     - Render mode: "
     if "STILL" == renderMode:
         preset = props.renderSettingsStill
-        print("   STILL, preset: ", preset.name)
+        # renderDisplayInfo += f"   STILL, preset: {preset.name}\n"
+        renderDisplayInfo += f"   Render Image"
     elif "ANIMATION" == renderMode:
         preset = props.renderSettingsAnim
-        print("   ANIMATION, preset: ", preset.name)
+        # renderDisplayInfo += f"   ANIMATION, preset: {preset.name}\n"
+        renderDisplayInfo += f"   Render Current Shot"
     elif "ALL" == renderMode:
         preset = props.renderSettingsAll
-        print("   ALL, preset: ", preset.name)
+        # renderDisplayInfo += f"   ALL, preset: {preset.name}\n"
+        renderDisplayInfo += f"   Render All"
     else:
         preset = props.renderSettingsOtio
-        print("   EDL, preset: ", preset.name)
+        # renderDisplayInfo += f"   EDL, preset: {preset.name}\n"
+        renderDisplayInfo += f"   Render EDL File"
+
+    renderDisplayInfo += "  ***"
+    renderDisplayInfo += "\n\n*** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** ***\n\n"
+
+    from datetime import datetime
+
+    now = datetime.now()
+    renderDisplayInfo += f"   Date: {now.strftime('%b-%d-%Y')}  -  {now.strftime('%H:%M:%S')}\n"
+
+    renderDisplayInfo += f"   - File: {bpy.data.filepath}\n"
+    renderDisplayInfo += f"   - Scene: {scene.name}\n"
+    renderDisplayInfo += f"   - RootPath: {rootPath}\n"
+
+    renderDisplayInfo += f"\n"
+    print(renderDisplayInfo)
 
     # with utils.PropertyRestoreCtx ( (scene.render, "filepath"),
     #                         ( scene, "frame_start"),

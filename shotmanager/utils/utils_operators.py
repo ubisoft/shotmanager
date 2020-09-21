@@ -45,8 +45,13 @@ class UAS_ShotManager_OpenExplorer(Operator):
             _copy_to_clipboard(absPathToOpen)
 
         else:
+            # wkipwkip
             if Path(absPathToOpen).exists():
                 subprocess.Popen(f'explorer "{absPathToOpen}"')
+            elif Path(absPathToOpen).parent.exists():
+                subprocess.Popen(f'explorer "{Path(absPathToOpen).parent}"')
+            elif Path(absPathToOpen).parent.parent.exists():
+                subprocess.Popen(f'explorer "{Path(absPathToOpen).parent.parent}"')
             else:
                 print('Open Explorer failed: Path not found: "' + absPathToOpen + '"')
                 from ..utils.utils import ShowMessageBox

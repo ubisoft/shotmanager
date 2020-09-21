@@ -25,7 +25,7 @@ from .take import UAS_ShotManager_Take
 from ..operators.shots_global_settings import UAS_ShotManager_ShotsGlobalSettings
 from ..retimer.retimer_props import UAS_Retimer_Properties
 
-from ..utils import utils
+from shotmanager.utils import utils
 
 
 _logger = logging.getLogger(__name__)
@@ -150,11 +150,13 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
                 renderWarnings = "*** Save file first ***"
         elif "" == self.renderRootPath:
             renderWarnings = "*** Invalid Output File Name ***"
+        elif len(self.get_shots()) <= 0:
+            renderWarnings = "*** No shots in the current take ***"
 
         if "" != renderWarnings:
-            from ..utils.utils import ShowMessageBox
+            from shotmanager.utils.utils import ShowMessageBox
 
-            ShowMessageBox(renderWarnings, "Render Aborted", "ERROR")
+            utils.ShowMessageBox(renderWarnings, "Render Aborted", "ERROR")
             print("Render aborted before start: " + renderWarnings)
             return False
 
@@ -795,7 +797,6 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         return val
 
     def set_displayAnimationProps(self, value):
-        print(" set_displayAnimationProps: value: ", value)
         self["displayStillProps"] = False
         self["displayAnimationProps"] = True
         self["displayAllEditsProps"] = False
@@ -2102,8 +2103,6 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         self.restoreProjectSettings()
 
     def restoreProjectSettings(self, settingsListOnly=False):
-
-        print("    * restoreProjectSettings , settingsListOnly: *", settingsListOnly)
 
         settingsList = []
 

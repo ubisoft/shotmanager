@@ -7,16 +7,6 @@ import bpy.utils.previews
 
 def initGlobalVariables():
 
-    # icons ############
-    global icons_col
-
-    pcoll = bpy.utils.previews.new()
-    my_icons_dir = os.path.join(os.path.dirname(__file__), "../icons")
-    for png in Path(my_icons_dir).rglob("*.png"):
-        pcoll.load(png.stem, str(png), "IMAGE")
-
-    icons_col = pcoll
-
     # debug ############
     global uasDebug
 
@@ -28,8 +18,15 @@ def initGlobalVariables():
 
     uasDebug = False
 
-    if uasDebug:
-        print("UAS debug: ", uasDebug)
+    # icons ############
+    global icons_col
+
+    pcoll = bpy.utils.previews.new()
+    my_icons_dir = os.path.join(os.path.dirname(__file__), "../icons")
+    for png in Path(my_icons_dir).rglob("*.png"):
+        pcoll.load(png.stem, str(png), "IMAGE")
+
+    icons_col = pcoll
 
     # import otio ############
     global gMontageOtio
