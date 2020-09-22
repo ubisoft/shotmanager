@@ -169,8 +169,8 @@ def list_cameras_for_new_shot(self, context):
     return res
 
 
-class UAS_ShotManager_AddShot_GetCurrentFrameFor(Operator):
-    bl_idname = "uas_shot_manager.addshot_getcurrentframefor"
+class UAS_ShotManager_ShotAdd_GetCurrentFrameFor(Operator):
+    bl_idname = "uas_shot_manager.shotadd_getcurrentframefor"
     bl_label = "Get Current Frame"
     bl_description = "Use the current frame for the specifed component"
     bl_options = {"INTERNAL", "UNDO"}
@@ -195,7 +195,7 @@ class UAS_ShotManager_AddShot_GetCurrentFrameFor(Operator):
 
 
 class UAS_ShotManager_ShotAdd(Operator):
-    bl_idname = "uas_shot_manager.add_shot"
+    bl_idname = "uas_shot_manager.shot_add"
     bl_label = "Add New Shot"
     bl_description = (
         "Add a new shot starting at the current frame and using the selected camera"
@@ -295,7 +295,7 @@ class UAS_ShotManager_ShotAdd(Operator):
         row = col.row(align=True)
         row.prop(prefs, "addShot_start", text="")
         row.operator(
-            "uas_shot_manager.addshot_getcurrentframefor", text="", icon="TRIA_UP_BAR"
+            "uas_shot_manager.shotadd_getcurrentframefor", text="", icon="TRIA_UP_BAR"
         ).propertyToUpdate = "addShot_start"
 
         col.separator(factor=1)
@@ -305,7 +305,7 @@ class UAS_ShotManager_ShotAdd(Operator):
         row = col.row(align=True)
         row.prop(prefs, "addShot_end", text="")
         row.operator(
-            "uas_shot_manager.addshot_getcurrentframefor", text="", icon="TRIA_UP_BAR"
+            "uas_shot_manager.shotadd_getcurrentframefor", text="", icon="TRIA_UP_BAR"
         ).propertyToUpdate = "addShot_end"
 
         col.separator()
@@ -384,7 +384,7 @@ class UAS_ShotManager_ShotAdd(Operator):
 
 
 class UAS_ShotManager_ShotDuplicate(Operator):
-    bl_idname = "uas_shot_manager.duplicate_shot"
+    bl_idname = "uas_shot_manager.shot_duplicate"
     bl_label = "Duplicate Selected Shot"
     bl_description = "Duplicate the shot selected in the shot list." "\nThe new shot is put after the selected shot"
     bl_options = {"INTERNAL", "UNDO"}
@@ -471,8 +471,8 @@ class UAS_ShotManager_ShotDuplicate(Operator):
         return {"FINISHED"}
 
 
-class UAS_ShotManager_RemoveShot(Operator):
-    bl_idname = "uas_shot_manager.remove_shot"
+class UAS_ShotManager_ShotRemove(Operator):
+    bl_idname = "uas_shot_manager.shot_remove"
     bl_label = "Remove Selected Shot"
     bl_description = "Remove the shot selected in the shot list."
     bl_options = {"INTERNAL", "UNDO"}
@@ -486,19 +486,22 @@ class UAS_ShotManager_RemoveShot(Operator):
         scene = context.scene
         props = scene.UAS_shot_manager_props
         shots = props.get_shots()
+        for s in shots:
+            print(f"* Shot Name: {s.name}")
         selectedShotInd = props.getSelectedShotIndex()
+        print(f"* selectedShotInd: {selectedShotInd}")
 
         props.removeShot(shots[selectedShotInd])
 
         return {"FINISHED"}
 
 
-class UAS_ShotManager_Actions(Operator):
-    """Move items up and down, add and remove"""
+class UAS_ShotManager_ShotMove(Operator):
+    """Move shots up and down in the take"""
 
-    bl_idname = "uas_shot_manager.list_action"
-    bl_label = "List Actions"
-    bl_description = "Move shots up and down in the take, in other words before or after in the edit"
+    bl_idname = "uas_shot_manager.shot_move"
+    bl_label = "Move Shot"
+    bl_description = "Move selected shot up or down in the take, in other words before or after in the edit"
     bl_options = {"INTERNAL", "UNDO"}
 
     action: bpy.props.EnumProperty(items=(("UP", "Up", ""), ("DOWN", "Down", "")))
@@ -523,28 +526,6 @@ class UAS_ShotManager_Actions(Operator):
         elif self.action == "DOWN":
             #    if len(shots) - 1 > selectedShotInd:
             props.moveShotToIndex(shots[selectedShotInd], selectedShotInd + 1)
-
-        # try:
-        #     item = shots[currentShotInd]
-        # except IndexError:
-        #     pass
-        # else:
-        #     if self.action == "DOWN" and selectedShotInd < len(shots) - 1:
-        #         shots.move(selectedShotInd, selectedShotInd + 1)
-        #         if currentShotInd == selectedShotInd:
-        #             props.setCurrentShotByIndex(currentShotInd + 1)
-        #         elif currentShotInd == selectedShotInd + 1:
-        #             props.setCurrentShotByIndex(selectedShotInd)
-        #         props.setSelectedShotByIndex(selectedShotInd + 1)
-
-        #     elif self.action == "UP" and selectedShotInd >= 1:
-        #         shots.move(selectedShotInd, selectedShotInd - 1)
-        #         if currentShotInd == selectedShotInd:
-        #             props.setCurrentShotByIndex(currentShotInd - 1)
-        #         elif currentShotInd == selectedShotInd - 1:
-        #             props.setCurrentShotByIndex(selectedShotInd)
-
-        #         props.setSelectedShotByIndex(selectedShotInd - 1)
 
         return {"FINISHED"}
 
@@ -793,7 +774,7 @@ def list_target_take_shots(self, context):
 
 
 class UAS_ShotManager_DuplicateShotsToOtherTake(Operator):
-    bl_idname = "uas_shot_manager.duplicate_shots_to_other_take"
+    bl_idname = "uas_shot_manager.shot_duplicates_to_other_take"
     bl_label = "Duplicate Enabled Shots to Another Take..."
     bl_description = "Duplicate enabled shots to the specified take"
     bl_options = {"INTERNAL", "UNDO"}
@@ -1104,11 +1085,11 @@ _classes = (
     UAS_ShotManager_ShotTimeInEdit,
     UAS_ShotManager_ShowNotes,
     # for shot manipulation:
-    UAS_ShotManager_AddShot_GetCurrentFrameFor,
+    UAS_ShotManager_ShotAdd_GetCurrentFrameFor,
     UAS_ShotManager_ShotAdd,
     UAS_ShotManager_ShotDuplicate,
-    UAS_ShotManager_RemoveShot,
-    UAS_ShotManager_Actions,
+    UAS_ShotManager_ShotRemove,
+    UAS_ShotManager_ShotMove,
     # for shot properties:
     UAS_ShotManager_RemoveBGImages,
     # for shot actions:

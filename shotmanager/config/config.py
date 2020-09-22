@@ -16,7 +16,7 @@ def initGlobalVariables():
     else:
         uasDebug = True
 
-    uasDebug = False
+    uasDebug = True
 
     # icons ############
     global icons_col

@@ -18,8 +18,8 @@ def _copy_shot(src_shot, dst_shot):
     dst_shot.color = src_shot.color
 
 
-class UAS_ShotManager_AddTake(Operator):
-    bl_idname = "uas_shot_manager.add_take"
+class UAS_ShotManager_TakeAdd(Operator):
+    bl_idname = "uas_shot_manager.take_add"
     bl_label = "Add New Take"
     bl_description = "Add a new take"
     bl_options = {"INTERNAL", "UNDO"}
@@ -75,8 +75,8 @@ class UAS_ShotManager_AddTake(Operator):
         return {"FINISHED"}
 
 
-class UAS_ShotManager_DuplicateTake(Operator):
-    bl_idname = "uas_shot_manager.duplicate_take"
+class UAS_ShotManager_TakeDuplicate(Operator):
+    bl_idname = "uas_shot_manager.take_duplicate"
     bl_label = "Duplicate Current Take"
     bl_description = "Duplicate the current take"
     bl_options = {"INTERNAL", "UNDO"}
@@ -138,8 +138,8 @@ class UAS_ShotManager_DuplicateTake(Operator):
         return {"FINISHED"}
 
 
-class UAS_ShotManager_RemoveTake(Operator):
-    bl_idname = "uas_shot_manager.remove_take"
+class UAS_ShotManager_TakeRemove(Operator):
+    bl_idname = "uas_shot_manager.take_remove"
     bl_label = "Remove Current Take"
     bl_description = "Remove the current take.\nMain Take, as the base take, cannot be removed"
     bl_options = {"INTERNAL", "UNDO"}
@@ -174,8 +174,8 @@ class UAS_ShotManager_RemoveTake(Operator):
         return {"FINISHED"}
 
 
-class UAS_ShotManager_RenameTake(Operator):
-    bl_idname = "uas_shot_manager.rename_take"
+class UAS_ShotManager_TakeRename(Operator):
+    bl_idname = "uas_shot_manager.take_rename"
     bl_label = "Rename Take"
     bl_description = "Rename the current take.\nMain Take, as the base take, cannot be renamed"
     bl_options = {"INTERNAL", "UNDO"}
@@ -203,6 +203,57 @@ class UAS_ShotManager_RenameTake(Operator):
             self.name = props.getUniqueTakeName(self.name)
             currentTake.name = self.name
 
+        return {"FINISHED"}
+
+
+class UAS_ShotManager_TakeMoveUp(Operator):
+    """Move take up in the take list"""
+
+    bl_idname = "uas_shot_manager.take_move_up"
+    bl_label = "Move Take Up"
+    bl_description = "Move current take up in the take list"
+    bl_options = {"INTERNAL", "UNDO"}
+
+    @classmethod
+    def poll(cls, context):
+        props = context.scene.UAS_shot_manager_props
+        takes = props.takes
+        if len(takes) <= 1:
+            return False
+
+        currentTakeInd = props.getCurrentTakeIndex()
+        return len(takes) - 2 < currentTakeInd
+
+    def invoke(self, context, event):
+        props = context.scene.UAS_shot_manager_props
+        currentTakeInd = props.getCurrentTakeIndex()
+        props.moveTakeToIndex(props.getCurrentTake(), currentTakeInd - 1)
+
+        return {"FINISHED"}
+
+
+class UAS_ShotManager_TakeMoveDown(Operator):
+    """Move take down in the take list"""
+
+    bl_idname = "uas_shot_manager.take_move_down"
+    bl_label = "Move Take Down"
+    bl_description = "Move current take down in the take list"
+    bl_options = {"INTERNAL", "UNDO"}
+
+    @classmethod
+    def poll(cls, context):
+        props = context.scene.UAS_shot_manager_props
+        takes = props.takes
+        if len(takes) <= 1:
+            return False
+
+        currentTakeInd = props.getCurrentTakeIndex()
+        return len(takes) - 1 > currentTakeInd and currentTakeInd > 0
+
+    def invoke(self, context, event):
+        props = context.scene.UAS_shot_manager_props
+        currentTakeInd = props.getCurrentTakeIndex()
+        props.moveTakeToIndex(props.getCurrentTake(), currentTakeInd + 1)
         return {"FINISHED"}
 
 
@@ -256,10 +307,12 @@ class UAS_ShotManager_ResetTakesToDefault(Operator):
 
 
 _classes = (
-    UAS_ShotManager_AddTake,
-    UAS_ShotManager_DuplicateTake,
-    UAS_ShotManager_RemoveTake,
-    UAS_ShotManager_RenameTake,
+    UAS_ShotManager_TakeAdd,
+    UAS_ShotManager_TakeDuplicate,
+    UAS_ShotManager_TakeRemove,
+    UAS_ShotManager_TakeRename,
+    UAS_ShotManager_TakeMoveUp,
+    UAS_ShotManager_TakeMoveDown,
     UAS_ShotManager_Debug_FixShotsParent,
     UAS_ShotManager_ResetTakesToDefault,
 )

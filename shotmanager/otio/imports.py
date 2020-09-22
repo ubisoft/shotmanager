@@ -276,7 +276,7 @@ def createShotsFromOtio(
 
     props = scene.UAS_shot_manager_props
     if len(props.getCurrentTake().getShotList()) != 0:
-        bpy.ops.uas_shot_manager.add_take(name=Path(otioFile).stem)
+        bpy.ops.uas_shot_manager.take_add(name=Path(otioFile).stem)
 
     handlesDuration = 0
     if mediaHaveHandles:
@@ -329,7 +329,7 @@ def createShotsFromOtio(
                     camera=cam_ob,
                     color=cam_ob.color,
                 )
-                # bpy.ops.uas_shot_manager.add_shot(
+                # bpy.ops.uas_shot_manager.shot_add(
                 #     name=clipName,
                 #     start=opentimelineio.opentime.to_frames(clip.range_in_parent().start_time) + importAtFrame,
                 #     end=opentimelineio.opentime.to_frames(clip.range_in_parent().end_time_inclusive()) + importAtFrame,
@@ -401,7 +401,7 @@ def createShotsFromOtioTimelineClass(
 
     props = scene.UAS_shot_manager_props
     if len(props.getCurrentTake().getShotList()) != 0:
-        bpy.ops.uas_shot_manager.add_take(name=Path(otioTimelineClass.otioFile).stem)
+        bpy.ops.uas_shot_manager.take_add(name=Path(otioTimelineClass.otioFile).stem)
 
     handlesDuration = 0
     if mediaHaveHandles:

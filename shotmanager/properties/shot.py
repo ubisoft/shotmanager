@@ -1,8 +1,3 @@
-import logging
-
-_logger = logging.getLogger(__name__)
-
-
 import bpy
 
 from bpy.types import Scene
@@ -11,6 +6,10 @@ from bpy.props import StringProperty, IntProperty, BoolProperty, PointerProperty
 
 from shotmanager.utils.utils import findFirstUniqueName
 from shotmanager.rrs_specific.montage.montage_interface import ShotInterface
+
+import logging
+
+_logger = logging.getLogger(__name__)
 
 
 class UAS_ShotManager_Shot(ShotInterface, PropertyGroup):
@@ -28,7 +27,10 @@ class UAS_ShotManager_Shot(ShotInterface, PropertyGroup):
 
     # parentScene: PointerProperty(type=Scene, get=_get_parentScene, set=_set_parentScene)
     parentScene: PointerProperty(type=Scene)
-    parentTakeIndex: IntProperty(name="Parent Take Index", default=-1)
+    # parentTakeIndex: IntProperty(name="Parent Take Index", default=-1)
+
+    def getParentTakeIndex(self):
+        return self.parentScene.UAS_shot_manager_props.getShotParentTakeIndex(self)
 
     # for backward compatibility - before V1.2.21
     # used by data version patches.
@@ -82,8 +84,7 @@ class UAS_ShotManager_Shot(ShotInterface, PropertyGroup):
     def _set_name(self, value):
         """ Set a unique name to the shot
         """
-        # shots = self.getParentScene().UAS_shot_manager_props.getShotsList(takeIndex=self.parentTakeIndex)
-        shots = self.parentScene.UAS_shot_manager_props.getShotsList(takeIndex=self.parentTakeIndex)
+        shots = self.parentScene.UAS_shot_manager_props.getShotsList(takeIndex=self.getParentTakeIndex())
         newName = findFirstUniqueName(self, value, shots)
         self["name"] = newName
 
@@ -385,7 +386,7 @@ class UAS_ShotManager_Shot(ShotInterface, PropertyGroup):
 
     def selectShotInUI(self):
         currentTakeInd = self.parentScene.UAS_shot_manager_props.getCurrentTakeIndex()
-        if currentTakeInd == self.parentTakeIndex:
+        if currentTakeInd == self.getParentTakeIndex():
             self.parentScene.UAS_shot_manager_props.setSelectedShot(self)
 
     #############
@@ -425,31 +426,9 @@ class UAS_ShotManager_Shot(ShotInterface, PropertyGroup):
         # self.parent = parent
         pass
 
-    #  print(" icicicic self.parent:", self.parent)
-
     def get_index_in_parent(self):
-        # print(" get_index_in_parent in Shot ")
         props = self.parentScene.UAS_shot_manager_props
-        # if "parent" in self:
-        #     #  print("Toto")
-        #     # parentTake = self.parentScene.UAS_shot_manager_props.getTakeByIndex(self.parentTakeIndex)
-        #     # UAS_ShotManager_Shot.parent = property(lambda self: parentTake)
-        #     #  print("UAS_ShotManager_Shot.parent: ", UAS_ShotManager_Shot.parent)
-        #     pass
-        # else:
-        #     #   print("Not parent")
-        #     parentTake = props.getTakeByIndex(self.parentTakeIndex)
-        #     UAS_ShotManager_Shot.parent = property(lambda self: parentTake)
-        # #   print("UAS_ShotManager_Shot.parent else: ", UAS_ShotManager_Shot.parent)
-
-        # print("UAS_ShotManager_Shot.parent 02: ", UAS_ShotManager_Shot.parent)
-
-        # if self in self.parent.shots:
-        #     return self.parent.shots.index(self)
         return props.getShotIndex(self)
-        # else:
-        #     print(f"*** Error in Shot.get_index_in_parent: current shot {shot.name} not found in parent take array ***")
-        #     return -1
 
     def get_name(self):
         return self.name
