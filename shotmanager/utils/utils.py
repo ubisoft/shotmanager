@@ -186,7 +186,7 @@ def findFirstUniqueName(originalItem, name, itemsArray):
     return newName
 
 
-def getSceneVSE(vsm_sceneName, createVseTab=True):
+def getSceneVSE(vsm_sceneName, createVseTab=False):
     """ Return the scene that has the name held by vsm_sceneName and adds a VSE in it if there is not already one.
         Use <returned scene>.sequence_editor to get the vse of the scene
     """

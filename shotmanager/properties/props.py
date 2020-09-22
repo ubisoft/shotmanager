@@ -179,6 +179,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
     rrs_useRenderRoot: BoolProperty(name="Use Render Root", default=True)
     rrs_fileListOnly: BoolProperty(name="File List Only", default=False)
     rrs_rerenderExistingShotVideos: BoolProperty(name="Force Re-render", default=True)
+    rrs_renderAlsoDisabled: BoolProperty(name="Render Also Disabled", default=False)
 
     # project settings
     #############

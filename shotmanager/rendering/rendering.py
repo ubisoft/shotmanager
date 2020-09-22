@@ -26,6 +26,7 @@ def launchRenderWithVSEComposite(
     specificShotList=None,
     specificFrame=None,
     render_handles=True,
+    renderAlsoDisabled=False,
     area=None,
 ):
     """ Generate the media for the specified take
@@ -73,7 +74,7 @@ def launchRenderWithVSEComposite(
 
     take = props.getCurrentTake() if -1 == takeIndex else props.getTakeByIndex(takeIndex)
     takeName = take.getName_PathCompliant()
-    shotList = take.getShotList(ignoreDisabled=True) if specificShotList is None else specificShotList
+    shotList = take.getShotList(ignoreDisabled=not renderAlsoDisabled) if specificShotList is None else specificShotList
 
     projectFps = scene.render.fps
     sequenceFileName = props.renderShotPrefix() + takeName
@@ -724,6 +725,7 @@ def launchRender(context, renderMode, renderRootFilePath="", useStampInfo=True):
                     fileListOnly=False,
                     rerenderExistingShotVideos=preset.rerenderExistingShotVideos,
                     generateSequenceVideo=preset.generateEditVideo,
+                    renderAlsoDisabled=preset.renderAlsoDisabled,
                 )
 
                 if preset.renderOtioFile:

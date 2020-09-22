@@ -77,7 +77,13 @@ def initializeForRRS(override_existing: bool, verbose=False):
 
 
 def publishRRS(
-    prodFilePath, takeIndex=-1, verbose=False, useCache=False, fileListOnly=False, rerenderExistingShotVideos=True
+    prodFilePath,
+    takeIndex=-1,
+    verbose=False,
+    useCache=False,
+    fileListOnly=False,
+    rerenderExistingShotVideos=True,
+    renderAlsoDisabled=True,
 ):
     """ Return a dictionary with the rendered and the failed file paths
         The dictionary have the following entries:
@@ -158,6 +164,7 @@ def publishRRS(
         filePath=renderDir,
         fileListOnly=fileListOnly,
         rerenderExistingShotVideos=rerenderExistingShotVideos,
+        renderAlsoDisabled=renderAlsoDisabled,
         area=bpy.context.area,
     )
 

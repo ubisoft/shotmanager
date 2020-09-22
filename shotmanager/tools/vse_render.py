@@ -452,7 +452,7 @@ class UAS_Vse_Render(PropertyGroup):
         # sequence composite scene
         sequenceScene = bpy.data.scenes.new(name="VSE_SequenceRenderScene")
 
-        sequenceScene = utils.getSceneVSE(sequenceScene.name, createVseTab=config.uasDebug)
+        sequenceScene = utils.getSceneVSE(sequenceScene.name, createVseTab=False)  # config.uasDebug)
 
         bpy.context.window.scene = sequenceScene
 
@@ -502,7 +502,7 @@ class UAS_Vse_Render(PropertyGroup):
         bpy.ops.render.opengl(animation=True, sequencer=True, write_still=False)
 
         # cleaning current file from temp scenes
-        if not config.uasDebug:
+        if not config.uasDebug_keepVSEContent:
             # current scene is sequenceScene
             bpy.ops.scene.delete()
             pass
@@ -519,7 +519,7 @@ class UAS_Vse_Render(PropertyGroup):
 
         # Add new scene
         # vse_scene = bpy.data.scenes.new(name="Tmp_VSE_RenderScene" + postfixSceneName)
-        vse_scene = utils.getSceneVSE("Tmp_VSE_RenderScene" + postfixSceneName)
+        vse_scene = utils.getSceneVSE("Tmp_VSE_RenderScene" + postfixSceneName, createVseTab=False)
         self.clearAllChannels(vse_scene)
 
         vse_scene.render.fps = fps

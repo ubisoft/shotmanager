@@ -188,7 +188,7 @@ class UAS_PT_ShotManagerRenderPanel(Panel):
 
             if display_bypass_options:
                 row.prop(props.renderSettingsAll, "renderAllTakes")
-                # row.prop(props.renderSettingsAll, "renderAlsoDisabled")
+                row.prop(props.renderSettingsAll, "renderAlsoDisabled")
                 row.prop(props.renderSettingsAll, "renderOtioFile")
 
             row = box.row()
