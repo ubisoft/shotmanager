@@ -610,7 +610,7 @@ class UAS_Vse_Render(PropertyGroup):
         else:
             bpy.ops.render.render(write_still=True)
 
-        if not config.uasDebug:
+        if not config.uasDebug_keepVSEContent:
             bpy.ops.scene.delete()
 
         bpy.context.window.scene = previousScene

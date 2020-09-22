@@ -18,6 +18,9 @@ def initGlobalVariables():
 
     uasDebug = True
 
+    global uasDebug_keepVSEContent
+    uasDebug_keepVSEContent = False and uasDebug
+
     # icons ############
     global icons_col
 

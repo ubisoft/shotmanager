@@ -1,6 +1,7 @@
 import bpy
 
 from bpy.types import Panel, Menu
+from bpy.props import IntProperty, EnumProperty, BoolProperty, FloatProperty, StringProperty
 
 from ..properties import vsm_props
 from ..operators import tracks
@@ -79,10 +80,13 @@ class UAS_PT_VideoShotManager(Panel):
             row.alert = True
         row.label(text="First Frame: " + str(vseFirstFrame))
 
-        row = layout.row()  # just to give some space...
+        layout.separator()
+
+        row = layout.row()
         row.label(text="Tracks")
 
         row.prop(vsm_props, "numTracks")
+        row.operator("uas_video_shot_manager.update_tracks_list", text="", icon="FILE_REFRESH")
         row.operator("uas_video_shot_manager.clear_all")
 
         box = layout.box()
@@ -302,11 +306,55 @@ class UAS_MT_VideoShotManager_ToolsMenu(Menu):
         layout.separator()
 
 
+class UAS_PT_VideoShotManagerSelectedStrip(Panel):
+    bl_idname = "UAS_PT_VideoShotManagerSelectedStripPanel"
+    bl_label = "Selected Strip"
+    bl_description = "Selected Strip Options"
+    bl_space_type = "SEQUENCE_EDITOR"
+    bl_region_type = "UI"
+    bl_category = "UAS Video Shot Man"
+    # bl_options = {"DEFAULT_CLOSED"}
+
+    @classmethod
+    def poll(cls, context):
+        props = context.scene.UAS_shot_manager_props
+        return not props.dontRefreshUI()
+
+    def draw(self, context):
+        prefs = context.preferences.addons["shotmanager"].preferences
+
+        layout = self.layout
+
+        row = layout.row()
+        row.label(text="Selected Strip:")
+        subRow = row.row()
+        if 1 == len(bpy.context.selected_sequences):
+            subRow.prop(bpy.context.selected_sequences[0], "name", text="")
+        else:
+            subRow.enabled = False
+            subRow.prop(prefs, "emptyField", text="")
+        row = layout.row()
+        row.label(text="Type:")
+        if 1 == len(bpy.context.selected_sequences):
+            row.label(text=str(type(bpy.context.selected_sequences[0]).__name__))
+
+        box = layout.box()
+        box.label(text="Tools:")
+        row = box.row()
+        #  row.operator("uas_shot_manager.selected_to_active")
+
+        box = layout.box()
+
+        row = box.row()
+        row.separator(factor=0.1)
+
+
 _classes = (
     UAS_PT_VideoShotManager,
     UAS_PT_VideoShotManager_TrackProperties,
     UAS_UL_VideoShotManager_Items,
     UAS_MT_VideoShotManager_ToolsMenu,
+    UAS_PT_VideoShotManagerSelectedStrip,
 )
 
 
