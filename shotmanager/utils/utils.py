@@ -308,7 +308,19 @@ def create_new_camera(camera_name, location=[0, 0, 0], locate_on_cursor=False):
     cam = bpy.data.cameras.new(camera_name)
     cam_ob = bpy.data.objects.new(cam.name, cam)
     cam_ob.name = cam.name
-    bpy.context.collection.objects.link(cam_ob)
+
+    # add to main collection
+    # bpy.context.collection.objects.link(cam_ob)
+
+    # add to a collection named "Cameras"
+    camCollName = "Cameras"
+    camColl = None
+    if camCollName not in bpy.context.scene.collection.children:
+        camColl = bpy.data.collections.new(name=camCollName)
+        bpy.context.scene.collection.children.link(camColl)
+    else:
+        camColl = bpy.context.scene.collection.children[camCollName]
+    camColl.objects.link(cam_ob)
 
     bpy.data.cameras[cam.name].lens = 40
 
