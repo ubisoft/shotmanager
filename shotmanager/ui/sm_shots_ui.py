@@ -345,8 +345,6 @@ class UAS_PT_ShotManager_ShotProperties(Panel):
             #             f"!!! Error: Current Take Index is {currentTakeInd}, Shot Parent Take Index is: {shot.parentTakeIndex} !!!"
             #         )
             #     )
-            #     row.operator_context = "INVOKE_DEFAULT"
-            #     row.operator("uas_shot_manager.debug_fixshotsparent")
 
             # name and color
             row = box.row()
@@ -624,12 +622,6 @@ class UAS_MT_ShotManager_Shots_ToolsMenu(Menu):
         row = layout.row(align=True)
         row.operator_context = "INVOKE_DEFAULT"
         row.operator("uas_shot_manager.remove_multiple_shots", text="Remove All Shots...", icon="REMOVE").action = "ALL"
-
-        layout.separator()
-
-        # row = layout.row(align=True)
-        # row.operator_context = 'INVOKE_DEFAULT'
-        # row.operator ( "uas_shot_manager.debug_fixshotsparent")
 
         layout.separator()
 

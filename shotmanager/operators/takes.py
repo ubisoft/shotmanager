@@ -222,7 +222,7 @@ class UAS_ShotManager_TakeMoveUp(Operator):
             return False
 
         currentTakeInd = props.getCurrentTakeIndex()
-        return len(takes) - 2 < currentTakeInd
+        return 1 < currentTakeInd
 
     def invoke(self, context, event):
         props = context.scene.UAS_shot_manager_props
@@ -257,17 +257,38 @@ class UAS_ShotManager_TakeMoveDown(Operator):
         return {"FINISHED"}
 
 
-class UAS_ShotManager_Debug_FixShotsParent(Operator):
-    """ Recompute the value of parentTakeIndex for each shot
-    """
+class UAS_ShotManager_TakeAsMain(Operator):
+    """Set current take as the main one"""
 
-    bl_idname = "uas_shot_manager.debug_fixshotsparent"
-    bl_label = "Debug - Fix Shots Parent"
-    bl_description = "Recompute the value of parentTakeIndex for each shot"
-    bl_options = {"INTERNAL"}
+    bl_idname = "uas_shot_manager.take_as_main"
+    bl_label = "Set as Main Take"
+    bl_description = "Set current take as the Main Take.\nPrevious Main Take is duplicated for backup"
+    bl_options = {"INTERNAL", "UNDO"}
 
-    def execute(self, context):
-        context.scene.UAS_shot_manager_props.fixShotsParent()
+    @classmethod
+    def poll(cls, context):
+        props = context.scene.UAS_shot_manager_props
+        takes = props.takes
+        if len(takes) <= 1:
+            return False
+
+        currentTakeInd = props.getCurrentTakeIndex()
+        return 0 < currentTakeInd
+
+    def invoke(self, context, event):
+        props = context.scene.UAS_shot_manager_props
+        currentTakeInd = props.getCurrentTakeIndex()
+
+        currentShotIndex = props.getCurrentShotIndex()
+        currentTake = props.getCurrentTake()
+        currentTakeInd = props.getCurrentTakeIndex()
+
+        newInd = props.moveTakeToIndex(props.getCurrentTake(), 0, setAsMainTake=True)
+        if 0 == newInd:
+            previousMainTake = props.getTakeByIndex(1)
+            previousMainTake.name = "Ex - " + previousMainTake.name
+            newMainTake = props.getTakeByIndex(0)
+            newMainTake.name = "Main Take"
 
         return {"FINISHED"}
 
@@ -313,7 +334,7 @@ _classes = (
     UAS_ShotManager_TakeRename,
     UAS_ShotManager_TakeMoveUp,
     UAS_ShotManager_TakeMoveDown,
-    UAS_ShotManager_Debug_FixShotsParent,
+    UAS_ShotManager_TakeAsMain,
     UAS_ShotManager_ResetTakesToDefault,
 )
 

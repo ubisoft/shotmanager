@@ -59,6 +59,12 @@ class UAS_MT_ShotManager_Takes_ToolsMenu(Menu):
 
         row = layout.row(align=True)
         row.operator_context = "INVOKE_DEFAULT"
+        row.operator("uas_shot_manager.take_as_main", text="Set as Main Take")
+
+        layout.separator()
+
+        row = layout.row(align=True)
+        row.operator_context = "INVOKE_DEFAULT"
         row.operator("uas_shot_manager.take_rename", text="Rename...")  # , icon = "SYNTAX_ON"),
 
         layout.separator()

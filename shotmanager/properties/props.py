@@ -488,15 +488,6 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
     ####################
 
     # wkip deprecated
-    def fixShotsParent(self):
-        """Recompute the value of parentTakeIndex for each shot - Debug
-        """
-        # for i, t in enumerate(self.takes):
-        #     for s in t.shots:
-        #         s.parentTakeIndex = i
-        pass
-
-    # wkip deprecated
     def getUniqueTakeName(self, nameToMakeUnique):
         uniqueName = nameToMakeUnique
         takes = self.getTakes()
@@ -683,9 +674,10 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
 
         return newTake
 
-    def moveTakeToIndex(self, take, newIndex):
+    def moveTakeToIndex(self, take, newIndex, setAsMainTake=False):
+        """Return the new take index if the move is done, -1 otherwise"""
         if take is None:
-            return None
+            return -1
 
         currentTakeInd = self.getCurrentTakeIndex()
         takeInd = self.getTakeIndex(take)
@@ -693,12 +685,14 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         newInd = min(newInd, len(self.takes) - 1)
 
         # Main Take cannot be moved by design
-        if 0 == currentTakeInd or 0 == newInd:
-            return None
+        if not setAsMainTake:
+            if 0 == currentTakeInd or 0 == newInd:
+                return -1
 
         self.takes.move(takeInd, newInd)
-
         self.setCurrentTakeByIndex(newInd)
+
+        return newInd
 
     # render
     #############
@@ -1101,8 +1095,6 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
             Specifying a value to targetTakeIndex allows the copy of a shot to another take
             When a shot is copied in the same take its name will be suffixed by "_copy". When copied to another take its name is not modified.
         """
-        # wkip wip fix for early backward compatibility - to remove
-        # self.fixShotsParent()
 
         #  currentTakeInd = self.getCurrentTakeIndex()
         sourceTakeInd = shot.getParentTakeIndex()
