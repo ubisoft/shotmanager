@@ -65,25 +65,30 @@ class UAS_PT_ShotManagerRenderPanel(Panel):
         ##############
         # render engine
         ##############
-        row = layout.row(align=True)
+        row = layout.row(align=False)
         # row.label(text="Mode:")
         row.prop(props.renderContext, "renderComputationMode", text="Mode")
         row.separator()
+        row.prop(props.renderContext, "renderQuality", text="Quality")
+
         # row.prop(bpy.context.scene.render, "engine", text="Engine")
 
-        if (
-            "PLAYBLAST_ANIM" == props.renderContext.renderComputationMode
-            or "PLAYBLAST_LOOP" == props.renderContext.renderComputationMode
-        ):
-            row.prop(props.renderContext, "renderEngineOpengl", text="Playblast Engine")
-        # row.prop(props.renderContext, "renderEngine", text="Engine")
+        box = layout.box()
+        row = box.row(align=False)
+        renderWithOpengl = (
+            "PLAYBLAST_LOOP" == props.renderContext.renderComputationMode
+            or "PLAYBLAST_ANIM" == props.renderContext.renderComputationMode
+        )
+        if renderWithOpengl:
+            row.label(text="Playblast Engine")
+            row.prop(props.renderContext, "renderEngineOpengl", text="")
+            row.separator(factor=1)
+            row.prop(props.renderContext, "useOverlays", text="With Overlays")
         else:
-            row.prop(props.renderContext, "renderEngine", text="Engine")
+            row.label(text="Render Engine")
+            row.prop(props.renderContext, "renderEngine", text="")
 
-        row = layout.row(align=True)
-        row.separator(factor=5)
-        row.prop(props, "useOverlays", text="With Overlays")
-        row.prop(props.renderContext, "renderQuality", text="Quality")
+        layout.separator()
 
         row = layout.row(align=True)
         row.scale_y = 1.6

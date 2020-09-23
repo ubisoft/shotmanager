@@ -34,6 +34,86 @@ def launchRenderWithVSEComposite(
         filesDict = {"rendered_files": newMediaFiles, "failed_files": failedFiles}
         specificFrame: When specified, only this frame is rendered. Handles are ignored and the resulting media in an image, not a video
     """
+
+    userRenderSettings = {}
+
+    def _storeUserRenderSettings(context):
+        #    userRenderSettings["show_overlays"] = bpy.context.space_data.overlay.show_overlays
+        userRenderSettings["resolution_x"] = context.scene.render.resolution_x
+        userRenderSettings["resolution_y"] = context.scene.render.resolution_y
+        userRenderSettings["render_engine"] = context.scene.render.engine
+
+        userRenderSettings["frame_start"] = scene.frame_start
+        userRenderSettings["frame_end"] = scene.frame_end
+
+        # eevee
+        ##############
+        # if "BLENDER_EEVEE" == bpy.context.scene.render.engine:
+        userRenderSettings["eevee_taa_render_samples"] = context.scene.eevee.taa_render_samples
+        userRenderSettings["eevee_taa_samples"] = context.scene.eevee.taa_samples
+
+        # workbench
+        ##############
+        # if "BLENDER_WORKBENCH" == bpy.context.scene.render.engine:
+        userRenderSettings["workbench_render_aa"] = context.scene.display.render_aa
+        userRenderSettings["workbench_viewport_aa"] = context.scene.display.viewport_aa
+
+        # cycles
+        ##############
+        #  if "CYCLES" == bpy.context.scene.render.engine:
+        userRenderSettings["cycles_samples"] = context.scene.cycles.samples
+        userRenderSettings["cycles_preview_samples"] = context.scene.cycles.preview_samples
+
+        return userRenderSettings
+
+    def _restoreUserRenderSettings(context, userRenderSettings):
+        # wkip bug here dans certaines conditions vse
+        #    bpy.context.space_data.overlay.show_overlays = userRenderSettings["show_overlays"]
+
+        context.scene.render.resolution_x = userRenderSettings["resolution_x"]
+        context.scene.render.resolution_y = userRenderSettings["resolution_y"]
+        context.scene.render.engine = userRenderSettings["render_engine"]
+
+        scene.frame_start = userRenderSettings["frame_start"]
+        scene.frame_end = userRenderSettings["frame_end"]
+
+        # eevee
+        ##############
+        #   if "BLENDER_EEVEE" == bpy.context.scene.render.engine:
+        context.scene.eevee.taa_render_samples = userRenderSettings["eevee_taa_render_samples"]
+        context.scene.eevee.taa_samples = userRenderSettings["eevee_taa_samples"]
+
+        # workbench
+        ##############
+        # if "BLENDER_WORKBENCH" == bpy.context.scene.render.engine:
+        context.scene.display.render_aa = userRenderSettings["workbench_render_aa"]
+        context.scene.display.viewport_aa = userRenderSettings["workbench_viewport_aa"]
+
+        # cycles
+        ##############
+        #        if "CYCLES" == bpy.context.scene.render.engine:
+        context.scene.cycles.samples = userRenderSettings["cycles_samples"]
+        context.scene.cycles.preview_samples = userRenderSettings["cycles_preview_samples"]
+
+        return
+
+    def _deleteTempFiles(dirPath):
+        # delete unsused rendered frames
+        if config.uasDebug:
+            print(f"Cleaning shot temp dir: {dirPath}")
+
+        if os.path.exists(dirPath):
+            files_in_directory = os.listdir(dirPath)
+            filtered_files = [file for file in files_in_directory if file.endswith(".png") or file.endswith(".wav")]
+
+            for file in filtered_files:
+                path_to_file = os.path.join(dirPath, file)
+                os.remove(path_to_file)
+            try:
+                os.rmdir(dirPath)
+            except Exception:
+                print("Cannot delete Dir: ", dirPath)
+
     # context = bpy.context
     scene = context.scene
     props = scene.UAS_shot_manager_props
@@ -136,96 +216,20 @@ def launchRenderWithVSEComposite(
         or "PLAYBLAST_ANIM" == props.renderContext.renderComputationMode
     )
 
-    if (
-        "PLAYBLAST_LOOP" == props.renderContext.renderComputationMode
-        or "PLAYBLAST_ANIM" == props.renderContext.renderComputationMode
-    ):
+    userRenderSettings = _storeUserRenderSettings(context)
+
+    if renderWithOpengl:
         if not "CUSTOM" == props.renderContext.renderEngineOpengl:
             context.scene.render.engine = props.renderContext.renderEngineOpengl
+            if "BLENDER_EEVEE" == props.renderContext.renderEngineOpengl:
+                context.space_data.shading.type = "RENDERED"
+            elif "BLENDER_WORKBENCH" == props.renderContext.renderEngineOpengl:
+                context.space_data.shading.type = "SOLID"
+        bpy.context.space_data.overlay.show_overlays = props.renderContext.useOverlays
+
     else:
         if not "CUSTOM" == props.renderContext.renderEngine:
             context.scene.render.engine = props.renderContext.renderEngine
-
-    userRenderSettings = {}
-
-    def _storeUserRenderSettings(context):
-        #    userRenderSettings["show_overlays"] = bpy.context.space_data.overlay.show_overlays
-        userRenderSettings["resolution_x"] = context.scene.render.resolution_x
-        userRenderSettings["resolution_y"] = context.scene.render.resolution_y
-        userRenderSettings["render_engine"] = context.scene.render.engine
-
-        userRenderSettings["frame_start"] = scene.frame_start
-        userRenderSettings["frame_end"] = scene.frame_end
-
-        # eevee
-        ##############
-        # if "BLENDER_EEVEE" == bpy.context.scene.render.engine:
-        userRenderSettings["eevee_taa_render_samples"] = context.scene.eevee.taa_render_samples
-        userRenderSettings["eevee_taa_samples"] = context.scene.eevee.taa_samples
-
-        # workbench
-        ##############
-        # if "BLENDER_WORKBENCH" == bpy.context.scene.render.engine:
-        userRenderSettings["workbench_render_aa"] = context.scene.display.render_aa
-        userRenderSettings["workbench_viewport_aa"] = context.scene.display.viewport_aa
-
-        # cycles
-        ##############
-        #  if "CYCLES" == bpy.context.scene.render.engine:
-        userRenderSettings["cycles_samples"] = context.scene.cycles.samples
-        userRenderSettings["cycles_preview_samples"] = context.scene.cycles.preview_samples
-
-        return userRenderSettings
-
-    def _restoreUserRenderSettings(context, userRenderSettings):
-        # wkip bug here dans certaines conditions vse
-        #    bpy.context.space_data.overlay.show_overlays = userRenderSettings["show_overlays"]
-
-        context.scene.render.resolution_x = userRenderSettings["resolution_x"]
-        context.scene.render.resolution_y = userRenderSettings["resolution_y"]
-        context.scene.render.engine = userRenderSettings["render_engine"]
-
-        scene.frame_start = userRenderSettings["frame_start"]
-        scene.frame_end = userRenderSettings["frame_end"]
-
-        # eevee
-        ##############
-        #   if "BLENDER_EEVEE" == bpy.context.scene.render.engine:
-        context.scene.eevee.taa_render_samples = userRenderSettings["eevee_taa_render_samples"]
-        context.scene.eevee.taa_samples = userRenderSettings["eevee_taa_samples"]
-
-        # workbench
-        ##############
-        # if "BLENDER_WORKBENCH" == bpy.context.scene.render.engine:
-        context.scene.display.render_aa = userRenderSettings["workbench_render_aa"]
-        context.scene.display.viewport_aa = userRenderSettings["workbench_viewport_aa"]
-
-        # cycles
-        ##############
-        #        if "CYCLES" == bpy.context.scene.render.engine:
-        context.scene.cycles.samples = userRenderSettings["cycles_samples"]
-        context.scene.cycles.preview_samples = userRenderSettings["cycles_preview_samples"]
-
-        return
-
-    def _deleteTempFiles(dirPath):
-        # delete unsused rendered frames
-        if config.uasDebug:
-            print(f"Cleaning shot temp dir: {dirPath}")
-
-        if os.path.exists(dirPath):
-            files_in_directory = os.listdir(dirPath)
-            filtered_files = [file for file in files_in_directory if file.endswith(".png") or file.endswith(".wav")]
-
-            for file in filtered_files:
-                path_to_file = os.path.join(dirPath, file)
-                os.remove(path_to_file)
-            try:
-                os.rmdir(dirPath)
-            except Exception:
-                print("Cannot delete Dir: ", dirPath)
-
-    userRenderSettings = _storeUserRenderSettings(context)
 
     props.renderContext.applyRenderQualitySettings(context)
 

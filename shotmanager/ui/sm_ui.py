@@ -1,10 +1,5 @@
-import logging
-
-_logger = logging.getLogger(__name__)
-
 import bpy
-from bpy.types import Panel, Operator, Menu
-from bpy.props import StringProperty
+from bpy.types import Panel, Operator
 
 from shotmanager.config import config
 from shotmanager.viewport_3d.ogl_ui import UAS_ShotManager_DrawTimeline
@@ -13,6 +8,10 @@ from shotmanager.utils import utils
 
 from . import sm_shots_ui
 from . import sm_takes_ui
+
+import logging
+
+_logger = logging.getLogger(__name__)
 
 ######
 # Shot Manager main panel #
@@ -60,9 +59,9 @@ class UAS_PT_ShotManager(Panel):
 
         row = layout.row(align=True)
 
-        row.operator("utils.launchrender", text="", icon="RENDER_STILL").renderMode = "STILL"
-        row.operator("utils.launchrender", text="", icon="RENDER_ANIMATION").renderMode = "ANIMATION"
-        row.separator(factor=2)
+        # row.operator("utils.launchrender", text="", icon="RENDER_STILL").renderMode = "STILL"
+        # row.operator("utils.launchrender", text="", icon="RENDER_ANIMATION").renderMode = "ANIMATION"
+        # row.separator(factor=2)
 
         #    row.operator("render.opengl", text="", icon='IMAGE_DATA')
         #   row.operator("render.opengl", text="", icon='RENDER_ANIMATION').animation = True
@@ -70,16 +69,16 @@ class UAS_PT_ShotManager(Panel):
 
         row.operator("uas_shot_manager.go_to_video_shot_manager", text="", icon="SEQ_STRIP_DUPLICATE")
 
-        row.separator(factor=2)
+        row.separator(factor=1.5)
         icon = config.icons_col["General_Explorer_32"]
         row.operator("uas_shot_manager.open_explorer", text="", icon_value=icon.icon_id).path = bpy.path.abspath(
             bpy.data.filepath
         )
 
-        row.separator(factor=2)
+        row.separator(factor=1.5)
         row.menu("UAS_MT_Shot_Manager_prefs_mainmenu", icon="PREFERENCES", text="")
 
-        row.separator(factor=3)
+        row.separator(factor=2.5)
 
     def draw(self, context):
         layout = self.layout

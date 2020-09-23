@@ -732,12 +732,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
 
     ############
     # render properties for UI
-    useOverlays: BoolProperty(
-        name="With Overlays",
-        description="Also render overlays when the rendering is a playblast",
-        default=False,
-        options=set(),
-    )
+
 
     renderRootPath: StringProperty(
         name="Render Root Path",
