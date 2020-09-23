@@ -147,7 +147,7 @@ def launchRenderWithVSEComposite(
 
     startRenderintTime = time.monotonic()
 
-    print(f"Start Time: {startRenderintTime}")
+    _logger.debug(f"Start Time: {startRenderintTime}")
 
     # _logger.info(f" *** launchRenderWithVSEComposite")
     # _logger.info(f"    render_shot_prefix: {props.renderShotPrefix()}")
@@ -493,7 +493,7 @@ def renderStampedInfoForShot(
     specificFrame=None,
     verbose=False,
 ):
-    print("\n - * - *renderStampedInfoForShot *** ")
+    _logger.debug("\n - * - *renderStampedInfoForShot *** ")
     props = shotManagerProps
     scene = props.parentScene
 
@@ -503,6 +503,10 @@ def renderStampedInfoForShot(
     stampInfoSettings.notesLine01 = shot.note01
     stampInfoSettings.notesLine02 = shot.note02
     stampInfoSettings.notesLine03 = shot.note03
+
+    stampInfoSettings.cornerNoteUsed = not shot.enabled
+    if not shot.enabled:
+        stampInfoSettings.cornerNote = "*** Shot Muted in the take ***"
 
     stampInfoSettings.shotHandles = handles
 
