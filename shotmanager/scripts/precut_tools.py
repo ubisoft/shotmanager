@@ -2,12 +2,14 @@
 
 from random import uniform
 
-import bpy
-from bpy.types import Panel, Operator
-from bpy.props import IntProperty, StringProperty, EnumProperty, BoolProperty, PointerProperty, FloatVectorProperty
+from pathlib import Path
 
-from ..operators import shots
+import bpy
+from bpy.types import Operator
+from bpy.props import IntProperty, StringProperty, EnumProperty
+
 from ..operators.shots import list_cameras
+from shotmanager.config import config
 
 
 class UAS_ShotManager_PredecTools_CreateShotsFromSingleCamera(Operator):
@@ -125,6 +127,53 @@ class UAS_ShotManager_OT_PredecTools_PrintMontageInfo(Operator):
         # sm_montage.initialize(scene, props.getCurrentTake())
 
         props.printInfo()
+        dictMontage = dict()
+        dictMontage["sequence"] = context.scene.name
+        props.getInfoAsDictionnary(dictMontage=dictMontage)
+
+        import json
+
+        print(json.dumps(dictMontage, indent=4))
+
+        return {"FINISHED"}
+
+
+class UAS_ShotManager_OT_PredecTools_MontageSequencesToJson(Operator):
+    bl_idname = "uas_shot_manager.montage_sequences_to_json"
+    bl_label = "Montage Sequences to Json"
+    bl_description = "Print montage sequence information to Jason file"
+    bl_options = {"INTERNAL"}
+
+    filePath: StringProperty()
+
+    def execute(self, context):
+        scene = context.scene
+        props = scene.UAS_shot_manager_props
+
+        # sm_montage = MontageShotManager()
+        # sm_montage.initialize(scene, props.getCurrentTake())
+
+        # props.printInfo()
+        dictMontage = dict()
+        dictMontage["montage"] = config.gMontageOtio.get_name()
+        dictMontage["montage_type"] = config.gMontageOtio.get_montage_type()
+        dictMontage["montage_file"] = config.gMontageOtio.otioFile
+
+        # props.getInfoAsDictionnary(dictMontage=dictMontage)
+        config.gMontageOtio.getInfoAsDictionnary(dictMontage=dictMontage, shotsDetails=False)
+
+        import json
+
+        jsonFile = str(Path(config.gMontageOtio.otioFile).parent)
+        if not jsonFile.endswith("\\"):
+            jsonFile += "\\"
+        jsonFile += Path(config.gMontageOtio.otioFile).stem + ".json"
+
+        # with open(jsonFile, "w") as fp:
+        #     json.dump(dictMontage, fp, indent=3)
+
+        print("\nMontage dumped:")
+        print(json.dumps(dictMontage, indent=3))
 
         return {"FINISHED"}
 
@@ -132,6 +181,7 @@ class UAS_ShotManager_OT_PredecTools_PrintMontageInfo(Operator):
 _classes = (
     UAS_ShotManager_PredecTools_CreateShotsFromSingleCamera,
     UAS_ShotManager_OT_PredecTools_PrintMontageInfo,
+    UAS_ShotManager_OT_PredecTools_MontageSequencesToJson,
 )
 
 

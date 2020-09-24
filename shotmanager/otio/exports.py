@@ -3,17 +3,20 @@ from pathlib import Path
 import bpy
 import opentimelineio
 
+import logging
+
+_logger = logging.getLogger(__name__)
+
 
 def exportOtio(scene, takeIndex=-1, filePath="", fileName="", addTakeNameToPath=True, fps=-1, fileListOnly=False):
     """ Create an OpenTimelineIO XML file for the specified take
         Return the file path of the created file
         If file_name is left to default then the rendered file will be a .xml
     """
-    print("  ** -- ** exportOtio, fileListOnly: ", fileListOnly)
+    # print("  ** -- ** exportOtio, fileListOnly: ", fileListOnly)
     props = scene.UAS_shot_manager_props
 
     sceneFps = fps if fps != -1 else scene.render.fps
-    print("exportOtio: sceneFps:", sceneFps)
     #   import opentimelineio as opentimelineio
 
     take = props.getCurrentTake() if -1 == takeIndex else props.getTakeByIndex(takeIndex)
@@ -21,11 +24,15 @@ def exportOtio(scene, takeIndex=-1, filePath="", fileName="", addTakeNameToPath=
     take_name = take.getName_PathCompliant()
 
     renderPath = filePath if "" != filePath else props.renderRootPath
+    renderPath = bpy.path.abspath(renderPath)
     otioRenderPath = renderPath
     if otioRenderPath.startswith("//"):
         otioRenderPath = bpy.path.abspath(otioRenderPath)
+
+    # print(f" otion export - avant - otioRenderPath: {otioRenderPath}")
     if not (otioRenderPath.endswith("/") or otioRenderPath.endswith("\\")):
         otioRenderPath += "\\"
+        # print(f" otion export - apres - otioRenderPath: {otioRenderPath}")
     if addTakeNameToPath:
         otioRenderPath += take_name + "\\"
     if "" == fileName:
@@ -35,7 +42,8 @@ def exportOtio(scene, takeIndex=-1, filePath="", fileName="", addTakeNameToPath=
         if Path(fileName).suffix == "":
             otioRenderPath += ".otio"
 
-    print("   OTIO otioRenderPath:", otioRenderPath)
+    print("\n--- --- --- --- --- --- --- --- --- ---")
+    print(f"\nExporting EDL: {otioRenderPath}\n")
 
     if fileListOnly:
         return otioRenderPath
@@ -47,6 +55,13 @@ def exportOtio(scene, takeIndex=-1, filePath="", fileName="", addTakeNameToPath=
     )
     track = opentimelineio.schema.Track()
     timeline.tracks.append(track)
+    # opentimelineio.schema.track.TrackKind.Audio = "Video"
+    myClass = opentimelineio.schema.track.TrackKind.audio
+    print(f"track.TrackKind(): {opentimelineio.schema.track.TrackKind}")
+    for i in myClass.__dict__.keys():
+        # if i[:1] != '_'
+        print("i: ", i)
+    print("myClass.__doc__: ", myClass.__doc__)
 
     clips = list()
     playhead = 0
@@ -62,14 +77,22 @@ def exportOtio(scene, takeIndex=-1, filePath="", fileName="", addTakeNameToPath=
 
             available_range = opentimelineio.opentime.range_from_start_end_time(start_time, end_time_exclusive)
 
-            # shotFilePath = shot.getOutputFileName(fullPath=True, rootFilePath=renderPath)
+            # shotFileFullPath = shot.getOutputFileName(fullPath=True, rootFilePath=renderPath)
 
-            shotFileName = shot.getOutputFileName(fullPath=False)
-            shotFilePath = f"{renderPath}\\{take_name}\\{shotFileName}"
-            print("    shotFilePath: ", shotFilePath, shotFileName)
+            shotFileName = shot.getOutputFileName(fullPath=False) + ".mp4"  # wkip attention can be .png!!!
+
+            shotFileFullPath = f"{renderPath}"
+            _logger.info(f" renderPath: {renderPath}")
+            if not (shotFileFullPath.endswith("/") or shotFileFullPath.endswith("\\")):
+                shotFileFullPath += "\\"
+            shotFileFullPath += f"{take_name}\\{shotFileName}"
+
+            _logger.info(f" Adding shot: {shotFileFullPath}")
+            if not Path(shotFileFullPath).exists():
+                _logger.info(f"     *** File not found *** ")
 
             media_reference = opentimelineio.schema.ExternalReference(
-                target_url=shotFilePath, available_range=available_range
+                target_url=shotFileFullPath, available_range=available_range
             )
 
             # clip

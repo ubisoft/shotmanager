@@ -328,14 +328,14 @@ class UAS_PT_VideoShotManagerSelectedStrip(Panel):
         row = layout.row()
         row.label(text="Selected Strip:")
         subRow = row.row()
-        if 1 == len(bpy.context.selected_sequences):
+        if bpy.context.selected_sequences is not None and 1 == len(bpy.context.selected_sequences):
             subRow.prop(bpy.context.selected_sequences[0], "name", text="")
         else:
             subRow.enabled = False
             subRow.prop(prefs, "emptyField", text="")
         row = layout.row()
         row.label(text="Type:")
-        if 1 == len(bpy.context.selected_sequences):
+        if bpy.context.selected_sequences is not None and 1 == len(bpy.context.selected_sequences):
             row.label(text=str(type(bpy.context.selected_sequences[0]).__name__))
 
         box = layout.box()

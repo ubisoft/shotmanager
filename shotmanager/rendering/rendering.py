@@ -166,6 +166,7 @@ def launchRenderWithVSEComposite(
         sequenceFileName = props.renderShotPrefix()
 
     newMediaFiles = []
+    sequenceFiles = []  # only enabled shots
 
     rootPath = filePath if "" != filePath else os.path.dirname(bpy.data.filepath)
     # use absolute path
@@ -222,10 +223,13 @@ def launchRenderWithVSEComposite(
         if not "CUSTOM" == props.renderContext.renderEngineOpengl:
             context.scene.render.engine = props.renderContext.renderEngineOpengl
             if "BLENDER_EEVEE" == props.renderContext.renderEngineOpengl:
-                context.space_data.shading.type = "RENDERED"
+                if context.space_data is not None:  # case where Blender is running in background
+                    context.space_data.shading.type = "RENDERED"
             elif "BLENDER_WORKBENCH" == props.renderContext.renderEngineOpengl:
-                context.space_data.shading.type = "SOLID"
-        bpy.context.space_data.overlay.show_overlays = props.renderContext.useOverlays
+                if context.space_data is not None:  # case where Blender is running in background
+                    context.space_data.shading.type = "SOLID"
+        if context.space_data is not None:  # case where Blender is running in background
+            bpy.context.space_data.overlay.show_overlays = props.renderContext.useOverlays
 
     else:
         if not "CUSTOM" == props.renderContext.renderEngine:
@@ -249,6 +253,8 @@ def launchRenderWithVSEComposite(
             )
 
         newMediaFiles.append(compositedMediaPath)
+        if shot.enabled:
+            sequenceFiles.append(compositedMediaPath)
 
         if not rerenderExistingShotVideos:
             if Path(compositedMediaPath).exists():
@@ -457,8 +463,8 @@ def launchRenderWithVSEComposite(
         print("  sequenceOutputFullPath: ", sequenceOutputFullPath)
 
         if not fileListOnly:
-            print(f"newMediaFiles: {newMediaFiles}")
-            vse_render.buildSequenceVideo(newMediaFiles, sequenceOutputFullPath, handles, projectFps)
+            print(f"sequenceFiles: {sequenceFiles}")
+            vse_render.buildSequenceVideo(sequenceFiles, sequenceOutputFullPath, handles, projectFps)
 
             currentTakeRenderTime = time.monotonic()
             print(f"      \nTake render time: {(currentTakeRenderTime - previousTakeRenderTime):0.2f} sec.")

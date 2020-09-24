@@ -474,7 +474,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         return res
 
     def _update_current_take_name(self, context):
-        print(f"_update_current_take_name: {self.getCurrentTakeIndex()}, {self.getCurrentTakeName()}")
+        # print(f"_update_current_take_name: {self.getCurrentTakeIndex()}, {self.getCurrentTakeName()}")
         self.setCurrentShotByIndex(0)
         self.setSelectedShotByIndex(0)
 
@@ -733,7 +733,6 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
     ############
     # render properties for UI
 
-
     renderRootPath: StringProperty(
         name="Render Root Path",
         description="Directory where the rendered files will be placed.\n"
@@ -831,7 +830,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         return val
 
     def set_displayOtioProps(self, value):
-        print(" set_displayOtioProps: value: ", value)
+        # print(" set_displayOtioProps: value: ", value)
         self["displayStillProps"] = False
         self["displayAnimationProps"] = False
         self["displayAllEditsProps"] = False
@@ -2239,6 +2238,15 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
 
     def get_montage_type(self):
         return "SHOTMANAGER"
+
+    def getInfoAsDictionnary(self, dictMontage=None, shotsDetails=True):
+        if dictMontage is None:
+            dictMontage = dict()
+            dictMontage["montage"] = self.get_name()
+
+        for take in self.takes:
+            dictMontage[take.get_name()] = take.getInfoAsDictionnary(shotsDetails=shotsDetails)
+        return dictMontage
 
     def printChildrenInfo(self):
         self.getCurrentTake().printInfo()

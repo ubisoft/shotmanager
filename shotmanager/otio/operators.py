@@ -238,6 +238,8 @@ class UAS_ShotManager_OT_Create_Shots_From_OTIO_RRS(Operator):
             row = box.row()
             row.label(text=f"Num. Sequences: {len(config.gMontageOtio.sequencesList)}")
 
+            row.operator("uas_shot_manager.montage_sequences_to_json")  # uses config.gMontageOtio
+
         row = layout.row(align=True)
         box = row.box()
         box.separator(factor=0.2)
