@@ -53,17 +53,28 @@ def exportOtio(scene, takeIndex=-1, filePath="", fileName="", addTakeNameToPath=
     timeline = opentimelineio.schema.Timeline(
         name=scene.name + "_" + take_name, global_start_time=opentimelineio.opentime.from_frames(startFrame, sceneFps)
     )
-    track = opentimelineio.schema.Track()
-    timeline.tracks.append(track)
-    # opentimelineio.schema.track.TrackKind.Audio = "Video"
-    myClass = opentimelineio.schema.track.TrackKind.audio
-    print(f"track.TrackKind(): {opentimelineio.schema.track.TrackKind}")
-    for i in myClass.__dict__.keys():
-        # if i[:1] != '_'
-        print("i: ", i)
-    print("myClass.__doc__: ", myClass.__doc__)
 
-    clips = list()
+    # track 1
+    audioTrack = opentimelineio.schema.Track()
+    audioTrack.kind = "Audio"
+    timeline.tracks.append(audioTrack)
+
+    # track 2
+    videoTrack = opentimelineio.schema.Track()
+    videoTrack.kind = "Video"  # is the default
+    timeline.tracks.append(videoTrack)
+    # opentimelineio.schema.videoTrack.TrackKind.Audio = "Video"
+    # print(f"videoTrack.kind: {videoTrack.kind}")
+    # print(f"type(videoTrack.kind): {type(videoTrack.kind)}")
+    # print(f"videoTrack.TrackKind(): {videoTrack.TrackKind()}")
+    # myClass = opentimelineio.schema.videoTrack.kind
+    # for i in myClass.__dict__.keys():
+    #     # if i[:1] != '_'
+    #     print("i: ", i)
+    # print("myClass.__doc__: ", myClass.__doc__)
+
+    videoClips = list()
+    audioClips = list()
     playhead = 0
     for shot in shotList:
         if shot.enabled:
@@ -101,17 +112,25 @@ def exportOtio(scene, takeIndex=-1, filePath="", fileName="", addTakeNameToPath=
                 opentimelineio.opentime.from_frames(shot.end - shot.start + 1 + props.handles, sceneFps),
             )
             source_range = opentimelineio.opentime.range_from_start_end_time(clip_start_time, clip_end_time_exclusive)
-            newClip = opentimelineio.schema.Clip(
+
+            newVideoClip = opentimelineio.schema.Clip(
                 name=shotFileName, source_range=source_range, media_reference=media_reference
             )
-            # newClip.metadata = {"clip_name": shot["name"], "camera_name": shot["camera"].name_full}
-            newClip.metadata["clip_name"] = shot.name
-            newClip.metadata["camera_name"] = shot["camera"].name_full
+            newVideoClip.metadata["clip_name"] = shot.name
+            newVideoClip.metadata["camera_name"] = shot["camera"].name_full
+            videoClips.append(newVideoClip)
 
-            clips.append(newClip)
+            newAudioClip = opentimelineio.schema.Clip(
+                name=shotFileName + "_audio", source_range=source_range, media_reference=media_reference
+            )
+            newAudioClip.metadata["clip_name"] = shot.name
+            newAudioClip.metadata["camera_name"] = shot["camera"].name_full
+            audioClips.append(newAudioClip)
+
             playhead += media_duration
 
-    track.extend(clips)
+    videoTrack.extend(videoClips)
+    audioTrack.extend(audioClips)
 
     Path(otioRenderPath).parent.mkdir(parents=True, exist_ok=True)
     if otioRenderPath.endswith(".xml"):
