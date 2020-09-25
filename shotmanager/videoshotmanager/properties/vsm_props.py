@@ -263,6 +263,16 @@ class UAS_VSM_Props(PropertyGroup):
         trackInd = self.getTrackIndex(selectedTrack)
         self.setSelectedTrackByIndex(trackInd)
 
+    ####################
+    # channels
+    ####################
+
+    def getNumUsedChannels(self, scene):
+        numChannels = 0
+        for i, seq in enumerate(scene.sequence_editor.sequences):
+            numChannels = max(seq.channel, numChannels)
+        return numChannels
+
 
 _classes = (
     UAS_VideoShotManager_Track,

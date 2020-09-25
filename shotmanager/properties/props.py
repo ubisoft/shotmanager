@@ -18,14 +18,14 @@ from bpy.props import (
 # from shotmanager.operators import shots
 from shotmanager.rrs_specific.montage.montage_interface import MontageInterface
 
-from .media import UAS_ShotManager_Media
+# from .media import UAS_ShotManager_Media
 from shotmanager.rendering.rendering_props import UAS_ShotManager_RenderSettings, UAS_ShotManager_RenderGlobalContext
 from .shot import UAS_ShotManager_Shot
 from .take import UAS_ShotManager_Take
 from ..operators.shots_global_settings import UAS_ShotManager_ShotsGlobalSettings
 from ..retimer.retimer_props import UAS_Retimer_Properties
 
-from ..utils import utils
+from shotmanager.utils import utils
 
 
 _logger = logging.getLogger(__name__)
@@ -150,11 +150,13 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
                 renderWarnings = "*** Save file first ***"
         elif "" == self.renderRootPath:
             renderWarnings = "*** Invalid Output File Name ***"
+        elif len(self.get_shots()) <= 0:
+            renderWarnings = "*** No shots in the current take ***"
 
         if "" != renderWarnings:
-            from ..utils.utils import ShowMessageBox
+            from shotmanager.utils.utils import ShowMessageBox
 
-            ShowMessageBox(renderWarnings, "Render Aborted", "ERROR")
+            utils.ShowMessageBox(renderWarnings, "Render Aborted", "ERROR")
             print("Render aborted before start: " + renderWarnings)
             return False
 
@@ -177,6 +179,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
     rrs_useRenderRoot: BoolProperty(name="Use Render Root", default=True)
     rrs_fileListOnly: BoolProperty(name="File List Only", default=False)
     rrs_rerenderExistingShotVideos: BoolProperty(name="Force Re-render", default=True)
+    rrs_renderAlsoDisabled: BoolProperty(name="Render Also Disabled", default=False)
 
     # project settings
     #############
@@ -471,25 +474,19 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         return res
 
     def _update_current_take_name(self, context):
+        # print(f"_update_current_take_name: {self.getCurrentTakeIndex()}, {self.getCurrentTakeName()}")
         self.setCurrentShotByIndex(0)
         self.setSelectedShotByIndex(0)
-
-    takes: CollectionProperty(type=UAS_ShotManager_Take)
 
     current_take_name: EnumProperty(
         name="Takes", description="Select a take", items=_list_takes, update=_update_current_take_name,
     )
 
+    takes: CollectionProperty(type=UAS_ShotManager_Take)
+
     ####################
     # takes
     ####################
-
-    def fixShotsParent(self):
-        """Recompute the value of parentTakeIndex for each shot - Debug
-        """
-        for i, t in enumerate(self.takes):
-            for s in t.shots:
-                s.parentTakeIndex = i
 
     # wkip deprecated
     def getUniqueTakeName(self, nameToMakeUnique):
@@ -561,13 +558,16 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         return takeInd
 
     def setCurrentTakeByIndex(self, currentTakeIndex):
-        currentTakeInd = min(currentTakeIndex, len(self.takes))
+        currentTakeInd = min(currentTakeIndex, len(self.takes) - 1)
         if -1 < currentTakeInd:
             self.current_take_name = self.takes[currentTakeInd].name
-            self.setCurrentShotByIndex(0)
-            self.setSelectedShotByIndex(0)
+            # already in current_take_name._update
+            # self.setCurrentShotByIndex(0)
+            # self.setSelectedShotByIndex(0)
         else:
             self.current_take_name = ""
+
+        print(f" ---- currentTakeByIndex: {currentTakeInd}, {self.getTakeByIndex(currentTakeInd)}")
 
     def getCurrentTake(self):
         currentTakeInd = self.getCurrentTakeIndex()
@@ -675,6 +675,26 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
 
         return newTake
 
+    def moveTakeToIndex(self, take, newIndex, setAsMainTake=False):
+        """Return the new take index if the move is done, -1 otherwise"""
+        if take is None:
+            return -1
+
+        currentTakeInd = self.getCurrentTakeIndex()
+        takeInd = self.getTakeIndex(take)
+        newInd = max(0, newIndex)
+        newInd = min(newInd, len(self.takes) - 1)
+
+        # Main Take cannot be moved by design
+        if not setAsMainTake:
+            if 0 == currentTakeInd or 0 == newInd:
+                return -1
+
+        self.takes.move(takeInd, newInd)
+        self.setCurrentTakeByIndex(newInd)
+
+        return newInd
+
     # render
     #############
 
@@ -712,12 +732,6 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
 
     ############
     # render properties for UI
-    useOverlays: BoolProperty(
-        name="With Overlays",
-        description="Also render overlays when the rendering is a playblast",
-        default=False,
-        options=set(),
-    )
 
     renderRootPath: StringProperty(
         name="Render Root Path",
@@ -795,7 +809,6 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         return val
 
     def set_displayAnimationProps(self, value):
-        print(" set_displayAnimationProps: value: ", value)
         self["displayStillProps"] = False
         self["displayAnimationProps"] = True
         self["displayAllEditsProps"] = False
@@ -817,7 +830,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         return val
 
     def set_displayOtioProps(self, value):
-        print(" set_displayOtioProps: value: ", value)
+        # print(" set_displayOtioProps: value: ", value)
         self["displayStillProps"] = False
         self["displayAnimationProps"] = False
         self["displayAllEditsProps"] = False
@@ -880,7 +893,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         if referenceShot is None:
             return frameIndInEdit
 
-        takeInd = referenceShot.parentTakeIndex
+        takeInd = referenceShot.getParentTakeIndex()
         ignoreDisabled = True
 
         # case where specified shot is disabled -- current shot may not be in the shot list if shotList is not the whole list
@@ -912,6 +925,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
             works only on current take
             wkip negative times issues coming here... :/
         """
+        # print(f"_update_current_take_name: {self.getCurrentTakeIndex()}, {self.getCurrentTakeName()}")
         # works only on current take
         takeInd = self.getCurrentTakeIndex()
         editCurrentTime = -1
@@ -1036,7 +1050,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
 
         newShot = shots.add()  # shot is added at the end
         newShot.parentScene = self.getParentScene()
-        newShot.parentTakeIndex = takeInd
+        # newShot.parentTakeIndex = takeInd
         newShot.initialize(self.getTakeByIndex(currentTakeInd))
         newShot.name = name
         newShot.enabled = enabled
@@ -1076,11 +1090,9 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
             Specifying a value to targetTakeIndex allows the copy of a shot to another take
             When a shot is copied in the same take its name will be suffixed by "_copy". When copied to another take its name is not modified.
         """
-        # wkip wip fix for early backward compatibility - to remove
-        # self.fixShotsParent()
 
         #  currentTakeInd = self.getCurrentTakeIndex()
-        sourceTakeInd = shot.parentTakeIndex
+        sourceTakeInd = shot.getParentTakeIndex()
         takeInd = (
             sourceTakeInd
             if -1 == targetTakeIndex
@@ -1148,7 +1160,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
 
     def removeShot(self, shot):
         currentTakeInd = self.getCurrentTakeIndex()
-        takeInd = shot.parentTakeIndex
+        takeInd = shot.getParentTakeIndex()
         shots = self.get_shots(takeIndex=takeInd)
         shotInd = self.getShotIndex(shot)
 
@@ -1217,59 +1229,34 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
             self.setCurrentShotByIndex(newInd)
         self.setSelectedShotByIndex(newInd)
 
-    def setCurrentShotByIndex(self, currentShotIndex, changeTime=None, area=None):
-        """ Changing the current shot doesn't affect the selected one
-        """
-        scene = bpy.context.scene
-        area = area if area is not None else bpy.context.area
-
-        shotList = self.get_shots()
-        self.current_shot_index = currentShotIndex
-
-        if -1 < currentShotIndex and len(shotList) > currentShotIndex:
-            prefs = bpy.context.preferences.addons["shotmanager"].preferences
-
-            if changeTime is None:
-                if prefs.current_shot_changes_current_time:
-                    scene.frame_current = shotList[currentShotIndex].start
-            elif changeTime:
-                scene.frame_current = shotList[currentShotIndex].start
-
-            if prefs.current_shot_changes_time_range and scene.use_preview_range:
-                bpy.ops.uas_shot_manager.scenerangefromshot()
-
-            if shotList[currentShotIndex].camera is not None and bpy.context.screen is not None:
-                # set the current camera in the 3D view: [‘PERSP’, ‘ORTHO’, ‘CAMERA’]
-                scene.camera = shotList[currentShotIndex].camera
-                utils.setCurrentCameraToViewport(bpy.context, area)
-                # area = next(area for area in bpy.context.screen.areas if area.type == "VIEW_3D")
-
-                # area.spaces[0].use_local_camera = False
-                # area.spaces[0].region_3d.view_perspective = "CAMERA"
-
-            # bpy.context.scene.objects["Camera_Sapin"]
-
-    def setCurrentShot(self, currentShot, changeTime=None, area=None):
-        shotInd = self.getShotIndex(currentShot)
-        print("setCurrentShot: shotInd:", shotInd)
-        self.setCurrentShotByIndex(shotInd, changeTime=changeTime, area=area)
+    def getShotParentTakeIndex(self, shot):
+        for i, take in enumerate(self.takes):
+            for j, sh in enumerate(take.shots):
+                if sh == shot:
+                    return i
+        return -1
 
     def getShotIndex(self, shot):
         """Return the shot index in its parent take
         """
-        takeInd = shot.parentTakeIndex
-        shotInd = -1
+        # takeInd = shot.getParentTakeIndex()
+        # shotInd = -1
 
-        # wkip a optimiser
-        shotList = self.getShotsList(ignoreDisabled=False, takeIndex=takeInd)
+        # # wkip a optimiser
+        # shotList = self.getShotsList(ignoreDisabled=False, takeIndex=takeInd)
 
-        shotInd = 0
-        while shotInd < len(shotList) and shot != shotList[shotInd]:  # wkip mettre shotList[shotInd].name?
-            shotInd += 1
-        if shotInd == len(shotList):
-            shotInd = -1
+        # shotInd = 0
+        # while shotInd < len(shotList) and shot != shotList[shotInd]:  # wkip mettre shotList[shotInd].name?
+        #     shotInd += 1
+        # if shotInd == len(shotList):
+        #     shotInd = -1
 
-        return shotInd
+        # return shotInd
+        for i, take in enumerate(self.takes):
+            for j, sh in enumerate(take.shots):
+                if sh == shot:
+                    return j
+        return -1
 
     def getShot(self, shotIndex, ignoreDisabled=False, takeIndex=-1):
         takeInd = (
@@ -1404,6 +1391,43 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
             currentShot = self.takes[takeInd].shots[currentShotInd]
 
         return currentShot
+
+    def setCurrentShotByIndex(self, currentShotIndex, changeTime=None, area=None):
+        """ Changing the current shot doesn't affect the selected one
+        """
+        scene = bpy.context.scene
+        area = area if area is not None else bpy.context.area
+
+        shotList = self.get_shots()
+        self.current_shot_index = currentShotIndex
+
+        if -1 < currentShotIndex and len(shotList) > currentShotIndex:
+            prefs = bpy.context.preferences.addons["shotmanager"].preferences
+
+            if changeTime is None:
+                if prefs.current_shot_changes_current_time:
+                    scene.frame_current = shotList[currentShotIndex].start
+            elif changeTime:
+                scene.frame_current = shotList[currentShotIndex].start
+
+            if prefs.current_shot_changes_time_range and scene.use_preview_range:
+                bpy.ops.uas_shot_manager.scenerangefromshot()
+
+            if shotList[currentShotIndex].camera is not None and bpy.context.screen is not None:
+                # set the current camera in the 3D view: [‘PERSP’, ‘ORTHO’, ‘CAMERA’]
+                scene.camera = shotList[currentShotIndex].camera
+                utils.setCurrentCameraToViewport(bpy.context, area)
+                # area = next(area for area in bpy.context.screen.areas if area.type == "VIEW_3D")
+
+                # area.spaces[0].use_local_camera = False
+                # area.spaces[0].region_3d.view_perspective = "CAMERA"
+
+            # bpy.context.scene.objects["Camera_Sapin"]
+
+    def setCurrentShot(self, currentShot, changeTime=None, area=None):
+        shotInd = self.getShotIndex(currentShot)
+        print("setCurrentShot: shotInd:", shotInd)
+        self.setCurrentShotByIndex(shotInd, changeTime=changeTime, area=area)
 
     def getSelectedShotIndex(self):
         """ Return the index of the selected shot in the enabled shot list of the current take
@@ -1938,7 +1962,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
                 if not filePath.endswith("\\"):
                     filePath += "\\"
 
-            filePath += f"{self.getTakeName_PathCompliant(takeIndex = shot.parentTakeIndex)}" + "\\"
+            filePath += f"{self.getTakeName_PathCompliant(takeIndex = shot.getParentTakeIndex())}" + "\\"
             filePath += f"{shot.getName_PathCompliant()}" + "\\"
 
         #   filePath += f"//{fileName}"
@@ -2103,8 +2127,6 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
 
     def restoreProjectSettings(self, settingsListOnly=False):
 
-        print("    * restoreProjectSettings , settingsListOnly: *", settingsListOnly)
-
         settingsList = []
 
         settingsList.append(["Project Name", '"' + self.project_name + '"'])
@@ -2217,6 +2239,15 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
     def get_montage_type(self):
         return "SHOTMANAGER"
 
+    def getInfoAsDictionnary(self, dictMontage=None, shotsDetails=True):
+        if dictMontage is None:
+            dictMontage = dict()
+            dictMontage["montage"] = self.get_name()
+
+        for take in self.takes:
+            dictMontage[take.get_name()] = take.getInfoAsDictionnary(shotsDetails=shotsDetails)
+        return dictMontage
+
     def printChildrenInfo(self):
         self.getCurrentTake().printInfo()
 
@@ -2256,7 +2287,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
 
 
 _classes = (
-    UAS_ShotManager_Media,
+    #    UAS_ShotManager_Media,
     UAS_ShotManager_Shot,
     UAS_ShotManager_Take,
     UAS_ShotManager_Props,

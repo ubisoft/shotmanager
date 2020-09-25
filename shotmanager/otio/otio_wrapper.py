@@ -1,7 +1,3 @@
-import logging
-
-_logger = logging.getLogger(__name__)
-
 import opentimelineio
 
 from pathlib import Path
@@ -11,6 +7,10 @@ import re
 import math
 
 from ..utils import utils
+
+import logging
+
+_logger = logging.getLogger(__name__)
 
 
 def parseOtioFile(otioFile):
@@ -118,7 +118,7 @@ def parseTrack(timeline, track_type, track_index):
             print(f"\n{tab}Clip: {ind}, {clip.name}")
 
             print(f"{tab2}clip.media_reference.target_url: {clip.media_reference.target_url}")
-            media_path = get_clip_media_path(clip)
+            media_path = Path(get_clip_media_path(clip))
             print(f"{tab2}media_path: {media_path}")
             if not media_path.exists():
                 # Lets find it inside next to the xml
@@ -232,8 +232,8 @@ def get_media_occurence(timeline, media_name, track_type="ALL", last_occurence=F
 
 
 def get_clip_media_path(clip):
-    # media_path = clip.media_reference.target_url
-    media_path = Path(utils.file_path_from_url(clip.media_reference.target_url))
+    media_path = clip.media_reference.target_url
+    # media_path = Path(utils.file_path_from_url(clip.media_reference.target_url))
     return media_path
 
 

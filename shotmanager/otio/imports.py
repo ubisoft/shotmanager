@@ -32,9 +32,9 @@ def importTrack(track, trackInd, track_type, timeRange=None, offsetFrameNumber=0
         clip_end = ow.get_timeline_clip_end_inclusive(clip)
 
         clipName = clip.name
-        media_path = ow.get_clip_media_path(clip)
+        media_path = Path(ow.get_clip_media_path(clip))
         clipInfo = f"\n-----------------------------"
-        clipInfo += f"- Clip name: {clipName}, Clip ind: {i}, media: {Path(media_path).name}\n"
+        clipInfo += f"- Clip name: {clipName}, Clip ind: {i}, media: {media_path}\n"
 
         #   print(f"       Import Otio media_path: {media_path}")
 
@@ -54,12 +54,13 @@ def importTrack(track, trackInd, track_type, timeRange=None, offsetFrameNumber=0
             # print("       Clip is in range")
             print(f"{clipInfo}")
             # offsetFrameNumber = 2
+            _logger.debug(f"media_path: {media_path}")
             print(f"       Import at frame: offsetFrameNumber: {offsetFrameNumber}")
             if not media_path.exists():
                 # Lets find it inside next to the xml
                 # media_path = Path(otioFile).parent.joinpath(media_path.name)
                 media_path = Path(alternative_media_folder).joinpath(media_path.name)
-                _logger.debug(f"** not found, so using alternative_media_folder: {alternative_media_folder}")
+                _logger.debug(f'** media not found, so using alternative_media_folder: "{alternative_media_folder}"')
                 _logger.debug(f"   and new media_path: {media_path}")
 
             if media_path.exists():
@@ -276,7 +277,7 @@ def createShotsFromOtio(
 
     props = scene.UAS_shot_manager_props
     if len(props.getCurrentTake().getShotList()) != 0:
-        bpy.ops.uas_shot_manager.add_take(name=Path(otioFile).stem)
+        bpy.ops.uas_shot_manager.take_add(name=Path(otioFile).stem)
 
     handlesDuration = 0
     if mediaHaveHandles:
@@ -329,7 +330,7 @@ def createShotsFromOtio(
                     camera=cam_ob,
                     color=cam_ob.color,
                 )
-                # bpy.ops.uas_shot_manager.add_shot(
+                # bpy.ops.uas_shot_manager.shot_add(
                 #     name=clipName,
                 #     start=opentimelineio.opentime.to_frames(clip.range_in_parent().start_time) + importAtFrame,
                 #     end=opentimelineio.opentime.to_frames(clip.range_in_parent().end_time_inclusive()) + importAtFrame,
@@ -401,7 +402,7 @@ def createShotsFromOtioTimelineClass(
 
     props = scene.UAS_shot_manager_props
     if len(props.getCurrentTake().getShotList()) != 0:
-        bpy.ops.uas_shot_manager.add_take(name=Path(otioTimelineClass.otioFile).stem)
+        bpy.ops.uas_shot_manager.take_add(name=Path(otioTimelineClass.otioFile).stem)
 
     handlesDuration = 0
     if mediaHaveHandles:
@@ -436,7 +437,7 @@ def createShotsFromOtioTimelineClass(
 
                     # add media as camera background
                     if useMediaAsCameraBG:
-                        media_path = ow.get_clip_media_path(clip.clip)
+                        media_path = Path(ow.get_clip_media_path(clip.clip))
                         print("Import Otio media_path: ", media_path)
                         if not media_path.exists():
                             # Lets find it inside next to the xml

@@ -110,6 +110,9 @@ def displayHandlers(handlerCategName=""):
     else:
         _displayHandlersOfCateg(handlerCategName)
 
+    print("")
+    return
+
 
 # eg: removeAllHandlerOccurences(bpy.app.handlers.render_init, wkhandlersops_renderInitHandlder)
 def removeAllHandlerOccurences(handlerFunction, handlerCateg=None):

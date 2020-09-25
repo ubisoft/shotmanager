@@ -186,7 +186,7 @@ def findFirstUniqueName(originalItem, name, itemsArray):
     return newName
 
 
-def getSceneVSE(vsm_sceneName, createVseTab=True):
+def getSceneVSE(vsm_sceneName, createVseTab=False):
     """ Return the scene that has the name held by vsm_sceneName and adds a VSE in it if there is not already one.
         Use <returned scene>.sequence_editor to get the vse of the scene
     """
@@ -258,7 +258,7 @@ def cameras_from_scene(scene):
 
 def setCurrentCameraToViewport(context, area=None):
 
-    print(f"setCurrentCameraToViewport: Num Windows: {len(bpy.context.window_manager.windows)}, area: {area}")
+    # print(f"setCurrentCameraToViewport: Num Windows: {len(bpy.context.window_manager.windows)}, area: {area}")
 
     # area = bpy.context.window_manager.windows[-1].screen.areas[0]
     #         area.type = "IMAGE_EDITOR"
@@ -276,7 +276,7 @@ def setCurrentCameraToViewport(context, area=None):
 
             if rightWin is not None:
                 for winArea in rightWin.screen.areas:
-                    print(f"Area Type in right win: {winArea.type}")
+                    #   print(f"Area Type in right win: {winArea.type}")
                     if winArea.type == "VIEW_3D":
                         targetArea = winArea
                     break
@@ -284,7 +284,7 @@ def setCurrentCameraToViewport(context, area=None):
     if targetArea is None:
         for win in bpy.context.window_manager.windows:
             for winArea in win.screen.areas:
-                print(f"Area Type: {winArea.type}")
+                #      print(f"Area Type: {winArea.type}")
                 if winArea.type == "VIEW_3D":
                     targetArea = winArea
                     break
@@ -308,7 +308,19 @@ def create_new_camera(camera_name, location=[0, 0, 0], locate_on_cursor=False):
     cam = bpy.data.cameras.new(camera_name)
     cam_ob = bpy.data.objects.new(cam.name, cam)
     cam_ob.name = cam.name
-    bpy.context.collection.objects.link(cam_ob)
+
+    # add to main collection
+    # bpy.context.collection.objects.link(cam_ob)
+
+    # add to a collection named "Cameras"
+    camCollName = "Cameras"
+    camColl = None
+    if camCollName not in bpy.context.scene.collection.children:
+        camColl = bpy.data.collections.new(name=camCollName)
+        bpy.context.scene.collection.children.link(camColl)
+    else:
+        camColl = bpy.context.scene.collection.children[camCollName]
+    camColl.objects.link(cam_ob)
 
     bpy.data.cameras[cam.name].lens = 40
 

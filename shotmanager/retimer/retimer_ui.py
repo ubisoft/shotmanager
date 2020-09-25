@@ -11,8 +11,8 @@ from . import retimer
 
 
 class UAS_PT_ShotManagerRetimer(Panel):
-    bl_label = "Retimer"
     bl_idname = "UAS_PT_ShotManagerRetimerPanel"
+    bl_label = "Retimer"
     bl_description = "Manage the global timing of the action in the scene and the shots"
     bl_space_type = "VIEW_3D"
     bl_region_type = "UI"

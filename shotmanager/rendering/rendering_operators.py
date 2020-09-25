@@ -6,7 +6,7 @@ from bpy.props import EnumProperty, BoolProperty, StringProperty
 
 from .rendering import launchRender
 
-from ..utils import utils
+from shotmanager.utils import utils
 
 
 def get_media_path(out_path, take_name, shot_name):
@@ -81,6 +81,16 @@ class UAS_PT_ShotManager_Render(Operator):
 
         if not props.sceneIsReady():
             return {"CANCELLED"}
+
+        if "ANIMATION" == self.renderMode:
+            currentShot = props.getCurrentShot()
+            if currentShot is None:
+                utils.ShowMessageBox("Current Shot not found - Rendering aborted", "Render aborted")
+                return {"CANCELLED"}
+            if not currentShot.enabled:
+                utils.ShowMessageBox("Current Shot is not enabled - Rendering aborted", "Render aborted")
+                return {"CANCELLED"}
+
         # renderWarnings = ""
         # if props.renderRootPath.startswith("//"):
         #     if "" == bpy.data.filepath:

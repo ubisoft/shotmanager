@@ -37,7 +37,7 @@ class UAS_VideoShotManager_TrackAdd(Operator):
     bl_idname = "uas_video_shot_manager.add_track"
     bl_label = "Add New Track"
     bl_description = "Add a new track starting at the current frame" "\nThe new track is put after the selected track"
-    bl_options = {"REGISTER", "UNDO"}
+    bl_options = {"INTERNAL", "UNDO"}
 
     name: StringProperty(name="Name")
 
@@ -164,7 +164,7 @@ class UAS_VideoShotManager_TrackDuplicate(Operator):
     bl_idname = "uas_video_shot_manager.duplicate_track"
     bl_label = "Duplicate Selected Track"
     bl_description = "Duplicate the track selected in the track list." "\nThe new track is put after the selected track"
-    bl_options = {"REGISTER", "UNDO"}
+    bl_options = {"INTERNAL", "UNDO"}
 
     name: StringProperty(name="Name")
     addToEndOfList: BoolProperty(name="Add At The End Of The List")
@@ -231,7 +231,7 @@ class UAS_VideoShotManager_RemoveTrack(Operator):
     bl_idname = "uas_video_shot_manager.remove_track"
     bl_label = "Remove Selected Track"
     bl_description = "Remove the track selected in the track list."
-    bl_options = {"REGISTER", "UNDO"}
+    bl_options = {"INTERNAL", "UNDO"}
 
     @classmethod
     def poll(cls, context):
@@ -287,7 +287,7 @@ class UAS_VideoShotManager_Actions(Operator):
     bl_idname = "uas_video_shot_manager.list_action"
     bl_label = "List Actions 02"
     bl_description = "Move items up and down, add and remove"
-    bl_options = {"REGISTER", "UNDO"}
+    bl_options = {"INTERNAL", "UNDO"}
 
     action: bpy.props.EnumProperty(items=(("UP", "Up", ""), ("DOWN", "Down", "")))
 
@@ -335,7 +335,7 @@ class UAS_VideoShotManager_TrackRemoveMultiple(Operator):
     bl_idname = "uas_video_shot_manager.remove_multiple_tracks"
     bl_label = "Remove Tracks"
     bl_description = "Remove the specified tracks from the list"
-    bl_options = {"REGISTER", "UNDO"}
+    bl_options = {"INTERNAL", "UNDO"}
 
     action: bpy.props.EnumProperty(items=(("ALL", "ALL", ""), ("DISABLED", "DISABLED", "")))
 
@@ -380,7 +380,7 @@ class UAS_VideoShotManager_UpdateVSETrack(Operator):
     bl_idname = "uas_video_shot_manager.update_vse_track"
     bl_label = "Update VSE Track"
     bl_description = "Update VSE Track"
-    bl_options = {"REGISTER", "UNDO"}
+    bl_options = {"INTERNAL", "UNDO"}
 
     trackName: StringProperty()
 
@@ -396,7 +396,7 @@ class UAS_VideoShotManager_ClearVSETrack(Operator):
     bl_idname = "uas_video_shot_manager.clear_vse_track"
     bl_label = "Clear VSE Track"
     bl_description = "Clear VSE Track"
-    bl_options = {"REGISTER", "UNDO"}
+    bl_options = {"INTERNAL", "UNDO"}
 
     def invoke(self, context, event):
         vsm_props = context.scene.UAS_vsm_props
@@ -424,11 +424,26 @@ class UAS_VideoShotManager_GoToSpecifedScene(Operator):
         return {"FINISHED"}
 
 
+class UAS_VideoShotManager_UpdateTracksList(Operator):
+    bl_idname = "uas_video_shot_manager.update_tracks_list"
+    bl_label = "Update Tracks List"
+    bl_description = "Set a number of tracks matching the number of used channels"
+    bl_options = {"INTERNAL", "UNDO"}
+
+    def invoke(self, context, event):
+        vsm_props = context.scene.UAS_vsm_props
+        numChannels = vsm_props.getNumUsedChannels(context.scene)
+
+        if vsm_props.numTracks < numChannels:
+            vsm_props.numTracks = numChannels
+        return {"FINISHED"}
+
+
 class UAS_VideoShotManager_ClearAll(Operator):
     bl_idname = "uas_video_shot_manager.clear_all"
     bl_label = "Clear All"
     bl_description = "Clear all channels"
-    bl_options = {"INTERNAL", "REGISTER", "UNDO"}
+    bl_options = {"INTERNAL", "UNDO"}
 
     def invoke(self, context, event):
         # vsm_sceneName = "VideoShotManger"
@@ -456,6 +471,7 @@ _classes = (
     UAS_VideoShotManager_GoToSpecifedScene,
     # UAS_VideoShotManager_SetCurrentTrack,
     UAS_VideoShotManager_ClearAll,
+    UAS_VideoShotManager_UpdateTracksList,
 )
 
 

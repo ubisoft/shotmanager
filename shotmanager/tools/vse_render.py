@@ -187,7 +187,6 @@ class UAS_Vse_Render(PropertyGroup):
         inputOverMediaPath = None
         inputBGMediaPath = None
         inputAudioMediaPath = None
-        self.clearAllChannels(scene)
 
     def getMediaType(self, filePath):
         """ Return the type of media according to the extension of the provided file path
@@ -453,7 +452,7 @@ class UAS_Vse_Render(PropertyGroup):
         # sequence composite scene
         sequenceScene = bpy.data.scenes.new(name="VSE_SequenceRenderScene")
 
-        sequenceScene = utils.getSceneVSE(sequenceScene.name, createVseTab=config.uasDebug)
+        sequenceScene = utils.getSceneVSE(sequenceScene.name, createVseTab=False)  # config.uasDebug)
 
         bpy.context.window.scene = sequenceScene
 
@@ -503,7 +502,7 @@ class UAS_Vse_Render(PropertyGroup):
         bpy.ops.render.opengl(animation=True, sequencer=True, write_still=False)
 
         # cleaning current file from temp scenes
-        if not config.uasDebug:
+        if not config.uasDebug_keepVSEContent:
             # current scene is sequenceScene
             bpy.ops.scene.delete()
             pass
@@ -519,12 +518,15 @@ class UAS_Vse_Render(PropertyGroup):
         previousScene = bpy.context.window.scene
 
         # Add new scene
-        vse_scene = bpy.data.scenes.new(name="Tmp_VSE_RenderScene" + postfixSceneName)
+        # vse_scene = bpy.data.scenes.new(name="Tmp_VSE_RenderScene" + postfixSceneName)
+        vse_scene = utils.getSceneVSE("Tmp_VSE_RenderScene" + postfixSceneName, createVseTab=False)
+        self.clearAllChannels(vse_scene)
+
         vse_scene.render.fps = fps
         # Make "My New Scene" the active one
         #    bpy.context.window.scene = vse_scene
 
-        vse_scene = utils.getSceneVSE(vse_scene.name, createVseTab=config.uasDebug)
+        #    vse_scene = utils.getSceneVSE(vse_scene.name, createVseTab=config.uasDebug)
         # if not vse_scene.sequence_editor:
         #     vse_scene.sequence_editor_create()
 
@@ -608,7 +610,7 @@ class UAS_Vse_Render(PropertyGroup):
         else:
             bpy.ops.render.render(write_still=True)
 
-        if not config.uasDebug:
+        if not config.uasDebug_keepVSEContent:
             bpy.ops.scene.delete()
 
         bpy.context.window.scene = previousScene

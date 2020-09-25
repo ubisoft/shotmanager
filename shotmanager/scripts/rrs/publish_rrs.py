@@ -1,11 +1,11 @@
-import logging
-
 import os
 import json
 
 import bpy
 from shotmanager.otio.exports import exportOtio
 from shotmanager.rendering import rendering
+
+import logging
 
 _logger = logging.getLogger(__name__)
 
@@ -77,7 +77,13 @@ def initializeForRRS(override_existing: bool, verbose=False):
 
 
 def publishRRS(
-    prodFilePath, takeIndex=-1, verbose=False, useCache=False, fileListOnly=False, rerenderExistingShotVideos=True
+    prodFilePath,
+    takeIndex=-1,
+    verbose=False,
+    useCache=False,
+    fileListOnly=False,
+    rerenderExistingShotVideos=True,
+    renderAlsoDisabled=True,
 ):
     """ Return a dictionary with the rendered and the failed file paths
         The dictionary have the following entries:
@@ -158,6 +164,7 @@ def publishRRS(
         filePath=renderDir,
         fileListOnly=fileListOnly,
         rerenderExistingShotVideos=rerenderExistingShotVideos,
+        renderAlsoDisabled=renderAlsoDisabled,
         area=bpy.context.area,
     )
 
@@ -242,28 +249,40 @@ def publishRRS(
         generatedFilesDict["failed_files"] = renderedFilesDict["failed_files"]
         generatedFilesDict["edl_files"] = renderedFilesDict["edl_files"]
 
-    # json dumped file is also added to the list of the rendered files
     jsonFile = prodFilePath
     if not jsonFile.endswith("\\"):
         jsonFile += "\\"
     jsonFile += "renderedFiles.json"
+
+    # json dumped file is also added to the list of the rendered files
     otherFiles = []
     otherFiles.append(jsonFile)
     generatedFilesDict["other_files"] = otherFiles
 
-    if not fileListOnly:
-        with open(jsonFile, "w") as fp:
-            json.dump(generatedFilesDict, fp, indent=4)
+    # if verbose:
+    #     print("\n")
+    #     for k in generatedFilesDict:
+    #         if len(generatedFilesDict[k]):
+    #             print(f" - {k}:")
+    #             for item in generatedFilesDict[k]:
+    #                 print(f"       {item}")
+    #         else:
+    #             print(f" - {k}: []")
+    #     print(" ")
+
+    # add shots info
+
+    # dictMontage = dict()
+    # dictMontage["sequence"] = scene.name
+    # props.getInfoAsDictionnary(dictMontage=dictMontage)
+
+    # generatedFilesDict.update(dictMontage)
 
     if verbose:
-        print("\n")
-        for k in generatedFilesDict:
-            if len(generatedFilesDict[k]):
-                print(f" - {k}:")
-                for item in generatedFilesDict[k]:
-                    print(f"       {item}")
-            else:
-                print(f" - {k}: []")
-        print(" ")
+        print(json.dumps(generatedFilesDict, indent=3))
+
+    if not fileListOnly:
+        with open(jsonFile, "w") as fp:
+            json.dump(generatedFilesDict, fp, indent=3)
 
     return generatedFilesDict

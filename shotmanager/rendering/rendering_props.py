@@ -127,6 +127,13 @@ class UAS_ShotManager_RenderGlobalContext(PropertyGroup):
 
         return
 
+    useOverlays: BoolProperty(
+        name="With Overlays",
+        description="Also render overlays when the rendering is a playblast",
+        default=False,
+        options=set(),
+    )
+
 
 class UAS_ShotManager_RenderSettings(PropertyGroup):
 

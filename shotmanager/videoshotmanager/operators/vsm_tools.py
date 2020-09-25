@@ -1,7 +1,3 @@
-import logging
-
-_logger = logging.getLogger(__name__)
-
 import os
 from pathlib import Path
 
@@ -15,9 +11,15 @@ from shotmanager.otio import otio_wrapper as ow
 from shotmanager.otio.exports import exportOtio
 from shotmanager.otio.imports import importToVSE
 
+from shotmanager.rrs_specific.montage.montage_otio import MontageOtio
+
 from shotmanager.utils import utils
 
 from shotmanager.config import config
+
+import logging
+
+_logger = logging.getLogger(__name__)
 
 
 class UAS_VideoShotManager_OT_Import_Edit_From_OTIO(Operator):
@@ -69,11 +71,14 @@ class UAS_VideoShotManager_OT_Import_Edit_From_OTIO(Operator):
 
         config.gMontageOtio = None
         if "" != self.otioFile and Path(self.otioFile).exists():
-            timeline = ow.get_timeline_from_file(self.otioFile)
-            if timeline is not None:
-                config.gMontageOtio = otc.OtioTimeline()
-                config.gMontageOtio.otioFile = self.otioFile
-                config.gMontageOtio.timeline = timeline
+            config.gMontageOtio = MontageOtio()
+            config.gMontageOtio.fillMontageInfoFromOtioFile(self.otioFile, verboseInfo=True)
+
+            # timeline = ow.get_timeline_from_file(self.otioFile)
+            # if timeline is not None:
+            #     config.gMontageOtio = otc.OtioTimeline()
+            #     config.gMontageOtio.otioFile = self.otioFile
+            #     config.gMontageOtio.timeline = timeline
 
         wm.invoke_props_dialog(self, width=500)
         #    res = bpy.ops.uasotio.openfilebrowser("INVOKE_DEFAULT")
@@ -81,9 +86,8 @@ class UAS_VideoShotManager_OT_Import_Edit_From_OTIO(Operator):
 
     def draw(self, context):
         layout = self.layout
-        row = layout.row(align=True)
 
-        box = row.box()
+        box = layout.box()
         box.label(text="OTIO File")
         box.prop(self, "otioFile", text="")
 
@@ -99,6 +103,11 @@ class UAS_VideoShotManager_OT_Import_Edit_From_OTIO(Operator):
                 )
                 box.alert = False
 
+        row = box.row(align=True)
+        row.operator("uas_video_shot_manager.print_montage_info")
+        row.separator()
+
+        box = layout.box()
         row = box.row(align=True)
         row.prop(self, "useTimeRange")
         subrow = row.row(align=False)
@@ -144,9 +153,9 @@ class UAS_VideoShotManager_OT_Import_Edit_From_OTIO(Operator):
         offsetFrameNumber = 0
         if self.offsetTime:
             if timeRange is None:
-                offsetFrameNumber = importAtFrame
+                offsetFrameNumber = self.importAtFrame
             else:
-                offsetFrameNumber = importAtFrame - timeRange[0]
+                offsetFrameNumber = self.importAtFrame - timeRange[0]
 
         # print(f"Import Otio File: {config.gMontageOtio.otioFile}, num clips: {len(clipList)}")
         if timeRange is not None:
@@ -218,9 +227,37 @@ class UAS_VideoShotManager_OT_Parse_Edit_From_OTIO(Operator):
         return {"FINISHED"}
 
 
+class UAS_VideoShotManager_OT_PrintMontageInfo(Operator):
+    bl_idname = "uas_video_shot_manager.print_montage_info"
+    bl_label = "Print Montage Info"
+    bl_description = "Print montage information in the console"
+    bl_options = {"INTERNAL"}
+
+    def execute(self, context):
+        scene = context.scene
+        props = scene.UAS_shot_manager_props
+
+        config.gMontageOtio.printInfo()
+
+        # sm_montage = MontageShotManager()
+        # sm_montage.initialize(scene, props.getCurrentTake())
+
+        # props.printInfo()
+        # dictMontage = dict()
+        # dictMontage["sequence"] = context.scene.name
+        # props.getInfoAsDictionnary(dictMontage=dictMontage)
+
+        # import json
+
+        # print(json.dumps(dictMontage, indent=4))
+
+        return {"FINISHED"}
+
+
 _classes = (
     UAS_VideoShotManager_OT_Import_Edit_From_OTIO,
     UAS_VideoShotManager_OT_Parse_Edit_From_OTIO,
+    UAS_VideoShotManager_OT_PrintMontageInfo,
 )
 
 

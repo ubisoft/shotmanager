@@ -33,6 +33,13 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
     )
 
     ##################
+    # ui helpers   ###
+    ##################
+
+    # used for example as a placehoder in VSM to have a text field when no strip is selected
+    emptyField: StringProperty(name=" ")
+
+    ##################
     # add new shot ###
     ##################
 

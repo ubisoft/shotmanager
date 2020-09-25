@@ -57,7 +57,7 @@ class UAS_VideoShotManager_Track(PropertyGroup):
     def _update_enabled(self, context):
         selectedTrackIndex = context.scene.UAS_vsm_props.getTrackIndex(self)
         for item in bpy.context.scene.sequence_editor.sequences:
-            print(f"Item Channel: {item.channel}, selectedTrackIndex: {selectedTrackIndex}")
+            # print(f"Item Channel: {item.channel}, selectedTrackIndex: {selectedTrackIndex}")
             if (len(context.scene.UAS_vsm_props.tracks) - selectedTrackIndex) == item.channel:
                 item.mute = not self.enabled
 

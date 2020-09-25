@@ -33,6 +33,16 @@ class MontageInterface(object):
         if printChildren:
             self.printChildrenInfo()
 
+    def getInfoAsDictionnary(self, dictMontage=None, shotsDetails=True):
+        if dictMontage is None:
+            dictMontage = dict()
+            dictMontage["montage"] = self.get_name()
+        dictMontage["sequences"] = []
+        for seq in self.sequencesList:
+            #    dictMontage[seq.get_name()] = seq.getInfoAsDictionnary()
+            dictMontage["sequences"].append(seq.getInfoAsDictionnary(shotsDetails=shotsDetails))
+        return dictMontage
+
     def printChildrenInfo(self):
         for seq in self.sequencesList:
             seq.printInfo()
@@ -175,6 +185,17 @@ class SequenceInterface(object):
                 print("")
                 shot.printInfo()
 
+    def getInfoAsDictionnary(self, shotsDetails=True):
+        dictSeq = dict()
+        dictSeq["sequence_name"] = self.get_name()
+
+        if shotsDetails:
+            dictSeq["shots"] = []
+            for shot in self.getEditShots():
+                dictSeq["shots"].append(shot.getInfoAsDictionnary())
+
+        return dictSeq
+
     def get_index_in_parent(self):
         if self in self.parent.sequencesList:
             return self.parent.sequencesList.index(self)
@@ -245,6 +266,15 @@ class ShotInterface(object):
         if not only_clip_info:
             infoStr += f"\n             - Offset Start: {self.get_frame_offset_start()}, Offset End: {self.get_frame_offset_end()}"
         print(infoStr)
+
+    def getInfoAsDictionnary(self, shotsDetails=True):
+        dictShot = dict()
+        dictShot["shot_name"] = self.get_name()
+        if shotsDetails:
+            dictShot["frame_final_start"] = self.get_frame_final_start()
+            dictShot["frame_final_duration"] = self.get_frame_final_duration()
+
+        return dictShot
 
     def get_frame_start(self):
         return -1

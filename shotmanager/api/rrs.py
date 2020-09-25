@@ -6,7 +6,13 @@ def initialize_for_rrs(override_existing=True, verbose=False):
 
 
 def publishRRS(
-    prodFilePath, take_index=-1, verbose=False, use_cache=False, fileListOnly=False, rerender_existing_shot_videos=True
+    prodFilePath,
+    take_index=-1,
+    verbose=False,
+    use_cache=False,
+    fileListOnly=False,
+    rerender_existing_shot_videos=True,
+    render_also_disabled=True,
 ):
     """ Return a dictionary with the rendered and the failed file paths
         The dictionary have the following entries:
@@ -25,4 +31,5 @@ def publishRRS(
         useCache=use_cache,
         fileListOnly=fileListOnly,
         rerenderExistingShotVideos=rerender_existing_shot_videos,
+        renderAlsoDisabled=render_also_disabled,
     )

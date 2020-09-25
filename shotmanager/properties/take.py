@@ -171,6 +171,14 @@ class UAS_ShotManager_Take(SequenceInterface, PropertyGroup):
                 print("")
                 shot.printInfo()
 
+    def getInfoAsDictionnary(self, shotsDetails=True):
+        dictSeq = dict()
+        dictSeq["shots"] = []
+        for shot in self.getEditShots():
+            dictSeq["shots"].append(shot.getInfoAsDictionnary(shotsDetails=shotsDetails))
+
+        return dictSeq
+
     def newShot(self, shot):
         print("*** Take.newShot: To implement !! ***")
         return newShot

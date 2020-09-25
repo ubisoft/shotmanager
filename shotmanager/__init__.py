@@ -63,7 +63,7 @@ bl_info = {
     "author": "Julien Blervaque (aka Werwack), Romain Carriquiry Borchiari",
     "description": "Manage a sequence of shots and cameras in the 3D View - Ubisoft Animation Studio",
     "blender": (2, 90, 0),
-    "version": (1, 3, 34),
+    "version": (1, 3, 38),
     "location": "View3D > UAS Shot Manager",
     "wiki_url": "https://gitlab-ncsa.ubisoft.org/animation-studio/blender/shotmanager-addon/-/wikis/home",
     #  "warning": "BETA Version - Fais gaffe à tes données !!!",
@@ -83,9 +83,6 @@ _logger.propagate = False
 MODULE_PATH = Path(__file__).parent.parent
 logging.basicConfig(level=logging.INFO)
 _logger.setLevel(logging.INFO)  # CRITICAL ERROR WARNING INFO DEBUG NOTSET
-
-# if config.uasDebug:
-_logger.setLevel(logging.DEBUG)  # CRITICAL ERROR WARNING INFO DEBUG NOTSET
 
 # _logger.info(f"Logger {}")
 # _logger.warning(f"logger {}")
@@ -142,7 +139,7 @@ class Formatter(logging.Formatter):
 
 
 def timeline_valueChanged(self, context):
-    print("  timeline_valueChanged:  self.UAS_shot_manager_display_timeline: ", self.UAS_shot_manager_display_timeline)
+    # print("  timeline_valueChanged:  self.UAS_shot_manager_display_timeline: ", self.UAS_shot_manager_display_timeline)
     if self.UAS_shot_manager_display_timeline:
         bpy.ops.uas_shot_manager.draw_timeline("INVOKE_DEFAULT")
         bpy.ops.uas_shot_manager.draw_montage_timeline("INVOKE_DEFAULT")
@@ -259,7 +256,9 @@ def register():
     versionTupple = utils.display_addon_registered_version("UAS Shot Manager")
 
     config.initGlobalVariables()
-    verbose = config.uasDebug
+
+    if config.uasDebug:
+        _logger.setLevel(logging.DEBUG)  # CRITICAL ERROR WARNING INFO DEBUG NOTSET
 
     ###################
     # logging
@@ -287,29 +286,29 @@ def register():
 
     # handler to check the data version at load
     ##################
-    print("       * Post Load handler added\n")
+    # print("       * Post Load handler added\n")
 
-    if verbose:
-        utils_handlers.displayHandlers(handlerCategName="load_post")
+    # if config.uasDebug:
+    #     utils_handlers.displayHandlers(handlerCategName="load_post")
 
     utils_handlers.removeAllHandlerOccurences(
         checkDataVersion_post_load_handler, handlerCateg=bpy.app.handlers.load_post
     )
     bpy.app.handlers.load_post.append(checkDataVersion_post_load_handler)
 
-    if verbose:
+    if config.uasDebug:
         utils_handlers.displayHandlers(handlerCategName="load_post")
 
     # handler to write the data version at save
     ##################
     # print("       - Pre Save handler added")
-    # if verbose:
+    # if config.uasDebug:
     #     utils_handlers.displayHandlers(handlerCategName="save_pre")
 
     # utils_handlers.removeAllHandlerOccurences(checkDataVersion_save_pre_handler, handlerCateg=bpy.app.handlers.save_pre)
     # bpy.app.handlers.save_pre.append(checkDataVersion_save_pre_handler)
 
-    # if verbose:
+    # if config.uasDebug:
     #     utils_handlers.displayHandlers(handlerCategName="save_pre")
 
     # initialization
@@ -397,6 +396,10 @@ def register():
         default=0,
         options=set(),
     )
+
+    if config.uasDebug:
+        print(f"\n ------ UAS debug: {config.uasDebug} ------- ")
+        print(f" ------ _Logger Level: {logging.getLevelName(_logger.level)} ------- \n")
 
 
 def unregister():
