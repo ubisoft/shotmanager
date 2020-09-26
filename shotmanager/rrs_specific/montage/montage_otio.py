@@ -81,9 +81,11 @@ class MontageOtio(MontageInterface):
         for track in tracks:
             for clip in track:
                 if isinstance(clip, opentimelineio.schema.Clip):
-                    # print(clip.media_reference)
+                    print(f"** clip: {clip}")
+                    print(f"** clip.media_reference: {clip.media_reference}")
                     media_path = Path(utils.file_path_from_url(clip.media_reference.target_url))
-                    # print(f"{media_path}")
+                    print(f"** media_path: {media_path}")
+                    # wkip ici mettre une exception pour attraper les media manquants (._otio.MissingReference)
 
                     # get media name
                     filename = os.path.split(media_path)[1]

@@ -32,6 +32,9 @@ class UAS_ShotManager_Shot(ShotInterface, PropertyGroup):
     def getParentTakeIndex(self):
         return self.parentScene.UAS_shot_manager_props.getShotParentTakeIndex(self)
 
+    def getParentTake(self):
+        return self.parentScene.UAS_shot_manager_props.getShotParentTake(self)
+
     # for backward compatibility - before V1.2.21
     # used by data version patches.
     # For general purpose use the property self.parentScene
@@ -68,9 +71,16 @@ class UAS_ShotManager_Shot(ShotInterface, PropertyGroup):
         duration = self.end - self.start + 1
         return duration
 
-    def getOutputFileName(self, frameIndex=-1, fullPath=False, fullPathOnly=False, rootFilePath=""):
+    def getOutputFileName(
+        self, rootFilePath="", fullPath=False, fullPathOnly=False, specificFrame=None, noExtension=False
+    ):
         return self.parentScene.UAS_shot_manager_props.getShotOutputFileName(
-            self, frameIndex=frameIndex, fullPath=fullPath, fullPathOnly=fullPathOnly, rootFilePath=rootFilePath
+            self,
+            rootFilePath=rootFilePath,
+            fullPath=fullPath,
+            fullPathOnly=fullPathOnly,
+            specificFrame=specificFrame,
+            noExtension=noExtension,
         )
 
     def getName_PathCompliant(self):

@@ -1,17 +1,31 @@
+import os
+from pathlib import Path
+import json
+import time
+
+import bpy
+
+from shotmanager.config import config
+from shotmanager.scripts.rrs.RRS_StampInfo import setRRS_StampInfoSettings
+
+from shotmanager.utils import utils
+
 import logging
 
 _logger = logging.getLogger(__name__)
 
-import os
-import json
 
-from pathlib import Path
-import bpy
+def getCompositedMediaPath(rootPath, shot, specificFrame=None):
+    props = shot.parentScene.UAS_shot_manager_props
+    takeName = shot.getParentTake().getName_PathCompliant()
+    outputFileFormat = props.getOutputFileFormat(isVideo=specificFrame is None)
 
-from ..config import config
-from ..scripts.rrs.RRS_StampInfo import setRRS_StampInfoSettings
-
-from shotmanager.utils import utils
+    compositedMediaPath = f"{rootPath}{takeName}\\{shot.getOutputFileName(fullPath=False)}.{outputFileFormat}"
+    if specificFrame is not None:
+        compositedMediaPath = (
+            f"{rootPath}{takeName}\\{shot.getOutputFileName(fullPath=False, specificFrame=specificFrame)}"
+        )
+    return compositedMediaPath
 
 
 def launchRenderWithVSEComposite(
@@ -46,6 +60,8 @@ def launchRenderWithVSEComposite(
         userRenderSettings["frame_start"] = scene.frame_start
         userRenderSettings["frame_end"] = scene.frame_end
 
+        userRenderSettings["view_transform"] = bpy.context.scene.view_settings.view_transform
+
         # eevee
         ##############
         # if "BLENDER_EEVEE" == bpy.context.scene.render.engine:
@@ -76,6 +92,8 @@ def launchRenderWithVSEComposite(
 
         scene.frame_start = userRenderSettings["frame_start"]
         scene.frame_end = userRenderSettings["frame_end"]
+
+        bpy.context.scene.view_settings.view_transform = userRenderSettings["view_transform"]
 
         # eevee
         ##############
@@ -121,10 +139,6 @@ def launchRenderWithVSEComposite(
 
     currentShot = props.getCurrentShot()
 
-    videoFileFormat = "mp4"
-
-    import time
-
     # it is possible to have handles but not to render them (case of still frame),
     # it is also possible not to use the handles, whitch is different on stamp info
     useHandles = props.project_use_handles if props.use_project_settings else props.use_handles
@@ -135,13 +149,8 @@ def launchRenderWithVSEComposite(
 
     # we verify anyway if handles are used
     renderHandles = render_handles and useHandles
-
     if specificFrame is not None:
         renderHandles = False
-        if props.use_project_settings:
-            videoFileFormat = props.project_images_output_format
-        else:
-            videoFileFormat = "png"
 
     viewportArea = area if area is not None else bpy.context.area
 
@@ -236,21 +245,14 @@ def launchRenderWithVSEComposite(
             context.scene.render.engine = props.renderContext.renderEngine
 
     props.renderContext.applyRenderQualitySettings(context)
+    context.scene.view_settings.view_transform = "Standard"
 
     for i, shot in enumerate(shotList):
         # context.window_manager.UAS_shot_manager_progressbar = (i + 1) / len(shotList) * 100.0
         # bpy.ops.wm.redraw_timer(type="DRAW_WIN_SWAP", iterations=2)
 
         newTempRenderPath = rootPath + takeName + "\\" + shot.getName_PathCompliant() + "\\"
-
-        # compositedMediaPath = shot.getOutputFileName(fullPath=True, rootFilePath=rootPath)     # if we use that the shot .mp4 is rendered in the shot dir
-        # here we render in the take dir
-
-        compositedMediaPath = f"{rootPath}{takeName}\\{shot.getOutputFileName(fullPath=False)}.{videoFileFormat}"
-        if specificFrame is not None:
-            compositedMediaPath = (
-                f"{rootPath}{takeName}\\{shot.getOutputFileName(frameIndex=specificFrame, fullPath=False)}"
-            )
+        compositedMediaPath = getCompositedMediaPath(rootPath, shot, specificFrame=specificFrame)
 
         newMediaFiles.append(compositedMediaPath)
         if shot.enabled:
@@ -288,7 +290,7 @@ def launchRenderWithVSEComposite(
 
             scene.camera = shot.camera
             print("Scene.name:", scene.name)
-            print("Scene.camera:", scene.camera)
+            print("Scene.camera:", scene.camera.name)
             utils.setCurrentCameraToViewport(context, viewportArea)
             # props.setCurrentShot(shot)
 
@@ -311,14 +313,14 @@ def launchRenderWithVSEComposite(
                         scene.frame_set(currentFrame)
 
                         scene.render.filepath = shot.getOutputFileName(
-                            frameIndex=scene.frame_current, fullPath=True, rootFilePath=rootPath
+                            rootFilePath=rootPath, specificFrame=scene.frame_current, fullPath=True
                         )
                         print("      ------------------------------------------")
                         print(
                             f"      \nFrame: {currentFrame}    ( {f + 1} / {numFramesInShot} )    -     Shot: {shot.name}"
                         )
 
-                        print("scene.render.filepath: ", scene.render.filepath)
+                        print("scene.render.filepath (frame by frame): ", scene.render.filepath)
                         if renderWithOpengl:
                             #     _logger.debug("ici loop playblast")
 
@@ -344,9 +346,9 @@ def launchRenderWithVSEComposite(
                 # render all in one anim pass
                 else:
                     scene.render.filepath = (
-                        shot.getOutputFileName(frameIndex=-1, fullPath=True, rootFilePath=rootPath) + "_"
+                        shot.getOutputFileName(rootFilePath=rootPath, fullPath=True, noExtension=True) + "_"
                     )
-                    print("scene.render.filepath: ", scene.render.filepath)
+                    print("scene.render.filepath (anim): ", scene.render.filepath)
                     #   _logger.debug("ici PAS loop")
                     if renderWithOpengl:
                         #    _logger.debug("ici PAS loop Playblast opengl")
@@ -406,27 +408,26 @@ def launchRenderWithVSEComposite(
             frameIndStr = "####" if specificFrame is None else f"{specificFrame:04}"
             vse_render.clearMedia(scene)
 
-            # vse_render.inputOverMediaPath = (scene.render.filepath)[0:-8] + frameIndStr + ".png"
             vse_render.inputOverMediaPath = (
-                newTempRenderPath + shot.getOutputFileName(fullPath=False) + "_" + frameIndStr + ".png"
+                newTempRenderPath
+                + shot.getOutputFileName(fullPath=False, noExtension=True)
+                + "_"
+                + frameIndStr
+                + ".png"
             )
+            # vse_render.inputOverMediaPath = (
+            #     shot.getOutputFileName(rootFilePath=newTempRenderPath, fullPathOnly=True) + "_" + frameIndStr + ".png"
+            # )
+            # vse_render.inputOverMediaPath = shot.getOutputFileName(
+            #     rootFilePath=newTempRenderPath, fullPath=True, specificFrame=frameIndStr
+            # )
 
-            # if specificFrame is None:
-            #     scene.render.filepath = shot.getOutputFileName(
-            #         frameIndex=scene.frame_current, fullPath=True, rootFilePath=rootPath
-            #     )
-            # else:
-            #     scene.render.filepath = shot.getOutputFileName(
-            #         frameIndex=scene.frame_current, fullPath=True, rootFilePath=rootPath
-            #     )
-
-            print(f"----- vse_render.inputOverMediaPath: {vse_render.inputOverMediaPath}")
-
-            #    print("inputOverMediaPath: ", vse_render.inputOverMediaPath)
+            _logger.debug(f"\n - OverMediaPath: {vse_render.inputOverMediaPath}")
             vse_render.inputOverResolution = (1280, 720)
 
             if preset_useStampInfo:
                 vse_render.inputBGMediaPath = newTempRenderPath + "_tmp_StampInfo." + frameIndStr + ".png"
+                _logger.debug(f"\n - BGMediaPath: {vse_render.inputBGMediaPath}")
                 vse_render.inputBGResolution = (1280, 960)
 
             if specificFrame is None:
@@ -450,7 +451,7 @@ def launchRenderWithVSEComposite(
             # bpy.ops.render.render('INVOKE_DEFAULT', animation = True)
             # bpy.ops.render.opengl ( animation = True )
 
-            deleteTempFiles = not (not config.uasDebug and False)
+            deleteTempFiles = not config.uasDebug_keepVSEContent
             if deleteTempFiles:
                 _deleteTempFiles(newTempRenderPath)
 
@@ -459,7 +460,7 @@ def launchRenderWithVSEComposite(
     #######################
 
     if generateSequenceVideo and specificFrame is None:
-        sequenceOutputFullPath = f"{rootPath}{takeName}\\{sequenceFileName}.{videoFileFormat}"
+        sequenceOutputFullPath = f"{rootPath}{takeName}\\{sequenceFileName}.{getOutputFileFormat()}"
         print("  sequenceOutputFullPath: ", sequenceOutputFullPath)
 
         if not fileListOnly:
@@ -569,7 +570,7 @@ def renderStampedInfoForShot(
         scene.frame_set(currentFrame)
 
         scene.render.filepath = shot.getOutputFileName(
-            frameIndex=scene.frame_current, fullPath=True, rootFilePath=rootPath
+            rootFilePath=rootPath, fullPath=True, specificFrame=scene.frame_current
         )
 
         if verbose:
@@ -596,13 +597,14 @@ def renderStampedInfoForShot(
     scene.render.resolution_y = previousResY
 
 
-def launchRender(context, renderMode, renderRootFilePath="", useStampInfo=True):
+def launchRender(context, renderMode, rootPath, useStampInfo=True):
+    """
+        rootPath: directory to render the files
+    """
     context = bpy.context
     scene = bpy.context.scene
     props = scene.UAS_shot_manager_props
     renderDisplayInfo = ""
-
-    rootPath = renderRootFilePath if "" != renderRootFilePath else os.path.dirname(bpy.data.filepath)
 
     stampInfoSettings = None
     preset_useStampInfo = False
@@ -692,12 +694,13 @@ def launchRender(context, renderMode, renderRootFilePath="", useStampInfo=True):
 
             shot = props.getCurrentShot()
 
+            # get the list of files to write, delete them is they exists, stop everithing if the delete cannot be done
+            #            shotFileName = shot.
+
             renderedFilesDict = launchRenderWithVSEComposite(
                 context,
                 "PROJECT",
-                takeIndex=-1,
                 filePath=props.renderRootPath,
-                fileListOnly=False,
                 generateSequenceVideo=False,
                 specificShotList=[shot],
                 specificFrame=scene.frame_current,
@@ -712,9 +715,7 @@ def launchRender(context, renderMode, renderRootFilePath="", useStampInfo=True):
             renderedFilesDict = launchRenderWithVSEComposite(
                 context,
                 "PROJECT",
-                takeIndex=-1,
                 filePath=props.renderRootPath,
-                fileListOnly=False,
                 generateSequenceVideo=False,
                 specificShotList=[shot],
                 render_handles=preset.renderHandles if preset.bypass_rendering_project_settings else True,

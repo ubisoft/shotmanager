@@ -208,6 +208,8 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
     project_asset_name: StringProperty(name="Asset Name", default="")
 
     # built-in project settings
+    project_images_output_format: StringProperty(name="Images Output Format", default="PNG")
+
     project_use_stampinfo: BoolProperty(
         name="Use Stamp Info Add-on",
         description="Use UAS Stamp Info add-on - if available - to write data on rendered images.\nNote: If Stamp Info is not installed then warnings will be displayed",
@@ -252,8 +254,6 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         description="Render single frame shot as an image, not as a video",
         default=True,
     )
-
-    project_images_output_format: StringProperty(name="Images Output Format", default="PNG")
 
     # playbar
     #############
@@ -1234,6 +1234,13 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
             for j, sh in enumerate(take.shots):
                 if sh == shot:
                     return i
+        return None
+
+    def getShotParentTake(self, shot):
+        for i, take in enumerate(self.takes):
+            for j, sh in enumerate(take.shots):
+                if sh == shot:
+                    return take
         return -1
 
     def getShotIndex(self, shot):
@@ -1890,20 +1897,19 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
 
     ##############################
 
-    def getShotOutputFileNameFromIndex(
-        self, shotIndex=-1, takeIndex=-1, frameIndex=-1, fullPath=False, fullPathOnly=False, rootFilePath=""
-    ):
-        shot = self.getShot(shotIndex=shotIndex, takeIndex=takeIndex)
-
-        fileName = ""
-        if shot is None:
-            return fileName
-
-        fileName = self.getShotOutputFileName(
-            shot, fullPath=fullPath, fullPathOnly=fullPathOnly, rootFilePath=rootFilePath
-        )
-
-        return fileName
+    def getOutputFileFormat(self, isVideo=True):
+        outputFileFormat = ""
+        if self.use_project_settings:
+            if isVideo:
+                outputFileFormat = self.project_output_format.lower()
+            else:
+                outputFileFormat = self.project_images_output_format.lower()
+        else:
+            if isVideo:
+                outputFileFormat = "mp4"
+            else:
+                outputFileFormat = "png"
+        return outputFileFormat
 
     def getTakeOutputFilePath(self, rootFilePath="", takeIndex=-1):
         takeInd = (
@@ -1930,7 +1936,40 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
 
         return filePath
 
-    def getShotOutputFileName(self, shot, frameIndex=-1, fullPath=False, fullPathOnly=False, rootFilePath=""):
+    def getShotOutputFileNameFromIndex(
+        self,
+        shotIndex=-1,
+        takeIndex=-1,
+        rootFilePath="",
+        fullPath=False,
+        fullPathOnly=False,
+        specificFrame=None,
+        noExtension=False,
+    ):
+        shot = self.getShot(shotIndex=shotIndex, takeIndex=takeIndex)
+
+        fileName = ""
+        if shot is None:
+            return fileName
+
+        fileName = self.getShotOutputFileName(
+            shot,
+            rootFilePath=rootFilePath,
+            fullPath=fullPath,
+            fullPathOnly=fullPathOnly,
+            specificFrame=specificFrame,
+            noExtension=False,
+        )
+
+        return fileName
+
+    # replaced frameIndex by specificFrame
+    def getShotOutputFileName(
+        self, shot, rootFilePath="", fullPath=False, fullPathOnly=False, specificFrame=None, noExtension=False
+    ):
+        """
+            Return the shot path
+        """
         resultStr = ""
 
         fileName = shot.getName_PathCompliant()
@@ -1940,13 +1979,8 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
 
         # fileName + frame index + extension
         fileFullName = fileName
-        if -1 != frameIndex:
-            fileFullName += "_" + f"{(frameIndex):04d}"
-            fileFullName += ".png"
-        else:
-            # fileFullName += ".mp4"
-            # fileFullName += "_"
-            pass
+        if specificFrame is not None:
+            fileFullName += "_" + f"{(specificFrame):04d}"
 
         filePath = ""
         if fullPath or fullPathOnly:
@@ -1972,8 +2006,12 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
             resultStr = filePath
         elif fullPath:
             resultStr = filePath + fileFullName
+            if not noExtension:
+                resultStr += "." + self.getOutputFileFormat(isVideo=specificFrame is None)
         else:
             resultStr = fileFullName
+            if not noExtension:
+                resultStr += "." + self.getOutputFileFormat(isVideo=specificFrame is None)
 
         return resultStr
 

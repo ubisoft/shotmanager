@@ -468,6 +468,8 @@ class UAS_Vse_Render(PropertyGroup):
         sequenceScene.render.ffmpeg.audio_codec = "AC3"
         sequenceScene.render.filepath = outputFile
 
+        vse_scene.view_settings.view_transform = "Raw"
+
         for mediaPath in mediaFiles:
             # sequenceScene.sequence_editor
             frameToPaste = self.get_frame_end_from_content(sequenceScene)
@@ -551,6 +553,8 @@ class UAS_Vse_Render(PropertyGroup):
 
         vse_scene.render.filepath = output_filepath
         vse_scene.render.use_file_extension = False
+
+        vse_scene.view_settings.view_transform = "Filmic"  # "raw"
 
         bgClip = None
         if self.inputBGMediaPath is not None:

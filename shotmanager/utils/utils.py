@@ -131,10 +131,14 @@ def ShowMessageBox(message="", title="Message Box", icon="INFO"):
 # ShowMessageBox("This is a message", "This is a custom title", 'ERROR')
 
 
-def file_path_from_url(uri):
-    path = unquote_plus(urlparse(uri).path).replace("\\", "//")
+def file_path_from_url(url):
+    #  print("ulr 1 path: ", url)
+    # path = unquote_plus(urlparse(url).path).replace("\\", "//")
+    path = url.replace("\\", "/")  # //
+    #  print("ulr 2 path: ", path)
     if re.match(r"^/\S:.*", path):  # Remove leading /
         path = path[1:]
+    #  print("ulr 3 path: ", path)
 
     return path
 

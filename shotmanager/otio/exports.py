@@ -54,15 +54,18 @@ def exportOtio(scene, takeIndex=-1, filePath="", fileName="", addTakeNameToPath=
         name=scene.name + "_" + take_name, global_start_time=opentimelineio.opentime.from_frames(startFrame, sceneFps)
     )
 
+    # track 2
+    # for some reason video track MUST be set first otherwise the pathurl is set at the second occurence of the media in the
+    # xml file, not the first, and at import time file is not found...
+    videoTrack = opentimelineio.schema.Track()
+    videoTrack.kind = "Video"  # is the default
+    timeline.tracks.append(videoTrack)
+
     # track 1
     audioTrack = opentimelineio.schema.Track()
     audioTrack.kind = "Audio"
     timeline.tracks.append(audioTrack)
 
-    # track 2
-    videoTrack = opentimelineio.schema.Track()
-    videoTrack.kind = "Video"  # is the default
-    timeline.tracks.append(videoTrack)
     # opentimelineio.schema.videoTrack.TrackKind.Audio = "Video"
     # print(f"videoTrack.kind: {videoTrack.kind}")
     # print(f"type(videoTrack.kind): {type(videoTrack.kind)}")
@@ -88,8 +91,6 @@ def exportOtio(scene, takeIndex=-1, filePath="", fileName="", addTakeNameToPath=
 
             available_range = opentimelineio.opentime.range_from_start_end_time(start_time, end_time_exclusive)
 
-            # shotFileFullPath = shot.getOutputFileName(fullPath=True, rootFilePath=renderPath)
-
             shotFileName = shot.getOutputFileName(fullPath=False) + ".mp4"  # wkip attention can be .png!!!
 
             shotFileFullPath = f"{renderPath}"
@@ -102,7 +103,10 @@ def exportOtio(scene, takeIndex=-1, filePath="", fileName="", addTakeNameToPath=
             if not Path(shotFileFullPath).exists():
                 _logger.info(f"     *** File not found *** ")
 
-            media_reference = opentimelineio.schema.ExternalReference(
+            media_reference_video = opentimelineio.schema.ExternalReference(
+                target_url=shotFileFullPath, available_range=available_range
+            )
+            media_reference_audio = opentimelineio.schema.ExternalReference(
                 target_url=shotFileFullPath, available_range=available_range
             )
 
@@ -114,16 +118,16 @@ def exportOtio(scene, takeIndex=-1, filePath="", fileName="", addTakeNameToPath=
             source_range = opentimelineio.opentime.range_from_start_end_time(clip_start_time, clip_end_time_exclusive)
 
             newVideoClip = opentimelineio.schema.Clip(
-                name=shotFileName, source_range=source_range, media_reference=media_reference
+                name=shotFileName, source_range=source_range, media_reference=media_reference_video
             )
             newVideoClip.metadata["clip_name"] = shot.name
             newVideoClip.metadata["camera_name"] = shot["camera"].name_full
             videoClips.append(newVideoClip)
 
             newAudioClip = opentimelineio.schema.Clip(
-                name=shotFileName + "_audio", source_range=source_range, media_reference=media_reference
+                name=shotFileName + "_audi000o", source_range=source_range, media_reference=media_reference_audio
             )
-            newAudioClip.metadata["clip_name"] = shot.name
+            newAudioClip.metadata["clip_name"] = shot.name + "_auudio"
             newAudioClip.metadata["camera_name"] = shot["camera"].name_full
             audioClips.append(newAudioClip)
 
