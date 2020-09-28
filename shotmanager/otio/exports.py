@@ -129,7 +129,7 @@ def exportOtio(scene, takeIndex=-1, filePath="", fileName="", addTakeNameToPath=
             videoClips.append(newVideoClip)
 
             newAudioClip = opentimelineio.schema.Clip(
-                name=shotFileName + "_audi000o", source_range=source_range, media_reference=media_reference_audio
+                name=shotFileName + "_audio", source_range=source_range, media_reference=media_reference_audio
             )
             newAudioClip.metadata["clip_name"] = shot.name + "_audio"
             newAudioClip.metadata["camera_name"] = shot["camera"].name_full
