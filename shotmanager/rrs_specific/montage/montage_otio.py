@@ -1,16 +1,15 @@
-import logging
-
-_logger = logging.getLogger(__name__)
-
 import os
 from pathlib import Path
-from urllib.parse import unquote_plus, urlparse
-import re
 
+from shotmanager.config import config
 from shotmanager.utils import utils
 from .montage_interface import MontageInterface, SequenceInterface, ShotInterface
 from shotmanager.otio import otio_wrapper as ow
 import opentimelineio
+
+import logging
+
+_logger = logging.getLogger(__name__)
 
 
 class MontageOtio(MontageInterface):
@@ -81,10 +80,11 @@ class MontageOtio(MontageInterface):
         for track in tracks:
             for clip in track:
                 if isinstance(clip, opentimelineio.schema.Clip):
-                    print(f"** clip: {clip}")
-                    print(f"** clip.media_reference: {clip.media_reference}")
                     media_path = Path(utils.file_path_from_url(clip.media_reference.target_url))
-                    print(f"** media_path: {media_path}")
+                    if config.uasDebug:
+                        print(f"\n** clip: {clip.name}")
+                        print(f"** clip.media_reference: {clip.media_reference}")
+                        print(f"** media_path: {media_path}")
                     # wkip ici mettre une exception pour attraper les media manquants (._otio.MissingReference)
 
                     # get media name

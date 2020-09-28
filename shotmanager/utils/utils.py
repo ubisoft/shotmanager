@@ -132,9 +132,12 @@ def ShowMessageBox(message="", title="Message Box", icon="INFO"):
 
 
 def file_path_from_url(url):
-    #  print("ulr 1 path: ", url)
-    # path = unquote_plus(urlparse(url).path).replace("\\", "//")
-    path = url.replace("\\", "/")  # //
+    path = ""
+    if url.startswith("file"):
+        path = unquote_plus(urlparse(url).path).replace("\\", "//")
+    else:
+        path = url.replace("\\", "/")  # //
+
     #  print("ulr 2 path: ", path)
     if re.match(r"^/\S:.*", path):  # Remove leading /
         path = path[1:]

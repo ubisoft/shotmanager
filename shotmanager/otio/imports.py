@@ -400,6 +400,7 @@ def createShotsFromOtioTimelineClass(
     from random import uniform
     from math import radians
 
+    # wkip temp - to remove! Shots are added to another take!
     props = scene.UAS_shot_manager_props
     if len(props.getCurrentTake().getShotList()) != 0:
         bpy.ops.uas_shot_manager.take_add(name=Path(otioTimelineClass.otioFile).stem)
