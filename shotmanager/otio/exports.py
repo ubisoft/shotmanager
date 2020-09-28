@@ -3,6 +3,7 @@ from pathlib import Path
 import bpy
 import opentimelineio
 
+
 import logging
 
 _logger = logging.getLogger(__name__)
@@ -91,13 +92,16 @@ def exportOtio(scene, takeIndex=-1, filePath="", fileName="", addTakeNameToPath=
 
             available_range = opentimelineio.opentime.range_from_start_end_time(start_time, end_time_exclusive)
 
-            shotFileName = shot.getOutputFileName(fullPath=False) + ".mp4"  # wkip attention can be .png!!!
+            # shotFileName = shot.getOutputFileName(fullPath=False)  # + ".mp4"  # wkip attention can be .png!!!
 
-            shotFileFullPath = f"{renderPath}"
-            _logger.info(f" renderPath: {renderPath}")
-            if not (shotFileFullPath.endswith("/") or shotFileFullPath.endswith("\\")):
-                shotFileFullPath += "\\"
-            shotFileFullPath += f"{take_name}\\{shotFileName}"
+            # shotFileFullPath = f"{renderPath}"
+            # _logger.info(f" renderPath: {renderPath}")
+            # if not (shotFileFullPath.endswith("/") or shotFileFullPath.endswith("\\")):
+            #     shotFileFullPath += "\\"
+            # shotFileFullPath += f"{take_name}\\{shotFileName}"
+
+            shotFileFullPath = shot.getCompositedMediaPath(renderPath)
+            shotFileName = Path(shotFileFullPath).name
 
             _logger.info(f" Adding shot: {shotFileFullPath}")
             if not Path(shotFileFullPath).exists():
@@ -127,7 +131,7 @@ def exportOtio(scene, takeIndex=-1, filePath="", fileName="", addTakeNameToPath=
             newAudioClip = opentimelineio.schema.Clip(
                 name=shotFileName + "_audi000o", source_range=source_range, media_reference=media_reference_audio
             )
-            newAudioClip.metadata["clip_name"] = shot.name + "_auudio"
+            newAudioClip.metadata["clip_name"] = shot.name + "_audio"
             newAudioClip.metadata["camera_name"] = shot["camera"].name_full
             audioClips.append(newAudioClip)
 

@@ -15,17 +15,17 @@ import logging
 _logger = logging.getLogger(__name__)
 
 
-def getCompositedMediaPath(rootPath, shot, specificFrame=None):
-    # props = shot.parentScene.UAS_shot_manager_props
-    takeName = shot.getParentTake().getName_PathCompliant()
-    #    outputFileFormat = props.getOutputFileFormat(isVideo=specificFrame is None)
+# def getCompositedMediaPath(rootPath, shot, specificFrame=None):
+#     # props = shot.parentScene.UAS_shot_manager_props
+#     takeName = shot.getParentTake().getName_PathCompliant()
+#     #    outputFileFormat = props.getOutputFileFormat(isVideo=specificFrame is None)
 
-    compositedMediaPath = f"{rootPath}{takeName}\\{shot.getOutputFileName(fullPath=False)}"  # .{outputFileFormat}"
-    if specificFrame is not None:
-        compositedMediaPath = (
-            f"{rootPath}{takeName}\\{shot.getOutputFileName(fullPath=False, specificFrame=specificFrame)}"
-        )
-    return compositedMediaPath
+#     compositedMediaPath = f"{rootPath}{takeName}\\{shot.getOutputFileName(fullPath=False)}"  # .{outputFileFormat}"
+#     if specificFrame is not None:
+#         compositedMediaPath = (
+#             f"{rootPath}{takeName}\\{shot.getOutputFileName(fullPath=False, specificFrame=specificFrame)}"
+#         )
+#     return compositedMediaPath
 
 
 def launchRenderWithVSEComposite(
@@ -252,7 +252,7 @@ def launchRenderWithVSEComposite(
         # bpy.ops.wm.redraw_timer(type="DRAW_WIN_SWAP", iterations=2)
 
         newTempRenderPath = rootPath + takeName + "\\" + shot.getName_PathCompliant() + "\\"
-        compositedMediaPath = getCompositedMediaPath(rootPath, shot, specificFrame=specificFrame)
+        compositedMediaPath = shot.getCompositedMediaPath(rootPath, specificFrame=specificFrame)
 
         newMediaFiles.append(compositedMediaPath)
         if shot.enabled:

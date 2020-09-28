@@ -83,6 +83,20 @@ class UAS_ShotManager_Shot(ShotInterface, PropertyGroup):
             noExtension=noExtension,
         )
 
+    def getCompositedMediaPath(self, rootFilePath, specificFrame=None):
+        # props = shot.parentScene.UAS_shot_manager_props
+        takeName = self.getParentTake().getName_PathCompliant()
+        #    outputFileFormat = props.getOutputFileFormat(isVideo=specificFrame is None)
+
+        compositedMediaPath = (
+            f"{rootFilePath}{takeName}\\{self.getOutputFileName(fullPath=False)}"  # .{outputFileFormat}"
+        )
+        if specificFrame is not None:
+            compositedMediaPath = (
+                f"{rootFilePath}{takeName}\\{self.getOutputFileName(fullPath=False, specificFrame=specificFrame)}"
+            )
+        return compositedMediaPath
+
     def getName_PathCompliant(self):
         shotName = self.name.replace(" ", "_")
         return shotName
