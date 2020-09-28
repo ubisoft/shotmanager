@@ -16,11 +16,11 @@ _logger = logging.getLogger(__name__)
 
 
 def getCompositedMediaPath(rootPath, shot, specificFrame=None):
-    props = shot.parentScene.UAS_shot_manager_props
+    # props = shot.parentScene.UAS_shot_manager_props
     takeName = shot.getParentTake().getName_PathCompliant()
-    outputFileFormat = props.getOutputFileFormat(isVideo=specificFrame is None)
+    #    outputFileFormat = props.getOutputFileFormat(isVideo=specificFrame is None)
 
-    compositedMediaPath = f"{rootPath}{takeName}\\{shot.getOutputFileName(fullPath=False)}.{outputFileFormat}"
+    compositedMediaPath = f"{rootPath}{takeName}\\{shot.getOutputFileName(fullPath=False)}"  # .{outputFileFormat}"
     if specificFrame is not None:
         compositedMediaPath = (
             f"{rootPath}{takeName}\\{shot.getOutputFileName(fullPath=False, specificFrame=specificFrame)}"

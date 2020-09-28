@@ -118,15 +118,16 @@ class UAS_PT_ShotManagerRenderPanel(Panel):
 
         layout.separator(factor=1)
 
-        row = layout.row()
-        row.label(text="Last Render Results:")
-        subRow = row.row()
-        if True:
-            subRow.alert = True
-            subRow.operator("uas_shot_manager.open_last_render_results", text="Errors")
-        else:
-            subRow.operator("uas_shot_manager.open_last_render_results", text="OK")
-        row.operator("uas_shot_manager.clear_last_render_results")
+        if config.uasDebug:
+            row = layout.row()
+            row.label(text="Last Render Results:")
+            subRow = row.row()
+            if True:
+                subRow.alert = True
+                subRow.operator("uas_shot_manager.open_last_render_results", text="Errors")
+            else:
+                subRow.operator("uas_shot_manager.open_last_render_results", text="OK")
+            row.operator("uas_shot_manager.clear_last_render_results")
 
         display_bypass_options = True
 
