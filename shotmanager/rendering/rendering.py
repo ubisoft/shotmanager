@@ -460,7 +460,7 @@ def launchRenderWithVSEComposite(
     #######################
 
     if generateSequenceVideo and specificFrame is None:
-        sequenceOutputFullPath = f"{rootPath}{takeName}\\{sequenceFileName}.{getOutputFileFormat()}"
+        sequenceOutputFullPath = f"{rootPath}{takeName}\\{sequenceFileName}.{props.getOutputFileFormat()}"
         print("  sequenceOutputFullPath: ", sequenceOutputFullPath)
 
         if not fileListOnly:

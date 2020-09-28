@@ -119,34 +119,38 @@ class UAS_UL_VideoShotManager_Items(bpy.types.UIList):
         vsm_props = context.scene.UAS_vsm_props
         current_track_index = vsm_props.current_track_index
 
-        c = layout.column()
+        row = layout.row(align=True)
+
+        if vsm_props.display_color_in_tracklist:
+            row = row.row(align=True)
+            row.scale_x = 0.2
+            row.prop(item, "color", text="")
+            row.scale_x = 0.45
+
+        row = layout.row(align=True)
+        row.scale_x = 0.9
+        row.prop(item, "enabled", text=" ")
+        row.separator(factor=0.9)
+        row.scale_x = 0.8
+        row.label(text=str(item.vseTrackIndex) + ": " + item.name)
+        # row.scale_x = 0.8
+        # row.label(text=item.name)
+
+        # grid_flow.label(text="   " + str(item.vseTrackIndex))
+
         #         c.operator("uas_shot_manager.set_current_shot", icon_value=icon.icon_id, text="").index = index
         #         layout.separator(factor=0.1)
 
-        #         c = layout.column()
-        grid_flow = c.grid_flow(align=False, columns=9, even_columns=False)
-
-        if vsm_props.display_color_in_tracklist:
-            grid_flow.scale_x = 0.15
-            grid_flow.prop(item, "color", text="")
-            grid_flow.scale_x = 1.0
-
-        #         #  grid_flow.prop ( item, "enabled", text = item.name )
-
-        grid_flow.scale_x = 0.08
-        # grid_flow.alignment = 'LEFT'
-        grid_flow.prop(item, "enabled", text=" ")  # keep the space in the text !!!
-        #   grid_flow.separator( factor = 0.5)
-        grid_flow.scale_x = 0.6
-        # grid_flow.prop(item, "vseTrackIndex", text=" ")
-        grid_flow.label(text="   " + str(item.vseTrackIndex))
-
-        grid_flow.scale_x = 0.8
-        grid_flow.label(text=item.name)
+        row = layout.row(align=True)
+        row.scale_x = 2.0
+        grid_flow = row.grid_flow(align=True, columns=7, even_columns=False)
+        grid_flow.use_property_split = False
+        button_x_factor = 0.6
 
         grid_flow.prop(item, "trackType", text="")
 
         if not "CUSTOM" == item.trackType and not "STANDARD" == item.trackType:
+
             if item.shotManagerScene is None:
                 grid_flow.alert = True
             grid_flow.prop(item, "shotManagerScene", text="")
@@ -159,6 +163,7 @@ class UAS_UL_VideoShotManager_Items(bpy.types.UIList):
             if item.shotManagerScene is None:
                 grid_flow.alert = False
 
+        grid_flow.scale_x = 1.0
         grid_flow.operator(
             "uas_video_shot_manager.update_vse_track", text="", icon="FILE_REFRESH"
         ).trackName = item.name
@@ -223,7 +228,14 @@ class UAS_PT_VideoShotManager_TrackProperties(Panel):
             grid_flow = c.grid_flow(align=False, columns=4, even_columns=False)
             grid_flow.prop(track, "trackType")
 
-            if not "CUSTOM" == track.trackType:
+            row = box.row()
+            c = row.column()
+            grid_flow = c.grid_flow(align=False, columns=4, even_columns=False)
+            if "CUSTOM" == track.trackType:
+                pass
+            elif "STANDARD" == track.trackType:
+                pass
+            else:
                 if track.shotManagerScene is None:
                     grid_flow.alert = True
                 grid_flow.prop(track, "shotManagerScene")

@@ -1166,13 +1166,18 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
 
         # update the current take if needed
         if takeInd == currentTakeInd:
+            print(f"Ici: takeInd == currentTakeInd : {currentTakeInd}, shotInd: {shotInd}")
             currentShotInd = self.current_shot_index
             #   currentShot = shots[currentShotInd]
             selectedShotInd = self.getSelectedShotIndex()
+            previousSelectedShotInd = selectedShotInd
             #   selectedShot = shots[selectedShotInd]
 
+            print(f"selectedShotInd 1 : {selectedShotInd}")
             if shotInd != selectedShotInd:
                 self.setSelectedShotByIndex(shotInd)
+                selectedShotInd = self.getSelectedShotIndex()
+            print(f"selectedShotInd 2 : {selectedShotInd}")
 
             # case of the last shot
             if selectedShotInd == len(shots) - 1:
@@ -1197,12 +1202,13 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
                     self.setSelectedShotByIndex(selectedShotInd - 1)
 
             # restore selected item
-            if shotInd != selectedShotInd:
-                if shotInd < selectedShotInd:
-                    self.setSelectedShotByIndex(selectedShotInd - 1)
+            if shotInd != previousSelectedShotInd:
+                if shotInd < previousSelectedShotInd:
+                    self.setSelectedShotByIndex(previousSelectedShotInd - 1)
                 else:
-                    self.setSelectedShotByIndex(selectedShotInd)
+                    self.setSelectedShotByIndex(previousSelectedShotInd)
         else:
+            print(f"La: takeInd: {takeInd}, currentTakeInd: {currentTakeInd}, shot Ind: {shotInd}")
             shots.remove(shotInd)
 
     def moveShotToIndex(self, shot, newIndex, takeIndex=-1):

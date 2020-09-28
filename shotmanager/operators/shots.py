@@ -775,9 +775,16 @@ def list_target_take_shots(self, context):
 
 class UAS_ShotManager_DuplicateShotsToOtherTake(Operator):
     bl_idname = "uas_shot_manager.shot_duplicates_to_other_take"
-    bl_label = "Duplicate Enabled Shots to Another Take..."
-    bl_description = "Duplicate enabled shots to the specified take"
+    bl_label = "Duplicate / Move Enabled Shots to Another Take..."
+    bl_description = "Duplicate or move enabled shots to the specified take"
     bl_options = {"INTERNAL", "UNDO"}
+
+    mode: EnumProperty(
+        name="Mode",
+        description="Duplicate or Move shots",
+        items=(("DUPLICATE", "Duplicate", ""), ("MOVE", "Move", "")),
+        default="DUPLICATE",
+    )
 
     targetTake: EnumProperty(
         name="Target Take", description="Take in which the shots will be duplicated", items=(list_target_takes),
@@ -810,8 +817,17 @@ class UAS_ShotManager_DuplicateShotsToOtherTake(Operator):
         layout = self.layout
 
         box = layout.box()
-        row = box.row(align=True)
 
+        row = box.row(align=True)
+        grid_flow = row.grid_flow(align=True, columns=2, even_columns=False)
+        col = grid_flow.column(align=False)
+        col.scale_x = 0.6
+        col.label(text="Mode:")
+        col = grid_flow.column(align=True)
+        col.prop(self, "mode", text="")
+        col.separator()
+
+        row = box.row(align=True)
         grid_flow = row.grid_flow(align=True, columns=2, even_columns=False)
         col = grid_flow.column(align=False)
         col.scale_x = 0.6
@@ -827,10 +843,11 @@ class UAS_ShotManager_DuplicateShotsToOtherTake(Operator):
         col = grid_flow.column(align=True)
         col.prop(self, "insertAfterShot", text="")
 
-        row = box.row(align=True)
-        row.separator(factor=2.5)
-        subgrid_flow = row.grid_flow(align=True, row_major=True, columns=1, even_columns=False)
-        subgrid_flow.prop(self, "duplicateCam")
+        if "DUPLICATE" == self.mode:
+            row = box.row(align=True)
+            row.separator(factor=2.5)
+            subgrid_flow = row.grid_flow(align=True, row_major=True, columns=1, even_columns=False)
+            subgrid_flow.prop(self, "duplicateCam")
 
         layout.separator()
 
@@ -843,17 +860,23 @@ class UAS_ShotManager_DuplicateShotsToOtherTake(Operator):
 
         insertAfterShotInd = int(self.insertAfterShot) + 1
         insertAtInd = insertAfterShotInd
+        copyCam = "DUPLICATE" == self.mode and self.duplicateCam
         for shot in enabledShots:
             # print(f"insertAtInd: {insertAtInd}")
-
             newShot = props.copyShot(
                 shot, atIndex=insertAtInd, copyCamera=self.duplicateCam, targetTakeIndex=targetTakeInd
             )
             insertAtInd += 1
 
-        props.setCurrentTakeByIndex(targetTakeInd)
-        props.setCurrentShotByIndex(insertAfterShotInd)
-        props.setSelectedShotByIndex(insertAfterShotInd)
+        # delete source shots
+        if "DUPLICATE" == self.mode:
+            props.setCurrentTakeByIndex(targetTakeInd)
+            props.setCurrentShotByIndex(insertAfterShotInd)
+            props.setSelectedShotByIndex(insertAfterShotInd)
+        else:  # move
+            for i, shot in enumerate(reversed(enabledShots)):
+                print(f"shot to remove: {shot.name}, {shot.parentScene}, i:{i}")
+                props.removeShot(shot)
 
         return {"FINISHED"}
 

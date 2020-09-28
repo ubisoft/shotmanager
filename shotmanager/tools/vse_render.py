@@ -468,7 +468,7 @@ class UAS_Vse_Render(PropertyGroup):
         sequenceScene.render.ffmpeg.audio_codec = "AC3"
         sequenceScene.render.filepath = outputFile
 
-        vse_scene.view_settings.view_transform = "Raw"
+        sequenceScene.view_settings.view_transform = "Raw"
 
         for mediaPath in mediaFiles:
             # sequenceScene.sequence_editor
