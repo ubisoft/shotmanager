@@ -1903,12 +1903,15 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
     ##############################
 
     def getOutputFileFormat(self, isVideo=True):
+        _logger.debug("  /// isVideo:", isVideo)
         outputFileFormat = ""
         if self.use_project_settings:
             if isVideo:
-                outputFileFormat = self.project_output_format.lower()
+                outputFileFormat = "mp4"  # wkipwkipwkipself.project_output_format.lower()
+                _logger.debug("  /// outputFileFormat vid:", outputFileFormat)
             else:
                 outputFileFormat = self.project_images_output_format.lower()
+                _logger.debug("  /// outputFileFormat:", outputFileFormat)
         else:
             if isVideo:
                 outputFileFormat = "mp4"
@@ -2008,16 +2011,22 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
 
         # path is absolute and ends with a /
         if fullPathOnly:
+            _logger.debug(" ** fullPathOnly")
             resultStr = filePath
         elif fullPath:
+            _logger.debug(" ** fullpath")
             resultStr = filePath + fileFullName
             if not noExtension:
                 resultStr += "." + self.getOutputFileFormat(isVideo=specificFrame is None)
         else:
+            _logger.debug(" ** else")
             resultStr = fileFullName
+            _logger.debug(" ** resultStr 1: ", resultStr)
             if not noExtension:
                 resultStr += "." + self.getOutputFileFormat(isVideo=specificFrame is None)
+            _logger.debug(" ** resultStr 2: ", resultStr)
 
+        _logger.debug(" ** resultStr: ", resultStr)
         return resultStr
 
     def getSceneCameras(self):
