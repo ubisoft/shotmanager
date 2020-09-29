@@ -54,6 +54,12 @@ def exportOtio(scene, takeIndex=-1, filePath="", fileName="", addTakeNameToPath=
     timeline = opentimelineio.schema.Timeline(
         name=scene.name + "_" + take_name, global_start_time=opentimelineio.opentime.from_frames(startFrame, sceneFps)
     )
+    timeline.metadata["exported_with"] = "UAS Shot Manager V. " + props.version()[0]
+    from datetime import datetime
+
+    now = datetime.now()
+    timeline.metadata["exported_date"] = f"{now.strftime('%b-%d-%Y')}  -  {now.strftime('%H:%M:%S')}"
+    timeline.metadata["source_file"] = bpy.data.filepath
 
     # track 2
     # for some reason video track MUST be set first otherwise the pathurl is set at the second occurence of the media in the
@@ -101,6 +107,7 @@ def exportOtio(scene, takeIndex=-1, filePath="", fileName="", addTakeNameToPath=
             # shotFileFullPath += f"{take_name}\\{shotFileName}"
 
             shotFileFullPath = shot.getCompositedMediaPath(renderPath)
+            print(" Export otio - shotFileFullPath: ", shotFileFullPath)
             shotFileName = Path(shotFileFullPath).name
 
             _logger.info(f" Adding shot: {shotFileFullPath}")

@@ -141,7 +141,7 @@ def launchRenderWithVSEComposite(
 
     # it is possible to have handles but not to render them (case of still frame),
     # it is also possible not to use the handles, whitch is different on stamp info
-    useHandles = props.project_use_handles if props.use_project_settings else props.use_handles
+    useHandles = props.project_use_shot_handles if props.use_project_settings else props.use_handles
     handles = 0
     if useHandles:
         handles = props.project_shot_handle_duration if props.use_project_settings else props.handles
@@ -696,6 +696,17 @@ def launchRender(context, renderMode, rootPath, useStampInfo=True):
 
             # get the list of files to write, delete them is they exists, stop everithing if the delete cannot be done
             #            shotFileName = shot.
+
+            willBeRenderedFilesDict = launchRenderWithVSEComposite(
+                context,
+                "PROJECT",
+                filePath=props.renderRootPath,
+                generateSequenceVideo=False,
+                specificShotList=[shot],
+                specificFrame=scene.frame_current,
+                fileListOnly=True,
+            )
+            # willBeRenderedFilesDict
 
             renderedFilesDict = launchRenderWithVSEComposite(
                 context,

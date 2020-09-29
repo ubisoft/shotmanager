@@ -559,8 +559,8 @@ class UAS_OTIO_OpenFileBrowser(Operator, ImportHelper):  # from bpy_extras.io_ut
         """Open EDL file (Final Cut XML, OTIO...) to import a set of shots"""
         filename, extension = os.path.splitext(self.filepath)
         print("ex Selected file:", self.filepath)
-        print("ex File name:", filename)
-        print("ex File extension:", extension)
+        # print("ex File name:", filename)
+        # print("ex File extension:", extension)
 
         if "CREATE_SHOTS" == self.importMode:
             # bpy.ops.uasshotmanager.createshotsfromotio("INVOKE_DEFAULT", otioFile=self.filepath)

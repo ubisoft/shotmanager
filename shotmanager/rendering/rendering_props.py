@@ -94,8 +94,8 @@ class UAS_ShotManager_RenderGlobalContext(PropertyGroup):
 
         elif "MEDIUM" == self.renderQuality:
             # eevee
-            context.scene.eevee.taa_render_samples = 64
-            context.scene.eevee.taa_samples = 16
+            context.scene.eevee.taa_render_samples = 32  # 64
+            context.scene.eevee.taa_samples = 6  # 16
 
             # workbench
             # if "BLENDER_WORKBENCH" == bpy.context.scene.render.engine:
@@ -108,8 +108,8 @@ class UAS_ShotManager_RenderGlobalContext(PropertyGroup):
 
         elif "HIGH" == self.renderQuality:
             # eevee
-            context.scene.eevee.taa_render_samples = 128
-            context.scene.eevee.taa_samples = 32
+            context.scene.eevee.taa_render_samples = 64  # 128
+            context.scene.eevee.taa_samples = 12  # 32
 
             # workbench
             #            if "BLENDER_WORKBENCH" == bpy.context.scene.render.engine:

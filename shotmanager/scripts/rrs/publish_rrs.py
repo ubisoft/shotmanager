@@ -32,6 +32,7 @@ def setup_project_env(override_existing: bool, verbose: bool = True) -> None:
     verbose_set("UAS_PROJECT_RESOLUTIONFRAMED", "[1280,960]", override_existing, verbose)
     verbose_set("UAS_PROJECT_SHOTFORMAT", r"Act{:02}_Seq{:04}_Sh{:04}", override_existing, verbose)
     verbose_set("UAS_PROJECT_OUTPUTFORMAT", "mp4", override_existing, verbose)
+    verbose_set("UAS_PROJECT_USESHOTHANDLES", "True", override_existing, verbose)
     verbose_set("UAS_PROJECT_SHOTHANDLEDURATION", "10", override_existing, verbose)
     verbose_set("UAS_PROJECT_COLORSPACE", "", override_existing, verbose)
     verbose_set("UAS_PROJECT_ASSETNAME", "", override_existing, verbose)
@@ -45,6 +46,7 @@ def print_project_env():
     settingsList.append(["UAS_PROJECT_RESOLUTION", os.environ["UAS_PROJECT_RESOLUTION"]])
     settingsList.append(["UAS_PROJECT_RESOLUTIONFRAMED", os.environ["UAS_PROJECT_RESOLUTIONFRAMED"]])
     settingsList.append(["UAS_PROJECT_SHOTFORMAT", os.environ["UAS_PROJECT_SHOTFORMAT"]])
+    settingsList.append(["UAS_PROJECT_USESHOTHANDLES", os.environ["UAS_PROJECT_USESHOTHANDLES"]])
     settingsList.append(["UAS_PROJECT_SHOTHANDLEDURATION", os.environ["UAS_PROJECT_SHOTHANDLEDURATION"]])
     settingsList.append(["UAS_PROJECT_OUTPUTFORMAT", os.environ["UAS_PROJECT_OUTPUTFORMAT"]])
     settingsList.append(["UAS_PROJECT_COLORSPACE", os.environ["UAS_PROJECT_COLORSPACE"]])
@@ -67,6 +69,7 @@ def initializeForRRS(override_existing: bool, verbose=False):
         project_resolution=json.loads(os.environ["UAS_PROJECT_RESOLUTION"]),
         project_resolution_framed=json.loads(os.environ["UAS_PROJECT_RESOLUTIONFRAMED"]),
         project_shot_format=os.environ["UAS_PROJECT_SHOTFORMAT"],
+        project_use_shot_handles=bool(os.environ["UAS_PROJECT_USESHOTHANDLES"]),
         project_shot_handle_duration=int(os.environ["UAS_PROJECT_SHOTHANDLEDURATION"]),
         project_output_format=os.environ["UAS_PROJECT_OUTPUTFORMAT"],
         project_color_space=os.environ["UAS_PROJECT_COLORSPACE"],

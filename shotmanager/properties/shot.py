@@ -88,6 +88,8 @@ class UAS_ShotManager_Shot(ShotInterface, PropertyGroup):
         takeName = self.getParentTake().getName_PathCompliant()
         #    outputFileFormat = props.getOutputFileFormat(isVideo=specificFrame is None)
 
+        if not (rootFilePath.endswith("/") or rootFilePath.endswith("\\")):
+            rootFilePath += "\\"
         compositedMediaPath = (
             f"{rootFilePath}{takeName}\\{self.getOutputFileName(fullPath=False)}"  # .{outputFileFormat}"
         )
@@ -95,6 +97,9 @@ class UAS_ShotManager_Shot(ShotInterface, PropertyGroup):
             compositedMediaPath = (
                 f"{rootFilePath}{takeName}\\{self.getOutputFileName(fullPath=False, specificFrame=specificFrame)}"
             )
+
+        compositedMediaPath.replace("\\", "/")
+
         return compositedMediaPath
 
     def getName_PathCompliant(self):

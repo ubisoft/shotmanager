@@ -195,6 +195,11 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
     project_resolution_framed_y: IntProperty(name="Res. Framed Y", min=0, default=720)
     project_shot_format: StringProperty(name="Shot Format", default=r"Act{:02}_Seq{:04}_Sh{:04}")
 
+    project_use_shot_handles: BoolProperty(
+        name="Use Handles",
+        description="Use or not shot handles for the project.\nWhen not used, not reference to the handles will appear in Shot Manager user interface",
+        default=True,
+    )
     project_shot_handle_duration: IntProperty(
         name="Project Handles Duration",
         description="Duration of the handles used by the project, in number of frames",
@@ -214,12 +219,6 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         name="Use Stamp Info Add-on",
         description="Use UAS Stamp Info add-on - if available - to write data on rendered images.\nNote: If Stamp Info is not installed then warnings will be displayed",
         default=False,
-    )
-
-    project_use_handles: BoolProperty(
-        name="Use Handles",
-        description="Use or not shot handles for the project.\nWhen not used, not reference to the handles will appear in Shot Manager user interface",
-        default=True,
     )
 
     # built-in settings

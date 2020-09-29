@@ -1,7 +1,3 @@
-import logging
-
-_logger = logging.getLogger(__name__)
-
 import os
 from pathlib import Path
 from urllib.parse import unquote_plus, urlparse
@@ -10,12 +6,13 @@ import re
 import bpy
 import opentimelineio
 
-
 from ..utils import utils
 
 from . import otio_wrapper as ow
 
-from shotmanager.rrs_specific.montage.montage_otio import MontageOtio
+import logging
+
+_logger = logging.getLogger(__name__)
 
 
 def importTrack(track, trackInd, track_type, timeRange=None, offsetFrameNumber=0, alternative_media_folder=""):
@@ -34,7 +31,7 @@ def importTrack(track, trackInd, track_type, timeRange=None, offsetFrameNumber=0
         clipName = clip.name
         media_path = Path(ow.get_clip_media_path(clip))
         clipInfo = f"\n-----------------------------"
-        clipInfo += f"- Clip name: {clipName}, Clip ind: {i}, media: {media_path}\n"
+        clipInfo += f"\n  - Clip name: {clipName}, Clip ind: {i}, media: {media_path}\n"
 
         #   print(f"       Import Otio media_path: {media_path}")
 
@@ -57,13 +54,16 @@ def importTrack(track, trackInd, track_type, timeRange=None, offsetFrameNumber=0
             _logger.debug(f"media_path: {media_path}")
             print(f"       Import at frame: offsetFrameNumber: {offsetFrameNumber}")
             if not media_path.exists():
+                print(f"    *** Media not found: {media_path}")
                 # Lets find it inside next to the xml
                 # media_path = Path(otioFile).parent.joinpath(media_path.name)
                 media_path = Path(alternative_media_folder).joinpath(media_path.name)
                 _logger.debug(f'** media not found, so using alternative_media_folder: "{alternative_media_folder}"')
                 _logger.debug(f"   and new media_path: {media_path}")
 
-            if media_path.exists():
+            if not media_path.exists():
+                print(f"    *** Media not found: {media_path}")
+            else:
                 media_path = str(media_path)
 
                 # start = ow.get_clip_frame_final_start(clip) + offsetFrameNumber
@@ -110,7 +110,7 @@ def importTrack(track, trackInd, track_type, timeRange=None, offsetFrameNumber=0
                     f"Duration clip values: clip frameDuration: {frameDuration}, frameFinalDuration:{frameFinalDuration}"
                 )
 
-                bpy.context.window_manager.UAS_vse_render.createNewClip(
+                newClipInVSE = bpy.context.window_manager.UAS_vse_render.createNewClip(
                     bpy.context.scene,
                     media_path,
                     trackInd,
@@ -120,6 +120,42 @@ def importTrack(track, trackInd, track_type, timeRange=None, offsetFrameNumber=0
                     importVideo=track_type == "VIDEO",
                     importAudio=track_type == "AUDIO",
                 )
+
+                _logger.debug(f"newClipInVSE: {newClipInVSE.name}")
+
+                frameStart = newClipInVSE.frame_start
+                frameEnd = -1  # newClipInVSE.frame_end
+                frameFinalStart = newClipInVSE.frame_final_start
+                frameFinalEnd = newClipInVSE.frame_final_end
+                frameOffsetStart = newClipInVSE.frame_offset_start
+                frameOffsetEnd = newClipInVSE.frame_offset_end
+                frameDuration = newClipInVSE.frame_duration
+                frameFinalDuration = newClipInVSE.frame_final_duration
+
+                frameStart += offsetFrameNumber
+                frameEnd += offsetFrameNumber
+                frameFinalStart += offsetFrameNumber
+                frameFinalEnd += offsetFrameNumber
+
+                _logger.debug(
+                    f"Abs clip values: clip frameStart: {frameStart}, frameFinalStart:{frameFinalStart}, frameFinalEnd:{frameFinalEnd}, frameEnd: {frameEnd}"
+                )
+                _logger.debug(
+                    f"Rel clip values: clip frameOffsetStart: {frameOffsetStart}, frameOffsetEnd:{frameOffsetEnd}"
+                )
+                _logger.debug(
+                    f"Duration clip values: clip frameDuration: {frameDuration}, frameFinalDuration:{frameFinalDuration}"
+                )
+
+                # fix to prevent the fact that the sound is sometimes longer than expected by 1 frame
+                if newClipInVSE.frame_final_duration > ow.get_clip_frame_final_duration(clip, fps):
+                    print(
+                        f"newClipInVSE.frame_final_duration: {newClipInVSE.frame_final_duration}, ow.get_clip_frame_final_duration(clip, fps): {ow.get_clip_frame_final_duration(clip, fps)}"
+                    )
+                    # newClipInVSE.frame_offset_end = -1 * (
+                    #     newClipInVSE.frame_final_duration - ow.get_clip_frame_final_duration(clip, fps)
+                    # )
+                    newClipInVSE.frame_final_duration = ow.get_clip_frame_final_duration(clip, fps)
 
                 # bpy.context.window_manager.UAS_vse_render.createNewClip(
                 #     bpy.context.scene,
