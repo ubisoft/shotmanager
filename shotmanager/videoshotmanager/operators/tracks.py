@@ -431,11 +431,7 @@ class UAS_VideoShotManager_UpdateTracksList(Operator):
     bl_options = {"INTERNAL", "UNDO"}
 
     def invoke(self, context, event):
-        vsm_props = context.scene.UAS_vsm_props
-        numChannels = vsm_props.getNumUsedChannels(context.scene)
-
-        if vsm_props.numTracks < numChannels:
-            vsm_props.numTracks = numChannels
+        context.scene.UAS_vsm_props.updateTracksList(context.scene)
         return {"FINISHED"}
 
 

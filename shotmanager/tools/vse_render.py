@@ -443,6 +443,32 @@ class UAS_Vse_Render(PropertyGroup):
 
         return frame_end
 
+    def printClipInfo(self, clip, printTimeInfo=False):
+        infoStr = "\n\n-----------------------------"
+        # infoStr += (
+        #     f"\nNote: All the end values are EXCLUSIVE (= not the last used frame of the range but the one after)"
+        # )
+        infoStr += f"Clip: {clip.name}"
+
+        if printTimeInfo:
+            frameStart = newClipInVSE.frame_start
+            frameEnd = -1  # newClipInVSE.frame_end
+            frameFinalStart = newClipInVSE.frame_final_start
+            frameFinalEnd = newClipInVSE.frame_final_end
+            frameOffsetStart = newClipInVSE.frame_offset_start
+            frameOffsetEnd = newClipInVSE.frame_offset_end
+            frameDuration = newClipInVSE.frame_duration
+            frameFinalDuration = newClipInVSE.frame_final_duration
+
+            infoStr += f"Abs clip values: frame_start: {frameStart}, frame_final_start:{frameFinalStart}, frame_final_end:{frameFinalEnd}, frame_end: {frameEnd}"
+            infoStr += f"Rel clip values: frame_offset_start: {frameOffsetStart}, frame_offset_end:{frameOffsetEnd}"
+            infoStr += (
+                f"Duration clip values: frame_duration: {frameDuration}, frame_final_duration:{frameFinalDuration}"
+            )
+
+        #        infoStr += f"\n    Start: {self.get_frame_start()}, End (incl.):{self.get_frame_end() - 1}, Duration: {self.get_frame_duration()}, fps: {self.get_fps()}, Sequences: {self.get_num_sequences()}"
+        print(infoStr)
+
     def buildSequenceVideo(self, mediaFiles, outputFile, handles, fps):
         # props = bpy.context.scene.UAS_shot_manager_props
         # scene = .sequence_editor

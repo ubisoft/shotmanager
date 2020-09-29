@@ -350,15 +350,16 @@ class UAS_PT_VideoShotManagerSelectedStrip(Panel):
         if bpy.context.selected_sequences is not None and 1 == len(bpy.context.selected_sequences):
             row.label(text=str(type(bpy.context.selected_sequences[0]).__name__))
 
-        box = layout.box()
-        box.label(text="Tools:")
-        row = box.row()
-        #  row.operator("uas_shot_manager.selected_to_active")
+        if config.uasDebug:
+            box = layout.box()
+            box.label(text="Tools:")
+            row = box.row()
+            #  row.operator("uas_shot_manager.selected_to_active")
 
-        box = layout.box()
+            box = layout.box()
 
-        row = box.row()
-        row.separator(factor=0.1)
+            row = box.row()
+            row.separator(factor=0.1)
 
 
 _classes = (

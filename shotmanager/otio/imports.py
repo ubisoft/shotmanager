@@ -110,7 +110,8 @@ def importTrack(track, trackInd, track_type, timeRange=None, offsetFrameNumber=0
                     f"Duration clip values: clip frameDuration: {frameDuration}, frameFinalDuration:{frameFinalDuration}"
                 )
 
-                newClipInVSE = bpy.context.window_manager.UAS_vse_render.createNewClip(
+                vse_render = bpy.context.window_manager.UAS_vse_render
+                newClipInVSE = vse_render.createNewClip(
                     bpy.context.scene,
                     media_path,
                     trackInd,
@@ -121,6 +122,7 @@ def importTrack(track, trackInd, track_type, timeRange=None, offsetFrameNumber=0
                     importAudio=track_type == "AUDIO",
                 )
 
+                vse_render.printClipInfo(newClipInVSE)
                 _logger.debug(f"newClipInVSE: {newClipInVSE.name}")
 
                 frameStart = newClipInVSE.frame_start

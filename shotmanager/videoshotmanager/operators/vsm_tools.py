@@ -175,6 +175,8 @@ class UAS_VideoShotManager_OT_Import_Edit_From_OTIO(Operator):
             track_type=trackType,
         )
 
+        context.scene.UAS_vsm_props.updateTracksList(context.scene)
+
         return {"FINISHED"}
 
 
