@@ -2140,6 +2140,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         project_resolution=None,
         project_resolution_framed=None,
         project_shot_format=None,
+        project_use_shot_handles=None,
         project_shot_handle_duration=-1,
         project_output_format=None,
         project_color_space=None,
@@ -2166,8 +2167,12 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
             self.project_resolution_framed_y = project_resolution_framed[1]
         if project_shot_format is not None:
             self.project_shot_format = project_shot_format
+
+        if project_use_shot_handles is not None:
+            self.project_use_shot_handles = project_use_shot_handles
         if -1 != project_shot_handle_duration:
             self.project_shot_handle_duration = project_shot_handle_duration
+
         if project_output_format is not None:
             self.project_output_format = project_output_format
         if project_color_space is not None:
@@ -2191,6 +2196,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
             ]
         )
         settingsList.append(["Shot Name Format", str(self.project_shot_format)])
+        settingsList.append(["Use Shot Handles", str(self.project_use_shot_handles)])
         settingsList.append(["Shot Handle Duration", str(self.project_shot_handle_duration)])
         settingsList.append(["Project Output Format", str(self.project_output_format)])
         settingsList.append(["Project Color Space", str(self.project_color_space)])
@@ -2211,6 +2217,8 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
             parentScn.render.resolution_y = self.project_resolution_y
             parentScn.render.resolution_percentage = 100.0
 
+            # wkip both should not be there
+            #self.use_handles = self.project_use_shot_handles
             self.handles = self.project_shot_handle_duration
 
             s = self.project_shot_format.split("_")[2]
