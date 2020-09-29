@@ -155,6 +155,12 @@ class UAS_ShotManager_OT_Create_Shots_From_OTIO_RRS(Operator):
         name="Handles Duration", description="", soft_min=0, min=0, default=10,
     )
 
+    importVideoInVSE: BoolProperty(
+        name="Import video In VSE",
+        description="Import video clips directly into the VSE of the current scene",
+        default=True,
+    )
+
     importAudioInVSE: BoolProperty(
         name="Import sound In VSE",
         description="Import sound clips directly into the VSE of the current scene",
@@ -288,12 +294,14 @@ class UAS_ShotManager_OT_Create_Shots_From_OTIO_RRS(Operator):
             subrow.enabled = self.useMediaAsCameraBG and self.mediaHaveHandles
             subrow.prop(self, "mediaHandlesDuration")
 
-        layout.label(text="Sound:")
+        layout.label(text="Scene VSE:")
         row = layout.row(align=True)
         box = row.box()
         row = box.row()
         # if 0 != self.mediaHandlesDuration and
         #     row.enabled = False
+        row.prop(self, "importVideoInVSE")
+        row = box.row()
         row.prop(self, "importAudioInVSE")
         row = box.row()
         row.enabled = self.importAudioInVSE
@@ -351,7 +359,8 @@ class UAS_ShotManager_OT_Create_Shots_From_OTIO_RRS(Operator):
             useMediaAsCameraBG=self.useMediaAsCameraBG,
             mediaHaveHandles=self.mediaHaveHandles,
             mediaHandlesDuration=self.mediaHandlesDuration,
-            importSoundInVSE=self.importAudioInVSE,
+            importVideoInVSE=self.importVideoInVSE,
+            importAudioInVSE=self.importAudioInVSE,
             videoTracksList=videoTracksToImport,
             audioTracksList=audioTracksToImport,
         )

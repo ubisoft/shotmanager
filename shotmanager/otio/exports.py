@@ -65,11 +65,13 @@ def exportOtio(scene, takeIndex=-1, filePath="", fileName="", addTakeNameToPath=
     # for some reason video track MUST be set first otherwise the pathurl is set at the second occurence of the media in the
     # xml file, not the first, and at import time file is not found...
     videoTrack = opentimelineio.schema.Track()
+    videoTrack.name = "Video Track"
     videoTrack.kind = "Video"  # is the default
     timeline.tracks.append(videoTrack)
 
     # track 1
     audioTrack = opentimelineio.schema.Track()
+    audioTrack.name = "Audio Track"
     audioTrack.kind = "Audio"
     timeline.tracks.append(audioTrack)
 

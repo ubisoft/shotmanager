@@ -188,7 +188,7 @@ def importToVSE(
     """
         track_type can be "ALL", "VIDEO" or "AUDIO"
     """
-    print("\nimportToVSE: ")
+    # print(f"\nimportToVSE: track_type: {track_type}")
 
     # alternative_media_folder = Path(otioFile).parent
 
@@ -199,7 +199,6 @@ def importToVSE(
     if "ALL" == track_type or "VIDEO" == track_type:
         for trackInd, editTrack in enumerate(timeline.video_tracks()):
             if videoTracksList is None or (trackInd + 1) in videoTracksList:
-                print(f"\nChannel Name: {editTrack.name}, {trackInd + 1}, video")
                 importTrack(
                     editTrack,
                     trackInd + 1,
@@ -213,7 +212,6 @@ def importToVSE(
     if "ALL" == track_type or "AUDIO" == track_type:
         for trackInd, editTrack in enumerate(timeline.audio_tracks()):
             if audioTracksList is None or (trackInd + 1) in audioTracksList:
-                print(f"\nChannel Name: {editTrack.name}, {trackInd + 1}, audio")
                 importTrack(
                     editTrack,
                     trackInd + 1,
@@ -305,7 +303,7 @@ def createShotsFromOtio(
     useMediaAsCameraBG=False,
     mediaHaveHandles=False,
     mediaHandlesDuration=0,
-    importSoundInVSE=True,
+    importAudioInVSE=True,
 ):
     # filePath="", fileName=""):
 
@@ -384,7 +382,7 @@ def createShotsFromOtio(
                     opentimelineio.opentime.to_frames(clip.range_in_parent().end_time_inclusive()) + importAtFrame
                 )
 
-            if importSoundInVSE:
+            if importAudioInVSE:
                 # creation VSE si existe pas
                 vse = utils.getSceneVSE(scene.name)
                 # bpy.context.space_data.show_seconds = False
@@ -410,7 +408,8 @@ def createShotsFromOtioTimelineClass(
     useMediaAsCameraBG=False,
     mediaHaveHandles=False,
     mediaHandlesDuration=0,
-    importSoundInVSE=True,
+    importVideoInVSE=False,
+    importAudioInVSE=True,
     videoTracksList=None,
     audioTracksList=None,
 ):
@@ -510,7 +509,7 @@ def createShotsFromOtioTimelineClass(
                     + offsetFrameNumber
                 )
 
-            if importSoundInVSE:
+            if importVideoInVSE or importAudioInVSE:
                 # store current workspace cause it may not be the Layout one
                 currentWorkspace = bpy.context.window.workspace
 
@@ -519,12 +518,19 @@ def createShotsFromOtioTimelineClass(
                 bpy.context.window.workspace = bpy.data.workspaces["Video Editing"]
                 # bpy.context.space_data.show_seconds = False
 
+                trackType = "ALL"
+                if importVideoInVSE and not importAudioInVSE:
+                    trackType = "VIDEO"
+                elif not importVideoInVSE and importAudioInVSE:
+                    trackType = "AUDIO"
+
                 importToVSE(
                     otioTimelineClass.timeline,
                     vse,
                     timeRange=timeRange,
                     offsetFrameNumber=offsetFrameNumber,
-                    track_type="AUDIO",
+                    track_type=trackType,
+                    videoTracksList=videoTracksList,
                     audioTracksList=audioTracksList,
                     alternative_media_folder=Path(otioTimelineClass.otioFile).parent,
                 )

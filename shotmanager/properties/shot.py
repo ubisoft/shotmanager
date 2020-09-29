@@ -98,7 +98,7 @@ class UAS_ShotManager_Shot(ShotInterface, PropertyGroup):
                 f"{rootFilePath}{takeName}\\{self.getOutputFileName(fullPath=False, specificFrame=specificFrame)}"
             )
 
-        compositedMediaPath.replace("\\", "/")
+        # compositedMediaPath.replace("\\", "/")
 
         return compositedMediaPath
 

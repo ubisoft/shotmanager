@@ -1903,15 +1903,16 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
     ##############################
 
     def getOutputFileFormat(self, isVideo=True):
-        _logger.debug("  /// isVideo:", isVideo)
+        _logger.debug(f"  /// isVideo: {isVideo}")
         outputFileFormat = ""
         if self.use_project_settings:
             if isVideo:
-                outputFileFormat = "mp4"  # wkipwkipwkipself.project_output_format.lower()
-                _logger.debug("  /// outputFileFormat vid:", outputFileFormat)
+                # outputFileFormat = "mp4"  # wkipwkipwkipself.project_output_format.lower()
+                outputFileFormat = self.project_output_format.lower()
+                _logger.debug(f"  /// outputFileFormat vid: {outputFileFormat}")
             else:
                 outputFileFormat = self.project_images_output_format.lower()
-                _logger.debug("  /// outputFileFormat:", outputFileFormat)
+            #    _logger.debug(f"  /// outputFileFormat: {outputFileFormat}")
         else:
             if isVideo:
                 outputFileFormat = "mp4"
@@ -1980,6 +1981,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         """
         resultStr = ""
 
+        # file
         fileName = shot.getName_PathCompliant()
         shotPrefix = self.renderShotPrefix()
         if "" != shotPrefix:
@@ -2021,12 +2023,71 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         else:
             _logger.debug(" ** else")
             resultStr = fileFullName
-            _logger.debug(" ** resultStr 1: ", resultStr)
+            _logger.debug(f" ** resultStr 1:  {resultStr}")
             if not noExtension:
                 resultStr += "." + self.getOutputFileFormat(isVideo=specificFrame is None)
-            _logger.debug(" ** resultStr 2: ", resultStr)
+            _logger.debug(f" ** resultStr 2:  {resultStr}")
 
-        _logger.debug(" ** resultStr: ", resultStr)
+        _logger.debug(f" ** resultStr: {resultStr}")
+        return resultStr
+
+    # replaced frameIndex by specificFrame
+    def getShotOutputFileName_old(
+        self, shot, rootFilePath="", fullPath=False, fullPathOnly=False, specificFrame=None, noExtension=False
+    ):
+        """
+            Return the shot path
+        """
+        resultStr = ""
+
+        # file
+        fileName = shot.getName_PathCompliant()
+        shotPrefix = self.renderShotPrefix()
+        if "" != shotPrefix:
+            fileName = shotPrefix + "_" + fileName
+
+        # fileName + frame index + extension
+        fileFullName = fileName
+        if specificFrame is not None:
+            fileFullName += "_" + f"{(specificFrame):04d}"
+
+        filePath = ""
+        if fullPath or fullPathOnly:
+
+            if "" == rootFilePath:
+                #  head, tail = os.path.split(bpy.path.abspath(bpy.data.filepath))
+                # wkip we assume renderRootPath is valid...
+                head, tail = os.path.split(bpy.path.abspath(self.renderRootPath))
+                filePath = head + "\\"
+            else:
+                # wkip tester le chemin
+                filePath = rootFilePath
+                if not filePath.endswith("\\"):
+                    filePath += "\\"
+
+            filePath += f"{self.getTakeName_PathCompliant(takeIndex = shot.getParentTakeIndex())}" + "\\"
+            filePath += f"{shot.getName_PathCompliant()}" + "\\"
+
+        #   filePath += f"//{fileName}"
+
+        # path is absolute and ends with a /
+        if fullPathOnly:
+            _logger.debug(" ** fullPathOnly")
+            resultStr = filePath
+        elif fullPath:
+            _logger.debug(" ** fullpath")
+            resultStr = filePath + fileFullName
+            if not noExtension:
+                resultStr += "." + self.getOutputFileFormat(isVideo=specificFrame is None)
+        else:
+            _logger.debug(" ** else")
+            resultStr = fileFullName
+            _logger.debug(f" ** resultStr 1:  {resultStr}")
+            if not noExtension:
+                resultStr += "." + self.getOutputFileFormat(isVideo=specificFrame is None)
+            _logger.debug(f" ** resultStr 2:  {resultStr}")
+
+        _logger.debug(f" ** resultStr: {resultStr}")
         return resultStr
 
     def getSceneCameras(self):
@@ -2218,8 +2279,8 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
             parentScn.render.resolution_percentage = 100.0
 
             # wkip both should not be there
-            #self.use_handles = self.project_use_shot_handles
-            self.handles = self.project_shot_handle_duration
+            # self.use_handles = self.project_use_shot_handles
+            # self.handles = self.project_shot_handle_duration
 
             s = self.project_shot_format.split("_")[2]
             s = s.format(0)
@@ -2236,6 +2297,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
 
         if self.use_project_settings:
             # wkip to improve with project_shot_format!!!
+            # scene name is used but it may be weak
             shotPrefix = self.getParentScene().name
         else:
             shotPrefix = self.render_shot_prefix
