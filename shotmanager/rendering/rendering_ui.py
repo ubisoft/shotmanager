@@ -206,7 +206,8 @@ class UAS_PT_ShotManagerRenderPanel(Panel):
                 row.prop(props.renderSettingsAll, "renderOtioFile")
 
             row = box.row()
-            filePath = props.getTakeOutputFilePath()
+            # filePath = props.getTakeOutputFilePath()
+            filePath = props.getCurrentShot().getOutputMediaPath(provideName=False, provideExtension=False)
             row.label(text="Rendering Folder: " + filePath)
             row.operator("uas_shot_manager.open_explorer", text="", icon_value=iconExplorer.icon_id).path = filePath
 

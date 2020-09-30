@@ -286,7 +286,8 @@ def register():
         formatter = None
 
         if config.uasDebug_ignoreLoggerFormatting:
-            formatter = Formatter("{message:<140}", style="{")
+            ch = "~"  # "\u02EB"
+            formatter = Formatter(ch + " {message:<140}", style="{")
         else:
             formatter = Formatter("{asctime} {levelname[0]} {name:<36}  - {message:<80}", style="{")
         handler = logging.StreamHandler()

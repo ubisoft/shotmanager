@@ -34,6 +34,7 @@ def launchRenderWithVSEComposite(
     takeIndex=-1,
     filePath="",
     useStampInfo=True,
+    stampInfoCustomSettingsDict=None,
     rerenderExistingShotVideos=True,
     fileListOnly=False,
     generateSequenceVideo=True,
@@ -381,6 +382,7 @@ def launchRenderWithVSEComposite(
                     handles,
                     render_handles=renderHandles,
                     specificFrame=specificFrame,
+                    stampInfoCustomSettingsDict=stampInfoCustomSettingsDict,
                     verbose=False,
                 )
 
@@ -506,6 +508,7 @@ def renderStampedInfoForShot(
     handles,
     render_handles=True,
     specificFrame=None,
+    stampInfoCustomSettingsDict=None,
     verbose=False,
 ):
     _logger.debug("\n - * - *renderStampedInfoForShot *** ")

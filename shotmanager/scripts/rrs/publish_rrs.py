@@ -87,6 +87,7 @@ def publishRRS(
     fileListOnly=False,
     rerenderExistingShotVideos=True,
     renderAlsoDisabled=True,
+    settingsDict=None,
 ):
     """ Return a dictionary with the rendered and the failed file paths
         The dictionary have the following entries:
@@ -159,6 +160,12 @@ def publishRRS(
     # batch render to generate the files
     ################
 
+    stampInfoCustomSettingsDict = None
+    if settingsDict is not None:
+        stampInfoCustomSettingsDict = dict()
+        stampInfoCustomSettingsDict["render_file_path"] = settingsDict["publish_rendering_file"]
+        stampInfoCustomSettingsDict["asset_tracking_step"] = settingsDict["publish_step"]
+
     # shot videos are rendered in the directory of the take, not anymore in a directory with the shot name
     renderedFilesDict = rendering.launchRenderWithVSEComposite(
         bpy.context,
@@ -169,6 +176,7 @@ def publishRRS(
         rerenderExistingShotVideos=rerenderExistingShotVideos,
         renderAlsoDisabled=renderAlsoDisabled,
         area=bpy.context.area,
+        stampInfoCustomSettingsDict=stampInfoCustomSettingsDict,
     )
 
     ################

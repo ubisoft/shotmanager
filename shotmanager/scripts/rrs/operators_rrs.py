@@ -42,6 +42,9 @@ class UAS_LaunchRRSRender(Operator):
         print(" UAS_LaunchRRSRender")
 
         props = context.scene.UAS_shot_manager_props
+        settingsDict = dict()
+        settingsDict["publish_rendering_file"] = "C:\\my rendering file.blend"
+        settingsDict["publish_step"] = "Cleaning"
 
         if not props.sceneIsReady():
             return {"CANCELLED"}
@@ -56,6 +59,7 @@ class UAS_LaunchRRSRender(Operator):
                 fileListOnly=props.rrs_fileListOnly,
                 rerenderExistingShotVideos=props.rrs_rerenderExistingShotVideos,
                 renderAlsoDisabled=props.rrs_renderAlsoDisabled,
+                settingsDict=settingsDict,
             )
         else:
             publish_rrs.publishRRS(
@@ -66,6 +70,7 @@ class UAS_LaunchRRSRender(Operator):
                 fileListOnly=props.rrs_fileListOnly,
                 rerenderExistingShotVideos=props.rrs_rerenderExistingShotVideos,
                 renderAlsoDisabled=props.rrs_renderAlsoDisabled,
+                settingsDict=settingsDict,
             )
 
         print("End of Publish")

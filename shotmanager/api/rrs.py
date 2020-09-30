@@ -13,8 +13,13 @@ def publishRRS(
     fileListOnly=False,
     rerender_existing_shot_videos=True,
     render_also_disabled=True,
+    settings_dict=None,
 ):
-    """ Return a dictionary with the rendered and the failed file paths
+    """
+        Arguments:
+        settings_dict: a dictionary with various custom settings
+
+        Return a dictionary with the rendered and the failed file paths
         The dictionary have the following entries:
             - rendered_files_in_cache: rendered files when cache is used
             - failed_files_in_cache: failed files when cache is used
@@ -32,4 +37,5 @@ def publishRRS(
         fileListOnly=fileListOnly,
         rerenderExistingShotVideos=rerender_existing_shot_videos,
         renderAlsoDisabled=render_also_disabled,
+        settingsDict=settings_dict,
     )
