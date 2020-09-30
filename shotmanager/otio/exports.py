@@ -108,7 +108,8 @@ def exportOtio(scene, takeIndex=-1, filePath="", fileName="", addTakeNameToPath=
             #     shotFileFullPath += "\\"
             # shotFileFullPath += f"{take_name}\\{shotFileName}"
 
-            shotFileFullPath = shot.getCompositedMediaPath(renderPath)
+            # shotFileFullPath = shot.getCompositedMediaPath(renderPath)
+            shotFileFullPath = shot.getOutputMediaPath(rootPath=renderPath)
             print(" Export otio - shotFileFullPath: ", shotFileFullPath)
             shotFileName = Path(shotFileFullPath).name
 

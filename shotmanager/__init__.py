@@ -63,7 +63,7 @@ bl_info = {
     "author": "Julien Blervaque (aka Werwack), Romain Carriquiry Borchiari",
     "description": "Manage a sequence of shots and cameras in the 3D View - Ubisoft Animation Studio",
     "blender": (2, 90, 0),
-    "version": (1, 3, 45),
+    "version": (1, 3, 46),
     "location": "View3D > UAS Shot Manager",
     "wiki_url": "https://gitlab-ncsa.ubisoft.org/animation-studio/blender/shotmanager-addon/-/wikis/home",
     #  "warning": "BETA Version - Fais gaffe à tes données !!!",
@@ -286,7 +286,7 @@ def register():
         formatter = None
 
         if config.uasDebug_ignoreLoggerFormatting:
-            formatter = Formatter("{message:<80}", style="{")
+            formatter = Formatter("{message:<140}", style="{")
         else:
             formatter = Formatter("{asctime} {levelname[0]} {name:<36}  - {message:<80}", style="{")
         handler = logging.StreamHandler()

@@ -1903,7 +1903,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
     ##############################
 
     def getOutputFileFormat(self, isVideo=True):
-        _logger.debug(f"  /// isVideo: {isVideo}")
+        #   _logger.debug(f"  /// isVideo: {isVideo}")
         outputFileFormat = ""
         if self.use_project_settings:
             if isVideo:
@@ -1945,94 +1945,101 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
 
         return filePath
 
-    def getShotOutputFileNameFromIndex(
+    # def getShotOutputFileNameFromIndex(
+    #     self,
+    #     shotIndex=-1,
+    #     takeIndex=-1,
+    #     rootFilePath="",
+    #     fullPath=False,
+    #     fullPathOnly=False,
+    #     specificFrame=None,
+    #     noExtension=False,
+    # ):
+    #     shot = self.getShot(shotIndex=shotIndex, takeIndex=takeIndex)
+
+    #     fileName = ""
+    #     if shot is None:
+    #         return fileName
+
+    #     fileName = self.getShotOutputFileName(
+    #         shot,
+    #         rootFilePath=rootFilePath,
+    #         fullPath=fullPath,
+    #         fullPathOnly=fullPathOnly,
+    #         specificFrame=specificFrame,
+    #         noExtension=False,
+    #     )
+
+    #     return fileName
+
+    def getShotOutputMediaPath(
+        # self, shot, rootFilePath=None, fullPath=False, fullPathOnly=False, specificFrame=None, noExtension=False
         self,
-        shotIndex=-1,
-        takeIndex=-1,
-        rootFilePath="",
-        fullPath=False,
-        fullPathOnly=False,
+        shot,
+        rootPath=None,
+        insertTakeName=True,
+        providePath=True,
+        provideName=True,
+        provideExtension=True,
         specificFrame=None,
-        noExtension=False,
-    ):
-        shot = self.getShot(shotIndex=shotIndex, takeIndex=takeIndex)
-
-        fileName = ""
-        if shot is None:
-            return fileName
-
-        fileName = self.getShotOutputFileName(
-            shot,
-            rootFilePath=rootFilePath,
-            fullPath=fullPath,
-            fullPathOnly=fullPathOnly,
-            specificFrame=specificFrame,
-            noExtension=False,
-        )
-
-        return fileName
-
-    # replaced frameIndex by specificFrame
-    def getShotOutputFileName(
-        self, shot, rootFilePath="", fullPath=False, fullPathOnly=False, specificFrame=None, noExtension=False
+        genericFrame=False,
     ):
         """
-            Return the shot path
+            Return the shot path. It is made of: <root path>/<shot take name>/<prefix>_<shot name>[_<specific frame index (if specified)].<extention>
+            rootPath: start of the path, if specified. Otherwise the current file folder is used
+            providePath: if True then the returned file name starts with the full path
+            provideName: if True then the returned file name contains the name
+            provideExtension: if True then the returned file name ends with the file extention
+            
+            if providePath is True:
+                if rootPath is provided then the start of the path is the root, otherwise props.renderRootPath is used
+                if insertTakeName is True then the name of the take is added to the path
+            
+            if genericFrame is True then #### is used instead of the specific frame index
         """
-        resultStr = ""
 
-        # file
-        fileName = shot.getName_PathCompliant()
-        shotPrefix = self.renderShotPrefix()
-        if "" != shotPrefix:
-            fileName = shotPrefix + "_" + fileName
-
-        # fileName + frame index + extension
-        fileFullName = fileName
-        if specificFrame is not None:
-            fileFullName += "_" + f"{(specificFrame):04d}"
-
+        # file path
         filePath = ""
-        if fullPath or fullPathOnly:
-
-            if "" == rootFilePath:
-                #  head, tail = os.path.split(bpy.path.abspath(bpy.data.filepath))
-                # wkip we assume renderRootPath is valid...
-                head, tail = os.path.split(bpy.path.abspath(self.renderRootPath))
-                filePath = head + "\\"
+        if providePath:
+            if rootPath is not None:
+                filePath += bpy.path.abspath(rootPath)
             else:
-                # wkip tester le chemin
-                filePath = rootFilePath
-                if not filePath.endswith("\\"):
-                    filePath += "\\"
+                #   filePath += bpy.path.abspath(bpy.data.filepath)     # current blender file path
+                filePath += bpy.path.abspath(self.renderRootPath)
 
-            filePath += f"{self.getTakeName_PathCompliant(takeIndex = shot.getParentTakeIndex())}" + "\\"
-            filePath += f"{shot.getName_PathCompliant()}" + "\\"
+            if not (filePath.endswith("/") or filePath.endswith("\\")):
+                filePath += "\\"
 
-        #   filePath += f"//{fileName}"
+            if insertTakeName:
+                takeName = shot.getParentTake().getName_PathCompliant()
+                filePath += takeName + "\\"
 
-        # path is absolute and ends with a /
-        if fullPathOnly:
-            _logger.debug(" ** fullPathOnly")
-            resultStr = filePath
-        elif fullPath:
-            _logger.debug(" ** fullpath")
-            resultStr = filePath + fileFullName
-            if not noExtension:
-                resultStr += "." + self.getOutputFileFormat(isVideo=specificFrame is None)
-        else:
-            _logger.debug(" ** else")
-            resultStr = fileFullName
-            _logger.debug(f" ** resultStr 1:  {resultStr}")
-            if not noExtension:
-                resultStr += "." + self.getOutputFileFormat(isVideo=specificFrame is None)
-            _logger.debug(f" ** resultStr 2:  {resultStr}")
+        # file name
+        fileName = ""
+        if provideName:
+            shotPrefix = self.renderShotPrefix()
+            if "" != shotPrefix:
+                fileName += shotPrefix + "_"
+            fileName += shot.getName_PathCompliant()
+            if genericFrame:
+                fileName += "_" + "####"
+            elif specificFrame is not None:
+                fileName += "_" + f"{specificFrame:04d}"
 
-        _logger.debug(f" ** resultStr: {resultStr}")
+        # file extension
+        fileExtension = ""
+        if provideExtension:
+            fileExtension += "." + self.getOutputFileFormat(isVideo=specificFrame is None and not genericFrame)
+
+        # result
+        resultStr = filePath + fileName + fileExtension
+        resultStr.replace("\\", "/")  # //
+
+        #   _logger.debug(f" ** resultStr: {resultStr}")
+
         return resultStr
 
-    # replaced frameIndex by specificFrame
-    def getShotOutputFileName_old(
+    def getShotOutputFileName(
         self, shot, rootFilePath="", fullPath=False, fullPathOnly=False, specificFrame=None, noExtension=False
     ):
         """

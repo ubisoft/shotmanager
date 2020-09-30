@@ -252,7 +252,8 @@ def launchRenderWithVSEComposite(
         # bpy.ops.wm.redraw_timer(type="DRAW_WIN_SWAP", iterations=2)
 
         newTempRenderPath = rootPath + takeName + "\\" + shot.getName_PathCompliant() + "\\"
-        compositedMediaPath = shot.getCompositedMediaPath(rootPath, specificFrame=specificFrame)
+        # compositedMediaPath = shot.getCompositedMediaPath(rootPath, specificFrame=specificFrame)
+        compositedMediaPath = shot.getOutputMediaPath(rootPath=rootPath, specificFrame=specificFrame)
 
         newMediaFiles.append(compositedMediaPath)
         if shot.enabled:
@@ -312,9 +313,13 @@ def launchRenderWithVSEComposite(
                         # scene.frame_current = currentFrame
                         scene.frame_set(currentFrame)
 
-                        scene.render.filepath = shot.getOutputFileName(
-                            rootFilePath=rootPath, specificFrame=scene.frame_current, fullPath=True
+                        # scene.render.filepath = shot.getOutputFileName(
+                        #     rootFilePath=rootPath, specificFrame=scene.frame_current, fullPath=True
+                        # )
+                        scene.render.filepath = shot.getOutputMediaPath(
+                            rootPath=rootPath, specificFrame=scene.frame_current
                         )
+
                         print("      ------------------------------------------")
                         print(
                             f"      \nFrame: {currentFrame}    ( {f + 1} / {numFramesInShot} )    -     Shot: {shot.name}"
@@ -405,27 +410,30 @@ def launchRenderWithVSEComposite(
 
             # use vse_render to store all the elements to composite
 
-            frameIndStr = "####" if specificFrame is None else f"{specificFrame:04}"
-            vse_render.clearMedia(scene)
-
-            vse_render.inputOverMediaPath = (
-                newTempRenderPath
-                + shot.getOutputFileName(fullPath=False, noExtension=True)
-                + "_"
-                + frameIndStr
-                + ".png"
-            )
+            # frameIndStr = "####" if specificFrame is None else f"{specificFrame:04}"
+            # vse_render.clearMedia(scene)
             # vse_render.inputOverMediaPath = (
-            #     shot.getOutputFileName(rootFilePath=newTempRenderPath, fullPathOnly=True) + "_" + frameIndStr + ".png"
+            #     newTempRenderPath
+            #     + shot.getOutputFileName(fullPath=False, noExtension=True)
+            #     + "_"
+            #     + frameIndStr
+            #     + ".png"
             # )
-            # vse_render.inputOverMediaPath = shot.getOutputFileName(
-            #     rootFilePath=newTempRenderPath, fullPath=True, specificFrame=frameIndStr
-            # )
+            if specificFrame is None:
+                vse_render.inputOverMediaPath = newTempRenderPath + shot.getOutputMediaPath(
+                    providePath=False, genericFrame=True
+                )
+            else:
+                vse_render.inputOverMediaPath = newTempRenderPath + shot.getOutputMediaPath(
+                    providePath=False, specificFrame=specificFrame
+                )
 
             _logger.debug(f"\n - OverMediaPath: {vse_render.inputOverMediaPath}")
             vse_render.inputOverResolution = (1280, 720)
 
             if preset_useStampInfo:
+                frameIndStr = "####" if specificFrame is None else f"{specificFrame:04}"
+                _logger.debug(f"\n - specificFrame: {specificFrame}")
                 vse_render.inputBGMediaPath = newTempRenderPath + "_tmp_StampInfo." + frameIndStr + ".png"
                 _logger.debug(f"\n - BGMediaPath: {vse_render.inputBGMediaPath}")
                 vse_render.inputBGResolution = (1280, 960)
@@ -569,9 +577,10 @@ def renderStampedInfoForShot(
         # scene.frame_current = currentFrame
         scene.frame_set(currentFrame)
 
-        scene.render.filepath = shot.getOutputFileName(
-            rootFilePath=rootPath, fullPath=True, specificFrame=scene.frame_current
-        )
+        # scene.render.filepath = shot.getOutputFileName(
+        #     rootFilePath=rootPath, fullPath=True, specificFrame=scene.frame_current
+        # )
+        scene.render.filepath = shot.getOutputMediaPath(rootPath=rootPath, specificFrame=scene.frame_current)
 
         if verbose:
             print("      ------------------------------------------")

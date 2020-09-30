@@ -151,9 +151,7 @@ class UAS_PT_ShotManagerRenderPanel(Panel):
                 row.prop(props.renderSettingsStill, "writeToDisk")
 
             row = box.row()
-            filePath = props.getCurrentShot().getOutputFileName(
-                specificFrame=bpy.context.scene.frame_current, fullPath=True
-            )
+            filePath = props.getCurrentShot().getOutputMediaPath(specificFrame=bpy.context.scene.frame_current)
             row.label(text="Current Image: " + filePath)
             row.operator("uas_shot_manager.open_explorer", text="", icon_value=iconExplorer.icon_id).path = filePath
 
@@ -177,7 +175,7 @@ class UAS_PT_ShotManagerRenderPanel(Panel):
                 row.prop(props.renderSettingsAnim, "renderHandles")
 
             row = box.row()
-            filePath = props.getCurrentShot().getOutputFileName(fullPath=True)
+            filePath = props.getCurrentShot().getOutputMediaPath()
             row.label(text="Current Video: " + filePath)
             row.operator("uas_shot_manager.open_explorer", text="", icon_value=iconExplorer.icon_id).path = filePath
 

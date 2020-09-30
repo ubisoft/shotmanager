@@ -74,6 +74,7 @@ class UAS_ShotManager_Shot(ShotInterface, PropertyGroup):
     def getOutputFileName(
         self, rootFilePath="", fullPath=False, fullPathOnly=False, specificFrame=None, noExtension=False
     ):
+        _logger.debug(f"*** shot.getOutputFileName: Deprecated - use getOutputMediaPath")
         return self.parentScene.UAS_shot_manager_props.getShotOutputFileName(
             self,
             rootFilePath=rootFilePath,
@@ -81,6 +82,27 @@ class UAS_ShotManager_Shot(ShotInterface, PropertyGroup):
             fullPathOnly=fullPathOnly,
             specificFrame=specificFrame,
             noExtension=noExtension,
+        )
+
+    def getOutputMediaPath(
+        self,
+        rootPath=None,
+        insertTakeName=True,
+        providePath=True,
+        provideName=True,
+        provideExtension=True,
+        specificFrame=None,
+        genericFrame=False,
+    ):
+        return self.parentScene.UAS_shot_manager_props.getShotOutputMediaPath(
+            self,
+            rootPath=rootPath,
+            insertTakeName=insertTakeName,
+            providePath=providePath,
+            provideName=provideName,
+            provideExtension=provideExtension,
+            specificFrame=specificFrame,
+            genericFrame=genericFrame,
         )
 
     def getCompositedMediaPath(self, rootFilePath, specificFrame=None):

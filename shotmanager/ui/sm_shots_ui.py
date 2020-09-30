@@ -418,8 +418,15 @@ class UAS_PT_ShotManager_ShotProperties(Panel):
             c = row.column()
             grid_flow = c.grid_flow(align=False, columns=3, even_columns=False)
             grid_flow.label(text="Output: ")
-            grid_flow.label(text=str(shot.getOutputFileName()))
-            grid_flow.operator("uas_shot_manager.open_explorer", emboss=True, icon_value=iconExplorer.icon_id, text="")
+            grid_flow.label(
+                text="<Render Root Path> \\ "
+                + shot.getParentTake().getName_PathCompliant()
+                + " \\ "
+                + shot.getOutputMediaPath(providePath=False)
+            )
+            grid_flow.operator(
+                "uas_shot_manager.open_explorer", emboss=True, icon_value=iconExplorer.icon_id, text=""
+            ).path = shot.getOutputMediaPath()
             row.separator(factor=0.5)  # prevents strange look when panel is narrow
 
             # row.prop ( context.props, "display_duration_in_shotlist", text = "" )
