@@ -163,7 +163,7 @@ def publishRRS(
     stampInfoCustomSettingsDict = None
     if settingsDict is not None:
         stampInfoCustomSettingsDict = dict()
-        stampInfoCustomSettingsDict["render_file_path"] = settingsDict["publish_rendering_file"]
+        stampInfoCustomSettingsDict["customFileFullPath"] = settingsDict["publish_rendering_file"]
         stampInfoCustomSettingsDict["asset_tracking_step"] = settingsDict["publish_step"]
 
     # shot videos are rendered in the directory of the take, not anymore in a directory with the shot name
@@ -259,6 +259,8 @@ def publishRRS(
         generatedFilesDict["rendered_files"] = renderedFilesDict["rendered_files"]
         generatedFilesDict["failed_files"] = renderedFilesDict["failed_files"]
         generatedFilesDict["edl_files"] = renderedFilesDict["edl_files"]
+
+    generatedFilesDict["sequence_video_file"] = renderedFilesDict["sequence_video_file"]
 
     jsonFile = prodFilePath
     if not jsonFile.endswith("\\"):

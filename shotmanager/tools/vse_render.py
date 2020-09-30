@@ -575,7 +575,7 @@ class UAS_Vse_Render(PropertyGroup):
             vse_scene.render.ffmpeg.gopsize = 5  # keyframe interval
             vse_scene.render.ffmpeg.audio_codec = "AC3"
         else:
-            vse_scene.render.image_settings.file_format = "PNG"  # wkip mettre project info
+            vse_scene.render.image_settings.file_format = "PNG"  # wkipwkipwkip mettre project info
 
         vse_scene.render.filepath = output_filepath
         vse_scene.render.use_file_extension = False
@@ -638,6 +638,7 @@ class UAS_Vse_Render(PropertyGroup):
         if specificFrame is None:
             bpy.ops.render.opengl(animation=True, sequencer=True)
         else:
+            vse_scene.frame_set(1)
             bpy.ops.render.render(write_still=True)
 
         if not config.uasDebug_keepVSEContent:

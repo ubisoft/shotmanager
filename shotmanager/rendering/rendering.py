@@ -127,7 +127,11 @@ def launchRenderWithVSEComposite(
 
             for file in filtered_files:
                 path_to_file = os.path.join(dirPath, file)
-                os.remove(path_to_file)
+                try:
+                    os.remove(path_to_file)
+                except Exception as e:
+                    _logger.exception(f"\n*** File locked (by system?): {path_to_file}")
+                    print(f"\n*** File locked (by system?): {path_to_file}")
             try:
                 os.rmdir(dirPath)
             except Exception:
@@ -469,6 +473,7 @@ def launchRenderWithVSEComposite(
     # render sequence video
     #######################
 
+    sequenceOutputFullPath = ""
     if generateSequenceVideo and specificFrame is None:
         sequenceOutputFullPath = f"{rootPath}{takeName}\\{sequenceFileName}.{props.getOutputFileFormat()}"
         print("  sequenceOutputFullPath: ", sequenceOutputFullPath)
@@ -486,7 +491,11 @@ def launchRenderWithVSEComposite(
 
     failedFiles = []
 
-    filesDict = {"rendered_files": newMediaFiles, "failed_files": failedFiles}
+    filesDict = {
+        "rendered_files": newMediaFiles,
+        "failed_files": failedFiles,
+        "sequence_video_file": sequenceOutputFullPath,
+    }
 
     _restoreUserRenderSettings(context, userRenderSettings)
     props.setCurrentShot(currentShot, changeTime=False)

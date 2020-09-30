@@ -122,32 +122,32 @@ def importTrack(track, trackInd, track_type, timeRange=None, offsetFrameNumber=0
                     importAudio=track_type == "AUDIO",
                 )
 
-                vse_render.printClipInfo(newClipInVSE)
-                _logger.debug(f"newClipInVSE: {newClipInVSE.name}")
+                vse_render.printClipInfo(newClipInVSE, printTimeInfo=True)
+                # _logger.debug(f"newClipInVSE: {newClipInVSE.name}")
 
-                frameStart = newClipInVSE.frame_start
-                frameEnd = -1  # newClipInVSE.frame_end
-                frameFinalStart = newClipInVSE.frame_final_start
-                frameFinalEnd = newClipInVSE.frame_final_end
-                frameOffsetStart = newClipInVSE.frame_offset_start
-                frameOffsetEnd = newClipInVSE.frame_offset_end
-                frameDuration = newClipInVSE.frame_duration
-                frameFinalDuration = newClipInVSE.frame_final_duration
+                # frameStart = newClipInVSE.frame_start
+                # frameEnd = -1  # newClipInVSE.frame_end
+                # frameFinalStart = newClipInVSE.frame_final_start
+                # frameFinalEnd = newClipInVSE.frame_final_end
+                # frameOffsetStart = newClipInVSE.frame_offset_start
+                # frameOffsetEnd = newClipInVSE.frame_offset_end
+                # frameDuration = newClipInVSE.frame_duration
+                # frameFinalDuration = newClipInVSE.frame_final_duration
 
-                frameStart += offsetFrameNumber
-                frameEnd += offsetFrameNumber
-                frameFinalStart += offsetFrameNumber
-                frameFinalEnd += offsetFrameNumber
+                # frameStart += offsetFrameNumber
+                # frameEnd += offsetFrameNumber
+                # frameFinalStart += offsetFrameNumber
+                # frameFinalEnd += offsetFrameNumber
 
-                _logger.debug(
-                    f"Abs clip values: clip frameStart: {frameStart}, frameFinalStart:{frameFinalStart}, frameFinalEnd:{frameFinalEnd}, frameEnd: {frameEnd}"
-                )
-                _logger.debug(
-                    f"Rel clip values: clip frameOffsetStart: {frameOffsetStart}, frameOffsetEnd:{frameOffsetEnd}"
-                )
-                _logger.debug(
-                    f"Duration clip values: clip frameDuration: {frameDuration}, frameFinalDuration:{frameFinalDuration}"
-                )
+                # _logger.debug(
+                #     f"Abs clip values: clip frameStart: {frameStart}, frameFinalStart:{frameFinalStart}, frameFinalEnd:{frameFinalEnd}, frameEnd: {frameEnd}"
+                # )
+                # _logger.debug(
+                #     f"Rel clip values: clip frameOffsetStart: {frameOffsetStart}, frameOffsetEnd:{frameOffsetEnd}"
+                # )
+                # _logger.debug(
+                #     f"Duration clip values: clip frameDuration: {frameDuration}, frameFinalDuration:{frameFinalDuration}"
+                # )
 
                 # fix to prevent the fact that the sound is sometimes longer than expected by 1 frame
                 if newClipInVSE.frame_final_duration > ow.get_clip_frame_final_duration(clip, fps):

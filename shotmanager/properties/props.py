@@ -1902,6 +1902,19 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
 
     ##############################
 
+
+    def renderShotPrefix(self):
+        shotPrefix = ""
+
+        if self.use_project_settings:
+            # wkip to improve with project_shot_format!!!
+            # scene name is used but it may be weak
+            shotPrefix = self.getParentScene().name
+        else:
+            shotPrefix = self.render_shot_prefix
+
+        return shotPrefix
+        
     def getOutputFileFormat(self, isVideo=True):
         #   _logger.debug(f"  /// isVideo: {isVideo}")
         outputFileFormat = ""
@@ -2299,17 +2312,6 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
 
         return settingsList
 
-    def renderShotPrefix(self):
-        shotPrefix = ""
-
-        if self.use_project_settings:
-            # wkip to improve with project_shot_format!!!
-            # scene name is used but it may be weak
-            shotPrefix = self.getParentScene().name
-        else:
-            shotPrefix = self.render_shot_prefix
-
-        return shotPrefix
 
     def createRenderSettings(self):
 
