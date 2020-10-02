@@ -367,8 +367,9 @@ class UAS_Vse_Render(PropertyGroup):
             print("\n *** UNKNOWN media sent to Shot Manager - createNewClip(): ", mediaPath)
             pass
 
-        mediaInfo = f"   - Name: {newClip.name}, Media Type: {mediaType}, path: {mediaPath}"
-        print(mediaInfo)
+        if "UNKNOWN" != mediaType:
+            mediaInfo = f"   - Name: {newClip.name}, Media Type: {mediaType}, path: {mediaPath}"
+            print(mediaInfo)
         # print(
         #     f"           frame_offset_start: {newClip.frame_offset_start}, frame_offset_end: {newClip.frame_offset_end}, frame_final_duration: {newClip.frame_final_duration}"
         # )
@@ -451,19 +452,21 @@ class UAS_Vse_Render(PropertyGroup):
         infoStr += f"Clip: {clip.name}"
 
         if printTimeInfo:
-            frameStart = newClipInVSE.frame_start
-            frameEnd = -1  # newClipInVSE.frame_end
-            frameFinalStart = newClipInVSE.frame_final_start
-            frameFinalEnd = newClipInVSE.frame_final_end
-            frameOffsetStart = newClipInVSE.frame_offset_start
-            frameOffsetEnd = newClipInVSE.frame_offset_end
-            frameDuration = newClipInVSE.frame_duration
-            frameFinalDuration = newClipInVSE.frame_final_duration
+            frameStart = clip.frame_start
+            frameEnd = -1  # clip.frame_end
+            frameFinalStart = clip.frame_final_start
+            frameFinalEnd = clip.frame_final_end
+            frameOffsetStart = clip.frame_offset_start
+            frameOffsetEnd = clip.frame_offset_end
+            frameDuration = clip.frame_duration
+            frameFinalDuration = clip.frame_final_duration
 
-            infoStr += f"Abs clip values: frame_start: {frameStart}, frame_final_start:{frameFinalStart}, frame_final_end:{frameFinalEnd}, frame_end: {frameEnd}"
-            infoStr += f"Rel clip values: frame_offset_start: {frameOffsetStart}, frame_offset_end:{frameOffsetEnd}"
+            infoStr += f"\n   Abs clip values: frame_start: {frameStart}, frame_final_start:{frameFinalStart}, frame_final_end:{frameFinalEnd}, frame_end: {frameEnd}"
             infoStr += (
-                f"Duration clip values: frame_duration: {frameDuration}, frame_final_duration:{frameFinalDuration}"
+                f"\n   Rel clip values: frame_offset_start: {frameOffsetStart}, frame_offset_end:{frameOffsetEnd}"
+            )
+            infoStr += (
+                f"\n   Duration clip values: frame_duration: {frameDuration}, frame_final_duration:{frameFinalDuration}"
             )
 
         #        infoStr += f"\n    Start: {self.get_frame_start()}, End (incl.):{self.get_frame_end() - 1}, Duration: {self.get_frame_duration()}, fps: {self.get_fps()}, Sequences: {self.get_num_sequences()}"
@@ -670,6 +673,7 @@ class UAS_Vse_Render(PropertyGroup):
             # bpy.data.images.[image_name].reload()
             from pathlib import Path
 
+            print(f"output_filepath: {output_filepath}")
             print(f"Path(output_filepath).name: {Path(output_filepath).name}")
             myImg = bpy.data.images[Path(output_filepath).name]
             print("myImg:" + str(myImg))

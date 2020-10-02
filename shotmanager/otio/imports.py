@@ -28,10 +28,9 @@ def importTrack(track, trackInd, track_type, timeRange=None, offsetFrameNumber=0
         clip_start = ow.get_clip_frame_final_start(clip, fps)
         clip_end = ow.get_timeline_clip_end_inclusive(clip)
 
-        clipName = clip.name
         media_path = Path(ow.get_clip_media_path(clip))
         clipInfo = f"\n-----------------------------"
-        clipInfo += f"\n  - Clip name: {clipName}, Clip ind: {i}, media: {media_path}\n"
+        clipInfo += f"\n  - Clip name: {clip.name}, Clip ind: {i}, media: {media_path}\n"
 
         #   print(f"       Import Otio media_path: {media_path}")
 
@@ -120,6 +119,7 @@ def importTrack(track, trackInd, track_type, timeRange=None, offsetFrameNumber=0
                     offsetEnd=frameOffsetEnd,
                     importVideo=track_type == "VIDEO",
                     importAudio=track_type == "AUDIO",
+                    clipName=clip.name,
                 )
 
                 vse_render.printClipInfo(newClipInVSE, printTimeInfo=True)

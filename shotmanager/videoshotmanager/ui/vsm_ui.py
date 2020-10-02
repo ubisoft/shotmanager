@@ -119,49 +119,58 @@ class UAS_UL_VideoShotManager_Items(bpy.types.UIList):
         vsm_props = context.scene.UAS_vsm_props
         current_track_index = vsm_props.current_track_index
 
-        row = layout.row(align=True)
+        row = layout.row()
+        row.scale_x = 0.4
+
+        subrow = row.row(align=True)
+        subrow.scale_x = 0.5
 
         if vsm_props.display_color_in_tracklist:
-            row = row.row(align=True)
-            row.scale_x = 0.2
-            row.prop(item, "color", text="")
-            row.scale_x = 0.45
+            # row = layout.row(align=True)
+            subrow.prop(item, "color", text="")
+            subrow.scale_x = 0.45
+            subrow.separator(factor=2)
 
-        row = layout.row(align=True)
-        row.scale_x = 0.9
-        row.prop(item, "enabled", text=" ")
-        row.separator(factor=0.9)
-        row.scale_x = 0.8
-        row.label(text=str(item.vseTrackIndex) + ": " + item.name)
+        # row = layout.row(align=True)
+
+        # row.scale_x = 1.0
+        # subrow = row.row(align=False)
+        subrow.prop(item, "enabled", text=" ")
+        subrow.separator(factor=0.9)
+        subrow.scale_x = 0.9
+        subrow.label(text=str(item.vseTrackIndex) + ": " + item.name)
+
         # row.scale_x = 0.8
         # row.label(text=item.name)
 
         # grid_flow.label(text="   " + str(item.vseTrackIndex))
 
-        #         c.operator("uas_shot_manager.set_current_shot", icon_value=icon.icon_id, text="").index = index
-        #         layout.separator(factor=0.1)
+        # c.operator("uas_shot_manager.set_current_shot", icon_value=icon.icon_id, text="").index = index
+        # layout.separator(factor=0.1)
 
         row = layout.row(align=True)
-        row.scale_x = 2.0
-        grid_flow = row.grid_flow(align=True, columns=7, even_columns=False)
+        row.scale_x = 1.0
+        grid_flow = row.grid_flow(align=True, columns=4, even_columns=False)
         grid_flow.use_property_split = False
         button_x_factor = 0.6
 
-        grid_flow.prop(item, "trackType", text="")
+        row = grid_flow.row(align=True)
+        row.scale_x = 2.0
+        row.prop(item, "trackType", text="")
 
-        if not "CUSTOM" == item.trackType and not "STANDARD" == item.trackType:
+        # if not "CUSTOM" == item.trackType and not "STANDARD" == item.trackType:
 
-            if item.shotManagerScene is None:
-                grid_flow.alert = True
-            grid_flow.prop(item, "shotManagerScene", text="")
-            if item.shotManagerScene is None:
-                grid_flow.alert = False
+        #     if item.shotManagerScene is None:
+        #         grid_flow.alert = True
+        #     grid_flow.prop(item, "shotManagerScene", text="")
+        #     if item.shotManagerScene is None:
+        #         grid_flow.alert = False
 
-            if item.shotManagerScene is None or item.sceneTakeName == "":
-                grid_flow.alert = True
-            grid_flow.prop(item, "sceneTakeName", text="")
-            if item.shotManagerScene is None:
-                grid_flow.alert = False
+        #     if item.shotManagerScene is None or item.sceneTakeName == "":
+        #         grid_flow.alert = True
+        #     grid_flow.prop(item, "sceneTakeName", text="")
+        #     if item.shotManagerScene is None:
+        #         grid_flow.alert = False
 
         grid_flow.scale_x = 1.0
         grid_flow.operator(
@@ -171,6 +180,7 @@ class UAS_UL_VideoShotManager_Items(bpy.types.UIList):
         grid_flow.operator(
             "uas_video_shot_manager.go_to_specified_scene", text="", icon="SCENE_DATA"
         ).trackName = item.name
+        grid_flow.scale_x = 1.8
 
 
 # ##################

@@ -496,7 +496,6 @@ def launchRenderWithVSEComposite(
         "failed_files": failedFiles,
         "sequence_video_file": sequenceOutputFullPath,
     }
-
     _restoreUserRenderSettings(context, userRenderSettings)
     props.setCurrentShot(currentShot, changeTime=False)
 
@@ -524,6 +523,10 @@ def renderStampedInfoForShot(
     props = shotManagerProps
     scene = props.parentScene
 
+    if stampInfoCustomSettingsDict is not None:
+        if "render_file_path" in stampInfoCustomSettingsDict:
+            stampInfoSettings.customFileFullPath = stampInfoCustomSettingsDict["customFileFullPath"]
+
     stampInfoSettings.takeName = takeName
 
     stampInfoSettings.notesUsed = shot.hasNotes()
@@ -533,7 +536,7 @@ def renderStampedInfoForShot(
 
     stampInfoSettings.cornerNoteUsed = not shot.enabled
     if not shot.enabled:
-        stampInfoSettings.cornerNote = "*** Shot Muted in the take ***"
+        stampInfoSettings.cornerNote += " *** Shot Muted in the take ***"
 
     stampInfoSettings.shotHandles = handles
 
@@ -600,7 +603,13 @@ def renderStampedInfoForShot(
                 f"      \nStamp Info Frame: {currentFrame}    ( {f + 1} / {numFramesInShot} )    -     Shot: {shot.name}"
             )
 
-        stampInfoSettings.shotName = f"{props.renderShotPrefix()}_{shot.name}"
+        # stampInfoSettings.shotName = f"{props.renderShotPrefix()}_{shot.name}"
+        stampInfoSettings.shotName = f"{shot.name}"
+
+        if stampInfoCustomSettingsDict is not None:
+            if "asset_tracking_step" in stampInfoCustomSettingsDict:
+                stampInfoSettings.shotName += " " + stampInfoCustomSettingsDict["asset_tracking_step"]
+
         stampInfoSettings.cameraName = shot.camera.name
         stampInfoSettings.edit3DFrame = props.getEditTime(shot, currentFrame)
         stampInfoSettings.renderRootPath = newTempRenderPath

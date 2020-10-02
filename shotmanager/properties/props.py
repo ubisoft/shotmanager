@@ -1,6 +1,6 @@
-import logging
-
 import os
+from stat import S_IMODE, S_IWRITE
+from pathlib import Path
 
 import bpy
 from bpy.types import Scene
@@ -27,6 +27,7 @@ from ..retimer.retimer_props import UAS_Retimer_Properties
 
 from shotmanager.utils import utils
 
+import logging
 
 _logger = logging.getLogger(__name__)
 
@@ -113,12 +114,25 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         """
         warningList = []
 
+        # check if the current file is saved and not read only
+        ###########
+        currentFilePath = bpy.path.abspath(bpy.data.filepath)
+        if "" == currentFilePath:
+            warningList.append("Current file has to be saved")
+        else:
+            stat = Path(currentFilePath).stat()
+            # print(f"Blender file Stats: {stat.st_mode}")
+            if S_IMODE(stat.st_mode) & S_IWRITE == 0:
+                warningList.append("Current file in Read-Only")
+
         # check if the current framerate is valid according to the project settings (wkip)
+        ###########
         if self.use_project_settings:
             if scene.render.fps != self.project_fps:
                 warningList.append("Current scene fps and project fps are different !!")
 
         # check if a negative render frame may be rendered
+        ###########
         shotList = self.get_shots()
         hasNegativeFrame = False
         shotInd = 0
@@ -139,7 +153,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
 
             warningList.append("Data version is lower than SM version !!")
 
-        # wkip to do: check if some camera markets are used in the scene
+        # wkip to do: check if some camera markers are used in the scene
 
         return warningList
 
@@ -1902,7 +1916,6 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
 
     ##############################
 
-
     def renderShotPrefix(self):
         shotPrefix = ""
 
@@ -1914,7 +1927,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
             shotPrefix = self.render_shot_prefix
 
         return shotPrefix
-        
+
     def getOutputFileFormat(self, isVideo=True):
         #   _logger.debug(f"  /// isVideo: {isVideo}")
         outputFileFormat = ""
@@ -1922,9 +1935,15 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
             if isVideo:
                 # outputFileFormat = "mp4"  # wkipwkipwkipself.project_output_format.lower()
                 outputFileFormat = self.project_output_format.lower()
+                if "" == outputFileFormat:
+                    print("\n---------------------------")
+                    print("*** Project video output file format not correctly set in the Preferences ***\n")
                 _logger.debug(f"  /// outputFileFormat vid: {outputFileFormat}")
             else:
                 outputFileFormat = self.project_images_output_format.lower()
+                if "" == outputFileFormat:
+                    print("\n---------------------------")
+                    print("*** Project image output file format not correctly set in the Preferences ***\n")
             #    _logger.debug(f"  /// outputFileFormat: {outputFileFormat}")
         else:
             if isVideo:
@@ -2311,7 +2330,6 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
             self.setProjectRenderFilePath()
 
         return settingsList
-
 
     def createRenderSettings(self):
 
