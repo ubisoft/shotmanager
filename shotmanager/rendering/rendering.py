@@ -524,7 +524,8 @@ def renderStampedInfoForShot(
     scene = props.parentScene
 
     if stampInfoCustomSettingsDict is not None:
-        if "render_file_path" in stampInfoCustomSettingsDict:
+        # print(f"*** customFileFullPath: {stampInfoCustomSettingsDict['customFileFullPath']}")
+        if "customFileFullPath" in stampInfoCustomSettingsDict:
             stampInfoSettings.customFileFullPath = stampInfoCustomSettingsDict["customFileFullPath"]
 
     stampInfoSettings.takeName = takeName
@@ -536,7 +537,9 @@ def renderStampedInfoForShot(
 
     stampInfoSettings.cornerNoteUsed = not shot.enabled
     if not shot.enabled:
-        stampInfoSettings.cornerNote += " *** Shot Muted in the take ***"
+        stampInfoSettings.cornerNote = " *** Shot Muted in the take ***"
+    else:
+        stampInfoSettings.cornerNote = ""
 
     stampInfoSettings.shotHandles = handles
 
@@ -603,12 +606,17 @@ def renderStampedInfoForShot(
                 f"      \nStamp Info Frame: {currentFrame}    ( {f + 1} / {numFramesInShot} )    -     Shot: {shot.name}"
             )
 
-        # stampInfoSettings.shotName = f"{props.renderShotPrefix()}_{shot.name}"
-        stampInfoSettings.shotName = f"{shot.name}"
+        stampInfoSettings.shotName = f"{props.renderShotPrefix()}_{shot.name}"
+        # stampInfoSettings.shotName = f"{shot.name}"
 
         if stampInfoCustomSettingsDict is not None:
-            if "asset_tracking_step" in stampInfoCustomSettingsDict:
-                stampInfoSettings.shotName += " " + stampInfoCustomSettingsDict["asset_tracking_step"]
+            if True or "asset_tracking_step" in stampInfoCustomSettingsDict:
+                print("Tototto")
+                stampInfoSettings.bottomNoteUsed = True
+                stampInfoSettings.bottomNote = "Step: " + stampInfoCustomSettingsDict["asset_tracking_step"]
+            else:
+                stampInfoSettings.bottomNoteUsed = False
+                stampInfoSettings.bottomNote = ""
 
         stampInfoSettings.cameraName = shot.camera.name
         stampInfoSettings.edit3DFrame = props.getEditTime(shot, currentFrame)
