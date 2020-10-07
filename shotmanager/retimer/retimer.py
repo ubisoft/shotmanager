@@ -357,6 +357,38 @@ def retime_shot(shot, mode, start_frame=0, end_frame=0, remove_gap=True, factor=
         pass
 
 
+def retime_vse ( scene, mode, start_frame, end_frame ):
+    sed = scene.sequence_editor
+    if sed is None:
+        return
+
+    if mode == "INSERT":
+        # This will be a two pass process since we will use operators to cut the clips.
+        offset = end_frame - start_frame
+        sequences = list ( )
+        for sequence in sed.sequences:
+            sequence.select = False
+            sequences.append ( sequence )
+
+        sequences.sort ( key = lambda s: s.frame_start, reverse = True )
+
+        # First pass is about move start frame of the clip if they are behind the start_frame and cutting the clips which contains start_frame.
+        for seq in sequences:
+            if seq.frame_start < start_frame < seq.frame_final_end:
+                seq.select = True
+                bpy.ops.sequencer.split ( frame = start_frame )
+                seq.select = False
+            elif seq.frame_start >= start_frame:
+                seq.frame_start += offset
+
+        # Second pass is about offseting clips which just have been cut. They are identified by  seq.frame_start + seq.frame_offset_start == start_frame
+        for seq in sed.sequences:
+            if seq.frame_start + seq.frame_offset_start == start_frame:
+                seq.frame_start += offset
+    elif mode == "DELETE":
+        pass
+
+
 # start parameter is replaced here by duration
 def retimeScene(
     scene,
@@ -371,6 +403,7 @@ def retimeScene(
     apply_on_shape_keys=True,
     apply_on_grease_pencils=True,
     apply_on_shots=True,
+    apply_on_vse=True
 ):
     retimer(
         scene,
@@ -401,6 +434,7 @@ def retimer(
     apply_on_shape_keys=True,
     apply_on_grease_pencils=True,
     apply_on_shots=True,
+    apply_on_vse=True
 ):
 
     print("Retiming scene: , factor: ", mode, factor)
@@ -442,6 +476,10 @@ def retimer(
             if obj.type == "GPENCIL":
                 for layer in obj.data.layers:
                     retime_frames(GPFCurve(layer), *retime_args)
+
+    # VSE
+    if apply_on_vse:
+        retime_vse ( scene, mode, start, end )
 
     # Shots
     if apply_on_shots:
