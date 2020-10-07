@@ -43,6 +43,7 @@ def launchRenderWithVSEComposite(
     render_handles=True,
     renderAlsoDisabled=False,
     area=None,
+    override_all_viewports = False
 ):
     """ Generate the media for the specified take
         Return a dictionary with a list of all the created files and a list of failed ones
@@ -242,16 +243,29 @@ def launchRenderWithVSEComposite(
     userRenderSettings = _storeUserRenderSettings(context)
 
     if renderWithOpengl:
-        if not "CUSTOM" == props.renderContext.renderEngineOpengl:
-            context.scene.render.engine = props.renderContext.renderEngineOpengl
-            if "BLENDER_EEVEE" == props.renderContext.renderEngineOpengl:
-                if context.space_data is not None:  # case where Blender is running in background
-                    context.space_data.shading.type = "RENDERED"
-            elif "BLENDER_WORKBENCH" == props.renderContext.renderEngineOpengl:
-                if context.space_data is not None:  # case where Blender is running in background
-                    context.space_data.shading.type = "SOLID"
-        if context.space_data is not None:  # case where Blender is running in background
-            bpy.context.space_data.overlay.show_overlays = props.renderContext.useOverlays
+        spaces = list ( )
+        if override_all_viewports:
+            for area in context.screen.areas:
+                if area.type == "VIEW_3D":
+                    for space_data in area.spaces:
+                        if space_data.type == "VIEW_3D":
+                            spaces.append ( space_data )
+        else:
+            spaces.append ( context.space_data )
+        
+        for space_data in spaces:
+            if not "CUSTOM" == props.renderContext.renderEngineOpengl:
+                context.scene.render.engine = props.renderContext.renderEngineOpengl
+                if "BLENDER_EEVEE" == props.renderContext.renderEngineOpengl:
+                    if space_data is not None:  # case where Blender is running in background
+                        space_data.shading.type = "RENDERED"
+                elif "BLENDER_WORKBENCH" == props.renderContext.renderEngineOpengl:
+                    if space_data is not None:  # case where Blender is running in background
+                        space_data.shading.type = "SOLID"
+            if space_data is not None:  # case where Blender is running in background
+                space_data.overlay.show_overlays = props.renderContext.useOverlays
+
+                        
 
     else:
         # wkip hack rrs
@@ -309,7 +323,11 @@ def launchRenderWithVSEComposite(
             scene.camera = shot.camera
             print("Scene.name:", scene.name)
             print("Scene.camera:", scene.camera.name)
-            utils.setCurrentCameraToViewport(context, viewportArea)
+            if override_all_viewports:
+                for area in context.screen.areas:
+                    utils.setCurrentCameraToViewport(context, area)
+            else:
+                utils.setCurrentCameraToViewport(context, viewportArea)
             # props.setCurrentShot(shot)
 
             numFramesInShot = scene.frame_end - scene.frame_start + 1

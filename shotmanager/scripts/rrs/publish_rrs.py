@@ -177,6 +177,7 @@ def publishRRS(
         renderAlsoDisabled=renderAlsoDisabled,
         area=bpy.context.area,
         stampInfoCustomSettingsDict=stampInfoCustomSettingsDict,
+        override_all_viewports=True
     )
 
     ################
