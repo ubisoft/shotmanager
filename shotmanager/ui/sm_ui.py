@@ -89,20 +89,20 @@ class UAS_PT_ShotManager(Panel):
 
         # addon warning message - for beta message display
         ###############
-        import addon_utils
+        # import addon_utils
 
-        addonWarning = [
-            addon.bl_info.get("warning", "")
-            for addon in addon_utils.modules()
-            if addon.bl_info["name"] == "UAS Shot Manager"
-        ]
+        # addonWarning = [
+        #     addon.bl_info.get("warning", "")
+        #     for addon in addon_utils.modules()
+        #     if addon.bl_info["name"] == "UAS Shot Manager"
+        # ]
 
-        if "" != addonWarning[0]:
-            row = layout.row()
-            row.alignment = "CENTER"
-            row.alert = True
-            row.label(text=f" ***  {addonWarning[0]}  ***")
-            row.alert = False
+        # if "" != addonWarning[0]:
+        #     row = layout.row()
+        #     row.alignment = "CENTER"
+        #     row.alert = True
+        #     row.label(text=f" ***  {addonWarning[0]}  ***")
+        #     row.alert = False
 
         if config.uasDebug:
             row = layout.row()

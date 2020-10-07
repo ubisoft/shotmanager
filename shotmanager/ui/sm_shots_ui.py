@@ -1,14 +1,15 @@
-import logging
-
-_logger = logging.getLogger(__name__)
+import json
 
 import bpy
 from bpy.types import Panel, Operator, Menu
 from bpy.props import StringProperty
 
 from shotmanager.config import config
-
 from shotmanager.utils import utils
+
+import logging
+
+_logger = logging.getLogger(__name__)
 
 
 #############
@@ -601,8 +602,7 @@ class UAS_MT_ShotManager_Shots_ToolsMenu(Menu):
     bl_description = "Shots Tools"
 
     def draw(self, context):
-        # marker_list         = context.scene.timeline_markers
-        # list_marked_cameras = [o.camera for o in marker_list if o != None]
+        props = context.scene.UAS_shot_manager_props
 
         # Copy menu entries[ ---
         layout = self.layout
@@ -650,9 +650,67 @@ class UAS_MT_ShotManager_Shots_ToolsMenu(Menu):
         row = layout.row(align=True)
         row.label(text="Import Shots:")
 
+        if config.uasDebug:
+            row = layout.row(align=True)
+            row.operator_context = "INVOKE_DEFAULT"
+            row.operator("uasotio.openfilebrowser", text="Create Shots From EDL").importMode = "CREATE_SHOTS"
+
         row = layout.row(align=True)
-        row.operator_context = "INVOKE_DEFAULT"
-        row.operator("uasotio.openfilebrowser", text="Create Shots From EDL").importMode = "CREATE_SHOTS"
+        #    row.operator_context = "INVOKE_DEFAULT"
+
+        #############
+        # Predec settings:
+        argsDictPredecAct01 = dict()
+        argsDictPredecAct01.update(
+            {
+                "otioFile": r"C:\_UAS_ROOT\RRSpecial\04_ActsPredec\Act01\Exports\RRSpecial_ACT01_AQ_XML_200730\RRSpecial_ACT01_AQ_200730.xml"
+            }
+        )
+        argsDictPredecAct01.update({"conformMode": "CREATE"})
+        argsDictPredecAct01.update({"mediaHaveHandles": False})
+        argsDictPredecAct01.update({"mediaHandlesDuration": 0})
+
+        row.operator(
+            "uasshotmanager.createshotsfromotio_rrs", text="Create Shots From EDL - Predec Act 01"
+        ).opArgs = json.JSONEncoder().encode(argsDictPredecAct01)
+
+        row = layout.row(align=True)
+        #    row.operator_context = "INVOKE_DEFAULT"
+
+        #############
+        # Previz settings:
+        argsDictPrevAct01 = dict()
+        argsDictPrevAct01.update({"otioFile": r"C:\_UAS_ROOT\RRSpecial\05_Acts\Act01\_Montage\Act01_Edit_Previz.xml"})
+        argsDictPrevAct01.update({"conformMode": "UPDATE"})
+        argsDictPrevAct01.update({"mediaHaveHandles": props.areShotHandlesUsed()})
+        argsDictPrevAct01.update({"mediaHandlesDuration": props.getHandlesDuration()})
+
+        row.operator(
+            "uasshotmanager.createshotsfromotio_rrs", text="Create Shots From EDL - Previz Act 01"
+        ).opArgs = json.JSONEncoder().encode(argsDictPrevAct01)
+
+        layout.separator()
+
+        row = layout.row(align=True)
+        #    row.operator_context = "INVOKE_DEFAULT"
+
+        #############
+        # Predec settings:
+        argsDictPredecAct02 = dict()
+        argsDictPredecAct02.update(
+            {
+                "otioFile": r"C:\_UAS_ROOT\RRSpecial\04_ActsPredec\Act02\Exports\RRSpecial_Act02_AQ_XML_200929\RRspecial_Act02_AQ_200929.xml"
+            }
+        )
+        argsDictPredecAct02.update({"conformMode": "CREATE"})
+        argsDictPredecAct02.update({"mediaHaveHandles": props.areShotHandlesUsed()})
+        argsDictPredecAct02.update({"mediaHandlesDuration": props.getHandlesDuration()})
+        argsDictPredecAct02.update({"mediaHaveHandles": False})
+        argsDictPredecAct02.update({"mediaHandlesDuration": 0})
+
+        row.operator(
+            "uasshotmanager.createshotsfromotio_rrs", text="Create Shots From EDL - Predec Act 02"
+        ).opArgs = json.JSONEncoder().encode(argsDictPredecAct02)
 
         # wkip debug - to remove:
         if config.uasDebug:
@@ -661,13 +719,36 @@ class UAS_MT_ShotManager_Shots_ToolsMenu(Menu):
 
         if config.uasDebug:
             row = layout.row(align=True)
-            row.operator(
-                "uasshotmanager.createshotsfromotio_rrs", text="Create Shots From EDL - Debug + file"
-            ).otioFile = (
-                # r"Z:\_UAS_Dev\Exports\RRSpecial_ACT01_AQ_XML_200730\RRSpecial_ACT01_AQ_200730__FromPremiere.xml"
-                # r"C:\_UAS_ROOT\RRSpecial\04_ActsPredec\Act01\Exports\RRSpecial_ACT01_AQ_XML_200730\RRSpecial_ACT01_AQ_200730__FromPremiere_to40.xml"  # _to40
-                r"C:\_UAS_ROOT\RRSpecial\04_ActsPredec\Act01\Exports\RRSpecial_ACT01_AQ_XML_200730\PredecAct01_To40_RefDebug.xml"  # _to40
+
+            argsDictRefDebug = dict()
+            argsDictRefDebug.update(
+                {
+                    "otioFile": r"C:\_UAS_ROOT\RRSpecial\04_ActsPredec\Act01\Exports\RRSpecial_ACT01_AQ_XML_200730\PredecAct01_To40_RefDebug.xml"
+                }
             )
+            argsDictRefDebug.update({"conformMode": "CREATE"})
+
+            row.operator(
+                "uasshotmanager.createshotsfromotio_rrs", text="Create Shots From EDL - Debug 40"
+            ).opArgs = json.JSONEncoder().encode(argsDictRefDebug)
+
+            row = layout.row(align=True)
+            argsDictDebugModifs = dict()
+            argsDictDebugModifs.update(
+                {
+                    "otioFile": r"C:\_UAS_ROOT\RRSpecial\04_ActsPredec\Act01\Exports\RRSpecial_ACT01_AQ_XML_200730\RRSpecial_To40_RefDebug_SwapSeq30_20-30.xml"
+                }
+            )
+            argsDictDebugModifs.update({"conformMode": "UPDATE"})
+            argsDictDebugModifs.update({"mediaHaveHandles": props.areShotHandlesUsed()})
+            argsDictDebugModifs.update({"mediaHandlesDuration": props.getHandlesDuration()})
+
+            row.operator(
+                "uasshotmanager.createshotsfromotio_rrs", text="Create Shots From EDL - Debug 40 swap"
+            ).opArgs = json.JSONEncoder().encode(argsDictDebugModifs)
+            # row.operator(
+            #     "uasshotmanager.createshotsfromotio_rrs", text="Create Shots From EDL - Debug 40 swap"
+            # ).otioFile = r"C:\_UAS_ROOT\RRSpecial\04_ActsPredec\Act01\Exports\RRSpecial_ACT01_AQ_XML_200730\RRSpecial_To40_RefDebug_SwapSeq30_20-30.xml"  # _to40
 
         # tools for precut ###
         layout.separator()

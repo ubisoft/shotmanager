@@ -128,8 +128,8 @@ class UAS_ShotManager_Take(SequenceInterface, PropertyGroup):
 
         return shotList
 
-    def getEditShots(self):
-        return self.getShotsList(ignoreDisabled=True)
+    def getEditShots(self, ignoreDisabled=True):
+        return self.getShotsList(ignoreDisabled=ignoreDisabled)
 
     #############
     # notes #####

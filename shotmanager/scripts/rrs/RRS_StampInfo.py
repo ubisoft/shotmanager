@@ -38,15 +38,15 @@ def setRRS_StampInfoSettings(scene):
 
             stampInfoSettings.automaticTextSize = False
             stampInfoSettings.extPaddingNorm = 0.020
-            stampInfoSettings.fontScaleHNorm = 0.018
-            stampInfoSettings.interlineHNorm = 0.007
+            stampInfoSettings.fontScaleHNorm = 0.0168
+            stampInfoSettings.interlineHNorm = 0.0072
 
             # top
             stampInfoSettings.logoUsed = True
             stampInfoSettings.logoName = "RRSpecial_Logo.png"
             stampInfoSettings.logoScaleH = 0.05
             stampInfoSettings.logoPosNormX = 0.018
-            stampInfoSettings.logoPosNormY = 0.019
+            stampInfoSettings.logoPosNormY = 0.014
 
             stampInfoSettings.projectName = projProp_Name
             stampInfoSettings.projectUsed = False

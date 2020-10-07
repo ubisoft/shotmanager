@@ -63,6 +63,9 @@ def launchRenderWithVSEComposite(
 
         userRenderSettings["view_transform"] = bpy.context.scene.view_settings.view_transform
 
+        userRenderSettings["render_use_compositing"] = bpy.context.scene.render.use_compositing
+        userRenderSettings["render_use_sequencer"] = bpy.context.scene.render.use_sequencer
+
         # eevee
         ##############
         # if "BLENDER_EEVEE" == bpy.context.scene.render.engine:
@@ -95,6 +98,9 @@ def launchRenderWithVSEComposite(
         scene.frame_end = userRenderSettings["frame_end"]
 
         bpy.context.scene.view_settings.view_transform = userRenderSettings["view_transform"]
+
+        bpy.context.scene.render.use_compositing = userRenderSettings["render_use_compositing"]
+        bpy.context.scene.render.use_sequencer = userRenderSettings["render_use_sequencer"]
 
         # eevee
         ##############
@@ -146,11 +152,13 @@ def launchRenderWithVSEComposite(
 
     # it is possible to have handles but not to render them (case of still frame),
     # it is also possible not to use the handles, whitch is different on stamp info
-    useHandles = props.project_use_shot_handles if props.use_project_settings else props.use_handles
-    handles = 0
-    if useHandles:
-        handles = props.project_shot_handle_duration if props.use_project_settings else props.handles
-        handles = max(0, handles)
+    useHandles = props.areShotHandlesUsed()
+    handles = props.getHandlesDuration()
+
+    # handles = 0
+    # if useHandles:
+    #     handles = props.project_shot_handle_duration if props.use_project_settings else props.handles
+    #     handles = max(0, handles)
 
     # we verify anyway if handles are used
     renderHandles = render_handles and useHandles
@@ -246,6 +254,10 @@ def launchRenderWithVSEComposite(
             bpy.context.space_data.overlay.show_overlays = props.renderContext.useOverlays
 
     else:
+        # wkip hack rrs
+        bpy.context.scene.render.use_compositing = False
+        bpy.context.scene.render.use_sequencer = False
+
         if not "CUSTOM" == props.renderContext.renderEngine:
             context.scene.render.engine = props.renderContext.renderEngine
 
@@ -611,7 +623,6 @@ def renderStampedInfoForShot(
 
         if stampInfoCustomSettingsDict is not None:
             if True or "asset_tracking_step" in stampInfoCustomSettingsDict:
-                print("Tototto")
                 stampInfoSettings.bottomNoteUsed = True
                 stampInfoSettings.bottomNote = "Step: " + stampInfoCustomSettingsDict["asset_tracking_step"]
             else:

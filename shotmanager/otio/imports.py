@@ -476,9 +476,9 @@ def createShotsFromOtioTimelineClass(
                     # add media as camera background
                     if useMediaAsCameraBG:
                         media_path = ow.get_clip_media_path(clip.clip)
-                        print("Import Otio media_path 1: ", media_path)
+                        # print("Import Otio media_path 1: ", media_path)
                         media_path = Path(media_path)
-                        print("Import Otio media_path 2: ", media_path)
+                        # print("Import Otio media_path 2: ", media_path)
                         if not media_path.exists():
                             # Lets find it inside next to the xml
                             media_path = Path(otioFile).parent.joinpath(media_path.name)

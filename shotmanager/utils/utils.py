@@ -35,30 +35,32 @@ def addonVersion(addonName):
             - an integer. x.y.z becomes xxyyyzzz (eg: "1.21.3" becomes 1021003)
         Return None if the addon has not been found
     """
-    import addon_utils
+    # import addon_utils
 
     #   print("addonVersion called...")
     versionStr = "-"
     versionInt = -1
     versions = None
 
-    versionTupple = [
-        addon.bl_info.get("version", (-1, -1, -1))
-        for addon in addon_utils.modules()
-        if addon.bl_info["name"] == addonName
-    ]
-    if len(versionTupple):
-        versionTupple = versionTupple[0]
-        versionStr = str(versionTupple[0]) + "." + str(versionTupple[1]) + "." + str(versionTupple[2])
+    # versionTupple = [
+    #     addon.bl_info.get("version", (-1, -1, -1))
+    #     for addon in addon_utils.modules()
+    #     if addon.bl_info["name"] == addonName
+    # ]
+    # if len(versionTupple):
+    #     versionTupple = versionTupple[0]
+    #     versionStr = str(versionTupple[0]) + "." + str(versionTupple[1]) + "." + str(versionTupple[2])
 
-        # versionStr = "131.258.265"
-        versionInt = convertVersionStrToInt(versionStr)
+    #     # versionStr = "131.258.265"
+    #     versionInt = convertVersionStrToInt(versionStr)
 
-        # print("versionStr: ", versionStr)
-        # print("versionInt: ", versionInt)
-        # print("convertVersionIntToStr: ", convertVersionIntToStr(versionInt))
+    #     # print("versionStr: ", versionStr)
+    #     # print("versionInt: ", versionInt)
+    #     # print("convertVersionIntToStr: ", convertVersionIntToStr(versionInt))
 
-        versions = (versionStr, versionInt)
+    #    versions = (versionStr, versionInt)
+
+    versions = ("1.3.51", 1003051)
 
     return versions
 
@@ -78,6 +80,24 @@ def display_addon_registered_version(addon_name):
     else:
         print('\n *** Cannot find registered version for add-on "' + addon_name + '" ***\n')
     return versionTupple
+
+
+# https://stackoverflow.com/questions/287871/how-to-print-colored-text-in-python
+class bcolors:
+    HEADER = "\033[95m"
+    OKBLUE = "\033[94m"
+    OKGREEN = "\033[92m"
+    WARNING = "\033[93m"
+    FAIL = "\033[91m"
+    ENDC = "\033[0m"
+
+    def disable(self):
+        self.HEADER = ""
+        self.OKBLUE = ""
+        self.OKGREEN = ""
+        self.WARNING = ""
+        self.FAIL = ""
+        self.ENDC = ""
 
 
 class PropertyRestoreCtx:
@@ -174,6 +194,15 @@ def add_background_video_to_cam(
             bg.alpha = alpha
 
         bg.clip_user.proxy_render_size = proxyRenderSize
+
+
+def remove_background_video_from_cam(camera: bpy.types.Camera):
+    """ Camera argument: use camera.data, not the camera object
+    """
+    if camera is not None:
+        camera.background_images.clear()
+        # remove(image)
+        camera.show_background_images = False
 
 
 def findFirstUniqueName(originalItem, name, itemsArray):
