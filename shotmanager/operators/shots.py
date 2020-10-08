@@ -520,12 +520,16 @@ class UAS_ShotManager_ShotMove(Operator):
         # currentShotInd = props.getCurrentShotIndex()
         selectedShotInd = props.getSelectedShotIndex()
 
+        movedShot = shots[selectedShotInd]
         if self.action == "UP":
             #    if 0 < selectedShotInd:
-            props.moveShotToIndex(shots[selectedShotInd], selectedShotInd - 1)
+            movedShot = props.moveShotToIndex(movedShot, selectedShotInd - 1)
         elif self.action == "DOWN":
             #    if len(shots) - 1 > selectedShotInd:
-            props.moveShotToIndex(shots[selectedShotInd], selectedShotInd + 1)
+            movedShot = props.moveShotToIndex(movedShot, selectedShotInd + 1)
+
+        props.setCurrentShot(movedShot)
+        props.setSelectedShot(movedShot)
 
         return {"FINISHED"}
 

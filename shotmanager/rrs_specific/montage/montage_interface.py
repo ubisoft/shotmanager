@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import bpy
 from shotmanager.utils import utils
 
@@ -103,7 +105,7 @@ class MontageInterface(object):
         """
 
         def printInfoLine(col00, col01, col02):
-            print(f"{col00: >10}   {col01: <30}       - {col02: <30}")
+            print(f"{col00: >10}   {col01: <37}    - {col02: <30}")
 
         props = bpy.context.scene.UAS_shot_manager_props
         textSelf = ""
@@ -119,39 +121,42 @@ class MontageInterface(object):
         # infoStr += f"\n        Ref: {ref_montage.get_name(): >30}       -  {self.get_name() : >30}"
         textRef = ref_montage.get_name()
         textSelf = self.get_name()
-        printInfoLine("", textRef, textSelf)
+        # printInfoLine("", textRef, textSelf)
+        print(f"     {textRef + ':' :<44} {textSelf + ':' :<30}")
 
         # selfSeq = self.get_sequence_by_name(ref_sequence_name)
         selfSeq = (self.get_sequences())[0]  # wkip limité à 1 take pour l'instant
-        textSelf = f"    self Sequence: {selfSeq.get_name()}"
-        comparedShotsList = selfSeq.getEditShots(ignoreDisabled=False)  # .copy()  # .getEditShots()
+        textSelf = f"  Current Sequence: {selfSeq.get_name()}"
 
         refSeq = ref_montage.get_sequence_by_name(ref_sequence_name)
         if "" != ref_sequence_name:
             if refSeq is not None:
-                textRef = f"  Ref Sequence: {refSeq.get_name()} \n"
+                textRef = f"  Ref Sequence: {refSeq.get_name()}"
 
-        printInfoLine("", textRef, textSelf)
+        print(f"     {textRef + ':' :<44} {textSelf + ':' :<30}")
 
         if refSeq is None:
-            print(" ref Seq is None, aborting comparizon...")
+            print(" Ref Sequence is None, aborting comparison...")
             return ()
 
         ###################
         # compare order and enable state
         ###################
+
+        comparedShotsList = selfSeq.getEditShots(ignoreDisabled=False)
         newEditShots = list()
         numShotsInRefEdit = len(refSeq.getEditShots())
         for i, shot in enumerate(refSeq.getEditShots()):
             shotRef = shot
             textRef = shotRef.get_name()
+            shotRefName = Path(shotRef.get_name()).stem
 
             shotSelf = None
             for sh in comparedShotsList:
                 # if sh.get_name() == shotRef.get_name():
                 shotName = props.renderShotPrefix() + "_" + sh.get_name()
-                # print(f"shotName: {shotName}, shotRef.get_name(): {shotRef.get_name()}")
-                if shotName == shotRef.get_name():
+                # print(f"shotName: {shotName}, shotRefName: {shotRefName}")
+                if shotName == shotRefName:
                     shotSelf = sh
                     newEditShots.append(shotSelf)
                     break
@@ -161,29 +166,37 @@ class MontageInterface(object):
             else:
                 textSelf = shotSelf.get_name()
                 textSelf += "   "
+
                 if shotSelf.get_frame_final_duration() != shotRef.get_frame_final_duration():
-                    textSelf += "/ different durations"
+                    textSelf += f" / different durations ({shotSelf.get_frame_final_duration()} fr.)"
+
+                # wkip we don't know the length of the handles!!!
+                # if shotSelf.get_frame_offset_start() != shotRef.get_frame_final_duration():
+                #     textSelf += f" / different durations ({shotSelf.get_frame_final_duration()} fr.)"
+
                 if not shotSelf.enabled:
-                    textSelf += "/ to enabled"
+                    textSelf += " / to enable"
 
             # wkip wkip here mettre les diffs
 
-            printInfoLine(str(i), textRef, textSelf)
+            printInfoLine(str(i), f"{textRef}  ({shotRef.get_frame_final_duration()} fr.)", textSelf)
         # print(f"Shot: {shot.get_name()}")
         #         pass
-
-        print("\nNot used shots in current montage:")
 
         ###################
         # list other shots and disabled them
         ###################
+        print("\n       Shots not used in current sequence:")
         ind = 0
         for i, sh in enumerate(comparedShotsList):
             if sh not in newEditShots:
                 # sh.enabled = False
-                textSelf = sh.get_name() + "/ to disable"
+                textSelf = sh.get_name() + " / to disable"
                 printInfoLine(str(ind + numShotsInRefEdit), "-", textSelf)
                 ind += 1
+
+        if 0 == ind:
+            printInfoLine("", "-", "-")
 
         print("")
 

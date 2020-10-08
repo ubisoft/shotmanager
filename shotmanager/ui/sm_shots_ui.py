@@ -736,7 +736,8 @@ class UAS_MT_ShotManager_Shots_ToolsMenu(Menu):
             argsDictDebugModifs = dict()
             argsDictDebugModifs.update(
                 {
-                    "otioFile": r"C:\_UAS_ROOT\RRSpecial\04_ActsPredec\Act01\Exports\RRSpecial_ACT01_AQ_XML_200730\RRSpecial_To40_RefDebug_SwapSeq30_20-30.xml"
+                    #    "otioFile": r"C:\_UAS_ROOT\RRSpecial\04_ActsPredec\Act01\Exports\RRSpecial_ACT01_AQ_XML_200730\RRSpecial_To40_RefDebug_SwapSeq30_20-30.xml"
+                    "otioFile": r"C:\_UAS_ROOT\RRSpecial\_Sandbox\Julien\Fixtures_Montage\Act01_Seq0060_Main_Take_ModifsSwap.xml"
                 }
             )
             argsDictDebugModifs.update({"conformMode": "UPDATE"})
@@ -744,7 +745,7 @@ class UAS_MT_ShotManager_Shots_ToolsMenu(Menu):
             argsDictDebugModifs.update({"mediaHandlesDuration": props.getHandlesDuration()})
 
             row.operator(
-                "uasshotmanager.createshotsfromotio_rrs", text="Create Shots From EDL - Debug 40 swap"
+                "uasshotmanager.createshotsfromotio_rrs", text="Create Shots From EDL - Debug swap"
             ).opArgs = json.JSONEncoder().encode(argsDictDebugModifs)
             # row.operator(
             #     "uasshotmanager.createshotsfromotio_rrs", text="Create Shots From EDL - Debug 40 swap"

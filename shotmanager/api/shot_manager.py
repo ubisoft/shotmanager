@@ -126,8 +126,8 @@ def remove_shot(shot_manager, shot):
     shot_manager.removeShot(shot)
 
 
-def move_shot_to_index(shot_manager, shot, new_index, take_index=-1):
-    shot_manager.moveShotToIndex(shot, new_index, takeIndex=take_index)
+def move_shot_to_index(shot_manager, shot, new_index):
+    shot_manager.moveShotToIndex(shot, new_index)
 
 
 def set_current_shot_by_index(shot_manager, current_shot_index):

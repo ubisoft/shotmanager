@@ -1244,22 +1244,27 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
             print(f"La: takeInd: {takeInd}, currentTakeInd: {currentTakeInd}, shot Ind: {shotInd}")
             shots.remove(shotInd)
 
-    def moveShotToIndex(self, shot, newIndex, takeIndex=-1):
+    def moveShotToIndex(self, shot, newIndex):
         """
+            Move a shot to the specified index. The shot stays in the same take.
             Return the shot moved at the specified place.
             Once moved, the variable "shot" doesn't refer to the same shot anymore, hence:
                 *** it is VERY IMPORTANT to get the returned shot back ***
         """
-        currentTakeInd = self.getCurrentTakeIndex()
-        takeInd = (
-            currentTakeInd
-            if -1 == takeIndex
-            else (takeIndex if 0 <= takeIndex and takeIndex < len(self.getTakes()) else -1)
-        )
-        if -1 == takeInd:
-            print("moveShotToIndex: Failed")
+        # currentTakeInd = self.getCurrentTakeIndex()
+        # takeInd = (
+        #     currentTakeInd
+        #     if -1 == takeIndex
+        #     else (takeIndex if 0 <= takeIndex and takeIndex < len(self.getTakes()) else -1)
+        # )
+        # if -1 == takeInd:
+        #     print("moveShotToIndex: Failed")
+        #     return None
+
+        if shot is None:
             return None
 
+        takeInd = shot.getParentTakeIndex()
         shots = self.get_shots(takeIndex=takeInd)
         currentShotInd = self.getCurrentShotIndex()
         # selectedShotInd = self.getSelectedShotIndex()
@@ -1269,9 +1274,10 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
 
         shots.move(shotInd, newInd)
 
-        if currentShotInd == shotInd:
-            self.setCurrentShotByIndex(newInd)
-        self.setSelectedShotByIndex(newInd)
+        # wkipwkipwkip test if shot and current shot are from the same take!!
+        # if currentShotInd == shotInd:
+        #     self.setCurrentShotByIndex(newInd)
+        # self.setSelectedShotByIndex(newInd)
 
         return self.getShot(newInd, takeIndex=takeInd)
 
@@ -2463,138 +2469,6 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         # self.sequencesList.append(newSeq)
         # return newSeq
         return None
-
-    # put this function in imports.py???
-    def conformToRefMontage(self, ref_montage, ref_sequence_name="", clearVSE=True, clearCameraBG=True, takeIndex=-1):
-        takeInd = (
-            self.getCurrentTakeIndex()
-            if -1 == takeIndex
-            else (takeIndex if 0 <= takeIndex and takeIndex < len(self.getTakes()) else -1)
-        )
-        if -1 == takeInd:
-            return ()
-
-        take = self.getTakeByIndex(takeInd)
-        shotList = self.get_shots(takeIndex=takeInd)
-
-        """
-            Conform / update current montage to match specified montage
-            If ref_sequence_name is specified then only this sequence is compared
-        """
-
-        def printInfoLine(col00, col01, col02):
-            print(f"{col00: >10} {col01: >30}       - {col02: >30}")
-
-        scene = bpy.context.scene
-        props = self  # scene.UAS_shot_manager_props
-
-        textSelf = ""
-        textRef = ""
-
-        infoStr = f"\n\n ------ ------ ------ ------ ------ ------ ------ ------ ------ "
-        infoStr += f"\n\n {utils.bcolors.HEADER}Conform montage to {ref_montage.get_name()}:{utils.bcolors.ENDC}\n"
-        print(infoStr)
-
-        # infoStr += (
-        #     f"\nNote: All the end values are EXCLUSIVE (= not the last used frame of the range but the one after)"
-        # )
-        # infoStr += f"\n        Ref: {ref_montage.get_name(): >30}       -  {props.get_name() : >30}"
-        textRef = ref_montage.get_name()
-        textSelf = props.get_name()
-        printInfoLine("", textRef, textSelf)
-
-        # selfSeq = props.get_sequence_by_name(ref_sequence_name)
-        selfSeq = (props.get_sequences())[0]  # wkip limité à 1 take pour l'instant
-        textSelf = f"    self Sequence: {selfSeq.get_name()}"
-
-        refSeq = ref_montage.get_sequence_by_name(ref_sequence_name)
-        if "" != ref_sequence_name:
-            if refSeq is not None:
-                textRef = f"  Ref Sequence: {refSeq.get_name()} \n"
-
-        printInfoLine("", textRef, textSelf)
-
-        if refSeq is None:
-            print(" ref Seq is None, aborting conformation...")
-            return ()
-
-        ###################
-        # clear VSE
-        ###################
-        vse_render = bpy.context.window_manager.UAS_vse_render
-        if clearVSE:
-            vse_render.clearAllChannels(scene)
-
-        ###################
-        # clear camera BG
-        ###################
-        if clearCameraBG:
-            for sh in shotList:
-                if sh.camera is not None:
-                    utils.remove_background_video_from_cam(sh.camera.data)
-
-        ###################
-        # conform order and enable state
-        ###################
-
-        # comparedShotsList = selfSeq.getEditShots(ignoreDisabled=False)  # .copy()  # .getEditShots()
-
-        newEditShots = list()
-        numShotsInRefEdit = len(refSeq.getEditShots())
-        for indInRefEdit, shot in enumerate(refSeq.getEditShots()):
-            shotRef = shot
-            textRef = shotRef.get_name()
-
-            shotSelf = None
-            for sh in shotList:
-                # if sh.get_name() == shotRef.get_name():
-                shotName = props.renderShotPrefix() + "_" + sh.get_name()
-                # print(f"shotName: {shotName}, shotRef.get_name(): {shotRef.get_name()}")
-                if shotName == shotRef.get_name():
-                    shotSelf = sh
-                    newEditShots.append(shotSelf)
-                    break
-
-            if shotSelf is None:
-                textSelf = "-"
-            else:
-                # set shot position in take edit
-                shotInd = props.getShotIndex(shotSelf)
-                if indInRefEdit != shotInd:
-                    print(f" ++ shot name before move: {shotSelf.name}, enabled: {shotSelf.enabled}")
-                    shotSelf = props.moveShotToIndex(shotSelf, indInRefEdit, takeIndex=takeInd)
-                    print(f" ++ shot name after move: {shotSelf.name}, enabled: {shotSelf.enabled}")
-
-                if not shotSelf.enabled:
-                    textSelf += "Was disabled"
-                print(f" ++ shot name before enabled: {shotSelf.name}, enabled: {shotSelf.enabled}")
-                shotSelf.enabled = True
-                print(f" ++ shot name after enabled: {shotSelf.name}, enabled: {shotSelf.enabled}")
-
-                textSelf = shotSelf.get_name() + "  "
-                if shotSelf.get_frame_final_duration() != shotRef.get_frame_final_duration():
-                    textSelf += "Different duration"
-
-            # wkip wkip here mettre les diffs
-
-            printInfoLine(str(indInRefEdit), textRef, textSelf)
-        # print(f"Shot: {shot.get_name()}")
-        #         pass
-
-        print("\nNot used shots in current montage:")
-
-        ###################
-        # list other shots and disabled them
-        ###################
-        ind = 0
-        for i, sh in enumerate(shotList):
-            if sh not in newEditShots:
-                sh.enabled = False
-                textSelf = sh.get_name()
-                printInfoLine(str(ind + numShotsInRefEdit), "-", textSelf)
-                ind += 1
-
-        print("")
 
 
 _classes = (

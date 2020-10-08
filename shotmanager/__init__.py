@@ -66,7 +66,7 @@ bl_info = {
     "version": (1, 3, 50),
     "location": "View3D > UAS Shot Manager",
     "wiki_url": "https://gitlab-ncsa.ubisoft.org/animation-studio/blender/shotmanager-addon/-/wikis/home",
-    #  "warning": "BETA Version - Fais gaffe à tes données !!!",
+    "warning": "BETA Version - Fais gaffe à tes données !!!",
     "category": "UAS",
 }
 

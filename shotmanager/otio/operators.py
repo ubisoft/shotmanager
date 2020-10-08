@@ -16,7 +16,7 @@ from .exports import exportOtio
 # from shotmanager.otio import imports
 from .imports import createShotsFromOtio, importOtioToVSE
 from .imports import getSequenceListFromOtioTimeline
-from .imports import createShotsFromOtioTimelineClass
+from .imports import createShotsFromOtioTimelineClass, conformToRefMontage
 
 from shotmanager.rrs_specific.montage.montage_otio import MontageOtio
 
@@ -421,6 +421,8 @@ class UAS_ShotManager_OT_Create_Shots_From_OTIO_RRS(Operator):
         layout.separator()
 
     def execute(self, context):
+        props = context.scene.UAS_shot_manager_props
+
         #   import opentimelineio as otio
         # from random import uniform
         # from math import radians
@@ -472,9 +474,20 @@ class UAS_ShotManager_OT_Create_Shots_From_OTIO_RRS(Operator):
 
         else:
             bpy.ops.uasshotmanager.compare_otio_and_current_montage(sequenceName=selSeq.get_name())
-            context.scene.UAS_shot_manager_props.conformToRefMontage(
-                config.gMontageOtio, selSeq.get_name(), clearVSE=self.clearVSE, clearCameraBG=self.clearCameraBG
+            conformToRefMontage(
+                context.scene,
+                config.gMontageOtio,
+                selSeq.get_name(),
+                clearVSE=self.clearVSE,
+                clearCameraBG=self.clearCameraBG,
+                createMissingShots=self.createMissingShots,
+                createCameras=self.createCameras,
+                useMediaAsCameraBG=self.useMediaAsCameraBG,
+                mediaHaveHandles=self.mediaHaveHandles,
+                mediaHandlesDuration=self.mediaHandlesDuration,
             )
+            props.setCurrentShotByIndex(0)
+            props.setSelectedShotByIndex(0)
 
         return {"FINISHED"}
 
