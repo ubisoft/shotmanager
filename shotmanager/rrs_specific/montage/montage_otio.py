@@ -60,8 +60,10 @@ class MontageOtio(MontageInterface):
 
         return seqName
 
-    def fillMontageInfoFromOtioFile(self, otioFile, verboseInfo=False):
-        self.initialize(otioFile)
+    def fillMontageInfoFromOtioFile(self, otioFile=None, refVideoTrackInd=0, verboseInfo=False):
+
+        if otioFile is not None:
+            self.initialize(otioFile)
 
         if self.timeline is None:
             _logger.error("fillMontageInfoFromOtioFile: self.timeline is None!")
@@ -76,40 +78,48 @@ class MontageOtio(MontageInterface):
 
             return -1
 
+        self.sequencesList = None
+        self.sequencesList = list()
+
+        _logger.debug(f"refVideoTrackInd: {refVideoTrackInd}")
+        # ref track is the first one
         tracks = self.timeline.video_tracks()
-        for track in tracks:
-            for clip in track:
-                if isinstance(clip, opentimelineio.schema.Clip):
-                    media_path = Path(utils.file_path_from_url(clip.media_reference.target_url))
-                    if config.uasDebug:
-                        print(f"\n** clip: {clip.name}")
-                        print(f"** clip.media_reference: {clip.media_reference}")
-                        print(f"** media_path: {media_path}")
-                    # wkip ici mettre une exception pour attraper les media manquants (._otio.MissingReference)
+        for i, track in enumerate(tracks):
+            if refVideoTrackInd == i:
+                #     track = self.timeline.video_tracks[0]
 
-                    # get media name
-                    filename = os.path.split(media_path)[1]
-                    media_name = os.path.splitext(filename)[0]
-                    media_name_lower = media_name.lower()
+                for clip in track:
+                    if isinstance(clip, opentimelineio.schema.Clip):
+                        media_path = Path(utils.file_path_from_url(clip.media_reference.target_url))
+                        # if config.uasDebug:
+                        #   print(f"\n** clip: {clip.name}")
+                        # print(f"** clip.media_reference: {clip.media_reference}")
+                        # print(f"** media_path: {media_path}")
+                        # wkip ici mettre une exception pour attraper les media manquants (._otio.MissingReference)
 
-                    # get parent sequence
-                    seq_pattern = "_seq"
-                    if seq_pattern in media_name_lower:
-                        #    print(f"media_name: {media_name}")
+                        # get media name
+                        filename = os.path.split(media_path)[1]
+                        media_name = os.path.splitext(filename)[0]
+                        media_name_lower = media_name.lower()
 
-                        media_name_splited = media_name_lower.split("_")
-                        if 2 <= len(media_name_splited):
-                            parentSeqInd = _getParentSeqIndex(self.sequencesList, media_name_splited[1])
+                        # get parent sequence
+                        seq_pattern = "_seq"
+                        if seq_pattern in media_name_lower:
+                            #    print(f"media_name: {media_name}")
 
-                            # add new seq if not found
-                            newSeq = None
-                            if -1 == parentSeqInd:
-                                newSeq = self.newSequence()
-                                newSeq.set_name(self.getSequenceNameFromMediaName(media_name))
+                            media_name_splited = media_name_lower.split("_")
+                            if 2 <= len(media_name_splited):
+                                parentSeqInd = _getParentSeqIndex(self.sequencesList, media_name_splited[1])
 
-                            else:
-                                newSeq = self.sequencesList[parentSeqInd]
-                            newSeq.newShot(clip)
+                                # add new seq if not found
+                                newSeq = None
+                                if -1 == parentSeqInd:
+                                    newSeq = self.newSequence()
+                                    newSeq.set_name(self.getSequenceNameFromMediaName(media_name))
+
+                                else:
+                                    newSeq = self.sequencesList[parentSeqInd]
+                                newSeq.newShot(clip)
 
         # for seq in self.sequencesList:
         #     # get the start and end of every seq

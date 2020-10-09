@@ -87,7 +87,9 @@ class UAS_PT_VideoShotManager(Panel):
 
         row.prop(vsm_props, "numTracks")
         row.operator("uas_video_shot_manager.update_tracks_list", text="", icon="FILE_REFRESH")
-        row.operator("uas_video_shot_manager.clear_all")
+        subRow = row.row(align=True)
+        subRow.operator("uas_video_shot_manager.clear_all")
+        subRow.menu("UAS_MT_Video_Shot_Manager_clear_menu", icon="TRIA_RIGHT", text="")
 
         box = layout.box()
         row = box.row()
@@ -286,11 +288,13 @@ class UAS_MT_VideoShotManager_ToolsMenu(Menu):
 
         row = layout.row(align=True)
         row.operator_context = "INVOKE_DEFAULT"
-        row.operator("uas_video_shot_manager.remove_multiple_tracks", text="Remove Disabled Tracks").action = "DISABLED"
+        row.operator(
+            "uas_video_shot_manager.remove_multiple_tracks", text="   Remove Disabled Tracks"
+        ).action = "DISABLED"
 
         row = layout.row(align=True)
         row.operator_context = "INVOKE_DEFAULT"
-        row.operator("uas_video_shot_manager.remove_multiple_tracks", text="Remove All Tracks").action = "ALL"
+        row.operator("uas_video_shot_manager.remove_multiple_tracks", text="   Remove All Tracks").action = "ALL"
 
         # import edits
         layout.separator()
@@ -299,17 +303,29 @@ class UAS_MT_VideoShotManager_ToolsMenu(Menu):
 
         row = layout.row(align=True)
         row.operator_context = "INVOKE_DEFAULT"
-        row.operator("uasotio.openfilebrowser", text="Import Edit From EDL").importMode = "IMPORT_EDIT"
+        row.operator("uasotio.openfilebrowser", text="   Import Edit From EDL").importMode = "IMPORT_EDIT"
 
+        # export edits
+        layout.separator()
+        row = layout.row(align=True)
+        row.label(text="Export Edits:")
+
+        row = layout.row(align=True)
+        row.operator_context = "INVOKE_DEFAULT"
+        row.operator(
+            "uas_video_shot_manager.export_markers_edit_as_videos", text="   Export Markers Edit as Videos"
+        )  # , text="Import Edit From EDL")
+
+        layout.separator()
         # wkip debug - to remove:
         if config.uasDebug:
             row = layout.row(align=True)
-            row.operator("uas_video_shot_manager.importeditfromotio", text="Import Edit From EDL - Debug")
+            row.operator("uas_video_shot_manager.importeditfromotio", text="   Import Edit From EDL - Debug")
 
         if config.uasDebug:
             row = layout.row(align=True)
             row.operator(
-                "uas_video_shot_manager.importeditfromotio", text="Import Edit From EDL - Debug + file"
+                "uas_video_shot_manager.importeditfromotio", text="   Import Edit From EDL - Debug + file"
             ).otioFile = (
                 # r"Z:\_UAS_Dev\Exports\RRSpecial_ACT01_AQ_XML_200730\RRSpecial_ACT01_AQ_200730__FromPremiere.xml"
                 r"Z:\EvalSofts\Blender\DevPython_Data\UAS_ShotManager_Data\ImportEDLPremiere\ImportEDLPremiere.xml"
@@ -318,58 +334,22 @@ class UAS_MT_VideoShotManager_ToolsMenu(Menu):
 
         row = layout.row(align=True)
         row.operator_context = "INVOKE_DEFAULT"
-        row.operator("uasotio.openfilebrowser", text="Parse Edit From EDL").importMode = "PARSE_EDIT"
+        row.operator("uasotio.openfilebrowser", text="   Parse Edit From EDL").importMode = "PARSE_EDIT"
 
         # wkip debug - to remove:
         if config.uasDebug:
             row = layout.row(align=True)
-            row.operator("uas_video_shot_manager.parseeditfromotio", text="Import Edit From EDL - Debug").otioFile = ""
+            row.operator(
+                "uas_video_shot_manager.parseeditfromotio", text="   Import Edit From EDL - Debug"
+            ).otioFile = ""
 
         layout.separator()
 
-
-class UAS_PT_VideoShotManagerSelectedStrip(Panel):
-    bl_idname = "UAS_PT_VideoShotManagerSelectedStripPanel"
-    bl_label = "Selected Strip"
-    bl_description = "Selected Strip Options"
-    bl_space_type = "SEQUENCE_EDITOR"
-    bl_region_type = "UI"
-    bl_category = "UAS Video Shot Man"
-    # bl_options = {"DEFAULT_CLOSED"}
-
-    @classmethod
-    def poll(cls, context):
-        props = context.scene.UAS_shot_manager_props
-        return not props.dontRefreshUI()
-
-    def draw(self, context):
-        prefs = context.preferences.addons["shotmanager"].preferences
-
-        layout = self.layout
-
-        row = layout.row()
-        row.label(text="Selected Strip:")
-        subRow = row.row()
-        if bpy.context.selected_sequences is not None and 1 == len(bpy.context.selected_sequences):
-            subRow.prop(bpy.context.selected_sequences[0], "name", text="")
-        else:
-            subRow.enabled = False
-            subRow.prop(prefs, "emptyField", text="")
-        row = layout.row()
-        row.label(text="Type:")
-        if bpy.context.selected_sequences is not None and 1 == len(bpy.context.selected_sequences):
-            row.label(text=str(type(bpy.context.selected_sequences[0]).__name__))
-
-        if config.uasDebug:
-            box = layout.box()
-            box.label(text="Tools:")
-            row = box.row()
-            #  row.operator("uas_shot_manager.selected_to_active")
-
-            box = layout.box()
-
-            row = box.row()
-            row.separator(factor=0.1)
+        row = layout.row(align=True)
+        row.label(text="RRS Specific:")
+        row = layout.row(align=True)
+        row.operator_context = "INVOKE_DEFAULT"
+        row.operator("uas_video_shot_manager.rrs_export_shots_from_edit", text="   Export Shots From Edit")
 
 
 _classes = (
@@ -377,7 +357,6 @@ _classes = (
     UAS_PT_VideoShotManager_TrackProperties,
     UAS_UL_VideoShotManager_Items,
     UAS_MT_VideoShotManager_ToolsMenu,
-    UAS_PT_VideoShotManagerSelectedStrip,
 )
 
 
@@ -387,6 +366,5 @@ def register():
 
 
 def unregister():
-
     for cls in reversed(_classes):
         bpy.utils.unregister_class(cls)

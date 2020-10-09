@@ -35,6 +35,8 @@ from .retimer import retimer_props
 from . import rendering
 from .rendering import rendering_ui
 
+from .rrs_specific import rrs_vsm_tools
+
 from .scripts import precut_tools
 
 from .tools import vse_render
@@ -382,6 +384,9 @@ def register():
     prefs.register()
     about.register()
 
+    # rrs specific
+    rrs_vsm_tools.register()
+
     # debug tools
     if config.uasDebug:
         sm_debug.register()
@@ -438,6 +443,9 @@ def unregister():
     # debug tools
     if config.uasDebug:
         sm_debug.unregister()
+
+    # rrs specific
+    rrs_vsm_tools.unregister()
 
     # ui
     about.unregister()

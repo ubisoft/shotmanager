@@ -1111,7 +1111,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
 
         # warning: by reordering the shots it looks like newShot is not pointing anymore on the new shot
         # we then get it again
-        # newShot = self.getShot(newShotInd)
+        # newShot = self.getShotByIndex(newShotInd)
 
         return newShot
 
@@ -1279,7 +1279,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         #     self.setCurrentShotByIndex(newInd)
         # self.setSelectedShotByIndex(newInd)
 
-        return self.getShot(newInd, takeIndex=takeInd)
+        return self.getShotByIndex(newInd, takeIndex=takeInd)
 
     def getShotParentTakeIndex(self, shot):
         for i, take in enumerate(self.takes):
@@ -1317,10 +1317,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
                     return j
         return -1
 
-    def getShot(self, shotIndex, ignoreDisabled=False, takeIndex=-1):
-        """
-            wkip to rename getShotByIndex!!!
-        """
+    def getShotByIndex(self, shotIndex, ignoreDisabled=False, takeIndex=-1):
         takeInd = (
             self.getCurrentTakeIndex()
             if -1 == takeIndex
@@ -1340,6 +1337,24 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
 
         if 0 < len(shotList) and shotIndex < len(shotList):
             shot = shotList[shotIndex]
+
+        return shot
+
+    def getShotByName(self, shotName, ignoreDisabled=False, takeIndex=-1):
+        takeInd = (
+            self.getCurrentTakeIndex()
+            if -1 == takeIndex
+            else (takeIndex if 0 <= takeIndex and takeIndex < len(self.getTakes()) else -1)
+        )
+        shot = None
+        if -1 == takeInd:
+            return None
+
+        shotList = self.getShotsList(ignoreDisabled=ignoreDisabled, takeIndex=takeIndex)
+
+        for sh in shotList:
+            if shotName == sh.name:
+                return sh
 
         return shot
 
@@ -1586,7 +1601,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         firstShot = (
             None
             if -1 == firstShotInd
-            else self.getShot(firstShotInd, ignoreDisabled=ignoreDisabled, takeIndex=takeIndex)
+            else self.getShotByIndex(firstShotInd, ignoreDisabled=ignoreDisabled, takeIndex=takeIndex)
         )
 
         return firstShot
@@ -1595,7 +1610,9 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         lastShotInd = self.getLastShotIndex(ignoreDisabled=ignoreDisabled, takeIndex=takeIndex)
         print(" getLastShot: lastShotInd: ", lastShotInd)
         lastShot = (
-            None if -1 == lastShotInd else self.getShot(lastShotInd, ignoreDisabled=ignoreDisabled, takeIndex=takeIndex)
+            None
+            if -1 == lastShotInd
+            else self.getShotByIndex(lastShotInd, ignoreDisabled=ignoreDisabled, takeIndex=takeIndex)
         )
 
         return lastShot
@@ -1713,14 +1730,14 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
 
             # get current shot in the WHOLE list (= even disabled)
             currentShotInd = self.getCurrentShotIndex()
-            currentShot = self.getShot(currentShotInd)
+            currentShot = self.getShotByIndex(currentShotInd)
             print("    current Shot: ", currentShotInd)
             if not currentShot.enabled:
                 print("    current Shot is disabled")
                 previousShotInd = self.getPreviousEnabledShotIndex(currentShotInd)
                 if -1 < previousShotInd:
                     print("    previous Shot ind is ", previousShotInd)
-                    newFrame = self.getShot(previousShotInd).end
+                    newFrame = self.getShotByIndex(previousShotInd).end
             else:
                 print("    current Shot is ENabled")
                 if currentFrame == currentShot.start:
@@ -1728,7 +1745,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
                     previousShotInd = self.getPreviousEnabledShotIndex(currentShotInd)
                     if -1 < previousShotInd:
                         print("      previous Shot ind is ", previousShotInd)
-                        newFrame = self.getShot(previousShotInd).end
+                        newFrame = self.getShotByIndex(previousShotInd).end
                     else:  # case of the very first shot
                         previousShotInd = currentShotInd
                         newFrame = currentFrame
@@ -1760,14 +1777,14 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
 
             # get current shot in the WHOLE list (= even disabled)
             currentShotInd = self.getCurrentShotIndex()
-            currentShot = self.getShot(currentShotInd)
+            currentShot = self.getShotByIndex(currentShotInd)
             print("    current Shot: ", currentShotInd)
             if not currentShot.enabled:
                 print("    current Shot is disabled")
                 nextShotInd = self.getNextEnabledShotIndex(currentShotInd)
                 if -1 < nextShotInd:
                     print("    next Shot ind is ", nextShotInd)
-                    newFrame = self.getShot(nextShotInd).start
+                    newFrame = self.getShotByIndex(nextShotInd).start
             else:
                 print("    current Shot is ENabled")
                 if currentFrame == currentShot.end:
@@ -1775,7 +1792,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
                     nextShotInd = self.getNextEnabledShotIndex(currentShotInd)
                     if -1 < nextShotInd:
                         print("      next Shot ind is ", nextShotInd)
-                        newFrame = self.getShot(nextShotInd).start
+                        newFrame = self.getShotByIndex(nextShotInd).start
                     else:  # case of the very last shot
                         nextShotInd = currentShotInd
                         newFrame = currentFrame
@@ -1814,14 +1831,14 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
 
             # get current shot in the WHOLE list (= even disabled)
             currentShotInd = self.getCurrentShotIndex()
-            currentShot = self.getShot(currentShotInd)
+            currentShot = self.getShotByIndex(currentShotInd)
             #    print("    current Shot: ", currentShotInd)
             if not currentShot.enabled:
                 #       print("    current Shot is disabled")
                 previousShotInd = self.getPreviousEnabledShotIndex(currentShotInd)
                 if -1 < previousShotInd:
                     #           print("    previous Shot ind is ", previousShotInd)
-                    newFrame = self.getShot(previousShotInd).end
+                    newFrame = self.getShotByIndex(previousShotInd).end
             else:
                 #        print("    current Shot is ENabled")
                 if currentFrame == currentShot.start:
@@ -1829,7 +1846,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
                     previousShotInd = self.getPreviousEnabledShotIndex(currentShotInd)
                     if -1 < previousShotInd:
                         #              print("      previous Shot ind is ", previousShotInd)
-                        newFrame = self.getShot(previousShotInd).end
+                        newFrame = self.getShotByIndex(previousShotInd).end
                     else:  # case of the very first shot
                         previousShotInd = currentShotInd
                         newFrame = currentFrame
@@ -1866,14 +1883,14 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
 
             # get current shot in the WHOLE list (= even disabled)
             currentShotInd = self.getCurrentShotIndex()
-            currentShot = self.getShot(currentShotInd)
+            currentShot = self.getShotByIndex(currentShotInd)
             #    print("    current Shot: ", currentShotInd)
             if not currentShot.enabled:
                 #        print("    current Shot is disabled")
                 nextShotInd = self.getNextEnabledShotIndex(currentShotInd)
                 if -1 < nextShotInd:
                     #            print("    next Shot ind is ", nextShotInd)
-                    newFrame = self.getShot(nextShotInd).start
+                    newFrame = self.getShotByIndex(nextShotInd).start
             else:
                 #        print("    current Shot is ENabled")
                 if currentFrame == currentShot.end:
@@ -1881,7 +1898,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
                     nextShotInd = self.getNextEnabledShotIndex(currentShotInd)
                     if -1 < nextShotInd:
                         #              print("      next Shot ind is ", nextShotInd)
-                        newFrame = self.getShot(nextShotInd).start
+                        newFrame = self.getShotByIndex(nextShotInd).start
                     else:  # case of the very last shot
                         nextShotInd = currentShotInd
                         newFrame = currentFrame
@@ -2023,7 +2040,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
     #     specificFrame=None,
     #     noExtension=False,
     # ):
-    #     shot = self.getShot(shotIndex=shotIndex, takeIndex=takeIndex)
+    #     shot = self.getShotByIndex(shotIndex=shotIndex, takeIndex=takeIndex)
 
     #     fileName = ""
     #     if shot is None:
@@ -2177,7 +2194,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         return cameras
 
     def selectCamera(self, shotIndex):
-        shot = self.getShot(shotIndex)
+        shot = self.getShotByIndex(shotIndex)
         if shot is not None:
             bpy.ops.object.select_all(action="DESELECT")
             if shot.camera is not None:
@@ -2470,6 +2487,91 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         # return newSeq
         return None
 
+    ###########################
+
+    def sortShotsVersions(self, takeIndex=-1):
+        """ Sorts shots ending with '_a', '_b'...
+            *** Only sort disabled shots by default ***
+        """
+        takeInd = (
+            self.getCurrentTakeIndex()
+            if -1 == takeIndex
+            else (takeIndex if 0 <= takeIndex and takeIndex < len(self.getTakes()) else -1)
+        )
+        if -1 == takeInd:
+            return ()
+
+        # get the disabled shots
+        shotList = self.takes[takeInd].shots
+
+        disabledShotNames = list()
+        for i in range(0, len(shotList)):
+            if not shotList[i].enabled:
+                disabledShotNames.append(shotList[i].name)
+
+        # sort the list
+        disabledShotNames.sort()
+
+        print("\nSorted list:")
+        for nam in disabledShotNames:
+            print(f"  {nam}")
+
+        import re
+
+        # shot_re = re.compile(r"sh_?(\d+)", re.IGNORECASE)
+        # shot_re = re.compile(r"Sh_?(\d+)")
+        shot_re = re.compile(r"^Sh\d\d\d\d")
+
+        def _baseName(name):
+            """ We are based on teh name template Shxxxx
+            """
+            return name[:6]
+
+        def _isValidShotName(name):
+            res = False
+            match = shot_re.search(name)
+            if match:
+                res = True
+            return res
+
+        print("\nTreated list:")
+        for shName in disabledShotNames:
+            # if it is a basename or a version name
+            if _isValidShotName(shName):
+                print(f" - {shName}, basename: {_baseName(shName)}")
+
+                # check the shots list from begining and insert at first place where names are matching
+                for i in range(0, len(shotList)):
+                    # ignore self
+                    if shotList[i].name == shName:
+                        pass
+                    elif (shotList[i].name).startswith(_baseName(shName)):
+                        print(f"   ici:  shotList[i].name: {shotList[i].name}")
+
+                        if shName < shotList[i].name:
+                            print(f"     before")
+                            shotFromName = self.getShotByName(shName)
+                            self.moveShotToIndex(shotFromName, i)
+                            break
+                        else:
+                            print(f"   lu")
+                            if len(shotList) > i + 1:
+                                print(f"   lulu")
+                                if (shotList[i + 1].name).startswith(_baseName(shName)):
+                                    if shName < shotList[i + 1].name:
+                                        print(f"     lu")
+                                        shotFromName = self.getShotByName(shName)
+                                        self.moveShotToIndex(shotFromName, i + 1)
+                                        break
+                                else:
+                                    print("lo")
+                                    shotFromName = self.getShotByName(shName)
+                                    self.moveShotToIndex(shotFromName, i + 1)
+                                    break
+
+
+###########################
+
 
 _classes = (
     #    UAS_ShotManager_Media,
@@ -2480,16 +2582,12 @@ _classes = (
 
 
 def register():
-
     for cls in _classes:
         bpy.utils.register_class(cls)
-
     bpy.types.Scene.UAS_shot_manager_props = PointerProperty(type=UAS_ShotManager_Props)
 
 
 def unregister():
-
     del bpy.types.Scene.UAS_shot_manager_props
-
     for cls in reversed(_classes):
         bpy.utils.unregister_class(cls)

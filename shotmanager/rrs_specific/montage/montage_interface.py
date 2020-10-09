@@ -229,6 +229,9 @@ class SequenceInterface(object):
         self.shotsList.append(newShot)
         return newShot
 
+    # def get_shots(self, ignoreDisabled=True):
+    #     return self.getEditShots(ignoreDisabled=ignoreDisabled)
+
     def getEditShots(self, ignoreDisabled=True):
         return self.shotsList
 

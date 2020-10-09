@@ -339,7 +339,7 @@ class UAS_VideoShotManager_TrackRemoveMultiple(Operator):
 
     action: bpy.props.EnumProperty(items=(("ALL", "ALL", ""), ("DISABLED", "DISABLED", "")))
 
-    def invoke(self, context, event):
+    def execute(self, context):
         scene = context.scene
         vsm_props = scene.UAS_vsm_props
         currentTrackInd = vsm_props.current_track_index
@@ -435,27 +435,6 @@ class UAS_VideoShotManager_UpdateTracksList(Operator):
         return {"FINISHED"}
 
 
-class UAS_VideoShotManager_ClearAll(Operator):
-    bl_idname = "uas_video_shot_manager.clear_all"
-    bl_label = "Clear All"
-    bl_description = "Clear all channels"
-    bl_options = {"INTERNAL", "UNDO"}
-
-    def invoke(self, context, event):
-        # vsm_sceneName = "VideoShotManger"
-        # vsm_scene = bpy.data.scenes[vsm_sceneName]
-        vsm_scene = bpy.context.scene
-        vsm_scene.sequence_editor_clear()
-        vsm_scene.sequence_editor_create()
-
-        for area in bpy.context.screen.areas:
-            if area.type == "SEQUENCE_EDITOR":
-                area.tag_redraw()
-        #     space_data = area.spaces.active
-        # bpy.context.scene.sequence_editor.tag_redraw()
-        return {"FINISHED"}
-
-
 _classes = (
     UAS_VideoShotManager_TrackAdd,
     UAS_VideoShotManager_TrackDuplicate,
@@ -466,7 +445,6 @@ _classes = (
     UAS_VideoShotManager_ClearVSETrack,
     UAS_VideoShotManager_GoToSpecifedScene,
     # UAS_VideoShotManager_SetCurrentTrack,
-    UAS_VideoShotManager_ClearAll,
     UAS_VideoShotManager_UpdateTracksList,
 )
 

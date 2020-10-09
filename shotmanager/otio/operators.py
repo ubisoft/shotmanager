@@ -105,6 +105,16 @@ def list_sequences_from_edl(self, context):
     return res
 
 
+def list_video_tracks_from_edl(self, context):
+    res = config.gTracksEnumList
+    nothingList = list()
+    nothingList.append(("1 -", "1 ---", "", 0))
+
+    if res is None or 0 == len(res):
+        res = nothingList
+    return res
+
+
 class UAS_ShotManager_OT_Create_Shots_From_OTIO_RRS(Operator):
     bl_idname = "uasshotmanager.createshotsfromotio_rrs"
     bl_label = "Import/Update Shots from EDL File"
@@ -118,6 +128,17 @@ class UAS_ShotManager_OT_Create_Shots_From_OTIO_RRS(Operator):
     opArgs: StringProperty(default="")
 
     otioFile: StringProperty()
+
+    videoTrackIndices: EnumProperty(
+        name="Shots Video Track",
+        description="Track to use in the EDL to get the shot list",
+        # items=(("NO_SEQ", "No Sequence Found", ""),),
+        items=(list_video_tracks_from_edl),
+    )
+
+    refVideoTrackInd: IntProperty(
+        name="Reference Track", description="Track to get the shots list from", soft_min=0, min=0, default=0,
+    )
 
     sequenceList: EnumProperty(
         name="Sequence",
@@ -249,6 +270,8 @@ class UAS_ShotManager_OT_Create_Shots_From_OTIO_RRS(Operator):
             print(f" argsDict['otioFile']: {argsDict['otioFile']}")
             if "otioFile" in argsDict:
                 self.otioFile = argsDict["otioFile"]
+            if "refVideoTrackInd" in argsDict:
+                self.refVideoTrackInd = argsDict["refVideoTrackInd"]
             if "conformMode" in argsDict:
                 self.conformMode = argsDict["conformMode"]
             if "mediaHaveHandles" in argsDict:
@@ -259,10 +282,21 @@ class UAS_ShotManager_OT_Create_Shots_From_OTIO_RRS(Operator):
         config.gMontageOtio = None
         if "" != self.otioFile and Path(self.otioFile).exists():
             config.gMontageOtio = MontageOtio()
-            config.gMontageOtio.fillMontageInfoFromOtioFile(self.otioFile, verboseInfo=False)
+            config.gMontageOtio.initialize(self.otioFile)
+
+            config.gTracksEnumList = list()
+            numVideoTracks = len(config.gMontageOtio.timeline.video_tracks())
+            for i in range(0, numVideoTracks):
+                config.gTracksEnumList.append((str(i), str(i + 1), "", i))
+
+            self.videoTrackIndices = str(self.refVideoTrackInd)  # config.gTracksEnumList[0][0]
+
+            config.gMontageOtio.fillMontageInfoFromOtioFile(
+                refVideoTrackInd=int(self.videoTrackIndices), verboseInfo=False
+            )
+            print(f"config.gMontageOtio name: {config.gMontageOtio.get_name()}")
 
             config.gSeqEnumList = list()
-            print(f"config.gMontageOtio name: {config.gMontageOtio.get_name()}")
             for i, seq in enumerate(config.gMontageOtio.sequencesList):
                 print(f"- seqList: i:{i}, seq: {seq.get_name()}")
                 config.gSeqEnumList.append((str(i), seq.get_name(), f"Import sequence {seq.get_name()}", i + 1))
@@ -282,6 +316,20 @@ class UAS_ShotManager_OT_Create_Shots_From_OTIO_RRS(Operator):
     def draw(self, context):
         scene = context.scene
         props = scene.UAS_shot_manager_props
+
+        # print(f"self.videoTrackIndices: {self.videoTrackIndices}")
+        config.gMontageOtio.fillMontageInfoFromOtioFile(refVideoTrackInd=int(self.videoTrackIndices), verboseInfo=False)
+
+        config.gSeqEnumList = list()
+        for i, seq in enumerate(config.gMontageOtio.sequencesList):
+            # print(f"- seqList: i:{i}, seq: {seq.get_name()}")
+            config.gSeqEnumList.append((str(i), seq.get_name(), f"Import sequence {seq.get_name()}", i + 1))
+
+        # self.sequenceList = config.gSeqEnumList[0][0]
+        print(f"self.sequenceList : {self.sequenceList}")
+        # if len(config.gSeqEnumList) <= int(self.sequenceList):
+        if "" == self.sequenceList:
+            self.sequenceList = config.gSeqEnumList[0][0]
 
         selSeq = config.gMontageOtio.sequencesList[int(self.sequenceList)] if config.gMontageOtio is not None else None
 
@@ -312,6 +360,8 @@ class UAS_ShotManager_OT_Create_Shots_From_OTIO_RRS(Operator):
             )
             row.separator(factor=3)
             row.label(text=f"Num. Sequences: {len(config.gMontageOtio.sequencesList)}")
+
+            box.prop(self, "videoTrackIndices")
 
             row = box.row()
             if config.gMontageOtio.get_fps() != context.scene.render.fps:
@@ -434,6 +484,8 @@ class UAS_ShotManager_OT_Create_Shots_From_OTIO_RRS(Operator):
 
         # importOtio(
         selSeq = config.gMontageOtio.sequencesList[int(self.sequenceList)]
+
+        selSeq.printInfo()
 
         useTimeRange = True
         timeRange = [selSeq.get_frame_start(), selSeq.get_frame_end()] if useTimeRange else None

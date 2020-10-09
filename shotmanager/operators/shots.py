@@ -35,7 +35,7 @@ class UAS_ShotManager_SetCurrentShot(Operator):
     def invoke(self, context, event):
         props = context.scene.UAS_shot_manager_props
         if event.shift and not event.ctrl and not event.alt:
-            shot = props.getShot(self.index)
+            shot = props.getShotByIndex(self.index)
             shot.enabled = not shot.enabled
         elif event.ctrl and not event.shift and not event.alt:
             context.scene.UAS_shot_manager_props.setSelectedShotByIndex(self.index)
@@ -81,7 +81,7 @@ class UAS_ShotManager_GetSetCurrentFrame(Operator):
         props = context.scene.UAS_shot_manager_props
         argArr = json.loads(self.shotSource)
 
-        shot = props.getShot(argArr[0])
+        shot = props.getShotByIndex(argArr[0])
         if event.shift:
             if 0 == argArr[1]:
                 shot.start = context.scene.frame_current
@@ -123,7 +123,7 @@ class UAS_ShotManager_ShotTimeInEdit(Operator):
 
         # print("shotSource: ", self.shotSource)
         # print("argArr: ", argArr)
-        shot = props.getShot(argArr[0])
+        shot = props.getShotByIndex(argArr[0])
 
         if context.window_manager.UAS_shot_manager_shots_play_mode:
             props.setCurrentShotByIndex(argArr[0])
@@ -148,7 +148,7 @@ class UAS_ShotManager_ShowNotes(Operator):
 
     def invoke(self, context, event):
         props = context.scene.UAS_shot_manager_props
-        shot = props.getShot(self.index)
+        shot = props.getShotByIndex(self.index)
         shot.selectShotInUI()
         return {"FINISHED"}
 
@@ -556,7 +556,7 @@ class UAS_ShotManager_RemoveBGImages(Operator):
             take = context.scene.UAS_shot_manager_props.getCurrentTake()
             shotList = take.getShotList(ignoreDisabled=props.shotsGlobalSettings.alsoApplyToDisabledShots)
         else:
-            shot = props.getShot(self.shotIndex)
+            shot = props.getShotByIndex(self.shotIndex)
             if shot is not None:
                 shotList.append(shot)
 

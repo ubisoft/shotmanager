@@ -2,7 +2,7 @@ import os
 from pathlib import Path
 
 import bpy
-from bpy.types import Operator
+from bpy.types import Operator, Menu
 from bpy.props import StringProperty, BoolProperty, IntProperty, EnumProperty, PointerProperty
 from bpy_extras.io_utils import ImportHelper
 
@@ -72,7 +72,7 @@ class UAS_VideoShotManager_OT_Import_Edit_From_OTIO(Operator):
         config.gMontageOtio = None
         if "" != self.otioFile and Path(self.otioFile).exists():
             config.gMontageOtio = MontageOtio()
-            config.gMontageOtio.fillMontageInfoFromOtioFile(self.otioFile, verboseInfo=True)
+            config.gMontageOtio.fillMontageInfoFromOtioFile(otioFile=self.otioFile, verboseInfo=True)
 
             # timeline = ow.get_timeline_from_file(self.otioFile)
             # if timeline is not None:
@@ -256,10 +256,157 @@ class UAS_VideoShotManager_OT_PrintMontageInfo(Operator):
         return {"FINISHED"}
 
 
+class UAS_VideoShotManager_OT_ExportMarkersEditAsVideos(Operator):
+    bl_idname = "uas_video_shot_manager.export_markers_edit_as_videos"
+    bl_label = "Export Markers Edit as Videos"
+    bl_description = "Export all the segments defined by the markers as separated videos"
+    bl_options = {"INTERNAL"}
+
+    outputDir: StringProperty(default=r"C:\_UAS_ROOT\RRSpecial\05_Acts\Act01\_Montage\_OutputShots\\")
+
+    def execute(self, context):
+        scene = context.scene
+        props = scene.UAS_shot_manager_props
+
+        vse_render = bpy.context.window_manager.UAS_vse_render
+
+        scene.render.image_settings.file_format = "FFMPEG"
+        scene.render.ffmpeg.format = "MPEG4"
+        scene.render.ffmpeg.constant_rate_factor = "PERC_LOSSLESS"  # "PERC_LOSSLESS"
+        scene.render.ffmpeg.gopsize = 5  # keyframe interval
+        scene.render.ffmpeg.audio_codec = "AC3"
+
+        #       scene.render.filepath = output_filepath
+        scene.render.use_file_extension = False
+
+        for i, mrk in enumerate(scene.timeline_markers):
+            print(f"{i} Marker name: {mrk.name}")
+
+            if i < len(scene.timeline_markers) - 1:
+                scene.frame_start = scene.timeline_markers[i].frame
+                scene.frame_end = scene.timeline_markers[i + 1].frame
+                scene.render.filepath = self.outputDir + mrk.name + ".mp4"
+                bpy.ops.render.opengl(animation=True, sequencer=True)
+
+        return {"FINISHED"}
+
+
+#################
+# general tools
+#################
+
+# class UAS_MT_VideoShotManager_Prefs_MainMenu(Menu):
+#     bl_idname = "UAS_MT_Video_Shot_Manager_prefs_mainmenu"
+
+
+class UAS_MT_VideoShotManager_Clear_Menu(Menu):
+    bl_idname = "UAS_MT_Video_Shot_Manager_clear_menu"
+    bl_label = "Clear Tools"
+    bl_description = "Clear Tools"
+
+    def draw(self, context):
+
+        # Copy menu entries[ ---
+        layout = self.layout
+        row = layout.row(align=True)
+
+        # row.label(text="Tools for Tracks:")
+
+        row = layout.row(align=True)
+        row.operator_context = "INVOKE_DEFAULT"
+        row.operator("uas_video_shot_manager.remove_multiple_tracks", text="Remove Disabled Tracks").action = "DISABLED"
+
+        row = layout.row(align=True)
+        row.operator_context = "INVOKE_DEFAULT"
+        row.operator("uas_video_shot_manager.remove_multiple_tracks", text="Remove All Tracks").action = "ALL"
+
+        row = layout.row(align=True)
+        row.operator_context = "INVOKE_DEFAULT"
+        row.operator("uas_video_shot_manager.clear_clips", text="Remove All Clips")
+
+        row = layout.row(align=True)
+        row.operator_context = "INVOKE_DEFAULT"
+        row.operator("uas_video_shot_manager.clear_markers", text="Remove All Markers")
+
+
+#        layout.separator()
+
+
+class UAS_VideoShotManager_OT_ClearAll(Operator):
+    bl_idname = "uas_video_shot_manager.clear_all"
+    bl_label = "Clear All"
+    bl_description = "Clear all channels"
+    bl_options = {"INTERNAL", "UNDO"}
+
+    def execute(self, context):
+
+        bpy.ops.uas_video_shot_manager.clear_markers()
+        bpy.ops.uas_video_shot_manager.clear_clips()
+        bpy.ops.uas_video_shot_manager.remove_multiple_tracks(action="ALL")
+
+        return {"FINISHED"}
+
+
+class UAS_VideoShotManager_OT_ClearMarkers(Operator):
+    bl_idname = "uas_video_shot_manager.clear_markers"
+    bl_label = "Clear Markers"
+    bl_description = "Clear all markers"
+    bl_options = {"INTERNAL", "UNDO"}
+
+    def execute(self, context):
+        context.scene.timeline_markers.clear()
+        return {"FINISHED"}
+
+
+# class UAS_VideoShotManager_OT_ClearTracks(Operator):
+#     bl_idname = "uas_video_shot_manager.clear_tracks"
+#     bl_label = "Clear Clips"
+#     bl_description = "Clear all tracks"
+#     bl_options = {"INTERNAL", "UNDO"}
+
+#     def invoke(self, context, event):
+#         # vsm_sceneName = "VideoShotManger"
+#         # vsm_scene = bpy.data.scenes[vsm_sceneName]
+#         vsm_scene = bpy.context.scene
+#         vsm_scene.sequence_editor_clear()
+#         vsm_scene.sequence_editor_create()
+
+#         for area in bpy.context.screen.areas:
+#             if area.type == "SEQUENCE_EDITOR":
+#                 area.tag_redraw()
+#         #     space_data = area.spaces.active
+#         # bpy.context.scene.sequence_editor.tag_redraw()
+#         return {"FINISHED"}
+
+
+class UAS_VideoShotManager_OT_ClearClips(Operator):
+    bl_idname = "uas_video_shot_manager.clear_clips"
+    bl_label = "Clear Clips"
+    bl_description = "Clear all clips"
+    bl_options = {"INTERNAL", "UNDO"}
+
+    def execute(self, context):
+        vsm_scene = bpy.context.scene
+        vsm_scene.sequence_editor_clear()
+        vsm_scene.sequence_editor_create()
+
+        for area in bpy.context.screen.areas:
+            if area.type == "SEQUENCE_EDITOR":
+                area.tag_redraw()
+
+        return {"FINISHED"}
+
+
 _classes = (
     UAS_VideoShotManager_OT_Import_Edit_From_OTIO,
     UAS_VideoShotManager_OT_Parse_Edit_From_OTIO,
     UAS_VideoShotManager_OT_PrintMontageInfo,
+    UAS_VideoShotManager_OT_ExportMarkersEditAsVideos,
+    UAS_MT_VideoShotManager_Clear_Menu,
+    UAS_VideoShotManager_OT_ClearAll,
+    UAS_VideoShotManager_OT_ClearMarkers,
+    # UAS_VideoShotManager_OT_ClearTracks,
+    UAS_VideoShotManager_OT_ClearClips,
 )
 
 

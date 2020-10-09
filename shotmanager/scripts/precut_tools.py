@@ -12,9 +12,24 @@ from ..operators.shots import list_cameras
 from shotmanager.config import config
 
 
+class UAS_ShotManager_OT_PredecTools_SortVersionsShots(Operator):
+    bl_idname = "uas_shot_manager.predec_sort_versions_shots"
+    bl_label = "Sort Version Shots"
+    bl_description = (
+        "Sort the version shots (ie shorts with a name ending with '_a', '_b',...) so that they are placed altogheter in the edit."
+        "\n*** Enabled shots are not moved since it would modify the edit ***"
+    )
+    bl_options = {"INTERNAL", "UNDO"}
+
+    def execute(self, context):
+        context.scene.UAS_shot_manager_props.sortShotsVersions()
+
+        return {"FINISHED"}
+
+
 class UAS_ShotManager_PredecTools_CreateShotsFromSingleCamera(Operator):
     bl_idname = "uas_shot_manager.predec_shots_from_single_cam"
-    bl_label = "Create Shots From Single Camera"
+    bl_label = "Create Shots From Single Camera..."
     bl_description = (
         "Precut Tool: Create a set of shots based on the specified camera."
         "\nNew shots are put after the selected shot"
@@ -179,6 +194,7 @@ class UAS_ShotManager_OT_PredecTools_MontageSequencesToJson(Operator):
 
 
 _classes = (
+    UAS_ShotManager_OT_PredecTools_SortVersionsShots,
     UAS_ShotManager_PredecTools_CreateShotsFromSingleCamera,
     UAS_ShotManager_OT_PredecTools_PrintMontageInfo,
     UAS_ShotManager_OT_PredecTools_MontageSequencesToJson,

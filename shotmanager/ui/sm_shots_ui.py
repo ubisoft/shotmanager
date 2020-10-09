@@ -275,7 +275,7 @@ class UAS_PT_ShotManager_ShotProperties(Panel):
         if not ("SELECTED" == props.current_shot_properties_mode):
             shot = props.getCurrentShot()
         else:
-            shot = props.getShot(props.selected_shot_index)
+            shot = props.getShotByIndex(props.selected_shot_index)
         val = len(context.scene.UAS_shot_manager_props.getTakes()) and shot
         val = val and not props.dontRefreshUI()
         return val
@@ -299,7 +299,7 @@ class UAS_PT_ShotManager_ShotProperties(Panel):
         if not ("SELECTED" == props.current_shot_properties_mode):
             shot = props.getCurrentShot()
         else:
-            shot = props.getShot(props.selected_shot_index)
+            shot = props.getShotByIndex(props.selected_shot_index)
 
         cameraIsValid = shot.isCameraValid()
         itemHasWarnings = not cameraIsValid
@@ -320,7 +320,7 @@ class UAS_PT_ShotManager_ShotProperties(Panel):
         if not ("SELECTED" == props.current_shot_properties_mode):
             shot = props.getCurrentShot()
         else:
-            shot = props.getShot(props.selected_shot_index)
+            shot = props.getShotByIndex(props.selected_shot_index)
 
         layout = self.layout
         layout.use_property_decorate = False
@@ -638,11 +638,11 @@ class UAS_MT_ShotManager_Shots_ToolsMenu(Menu):
 
         row = layout.row(align=True)
         row.operator_context = "INVOKE_DEFAULT"
-        row.operator("uas_shot_manager.unique_cameras")
+        row.operator("uas_shot_manager.unique_cameras", text="   Make All Cameras Unique")
 
         row = layout.row(align=True)
         row.operator_context = "INVOKE_DEFAULT"
-        row.operator("uas_shot_manager.shots_removecamera")
+        row.operator("uas_shot_manager.shots_removecamera", text="   Remove Camera From All Shots...")
 
         # import shots ###
 
@@ -653,7 +653,7 @@ class UAS_MT_ShotManager_Shots_ToolsMenu(Menu):
         if config.uasDebug:
             row = layout.row(align=True)
             row.operator_context = "INVOKE_DEFAULT"
-            row.operator("uasotio.openfilebrowser", text="Create Shots From EDL").importMode = "CREATE_SHOTS"
+            row.operator("uasotio.openfilebrowser", text="   Create Shots From EDL").importMode = "CREATE_SHOTS"
 
         row = layout.row(align=True)
         #    row.operator_context = "INVOKE_DEFAULT"
@@ -671,7 +671,7 @@ class UAS_MT_ShotManager_Shots_ToolsMenu(Menu):
         argsDictPredecAct01.update({"mediaHandlesDuration": 0})
 
         row.operator(
-            "uasshotmanager.createshotsfromotio_rrs", text="Create Shots From EDL - Predec Act 01"
+            "uasshotmanager.createshotsfromotio_rrs", text="   Create Shots From EDL - Predec Act 01"
         ).opArgs = json.JSONEncoder().encode(argsDictPredecAct01)
 
         row = layout.row(align=True)
@@ -684,9 +684,10 @@ class UAS_MT_ShotManager_Shots_ToolsMenu(Menu):
         argsDictPrevAct01.update({"conformMode": "UPDATE"})
         argsDictPrevAct01.update({"mediaHaveHandles": props.areShotHandlesUsed()})
         argsDictPrevAct01.update({"mediaHandlesDuration": props.getHandlesDuration()})
+        argsDictPrevAct01.update({"refVideoTrackInd": 1})
 
         row.operator(
-            "uasshotmanager.createshotsfromotio_rrs", text="Create Shots From EDL - Previz Act 01"
+            "uasshotmanager.createshotsfromotio_rrs", text="   Update Shots From EDL - Previz Act 01"
         ).opArgs = json.JSONEncoder().encode(argsDictPrevAct01)
 
         layout.separator()
@@ -709,13 +710,13 @@ class UAS_MT_ShotManager_Shots_ToolsMenu(Menu):
         argsDictPredecAct02.update({"mediaHandlesDuration": 0})
 
         row.operator(
-            "uasshotmanager.createshotsfromotio_rrs", text="Create Shots From EDL - Predec Act 02"
+            "uasshotmanager.createshotsfromotio_rrs", text="   Create Shots From EDL - Predec Act 02"
         ).opArgs = json.JSONEncoder().encode(argsDictPredecAct02)
 
         # wkip debug - to remove:
         if config.uasDebug:
             row = layout.row(align=True)
-            row.operator("uasshotmanager.createshotsfromotio_rrs", text="Create Shots From EDL - Debug")
+            row.operator("uasshotmanager.createshotsfromotio_rrs", text="   Create Shots From EDL - Debug")
 
         if config.uasDebug:
             row = layout.row(align=True)
@@ -729,7 +730,7 @@ class UAS_MT_ShotManager_Shots_ToolsMenu(Menu):
             argsDictRefDebug.update({"conformMode": "CREATE"})
 
             row.operator(
-                "uasshotmanager.createshotsfromotio_rrs", text="Create Shots From EDL - Debug 40"
+                "uasshotmanager.createshotsfromotio_rrs", text="   Create Shots From EDL - Debug 40"
             ).opArgs = json.JSONEncoder().encode(argsDictRefDebug)
 
             row = layout.row(align=True)
@@ -745,7 +746,7 @@ class UAS_MT_ShotManager_Shots_ToolsMenu(Menu):
             argsDictDebugModifs.update({"mediaHandlesDuration": props.getHandlesDuration()})
 
             row.operator(
-                "uasshotmanager.createshotsfromotio_rrs", text="Create Shots From EDL - Debug swap"
+                "uasshotmanager.createshotsfromotio_rrs", text="   Create Shots From EDL - Debug swap"
             ).opArgs = json.JSONEncoder().encode(argsDictDebugModifs)
             # row.operator(
             #     "uasshotmanager.createshotsfromotio_rrs", text="Create Shots From EDL - Debug 40 swap"
@@ -758,11 +759,20 @@ class UAS_MT_ShotManager_Shots_ToolsMenu(Menu):
 
         row = layout.row(align=True)
         row.operator_context = "INVOKE_DEFAULT"
-        row.operator("uas_shot_manager.predec_shots_from_single_cam")
+        row.operator("uas_shot_manager.predec_shots_from_single_cam", text="   Create Shots From Single Camera...")
 
         row = layout.row(align=True)
         row.operator_context = "INVOKE_DEFAULT"
-        row.operator("uas_shot_manager.print_montage_info")
+        row.operator("uas_shot_manager.print_montage_info", text="   Print montage information in the console")
+
+        # tools for precut ###
+        layout.separator()
+        row = layout.row(align=True)
+        row.label(text="RRS Specific:")
+
+        row = layout.row(align=True)
+        row.operator_context = "INVOKE_DEFAULT"
+        row.operator("uas_shot_manager.predec_sort_versions_shots", text="   Sort Version Shots")
 
 
 classes = (
