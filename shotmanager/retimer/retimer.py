@@ -373,17 +373,17 @@ def retime_vse ( scene, mode, start_frame, end_frame ):
         sequences.sort ( key = lambda s: s.frame_start, reverse = True )
 
         # First pass is about move start frame of the clip if they are behind the start_frame and cutting the clips which contains start_frame.
-        for seq in sequences:
-            if seq.frame_start < start_frame < seq.frame_final_end:
+        for seq in list ( sequences ):
+            if seq.frame_final_start < start_frame < seq.frame_final_end:
                 seq.select = True
                 bpy.ops.sequencer.split ( frame = start_frame )
                 seq.select = False
-            elif seq.frame_start >= start_frame:
+            elif seq.frame_final_start >= start_frame:
                 seq.frame_start += offset
 
         # Second pass is about offseting clips which just have been cut. They are identified by  seq.frame_start + seq.frame_offset_start == start_frame
-        for seq in sed.sequences:
-            if seq.frame_start + seq.frame_offset_start == start_frame:
+        for seq in list ( sed.sequences ):
+            if seq.frame_final_start == start_frame:
                 seq.frame_start += offset
     elif mode == "DELETE":
         pass
