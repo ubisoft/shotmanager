@@ -700,7 +700,7 @@ class UAS_MT_ShotManager_Shots_ToolsMenu(Menu):
         argsDictPredecAct02 = dict()
         argsDictPredecAct02.update(
             {
-                "otioFile": r"C:\_UAS_ROOT\RRSpecial\04_ActsPredec\Act02\Exports\RRSpecial_Act02_AQ_XML_200929\RRspecial_Act02_AQ_200929.xml"
+                "otioFile": r"C:\_UAS_ROOT\RRSpecial\04_ActsPredec\Act02\Exports\RRSpecial_Act02_AQ_XML\RRspecial_Act02_AQ_201007.xml"
             }
         )
         argsDictPredecAct02.update({"conformMode": "CREATE"})

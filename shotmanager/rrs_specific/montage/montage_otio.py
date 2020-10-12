@@ -22,6 +22,8 @@ class MontageOtio(MontageInterface):
         # new properties:
         self.otioFile = None
         self.timeline = None
+        self.seqCharacteristics = None
+        self.videoCharacteristics = None
 
     def initialize(self, otioFile, read=True):
         # wkip release memory from exisiting otio montage???
@@ -77,6 +79,87 @@ class MontageOtio(MontageInterface):
                     return i
 
             return -1
+
+        def _getVideoCharacteristicsFromXML():
+            print("_getVideoCharacteristicsFromXML")
+
+            from xml.dom.minidom import parse
+
+            def _getFirstChildWithName(parentNode, name):
+                for node in parentNode.childNodes:
+                    # print(f"video - node.localName: {node.localName}")
+                    if name == node.localName:
+                        return node
+                return None
+
+            dom1 = parse(self.otioFile)
+            seq = dom1.getElementsByTagName("sequence")[0]
+
+            seqDuration = _getFirstChildWithName(seq, "duration")
+            if seqDuration is not None:
+                self.seqCharacteristics = {"duration": int(seqDuration.childNodes[0].nodeValue)}
+            # seqRate = _getFirstChildWithName(seq, "rate")
+            # if seqRate is not None:
+            #     seqRateDict = {
+            #         "timebase": float(_getFirstChildWithName(seqRate, "timebase").childNodes[0].nodeValue),
+            #         "ntsc": _getFirstChildWithName(seqRate, "ntsc").childNodes[0].nodeValue,
+            #     }
+            #     self.seqCharacteristics = {"rate": seqRateDict}
+
+            seqMedia = None
+            seqMediaVideo = None
+            seqMediaVideoFormat = None
+            videoSampleCharacteristics = None
+
+            videoCharacteristics = dict()
+
+            seqMedia = _getFirstChildWithName(seq, "media")
+            if seqMedia is not None:
+                seqMediaVideo = _getFirstChildWithName(seqMedia, "video")
+
+            if seqMediaVideo is not None:
+                seqMediaVideoFormat = _getFirstChildWithName(seqMediaVideo, "format")
+
+            if seqMediaVideoFormat is not None:
+                videoSampleCharacteristics = _getFirstChildWithName(seqMediaVideoFormat, "samplecharacteristics")
+
+            print(f"videoSampleCharacteristics: {videoSampleCharacteristics}")
+
+            if videoSampleCharacteristics is not None:
+                seqRate = _getFirstChildWithName(videoSampleCharacteristics, "rate")
+
+                seqRateDict = {
+                    "timebase": float(_getFirstChildWithName(seqRate, "timebase").childNodes[0].nodeValue),
+                    "ntsc": _getFirstChildWithName(seqRate, "ntsc").childNodes[0].nodeValue,
+                }
+
+                videoCharacteristics["rate"] = seqRateDict
+                videoCharacteristics["width"] = int(
+                    _getFirstChildWithName(videoSampleCharacteristics, "width").childNodes[0].nodeValue
+                )
+                videoCharacteristics["height"] = int(
+                    _getFirstChildWithName(videoSampleCharacteristics, "height").childNodes[0].nodeValue
+                )
+                # videoCharacteristics["anamorphic"] = (
+                #     _getFirstChildWithName(videoSampleCharacteristics, "anamorphic").childNodes[0].nodeValue
+                # )
+                # videoCharacteristics["pixelaspectratio"] = (
+                #     _getFirstChildWithName(videoSampleCharacteristics, "pixelaspectratio").childNodes[0].nodeValue
+                # )
+                # videoCharacteristics["fielddominance"] = (
+                #     _getFirstChildWithName(videoSampleCharacteristics, "fielddominance").childNodes[0].nodeValue
+                # )
+                # videoCharacteristics["colordepth"] = int(
+                #     _getFirstChildWithName(videoSampleCharacteristics, "colordepth").childNodes[0].nodeValue
+                # )
+                # videoCharacteristics["width"] = elem.nodeValue
+                # print(f"width: {videoCharacteristics['width']}")
+                print(f"videoCharacteristics: {videoCharacteristics}")
+
+            self.videoCharacteristics = videoCharacteristics
+
+        if ".xml" == (Path(self.otioFile).suffix).lower():
+            _getVideoCharacteristicsFromXML()
 
         self.sequencesList = None
         self.sequencesList = list()

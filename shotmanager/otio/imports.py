@@ -782,6 +782,11 @@ def conformToRefMontage(
     if 0 == ind:
         printInfoLine("", "-", "-")
 
+    ###################
+    # sort disabled shots
+    ###################
+    props.sortShotsVersions()
+
     print("")
 
 

@@ -361,7 +361,8 @@ class UAS_ShotManager_OT_Create_Shots_From_OTIO_RRS(Operator):
             row.separator(factor=3)
             row.label(text=f"Num. Sequences: {len(config.gMontageOtio.sequencesList)}")
 
-            box.prop(self, "videoTrackIndices")
+            if "UPDATE" == self.conformMode:
+                box.prop(self, "videoTrackIndices")
 
             row = box.row()
             if config.gMontageOtio.get_fps() != context.scene.render.fps:

@@ -97,12 +97,13 @@ class UAS_PT_ShotManager(Panel):
         #     if addon.bl_info["name"] == "UAS Shot Manager"
         # ]
 
-        # if "" != addonWarning[0]:
-        #     row = layout.row()
-        #     row.alignment = "CENTER"
-        #     row.alert = True
-        #     row.label(text=f" ***  {addonWarning[0]}  ***")
-        #     row.alert = False
+        addonWarning = ["Beta Yannick"]
+        if "" != addonWarning[0]:
+            row = layout.row()
+            row.alignment = "CENTER"
+            row.alert = True
+            row.label(text=f" ***  {addonWarning[0]}  ***")
+            row.alert = False
 
         if config.uasDebug:
             row = layout.row()

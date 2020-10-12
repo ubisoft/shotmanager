@@ -171,6 +171,12 @@ class UAS_ShotManager_Take(SequenceInterface, PropertyGroup):
                 print("")
                 shot.printInfo()
 
+    def debugDisplayShots(self):
+        print("\nShots:")
+        for sh in self.shots:
+            offStr = "" if sh.enabled else "  Off"
+            print(f"  {sh.name}{offStr}")
+
     def getInfoAsDictionnary(self, shotsDetails=True):
         dictSeq = dict()
         dictSeq["shots"] = []

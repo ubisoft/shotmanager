@@ -44,8 +44,18 @@ class UAS_VideoShotManager_OT_Import_Edit_From_OTIO(Operator):
         default=0,
     )
 
-    useTimeRange: BoolProperty(
-        name="Use Time Range", description="Part of the edit to be importer", default=False,
+    useEditTimeRange: BoolProperty(
+        name="Edit Time Range", description="Change the scene time range to match the edit one", default=True,
+    )
+    useEditFramerate: BoolProperty(
+        name="Edit Framerate", description="Change the scene framerate to match the edit one", default=True,
+    )
+    useEditResolution: BoolProperty(
+        name="Edit Resolution", description="Change the scene resolution to match the edit one", default=True,
+    )
+
+    importTimeRange: BoolProperty(
+        name="Import Time Range", description="Part of the edit to be imported", default=False,
     )
     range_start: IntProperty(
         name="Range Start", description="Range Start", default=0,
@@ -109,9 +119,15 @@ class UAS_VideoShotManager_OT_Import_Edit_From_OTIO(Operator):
 
         box = layout.box()
         row = box.row(align=True)
-        row.prop(self, "useTimeRange")
+        row.prop(self, "useEditTimeRange")
+        row.prop(self, "useEditFramerate")
+        row.prop(self, "useEditResolution")
+
+        box = layout.box()
+        row = box.row(align=True)
+        row.prop(self, "importTimeRange")
         subrow = row.row(align=False)
-        subrow.enabled = self.useTimeRange
+        subrow.enabled = self.importTimeRange
         subrow.prop(self, "range_start")
         subrow.prop(self, "range_end")
 
@@ -146,8 +162,31 @@ class UAS_VideoShotManager_OT_Import_Edit_From_OTIO(Operator):
         bpy.context.window.workspace = bpy.data.workspaces["Video Editing"]
         # bpy.context.window.space_data.show_seconds = False
 
+        # configure scene
+        if self.useEditTimeRange:
+            # print(f" 02: config.gMontageOtio.seqCharacteristics: {config.gMontageOtio.seqCharacteristics}")
+            context.scene.frame_start = 0
+            if config.gMontageOtio.seqCharacteristics is None:
+                print(f" *** config.gMontageOtio.seqCharacteristics is None - EDL Edit duration cannot be set *** ")
+                context.scene.frame_end = 40000
+            else:
+                context.scene.frame_end = config.gMontageOtio.seqCharacteristics["duration"]
+
+        if self.useEditFramerate:
+            if config.gMontageOtio.videoCharacteristics is None:
+                print(f" *** config.gMontageOtio.videoCharacteristics is None - EDL Edit framerate cannot be set *** ")
+            else:
+                context.scene.render.fps = config.gMontageOtio.videoCharacteristics["rate"]["timebase"]
+
+        if self.useEditResolution:
+            if config.gMontageOtio.videoCharacteristics is None:
+                print(f" *** config.gMontageOtio.videoCharacteristics is None - EDL Edit resolution cannot be set *** ")
+            else:
+                context.scene.render.resolution_x = config.gMontageOtio.videoCharacteristics["width"]
+                context.scene.render.resolution_y = config.gMontageOtio.videoCharacteristics["height"]
+
         timeRange = None
-        if self.useTimeRange:
+        if self.importTimeRange:
             timeRange = [self.range_start, self.range_end]
 
         offsetFrameNumber = 0

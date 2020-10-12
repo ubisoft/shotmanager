@@ -1,6 +1,7 @@
 import os
 from stat import S_IMODE, S_IWRITE
 from pathlib import Path
+import re
 
 import bpy
 from bpy.types import Scene
@@ -2512,11 +2513,9 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         # sort the list
         disabledShotNames.sort()
 
-        print("\nSorted list:")
-        for nam in disabledShotNames:
-            print(f"  {nam}")
-
-        import re
+        # print("\nSorted list:")
+        # for nam in disabledShotNames:
+        #     print(f"  {nam}")
 
         # shot_re = re.compile(r"sh_?(\d+)", re.IGNORECASE)
         # shot_re = re.compile(r"Sh_?(\d+)")
@@ -2534,38 +2533,45 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
                 res = True
             return res
 
-        print("\nTreated list:")
+        #  print("\nTreated list:")
         for shName in disabledShotNames:
             # if it is a basename or a version name
             if _isValidShotName(shName):
-                print(f" - {shName}, basename: {_baseName(shName)}")
+                #         print(f"\n - {shName}, basename: {_baseName(shName)}")
 
                 # check the shots list from begining and insert at first place where names are matching
                 for i in range(0, len(shotList)):
                     # ignore self
+                    shotFromName = self.getShotByName(shName)
+                    shotFromNameInd = self.getShotIndex(shotFromName)
+
+                    #       print(f"  i:{i} ")
                     if shotList[i].name == shName:
                         pass
                     elif (shotList[i].name).startswith(_baseName(shName)):
-                        print(f"   ici:  shotList[i].name: {shotList[i].name}")
+                        #  print(f"   ici:  shotList[i].name: {shotList[i].name}")
 
                         if shName < shotList[i].name:
-                            print(f"     before")
-                            shotFromName = self.getShotByName(shName)
-                            self.moveShotToIndex(shotFromName, i)
+                            #       print(f"     before, i:{i}, shotFromName:{shotFromName}")
+                            #       self.takes[takeInd].debugDisplayShots()
+                            if shotFromNameInd < i:
+                                if 0 < i:
+                                    self.moveShotToIndex(shotFromName, i - 1)
+                            else:
+                                self.moveShotToIndex(shotFromName, i)
+                            #       self.takes[takeInd].debugDisplayShots()
                             break
                         else:
-                            print(f"   lu")
+                            #    print(f"   lu")
                             if len(shotList) > i + 1:
-                                print(f"   lulu")
+                                #        print(f"   lulu")
                                 if (shotList[i + 1].name).startswith(_baseName(shName)):
                                     if shName < shotList[i + 1].name:
-                                        print(f"     lu")
-                                        shotFromName = self.getShotByName(shName)
+                                        #                print(f"     lu")
                                         self.moveShotToIndex(shotFromName, i + 1)
                                         break
                                 else:
-                                    print("lo")
-                                    shotFromName = self.getShotByName(shName)
+                                    #            print("lo")
                                     self.moveShotToIndex(shotFromName, i + 1)
                                     break
 

@@ -14,6 +14,11 @@ def exportOtio(scene, takeIndex=-1, filePath="", fileName="", addTakeNameToPath=
         Return the file path of the created file
         If file_name is left to default then the rendered file will be a .xml
     """
+
+    def _addEditCharacteristicsToXML():
+
+        pass
+
     # print("  ** -- ** exportOtio, fileListOnly: ", fileListOnly)
     props = scene.UAS_shot_manager_props
 
@@ -153,6 +158,9 @@ def exportOtio(scene, takeIndex=-1, filePath="", fileName="", addTakeNameToPath=
     Path(otioRenderPath).parent.mkdir(parents=True, exist_ok=True)
     if otioRenderPath.endswith(".xml"):
         opentimelineio.adapters.write_to_file(timeline, otioRenderPath, adapter_name="fcp_xml")
+
+        _addEditCharacteristicsToXML()
+
     else:
         opentimelineio.adapters.write_to_file(timeline, otioRenderPath)
 
