@@ -195,6 +195,7 @@ else:  # write to file
 
         seqMediaVideo.insertBefore(newNodeFormat, seqMediaVideo.firstChild)
 
+    # print(f"dom1.toxml(): {dom1.toprettyxml()}")
     print(f"dom1.toxml(): {dom1.toxml()}")
 
     # file_handle = open(filename, "w")
@@ -202,5 +203,7 @@ else:  # write to file
     # dom1.writexml(file_handle)
     # # print(f"dom1.toxml(): {dom1.toxml()}")
     # # file_handle.write(dom1.toxml())
+
+    dom1.unlink()
 
     # file_handle.close()

@@ -16,6 +16,7 @@ class MontageInterface(object):
     def __init__(self):
         self._name = ""
         self.sequencesList = list()
+        self._characteristics = dict()
 
     def get_montage_type(self):
         return "INTERFACE"
@@ -52,8 +53,27 @@ class MontageInterface(object):
         for seq in self.sequencesList:
             seq.printInfo()
 
+    def get_montage_characteristics(self):
+        """
+            Return a dictionary with the characterisitics of the montage.
+            This is required to export it as xml EDL.
+        """
+        return self._characteristics
+
+    def set_montage_characteristics(self, framerate=-1, resolution_x=-1, resolution_y=-1, duration=-1):
+        """
+        """
+        self._characteristics = dict()
+        self._characteristics["framerate"] = framerate  # timebase
+        self._characteristics["resolution_x"] = resolution_x  # width
+        self._characteristics["resolution_y"] = resolution_y  # height
+        self._characteristics["duration"] = duration  # duration
+
     def get_fps(self):
-        return -1
+        if "framerate" in self._characteristics:
+            return self._characteristics["framerate"]
+        else:
+            return -1
 
     def get_frame_start(self):
         if self.sequencesList is not None and len(self.sequencesList):
@@ -62,13 +82,18 @@ class MontageInterface(object):
             return -1
 
     def get_frame_end(self):
+        """get_frame_end is exclusive in order to follow the Blender implementation of get_frame_end for its clips
+        """
         if self.sequencesList is not None and len(self.sequencesList):
             return self.sequencesList[len(self.sequencesList) - 1].get_frame_end()
         else:
             return -1
 
     def get_frame_duration(self):
-        return -1
+        if "duration" in self._characteristics:
+            return self._characteristics["duration"]
+        else:
+            return -1
 
     def get_num_sequences(self):
         return len(self.sequencesList)
@@ -270,6 +295,8 @@ class SequenceInterface(object):
         return start
 
     def get_frame_end(self):
+        """get_frame_end is exclusive in order to follow the Blender implementation of get_frame_end for its clips
+        """
         # warning: clips may not be on the same track, hence they may not be ordered!!
         end = self.shotsList[0].get_frame_final_end()
         for shot in self.shotsList:
@@ -338,6 +365,8 @@ class ShotInterface(object):
         return -1
 
     def get_frame_end(self):
+        """get_frame_end is exclusive in order to follow the Blender implementation of get_frame_end for its clips
+        """
         return -1
 
     def get_frame_duration(self):

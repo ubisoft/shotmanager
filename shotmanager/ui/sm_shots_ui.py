@@ -557,7 +557,7 @@ class UAS_ShotManager_OpenFileBrowserForCamBG(Operator):  # from bpy_extras.io_u
     bl_idname = "uas_shot_manager.openfilebrowser_for_cam_bg"
     bl_label = "Camera Background"
     bl_description = "Open a file browser to define the image or video to use as camera background"
-    bl_options = {"INTERNAL", "REGISTER", "UNDO"}
+    bl_options = {"INTERNAL", "UNDO"}
 
     pathProp: StringProperty()
 
@@ -666,6 +666,7 @@ class UAS_MT_ShotManager_Shots_ToolsMenu(Menu):
                 "otioFile": r"C:\_UAS_ROOT\RRSpecial\04_ActsPredec\Act01\Exports\RRSpecial_ACT01_AQ_XML_200730\RRSpecial_ACT01_AQ_200730.xml"
             }
         )
+        argsDictPredecAct01.update({"animaticFile": r"C:\_UAS_ROOT\RRSpecial\04_ActsPredec\Act01\Act01_Predec.mp4"})
         argsDictPredecAct01.update({"conformMode": "CREATE"})
         argsDictPredecAct01.update({"mediaHaveHandles": False})
         argsDictPredecAct01.update({"mediaHandlesDuration": 0})
@@ -681,6 +682,9 @@ class UAS_MT_ShotManager_Shots_ToolsMenu(Menu):
         # Previz settings:
         argsDictPrevAct01 = dict()
         argsDictPrevAct01.update({"otioFile": r"C:\_UAS_ROOT\RRSpecial\05_Acts\Act01\_Montage\Act01_Edit_Previz.xml"})
+        argsDictPredecAct01.update(
+            {"animaticFile": r"C:\_UAS_ROOT\RRSpecial\05_Acts\Act01\_Montage\Act01_Edit_Previz.mp4"}
+        )
         argsDictPrevAct01.update({"conformMode": "UPDATE"})
         argsDictPrevAct01.update({"mediaHaveHandles": props.areShotHandlesUsed()})
         argsDictPrevAct01.update({"mediaHandlesDuration": props.getHandlesDuration()})
@@ -703,6 +707,7 @@ class UAS_MT_ShotManager_Shots_ToolsMenu(Menu):
                 "otioFile": r"C:\_UAS_ROOT\RRSpecial\04_ActsPredec\Act02\Exports\RRSpecial_Act02_AQ_XML\RRspecial_Act02_AQ_201007.xml"
             }
         )
+        argsDictPredecAct01.update({"animaticFile": r"C:\_UAS_ROOT\RRSpecial\04_ActsPredec\Act02\Act02_Predec.mp4"})
         argsDictPredecAct02.update({"conformMode": "CREATE"})
         argsDictPredecAct02.update({"mediaHaveHandles": props.areShotHandlesUsed()})
         argsDictPredecAct02.update({"mediaHandlesDuration": props.getHandlesDuration()})
@@ -727,6 +732,10 @@ class UAS_MT_ShotManager_Shots_ToolsMenu(Menu):
                     "otioFile": r"C:\_UAS_ROOT\RRSpecial\04_ActsPredec\Act01\Exports\RRSpecial_ACT01_AQ_XML_200730\PredecAct01_To40_RefDebug.xml"
                 }
             )
+            argsDictRefDebug.update(
+                {"animaticFile": r"C:\_UAS_ROOT\RRSpecial\05_Acts\Act01\_Montage\Act01_Edit_Previz.mp4"}
+            )
+
             argsDictRefDebug.update({"conformMode": "CREATE"})
 
             row.operator(
@@ -740,6 +749,9 @@ class UAS_MT_ShotManager_Shots_ToolsMenu(Menu):
                     #    "otioFile": r"C:\_UAS_ROOT\RRSpecial\04_ActsPredec\Act01\Exports\RRSpecial_ACT01_AQ_XML_200730\RRSpecial_To40_RefDebug_SwapSeq30_20-30.xml"
                     "otioFile": r"C:\_UAS_ROOT\RRSpecial\_Sandbox\Julien\Fixtures_Montage\Act01_Seq0060_Main_Take_ModifsSwap.xml"
                 }
+            )
+            argsDictDebugModifs.update(
+                {"animaticFile": r"C:\_UAS_ROOT\RRSpecial\05_Acts\Act01\_Montage\Act01_Edit_Previz.mp4"}
             )
             argsDictDebugModifs.update({"conformMode": "UPDATE"})
             argsDictDebugModifs.update({"mediaHaveHandles": props.areShotHandlesUsed()})

@@ -207,6 +207,66 @@ class UAS_Vse_Render(PropertyGroup):
         return mediaType
 
     # a clip is called a sequence in VSE
+    def createNewClipFromRange(
+        self,
+        scene,
+        mediaPath,
+        channelInd,
+        frame_start=0,
+        frame_final_start=0,
+        frame_final_end=0,
+        cameraScene=None,
+        cameraObject=None,
+        clipName="",
+        importVideo=True,
+        importAudio=False,
+    ):
+
+        atFrame = frame_start
+
+        if importVideo:
+            newClip = self.createNewClip(
+                scene,
+                mediaPath,
+                200,
+                atFrame,
+                offsetStart=0,
+                offsetEnd=0,
+                cameraScene=cameraScene,
+                cameraObject=cameraObject,
+                clipName=clipName,
+                importVideo=True,
+                importAudio=False,
+            )
+
+            newClip.frame_final_end = frame_final_end
+            newClip.frame_final_start = frame_final_start
+            newClip.channel = channelInd
+
+        if importAudio:
+            newClip = self.createNewClip(
+                scene,
+                mediaPath,
+                200,
+                atFrame,
+                offsetStart=0,
+                offsetEnd=0,
+                cameraScene=cameraScene,
+                cameraObject=cameraObject,
+                clipName=clipName,
+                importVideo=False,
+                importAudio=True,
+            )
+
+            print(f"  02 at frame: {atFrame}")
+            newClip.frame_start = atFrame
+            newClip.frame_final_end = frame_final_end
+            newClip.frame_final_start = frame_final_start
+            newClip.channel = channelInd + 1
+
+        return newClip
+
+    # a clip is called a sequence in VSE
     def createNewClip(
         self,
         scene,
@@ -318,7 +378,7 @@ class UAS_Vse_Render(PropertyGroup):
 
         newClip = None
         mediaType = self.getMediaType(mediaPath)
-        print(f"Media type:{mediaType}, media:{mediaPath}")
+        # print(f"Media type:{mediaType}, media:{mediaPath}")
         if "UNKNOWN" == mediaType:
             if cameraScene is not None and cameraObject is not None:
                 mediaType = "CAMERA"
@@ -432,7 +492,9 @@ class UAS_Vse_Render(PropertyGroup):
         self.changeClipsChannel(scene, tempChannelInd, channelIndexB)
 
     def get_frame_end_from_content(self, scene):
-
+        # wkipwkipwkip erreur ici, devrait etre exclusive pour extre consistant et ne l'est pas
+        """get_frame_end is exclusive in order to follow the Blender implementation of get_frame_end for its clips
+        """
         videoChannelClips = self.getChannelClips(scene, 1)
         scene_frame_start = scene.frame_start  # scene.sequence_editor.sequences
 
@@ -445,15 +507,15 @@ class UAS_Vse_Render(PropertyGroup):
         return frame_end
 
     def printClipInfo(self, clip, printTimeInfo=False):
-        infoStr = "\n\n-----------------------------"
+        infoStr = "\n\n------ VSE Render - Clip Info : "
         # infoStr += (
         #     f"\nNote: All the end values are EXCLUSIVE (= not the last used frame of the range but the one after)"
         # )
-        infoStr += f"Clip: {clip.name}"
+        infoStr += f"Clip: {clip.name}, type: {clip.type}, enabled: {not clip.mute}"
 
         if printTimeInfo:
             frameStart = clip.frame_start
-            frameEnd = -1  # clip.frame_end
+            frameEnd = clip.frame_start + clip.frame_duration  # -1  # clip.frame_end
             frameFinalStart = clip.frame_final_start
             frameFinalEnd = clip.frame_final_end
             frameOffsetStart = clip.frame_offset_start
@@ -461,7 +523,7 @@ class UAS_Vse_Render(PropertyGroup):
             frameDuration = clip.frame_duration
             frameFinalDuration = clip.frame_final_duration
 
-            infoStr += f"\n   Abs clip values: frame_start: {frameStart}, frame_final_start:{frameFinalStart}, frame_final_end:{frameFinalEnd}, frame_end: {frameEnd}"
+            infoStr += f"\n   Abs clip values: frame_start: {frameStart}, frame_final_start:{frameFinalStart}, frame_final_end:{frameFinalEnd}, frame_end (excl): {frameEnd}"
             infoStr += (
                 f"\n   Rel clip values: frame_offset_start: {frameOffsetStart}, frame_offset_end:{frameOffsetEnd}"
             )

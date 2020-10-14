@@ -318,7 +318,7 @@ class UAS_ShotManager_RetimerApply(Operator):
     bl_idname = "uas_shot_manager.retimerapply"
     bl_label = "Apply Retime"
     bl_description = "Apply retime"
-    bl_options = {"REGISTER", "UNDO"}
+    bl_options = {"UNDO"}
 
     def execute(self, context):
         retimerProps = context.scene.UAS_shot_manager_props.retimer

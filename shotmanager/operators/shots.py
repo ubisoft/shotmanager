@@ -28,7 +28,7 @@ class UAS_ShotManager_SetCurrentShot(Operator):
     bl_idname = "uas_shot_manager.set_current_shot"
     bl_label = "Set current Shot"
     bl_description = "Click: Set the shot as the current one.\nShift + Click: Toggle shot Disabled state.\nCtrl + Click: Select Shot Camera.\nAlt + Click: Set the shot as current one but do not change time"
-    bl_options = {"INTERNAL", "REGISTER", "UNDO"}
+    bl_options = {"INTERNAL", "UNDO"}
 
     index: bpy.props.IntProperty()
 

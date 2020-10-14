@@ -66,6 +66,23 @@ class UAS_PT_ShotManager_Render(Operator):
         default="STILL",
     )
 
+    # def invoke(self, context, event):
+    #     # context.window_manager.modal_handler_add(self)
+    #     return {"RUNNING_MODAL"}
+
+    # def modal(self, context, event):
+    #     # https://blender.stackexchange.com/questions/78069/modal-function-of-a-modal-operator-is-never-called
+    #     if event.type == "SPACE":
+    #         # wm = context.window_manager
+    #         # wm.invoke_popup(self)
+    #         # #wm.invoke_props_dialog(self)
+    #         print("Space")
+
+    #     if event.type in {"ESC"}:
+    #         return {"CANCELLED"}
+
+    #     return {"RUNNING_MODAL"}
+
     def execute(self, context):
         props = context.scene.UAS_shot_manager_props
 
@@ -116,6 +133,7 @@ class UAS_PT_ShotManager_Render(Operator):
             # if props.isRenderRootPathValid():
             launchRender(context, self.renderMode, renderRootPath, useStampInfo=props.useStampInfoDuringRendering)
 
+        #   return {"RUNNING_MODAL"}
         return {"FINISHED"}
 
 
@@ -211,6 +229,7 @@ class UAS_PT_ShotManager_RenderDialog(Operator):
 
             scene.UAS_StampInfo_Settings.restorePreviousValues(scene)
             print(" --- RRS Settings Restored ---")
+        # return {"RUNNING_MODAL"}
 
         return {"FINISHED"}
 

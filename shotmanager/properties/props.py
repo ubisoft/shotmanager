@@ -34,6 +34,11 @@ _logger = logging.getLogger(__name__)
 
 
 class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
+    # marche pas
+    # def __init__(self):
+    #     self._characteristics = dict()
+    #     print("\n\n */*/*/*/*/*/*/*/*/*/*/ Init shot manager !!! \n\n")
+
     def version(self):
         """ Return the add-on version in the form of a tupple made by: 
                 - a string x.y.z (eg: "1.21.3")
@@ -2442,6 +2447,37 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
     def get_montage_type(self):
         return "SHOTMANAGER"
 
+    def get_montage_characteristics(self):
+        """
+            Return a dictionary with the characterisitics of the montage.
+            This is required to export it as xml EDL.
+        """
+        # dict cannot be set as a property for Props :S
+        characteristics = dict()
+
+        if self.use_project_settings:
+            characteristics["resolution_x"] = self.project_resolution_framed_x  # width
+            characteristics["resolution_y"] = self.project_resolution_framed_y  # height
+        else:
+            characteristics["resolution_x"] = self.parentScene.render.resolution_y  # width
+            characteristics["resolution_y"] = self.parentScene.render.resolution_y  # height
+        characteristics["framerate"] = self.get_fps()
+        characteristics["duration"] = self.get_frame_duration()
+
+        return characteristics
+
+    def set_montage_characteristics(self, resolution_x=-1, resolution_y=-1, framerate=-1, duration=-1):
+        """
+        """
+        # self._characteristics = dict()
+        # # self._characteristics["framerate"] = framerate  # timebase
+        # self._characteristics["resolution_x"] = resolution_x  # width
+        # self._characteristics["resolution_y"] = resolution_y  # height
+        # self._characteristics["framerate"] = self.get_fps()  # timebase
+        # self._characteristics["duration"] = self.get_frame_duration()  # wkip may change afterwards...
+        # # self._characteristics["duration"] = duration  # wkip may change afterwards...
+        pass
+
     def getInfoAsDictionnary(self, dictMontage=None, shotsDetails=True):
         if dictMontage is None:
             dictMontage = dict()
@@ -2464,6 +2500,8 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         return self.parentScene.UAS_shot_manager_props.editStartFrame
 
     def get_frame_end(self):
+        """get_frame_end is exclusive in order to follow the Blender implementation of get_frame_end for its clips
+        """
         # editShotsList = self.getShotsList(ignoreDisabled=True)
         # if len(self.takes) and len(editShotsList):
         #     return self.sequencesList[len(self.sequencesList) - 1].get_frame_end()

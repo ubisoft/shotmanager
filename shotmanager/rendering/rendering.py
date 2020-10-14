@@ -5,10 +5,12 @@ import time
 
 import bpy
 
+from shotmanager.otio.exports import exportOtio
 from shotmanager.config import config
 from shotmanager.scripts.rrs.RRS_StampInfo import setRRS_StampInfoSettings
 
 from shotmanager.utils import utils
+
 
 import logging
 
@@ -43,7 +45,7 @@ def launchRenderWithVSEComposite(
     render_handles=True,
     renderAlsoDisabled=False,
     area=None,
-    override_all_viewports = False
+    override_all_viewports=False,
 ):
     """ Generate the media for the specified take
         Return a dictionary with a list of all the created files and a list of failed ones
@@ -243,16 +245,16 @@ def launchRenderWithVSEComposite(
     userRenderSettings = _storeUserRenderSettings(context)
 
     if renderWithOpengl:
-        spaces = list ( )
+        spaces = list()
         if override_all_viewports:
             for area in context.screen.areas:
                 if area.type == "VIEW_3D":
                     for space_data in area.spaces:
                         if space_data.type == "VIEW_3D":
-                            spaces.append ( space_data )
+                            spaces.append(space_data)
         else:
-            spaces.append ( context.space_data )
-        
+            spaces.append(context.space_data)
+
         for space_data in spaces:
             if not "CUSTOM" == props.renderContext.renderEngineOpengl:
                 context.scene.render.engine = props.renderContext.renderEngineOpengl
@@ -264,8 +266,6 @@ def launchRenderWithVSEComposite(
                         space_data.shading.type = "SOLID"
             if space_data is not None:  # case where Blender is running in background
                 space_data.overlay.show_overlays = props.renderContext.useOverlays
-
-                        
 
     else:
         # wkip hack rrs
@@ -822,11 +822,13 @@ def launchRender(context, renderMode, rootPath, useStampInfo=True):
                 )
 
                 if preset.renderOtioFile:
-                    from shotmanager.otio.exports import exportOtio
-
                     bpy.context.window.scene = scene
                     renderedOtioFile = exportOtio(
-                        scene, takeIndex=takeInd, filePath=props.renderRootPath, fileListOnly=False
+                        scene,
+                        takeIndex=takeInd,
+                        filePath=props.renderRootPath,
+                        fileListOnly=False,
+                        montageCharacteristics=props.get_montage_characteristics(),
                     )
                     # renderedFilesDict["edl_files"] = [renderedOtioFile]
             print(json.dumps(renderedFilesDict, indent=4))

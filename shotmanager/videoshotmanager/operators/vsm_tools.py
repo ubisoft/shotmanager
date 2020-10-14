@@ -1,14 +1,11 @@
-import os
 from pathlib import Path
 
 import bpy
 from bpy.types import Operator, Menu
-from bpy.props import StringProperty, BoolProperty, IntProperty, EnumProperty, PointerProperty
-from bpy_extras.io_utils import ImportHelper
+from bpy.props import StringProperty, BoolProperty, IntProperty
 
 import opentimelineio
 from shotmanager.otio import otio_wrapper as ow
-from shotmanager.otio.exports import exportOtio
 from shotmanager.otio.imports import importToVSE
 
 from shotmanager.rrs_specific.montage.montage_otio import MontageOtio
@@ -156,8 +153,10 @@ class UAS_VideoShotManager_OT_Import_Edit_From_OTIO(Operator):
         if config.gMontageOtio is None:
             return
 
+        scene = context.scene
+
         # creation VSE si existe pas
-        vse = utils.getSceneVSE(context.scene.name)
+        vse = utils.getSceneVSE(scene.name)
         # bpy.context.space_data.show_seconds = False
         bpy.context.window.workspace = bpy.data.workspaces["Video Editing"]
         # bpy.context.window.space_data.show_seconds = False
@@ -165,25 +164,28 @@ class UAS_VideoShotManager_OT_Import_Edit_From_OTIO(Operator):
         # configure scene
         if self.useEditTimeRange:
             # print(f" 02: config.gMontageOtio.seqCharacteristics: {config.gMontageOtio.seqCharacteristics}")
-            context.scene.frame_start = 0
-            if config.gMontageOtio.seqCharacteristics is None:
-                print(f" *** config.gMontageOtio.seqCharacteristics is None - EDL Edit duration cannot be set *** ")
-                context.scene.frame_end = 40000
-            else:
-                context.scene.frame_end = config.gMontageOtio.seqCharacteristics["duration"]
+            scene.frame_start = 0
+            # if config.gMontageOtio.characteristics is None:
+            #     print(f" *** config.gMontageOtio.characteristics is None - EDL Edit duration cannot be set *** ")
+            #     context.scene.frame_end = 40000
+            # else:
+            #     context.scene.frame_end = config.gMontageOtio.characteristics["duration"]
+            scene.frame_end = config.gMontageOtio.get_frame_duration() - 1
 
         if self.useEditFramerate:
-            if config.gMontageOtio.videoCharacteristics is None:
-                print(f" *** config.gMontageOtio.videoCharacteristics is None - EDL Edit framerate cannot be set *** ")
-            else:
-                context.scene.render.fps = config.gMontageOtio.videoCharacteristics["rate"]["timebase"]
+            # if config.gMontageOtio.characteristics is None:
+            #     print(f" *** config.gMontageOtio.characteristics is None - EDL Edit framerate cannot be set *** ")
+            # else:
+            #     context.scene.render.fps = config.gMontageOtio.characteristics["rate"]["timebase"]
+            scene.render.fps = config.gMontageOtio.get_fps()
 
         if self.useEditResolution:
-            if config.gMontageOtio.videoCharacteristics is None:
-                print(f" *** config.gMontageOtio.videoCharacteristics is None - EDL Edit resolution cannot be set *** ")
+            if config.gMontageOtio._characteristics is None:
+                print(f" *** config.gMontageOtio._characteristics is None - EDL Edit resolution cannot be set *** ")
             else:
-                context.scene.render.resolution_x = config.gMontageOtio.videoCharacteristics["width"]
-                context.scene.render.resolution_y = config.gMontageOtio.videoCharacteristics["height"]
+                characts = config.gMontageOtio.get_montage_characteristics()
+                context.scene.render.resolution_x = characts["resolution_x"]
+                context.scene.render.resolution_y = characts["resolution_y"]
 
         timeRange = None
         if self.importTimeRange:
@@ -214,7 +216,7 @@ class UAS_VideoShotManager_OT_Import_Edit_From_OTIO(Operator):
             track_type=trackType,
         )
 
-        context.scene.UAS_vsm_props.updateTracksList(context.scene)
+        #    context.scene.UAS_vsm_props.updateTracksList(context.scene)
 
         return {"FINISHED"}
 

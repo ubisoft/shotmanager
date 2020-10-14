@@ -60,7 +60,7 @@ def addonVersion(addonName):
 
     #    versions = (versionStr, versionInt)
 
-    versions = ("1.3.51", 1003051)
+    versions = ("1.3.53", 1003053)
 
     return versions
 
@@ -164,6 +164,11 @@ def file_path_from_url(url):
     #  print("ulr 3 path: ", path)
 
     return path
+
+
+###################
+# Objects
+###################
 
 
 def add_background_video_to_cam(

@@ -160,29 +160,29 @@ class UAS_UL_VideoShotManager_Items(bpy.types.UIList):
         row.scale_x = 2.0
         row.prop(item, "trackType", text="")
 
-        # if not "CUSTOM" == item.trackType and not "STANDARD" == item.trackType:
+        if not "CUSTOM" == item.trackType and not "STANDARD" == item.trackType:
 
-        #     if item.shotManagerScene is None:
-        #         grid_flow.alert = True
-        #     grid_flow.prop(item, "shotManagerScene", text="")
-        #     if item.shotManagerScene is None:
-        #         grid_flow.alert = False
+            #     if item.shotManagerScene is None:
+            #         grid_flow.alert = True
+            #     grid_flow.prop(item, "shotManagerScene", text="")
+            #     if item.shotManagerScene is None:
+            #         grid_flow.alert = False
 
-        #     if item.shotManagerScene is None or item.sceneTakeName == "":
-        #         grid_flow.alert = True
-        #     grid_flow.prop(item, "sceneTakeName", text="")
-        #     if item.shotManagerScene is None:
-        #         grid_flow.alert = False
+            #     if item.shotManagerScene is None or item.sceneTakeName == "":
+            #         grid_flow.alert = True
+            #     grid_flow.prop(item, "sceneTakeName", text="")
+            #     if item.shotManagerScene is None:
+            #         grid_flow.alert = False
 
-        grid_flow.scale_x = 1.0
-        grid_flow.operator(
-            "uas_video_shot_manager.update_vse_track", text="", icon="FILE_REFRESH"
-        ).trackName = item.name
+            grid_flow.scale_x = 1.0
+            grid_flow.operator(
+                "uas_video_shot_manager.update_vse_track", text="", icon="FILE_REFRESH"
+            ).trackName = item.name
 
-        grid_flow.operator(
-            "uas_video_shot_manager.go_to_specified_scene", text="", icon="SCENE_DATA"
-        ).trackName = item.name
-        grid_flow.scale_x = 1.8
+            grid_flow.operator(
+                "uas_video_shot_manager.go_to_specified_scene", text="", icon="SCENE_DATA"
+            ).trackName = item.name
+            grid_flow.scale_x = 1.8
 
 
 # ##################
@@ -244,8 +244,16 @@ class UAS_PT_VideoShotManager_TrackProperties(Panel):
             c = row.column()
             grid_flow = c.grid_flow(align=False, columns=4, even_columns=False)
             if "CUSTOM" == track.trackType:
+                layout.separator()
+                row = layout.row()
+                row.operator("uas_video_shot_manager.clear_vse_track")
+
                 pass
             elif "STANDARD" == track.trackType:
+                layout.separator()
+                row = layout.row()
+                row.operator("uas_video_shot_manager.clear_vse_track")
+
                 pass
             else:
                 if track.shotManagerScene is None:
@@ -260,12 +268,12 @@ class UAS_PT_VideoShotManager_TrackProperties(Panel):
                 if track.shotManagerScene is None:
                     grid_flow.alert = False
 
-            layout.separator()
-            row = layout.row()
-            row.operator("uas_video_shot_manager.clear_vse_track")
-            row.operator("uas_video_shot_manager.update_vse_track", icon="FILE_REFRESH").trackName = track.name
-            row.operator("uas_video_shot_manager.go_to_specified_scene", icon="SCENE_DATA").trackName = track.name
-            layout.separator()
+                layout.separator()
+                row = layout.row()
+                row.operator("uas_video_shot_manager.clear_vse_track")
+                row.operator("uas_video_shot_manager.update_vse_track", icon="FILE_REFRESH").trackName = track.name
+                row.operator("uas_video_shot_manager.go_to_specified_scene", icon="SCENE_DATA").trackName = track.name
+                layout.separator()
 
 
 #################

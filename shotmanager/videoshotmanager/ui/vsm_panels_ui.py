@@ -1,6 +1,6 @@
 import bpy
 
-from bpy.types import Panel, Menu
+from bpy.types import Panel, Menu, Operator
 from bpy.props import IntProperty, EnumProperty, BoolProperty, FloatProperty, StringProperty
 
 from ..properties import vsm_props
@@ -14,6 +14,34 @@ from .vsm_ui import UAS_PT_VideoShotManager
 ######
 # Video Shot Manager main panel #
 ######
+
+
+class UAS_VideoShotManager_SelectStrip(Operator):
+    bl_idname = "uas_videoshotmanager.select_strip"
+    bl_label = "Select"
+    bl_description = "Select Strip"
+    bl_options = {"INTERNAL"}
+
+    # @classmethod
+    # def poll(cls, context):
+    #     props = context.scene.UAS_shot_manager_props
+    #     val = len(props.getTakes()) and len(props.get_shots())
+    #     return val
+
+    # def invoke(self, context, event):
+    #     props = context.scene.UAS_shot_manager_props
+
+    #     return {"FINISHED"}
+
+    def execute(self, context):
+        scene = context.scene
+
+        if bpy.context.selected_sequences is not None and 1 == len(bpy.context.selected_sequences):
+            seq = bpy.context.selected_sequences[0]
+            seq.select = False
+            seq.select = True
+
+        return {"FINISHED"}
 
 
 class UAS_PT_VideoShotManagerSelectedStrip(Panel):
@@ -44,24 +72,29 @@ class UAS_PT_VideoShotManagerSelectedStrip(Panel):
         else:
             subRow.enabled = False
             subRow.prop(prefs, "emptyField", text="")
+        subRow.operator("uas_videoshotmanager.select_strip", text="", icon="RESTRICT_SELECT_OFF")
+
         row = layout.row()
         row.label(text="Type:")
         if bpy.context.selected_sequences is not None and 1 == len(bpy.context.selected_sequences):
             row.label(text=str(type(bpy.context.selected_sequences[0]).__name__))
 
-        if config.uasDebug:
-            box = layout.box()
-            box.label(text="Tools:")
-            row = box.row()
-            #  row.operator("uas_shot_manager.selected_to_active")
+        # if config.uasDebug:
+        #     box = layout.box()
+        #     box.label(text="Tools:")
+        #     row = box.row()
+        #     #  row.operator("uas_shot_manager.selected_to_active")
 
-            box = layout.box()
+        #     box = layout.box()
 
-            row = box.row()
-            row.separator(factor=0.1)
+        #     row = box.row()
+        #     row.separator(factor=0.1)
 
 
-_classes = (UAS_PT_VideoShotManagerSelectedStrip,)
+_classes = (
+    UAS_PT_VideoShotManagerSelectedStrip,
+    UAS_VideoShotManager_SelectStrip,
+)
 
 
 def register():

@@ -193,6 +193,8 @@ class UAS_ShotManager_Take(SequenceInterface, PropertyGroup):
         return self.parentScene.UAS_shot_manager_props.editStartFrame
 
     def get_frame_end(self):
+        """get_frame_end is exclusive in order to follow the Blender implementation of get_frame_end for its clips
+        """
         return (
             self.parentScene.UAS_shot_manager_props.editStartFrame
             + self.parentScene.UAS_shot_manager_props.getEditDuration()

@@ -3,21 +3,114 @@ from pathlib import Path
 import bpy
 import opentimelineio
 
+from xml.dom.minidom import parse
+
+from shotmanager.utils import utils_xml
 
 import logging
 
 _logger = logging.getLogger(__name__)
 
 
-def exportOtio(scene, takeIndex=-1, filePath="", fileName="", addTakeNameToPath=True, fps=-1, fileListOnly=False):
+def exportOtio(
+    scene,
+    takeIndex=-1,
+    filePath="",
+    fileName="",
+    addTakeNameToPath=True,
+    fps=-1,
+    fileListOnly=False,
+    montageCharacteristics=None,
+):
     """ Create an OpenTimelineIO XML file for the specified take
         Return the file path of the created file
         If file_name is left to default then the rendered file will be a .xml
+        seqCharacteristics and videoCharacteristics are dictionaries from the Montage_Otio
     """
 
-    def _addEditCharacteristicsToXML():
+    def _addEditCharacteristicsToXML(xml_filename, montageCharacteristics):
 
-        pass
+        if montageCharacteristics is None:
+            return ()
+
+        filename = xml_filename
+
+        dom1 = parse(filename)
+
+        seq = dom1.getElementsByTagName("sequence")[0]
+
+        seqMedia = None
+        seqMediaVideo = None
+
+        seqMedia = utils_xml.getFirstChildWithName(seq, "media")
+        if seqMedia is not None:
+            seqMediaVideo = utils_xml.getFirstChildWithName(seqMedia, "video")
+            print(f"seqMediaVideo: {seqMediaVideo}")
+
+            # sequence characteristics
+            newNodeFormat = dom1.createElement("format")
+            newNodeCharact = dom1.createElement("samplecharacteristics")
+            newNodeFormat.appendChild(newNodeCharact)
+
+            newNodeRate = dom1.createElement("rate")
+
+            newNodeTimebase = dom1.createElement("timebase")
+            nodeText = dom1.createTextNode(str(montageCharacteristics["framerate"]))
+            newNodeTimebase.appendChild(nodeText)
+            newNodeRate.appendChild(newNodeTimebase)
+            newNodeNtsc = dom1.createElement("ntsc")
+            nodeText = dom1.createTextNode("FALSE")
+            newNodeNtsc.appendChild(nodeText)
+            newNodeRate.appendChild(newNodeNtsc)
+
+            newNodeCharact.appendChild(newNodeRate)
+
+            # video characteristics
+            newNode = dom1.createElement("width")
+            nodeText = dom1.createTextNode(str(montageCharacteristics["resolution_x"]))
+            newNode.appendChild(nodeText)
+            newNodeCharact.appendChild(newNode)
+
+            newNode = dom1.createElement("height")
+            nodeText = dom1.createTextNode(str(montageCharacteristics["resolution_y"]))
+            newNode.appendChild(nodeText)
+            newNodeCharact.appendChild(newNode)
+
+            newNode = dom1.createElement("anamorphic")
+            nodeText = dom1.createTextNode("FALSE")
+            newNode.appendChild(nodeText)
+            newNodeCharact.appendChild(newNode)
+
+            newNode = dom1.createElement("pixelaspectratio")
+            nodeText = dom1.createTextNode("square")
+            newNode.appendChild(nodeText)
+            newNodeCharact.appendChild(newNode)
+
+            newNode = dom1.createElement("fielddominance")
+            nodeText = dom1.createTextNode("none")
+            newNode.appendChild(nodeText)
+            newNodeCharact.appendChild(newNode)
+
+            newNode = dom1.createElement("colordepth")
+            nodeText = dom1.createTextNode("24")
+            newNode.appendChild(nodeText)
+            newNodeCharact.appendChild(newNode)
+
+            seqMediaVideo.insertBefore(newNodeFormat, seqMediaVideo.firstChild)
+
+        # print(f"dom1.toxml(): {dom1.toprettyxml()}")
+        print(f"dom1.toxml(): {dom1.toxml()}")
+
+        file_handle = open(filename, "w")
+
+        dom1.writexml(file_handle)
+        # # print(f"dom1.toxml(): {dom1.toxml()}")
+        # # file_handle.write(dom1.toxml())
+
+        file_handle.close()
+        dom1.unlink()
+
+        return ()
 
     # print("  ** -- ** exportOtio, fileListOnly: ", fileListOnly)
     props = scene.UAS_shot_manager_props
@@ -159,7 +252,7 @@ def exportOtio(scene, takeIndex=-1, filePath="", fileName="", addTakeNameToPath=
     if otioRenderPath.endswith(".xml"):
         opentimelineio.adapters.write_to_file(timeline, otioRenderPath, adapter_name="fcp_xml")
 
-        _addEditCharacteristicsToXML()
+        _addEditCharacteristicsToXML(otioRenderPath, montageCharacteristics)
 
     else:
         opentimelineio.adapters.write_to_file(timeline, otioRenderPath)

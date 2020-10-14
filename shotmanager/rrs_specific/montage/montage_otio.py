@@ -2,7 +2,7 @@ import os
 from pathlib import Path
 
 from shotmanager.config import config
-from shotmanager.utils import utils
+from shotmanager.utils import utils, utils_xml
 from .montage_interface import MontageInterface, SequenceInterface, ShotInterface
 from shotmanager.otio import otio_wrapper as ow
 import opentimelineio
@@ -22,8 +22,8 @@ class MontageOtio(MontageInterface):
         # new properties:
         self.otioFile = None
         self.timeline = None
-        self.seqCharacteristics = None
-        self.videoCharacteristics = None
+        # self.seqCharacteristics = None
+        # self.videoCharacteristics = None
 
     def initialize(self, otioFile, read=True):
         # wkip release memory from exisiting otio montage???
@@ -35,6 +35,27 @@ class MontageOtio(MontageInterface):
 
     def get_montage_type(self):
         return "OTIO"
+
+    def get_montage_characteristics(self):
+        """
+            Return a dictionary with the characterisitics of the montage.
+            This is required to export it as xml EDL.
+        """
+        self._characteristics["framerate"] = self.get_fps()
+        self._characteristics["duration"] = self.get_frame_duration()
+
+        return self._characteristics
+
+    def set_montage_characteristics(self, resolution_x=-1, resolution_y=-1, framerate=-1, duration=-1):
+        """
+        """
+        self._characteristics = dict()
+        # self._characteristics["framerate"] = framerate  # timebase
+        self._characteristics["resolution_x"] = resolution_x  # width
+        self._characteristics["resolution_y"] = resolution_y  # height
+        self._characteristics["framerate"] = self.get_fps()  # timebase
+        self._characteristics["duration"] = self.get_frame_duration()  # wkip may change afterwards...
+        # self._characteristics["duration"] = duration  # wkip may change afterwards...
 
     def get_fps(self):
         time = self.timeline.duration()
@@ -85,24 +106,19 @@ class MontageOtio(MontageInterface):
 
             from xml.dom.minidom import parse
 
-            def _getFirstChildWithName(parentNode, name):
-                for node in parentNode.childNodes:
-                    # print(f"video - node.localName: {node.localName}")
-                    if name == node.localName:
-                        return node
-                return None
-
             dom1 = parse(self.otioFile)
             seq = dom1.getElementsByTagName("sequence")[0]
 
-            seqDuration = _getFirstChildWithName(seq, "duration")
+            seqCharacteristics = dict()
+
+            seqDuration = utils_xml.getFirstChildWithName(seq, "duration")
             if seqDuration is not None:
-                self.seqCharacteristics = {"duration": int(seqDuration.childNodes[0].nodeValue)}
-            # seqRate = _getFirstChildWithName(seq, "rate")
+                seqCharacteristics = {"duration": int(seqDuration.childNodes[0].nodeValue)}
+            # seqRate = utils_xml.getFirstChildWithName(seq, "rate")
             # if seqRate is not None:
             #     seqRateDict = {
-            #         "timebase": float(_getFirstChildWithName(seqRate, "timebase").childNodes[0].nodeValue),
-            #         "ntsc": _getFirstChildWithName(seqRate, "ntsc").childNodes[0].nodeValue,
+            #         "timebase": float(utils_xml.getFirstChildWithName(seqRate, "timebase").childNodes[0].nodeValue),
+            #         "ntsc": utils_xml.getFirstChildWithName(seqRate, "ntsc").childNodes[0].nodeValue,
             #     }
             #     self.seqCharacteristics = {"rate": seqRateDict}
 
@@ -113,50 +129,59 @@ class MontageOtio(MontageInterface):
 
             videoCharacteristics = dict()
 
-            seqMedia = _getFirstChildWithName(seq, "media")
+            seqMedia = utils_xml.getFirstChildWithName(seq, "media")
             if seqMedia is not None:
-                seqMediaVideo = _getFirstChildWithName(seqMedia, "video")
+                seqMediaVideo = utils_xml.getFirstChildWithName(seqMedia, "video")
 
             if seqMediaVideo is not None:
-                seqMediaVideoFormat = _getFirstChildWithName(seqMediaVideo, "format")
+                seqMediaVideoFormat = utils_xml.getFirstChildWithName(seqMediaVideo, "format")
 
             if seqMediaVideoFormat is not None:
-                videoSampleCharacteristics = _getFirstChildWithName(seqMediaVideoFormat, "samplecharacteristics")
+                videoSampleCharacteristics = utils_xml.getFirstChildWithName(
+                    seqMediaVideoFormat, "samplecharacteristics"
+                )
 
             print(f"videoSampleCharacteristics: {videoSampleCharacteristics}")
 
             if videoSampleCharacteristics is not None:
-                seqRate = _getFirstChildWithName(videoSampleCharacteristics, "rate")
+                seqRate = utils_xml.getFirstChildWithName(videoSampleCharacteristics, "rate")
 
                 seqRateDict = {
-                    "timebase": float(_getFirstChildWithName(seqRate, "timebase").childNodes[0].nodeValue),
-                    "ntsc": _getFirstChildWithName(seqRate, "ntsc").childNodes[0].nodeValue,
+                    "timebase": float(utils_xml.getFirstChildWithName(seqRate, "timebase").childNodes[0].nodeValue),
+                    "ntsc": utils_xml.getFirstChildWithName(seqRate, "ntsc").childNodes[0].nodeValue,
                 }
 
                 videoCharacteristics["rate"] = seqRateDict
                 videoCharacteristics["width"] = int(
-                    _getFirstChildWithName(videoSampleCharacteristics, "width").childNodes[0].nodeValue
+                    utils_xml.getFirstChildWithName(videoSampleCharacteristics, "width").childNodes[0].nodeValue
                 )
                 videoCharacteristics["height"] = int(
-                    _getFirstChildWithName(videoSampleCharacteristics, "height").childNodes[0].nodeValue
+                    utils_xml.getFirstChildWithName(videoSampleCharacteristics, "height").childNodes[0].nodeValue
                 )
                 # videoCharacteristics["anamorphic"] = (
-                #     _getFirstChildWithName(videoSampleCharacteristics, "anamorphic").childNodes[0].nodeValue
+                #     utils_xml.getFirstChildWithName(videoSampleCharacteristics, "anamorphic").childNodes[0].nodeValue
                 # )
                 # videoCharacteristics["pixelaspectratio"] = (
-                #     _getFirstChildWithName(videoSampleCharacteristics, "pixelaspectratio").childNodes[0].nodeValue
+                #     utils_xml.getFirstChildWithName(videoSampleCharacteristics, "pixelaspectratio").childNodes[0].nodeValue
                 # )
                 # videoCharacteristics["fielddominance"] = (
-                #     _getFirstChildWithName(videoSampleCharacteristics, "fielddominance").childNodes[0].nodeValue
+                #     utils_xml.getFirstChildWithName(videoSampleCharacteristics, "fielddominance").childNodes[0].nodeValue
                 # )
                 # videoCharacteristics["colordepth"] = int(
-                #     _getFirstChildWithName(videoSampleCharacteristics, "colordepth").childNodes[0].nodeValue
+                #     utils_xml.getFirstChildWithName(videoSampleCharacteristics, "colordepth").childNodes[0].nodeValue
                 # )
                 # videoCharacteristics["width"] = elem.nodeValue
                 # print(f"width: {videoCharacteristics['width']}")
-                print(f"videoCharacteristics: {videoCharacteristics}")
+            # print(f"videoCharacteristics: {videoCharacteristics}")
 
-            self.videoCharacteristics = videoCharacteristics
+            self.set_montage_characteristics(
+                #  videoCharacteristics["rate"]["timebase"],
+                resolution_x=videoCharacteristics["width"],
+                resolution_y=videoCharacteristics["height"],
+                #  duration=seqCharacteristics["duration"],
+            )
+
+            return ()
 
         if ".xml" == (Path(self.otioFile).suffix).lower():
             _getVideoCharacteristicsFromXML()
@@ -272,6 +297,8 @@ class ShotOtio(ShotInterface):
         return ow.get_clip_frame_start(self.clip, self.parent.parent.get_fps())
 
     def get_frame_end(self):
+        """get_frame_end is exclusive in order to follow the Blender implementation of get_frame_end for its clips
+        """
         # get_clip_frame_end is exclusive
         return ow.get_clip_frame_end(self.clip, self.parent.parent.get_fps())
 

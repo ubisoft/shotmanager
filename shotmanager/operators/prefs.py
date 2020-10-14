@@ -124,7 +124,7 @@ class UAS_ShotManager_ProjectSettings_Prefs(Operator):
     bl_idname = "uas_shot_manager.project_settings_prefs"
     bl_label = "Project Settings"
     bl_description = "Display the Project Settings panel"
-    bl_options = {"INTERNAL", "REGISTER", "UNDO"}
+    bl_options = {"INTERNAL", "UNDO"}
 
     def invoke(self, context, event):
         print("Invoke prefs")

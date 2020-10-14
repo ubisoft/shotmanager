@@ -72,11 +72,14 @@ class UAS_ShotManager_Export_OTIO(Operator):
         props = context.scene.UAS_shot_manager_props
 
         if props.isRenderRootPathValid():
-            exportOtio(context.scene, filePath=props.renderRootPath, fps=context.scene.render.fps)
+            exportOtio(
+                context.scene,
+                filePath=props.renderRootPath,
+                fps=context.scene.render.fps,
+                montageCharacteristics=props.get_montage_characteristics(),
+            )
         else:
-            from ..utils.utils import ShowMessageBox
-
-            ShowMessageBox("Render root path is invalid", "OpenTimelineIO Export Aborted", "ERROR")
+            utils.ShowMessageBox("Render root path is invalid", "OpenTimelineIO Export Aborted", "ERROR")
             print("OpenTimelineIO Export aborted before start: Invalid Root Path")
 
         return {"FINISHED"}
@@ -146,6 +149,9 @@ class UAS_ShotManager_OT_Create_Shots_From_OTIO_RRS(Operator):
         # items=(("NO_SEQ", "No Sequence Found", ""),),
         items=(list_sequences_from_edl),
     )
+
+    # can be "PREDEC" or "PREVIZ"
+    # dialogBoxMode: StringProperty(name:"S")
 
     conformMode: EnumProperty(
         name="Conform Mode",
@@ -227,15 +233,22 @@ class UAS_ShotManager_OT_Create_Shots_From_OTIO_RRS(Operator):
         name="Handles Duration", description="", soft_min=0, min=0, default=10,
     )
 
+    importAnimaticInVSE: BoolProperty(
+        name="Import Animatic In VSE",
+        description="Import the video and mixed sounds from the animatic into the VSE of the current scene",
+        default=True,
+    )
+    animaticFile: StringProperty(name="Animatic")
+
     importVideoInVSE: BoolProperty(
-        name="Import video In VSE",
-        description="Import video clips directly into the VSE of the current scene",
+        name="Import Shot Videos In VSE",
+        description="Import shot videos as clips directly into the VSE of the current scene",
         default=True,
     )
 
     importAudioInVSE: BoolProperty(
-        name="Import sound In VSE",
-        description="Import sound clips directly into the VSE of the current scene",
+        name="Import Original Sound Tracks In VSE",
+        description="Import all original edit sounds as clips directly into the VSE of the current scene",
         default=True,
     )
 
@@ -266,10 +279,12 @@ class UAS_ShotManager_OT_Create_Shots_From_OTIO_RRS(Operator):
 
         if "" != self.opArgs:
             argsDict = json.loads(self.opArgs)
-            print(f" argsDict: {argsDict}")
-            print(f" argsDict['otioFile']: {argsDict['otioFile']}")
+            # print(f" argsDict: {argsDict}")
+            # print(f" argsDict['otioFile']: {argsDict['otioFile']}")
             if "otioFile" in argsDict:
                 self.otioFile = argsDict["otioFile"]
+            if "animaticFile" in argsDict:
+                self.animaticFile = argsDict["animaticFile"]
             if "refVideoTrackInd" in argsDict:
                 self.refVideoTrackInd = argsDict["refVideoTrackInd"]
             if "conformMode" in argsDict:
@@ -326,7 +341,7 @@ class UAS_ShotManager_OT_Create_Shots_From_OTIO_RRS(Operator):
             config.gSeqEnumList.append((str(i), seq.get_name(), f"Import sequence {seq.get_name()}", i + 1))
 
         # self.sequenceList = config.gSeqEnumList[0][0]
-        print(f"self.sequenceList : {self.sequenceList}")
+        #        print(f"Import Sequence: {self.sequenceList}, {config.gSeqEnumList[int(self.sequenceList)]}")
         # if len(config.gSeqEnumList) <= int(self.sequenceList):
         if "" == self.sequenceList:
             self.sequenceList = config.gSeqEnumList[0][0]
@@ -334,11 +349,12 @@ class UAS_ShotManager_OT_Create_Shots_From_OTIO_RRS(Operator):
         selSeq = config.gMontageOtio.sequencesList[int(self.sequenceList)] if config.gMontageOtio is not None else None
 
         layout = self.layout
-        row = layout.row(align=True)
+        box = layout.box()
 
-        box = row.box()
-        box.label(text="OTIO File")
-        box.prop(self, "otioFile", text="")
+        box.label(text="EDL File (Otio, XML...):")
+        row = box.row()
+        row.separator(factor=3)
+        row.prop(self, "otioFile", text="")
 
         if "" == self.otioFile or not Path(self.otioFile).exists():
             row = box.row()
@@ -435,8 +451,6 @@ class UAS_ShotManager_OT_Create_Shots_From_OTIO_RRS(Operator):
             boxRow.prop(self, "createCameras")
 
         if self.createCameras:
-            layout.label(text="Camera Background:")
-
             box.prop(self, "useMediaAsCameraBG")
 
             row = box.row()
@@ -450,11 +464,15 @@ class UAS_ShotManager_OT_Create_Shots_From_OTIO_RRS(Operator):
             subrow.prop(self, "mediaHandlesDuration")
 
         layout.label(text="Scene VSE:")
-        row = layout.row(align=True)
-        box = row.box()
+        box = layout.box()
         row = box.row()
-        # if 0 != self.mediaHandlesDuration and
-        #     row.enabled = False
+        row.prop(self, "importAnimaticInVSE")
+        row = box.row()
+        row.separator(factor=3)
+        row.enabled = self.importAnimaticInVSE
+        row.prop(self, "animaticFile", text="")
+
+        row = box.row()
         row.prop(self, "importVideoInVSE")
         row = box.row()
         row.prop(self, "importAudioInVSE")
@@ -477,7 +495,10 @@ class UAS_ShotManager_OT_Create_Shots_From_OTIO_RRS(Operator):
         #   import opentimelineio as otio
         # from random import uniform
         # from math import radians
-        print("Exec uasshotmanager.createshotsfromotio")
+        print(
+            f"\nCreateshotsfromotio Import Sequence Exec: {self.sequenceList}, {config.gSeqEnumList[int(self.sequenceList)]}"
+        )
+
         # filename, extension = os.path.splitext(self.filepath)
         # print("ex Selected file:", self.filepath)
         # print("ex File name:", filename)
@@ -489,7 +510,8 @@ class UAS_ShotManager_OT_Create_Shots_From_OTIO_RRS(Operator):
         selSeq.printInfo()
 
         useTimeRange = True
-        timeRange = [selSeq.get_frame_start(), selSeq.get_frame_end()] if useTimeRange else None
+        # timeRange end is inclusive, meaning that clips overlaping this value will be imported
+        timeRange = [selSeq.get_frame_start(), selSeq.get_frame_end() - 1] if useTimeRange else None
 
         # track indices are starting from 1, not 0!!
         videoTracksToImport = [1]
@@ -523,6 +545,7 @@ class UAS_ShotManager_OT_Create_Shots_From_OTIO_RRS(Operator):
                 importAudioInVSE=self.importAudioInVSE,
                 videoTracksList=videoTracksToImport,
                 audioTracksList=audioTracksToImport,
+                animaticFile=self.animaticFile if self.importAnimaticInVSE else None,
             )
 
         else:
