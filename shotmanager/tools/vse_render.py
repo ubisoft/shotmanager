@@ -283,8 +283,7 @@ class UAS_Vse_Render(PropertyGroup):
         cameraObject=None,
         clipName="",
         importVideo=True,
-        importAudio=False,
-        audio_volume_keyframes = None
+        importAudio=False
     ):
         """
             A strip is placed at a specified time in the edit by putting its media start at the place where
@@ -422,10 +421,6 @@ class UAS_Vse_Render(PropertyGroup):
             newClip = scene.sequence_editor.sequences.new_sound(newClipName, mediaPath, channelInd, atFrame)
             newClip.frame_offset_start = offsetStart
             newClip.frame_offset_end = offsetEnd
-            if audio_volume_keyframes is not None:
-                for f, v in audio_volume_keyframes:
-                    newClip.volume = v
-                    newClip.keyframe_insert ( "volume", frame = f )
 
         elif "CAMERA" == mediaType:
             newClipName = clipName if "" != clipName else "myCamera"
