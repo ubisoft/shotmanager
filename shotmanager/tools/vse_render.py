@@ -241,13 +241,15 @@ class UAS_Vse_Render(PropertyGroup):
 
             newClip.frame_final_end = frame_final_end
             newClip.frame_final_start = frame_final_start
+            print(f"*** newClip video .frame_start: {newClip.frame_start}")
+
             newClip.channel = channelInd
 
         if importAudio:
             newClip = self.createNewClip(
                 scene,
                 mediaPath,
-                200,
+                201,
                 atFrame,
                 offsetStart=0,
                 offsetEnd=0,
@@ -260,6 +262,8 @@ class UAS_Vse_Render(PropertyGroup):
 
             print(f"  02 at frame: {atFrame}")
             newClip.frame_start = atFrame
+            print(f"*** newClip audio .frame_start: {newClip.frame_start}")
+
             newClip.frame_final_end = frame_final_end
             newClip.frame_final_start = frame_final_start
             newClip.channel = channelInd + 1
@@ -556,7 +560,7 @@ class UAS_Vse_Render(PropertyGroup):
         sequenceScene.render.ffmpeg.format = "MPEG4"
         sequenceScene.render.ffmpeg.constant_rate_factor = "PERC_LOSSLESS"  # "PERC_LOSSLESS"
         sequenceScene.render.ffmpeg.gopsize = 5  # keyframe interval
-        sequenceScene.render.ffmpeg.audio_codec = "AC3"
+        sequenceScene.render.ffmpeg.audio_codec = "AAC"
         sequenceScene.render.filepath = outputFile
 
         sequenceScene.view_settings.view_transform = "Raw"
@@ -638,7 +642,7 @@ class UAS_Vse_Render(PropertyGroup):
             vse_scene.render.ffmpeg.format = "MPEG4"
             vse_scene.render.ffmpeg.constant_rate_factor = "PERC_LOSSLESS"  # "PERC_LOSSLESS"
             vse_scene.render.ffmpeg.gopsize = 5  # keyframe interval
-            vse_scene.render.ffmpeg.audio_codec = "AC3"
+            vse_scene.render.ffmpeg.audio_codec = "AAC"
         else:
             vse_scene.render.image_settings.file_format = "PNG"  # wkipwkipwkip mettre project info
 

@@ -654,6 +654,9 @@ def importAnimatic(montageOtio, sequenceName, animaticFile, offsetFrameNumber=0)
         for sh in shots:
             print(f"{sh.get_name()}: sh.get_frame_final_start(): {sh.get_frame_final_start()}")
 
+            #####
+            # Code has to be repeated otherwise not working... :/
+            #####
             newClipInVSE = vse_render.createNewClipFromRange(
                 bpy.context.scene,
                 animaticFile,
@@ -665,8 +668,21 @@ def importAnimatic(montageOtio, sequenceName, animaticFile, offsetFrameNumber=0)
                 importAudio=False,
                 clipName="Animatic",
             )
+            print(f"newClipInVSE video .frame_start: {newClipInVSE.frame_start}")
 
-            print(f"newClipInVSE.frame_start: {newClipInVSE.frame_start}")
+            newClipInVSE = vse_render.createNewClipFromRange(
+                bpy.context.scene,
+                animaticFile,
+                32,
+                frame_start=0,  # - 1 * sh.get_frame_start(),
+                frame_final_start=1 * offsetFrameNumber + sh.get_frame_final_start(),
+                frame_final_end=sh.get_frame_final_end() + offsetFrameNumber,
+                importVideo=False,
+                importAudio=True,
+                clipName="Animatic",
+            )
+
+            print(f"newClipInVSE audio.frame_start: {newClipInVSE.frame_start}")
 
 
 # used only in functions here

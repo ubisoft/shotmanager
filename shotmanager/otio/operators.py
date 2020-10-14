@@ -139,8 +139,13 @@ class UAS_ShotManager_OT_Create_Shots_From_OTIO_RRS(Operator):
         items=(list_video_tracks_from_edl),
     )
 
+    # starts at 0, not 1!
     refVideoTrackInd: IntProperty(
-        name="Reference Track", description="Track to get the shots list from", soft_min=0, min=0, default=0,
+        name="Reference Track",
+        description="Track to get the shots list from (starts at 0)",
+        soft_min=0,
+        min=0,
+        default=0,
     )
 
     sequenceList: EnumProperty(
@@ -151,7 +156,7 @@ class UAS_ShotManager_OT_Create_Shots_From_OTIO_RRS(Operator):
     )
 
     # can be "PREDEC" or "PREVIZ"
-    # dialogBoxMode: StringProperty(name:"S")
+    importStepMode: StringProperty(default="PREDEC")
 
     conformMode: EnumProperty(
         name="Conform Mode",
@@ -281,12 +286,17 @@ class UAS_ShotManager_OT_Create_Shots_From_OTIO_RRS(Operator):
             argsDict = json.loads(self.opArgs)
             # print(f" argsDict: {argsDict}")
             # print(f" argsDict['otioFile']: {argsDict['otioFile']}")
+            if "importStepMode" in argsDict:
+                self.importStepMode = argsDict["importStepMode"]
             if "otioFile" in argsDict:
                 self.otioFile = argsDict["otioFile"]
             if "animaticFile" in argsDict:
                 self.animaticFile = argsDict["animaticFile"]
+
+            # not used
             if "refVideoTrackInd" in argsDict:
                 self.refVideoTrackInd = argsDict["refVideoTrackInd"]
+
             if "conformMode" in argsDict:
                 self.conformMode = argsDict["conformMode"]
             if "mediaHaveHandles" in argsDict:
@@ -294,7 +304,20 @@ class UAS_ShotManager_OT_Create_Shots_From_OTIO_RRS(Operator):
             if "mediaHandlesDuration" in argsDict:
                 self.mediaHandlesDuration = argsDict["mediaHandlesDuration"]
 
+        self.refVideoTrackInd = 0
+        if "PREVIZ" == self.importStepMode:
+            self.refVideoTrackInd = 1
+
         config.gMontageOtio = None
+
+        if "" == self.otioFile:
+            print(f"*** Otio file not defined - Cannot open EDL file ***")
+            return {"CANCELLED"}
+        if not Path(self.otioFile).exists():
+            print(f"*** Otio file not found - Cannot open EDL file ***")
+            print(f"***      Otio file: {self.otioFile}")
+            return {"CANCELLED"}
+
         if "" != self.otioFile and Path(self.otioFile).exists():
             config.gMontageOtio = MontageOtio()
             config.gMontageOtio.initialize(self.otioFile)
@@ -350,6 +373,10 @@ class UAS_ShotManager_OT_Create_Shots_From_OTIO_RRS(Operator):
 
         layout = self.layout
         box = layout.box()
+
+        if config.uasDebug:
+            row = box.row()
+            row.label(text=self.importStepMode)
 
         box.label(text="EDL File (Otio, XML...):")
         row = box.row()

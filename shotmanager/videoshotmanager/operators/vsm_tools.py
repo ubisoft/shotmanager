@@ -315,7 +315,7 @@ class UAS_VideoShotManager_OT_ExportMarkersEditAsVideos(Operator):
         scene.render.ffmpeg.format = "MPEG4"
         scene.render.ffmpeg.constant_rate_factor = "PERC_LOSSLESS"  # "PERC_LOSSLESS"
         scene.render.ffmpeg.gopsize = 5  # keyframe interval
-        scene.render.ffmpeg.audio_codec = "AC3"
+        scene.render.ffmpeg.audio_codec = "AAC"
 
         #       scene.render.filepath = output_filepath
         scene.render.use_file_extension = False
