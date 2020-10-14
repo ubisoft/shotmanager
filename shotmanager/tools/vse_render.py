@@ -284,6 +284,7 @@ class UAS_Vse_Render(PropertyGroup):
         clipName="",
         importVideo=True,
         importAudio=False,
+        audio_volume_keyframes = None
     ):
         """
             A strip is placed at a specified time in the edit by putting its media start at the place where
@@ -291,6 +292,7 @@ class UAS_Vse_Render(PropertyGroup):
             and offsetEnd. None of these parameters change the position of the media frames in the edit time (it
             is like changing the position of the sides of a window, but not what the window sees).
             Both offsetStart and offsetEnd are relative to the start time of the media.
+            audio_volume_keyframes is a list of paired values (Frame, Value)
         """
 
         def _new_camera_sequence(scene, name, channelInd, atFrame, offsetStart, offsetEnd, cameraScene, cameraObject):
@@ -420,6 +422,10 @@ class UAS_Vse_Render(PropertyGroup):
             newClip = scene.sequence_editor.sequences.new_sound(newClipName, mediaPath, channelInd, atFrame)
             newClip.frame_offset_start = offsetStart
             newClip.frame_offset_end = offsetEnd
+            if audio_volume_keyframes is not None:
+                for f, v in audio_volume_keyframes:
+                    newClip.volume = v
+                    newClip.keyframe_insert ( "volume", frame = f )
 
         elif "CAMERA" == mediaType:
             newClipName = clipName if "" != clipName else "myCamera"
