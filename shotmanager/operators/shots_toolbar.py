@@ -34,7 +34,7 @@ class UAS_ShotManager_EnableDisableAll(Operator):
     bl_idname = "uas_shot_manager.enabledisableall"
     bl_label = "Enable / Disable All Shots"
     bl_description = "Enable all shots,\nShift + Click: Invert shots state,\nCtrl + Click: Disable all shots,\nAlt + Click: Isolate Selected Shot,"
-    bl_options = {"INTERNAL", "REGISTER", "UNDO"}
+    bl_options = {"INTERNAL", "UNDO"}
 
     def invoke(self, context, event):
         scene = context.scene

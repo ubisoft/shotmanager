@@ -35,6 +35,8 @@ from .retimer import retimer_props
 from . import rendering
 from .rendering import rendering_ui
 
+from .rrs_specific import rrs_vsm_tools
+
 from .scripts import precut_tools
 
 from .tools import vse_render
@@ -63,10 +65,10 @@ bl_info = {
     "author": "Julien Blervaque (aka Werwack), Romain Carriquiry Borchiari",
     "description": "Manage a sequence of shots and cameras in the 3D View - Ubisoft Animation Studio",
     "blender": (2, 90, 0),
-    "version": (1, 3, 38),
+    "version": (1, 3, 53),
     "location": "View3D > UAS Shot Manager",
     "wiki_url": "https://gitlab-ncsa.ubisoft.org/animation-studio/blender/shotmanager-addon/-/wikis/home",
-    #  "warning": "BETA Version - Fais gaffe à tes données !!!",
+    "warning": "BETA Version - Fais gaffe à tes données !!!",
     "category": "UAS",
 }
 
@@ -84,10 +86,13 @@ MODULE_PATH = Path(__file__).parent.parent
 logging.basicConfig(level=logging.INFO)
 _logger.setLevel(logging.INFO)  # CRITICAL ERROR WARNING INFO DEBUG NOTSET
 
-# _logger.info(f"Logger {}")
-# _logger.warning(f"logger {}")
-# _logger.error(f"error {}")
-# _logger.debug(f"debug {}")
+
+# _logger.info(f"Logger {str(256) + 'mon texte super long et tout'}")
+
+# _logger.info(f"Logger {str(256)}")
+# _logger.warning(f"logger {256}")
+# _logger.error(f"error {256}")
+# _logger.debug(f"debug {256}")
 
 
 class Formatter(logging.Formatter):
@@ -101,9 +106,8 @@ class Formatter(logging.Formatter):
         - to append "./" at the begining to permit going to the line quickly with VS Code CTRL+click from terminal
         """
         s = super().format(record)
-        # s = record
         pathname = Path(record.pathname).relative_to(MODULE_PATH)
-        s += f" [{os.curdir}{os.sep}{pathname}:{record.lineno}]"
+        s += f"  [{os.curdir}{os.sep}{pathname}:{record.lineno}]"
         return s
 
 
@@ -178,10 +182,25 @@ def checkDataVersion_post_load_handler(self, context):
         numScenesToUpgrade = 0
         lowerSceneVersion = -1
         for scn in bpy.data.scenes:
+
             # if "UAS_shot_manager_props" in scn:
             if getattr(bpy.context.scene, "UAS_shot_manager_props", None) is not None:
                 #   print("\n   Shot Manager instance found in scene " + scn.name)
                 props = scn.UAS_shot_manager_props
+
+                # # Dirty hack to avoid accidental move of the cameras
+                # try:
+                #     print("ici")
+                #     if bpy.context.space_data is not None:
+                #         print("ici 02")
+                #         if props.useLockCameraView:
+                #             print("ici 03")
+                #             bpy.context.space_data.lock_camera = False
+                # except Exception as e:
+                #     print("ici error")
+                #     _logger.error("** bpy.context.space_data.lock_camera had an error **")
+                #     pass
+
                 #   print("     Data version: ", props.dataVersion)
                 #   print("     Shot Manager version: ", bpy.context.window_manager.UAS_shot_manager_version)
                 # if props.dataVersion <= 0 or props.dataVersion < bpy.context.window_manager.UAS_shot_manager_version:
@@ -266,7 +285,13 @@ def register():
 
     if len(_logger.handlers) == 0:
         _logger.setLevel(logging.WARNING)
-        formatter = Formatter("{asctime} {levelname[0]} {name:<36}  - {message:<80}", style="{")
+        formatter = None
+
+        if config.uasDebug_ignoreLoggerFormatting:
+            ch = "~"  # "\u02EB"
+            formatter = Formatter(ch + " {message:<140}", style="{")
+        else:
+            formatter = Formatter("{asctime} {levelname[0]} {name:<36}  - {message:<80}", style="{")
         handler = logging.StreamHandler()
         handler.setFormatter(formatter)
         _logger.addHandler(handler)
@@ -359,6 +384,9 @@ def register():
     prefs.register()
     about.register()
 
+    # rrs specific
+    rrs_vsm_tools.register()
+
     # debug tools
     if config.uasDebug:
         sm_debug.register()
@@ -415,6 +443,9 @@ def unregister():
     # debug tools
     if config.uasDebug:
         sm_debug.unregister()
+
+    # rrs specific
+    rrs_vsm_tools.unregister()
 
     # ui
     about.unregister()

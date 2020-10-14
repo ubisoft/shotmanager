@@ -110,6 +110,12 @@ class UAS_PT_Shot_Manager_Debug(Panel):
         row = layout.row()
         row.operator("uas.debug_runfunction", text="parseOtioFile").functionName = "parseOtioFile"
 
+        layout.separator()
+        row = layout.row()
+        row.operator("uas_utils.run_script", text="Parse XML").path = "//../debug/debug_parse_xml.py"
+
+        layout.separator()
+
 
 class UAS_Debug_RunFunction(Operator):
     bl_idname = "uas.debug_runfunction"

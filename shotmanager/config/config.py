@@ -16,10 +16,13 @@ def initGlobalVariables():
     else:
         uasDebug = True
 
-    uasDebug = False
+    uasDebug = True
 
     global uasDebug_keepVSEContent
-    uasDebug_keepVSEContent = False and uasDebug
+    uasDebug_keepVSEContent = True and uasDebug
+
+    global uasDebug_ignoreLoggerFormatting
+    uasDebug_ignoreLoggerFormatting = True and uasDebug
 
     # icons ############
     global icons_col
@@ -37,6 +40,9 @@ def initGlobalVariables():
 
     global gSeqEnumList
     gSeqEnumList = None
+
+    global gTracksEnumList
+    gTracksEnumList = None
 
 
 def releaseGlobalVariables():

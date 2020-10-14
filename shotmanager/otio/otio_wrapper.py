@@ -232,8 +232,9 @@ def get_media_occurence(timeline, media_name, track_type="ALL", last_occurence=F
 
 
 def get_clip_media_path(clip):
-    media_path = clip.media_reference.target_url
+    # media_path = clip.media_reference.target_url
     # media_path = Path(utils.file_path_from_url(clip.media_reference.target_url))
+    media_path = utils.file_path_from_url(clip.media_reference.target_url)
     return media_path
 
 

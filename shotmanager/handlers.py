@@ -87,7 +87,7 @@ def jump_to_shot(self):
 
     if bpy.context.screen.is_animation_playing:
         ##   print(" *** Playing - after return, frame: ", scene.frame_current)
-        if shotList[current_shot_index].end + 1 == scene.frame_current:
+        if shotList[current_shot_index].end < scene.frame_current < shotList[current_shot_index].end + 10:
             if verbose:
                 print("Just after shot end, jumping to next shot start: ", scene.frame_current)
 

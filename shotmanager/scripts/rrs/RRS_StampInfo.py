@@ -37,16 +37,16 @@ def setRRS_StampInfoSettings(scene):
             stampInfoSettings.stampPropertyValue = True
 
             stampInfoSettings.automaticTextSize = False
-            stampInfoSettings.extPaddingNorm = 0.02
-            stampInfoSettings.fontScaleHNorm = 0.02
-            stampInfoSettings.interlineHNorm = 0.01
+            stampInfoSettings.extPaddingNorm = 0.020
+            stampInfoSettings.fontScaleHNorm = 0.0168
+            stampInfoSettings.interlineHNorm = 0.0072
 
             # top
             stampInfoSettings.logoUsed = True
             stampInfoSettings.logoName = "RRSpecial_Logo.png"
             stampInfoSettings.logoScaleH = 0.05
-            stampInfoSettings.logoPosNormX = 0.02
-            stampInfoSettings.logoPosNormY = 0.025
+            stampInfoSettings.logoPosNormX = 0.018
+            stampInfoSettings.logoPosNormY = 0.014
 
             stampInfoSettings.projectName = projProp_Name
             stampInfoSettings.projectUsed = False
@@ -75,7 +75,7 @@ def setRRS_StampInfoSettings(scene):
             stampInfoSettings.cameraUsed = True
             stampInfoSettings.cameraLensUsed = True
 
-            stampInfoSettings.shotDurationUsed = True
+            stampInfoSettings.shotDurationUsed = False
 
             stampInfoSettings.filenameUsed = True
             stampInfoSettings.filepathUsed = True

@@ -126,8 +126,8 @@ def remove_shot(shot_manager, shot):
     shot_manager.removeShot(shot)
 
 
-def move_shot_to_index(shot_manager, shot, new_index, take_index=-1):
-    shot_manager.moveShotToIndex(shot, new_index, takeIndex=take_index)
+def move_shot_to_index(shot_manager, shot, new_index):
+    shot_manager.moveShotToIndex(shot, new_index)
 
 
 def set_current_shot_by_index(shot_manager, current_shot_index):
@@ -144,8 +144,12 @@ def get_shot_index(shot_manager, shot, take_index=-1):
     return shot_manager.getShotIndex(shot, takeIndex=take_index)
 
 
-def get_shot(shot_manager, shot_index, take_index=-1):
-    return shot_manager.getShot(shot_index, takeIndex=take_index)
+def get_shot(shot_manager, shot_index, ignore_disabled=False, take_index=-1):
+    return shot_manager.getShotByIndex(shot_index, ignoreDisabled=ignore_disabled, takeIndex=take_index)
+
+
+def get_shot_by_name(shot_manager, shot_name, ignore_disabled=False, takeIndex=-1):
+    return shot_manager.getShotByName(shot_name, ignoreDisabled=ignore_disabled, takeIndex=takeIndex)
 
 
 def get_shots(shot_manager, take_index=-1):

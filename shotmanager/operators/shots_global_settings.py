@@ -63,7 +63,7 @@ class UAS_ShotsSettings_UseBackground(Operator):
     bl_idname = "uas_shots_settings.use_background"
     bl_label = "Use Background Images"
     bl_description = "Enable or disable the background images for the shot cameras"
-    bl_options = {"INTERNAL", "REGISTER", "UNDO"}
+    bl_options = {"INTERNAL", "UNDO"}
 
     useBackground: BoolProperty(default=False)
 
@@ -85,7 +85,7 @@ class UAS_ShotsSettings_UseBackground(Operator):
 #     bl_idname = "uas_shots_settings.background_alpha"
 #     bl_label = "Set Background Opacity"
 #     bl_description = "Change the background images opacity for the shot cameras"
-#     bl_options = {"INTERNAL", "REGISTER", "UNDO"}
+#     bl_options = {"INTERNAL", "UNDO"}
 
 #     alpha: FloatProperty(default=0.75)
 
@@ -105,7 +105,7 @@ class UAS_ShotsSettings_UseBackground(Operator):
 #     bl_idname = "uas_shots_settings.bg_proxy_render_size"
 #     bl_label = "proxy Render Size"
 #     bl_description = "proxy Render Size"
-#     bl_options = {"INTERNAL", "REGISTER", "UNDO"}
+#     bl_options = {"INTERNAL", "UNDO"}
 
 #     proxyRenderSize: bpy.props.EnumProperty(
 #         name="Proxy Render Size",

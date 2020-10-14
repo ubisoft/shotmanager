@@ -128,8 +128,8 @@ class UAS_ShotManager_Take(SequenceInterface, PropertyGroup):
 
         return shotList
 
-    def getEditShots(self):
-        return self.getShotsList(ignoreDisabled=True)
+    def getEditShots(self, ignoreDisabled=True):
+        return self.getShotsList(ignoreDisabled=ignoreDisabled)
 
     #############
     # notes #####
@@ -171,6 +171,12 @@ class UAS_ShotManager_Take(SequenceInterface, PropertyGroup):
                 print("")
                 shot.printInfo()
 
+    def debugDisplayShots(self):
+        print("\nShots:")
+        for sh in self.shots:
+            offStr = "" if sh.enabled else "  Off"
+            print(f"  {sh.name}{offStr}")
+
     def getInfoAsDictionnary(self, shotsDetails=True):
         dictSeq = dict()
         dictSeq["shots"] = []
@@ -187,6 +193,8 @@ class UAS_ShotManager_Take(SequenceInterface, PropertyGroup):
         return self.parentScene.UAS_shot_manager_props.editStartFrame
 
     def get_frame_end(self):
+        """get_frame_end is exclusive in order to follow the Blender implementation of get_frame_end for its clips
+        """
         return (
             self.parentScene.UAS_shot_manager_props.editStartFrame
             + self.parentScene.UAS_shot_manager_props.getEditDuration()

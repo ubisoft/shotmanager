@@ -263,6 +263,12 @@ class UAS_VSM_Props(PropertyGroup):
         trackInd = self.getTrackIndex(selectedTrack)
         self.setSelectedTrackByIndex(trackInd)
 
+    def updateTracksList(self, scene):
+        numChannels = self.getNumUsedChannels(scene)
+
+        if self.numTracks < numChannels:
+            self.numTracks = numChannels
+
     ####################
     # channels
     ####################

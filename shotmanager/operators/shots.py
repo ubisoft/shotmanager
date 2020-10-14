@@ -28,14 +28,14 @@ class UAS_ShotManager_SetCurrentShot(Operator):
     bl_idname = "uas_shot_manager.set_current_shot"
     bl_label = "Set current Shot"
     bl_description = "Click: Set the shot as the current one.\nShift + Click: Toggle shot Disabled state.\nCtrl + Click: Select Shot Camera.\nAlt + Click: Set the shot as current one but do not change time"
-    bl_options = {"INTERNAL", "REGISTER", "UNDO"}
+    bl_options = {"INTERNAL", "UNDO"}
 
     index: bpy.props.IntProperty()
 
     def invoke(self, context, event):
         props = context.scene.UAS_shot_manager_props
         if event.shift and not event.ctrl and not event.alt:
-            shot = props.getShot(self.index)
+            shot = props.getShotByIndex(self.index)
             shot.enabled = not shot.enabled
         elif event.ctrl and not event.shift and not event.alt:
             context.scene.UAS_shot_manager_props.setSelectedShotByIndex(self.index)
@@ -81,7 +81,7 @@ class UAS_ShotManager_GetSetCurrentFrame(Operator):
         props = context.scene.UAS_shot_manager_props
         argArr = json.loads(self.shotSource)
 
-        shot = props.getShot(argArr[0])
+        shot = props.getShotByIndex(argArr[0])
         if event.shift:
             if 0 == argArr[1]:
                 shot.start = context.scene.frame_current
@@ -123,7 +123,7 @@ class UAS_ShotManager_ShotTimeInEdit(Operator):
 
         # print("shotSource: ", self.shotSource)
         # print("argArr: ", argArr)
-        shot = props.getShot(argArr[0])
+        shot = props.getShotByIndex(argArr[0])
 
         if context.window_manager.UAS_shot_manager_shots_play_mode:
             props.setCurrentShotByIndex(argArr[0])
@@ -148,7 +148,7 @@ class UAS_ShotManager_ShowNotes(Operator):
 
     def invoke(self, context, event):
         props = context.scene.UAS_shot_manager_props
-        shot = props.getShot(self.index)
+        shot = props.getShotByIndex(self.index)
         shot.selectShotInUI()
         return {"FINISHED"}
 
@@ -520,12 +520,16 @@ class UAS_ShotManager_ShotMove(Operator):
         # currentShotInd = props.getCurrentShotIndex()
         selectedShotInd = props.getSelectedShotIndex()
 
+        movedShot = shots[selectedShotInd]
         if self.action == "UP":
             #    if 0 < selectedShotInd:
-            props.moveShotToIndex(shots[selectedShotInd], selectedShotInd - 1)
+            movedShot = props.moveShotToIndex(movedShot, selectedShotInd - 1)
         elif self.action == "DOWN":
             #    if len(shots) - 1 > selectedShotInd:
-            props.moveShotToIndex(shots[selectedShotInd], selectedShotInd + 1)
+            movedShot = props.moveShotToIndex(movedShot, selectedShotInd + 1)
+
+        props.setCurrentShot(movedShot)
+        props.setSelectedShot(movedShot)
 
         return {"FINISHED"}
 
@@ -552,7 +556,7 @@ class UAS_ShotManager_RemoveBGImages(Operator):
             take = context.scene.UAS_shot_manager_props.getCurrentTake()
             shotList = take.getShotList(ignoreDisabled=props.shotsGlobalSettings.alsoApplyToDisabledShots)
         else:
-            shot = props.getShot(self.shotIndex)
+            shot = props.getShotByIndex(self.shotIndex)
             if shot is not None:
                 shotList.append(shot)
 
@@ -775,9 +779,16 @@ def list_target_take_shots(self, context):
 
 class UAS_ShotManager_DuplicateShotsToOtherTake(Operator):
     bl_idname = "uas_shot_manager.shot_duplicates_to_other_take"
-    bl_label = "Duplicate Enabled Shots to Another Take..."
-    bl_description = "Duplicate enabled shots to the specified take"
+    bl_label = "Duplicate / Move Enabled Shots to Another Take..."
+    bl_description = "Duplicate or move enabled shots to the specified take"
     bl_options = {"INTERNAL", "UNDO"}
+
+    mode: EnumProperty(
+        name="Mode",
+        description="Duplicate or Move shots",
+        items=(("DUPLICATE", "Duplicate", ""), ("MOVE", "Move", "")),
+        default="DUPLICATE",
+    )
 
     targetTake: EnumProperty(
         name="Target Take", description="Take in which the shots will be duplicated", items=(list_target_takes),
@@ -810,8 +821,17 @@ class UAS_ShotManager_DuplicateShotsToOtherTake(Operator):
         layout = self.layout
 
         box = layout.box()
-        row = box.row(align=True)
 
+        row = box.row(align=True)
+        grid_flow = row.grid_flow(align=True, columns=2, even_columns=False)
+        col = grid_flow.column(align=False)
+        col.scale_x = 0.6
+        col.label(text="Mode:")
+        col = grid_flow.column(align=True)
+        col.prop(self, "mode", text="")
+        col.separator()
+
+        row = box.row(align=True)
         grid_flow = row.grid_flow(align=True, columns=2, even_columns=False)
         col = grid_flow.column(align=False)
         col.scale_x = 0.6
@@ -827,10 +847,11 @@ class UAS_ShotManager_DuplicateShotsToOtherTake(Operator):
         col = grid_flow.column(align=True)
         col.prop(self, "insertAfterShot", text="")
 
-        row = box.row(align=True)
-        row.separator(factor=2.5)
-        subgrid_flow = row.grid_flow(align=True, row_major=True, columns=1, even_columns=False)
-        subgrid_flow.prop(self, "duplicateCam")
+        if "DUPLICATE" == self.mode:
+            row = box.row(align=True)
+            row.separator(factor=2.5)
+            subgrid_flow = row.grid_flow(align=True, row_major=True, columns=1, even_columns=False)
+            subgrid_flow.prop(self, "duplicateCam")
 
         layout.separator()
 
@@ -843,17 +864,23 @@ class UAS_ShotManager_DuplicateShotsToOtherTake(Operator):
 
         insertAfterShotInd = int(self.insertAfterShot) + 1
         insertAtInd = insertAfterShotInd
+        copyCam = "DUPLICATE" == self.mode and self.duplicateCam
         for shot in enabledShots:
             # print(f"insertAtInd: {insertAtInd}")
-
             newShot = props.copyShot(
                 shot, atIndex=insertAtInd, copyCamera=self.duplicateCam, targetTakeIndex=targetTakeInd
             )
             insertAtInd += 1
 
-        props.setCurrentTakeByIndex(targetTakeInd)
-        props.setCurrentShotByIndex(insertAfterShotInd)
-        props.setSelectedShotByIndex(insertAfterShotInd)
+        # delete source shots
+        if "DUPLICATE" == self.mode:
+            props.setCurrentTakeByIndex(targetTakeInd)
+            props.setCurrentShotByIndex(insertAfterShotInd)
+            props.setSelectedShotByIndex(insertAfterShotInd)
+        else:  # move
+            for i, shot in enumerate(reversed(enabledShots)):
+                print(f"shot to remove: {shot.name}, {shot.parentScene}, i:{i}")
+                props.removeShot(shot)
 
         return {"FINISHED"}
 

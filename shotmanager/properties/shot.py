@@ -32,6 +32,9 @@ class UAS_ShotManager_Shot(ShotInterface, PropertyGroup):
     def getParentTakeIndex(self):
         return self.parentScene.UAS_shot_manager_props.getShotParentTakeIndex(self)
 
+    def getParentTake(self):
+        return self.parentScene.UAS_shot_manager_props.getShotParentTake(self)
+
     # for backward compatibility - before V1.2.21
     # used by data version patches.
     # For general purpose use the property self.parentScene
@@ -61,17 +64,58 @@ class UAS_ShotManager_Shot(ShotInterface, PropertyGroup):
     #         parentShotManager = parentScene.UAS_shot_manager_props
     #     return parentShotManager
 
-    def getDuration(self):
-        """ Returns the shot duration in frames
-            in Blender - and in Shot Manager - the last frame of the shot is included in the rendered images
-        """
-        duration = self.end - self.start + 1
-        return duration
-
-    def getOutputFileName(self, frameIndex=-1, fullPath=False, fullPathOnly=False, rootFilePath=""):
+    def getOutputFileName(
+        self, rootFilePath="", fullPath=False, fullPathOnly=False, specificFrame=None, noExtension=False
+    ):
+        _logger.debug(f"*** shot.getOutputFileName: Deprecated - use getOutputMediaPath")
         return self.parentScene.UAS_shot_manager_props.getShotOutputFileName(
-            self, frameIndex=frameIndex, fullPath=fullPath, fullPathOnly=fullPathOnly, rootFilePath=rootFilePath
+            self,
+            rootFilePath=rootFilePath,
+            fullPath=fullPath,
+            fullPathOnly=fullPathOnly,
+            specificFrame=specificFrame,
+            noExtension=noExtension,
         )
+
+    def getOutputMediaPath(
+        self,
+        rootPath=None,
+        insertTakeName=True,
+        providePath=True,
+        provideName=True,
+        provideExtension=True,
+        specificFrame=None,
+        genericFrame=False,
+    ):
+        return self.parentScene.UAS_shot_manager_props.getShotOutputMediaPath(
+            self,
+            rootPath=rootPath,
+            insertTakeName=insertTakeName,
+            providePath=providePath,
+            provideName=provideName,
+            provideExtension=provideExtension,
+            specificFrame=specificFrame,
+            genericFrame=genericFrame,
+        )
+
+    def getCompositedMediaPath(self, rootFilePath, specificFrame=None):
+        # props = shot.parentScene.UAS_shot_manager_props
+        takeName = self.getParentTake().getName_PathCompliant()
+        #    outputFileFormat = props.getOutputFileFormat(isVideo=specificFrame is None)
+
+        if not (rootFilePath.endswith("/") or rootFilePath.endswith("\\")):
+            rootFilePath += "\\"
+        compositedMediaPath = (
+            f"{rootFilePath}{takeName}\\{self.getOutputFileName(fullPath=False)}"  # .{outputFileFormat}"
+        )
+        if specificFrame is not None:
+            compositedMediaPath = (
+                f"{rootFilePath}{takeName}\\{self.getOutputFileName(fullPath=False, specificFrame=specificFrame)}"
+            )
+
+        # compositedMediaPath.replace("\\", "/")
+
+        return compositedMediaPath
 
     def getName_PathCompliant(self):
         shotName = self.name.replace(" ", "_")
@@ -89,6 +133,17 @@ class UAS_ShotManager_Shot(ShotInterface, PropertyGroup):
         self["name"] = newName
 
     name: StringProperty(name="Name", get=_get_name, set=_set_name)
+
+    def _update_enabled(self, context):
+        self.selectShotInUI()
+
+    enabled: BoolProperty(
+        name="Enable / Disable Shots",
+        description="Use - or not - the shot in the edit",
+        update=_update_enabled,
+        default=True,
+        options=set(),
+    )
 
     #############
     # start #####
@@ -167,6 +222,25 @@ class UAS_ShotManager_Shot(ShotInterface, PropertyGroup):
     # duration #####
     #############
 
+    def getDuration(self):
+        """ Returns the shot duration in frames
+            In Blender - and in Shot Manager - the last frame of the shot is included in the rendered images
+        """
+        duration = self.end - self.start + 1
+        return duration
+
+    def setDuration(self, duration, bypassLock=False):
+        """ Set the shot duration in frames
+            In Blender - and in Shot Manager - the last frame of the shot is included in the rendered images
+        """
+        newDuration = max(duration, 1)
+        if not self.durationLocked:
+            self.end = self.start + newDuration - 1
+        elif bypassLock:
+            self.durationLocked = False
+            self.end = self.start + newDuration - 1
+            self.durationLocked = True
+
     def _get_duration_fp(self):
         #   print("\n*** _get_duration_fp: New state: ", self.duration_fp)
 
@@ -205,17 +279,6 @@ class UAS_ShotManager_Shot(ShotInterface, PropertyGroup):
         description="Lock - or not - the shot duration.\nWhen locked, changing one boundary will also affect the other",
         default=False,
         update=_update_durationLocked,
-        options=set(),
-    )
-
-    def _update_enabled(self, context):
-        self.selectShotInUI()
-
-    enabled: BoolProperty(
-        name="Enable / Disable Shots",
-        description="Use - or not - the shot in the edit",
-        update=_update_enabled,
-        default=True,
         options=set(),
     )
 

@@ -1,3 +1,8 @@
+from pathlib import Path
+
+import bpy
+from shotmanager.utils import utils
+
 import logging
 
 _logger = logging.getLogger(__name__)
@@ -11,6 +16,7 @@ class MontageInterface(object):
     def __init__(self):
         self._name = ""
         self.sequencesList = list()
+        self._characteristics = dict()
 
     def get_montage_type(self):
         return "INTERFACE"
@@ -47,8 +53,27 @@ class MontageInterface(object):
         for seq in self.sequencesList:
             seq.printInfo()
 
+    def get_montage_characteristics(self):
+        """
+            Return a dictionary with the characterisitics of the montage.
+            This is required to export it as xml EDL.
+        """
+        return self._characteristics
+
+    def set_montage_characteristics(self, framerate=-1, resolution_x=-1, resolution_y=-1, duration=-1):
+        """
+        """
+        self._characteristics = dict()
+        self._characteristics["framerate"] = framerate  # timebase
+        self._characteristics["resolution_x"] = resolution_x  # width
+        self._characteristics["resolution_y"] = resolution_y  # height
+        self._characteristics["duration"] = duration  # duration
+
     def get_fps(self):
-        return -1
+        if "framerate" in self._characteristics:
+            return self._characteristics["framerate"]
+        else:
+            return -1
 
     def get_frame_start(self):
         if self.sequencesList is not None and len(self.sequencesList):
@@ -57,13 +82,18 @@ class MontageInterface(object):
             return -1
 
     def get_frame_end(self):
+        """get_frame_end is exclusive in order to follow the Blender implementation of get_frame_end for its clips
+        """
         if self.sequencesList is not None and len(self.sequencesList):
             return self.sequencesList[len(self.sequencesList) - 1].get_frame_end()
         else:
             return -1
 
     def get_frame_duration(self):
-        return -1
+        if "duration" in self._characteristics:
+            return self._characteristics["duration"]
+        else:
+            return -1
 
     def get_num_sequences(self):
         return len(self.sequencesList)
@@ -89,6 +119,10 @@ class MontageInterface(object):
                 break
         return refSeq
 
+    def conformToRefMontage(self, ref_montage, ref_sequence_name=""):
+        infoStr += f"\n\n {utils.bcolors.WARNING}Conform to ref montge (in Montage_interface.py):{utils.bcolors.ENDC}\n"
+        print(infoStr)
+
     def compareWithMontage(self, ref_montage, ref_sequence_name=""):
         """
             Compare current montage with specified montage
@@ -96,53 +130,99 @@ class MontageInterface(object):
         """
 
         def printInfoLine(col00, col01, col02):
-            print(f"{col00: >10} {col01: >30}       - {col02: >30}")
+            print(f"{col00: >10}   {col01: <37}    - {col02: <30}")
+
+        props = bpy.context.scene.UAS_shot_manager_props
+        textSelf = ""
+        textRef = ""
 
         infoStr = f"\n\n ------ ------ ------ ------ ------ ------ ------ ------ ------ "
-        infoStr += f"\n\n Comparing montages:\n"
+        infoStr += f"\n\n {utils.bcolors.WARNING}Comparing montages (in Montage_interface.py):{utils.bcolors.ENDC}\n"
         print(infoStr)
 
         # infoStr += (
         #     f"\nNote: All the end values are EXCLUSIVE (= not the last used frame of the range but the one after)"
         # )
         # infoStr += f"\n        Ref: {ref_montage.get_name(): >30}       -  {self.get_name() : >30}"
-        colRef = ref_montage.get_name()
-        colSelf = self.get_name()
-        printInfoLine("", colRef, colSelf)
-
-        refSeq = ref_montage.get_sequence_by_name(ref_sequence_name)
+        textRef = ref_montage.get_name()
+        textSelf = self.get_name()
+        # printInfoLine("", textRef, textSelf)
+        print(f"     {textRef + ':' :<44} {textSelf + ':' :<30}")
 
         # selfSeq = self.get_sequence_by_name(ref_sequence_name)
-        selfSeq = self.get_sequences()  # wkip limité à 1 take pour l'instant
+        selfSeq = (self.get_sequences())[0]  # wkip limité à 1 take pour l'instant
+        textSelf = f"  Current Sequence: {selfSeq.get_name()}"
+
+        refSeq = ref_montage.get_sequence_by_name(ref_sequence_name)
         if "" != ref_sequence_name:
             if refSeq is not None:
-                print(f"  Ref Sequence: {refSeq.get_name()} \n")
+                textRef = f"  Ref Sequence: {refSeq.get_name()}"
 
-        comparedShotsList = selfSeq.copy()
+        print(f"     {textRef + ':' :<44} {textSelf + ':' :<30}")
 
-        if refSeq is not None:
-            for i, shot in enumerate(refSeq.getEditShots()):
-                shotRef = shot
-                colRef = shotRef.get_name()
+        if refSeq is None:
+            print(" Ref Sequence is None, aborting comparison...")
+            return ()
 
-                shotSelf = None
-                for sh in comparedShotsList:
-                    if sh.get_name() == shotRef.get_name():
-                        shotSelf = sh
-                        break
+        ###################
+        # compare order and enable state
+        ###################
 
-                if shotSelf is None:
-                    colSelf = "-"
-                else:
-                    colSelf = shotSelf.get_name() + "  "
-                    if shotSelf.get_frame_final_duration() != shotRef.get_frame_final_duration():
-                        colSelf += "Different duration"
+        comparedShotsList = selfSeq.getEditShots(ignoreDisabled=False)
+        newEditShots = list()
+        numShotsInRefEdit = len(refSeq.getEditShots())
+        for i, shot in enumerate(refSeq.getEditShots()):
+            shotRef = shot
+            textRef = shotRef.get_name()
+            shotRefName = Path(shotRef.get_name()).stem
 
-                # wkip wkip here mettre les diffs
+            shotSelf = None
+            for sh in comparedShotsList:
+                # if sh.get_name() == shotRef.get_name():
+                shotName = props.renderShotPrefix() + "_" + sh.get_name()
+                # print(f"shotName: {shotName}, shotRefName: {shotRefName}")
+                if shotName == shotRefName:
+                    shotSelf = sh
+                    newEditShots.append(shotSelf)
+                    break
 
-                printInfoLine(str(i), colRef, colSelf)
-            # print(f"Shot: {shot.get_name()}")
+            if shotSelf is None:
+                textSelf = "** Not found **"
+            else:
+                textSelf = shotSelf.get_name()
+                textSelf += "   "
+
+                if shotSelf.get_frame_final_duration() != shotRef.get_frame_final_duration():
+                    textSelf += f" / different durations ({shotSelf.get_frame_final_duration()} fr.)"
+
+                # wkip we don't know the length of the handles!!!
+                # if shotSelf.get_frame_offset_start() != shotRef.get_frame_final_duration():
+                #     textSelf += f" / different durations ({shotSelf.get_frame_final_duration()} fr.)"
+
+                if not shotSelf.enabled:
+                    textSelf += " / to enable"
+
+            # wkip wkip here mettre les diffs
+
+            printInfoLine(str(i), f"{textRef}  ({shotRef.get_frame_final_duration()} fr.)", textSelf)
+        # print(f"Shot: {shot.get_name()}")
         #         pass
+
+        ###################
+        # list other shots and disabled them
+        ###################
+        print("\n       Shots not used in current sequence:")
+        ind = 0
+        for i, sh in enumerate(comparedShotsList):
+            if sh not in newEditShots:
+                # sh.enabled = False
+                textSelf = sh.get_name() + " / to disable"
+                printInfoLine(str(ind + numShotsInRefEdit), "-", textSelf)
+                ind += 1
+
+        if 0 == ind:
+            printInfoLine("", "-", "-")
+
         print("")
 
 
@@ -174,7 +254,10 @@ class SequenceInterface(object):
         self.shotsList.append(newShot)
         return newShot
 
-    def getEditShots(self):
+    # def get_shots(self, ignoreDisabled=True):
+    #     return self.getEditShots(ignoreDisabled=ignoreDisabled)
+
+    def getEditShots(self, ignoreDisabled=True):
         return self.shotsList
 
     def printInfo(self, printChildren=True):
@@ -212,6 +295,8 @@ class SequenceInterface(object):
         return start
 
     def get_frame_end(self):
+        """get_frame_end is exclusive in order to follow the Blender implementation of get_frame_end for its clips
+        """
         # warning: clips may not be on the same track, hence they may not be ordered!!
         end = self.shotsList[0].get_frame_final_end()
         for shot in self.shotsList:
@@ -259,7 +344,7 @@ class ShotInterface(object):
 
     def printInfo(self, only_clip_info=False):
         infoStr = ""
-        infoStr += f"        - Shot {self.get_index_in_parent()}:    Name: {self.get_name()}"
+        infoStr += f"        - Shot {self.get_name()}  ({self.get_index_in_parent()}):"
         if not only_clip_info:
             infoStr += f"\n             - Start: {self.get_frame_start()}, End(Incl.): {self.get_frame_end() - 1}, Duration: {self.get_frame_duration()}"
         infoStr += f"\n             - Final Start: {self.get_frame_final_start()}, Final End(Incl.): {self.get_frame_final_end() - 1}, Final Duration: {self.get_frame_final_duration()}"
@@ -280,6 +365,8 @@ class ShotInterface(object):
         return -1
 
     def get_frame_end(self):
+        """get_frame_end is exclusive in order to follow the Blender implementation of get_frame_end for its clips
+        """
         return -1
 
     def get_frame_duration(self):

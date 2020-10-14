@@ -98,7 +98,7 @@ class UAS_ShotManager_General_Prefs(Operator):
         row = col.row()
         row.prop(props, "use_handles", text="Use Handles")
         subrow = row.row()
-        subrow.enabled = props.project_use_handles
+        subrow.enabled = props.project_use_shot_handles
         subrow.prop(props, "handles", text="Handles")
         col.separator()
 
@@ -124,7 +124,7 @@ class UAS_ShotManager_ProjectSettings_Prefs(Operator):
     bl_idname = "uas_shot_manager.project_settings_prefs"
     bl_label = "Project Settings"
     bl_description = "Display the Project Settings panel"
-    bl_options = {"INTERNAL", "REGISTER", "UNDO"}
+    bl_options = {"INTERNAL", "UNDO"}
 
     def invoke(self, context, event):
         print("Invoke prefs")
@@ -158,9 +158,9 @@ class UAS_ShotManager_ProjectSettings_Prefs(Operator):
 
         col.separator(factor=1)
         row = col.row()
-        row.prop(props, "project_use_handles")
+        row.prop(props, "project_use_shot_handles")
         subrow = row.row()
-        subrow.enabled = props.project_use_handles
+        subrow.enabled = props.project_use_shot_handles
         subrow.prop(props, "project_shot_handle_duration", text="Handles")
         col.separator(factor=1)
 

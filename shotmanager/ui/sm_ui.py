@@ -87,14 +87,18 @@ class UAS_PT_ShotManager(Panel):
         prefs = context.preferences.addons["shotmanager"].preferences
         currentTake = props.getCurrentTake()
 
-        import addon_utils
+        # addon warning message - for beta message display
+        ###############
+        # import addon_utils
 
-        addonWarning = [
-            addon.bl_info.get("warning", "")
-            for addon in addon_utils.modules()
-            if addon.bl_info["name"] == "UAS Shot Manager"
-        ]
+        # addonWarning = [
+        #     addon.bl_info.get("warning", "")
+        #     for addon in addon_utils.modules()
+        #     if addon.bl_info["name"] == "UAS Shot Manager"
+        # ]
 
+        addonWarning = [""]
+        # addonWarning = ["Beta Yannick"]
         if "" != addonWarning[0]:
             row = layout.row()
             row.alignment = "CENTER"
@@ -117,6 +121,17 @@ class UAS_PT_ShotManager(Panel):
             row.operator("uas_shot_manager.initialize")
             row.alert = False
             layout.separator()
+
+        # scene warnings
+        ################
+        warningsList = props.getWarnings(scene)
+        if len(warningsList):
+            for w in warningsList:
+                row = layout.row()
+                row.separator()
+                row.alert = True
+                row.label(text=w)
+                row.alert = False
 
         # play and timeline
         ################
@@ -210,17 +225,6 @@ class UAS_PT_ShotManager(Panel):
         if props.use_project_settings and props.project_fps != scene.render.fps:
             row.alert = True
         row.label(text=str(scene.render.fps) + " fps")
-
-        # warnings
-        ################
-        warningsList = props.getWarnings(scene)
-        if len(warningsList):
-            for w in warningsList:
-                row = layout.row()
-                row.separator()
-                row.alert = True
-                row.label(text=w)
-                row.alert = False
 
         # takes
         ################

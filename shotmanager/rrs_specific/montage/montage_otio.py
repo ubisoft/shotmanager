@@ -1,16 +1,15 @@
-import logging
-
-_logger = logging.getLogger(__name__)
-
 import os
 from pathlib import Path
-from urllib.parse import unquote_plus, urlparse
-import re
 
-from shotmanager.utils import utils
+from shotmanager.config import config
+from shotmanager.utils import utils, utils_xml
 from .montage_interface import MontageInterface, SequenceInterface, ShotInterface
 from shotmanager.otio import otio_wrapper as ow
 import opentimelineio
+
+import logging
+
+_logger = logging.getLogger(__name__)
 
 
 class MontageOtio(MontageInterface):
@@ -23,6 +22,8 @@ class MontageOtio(MontageInterface):
         # new properties:
         self.otioFile = None
         self.timeline = None
+        # self.seqCharacteristics = None
+        # self.videoCharacteristics = None
 
     def initialize(self, otioFile, read=True):
         # wkip release memory from exisiting otio montage???
@@ -34,6 +35,27 @@ class MontageOtio(MontageInterface):
 
     def get_montage_type(self):
         return "OTIO"
+
+    def get_montage_characteristics(self):
+        """
+            Return a dictionary with the characterisitics of the montage.
+            This is required to export it as xml EDL.
+        """
+        self._characteristics["framerate"] = self.get_fps()
+        self._characteristics["duration"] = self.get_frame_duration()
+
+        return self._characteristics
+
+    def set_montage_characteristics(self, resolution_x=-1, resolution_y=-1, framerate=-1, duration=-1):
+        """
+        """
+        self._characteristics = dict()
+        # self._characteristics["framerate"] = framerate  # timebase
+        self._characteristics["resolution_x"] = resolution_x  # width
+        self._characteristics["resolution_y"] = resolution_y  # height
+        self._characteristics["framerate"] = self.get_fps()  # timebase
+        self._characteristics["duration"] = self.get_frame_duration()  # wkip may change afterwards...
+        # self._characteristics["duration"] = duration  # wkip may change afterwards...
 
     def get_fps(self):
         time = self.timeline.duration()
@@ -61,8 +83,10 @@ class MontageOtio(MontageInterface):
 
         return seqName
 
-    def fillMontageInfoFromOtioFile(self, otioFile, verboseInfo=False):
-        self.initialize(otioFile)
+    def fillMontageInfoFromOtioFile(self, otioFile=None, refVideoTrackInd=0, verboseInfo=False):
+
+        if otioFile is not None:
+            self.initialize(otioFile)
 
         if self.timeline is None:
             _logger.error("fillMontageInfoFromOtioFile: self.timeline is None!")
@@ -77,37 +101,133 @@ class MontageOtio(MontageInterface):
 
             return -1
 
+        def _getVideoCharacteristicsFromXML():
+            print("_getVideoCharacteristicsFromXML")
+
+            from xml.dom.minidom import parse
+
+            dom1 = parse(self.otioFile)
+            seq = dom1.getElementsByTagName("sequence")[0]
+
+            seqCharacteristics = dict()
+
+            seqDuration = utils_xml.getFirstChildWithName(seq, "duration")
+            if seqDuration is not None:
+                seqCharacteristics = {"duration": int(seqDuration.childNodes[0].nodeValue)}
+            # seqRate = utils_xml.getFirstChildWithName(seq, "rate")
+            # if seqRate is not None:
+            #     seqRateDict = {
+            #         "timebase": float(utils_xml.getFirstChildWithName(seqRate, "timebase").childNodes[0].nodeValue),
+            #         "ntsc": utils_xml.getFirstChildWithName(seqRate, "ntsc").childNodes[0].nodeValue,
+            #     }
+            #     self.seqCharacteristics = {"rate": seqRateDict}
+
+            seqMedia = None
+            seqMediaVideo = None
+            seqMediaVideoFormat = None
+            videoSampleCharacteristics = None
+
+            videoCharacteristics = dict()
+
+            seqMedia = utils_xml.getFirstChildWithName(seq, "media")
+            if seqMedia is not None:
+                seqMediaVideo = utils_xml.getFirstChildWithName(seqMedia, "video")
+
+            if seqMediaVideo is not None:
+                seqMediaVideoFormat = utils_xml.getFirstChildWithName(seqMediaVideo, "format")
+
+            if seqMediaVideoFormat is not None:
+                videoSampleCharacteristics = utils_xml.getFirstChildWithName(
+                    seqMediaVideoFormat, "samplecharacteristics"
+                )
+
+            print(f"videoSampleCharacteristics: {videoSampleCharacteristics}")
+
+            if videoSampleCharacteristics is not None:
+                seqRate = utils_xml.getFirstChildWithName(videoSampleCharacteristics, "rate")
+
+                seqRateDict = {
+                    "timebase": float(utils_xml.getFirstChildWithName(seqRate, "timebase").childNodes[0].nodeValue),
+                    "ntsc": utils_xml.getFirstChildWithName(seqRate, "ntsc").childNodes[0].nodeValue,
+                }
+
+                videoCharacteristics["rate"] = seqRateDict
+                videoCharacteristics["width"] = int(
+                    utils_xml.getFirstChildWithName(videoSampleCharacteristics, "width").childNodes[0].nodeValue
+                )
+                videoCharacteristics["height"] = int(
+                    utils_xml.getFirstChildWithName(videoSampleCharacteristics, "height").childNodes[0].nodeValue
+                )
+                # videoCharacteristics["anamorphic"] = (
+                #     utils_xml.getFirstChildWithName(videoSampleCharacteristics, "anamorphic").childNodes[0].nodeValue
+                # )
+                # videoCharacteristics["pixelaspectratio"] = (
+                #     utils_xml.getFirstChildWithName(videoSampleCharacteristics, "pixelaspectratio").childNodes[0].nodeValue
+                # )
+                # videoCharacteristics["fielddominance"] = (
+                #     utils_xml.getFirstChildWithName(videoSampleCharacteristics, "fielddominance").childNodes[0].nodeValue
+                # )
+                # videoCharacteristics["colordepth"] = int(
+                #     utils_xml.getFirstChildWithName(videoSampleCharacteristics, "colordepth").childNodes[0].nodeValue
+                # )
+                # videoCharacteristics["width"] = elem.nodeValue
+                # print(f"width: {videoCharacteristics['width']}")
+            # print(f"videoCharacteristics: {videoCharacteristics}")
+
+            self.set_montage_characteristics(
+                #  videoCharacteristics["rate"]["timebase"],
+                resolution_x=videoCharacteristics["width"],
+                resolution_y=videoCharacteristics["height"],
+                #  duration=seqCharacteristics["duration"],
+            )
+
+            return ()
+
+        if ".xml" == (Path(self.otioFile).suffix).lower():
+            _getVideoCharacteristicsFromXML()
+
+        self.sequencesList = None
+        self.sequencesList = list()
+
+        _logger.debug(f"refVideoTrackInd: {refVideoTrackInd}")
+        # ref track is the first one
         tracks = self.timeline.video_tracks()
-        for track in tracks:
-            for clip in track:
-                if isinstance(clip, opentimelineio.schema.Clip):
-                    # print(clip.media_reference)
-                    media_path = Path(utils.file_path_from_url(clip.media_reference.target_url))
-                    # print(f"{media_path}")
+        for i, track in enumerate(tracks):
+            if refVideoTrackInd == i:
+                #     track = self.timeline.video_tracks[0]
 
-                    # get media name
-                    filename = os.path.split(media_path)[1]
-                    media_name = os.path.splitext(filename)[0]
-                    media_name_lower = media_name.lower()
+                for clip in track:
+                    if isinstance(clip, opentimelineio.schema.Clip):
+                        media_path = Path(utils.file_path_from_url(clip.media_reference.target_url))
+                        # if config.uasDebug:
+                        #   print(f"\n** clip: {clip.name}")
+                        # print(f"** clip.media_reference: {clip.media_reference}")
+                        # print(f"** media_path: {media_path}")
+                        # wkip ici mettre une exception pour attraper les media manquants (._otio.MissingReference)
 
-                    # get parent sequence
-                    seq_pattern = "_seq"
-                    if seq_pattern in media_name_lower:
-                        #    print(f"media_name: {media_name}")
+                        # get media name
+                        filename = os.path.split(media_path)[1]
+                        media_name = os.path.splitext(filename)[0]
+                        media_name_lower = media_name.lower()
 
-                        media_name_splited = media_name_lower.split("_")
-                        if 2 <= len(media_name_splited):
-                            parentSeqInd = _getParentSeqIndex(self.sequencesList, media_name_splited[1])
+                        # get parent sequence
+                        seq_pattern = "_seq"
+                        if seq_pattern in media_name_lower:
+                            #    print(f"media_name: {media_name}")
 
-                            # add new seq if not found
-                            newSeq = None
-                            if -1 == parentSeqInd:
-                                newSeq = self.newSequence()
-                                newSeq.set_name(self.getSequenceNameFromMediaName(media_name))
+                            media_name_splited = media_name_lower.split("_")
+                            if 2 <= len(media_name_splited):
+                                parentSeqInd = _getParentSeqIndex(self.sequencesList, media_name_splited[1])
 
-                            else:
-                                newSeq = self.sequencesList[parentSeqInd]
-                            newSeq.newShot(clip)
+                                # add new seq if not found
+                                newSeq = None
+                                if -1 == parentSeqInd:
+                                    newSeq = self.newSequence()
+                                    newSeq.set_name(self.getSequenceNameFromMediaName(media_name))
+
+                                else:
+                                    newSeq = self.sequencesList[parentSeqInd]
+                                newSeq.newShot(clip)
 
         # for seq in self.sequencesList:
         #     # get the start and end of every seq
@@ -177,6 +297,8 @@ class ShotOtio(ShotInterface):
         return ow.get_clip_frame_start(self.clip, self.parent.parent.get_fps())
 
     def get_frame_end(self):
+        """get_frame_end is exclusive in order to follow the Blender implementation of get_frame_end for its clips
+        """
         # get_clip_frame_end is exclusive
         return ow.get_clip_frame_end(self.clip, self.parent.parent.get_fps())
 

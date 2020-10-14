@@ -15,7 +15,7 @@ class UAS_ShotManager_OT_GoToVideoShotManager(Operator):
     def invoke(self, context, event):
 
         vsm_scene = None
-        vsm_scene = getSceneVSE("VideoShotManger")
+        vsm_scene = getSceneVSE("VideoShotManger", createVseTab=True)
 
         # startup_blend = os.path.join(
         #     bpy.utils.resource_path("LOCAL"),

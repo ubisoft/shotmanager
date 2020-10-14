@@ -32,6 +32,7 @@ def setup_project_env(override_existing: bool, verbose: bool = True) -> None:
     verbose_set("UAS_PROJECT_RESOLUTIONFRAMED", "[1280,960]", override_existing, verbose)
     verbose_set("UAS_PROJECT_SHOTFORMAT", r"Act{:02}_Seq{:04}_Sh{:04}", override_existing, verbose)
     verbose_set("UAS_PROJECT_OUTPUTFORMAT", "mp4", override_existing, verbose)
+    verbose_set("UAS_PROJECT_USESHOTHANDLES", "True", override_existing, verbose)
     verbose_set("UAS_PROJECT_SHOTHANDLEDURATION", "10", override_existing, verbose)
     verbose_set("UAS_PROJECT_COLORSPACE", "", override_existing, verbose)
     verbose_set("UAS_PROJECT_ASSETNAME", "", override_existing, verbose)
@@ -45,6 +46,7 @@ def print_project_env():
     settingsList.append(["UAS_PROJECT_RESOLUTION", os.environ["UAS_PROJECT_RESOLUTION"]])
     settingsList.append(["UAS_PROJECT_RESOLUTIONFRAMED", os.environ["UAS_PROJECT_RESOLUTIONFRAMED"]])
     settingsList.append(["UAS_PROJECT_SHOTFORMAT", os.environ["UAS_PROJECT_SHOTFORMAT"]])
+    settingsList.append(["UAS_PROJECT_USESHOTHANDLES", os.environ["UAS_PROJECT_USESHOTHANDLES"]])
     settingsList.append(["UAS_PROJECT_SHOTHANDLEDURATION", os.environ["UAS_PROJECT_SHOTHANDLEDURATION"]])
     settingsList.append(["UAS_PROJECT_OUTPUTFORMAT", os.environ["UAS_PROJECT_OUTPUTFORMAT"]])
     settingsList.append(["UAS_PROJECT_COLORSPACE", os.environ["UAS_PROJECT_COLORSPACE"]])
@@ -67,6 +69,7 @@ def initializeForRRS(override_existing: bool, verbose=False):
         project_resolution=json.loads(os.environ["UAS_PROJECT_RESOLUTION"]),
         project_resolution_framed=json.loads(os.environ["UAS_PROJECT_RESOLUTIONFRAMED"]),
         project_shot_format=os.environ["UAS_PROJECT_SHOTFORMAT"],
+        project_use_shot_handles=bool(os.environ["UAS_PROJECT_USESHOTHANDLES"]),
         project_shot_handle_duration=int(os.environ["UAS_PROJECT_SHOTHANDLEDURATION"]),
         project_output_format=os.environ["UAS_PROJECT_OUTPUTFORMAT"],
         project_color_space=os.environ["UAS_PROJECT_COLORSPACE"],
@@ -84,6 +87,7 @@ def publishRRS(
     fileListOnly=False,
     rerenderExistingShotVideos=True,
     renderAlsoDisabled=True,
+    settingsDict=None,
 ):
     """ Return a dictionary with the rendered and the failed file paths
         The dictionary have the following entries:
@@ -156,6 +160,12 @@ def publishRRS(
     # batch render to generate the files
     ################
 
+    stampInfoCustomSettingsDict = None
+    if settingsDict is not None:
+        stampInfoCustomSettingsDict = dict()
+        stampInfoCustomSettingsDict["customFileFullPath"] = settingsDict["publish_rendering_file"]
+        stampInfoCustomSettingsDict["asset_tracking_step"] = settingsDict["publish_step"]
+
     # shot videos are rendered in the directory of the take, not anymore in a directory with the shot name
     renderedFilesDict = rendering.launchRenderWithVSEComposite(
         bpy.context,
@@ -166,6 +176,8 @@ def publishRRS(
         rerenderExistingShotVideos=rerenderExistingShotVideos,
         renderAlsoDisabled=renderAlsoDisabled,
         area=bpy.context.area,
+        stampInfoCustomSettingsDict=stampInfoCustomSettingsDict,
+        override_all_viewports=True
     )
 
     ################
@@ -248,6 +260,8 @@ def publishRRS(
         generatedFilesDict["rendered_files"] = renderedFilesDict["rendered_files"]
         generatedFilesDict["failed_files"] = renderedFilesDict["failed_files"]
         generatedFilesDict["edl_files"] = renderedFilesDict["edl_files"]
+
+    generatedFilesDict["sequence_video_file"] = renderedFilesDict["sequence_video_file"]
 
     jsonFile = prodFilePath
     if not jsonFile.endswith("\\"):

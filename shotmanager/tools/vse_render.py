@@ -207,6 +207,70 @@ class UAS_Vse_Render(PropertyGroup):
         return mediaType
 
     # a clip is called a sequence in VSE
+    def createNewClipFromRange(
+        self,
+        scene,
+        mediaPath,
+        channelInd,
+        frame_start=0,
+        frame_final_start=0,
+        frame_final_end=0,
+        cameraScene=None,
+        cameraObject=None,
+        clipName="",
+        importVideo=True,
+        importAudio=False,
+    ):
+
+        atFrame = frame_start
+
+        if importVideo:
+            newClip = self.createNewClip(
+                scene,
+                mediaPath,
+                200,
+                atFrame,
+                offsetStart=0,
+                offsetEnd=0,
+                cameraScene=cameraScene,
+                cameraObject=cameraObject,
+                clipName=clipName,
+                importVideo=True,
+                importAudio=False,
+            )
+
+            newClip.frame_final_end = frame_final_end
+            newClip.frame_final_start = frame_final_start
+            print(f"*** newClip video .frame_start: {newClip.frame_start}")
+
+            newClip.channel = channelInd
+
+        if importAudio:
+            newClip = self.createNewClip(
+                scene,
+                mediaPath,
+                201,
+                atFrame,
+                offsetStart=0,
+                offsetEnd=0,
+                cameraScene=cameraScene,
+                cameraObject=cameraObject,
+                clipName=clipName,
+                importVideo=False,
+                importAudio=True,
+            )
+
+            print(f"  02 at frame: {atFrame}")
+            newClip.frame_start = atFrame
+            print(f"*** newClip audio .frame_start: {newClip.frame_start}")
+
+            newClip.frame_final_end = frame_final_end
+            newClip.frame_final_start = frame_final_start
+            newClip.channel = channelInd + 1
+
+        return newClip
+
+    # a clip is called a sequence in VSE
     def createNewClip(
         self,
         scene,
@@ -219,7 +283,7 @@ class UAS_Vse_Render(PropertyGroup):
         cameraObject=None,
         clipName="",
         importVideo=True,
-        importAudio=False,
+        importAudio=False
     ):
         """
             A strip is placed at a specified time in the edit by putting its media start at the place where
@@ -227,6 +291,7 @@ class UAS_Vse_Render(PropertyGroup):
             and offsetEnd. None of these parameters change the position of the media frames in the edit time (it
             is like changing the position of the sides of a window, but not what the window sees).
             Both offsetStart and offsetEnd are relative to the start time of the media.
+            audio_volume_keyframes is a list of paired values (Frame, Value)
         """
 
         def _new_camera_sequence(scene, name, channelInd, atFrame, offsetStart, offsetEnd, cameraScene, cameraObject):
@@ -318,7 +383,7 @@ class UAS_Vse_Render(PropertyGroup):
 
         newClip = None
         mediaType = self.getMediaType(mediaPath)
-        print(f"Media type:{mediaType}, media:{mediaPath}")
+        # print(f"Media type:{mediaType}, media:{mediaPath}")
         if "UNKNOWN" == mediaType:
             if cameraScene is not None and cameraObject is not None:
                 mediaType = "CAMERA"
@@ -367,8 +432,9 @@ class UAS_Vse_Render(PropertyGroup):
             print("\n *** UNKNOWN media sent to Shot Manager - createNewClip(): ", mediaPath)
             pass
 
-        mediaInfo = f"   - Name: {newClip.name}, Media Type: {mediaType}, path: {mediaPath}"
-        print(mediaInfo)
+        if "UNKNOWN" != mediaType:
+            mediaInfo = f"   - Name: {newClip.name}, Media Type: {mediaType}, path: {mediaPath}"
+            print(mediaInfo)
         # print(
         #     f"           frame_offset_start: {newClip.frame_offset_start}, frame_offset_end: {newClip.frame_offset_end}, frame_final_duration: {newClip.frame_final_duration}"
         # )
@@ -431,7 +497,9 @@ class UAS_Vse_Render(PropertyGroup):
         self.changeClipsChannel(scene, tempChannelInd, channelIndexB)
 
     def get_frame_end_from_content(self, scene):
-
+        # wkipwkipwkip erreur ici, devrait etre exclusive pour extre consistant et ne l'est pas
+        """get_frame_end is exclusive in order to follow the Blender implementation of get_frame_end for its clips
+        """
         videoChannelClips = self.getChannelClips(scene, 1)
         scene_frame_start = scene.frame_start  # scene.sequence_editor.sequences
 
@@ -442,6 +510,34 @@ class UAS_Vse_Render(PropertyGroup):
         frame_end = max(frame_end, scene_frame_start)
 
         return frame_end
+
+    def printClipInfo(self, clip, printTimeInfo=False):
+        infoStr = "\n\n------ VSE Render - Clip Info : "
+        # infoStr += (
+        #     f"\nNote: All the end values are EXCLUSIVE (= not the last used frame of the range but the one after)"
+        # )
+        infoStr += f"Clip: {clip.name}, type: {clip.type}, enabled: {not clip.mute}"
+
+        if printTimeInfo:
+            frameStart = clip.frame_start
+            frameEnd = clip.frame_start + clip.frame_duration  # -1  # clip.frame_end
+            frameFinalStart = clip.frame_final_start
+            frameFinalEnd = clip.frame_final_end
+            frameOffsetStart = clip.frame_offset_start
+            frameOffsetEnd = clip.frame_offset_end
+            frameDuration = clip.frame_duration
+            frameFinalDuration = clip.frame_final_duration
+
+            infoStr += f"\n   Abs clip values: frame_start: {frameStart}, frame_final_start:{frameFinalStart}, frame_final_end:{frameFinalEnd}, frame_end (excl): {frameEnd}"
+            infoStr += (
+                f"\n   Rel clip values: frame_offset_start: {frameOffsetStart}, frame_offset_end:{frameOffsetEnd}"
+            )
+            infoStr += (
+                f"\n   Duration clip values: frame_duration: {frameDuration}, frame_final_duration:{frameFinalDuration}"
+            )
+
+        #        infoStr += f"\n    Start: {self.get_frame_start()}, End (incl.):{self.get_frame_end() - 1}, Duration: {self.get_frame_duration()}, fps: {self.get_fps()}, Sequences: {self.get_num_sequences()}"
+        print(infoStr)
 
     def buildSequenceVideo(self, mediaFiles, outputFile, handles, fps):
         # props = bpy.context.scene.UAS_shot_manager_props
@@ -465,8 +561,10 @@ class UAS_Vse_Render(PropertyGroup):
         sequenceScene.render.ffmpeg.format = "MPEG4"
         sequenceScene.render.ffmpeg.constant_rate_factor = "PERC_LOSSLESS"  # "PERC_LOSSLESS"
         sequenceScene.render.ffmpeg.gopsize = 5  # keyframe interval
-        sequenceScene.render.ffmpeg.audio_codec = "AC3"
+        sequenceScene.render.ffmpeg.audio_codec = "AAC"
         sequenceScene.render.filepath = outputFile
+
+        sequenceScene.view_settings.view_transform = "Raw"
 
         for mediaPath in mediaFiles:
             # sequenceScene.sequence_editor
@@ -545,12 +643,14 @@ class UAS_Vse_Render(PropertyGroup):
             vse_scene.render.ffmpeg.format = "MPEG4"
             vse_scene.render.ffmpeg.constant_rate_factor = "PERC_LOSSLESS"  # "PERC_LOSSLESS"
             vse_scene.render.ffmpeg.gopsize = 5  # keyframe interval
-            vse_scene.render.ffmpeg.audio_codec = "AC3"
+            vse_scene.render.ffmpeg.audio_codec = "AAC"
         else:
-            vse_scene.render.image_settings.file_format = "PNG"  # wkip mettre project info
+            vse_scene.render.image_settings.file_format = "PNG"  # wkipwkipwkip mettre project info
 
         vse_scene.render.filepath = output_filepath
         vse_scene.render.use_file_extension = False
+
+        vse_scene.view_settings.view_transform = "Filmic"  # "raw"
 
         bgClip = None
         if self.inputBGMediaPath is not None:
@@ -608,6 +708,7 @@ class UAS_Vse_Render(PropertyGroup):
         if specificFrame is None:
             bpy.ops.render.opengl(animation=True, sequencer=True)
         else:
+            vse_scene.frame_set(1)
             bpy.ops.render.render(write_still=True)
 
         if not config.uasDebug_keepVSEContent:
@@ -639,6 +740,7 @@ class UAS_Vse_Render(PropertyGroup):
             # bpy.data.images.[image_name].reload()
             from pathlib import Path
 
+            print(f"output_filepath: {output_filepath}")
             print(f"Path(output_filepath).name: {Path(output_filepath).name}")
             myImg = bpy.data.images[Path(output_filepath).name]
             print("myImg:" + str(myImg))

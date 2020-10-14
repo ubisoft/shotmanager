@@ -1,14 +1,15 @@
-import logging
-
-_logger = logging.getLogger(__name__)
+import json
 
 import bpy
 from bpy.types import Panel, Operator, Menu
 from bpy.props import StringProperty
 
 from shotmanager.config import config
-
 from shotmanager.utils import utils
+
+import logging
+
+_logger = logging.getLogger(__name__)
 
 
 #############
@@ -274,7 +275,7 @@ class UAS_PT_ShotManager_ShotProperties(Panel):
         if not ("SELECTED" == props.current_shot_properties_mode):
             shot = props.getCurrentShot()
         else:
-            shot = props.getShot(props.selected_shot_index)
+            shot = props.getShotByIndex(props.selected_shot_index)
         val = len(context.scene.UAS_shot_manager_props.getTakes()) and shot
         val = val and not props.dontRefreshUI()
         return val
@@ -298,7 +299,7 @@ class UAS_PT_ShotManager_ShotProperties(Panel):
         if not ("SELECTED" == props.current_shot_properties_mode):
             shot = props.getCurrentShot()
         else:
-            shot = props.getShot(props.selected_shot_index)
+            shot = props.getShotByIndex(props.selected_shot_index)
 
         cameraIsValid = shot.isCameraValid()
         itemHasWarnings = not cameraIsValid
@@ -319,7 +320,7 @@ class UAS_PT_ShotManager_ShotProperties(Panel):
         if not ("SELECTED" == props.current_shot_properties_mode):
             shot = props.getCurrentShot()
         else:
-            shot = props.getShot(props.selected_shot_index)
+            shot = props.getShotByIndex(props.selected_shot_index)
 
         layout = self.layout
         layout.use_property_decorate = False
@@ -333,7 +334,7 @@ class UAS_PT_ShotManager_ShotProperties(Panel):
                 row = box.row()
                 row.label(
                     text=(
-                        f"Current Take Ind: {currentTakeInd}, shot.getParentTakeIndex(): {shot.getParentTakeIndex()}"
+                        f"Current Take Ind: {currentTakeInd}, shot.getParentTakeIndex(): {shot.getParentTakeIndex()}      -       shot.parentScene: {shot.parentScene}"
                         # f"Current Take Ind: {currentTakeInd}, Shot Parent Take Ind: {shot.parentTakeIndex}, shot.getParentTakeIndex(): {shot.getParentTakeIndex()}"
                     )
                 )
@@ -418,8 +419,15 @@ class UAS_PT_ShotManager_ShotProperties(Panel):
             c = row.column()
             grid_flow = c.grid_flow(align=False, columns=3, even_columns=False)
             grid_flow.label(text="Output: ")
-            grid_flow.label(text=str(shot.getOutputFileName()))
-            grid_flow.operator("uas_shot_manager.open_explorer", emboss=True, icon_value=iconExplorer.icon_id, text="")
+            grid_flow.label(
+                text="<Render Root Path> \\ "
+                + shot.getParentTake().getName_PathCompliant()
+                + " \\ "
+                + shot.getOutputMediaPath(providePath=False)
+            )
+            grid_flow.operator(
+                "uas_shot_manager.open_explorer", emboss=True, icon_value=iconExplorer.icon_id, text=""
+            ).path = shot.getOutputMediaPath()
             row.separator(factor=0.5)  # prevents strange look when panel is narrow
 
             # row.prop ( context.props, "display_duration_in_shotlist", text = "" )
@@ -549,7 +557,7 @@ class UAS_ShotManager_OpenFileBrowserForCamBG(Operator):  # from bpy_extras.io_u
     bl_idname = "uas_shot_manager.openfilebrowser_for_cam_bg"
     bl_label = "Camera Background"
     bl_description = "Open a file browser to define the image or video to use as camera background"
-    bl_options = {"INTERNAL", "REGISTER", "UNDO"}
+    bl_options = {"INTERNAL", "UNDO"}
 
     pathProp: StringProperty()
 
@@ -594,8 +602,7 @@ class UAS_MT_ShotManager_Shots_ToolsMenu(Menu):
     bl_description = "Shots Tools"
 
     def draw(self, context):
-        # marker_list         = context.scene.timeline_markers
-        # list_marked_cameras = [o.camera for o in marker_list if o != None]
+        props = context.scene.UAS_shot_manager_props
 
         # Copy menu entries[ ---
         layout = self.layout
@@ -631,11 +638,11 @@ class UAS_MT_ShotManager_Shots_ToolsMenu(Menu):
 
         row = layout.row(align=True)
         row.operator_context = "INVOKE_DEFAULT"
-        row.operator("uas_shot_manager.unique_cameras")
+        row.operator("uas_shot_manager.unique_cameras", text="   Make All Cameras Unique")
 
         row = layout.row(align=True)
         row.operator_context = "INVOKE_DEFAULT"
-        row.operator("uas_shot_manager.shots_removecamera")
+        row.operator("uas_shot_manager.shots_removecamera", text="   Remove Camera From All Shots...")
 
         # import shots ###
 
@@ -643,24 +650,127 @@ class UAS_MT_ShotManager_Shots_ToolsMenu(Menu):
         row = layout.row(align=True)
         row.label(text="Import Shots:")
 
+        if config.uasDebug:
+            row = layout.row(align=True)
+            row.operator_context = "INVOKE_DEFAULT"
+            row.operator("uasotio.openfilebrowser", text="   Create Shots From EDL").importMode = "CREATE_SHOTS"
+
         row = layout.row(align=True)
-        row.operator_context = "INVOKE_DEFAULT"
-        row.operator("uasotio.openfilebrowser", text="Create Shots From EDL").importMode = "CREATE_SHOTS"
+        #    row.operator_context = "INVOKE_DEFAULT"
+
+        #############
+        # Predec settings:
+        argsDictPredecAct01 = dict()
+        argsDictPredecAct01.update({"importStepMode": "PREDEC"})
+        argsDictPredecAct01.update(
+            {
+                "otioFile": r"C:\_UAS_ROOT\RRSpecial\04_ActsPredec\Act01\Exports\RRSpecial_ACT01_AQ_XML_200730\RRSpecial_ACT01_AQ_200730.xml"
+            }
+        )
+        argsDictPredecAct01.update({"animaticFile": r"C:\_UAS_ROOT\RRSpecial\04_ActsPredec\Act01\Act01_Predec.mp4"})
+        argsDictPredecAct01.update({"conformMode": "CREATE"})
+        argsDictPredecAct01.update({"mediaHaveHandles": False})
+        argsDictPredecAct01.update({"mediaHandlesDuration": 0})
+
+        row.operator(
+            "uasshotmanager.createshotsfromotio_rrs", text="   Create Shots From EDL - Predec Act 01"
+        ).opArgs = json.JSONEncoder().encode(argsDictPredecAct01)
+
+        row = layout.row(align=True)
+        #    row.operator_context = "INVOKE_DEFAULT"
+
+        #############
+        # Previz settings:
+        argsDictPrevAct01 = dict()
+        argsDictPrevAct01.update({"importStepMode": "PREVIZ"})
+        argsDictPrevAct01.update({"otioFile": r"C:\_UAS_ROOT\RRSpecial\05_Acts\Act01\_Montage\Act01_Edit_Previz.xml"})
+        argsDictPrevAct01.update(
+            {"animaticFile": r"C:\_UAS_ROOT\RRSpecial\05_Acts\Act01\_Montage\Act01_Edit_Previz.mp4"}
+        )
+        argsDictPrevAct01.update({"conformMode": "UPDATE"})
+        argsDictPrevAct01.update({"mediaHaveHandles": props.areShotHandlesUsed()})
+        argsDictPrevAct01.update({"mediaHandlesDuration": props.getHandlesDuration()})
+
+        row.operator(
+            "uasshotmanager.createshotsfromotio_rrs", text="   Update Shots From EDL - Previz Act 01"
+        ).opArgs = json.JSONEncoder().encode(argsDictPrevAct01)
+
+        layout.separator()
+
+        row = layout.row(align=True)
+        #    row.operator_context = "INVOKE_DEFAULT"
+
+        #############
+        # Predec settings:
+        argsDictPredecAct02 = dict()
+        argsDictPredecAct02.update({"importStepMode": "PREDEC"})
+        argsDictPredecAct02.update(
+            {
+                "otioFile": r"C:\_UAS_ROOT\RRSpecial\04_ActsPredec\Act02\Exports\RRSpecial_Act02_AQ_XML\RRspecial_Act02_AQ_201007.xml"
+            }
+        )
+        argsDictPredecAct02.update({"animaticFile": r"C:\_UAS_ROOT\RRSpecial\04_ActsPredec\Act02\Act02_Predec.mp4"})
+        argsDictPredecAct02.update({"conformMode": "CREATE"})
+        argsDictPredecAct02.update({"mediaHaveHandles": props.areShotHandlesUsed()})
+        argsDictPredecAct02.update({"mediaHandlesDuration": props.getHandlesDuration()})
+        argsDictPredecAct02.update({"mediaHaveHandles": False})
+        argsDictPredecAct02.update({"mediaHandlesDuration": 0})
+
+        row.operator(
+            "uasshotmanager.createshotsfromotio_rrs", text="   Create Shots From EDL - Predec Act 02"
+        ).opArgs = json.JSONEncoder().encode(argsDictPredecAct02)
 
         # wkip debug - to remove:
         if config.uasDebug:
             row = layout.row(align=True)
-            row.operator("uasshotmanager.createshotsfromotio_rrs", text="Create Shots From EDL - Debug")
+            row.operator("uasshotmanager.createshotsfromotio_rrs", text="   Create Shots From EDL - Debug")
 
         if config.uasDebug:
             row = layout.row(align=True)
-            row.operator(
-                "uasshotmanager.createshotsfromotio_rrs", text="Create Shots From EDL - Debug + file"
-            ).otioFile = (
-                # r"Z:\_UAS_Dev\Exports\RRSpecial_ACT01_AQ_XML_200730\RRSpecial_ACT01_AQ_200730__FromPremiere.xml"
-                # r"C:\_UAS_ROOT\RRSpecial\04_ActsPredec\Act01\Exports\RRSpecial_ACT01_AQ_XML_200730\RRSpecial_ACT01_AQ_200730__FromPremiere_to40.xml"  # _to40
-                r"C:\_UAS_ROOT\RRSpecial\04_ActsPredec\Act01\Exports\RRSpecial_ACT01_AQ_XML_200730\PredecAct01_To40_RefDebug.xml"  # _to40
+
+            argsDictRefDebug = dict()
+            argsDictRefDebug.update({"importStepMode": "PREDEC"})
+            argsDictRefDebug.update(
+                {
+                    "otioFile": r"C:\_UAS_ROOT\RRSpecial\_Sandbox\Julien\Fixtures_Montage\PredecAct01\PredecAct01_To40.xml"
+                }
             )
+            argsDictRefDebug.update(
+                {
+                    "animaticFile": r"C:\_UAS_ROOT\RRSpecial\_Sandbox\Julien\Fixtures_Montage\PredecAct01\PredecAct01_To40.mp4"
+                }
+            )
+            argsDictRefDebug.update({"conformMode": "CREATE"})
+
+            row.operator(
+                "uasshotmanager.createshotsfromotio_rrs", text="   Create Shots From EDL - Debug 40"
+            ).opArgs = json.JSONEncoder().encode(argsDictRefDebug)
+
+            row = layout.row(align=True)
+            argsDictDebugModifs = dict()
+            argsDictDebugModifs.update({"importStepMode": "PREVIZ"})
+            argsDictDebugModifs.update({"importStepMode": "PREVIZ"})
+            argsDictDebugModifs.update(
+                {
+                    #    "otioFile": r"C:\_UAS_ROOT\RRSpecial\04_ActsPredec\Act01\Exports\RRSpecial_ACT01_AQ_XML_200730\RRSpecial_To40_RefDebug_SwapSeq30_20-30.xml"
+                    "otioFile": r"C:\_UAS_ROOT\RRSpecial\_Sandbox\Julien\Fixtures_Montage\Act01_Seq0060_Main_Take_ModifsSwap.xml"
+                }
+            )
+            argsDictDebugModifs.update(
+                {
+                    "animaticFile": r"D:\Workspaces\Workspace_RRS\_Sandbox\Julien\Fixtures_Montage\PredecAct01\PredecAct01_To40.mp4"
+                }
+            )
+            argsDictDebugModifs.update({"conformMode": "UPDATE"})
+            argsDictDebugModifs.update({"mediaHaveHandles": props.areShotHandlesUsed()})
+            argsDictDebugModifs.update({"mediaHandlesDuration": props.getHandlesDuration()})
+
+            row.operator(
+                "uasshotmanager.createshotsfromotio_rrs", text="   Create Shots From EDL - Debug swap"
+            ).opArgs = json.JSONEncoder().encode(argsDictDebugModifs)
+            # row.operator(
+            #     "uasshotmanager.createshotsfromotio_rrs", text="Create Shots From EDL - Debug 40 swap"
+            # ).otioFile = r"C:\_UAS_ROOT\RRSpecial\04_ActsPredec\Act01\Exports\RRSpecial_ACT01_AQ_XML_200730\RRSpecial_To40_RefDebug_SwapSeq30_20-30.xml"  # _to40
 
         # tools for precut ###
         layout.separator()
@@ -669,11 +779,20 @@ class UAS_MT_ShotManager_Shots_ToolsMenu(Menu):
 
         row = layout.row(align=True)
         row.operator_context = "INVOKE_DEFAULT"
-        row.operator("uas_shot_manager.predec_shots_from_single_cam")
+        row.operator("uas_shot_manager.predec_shots_from_single_cam", text="   Create Shots From Single Camera...")
 
         row = layout.row(align=True)
         row.operator_context = "INVOKE_DEFAULT"
-        row.operator("uas_shot_manager.print_montage_info")
+        row.operator("uas_shot_manager.print_montage_info", text="   Print montage information in the console")
+
+        # tools for precut ###
+        layout.separator()
+        row = layout.row(align=True)
+        row.label(text="RRS Specific:")
+
+        row = layout.row(align=True)
+        row.operator_context = "INVOKE_DEFAULT"
+        row.operator("uas_shot_manager.predec_sort_versions_shots", text="   Sort Version Shots")
 
 
 classes = (

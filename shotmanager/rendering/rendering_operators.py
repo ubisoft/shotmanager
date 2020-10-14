@@ -66,6 +66,23 @@ class UAS_PT_ShotManager_Render(Operator):
         default="STILL",
     )
 
+    # def invoke(self, context, event):
+    #     # context.window_manager.modal_handler_add(self)
+    #     return {"RUNNING_MODAL"}
+
+    # def modal(self, context, event):
+    #     # https://blender.stackexchange.com/questions/78069/modal-function-of-a-modal-operator-is-never-called
+    #     if event.type == "SPACE":
+    #         # wm = context.window_manager
+    #         # wm.invoke_popup(self)
+    #         # #wm.invoke_props_dialog(self)
+    #         print("Space")
+
+    #     if event.type in {"ESC"}:
+    #         return {"CANCELLED"}
+
+    #     return {"RUNNING_MODAL"}
+
     def execute(self, context):
         props = context.scene.UAS_shot_manager_props
 
@@ -108,18 +125,15 @@ class UAS_PT_ShotManager_Render(Operator):
         if "OTIO" == self.renderMode:
             bpy.ops.uas_shot_manager.export_otio()
         else:
-            filePath = props.renderRootPath
-            bpy.path.abspath(filePath)
-            if filePath.startswith("//"):
-                filePath = bpy.path.abspath(filePath)
-            if not (filePath.endswith("/") or filePath.endswith("\\")):
-                filePath += "\\"
+            renderRootPath = props.renderRootPath if "" != props.renderRootPath else "//"
+            bpy.path.abspath(renderRootPath)
+            if not (renderRootPath.endswith("/") or renderRootPath.endswith("\\")):
+                renderRootPath += "\\"
 
             # if props.isRenderRootPathValid():
-            launchRender(
-                context, self.renderMode, renderRootFilePath=filePath, useStampInfo=props.useStampInfoDuringRendering
-            )
+            launchRender(context, self.renderMode, renderRootPath, useStampInfo=props.useStampInfoDuringRendering)
 
+        #   return {"RUNNING_MODAL"}
         return {"FINISHED"}
 
 
@@ -215,6 +229,7 @@ class UAS_PT_ShotManager_RenderDialog(Operator):
 
             scene.UAS_StampInfo_Settings.restorePreviousValues(scene)
             print(" --- RRS Settings Restored ---")
+        # return {"RUNNING_MODAL"}
 
         return {"FINISHED"}
 
@@ -244,12 +259,36 @@ class UAS_ShotManager_Render_RestoreProjectSettings(Operator):
         return {"FINISHED"}
 
 
+class UAS_ShotManager_Render_OpenLastRenderResults(Operator):
+    bl_idname = "uas_shot_manager.open_last_render_results"
+    bl_label = "Last Render Results"
+    bl_description = "Open last render results log file"
+    bl_options = {"INTERNAL"}
+
+    def execute(self, context):
+        # to do
+        return {"FINISHED"}
+
+
+class UAS_ShotManager_Render_ClearLastRenderResults(Operator):
+    bl_idname = "uas_shot_manager.clear_last_render_results"
+    bl_label = "Clear Last Render Results"
+    bl_description = "Clear last render results log file"
+    bl_options = {"INTERNAL"}
+
+    def execute(self, context):
+        # to do
+        return {"FINISHED"}
+
+
 _classes = (
     UAS_PT_ShotManager_Render,
     UAS_PT_ShotManager_RenderDialog,
     UAS_OT_OpenPathBrowser,
     #    UAS_ShotManager_Explorer,
     UAS_ShotManager_Render_RestoreProjectSettings,
+    UAS_ShotManager_Render_OpenLastRenderResults,
+    UAS_ShotManager_Render_ClearLastRenderResults,
 )
 
 

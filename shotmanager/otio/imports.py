@@ -1,24 +1,30 @@
-import logging
-
-_logger = logging.getLogger(__name__)
-
 import os
 from pathlib import Path
 from urllib.parse import unquote_plus, urlparse
 import re
 
+from random import uniform
+from math import radians
+
 import bpy
 import opentimelineio
-
 
 from ..utils import utils
 
 from . import otio_wrapper as ow
 
-from shotmanager.rrs_specific.montage.montage_otio import MontageOtio
+import logging
+
+_logger = logging.getLogger(__name__)
 
 
 def importTrack(track, trackInd, track_type, timeRange=None, offsetFrameNumber=0, alternative_media_folder=""):
+    verbose = False
+    verbose = "VIDEO" == track_type
+
+    trackInfo = f"\n\n------------------------------------------------------------"
+    trackInfo += f"\n------------------------------------------------------------"
+    trackInfo += f"\n  - Track {trackInd}: {track.name}, {track_type}"
 
     range_start = -9999999
     range_end = 9999999
@@ -26,113 +32,224 @@ def importTrack(track, trackInd, track_type, timeRange=None, offsetFrameNumber=0
     if timeRange is not None:
         range_start = timeRange[0]
         range_end = timeRange[1]
+        trackInfo += f" - import from {range_start} to {range_end} (included)"
+    if verbose:
+        print(f"{trackInfo}")
 
     for i, clip in enumerate(track.each_clip()):
+        # if 5 < i:
+        #    break
         clip_start = ow.get_clip_frame_final_start(clip, fps)
         clip_end = ow.get_timeline_clip_end_inclusive(clip)
 
-        clipName = clip.name
-        media_path = Path(ow.get_clip_media_path(clip))
-        clipInfo = f"\n-----------------------------"
-        clipInfo += f"- Clip name: {clipName}, Clip ind: {i}, media: {media_path}\n"
-
-        #   print(f"       Import Otio media_path: {media_path}")
+        clipInfo = f"\n\n- *** ----------------------------"
+        clipInfo += f"\n  - Clip name: {clip.name}, Clip ind: {i}"
 
         isInRange = utils.segment_is_in_range(clip_start, clip_end, range_start, range_end, partly_inside=True)
 
-        mediaExt = Path(media_path).suffix
-        if not isInRange:  # or mediaExt == ".wav":
-            excludInfo = "    ** Media exluded: "
-            # if mediaExt == ".wav":
-            #     excludInfo += ".wav,"
-            if not isInRange:
-                excludInfo += " not in range"
-        # print(f"{clipInfo}")
-        # print(f"{excludInfo}")
+        # excluse media out of range
+        if not isInRange:
+            excludInfo = " not in range"
+            # print(f"{excludInfo}")
+            continue
 
-        else:
-            # print("       Clip is in range")
+        media_path = Path(ow.get_clip_media_path(clip))
+
+        # possibly excluse some media types
+        # mediaExt = Path(media_path).suffix
+        # if mediaExt == ".wav":
+        #     excludInfo = "    ** Media exluded: "
+        #     continue
+
+        clipInfo += f", media: {media_path}"
+        # clipInfo += f"\n  -   metadata:{clip.metadata['fcp_xml']}\n"
+        clipInfo += f"\n  -   metadata:{clip.metadata}\n"
+        if verbose:
             print(f"{clipInfo}")
+            print(f"clip_start: {clip_start}, clip_end: {clip_end}, range_start: {range_start}, range_end: {range_end}")
+            # _logger.debug(f"{clipInfo}")
+
+            # print(f"{clip}")
+            #   print(f"       Import Otio media_path: {media_path}")
+
+            # print(f"{clipInfo}")
+            # print(f"{clip}")
+
+            # print("       Clip is in range")
+            #    print(f"{clipInfo}")
             # offsetFrameNumber = 2
-            _logger.debug(f"media_path: {media_path}")
+            #    _logger.debug(f"media_path: {media_path}")
             print(f"       Import at frame: offsetFrameNumber: {offsetFrameNumber}")
-            if not media_path.exists():
-                # Lets find it inside next to the xml
-                # media_path = Path(otioFile).parent.joinpath(media_path.name)
-                media_path = Path(alternative_media_folder).joinpath(media_path.name)
-                _logger.debug(f'** media not found, so using alternative_media_folder: "{alternative_media_folder}"')
-                _logger.debug(f"   and new media_path: {media_path}")
+        if not media_path.exists():
+            print(f"    *** Media not found: {media_path}")
+            # Lets find it inside next to the xml
+            # media_path = Path(otioFile).parent.joinpath(media_path.name)
+            media_path = Path(alternative_media_folder).joinpath(media_path.name)
+            _logger.debug(f'** media not found, so using alternative_media_folder: "{alternative_media_folder}"')
+            _logger.debug(f"   and new media_path: {media_path}")
 
-            if media_path.exists():
-                media_path = str(media_path)
+        if not media_path.exists():
+            print(f"    *** Media not found: {media_path}")
+        else:
+            media_path = str(media_path)
 
-                # start = ow.get_clip_frame_final_start(clip) + offsetFrameNumber
-                start = opentimelineio.opentime.to_frames(clip.range_in_parent().start_time)
-                end = ow.get_timeline_clip_end_inclusive(clip) + offsetFrameNumber
-                availableRange = clip.available_range()
-                # _logger.debug(f"  clip.available_range(): {clip.available_range()}")
-                # _logger.debug(f"  clip.available_range().duration: {clip.available_range().duration}")
-                # _logger.debug(
-                #     f"  clip.available_range().rescaled_to(25): {(clip.available_range().end_time_inclusive()).rescaled_to(25)}"
+            # start = ow.get_clip_frame_final_start(clip) + offsetFrameNumber
+            start = opentimelineio.opentime.to_frames(clip.range_in_parent().start_time)
+            end = ow.get_timeline_clip_end_inclusive(clip) + offsetFrameNumber
+            availableRange = clip.available_range()
+            # _logger.debug(f"  clip.available_range(): {clip.available_range()}")
+            # _logger.debug(f"  clip.available_range().duration: {clip.available_range().duration}")
+            # _logger.debug(
+            #     f"  clip.available_range().rescaled_to(25): {(clip.available_range().end_time_inclusive()).rescaled_to(25)}"
+            # )
+            # _logger.debug(
+            #     f"  clip.available_range().value_rescaled_to(25): {clip.available_range().end_time_exclusive().value_rescaled_to(25)}"
+            # )
+
+            offsetEnd = (
+                start
+                + clip.available_range().end_time_exclusive().value_rescaled_to(25)
+                - opentimelineio.opentime.to_frames(clip.range_in_parent().end_time_exclusive())
+                - opentimelineio.opentime.to_frames(clip.source_range.start_time)
+            )
+
+            frameStart = ow.get_clip_frame_start(clip, fps)
+            frameEnd = ow.get_clip_frame_end(clip, fps)
+            frameFinalStart = ow.get_clip_frame_final_start(clip, fps)
+            frameFinalEnd = ow.get_clip_frame_final_end(clip, fps)
+            frameOffsetStart = ow.get_clip_frame_offset_start(clip, fps)
+            frameOffsetEnd = ow.get_clip_frame_offset_end(clip, fps)
+            frameDuration = ow.get_clip_frame_duration(clip, fps)
+            frameFinalDuration = ow.get_clip_frame_final_duration(clip, fps)
+
+            frameStart += offsetFrameNumber
+            frameEnd += offsetFrameNumber
+            frameFinalStart += offsetFrameNumber
+            frameFinalEnd += offsetFrameNumber
+
+            _logger.debug(
+                f"Abs clip values: clip frameStart: {frameStart}, frameFinalStart:{frameFinalStart}, frameFinalEnd:{frameFinalEnd}, frameEnd: {frameEnd}"
+            )
+            _logger.debug(
+                f"Rel clip values: clip frameOffsetStart: {frameOffsetStart}, frameOffsetEnd:{frameOffsetEnd}"
+            )
+            _logger.debug(
+                f"Duration clip values: clip frameDuration: {frameDuration}, frameFinalDuration:{frameFinalDuration}"
+            )
+
+            vse_render = bpy.context.window_manager.UAS_vse_render
+            newClipInVSE = vse_render.createNewClip(
+                bpy.context.scene,
+                media_path,
+                trackInd,
+                frameStart,
+                offsetStart=frameOffsetStart,
+                offsetEnd=frameOffsetEnd,
+                importVideo=track_type == "VIDEO",
+                importAudio=track_type == "AUDIO",
+                clipName=clip.name,
+            )
+
+            if newClipInVSE is not None:
+
+                clipEnabled = True
+                if verbose:
+                    print(f" -*- clip metadata: {clip.metadata}")
+
+                if "fcp_xml" in clip.metadata:
+                    # print(" -*- fcp_xml is ok")
+                    # print(f"metadata; clip.metadata['fcp_xml']['enabled']: {clip.metadata['fcp_xml']['enabled']}")
+                    if "enabled" in clip.metadata["fcp_xml"]:
+                        clipEnabled = not ("FALSE" == clip.metadata["fcp_xml"]["enabled"])
+                newClipInVSE.mute = not clipEnabled
+
+                if track_type == "AUDIO":
+                    if "fcp_xml" in clip.metadata:
+                        if "filter" in clip.metadata["fcp_xml"]:
+                            if "effect" in clip.metadata["fcp_xml"]["filter"]:
+                                if "parameter" in clip.metadata["fcp_xml"]["filter"]["effect"]:
+                                    if "parameter" in clip.metadata["fcp_xml"]["filter"]["effect"]:
+                                        if "value" in clip.metadata["fcp_xml"]["filter"]["effect"]["parameter"]:
+                                            volumeVal = float(
+                                                clip.metadata["fcp_xml"]["filter"]["effect"]["parameter"]["value"]
+                                            )
+                                            if verbose:
+                                                print(f" volume value: {volumeVal}")
+                                            newClipInVSE.volume = volumeVal
+
+                    audio_volume_keyframes = []
+                    if clip.metadata is not None:
+                        effect = clip.metadata.get("fcp_xml", {}).get("filter", {}).get("effect")
+                        if effect is not None and effect["effectcategory"] == "audiolevels":
+                            keyframe_data = effect.get("parameter", {}).get("keyframe")
+                            if keyframe_data is not None:
+                                if isinstance(keyframe_data, opentimelineio._otio.AnyVector):
+                                    for keyframe in keyframe_data:
+                                        frame = opentimelineio.opentime.to_frames(
+                                            opentimelineio.opentime.RationalTime(float(keyframe["when"]))
+                                        )
+                                        audio_volume_keyframes.append((frame, float(keyframe["value"])))
+                                else:
+                                    frame = opentimelineio.opentime.to_frames(
+                                        opentimelineio.opentime.RationalTime(float(keyframe_data["when"]))
+                                    )
+                                    audio_volume_keyframes.append((frame, float(keyframe_data["value"])))
+
+                    for f, v in audio_volume_keyframes:
+                        newClipInVSE.volume = v
+                        newClipInVSE.keyframe_insert("volume", frame=f)
+
+            if verbose:
+                vse_render.printClipInfo(newClipInVSE, printTimeInfo=True)
+            # _logger.debug(f"newClipInVSE: {newClipInVSE.name}")
+
+            # frameStart = newClipInVSE.frame_start
+            # frameEnd = -1  # newClipInVSE.frame_end
+            # frameFinalStart = newClipInVSE.frame_final_start
+            # frameFinalEnd = newClipInVSE.frame_final_end
+            # frameOffsetStart = newClipInVSE.frame_offset_start
+            # frameOffsetEnd = newClipInVSE.frame_offset_end
+            # frameDuration = newClipInVSE.frame_duration
+            # frameFinalDuration = newClipInVSE.frame_final_duration
+
+            # frameStart += offsetFrameNumber
+            # frameEnd += offsetFrameNumber
+            # frameFinalStart += offsetFrameNumber
+            # frameFinalEnd += offsetFrameNumber
+
+            # _logger.debug(
+            #     f"Abs clip values: clip frameStart: {frameStart}, frameFinalStart:{frameFinalStart}, frameFinalEnd:{frameFinalEnd}, frameEnd: {frameEnd}"
+            # )
+            # _logger.debug(
+            #     f"Rel clip values: clip frameOffsetStart: {frameOffsetStart}, frameOffsetEnd:{frameOffsetEnd}"
+            # )
+            # _logger.debug(
+            #     f"Duration clip values: clip frameDuration: {frameDuration}, frameFinalDuration:{frameFinalDuration}"
+            # )
+
+            # fix to prevent the fact that the sound is sometimes longer than expected by 1 frame
+            if newClipInVSE.frame_final_duration > ow.get_clip_frame_final_duration(clip, fps):
+                if verbose:
+                    print(
+                        f"newClipInVSE.frame_final_duration: {newClipInVSE.frame_final_duration}, ow.get_clip_frame_final_duration(clip, fps): {ow.get_clip_frame_final_duration(clip, fps)}"
+                    )
+                # newClipInVSE.frame_offset_end = -1 * (
+                #     newClipInVSE.frame_final_duration - ow.get_clip_frame_final_duration(clip, fps)
                 # )
-                # _logger.debug(
-                #     f"  clip.available_range().value_rescaled_to(25): {clip.available_range().end_time_exclusive().value_rescaled_to(25)}"
-                # )
+                newClipInVSE.frame_final_duration = ow.get_clip_frame_final_duration(clip, fps)
 
-                offsetEnd = (
-                    start
-                    + clip.available_range().end_time_exclusive().value_rescaled_to(25)
-                    - opentimelineio.opentime.to_frames(clip.range_in_parent().end_time_exclusive())
-                    - opentimelineio.opentime.to_frames(clip.source_range.start_time)
-                )
-
-                frameStart = ow.get_clip_frame_start(clip, fps)
-                frameEnd = ow.get_clip_frame_end(clip, fps)
-                frameFinalStart = ow.get_clip_frame_final_start(clip, fps)
-                frameFinalEnd = ow.get_clip_frame_final_end(clip, fps)
-                frameOffsetStart = ow.get_clip_frame_offset_start(clip, fps)
-                frameOffsetEnd = ow.get_clip_frame_offset_end(clip, fps)
-                frameDuration = ow.get_clip_frame_duration(clip, fps)
-                frameFinalDuration = ow.get_clip_frame_final_duration(clip, fps)
-
-                frameStart += offsetFrameNumber
-                frameEnd += offsetFrameNumber
-                frameFinalStart += offsetFrameNumber
-                frameFinalEnd += offsetFrameNumber
-
-                _logger.debug(
-                    f"Abs clip values: clip frameStart: {frameStart}, frameFinalStart:{frameFinalStart}, frameFinalEnd:{frameFinalEnd}, frameEnd: {frameEnd}"
-                )
-                _logger.debug(
-                    f"Rel clip values: clip frameOffsetStart: {frameOffsetStart}, frameOffsetEnd:{frameOffsetEnd}"
-                )
-                _logger.debug(
-                    f"Duration clip values: clip frameDuration: {frameDuration}, frameFinalDuration:{frameFinalDuration}"
-                )
-
-                bpy.context.window_manager.UAS_vse_render.createNewClip(
-                    bpy.context.scene,
-                    media_path,
-                    trackInd,
-                    frameStart,
-                    offsetStart=frameOffsetStart,
-                    offsetEnd=frameOffsetEnd,
-                    importVideo=track_type == "VIDEO",
-                    importAudio=track_type == "AUDIO",
-                )
-
-                # bpy.context.window_manager.UAS_vse_render.createNewClip(
-                #     bpy.context.scene,
-                #     media_path,
-                #     trackInd,
-                #     start - otio_clipLocalCutStart,
-                #     offsetStart=otio_clipLocalCutStart,
-                #     offsetEnd=offsetEnd,
-                #     # offsetEnd=end - otio_clipLocalCutStart + trimmedClipDuration,
-                #     # trimmedClipDuration=trimmedClipDuration,
-                #     importVideo=track_type == "VIDEO",
-                #     importAudio=track_type == "AUDIO",
-                # )
+            # bpy.context.window_manager.UAS_vse_render.createNewClip(
+            #     bpy.context.scene,
+            #     media_path,
+            #     trackInd,
+            #     start - otio_clipLocalCutStart,
+            #     offsetStart=otio_clipLocalCutStart,
+            #     offsetEnd=offsetEnd,
+            #     # offsetEnd=end - otio_clipLocalCutStart + trimmedClipDuration,
+            #     # trimmedClipDuration=trimmedClipDuration,
+            #     importVideo=track_type == "VIDEO",
+            #     importAudio=track_type == "AUDIO",
+            # )
 
     pass
 
@@ -150,7 +267,7 @@ def importToVSE(
     """
         track_type can be "ALL", "VIDEO" or "AUDIO"
     """
-    print("\nimportToVSE: ")
+    # print(f"\nimportToVSE: track_type: {track_type}")
 
     # alternative_media_folder = Path(otioFile).parent
 
@@ -161,7 +278,6 @@ def importToVSE(
     if "ALL" == track_type or "VIDEO" == track_type:
         for trackInd, editTrack in enumerate(timeline.video_tracks()):
             if videoTracksList is None or (trackInd + 1) in videoTracksList:
-                print(f"\nChannel Name: {editTrack.name}, {trackInd + 1}, video")
                 importTrack(
                     editTrack,
                     trackInd + 1,
@@ -175,7 +291,6 @@ def importToVSE(
     if "ALL" == track_type or "AUDIO" == track_type:
         for trackInd, editTrack in enumerate(timeline.audio_tracks()):
             if audioTracksList is None or (trackInd + 1) in audioTracksList:
-                print(f"\nChannel Name: {editTrack.name}, {trackInd + 1}, audio")
                 importTrack(
                     editTrack,
                     trackInd + 1,
@@ -267,7 +382,7 @@ def createShotsFromOtio(
     useMediaAsCameraBG=False,
     mediaHaveHandles=False,
     mediaHandlesDuration=0,
-    importSoundInVSE=True,
+    importAudioInVSE=True,
 ):
     # filePath="", fileName=""):
 
@@ -346,7 +461,7 @@ def createShotsFromOtio(
                     opentimelineio.opentime.to_frames(clip.range_in_parent().end_time_inclusive()) + importAtFrame
                 )
 
-            if importSoundInVSE:
+            if importAudioInVSE:
                 # creation VSE si existe pas
                 vse = utils.getSceneVSE(scene.name)
                 # bpy.context.space_data.show_seconds = False
@@ -361,7 +476,7 @@ def createShotsFromOtio(
 
 def createShotsFromOtioTimelineClass(
     scene,
-    otioTimelineClass,
+    montageOtio,
     sequenceName,
     clipList,
     timeRange=None,
@@ -372,14 +487,17 @@ def createShotsFromOtioTimelineClass(
     useMediaAsCameraBG=False,
     mediaHaveHandles=False,
     mediaHandlesDuration=0,
-    importSoundInVSE=True,
+    importVideoInVSE=False,
+    importAudioInVSE=True,
     videoTracksList=None,
     audioTracksList=None,
+    animaticFile=None,
 ):
     """
         timeRange: use a 2 elments array
         When offsetTime is True and a range is used then the start of the extracted edit range will be
         placed at the frame specified by importAtFrame
+        timeRange end is inclusive!
     """
 
     # filePath="", fileName=""):
@@ -391,18 +509,16 @@ def createShotsFromOtioTimelineClass(
         else:
             offsetFrameNumber = importAtFrame - timeRange[0]
 
-    print(f"Import Otio File: {otioTimelineClass.otioFile}, num clips: {len(clipList)}")
+    print(f"Import Otio File: {montageOtio.otioFile}, num clips: {len(clipList)}")
     if timeRange is not None:
-        print(f"   from {timeRange[0]} to {timeRange[1]}")
+        print(f"   from {timeRange[0]} to {timeRange[1]} (included)")
 
     # print("clipList:", clipList)
 
-    from random import uniform
-    from math import radians
-
+    # wkip temp - to remove! Shots are added to another take!
     props = scene.UAS_shot_manager_props
     if len(props.getCurrentTake().getShotList()) != 0:
-        bpy.ops.uas_shot_manager.take_add(name=Path(otioTimelineClass.otioFile).stem)
+        bpy.ops.uas_shot_manager.take_add(name=Path(montageOtio.otioFile).stem)
 
     handlesDuration = 0
     if mediaHaveHandles:
@@ -410,7 +526,7 @@ def createShotsFromOtioTimelineClass(
 
     # try:
     if True:
-        timeline = otioTimelineClass.timeline
+        timeline = montageOtio.timeline
         fps = 25
         if len(timeline.video_tracks()):
             # track = timeline.video_tracks()[0]  # Assume the first one contains the shots.
@@ -437,8 +553,10 @@ def createShotsFromOtioTimelineClass(
 
                     # add media as camera background
                     if useMediaAsCameraBG:
-                        media_path = Path(ow.get_clip_media_path(clip.clip))
-                        print("Import Otio media_path: ", media_path)
+                        media_path = ow.get_clip_media_path(clip.clip)
+                        # print("Import Otio media_path 1: ", media_path)
+                        media_path = Path(media_path)
+                        # print("Import Otio media_path 2: ", media_path)
                         if not media_path.exists():
                             # Lets find it inside next to the xml
                             media_path = Path(otioFile).parent.joinpath(media_path.name)
@@ -469,28 +587,38 @@ def createShotsFromOtioTimelineClass(
                     + offsetFrameNumber
                 )
 
-            if importSoundInVSE:
+            if importVideoInVSE or importAudioInVSE:
                 # store current workspace cause it may not be the Layout one
                 currentWorkspace = bpy.context.window.workspace
 
                 # creation VSE si existe pas
-                vse = utils.getSceneVSE(scene.name)
+                vse = utils.getSceneVSE(scene.name, createVseTab=True)
                 bpy.context.window.workspace = bpy.data.workspaces["Video Editing"]
                 # bpy.context.space_data.show_seconds = False
 
+                trackType = "ALL"
+                if importVideoInVSE and not importAudioInVSE:
+                    trackType = "VIDEO"
+                elif not importVideoInVSE and importAudioInVSE:
+                    trackType = "AUDIO"
+
                 importToVSE(
-                    otioTimelineClass.timeline,
+                    montageOtio.timeline,
                     vse,
                     timeRange=timeRange,
                     offsetFrameNumber=offsetFrameNumber,
-                    track_type="AUDIO",
+                    track_type=trackType,
+                    videoTracksList=videoTracksList,
                     audioTracksList=audioTracksList,
-                    alternative_media_folder=Path(otioTimelineClass.otioFile).parent,
+                    alternative_media_folder=Path(montageOtio.otioFile).parent,
                 )
 
                 # restore workspace
                 # bpy.context.window.workspace = bpy.data.workspaces["Layout"]
                 bpy.context.window.workspace = currentWorkspace
+
+            if animaticFile is not None:
+                importAnimatic(montageOtio, sequenceName, animaticFile, offsetFrameNumber)
 
             # restore context
             # wkip ajouter time range original
@@ -501,6 +629,322 @@ def createShotsFromOtioTimelineClass(
         #     from ..utils.utils import ShowMessageBox
 
         # ShowMessageBox("File not recognized", f"{otioFile} could not be understood by Opentimelineio", "ERROR")
+
+
+def importAnimatic(montageOtio, sequenceName, animaticFile, offsetFrameNumber=0):
+    if not Path(animaticFile).exists():
+        return ()
+
+    vse_render = bpy.context.window_manager.UAS_vse_render
+    # newClipInVSE = vse_render.createNewClip(
+    #     bpy.context.scene,
+    #     animaticFile,
+    #     31,
+    #     25,
+    #     # offsetStart=frameOffsetStart,
+    #     # offsetEnd=frameOffsetEnd,
+    #     importVideo=True,
+    #     importAudio=True,
+    #     clipName="Animatic",
+    # )
+
+    # sequence
+    # seq = montageOtio.get_sequence_by_name(sequenceName)
+    # if seq is not None:
+
+    #     offsetFrameNumber = 25
+    #     newClipInVSE = vse_render.createNewClipFromRange(
+    #         bpy.context.scene,
+    #         animaticFile,
+    #         31,
+    #         frame_start=offsetFrameNumber - 1 * seq.get_frame_start(),
+    #         frame_final_start=1 * offsetFrameNumber,
+    #         frame_final_end=seq.get_frame_duration() + offsetFrameNumber,
+    #         importVideo=True,
+    #         importAudio=True,
+    #         clipName="Animatic",
+    #     )
+    #     if newClipInVSE is not None:
+    #         pass
+    # pass
+
+    seq = montageOtio.get_sequence_by_name(sequenceName)
+    if seq is not None:
+        shots = seq.getEditShots()
+
+        offsetFrameNumber = 0
+        for sh in shots:
+            print(f"{sh.get_name()}: sh.get_frame_final_start(): {sh.get_frame_final_start()}")
+
+            #####
+            # Code has to be repeated otherwise not working... :/
+            #####
+            newClipInVSE = vse_render.createNewClipFromRange(
+                bpy.context.scene,
+                animaticFile,
+                31,
+                frame_start=0,  # - 1 * sh.get_frame_start(),
+                frame_final_start=1 * offsetFrameNumber + sh.get_frame_final_start(),
+                frame_final_end=sh.get_frame_final_end() + offsetFrameNumber,
+                importVideo=True,
+                importAudio=False,
+                clipName="Animatic",
+            )
+            print(f"newClipInVSE video .frame_start: {newClipInVSE.frame_start}")
+
+            newClipInVSE = vse_render.createNewClipFromRange(
+                bpy.context.scene,
+                animaticFile,
+                32,
+                frame_start=0,  # - 1 * sh.get_frame_start(),
+                frame_final_start=1 * offsetFrameNumber + sh.get_frame_final_start(),
+                frame_final_end=sh.get_frame_final_end() + offsetFrameNumber,
+                importVideo=False,
+                importAudio=True,
+                clipName="Animatic",
+            )
+
+            print(f"newClipInVSE audio.frame_start: {newClipInVSE.frame_start}")
+
+
+# used only in functions here
+def _addNewShot(
+    props, shotName, start, end, createCameras, useMediaAsCameraBG=False, media_path=None, handlesDuration=0
+):
+
+    clipName = shotName
+    if createCameras:
+        # if reformatShotNames:
+        #     match = shot_re.search(clipName)
+        #     if match:
+        #         clipName = scene.UAS_shot_manager_props.new_shot_prefix + match.group(1)
+
+        cam_ob = utils.create_new_camera("Cam_" + clipName, location=[0.0, 0.0, 0.0])
+        cam = cam_ob.data
+        cam_ob.color = [uniform(0, 1), uniform(0, 1), uniform(0, 1), 1]
+        cam_ob.rotation_euler = (radians(90), 0.0, radians(90))
+
+        # add media as camera background
+        if useMediaAsCameraBG:
+            print("Import Otio clip.media_reference.target_url: ", clip.media_reference.target_url)
+            # media_path = Path(utils.file_path_from_url(clip.media_reference.target_url))
+            # print("Import Otio media_path: ", media_path)
+            # if not media_path.exists():
+            #     # Lets find it inside next to the xml
+            #     media_path = Path(otioFile).parent.joinpath(media_path.name)
+            #     print("** not found, so Path(self.otioFile).parent: ", Path(otioFile).parent)
+            #     print("   and new media_path: ", media_path)
+
+            # start frame of the background video is not set here since it will be linked to the shot start frame
+            utils.add_background_video_to_cam(cam, str(media_path), 0, alpha=props.shotsGlobalSettings.backgroundAlpha)
+
+    shot = props.addShot(name=clipName, start=start, end=end, durationLocked=True, camera=cam_ob, color=cam_ob.color,)
+    shot.bgImages_linkToShotStart = True
+    shot.bgImages_offset = -1 * handlesDuration
+
+    return shot
+
+
+# put this function in imports.py???
+def conformToRefMontage(
+    scene,
+    ref_montage,
+    ref_sequence_name="",
+    clearVSE=True,
+    clearCameraBG=True,
+    createMissingShots=True,
+    createCameras=True,
+    useMediaAsCameraBG=False,
+    mediaHaveHandles=False,
+    mediaHandlesDuration=0,
+    takeIndex=-1,
+):
+    # scene = bpy.context.scene
+    props = scene.UAS_shot_manager_props
+
+    takeInd = (
+        props.getCurrentTakeIndex()
+        if -1 == takeIndex
+        else (takeIndex if 0 <= takeIndex and takeIndex < len(props.getTakes()) else -1)
+    )
+    if -1 == takeInd:
+        return ()
+
+    take = props.getTakeByIndex(takeInd)
+    shotList = props.get_shots(takeIndex=takeInd)
+
+    if not mediaHaveHandles:
+        mediaHandlesDuration = 0
+
+    """
+        Conform / update current montage to match specified montage
+        If ref_sequence_name is specified then only this sequence is compared
+    """
+
+    def printInfoLine(col00, col01, col02):
+        print(f"{col00: >10}   {col01: <37}    - {col02: <30}")
+
+    textSelf = ""
+    textRef = ""
+
+    infoStr = f"\n\n ------ ------ ------ ------ ------ ------ ------ ------ ------ "
+    infoStr += f"\n\n {utils.bcolors.HEADER}Conform montage to {ref_montage.get_name()}:{utils.bcolors.ENDC}\n"
+    print(infoStr)
+
+    # infoStr += (
+    #     f"\nNote: All the end values are EXCLUSIVE (= not the last used frame of the range but the one after)"
+    # )
+    # infoStr += f"\n        Ref: {ref_montage.get_name(): >30}       -  {props.get_name() : >30}"
+    textRef = ref_montage.get_name()
+    textSelf = props.get_name()
+    # printInfoLine("", textRef, textSelf)
+    print(f"     {textRef + ':' :<44} {textSelf + ':' :<30}")
+
+    # selfSeq = props.get_sequence_by_name(ref_sequence_name)
+    selfSeq = (props.get_sequences())[0]  # wkip limité à 1 take pour l'instant
+    textSelf = f"  Current Sequence: {selfSeq.get_name()}"
+
+    refSeq = ref_montage.get_sequence_by_name(ref_sequence_name)
+    if "" != ref_sequence_name:
+        if refSeq is not None:
+            textRef = f"  Ref Sequence: {refSeq.get_name()}"
+
+    print(f"     {textRef + ':' :<44} {textSelf + ':' :<30}")
+
+    if refSeq is None:
+        print(" Ref Sequence is None, aborting comparison...")
+        return ()
+
+    ###################
+    # clear VSE
+    ###################
+    vse_render = bpy.context.window_manager.UAS_vse_render
+    if clearVSE:
+        vse_render.clearAllChannels(scene)
+
+    ###################
+    # clear camera BG
+    ###################
+    if clearCameraBG:
+        for sh in shotList:
+            if sh.camera is not None:
+                utils.remove_background_video_from_cam(sh.camera.data)
+
+    ###################
+    # conform order and enable state
+    ###################
+
+    # comparedShotsList = selfSeq.getEditShots(ignoreDisabled=False)  # .copy()  # .getEditShots()
+
+    # newEditShots = list()
+    numShotsInRefEdit = len(refSeq.getEditShots())
+    expectedIndInSelfEdit = 0
+    for indInRefEdit, shot in enumerate(refSeq.getEditShots()):
+        shotRef = shot
+        textRef = shotRef.get_name()
+        shotRefName = Path(shotRef.get_name()).stem
+
+        shotSelf = None
+        for sh in shotList:
+            # if sh.get_name() == shotRef.get_name():
+            shotName = props.renderShotPrefix() + "_" + sh.get_name()
+            # print(f"shotName: {shotName}, shotRefName: {shotRefName}")
+            if shotName == shotRefName:
+                shotSelf = sh
+                break
+
+        if shotSelf is None:
+            # wkip pb: we have no idea of the timing for the new shot...
+
+            # media_path = Path(utils.file_path_from_url(clip.media_reference.target_url))
+            # print("Import Otio media_path: ", media_path)
+            # if not media_path.exists():
+            #     # Lets find it inside next to the xml
+            #     media_path = Path(otioFile).parent.joinpath(media_path.name)
+            #     print("** not found, so Path(self.otioFile).parent: ", Path(otioFile).parent)
+            #     print("   and new media_path: ", media_path)
+
+            if createMissingShots:
+                seqSelfName = props.renderShotPrefix() + "_"
+                if 0 == shotRefName.find(seqSelfName):
+                    shotRefNameWithoutPrefix = shotRefName[len(seqSelfName) :]
+
+                    frame_start_3D = 25
+                    frame_end_3D = frame_start_3D + shotRef.get_frame_final_duration() - 1
+
+                    shotSelf = _addNewShot(
+                        props,
+                        shotRefNameWithoutPrefix,
+                        frame_start_3D,
+                        frame_end_3D,
+                        createCameras,
+                        useMediaAsCameraBG=False,  # useMediaAsCameraBG,
+                        media_path="",  # media_path,
+                        handlesDuration=mediaHandlesDuration,
+                    )
+                    shotSelf = props.moveShotToIndex(shotSelf, expectedIndInSelfEdit)
+                    expectedIndInSelfEdit += 1
+
+            if shotSelf is None:
+                textSelf = "-"
+            else:
+                textSelf = shotSelf.get_name() + "  "
+                textSelf += " / new shot"
+
+        else:
+            textSelf = shotSelf.get_name() + "  "
+
+            # set shot position in take edit
+            shotInd = props.getShotIndex(shotSelf)
+            if expectedIndInSelfEdit != shotInd:
+                shotSelf = props.moveShotToIndex(shotSelf, expectedIndInSelfEdit)
+
+            #               newEditShots.append(shotSelf)
+            if not shotSelf.enabled:
+                textSelf += " / enabled"
+            # print(f" ++ shot name before enabled: {shotSelf.name}, enabled: {shotSelf.enabled}")
+            shotSelf.enabled = True
+
+            offsetStart = shotRef.get_frame_offset_start()
+            if offsetStart != mediaHandlesDuration:
+                deltaStart = offsetStart - mediaHandlesDuration
+                textSelf += f" / offset start modified ({offsetStart} instead of {mediaHandlesDuration} fr.) (delta:{deltaStart})"
+                shotSelf.start += deltaStart
+
+            previousDuration = shotSelf.get_frame_final_duration()
+            newDuration = shotRef.get_frame_final_duration()
+            if previousDuration != newDuration:
+                shotSelf.setDuration(newDuration)
+                textSelf += f" / duration changed (was {previousDuration} fr.)"
+
+            shotSelf.durationLocked = True
+            expectedIndInSelfEdit += 1
+
+        printInfoLine(str(indInRefEdit), f"{textRef}  ({shotRef.get_frame_final_duration()} fr.)", textSelf)
+
+    ###################
+    # list other shots and disabled them
+    ###################
+    print("\n       Shots not used in current sequence:")
+    ind = 0
+    for i in range(expectedIndInSelfEdit, len(shotList)):
+        # if shotList[i] not in newEditShots:
+        textSelf = shotList[i].get_name()
+        if shotList[i].enabled:
+            shotList[i].enabled = False
+            textSelf += " / disabled"
+
+        printInfoLine(str(ind + numShotsInRefEdit), "-", textSelf)
+        ind += 1
+    if 0 == ind:
+        printInfoLine("", "-", "-")
+
+    ###################
+    # sort disabled shots
+    ###################
+    props.sortShotsVersions()
+
+    print("")
 
 
 def importOtioToVSE(otioFile, vse, importAtFrame=0, importVideoTracks=True, importAudioTracks=True):
