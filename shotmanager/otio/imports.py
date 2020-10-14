@@ -283,7 +283,11 @@ def importToVSE(
                     alternative_media_folder=alternative_media_folder,
                 )
 
+<<<<<<< HEAD
     #audio
+=======
+    # audio
+>>>>>>> wip julien
     if "ALL" == track_type or "AUDIO" == track_type:
         for trackInd, editTrack in enumerate(timeline.audio_tracks()):
             if audioTracksList is None or (trackInd + 1) in audioTracksList:

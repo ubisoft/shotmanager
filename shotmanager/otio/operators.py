@@ -132,7 +132,7 @@ class UAS_ShotManager_OT_Create_Shots_From_OTIO_RRS(Operator):
 
     otioFile: StringProperty()
 
-    videoTrackIndices: EnumProperty(
+    videoTrackRefIndex: EnumProperty(
         name="Shots Video Track",
         description="Track to use in the EDL to get the shot list",
         # items=(("NO_SEQ", "No Sequence Found", ""),),
@@ -327,10 +327,10 @@ class UAS_ShotManager_OT_Create_Shots_From_OTIO_RRS(Operator):
             for i in range(0, numVideoTracks):
                 config.gTracksEnumList.append((str(i), str(i + 1), "", i))
 
-            self.videoTrackIndices = str(self.refVideoTrackInd)  # config.gTracksEnumList[0][0]
+            self.videoTrackRefIndex = str(self.refVideoTrackInd)  # config.gTracksEnumList[0][0]
 
             config.gMontageOtio.fillMontageInfoFromOtioFile(
-                refVideoTrackInd=int(self.videoTrackIndices), verboseInfo=False
+                refVideoTrackInd=int(self.videoTrackRefIndex), verboseInfo=False
             )
             print(f"config.gMontageOtio name: {config.gMontageOtio.get_name()}")
 
@@ -355,19 +355,25 @@ class UAS_ShotManager_OT_Create_Shots_From_OTIO_RRS(Operator):
         scene = context.scene
         props = scene.UAS_shot_manager_props
 
-        # print(f"self.videoTrackIndices: {self.videoTrackIndices}")
-        config.gMontageOtio.fillMontageInfoFromOtioFile(refVideoTrackInd=int(self.videoTrackIndices), verboseInfo=False)
+        #########################
+        #########################
 
-        config.gSeqEnumList = list()
-        for i, seq in enumerate(config.gMontageOtio.sequencesList):
-            # print(f"- seqList: i:{i}, seq: {seq.get_name()}")
-            config.gSeqEnumList.append((str(i), seq.get_name(), f"Import sequence {seq.get_name()}", i + 1))
+        # # print(f"self.videoTrackRefIndex: {self.videoTrackRefIndex}")
+        # config.gMontageOtio.fillMontageInfoFromOtioFile(refVideoTrackInd=int(self.videoTrackRefIndex), verboseInfo=False)
 
-        # self.sequenceList = config.gSeqEnumList[0][0]
-        #        print(f"Import Sequence: {self.sequenceList}, {config.gSeqEnumList[int(self.sequenceList)]}")
-        # if len(config.gSeqEnumList) <= int(self.sequenceList):
-        if "" == self.sequenceList:
-            self.sequenceList = config.gSeqEnumList[0][0]
+        # config.gSeqEnumList = list()
+        # for i, seq in enumerate(config.gMontageOtio.sequencesList):
+        #     # print(f"- seqList: i:{i}, seq: {seq.get_name()}")
+        #     config.gSeqEnumList.append((str(i), seq.get_name(), f"Import sequence {seq.get_name()}", i + 1))
+
+        # # self.sequenceList = config.gSeqEnumList[0][0]
+        # #        print(f"Import Sequence: {self.sequenceList}, {config.gSeqEnumList[int(self.sequenceList)]}")
+        # # if len(config.gSeqEnumList) <= int(self.sequenceList):
+        # if "" == self.sequenceList:
+        #     self.sequenceList = config.gSeqEnumList[0][0]
+
+        # #########################
+        #########################
 
         selSeq = config.gMontageOtio.sequencesList[int(self.sequenceList)] if config.gMontageOtio is not None else None
 
@@ -377,6 +383,7 @@ class UAS_ShotManager_OT_Create_Shots_From_OTIO_RRS(Operator):
         if config.uasDebug:
             row = box.row()
             row.label(text=self.importStepMode)
+            row.prop(self, "videoTrackRefIndex")
 
         box.label(text="EDL File (Otio, XML...):")
         row = box.row()
@@ -404,8 +411,8 @@ class UAS_ShotManager_OT_Create_Shots_From_OTIO_RRS(Operator):
             row.separator(factor=3)
             row.label(text=f"Num. Sequences: {len(config.gMontageOtio.sequencesList)}")
 
-            if "UPDATE" == self.conformMode:
-                box.prop(self, "videoTrackIndices")
+            if config.uasDebug:
+                box.prop(self, "videoTrackRefIndex")
 
             row = box.row()
             if config.gMontageOtio.get_fps() != context.scene.render.fps:
