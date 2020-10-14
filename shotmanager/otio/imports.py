@@ -186,10 +186,8 @@ def importTrack(track, trackInd, track_type, timeRange=None, offsetFrameNumber=0
                                 if isinstance ( keyframe_data, opentimelineio._otio.AnyVector ):
                                     for keyframe in keyframe_data:
                                         frame = opentimelineio.opentime.to_frames ( opentimelineio.opentime.RationalTime ( float ( keyframe[ "when" ] ) ) )
-                                        print ( "zzzzz", frame )
                                         audio_volume_keyframes.append ( (frame, float ( keyframe[ "value" ] ) ) )
                                 else:
-                                    print ( float ( keyframe_data[ "when" ] ) )
                                     frame = opentimelineio.opentime.to_frames ( opentimelineio.opentime.RationalTime ( float ( keyframe_data[ "when" ] ) ) )
                                     audio_volume_keyframes.append ( ( frame, float ( keyframe_data[ "value" ] ) ) )
 
