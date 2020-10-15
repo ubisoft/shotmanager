@@ -258,7 +258,6 @@ class UAS_PT_ShotManagerRetimer_Settings(Panel):
         row.prop(retimerProps, "onlyOnSelection", text="Selection Only")
 
         box = layout.box()
-        box.use_property_split = True
         col = box.column()
         row = col.row(align=True)
         row.prop(retimerProps, "applyToShots")

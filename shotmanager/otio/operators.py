@@ -132,7 +132,7 @@ class UAS_ShotManager_OT_Create_Shots_From_OTIO_RRS(Operator):
 
     otioFile: StringProperty()
 
-    videoTrackRefIndex: EnumProperty(
+    refVideoTrackList: EnumProperty(
         name="Shots Video Track",
         description="Track to use in the EDL to get the shot list",
         # items=(("NO_SEQ", "No Sequence Found", ""),),
@@ -241,7 +241,7 @@ class UAS_ShotManager_OT_Create_Shots_From_OTIO_RRS(Operator):
     importAnimaticInVSE: BoolProperty(
         name="Import Animatic In VSE",
         description="Import the video and mixed sounds from the animatic into the VSE of the current scene",
-        default=True,
+        default=False,
     )
     animaticFile: StringProperty(name="Animatic")
 
@@ -282,12 +282,30 @@ class UAS_ShotManager_OT_Create_Shots_From_OTIO_RRS(Operator):
         scene = context.scene
         props = scene.UAS_shot_manager_props
 
+        if "PREVIZ" == self.importStepMode:
+            self.mediaHaveHandles = props.areShotHandlesUsed()
+            self.mediaHandlesDuration = props.getHandlesDuration()
+        else:
+            self.mediaHaveHandles = False
+            self.mediaHandlesDuration = 0
+
         if "" != self.opArgs:
             argsDict = json.loads(self.opArgs)
             # print(f" argsDict: {argsDict}")
             # print(f" argsDict['otioFile']: {argsDict['otioFile']}")
+
+            # PREDEC or PREVIZ
             if "importStepMode" in argsDict:
                 self.importStepMode = argsDict["importStepMode"]
+
+                # we need to put this code here again to cover all the cases
+                if "PREVIZ" == self.importStepMode:
+                    self.mediaHaveHandles = props.areShotHandlesUsed()
+                    self.mediaHandlesDuration = props.getHandlesDuration()
+                else:
+                    self.mediaHaveHandles = False
+                    self.mediaHandlesDuration = 0
+
             if "otioFile" in argsDict:
                 self.otioFile = argsDict["otioFile"]
             if "animaticFile" in argsDict:
@@ -299,14 +317,11 @@ class UAS_ShotManager_OT_Create_Shots_From_OTIO_RRS(Operator):
 
             if "conformMode" in argsDict:
                 self.conformMode = argsDict["conformMode"]
+
             if "mediaHaveHandles" in argsDict:
                 self.mediaHaveHandles = argsDict["mediaHaveHandles"]
-            if "mediaHandlesDuration" in argsDict:
-                self.mediaHandlesDuration = argsDict["mediaHandlesDuration"]
-
-        self.refVideoTrackInd = 0
-        if "PREVIZ" == self.importStepMode:
-            self.refVideoTrackInd = 1
+                if "mediaHandlesDuration" in argsDict:
+                    self.mediaHandlesDuration = argsDict["mediaHandlesDuration"]
 
         config.gMontageOtio = None
 
@@ -327,19 +342,32 @@ class UAS_ShotManager_OT_Create_Shots_From_OTIO_RRS(Operator):
             for i in range(0, numVideoTracks):
                 config.gTracksEnumList.append((str(i), str(i + 1), "", i))
 
-            self.videoTrackRefIndex = str(self.refVideoTrackInd)  # config.gTracksEnumList[0][0]
+            self.refVideoTrackInd = 0
+            if "PREVIZ" == self.importStepMode:
+                self.refVideoTrackInd = min(numVideoTracks - 1, 1)
+            print(
+                f"**** self.importStepMode: {self.importStepMode}, self.refVideoTrackInd: {self.refVideoTrackInd}, numVideoTracks: {numVideoTracks}"
+            )
+
+            self.refVideoTrackList = str(self.refVideoTrackInd)  # config.gTracksEnumList[0][0]
 
             config.gMontageOtio.fillMontageInfoFromOtioFile(
-                refVideoTrackInd=int(self.videoTrackRefIndex), verboseInfo=False
+                refVideoTrackInd=int(self.refVideoTrackList), verboseInfo=False
             )
             print(f"config.gMontageOtio name: {config.gMontageOtio.get_name()}")
 
             config.gSeqEnumList = list()
-            for i, seq in enumerate(config.gMontageOtio.sequencesList):
-                print(f"- seqList: i:{i}, seq: {seq.get_name()}")
-                config.gSeqEnumList.append((str(i), seq.get_name(), f"Import sequence {seq.get_name()}", i + 1))
+            if len(config.gMontageOtio.sequencesList):
+                for i, seq in enumerate(config.gMontageOtio.sequencesList):
+                    print(f"- seqList: i:{i}, seq: {seq.get_name()}")
+                    config.gSeqEnumList.append((str(i), seq.get_name(), f"Import sequence {seq.get_name()}", i + 1))
+            else:
+                config.gSeqEnumList.append(
+                    (str(0), " ** No Sequence in Ref Track **", f"No sequence found in the specifed reference track", 1)
+                )
 
             self.sequenceList = config.gSeqEnumList[0][0]
+            print(f"self.sequenceList: {self.sequenceList}")
 
         #    seqList = getSequenceListFromOtioTimeline(config.gMontageOtio)
         #  self.sequenceList.items = list_sequences_from_edl(context, seqList)
@@ -358,8 +386,8 @@ class UAS_ShotManager_OT_Create_Shots_From_OTIO_RRS(Operator):
         #########################
         #########################
 
-        # # print(f"self.videoTrackRefIndex: {self.videoTrackRefIndex}")
-        # config.gMontageOtio.fillMontageInfoFromOtioFile(refVideoTrackInd=int(self.videoTrackRefIndex), verboseInfo=False)
+        # # print(f"self.refVideoTrackList: {self.refVideoTrackList}")
+        # config.gMontageOtio.fillMontageInfoFromOtioFile(refVideoTrackInd=int(self.refVideoTrackList), verboseInfo=False)
 
         # config.gSeqEnumList = list()
         # for i, seq in enumerate(config.gMontageOtio.sequencesList):
@@ -375,7 +403,11 @@ class UAS_ShotManager_OT_Create_Shots_From_OTIO_RRS(Operator):
         # #########################
         #########################
 
-        selSeq = config.gMontageOtio.sequencesList[int(self.sequenceList)] if config.gMontageOtio is not None else None
+        selSeq = (
+            config.gMontageOtio.sequencesList[int(self.sequenceList)]
+            if config.gMontageOtio is not None and len(config.gMontageOtio.sequencesList)
+            else None
+        )
 
         layout = self.layout
         box = layout.box()
@@ -383,7 +415,7 @@ class UAS_ShotManager_OT_Create_Shots_From_OTIO_RRS(Operator):
         if config.uasDebug:
             row = box.row()
             row.label(text=self.importStepMode)
-            row.prop(self, "videoTrackRefIndex")
+            row.prop(self, "refVideoTrackList")
 
         box.label(text="EDL File (Otio, XML...):")
         row = box.row()
@@ -412,7 +444,7 @@ class UAS_ShotManager_OT_Create_Shots_From_OTIO_RRS(Operator):
             row.label(text=f"Num. Sequences: {len(config.gMontageOtio.sequencesList)}")
 
             if config.uasDebug:
-                box.prop(self, "videoTrackRefIndex")
+                box.prop(self, "refVideoTrackList")
 
             row = box.row()
             if config.gMontageOtio.get_fps() != context.scene.render.fps:
@@ -423,9 +455,10 @@ class UAS_ShotManager_OT_Create_Shots_From_OTIO_RRS(Operator):
             # if config.uasDebug:
             #     row.operator("uas_shot_manager.montage_sequences_to_json")  # uses config.gMontageOtio
 
-            subRow = box.row()
-            subRow.enabled = selSeq is not None
-            row.operator("uasshotmanager.compare_otio_and_current_montage").sequenceName = selSeq.get_name()
+            if selSeq is not None:
+                subRow = box.row()
+                subRow.enabled = selSeq is not None
+                row.operator("uasshotmanager.compare_otio_and_current_montage").sequenceName = selSeq.get_name()
 
         row = layout.row(align=True)
         box = row.box()
@@ -459,6 +492,9 @@ class UAS_ShotManager_OT_Create_Shots_From_OTIO_RRS(Operator):
             row.label(text="Create Settings:")
         else:
             row.label(text="Update Settings:")
+
+        if selSeq is None:
+            return None
 
         box = layout.box()
 
@@ -499,12 +535,14 @@ class UAS_ShotManager_OT_Create_Shots_From_OTIO_RRS(Operator):
 
         layout.label(text="Scene VSE:")
         box = layout.box()
-        row = box.row()
-        row.prop(self, "importAnimaticInVSE")
-        row = box.row()
-        row.separator(factor=3)
-        row.enabled = self.importAnimaticInVSE
-        row.prop(self, "animaticFile", text="")
+
+        if config.uasDebug:
+            row = box.row()
+            row.prop(self, "importAnimaticInVSE")
+            row = box.row()
+            row.separator(factor=3)
+            row.enabled = self.importAnimaticInVSE
+            row.prop(self, "animaticFile", text="")
 
         row = box.row()
         row.prop(self, "importVideoInVSE")
@@ -538,7 +576,9 @@ class UAS_ShotManager_OT_Create_Shots_From_OTIO_RRS(Operator):
         # print("ex File name:", filename)
         # print("ex File extension:", extension)
 
-        # importOtio(
+        if not len(config.gMontageOtio.sequencesList):
+            return {"CANCELLED"}
+
         selSeq = config.gMontageOtio.sequencesList[int(self.sequenceList)]
 
         selSeq.printInfo()
