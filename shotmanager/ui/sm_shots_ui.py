@@ -512,19 +512,20 @@ class UAS_PT_ShotManager_ShotsGlobalSettings(Panel):
         props = scene.UAS_shot_manager_props
 
         layout = self.layout
-        layout.prop(props.shotsGlobalSettings, "alsoApplyToDisabledShots")
+        box = layout.box()
+        box.prop(props.shotsGlobalSettings, "alsoApplyToDisabledShots")
 
         # Camera background images
         ######################
 
         if props.display_camerabgtools_in_properties:
 
-            layout.label(text="Camera Background Images:")
+            box.label(text="Camera Background Images:")
 
-            box = layout.box()
-            box.use_property_decorate = False
+            subBox = box.box()
+            subBox.use_property_decorate = False
 
-            row = box.row()
+            row = subBox.row()
             row.separator(factor=1.0)
             c = row.column()
             grid_flow = c.grid_flow(align=False, columns=3, even_columns=False)
@@ -533,7 +534,7 @@ class UAS_PT_ShotManager_ShotsGlobalSettings(Panel):
             grid_flow.prop(props.shotsGlobalSettings, "backgroundAlpha", text="Alpha")
             row.separator(factor=0.5)  # prevents stange look when panel is narrow
 
-            row = box.row()
+            row = subBox.row()
             row.separator(factor=1.0)
             c = row.column()
             c.enabled = False
@@ -749,18 +750,17 @@ class UAS_MT_ShotManager_Shots_ToolsMenu(Menu):
             row = layout.row(align=True)
             argsDictDebugModifs = dict()
             argsDictDebugModifs.update({"importStepMode": "PREVIZ"})
-            argsDictDebugModifs.update({"importStepMode": "PREVIZ"})
             argsDictDebugModifs.update(
                 {
                     #    "otioFile": r"C:\_UAS_ROOT\RRSpecial\04_ActsPredec\Act01\Exports\RRSpecial_ACT01_AQ_XML_200730\RRSpecial_To40_RefDebug_SwapSeq30_20-30.xml"
                     "otioFile": r"C:\_UAS_ROOT\RRSpecial\_Sandbox\Julien\Fixtures_Montage\Act01_Seq0060_Main_Take_ModifsSwap.xml"
                 }
             )
-            argsDictDebugModifs.update(
-                {
-                    "animaticFile": r"D:\Workspaces\Workspace_RRS\_Sandbox\Julien\Fixtures_Montage\PredecAct01\PredecAct01_To40.mp4"
-                }
-            )
+            # argsDictDebugModifs.update(
+            #     {
+            #         "animaticFile": r"C:\_UAS_ROOT\RRSpecial\_Sandbox\Julien\Fixtures_Montage\PredecAct01\PredecAct01_To40.mp4"
+            #     }
+            # )
             argsDictDebugModifs.update({"conformMode": "UPDATE"})
             argsDictDebugModifs.update({"mediaHaveHandles": props.areShotHandlesUsed()})
             argsDictDebugModifs.update({"mediaHandlesDuration": props.getHandlesDuration()})
