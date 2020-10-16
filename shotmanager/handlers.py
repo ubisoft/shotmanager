@@ -1,7 +1,7 @@
 import bpy
 
 
-def jump_to_shot(self):
+def jump_to_shot(scene):
 
     verbose = False
 
@@ -75,68 +75,38 @@ def jump_to_shot(self):
 
         return frameAndShotToUse
 
-    scene = bpy.context.scene
     props = scene.UAS_shot_manager_props
     shotList = props.get_shots()
     current_shot_index = props.current_shot_index
+    old_shot_index = current_shot_index
     props.restartPlay = False
 
     # if scene.frame_end == scene.frame_current or scene.frame_preview_end == scene.frame_current:
     #     print(" *** *** End of range reached: ", scene.frame_current)
     #     print("\n")
+    current_frame = scene.frame_current
+    current_shot_end = shotList[ current_shot_index ].end
+
 
     if bpy.context.screen.is_animation_playing:
         ##   print(" *** Playing - after return, frame: ", scene.frame_current)
-        if shotList[current_shot_index].end < scene.frame_current < shotList[current_shot_index].end + 10:
-            if verbose:
-                print("Just after shot end, jumping to next shot start: ", scene.frame_current)
+        print ( shotList[  current_shot_index ].name )
+        if not shotList[current_shot_index].start < current_frame < current_shot_end:
+            if current_frame > current_shot_end:
+                disp = current_frame - current_shot_end
+                next_shot_index = getNextShotIndex ( shotList, current_shot_index )
+                while next_shot_index != -1:
+                    shot = shotList[ next_shot_index ]
+                    if disp < shot.getDuration ( ):
+                        current_shot_index = next_shot_index
+                        props.setCurrentShot ( shot )
+                        scene.frame_current = shot.start + disp
+                        break
 
-            next_shot = getNextShotIndex(shotList, current_shot_index)
-            if next_shot != -1:
-                current_shot_index = next_shot
-                props.current_shot_index = current_shot_index
-                scene.frame_current = shotList[current_shot_index].start
-
-        elif not (
-            shotList[current_shot_index].start <= scene.frame_current
-            and scene.frame_current <= shotList[current_shot_index].end
-        ):
-            if verbose:
-                print(" *** Not in the range of current shot : ", scene.frame_current)
-
-            # jog backward, go to previous shot
-            # if scene.frame_current < shotList[current_shot_index].start:
-            #     previous_shot = getNextShotIndex(shotList, current_shot_index)
-            #     if previous_shot != -1:
-            #         current_shot_index = previous_shot
-            #         props.current_shot_index = current_shot_index
-            #         scene.frame_current = shotList[current_shot_index].end
-
-            # # jog forward
-
-            # # play
-            # else:
-            frameAndShotToUse = getFirstShotFrameIfEndReached(scene.frame_current)
-            if -1 != frameAndShotToUse[1]:
-                scene.frame_current = frameAndShotToUse[0]
-                current_shot_index = frameAndShotToUse[1]
-                props.current_shot_index = current_shot_index
-
-            else:
-                #      print(" *** Not End frame: ", scene.frame_current)
-                scene.frame_current = shotList[current_shot_index].start
-
-        else:
-            if verbose:
-                print(" *** In a shot range : ", scene.frame_current)
-            # test if end of range is reached and if so returns the computed index of the next frame, None otherwise
-            frameAndShotToUse = getFirstShotFrameIfEndReached(scene.frame_current)
-            if -1 != frameAndShotToUse[1]:
-                scene.frame_current = frameAndShotToUse[0]
-                current_shot_index = frameAndShotToUse[1]
-                props.current_shot_index = current_shot_index
-            # else we continue as normal
-
+                    disp -= shot.getDuration ( )
+                    next_shot_index = getNextShotIndex ( shotList, next_shot_index )
+                else:
+                    pass #end of timeline
     # not playing
     else:
         if verbose:
@@ -144,10 +114,11 @@ def jump_to_shot(self):
         # having a separation between playing and not playing is very important to let the
         # shot manager playbar buttons work. They work without the time range restrictions.
 
-    if -1 < current_shot_index and shotList[current_shot_index].camera is not None:
-        if scene.camera != shotList[current_shot_index].camera:
-            scene.camera = shotList[current_shot_index].camera
-        props.selected_shot_index = current_shot_index
+    if old_shot_index != current_shot_index:
+        if -1 < current_shot_index and shotList[current_shot_index].camera is not None:
+            if scene.camera != shotList[current_shot_index].camera:
+                scene.camera = shotList[current_shot_index].camera
+            props.selected_shot_index = current_shot_index
 
 
 # def jump_to_shot__frame_change_post(self):
