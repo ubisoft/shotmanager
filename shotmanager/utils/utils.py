@@ -60,7 +60,7 @@ def addonVersion(addonName):
 
     #    versions = (versionStr, versionInt)
 
-    versions = ("1.3.53", 1003053)
+    versions = ("1.3.54", 1003054)
 
     return versions
 

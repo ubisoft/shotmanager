@@ -766,7 +766,7 @@ class UAS_MT_ShotManager_Shots_ToolsMenu(Menu):
             argsDictDebugModifs.update({"mediaHandlesDuration": props.getHandlesDuration()})
 
             row.operator(
-                "uasshotmanager.createshotsfromotio_rrs", text="   Create Shots From EDL - Debug swap"
+                "uasshotmanager.createshotsfromotio_rrs", text="   Update Shots From EDL - Debug swap"
             ).opArgs = json.JSONEncoder().encode(argsDictDebugModifs)
             # row.operator(
             #     "uasshotmanager.createshotsfromotio_rrs", text="Create Shots From EDL - Debug 40 swap"

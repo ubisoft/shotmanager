@@ -41,6 +41,7 @@ class MontageOtio(MontageInterface):
             Return a dictionary with the characterisitics of the montage.
             This is required to export it as xml EDL.
         """
+        print(f"-++ self.timeline: {self.timeline}")
         self._characteristics["framerate"] = self.get_fps()
         self._characteristics["duration"] = self.get_frame_duration()
 

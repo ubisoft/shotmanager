@@ -72,7 +72,7 @@ class UAS_PT_VideoShotManager(Panel):
 
         row = layout.row()
         row.alert = True
-        row.label(text=" !!! EXPERIMENTAL !!!")
+        row.label(text=" !!! EXPERIMENTAL !!!" + ("  Debug  " if config.uasDebug else ""))
 
         row = layout.row()  # just to give some space...
         vseFirstFrame = scene.frame_start

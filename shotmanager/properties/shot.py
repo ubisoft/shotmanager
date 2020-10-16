@@ -117,8 +117,10 @@ class UAS_ShotManager_Shot(ShotInterface, PropertyGroup):
 
         return compositedMediaPath
 
-    def getName_PathCompliant(self):
+    def getName_PathCompliant(self, withPrefix=False):
         shotName = self.name.replace(" ", "_")
+        if withPrefix:
+            shotName = f"{parentScene.renderShotPrefix()}_{shotName}"
         return shotName
 
     def _get_name(self):

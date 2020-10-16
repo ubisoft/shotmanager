@@ -56,72 +56,81 @@ def launchRenderWithVSEComposite(
     userRenderSettings = {}
 
     def _storeUserRenderSettings(context):
+        scene = context.scene
+
         #    userRenderSettings["show_overlays"] = bpy.context.space_data.overlay.show_overlays
-        userRenderSettings["resolution_x"] = context.scene.render.resolution_x
-        userRenderSettings["resolution_y"] = context.scene.render.resolution_y
-        userRenderSettings["render_engine"] = context.scene.render.engine
+        userRenderSettings["resolution_x"] = scene.render.resolution_x
+        userRenderSettings["resolution_y"] = scene.render.resolution_y
+        userRenderSettings["render_engine"] = scene.render.engine
 
         userRenderSettings["frame_start"] = scene.frame_start
         userRenderSettings["frame_end"] = scene.frame_end
+        userRenderSettings["use_preview_range"] = scene.use_preview_range
+        userRenderSettings["frame_preview_start"] = scene.frame_preview_start
+        userRenderSettings["frame_preview_end"] = scene.frame_preview_end
 
-        userRenderSettings["view_transform"] = bpy.context.scene.view_settings.view_transform
+        userRenderSettings["view_transform"] = bpy.scene.view_settings.view_transform
 
-        userRenderSettings["render_use_compositing"] = bpy.context.scene.render.use_compositing
-        userRenderSettings["render_use_sequencer"] = bpy.context.scene.render.use_sequencer
+        userRenderSettings["render_use_compositing"] = bpy.scene.render.use_compositing
+        userRenderSettings["render_use_sequencer"] = bpy.scene.render.use_sequencer
 
         # eevee
         ##############
-        # if "BLENDER_EEVEE" == bpy.context.scene.render.engine:
-        userRenderSettings["eevee_taa_render_samples"] = context.scene.eevee.taa_render_samples
-        userRenderSettings["eevee_taa_samples"] = context.scene.eevee.taa_samples
+        # if "BLENDER_EEVEE" == bpy.scene.render.engine:
+        userRenderSettings["eevee_taa_render_samples"] = scene.eevee.taa_render_samples
+        userRenderSettings["eevee_taa_samples"] = scene.eevee.taa_samples
 
         # workbench
         ##############
-        # if "BLENDER_WORKBENCH" == bpy.context.scene.render.engine:
-        userRenderSettings["workbench_render_aa"] = context.scene.display.render_aa
-        userRenderSettings["workbench_viewport_aa"] = context.scene.display.viewport_aa
+        # if "BLENDER_WORKBENCH" == bpy.scene.render.engine:
+        userRenderSettings["workbench_render_aa"] = scene.display.render_aa
+        userRenderSettings["workbench_viewport_aa"] = scene.display.viewport_aa
 
         # cycles
         ##############
-        #  if "CYCLES" == bpy.context.scene.render.engine:
-        userRenderSettings["cycles_samples"] = context.scene.cycles.samples
-        userRenderSettings["cycles_preview_samples"] = context.scene.cycles.preview_samples
+        #  if "CYCLES" == bpy.scene.render.engine:
+        userRenderSettings["cycles_samples"] = scene.cycles.samples
+        userRenderSettings["cycles_preview_samples"] = scene.cycles.preview_samples
 
         return userRenderSettings
 
     def _restoreUserRenderSettings(context, userRenderSettings):
+        scene = context.scene
         # wkip bug here dans certaines conditions vse
         #    bpy.context.space_data.overlay.show_overlays = userRenderSettings["show_overlays"]
 
-        context.scene.render.resolution_x = userRenderSettings["resolution_x"]
-        context.scene.render.resolution_y = userRenderSettings["resolution_y"]
-        context.scene.render.engine = userRenderSettings["render_engine"]
+        scene.render.resolution_x = userRenderSettings["resolution_x"]
+        scene.render.resolution_y = userRenderSettings["resolution_y"]
+        scene.render.engine = userRenderSettings["render_engine"]
 
         scene.frame_start = userRenderSettings["frame_start"]
         scene.frame_end = userRenderSettings["frame_end"]
+        scene.use_preview_range = userRenderSettings["use_preview_range"]
+        scene.frame_preview_start = userRenderSettings["frame_preview_start"]
+        scene.frame_preview_end = userRenderSettings["frame_preview_end"]
 
-        bpy.context.scene.view_settings.view_transform = userRenderSettings["view_transform"]
+        bpy.scene.view_settings.view_transform = userRenderSettings["view_transform"]
 
-        bpy.context.scene.render.use_compositing = userRenderSettings["render_use_compositing"]
-        bpy.context.scene.render.use_sequencer = userRenderSettings["render_use_sequencer"]
+        bpy.scene.render.use_compositing = userRenderSettings["render_use_compositing"]
+        bpy.scene.render.use_sequencer = userRenderSettings["render_use_sequencer"]
 
         # eevee
         ##############
-        #   if "BLENDER_EEVEE" == bpy.context.scene.render.engine:
-        context.scene.eevee.taa_render_samples = userRenderSettings["eevee_taa_render_samples"]
-        context.scene.eevee.taa_samples = userRenderSettings["eevee_taa_samples"]
+        #   if "BLENDER_EEVEE" == bpy.scene.render.engine:
+        scene.eevee.taa_render_samples = userRenderSettings["eevee_taa_render_samples"]
+        scene.eevee.taa_samples = userRenderSettings["eevee_taa_samples"]
 
         # workbench
         ##############
-        # if "BLENDER_WORKBENCH" == bpy.context.scene.render.engine:
-        context.scene.display.render_aa = userRenderSettings["workbench_render_aa"]
-        context.scene.display.viewport_aa = userRenderSettings["workbench_viewport_aa"]
+        # if "BLENDER_WORKBENCH" == bpy.scene.render.engine:
+        scene.display.render_aa = userRenderSettings["workbench_render_aa"]
+        scene.display.viewport_aa = userRenderSettings["workbench_viewport_aa"]
 
         # cycles
         ##############
-        #        if "CYCLES" == bpy.context.scene.render.engine:
-        context.scene.cycles.samples = userRenderSettings["cycles_samples"]
-        context.scene.cycles.preview_samples = userRenderSettings["cycles_preview_samples"]
+        #        if "CYCLES" == bpy.scene.render.engine:
+        scene.cycles.samples = userRenderSettings["cycles_samples"]
+        scene.cycles.preview_samples = userRenderSettings["cycles_preview_samples"]
 
         return
 
@@ -296,9 +305,16 @@ def launchRenderWithVSEComposite(
                 continue
 
         if not fileListOnly:
-            print("\n----------------------------------------------------")
-            print("\n  Rendering Shot: ", shot.name)
-            print("  ---------------")
+            infoStr = f"\n----------------------------------------------------"
+            infoStr += f"\n\n  Rendering Shot: {shot.getName_PathCompliant(withPrefix=True)} - {shot.getDuration()} fr."
+            infoStr += f"\n  ---------------"
+            infoStr += f"\n\n    Render: {props.renderContext.renderComputationMode} - "
+            if renderWithOpengl:
+                infoStr += f"{props.renderContext.renderEngineOpengl}"
+            else:
+                infoStr += f"{props.renderContext.renderEngine}"
+            print(infoStr)
+
             print("\n     newTempRenderPath: ", newTempRenderPath)
             print("     compositedMediaPath: ", compositedMediaPath)
 
