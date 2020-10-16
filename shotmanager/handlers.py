@@ -1,6 +1,5 @@
 import bpy
 
-previous_frame = 0
 def jump_to_shot(scene):
     props = scene.UAS_shot_manager_props
     verbose = False
@@ -24,7 +23,6 @@ def jump_to_shot(scene):
 
         return None
 
-    global previous_frame
     shotList = props.get_shots()
     current_shot_index = props.current_shot_index
     props.restartPlay = False
@@ -78,12 +76,11 @@ def jump_to_shot(scene):
                 scene.frame_current = shotList[ -1 ].end
     else:
         # User is scrubbing in the timeline so try to guess a shot in the range of the timeline.
-        candidates = list ( )
-        for i, shot in enumerate ( shotList ):
-            if shot.start <= current_frame <=shot.end and shot != current_shot:
-                candidates.append ( ( i, shot ) )
+        if not ( current_shot.start <= current_frame <= current_shot.end ):
+            candidates = list ( )
+            for i, shot in enumerate ( shotList ):
+                if shot.start <= current_frame <=shot.end:
+                    candidates.append ( ( i, shot ) )
 
-        props.setCurrentShot ( candidates [ 0 ][ 1 ] )
-        scene.frame_current = current_frame
-
-    previous_frame = scene.frame_current
+            props.setCurrentShot ( candidates [ 0 ][ 1 ] )
+            scene.frame_current = current_frame
