@@ -77,6 +77,13 @@ def jump_to_shot(scene):
                 props.setCurrentShot ( shotList[ -1 ] )
                 scene.frame_current = shotList[ -1 ].end
     else:
-        pass
+        # User is scrubbing in the timeline so try to guess a shot in the range of the timeline.
+        candidates = list ( )
+        for i, shot in enumerate ( shotList ):
+            if shot.start <= current_frame <=shot.end and shot != current_shot:
+                candidates.append ( ( i, shot ) )
+
+        props.setCurrentShot ( candidates [ 0 ][ 1 ] )
+        scene.frame_current = current_frame
 
     previous_frame = scene.frame_current
