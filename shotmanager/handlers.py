@@ -56,6 +56,9 @@ def jump_to_shot(scene):
                     break
                 disp -= next_shot.getDuration ( )
                 next_shot = get_next_shot  ( shotList, next_shot )
+            else:
+                # Scene end is farther than the last shot so loop back.
+                props.setCurrentShot ( shotList[ 0 ] )
         elif current_frame == scene_frame_start and get_next_shot  ( shotList, current_shot ) is None: # Loop back at start.
             # Seems that the first frame is always hit even in frame dropping playblack
             props.setCurrentShot ( shotList[ 0 ] )
@@ -69,7 +72,10 @@ def jump_to_shot(scene):
                     break
                 disp -= previous_shot.getDuration ( )
                 previous_shot = get_next_shot ( shotList, previous_shot )
-
+            else:
+                # Scene end is farther than the first shot so loop back.
+                props.setCurrentShot ( shotList[ -1 ] )
+                scene.frame_current = shotList[ -1 ].end
     else:
         pass
 
