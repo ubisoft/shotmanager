@@ -164,7 +164,7 @@ class BL_UI_Cursor:
         self.posx = 0
         self.posy = 36
 
-        self.sizex = 11
+        self.sizex = 15
         self.sizey = 8
 
         # Is used for drawing the frame number and for cursor interaction
