@@ -40,7 +40,7 @@ def jump_to_shot(scene):
     if not bpy.context.screen.is_animation_playing:
         return
 
-    if not bpy.context.screen.is_scrubbing:
+    if not bpy.context.screen.is_animation_playing:#is_scrubbing:
         if current_frame == scene_frame_end and get_previous_shot ( shotList, current_shot ) is None:
             props.setCurrentShot ( shotList[ -1 ] )
             scene.frame_current = shotList[ -1 ].end
