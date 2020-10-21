@@ -199,6 +199,9 @@ class MontageOtio(MontageInterface):
 
                 for clip in track:
                     if isinstance(clip, opentimelineio.schema.Clip):
+                        if clip.media_reference.is_missing_reference:
+                            print ( f"Missing Media Reference for Clip: {clip.name}")
+                            continue
                         media_path = Path(utils.file_path_from_url(clip.media_reference.target_url))
                         # if config.uasDebug:
                         #   print(f"\n** clip: {clip.name}")

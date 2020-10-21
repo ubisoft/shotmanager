@@ -10,7 +10,7 @@ import gpu
 from gpu_extras.batch import batch_for_shader
 from mathutils import Vector
 
-from .ogl_ui import clamp, get_region_at_xy
+from .ogl_ui import clamp, get_region_at_xy, gamma_color
 from .. import properties
 
 UNIFORM_SHADER_2D = gpu.shader.from_builtin ( "2D_UNIFORM_COLOR" )
@@ -107,6 +107,7 @@ class ShotClip:
         bgl.glEnable ( bgl.GL_BLEND )
         UNIFORM_SHADER_2D.bind ( )
         color = ( self.shot.color[ 0 ], self.shot.color[ 1 ], self.shot.color[ 2 ], .5 )
+        color = gamma_color ( color )
         if self.highlight:
             color = ( .9, .9, .9, .5 )
         UNIFORM_SHADER_2D.uniform_float ( "color", color )
