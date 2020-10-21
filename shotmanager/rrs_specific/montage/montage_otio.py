@@ -173,14 +173,14 @@ class MontageOtio(MontageInterface):
                 # )
                 # videoCharacteristics["width"] = elem.nodeValue
                 # print(f"width: {videoCharacteristics['width']}")
-            # print(f"videoCharacteristics: {videoCharacteristics}")
+                # print(f"videoCharacteristics: {videoCharacteristics}")
 
-            self.set_montage_characteristics(
-                #  videoCharacteristics["rate"]["timebase"],
-                resolution_x=videoCharacteristics["width"],
-                resolution_y=videoCharacteristics["height"],
-                #  duration=seqCharacteristics["duration"],
-            )
+                self.set_montage_characteristics(
+                    #  videoCharacteristics["rate"]["timebase"],
+                    resolution_x=videoCharacteristics["width"],
+                    resolution_y=videoCharacteristics["height"],
+                    #  duration=seqCharacteristics["duration"],
+                )
 
             return ()
 
@@ -200,7 +200,7 @@ class MontageOtio(MontageInterface):
                 for clip in track:
                     if isinstance(clip, opentimelineio.schema.Clip):
                         if clip.media_reference.is_missing_reference:
-                            print ( f"Missing Media Reference for Clip: {clip.name}")
+                            print(f"Missing Media Reference for Clip: {clip.name}")
                             continue
                         media_path = Path(utils.file_path_from_url(clip.media_reference.target_url))
                         # if config.uasDebug:

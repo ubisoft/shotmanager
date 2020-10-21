@@ -184,8 +184,10 @@ class UAS_VideoShotManager_OT_Import_Edit_From_OTIO(Operator):
                 print(f" *** config.gMontageOtio._characteristics is None - EDL Edit resolution cannot be set *** ")
             else:
                 characts = config.gMontageOtio.get_montage_characteristics()
-                context.scene.render.resolution_x = characts["resolution_x"]
-                context.scene.render.resolution_y = characts["resolution_y"]
+                if "resolution_x" in characts:
+                    context.scene.render.resolution_x = characts["resolution_x"]
+                if "resolution_y" in characts:
+                    context.scene.render.resolution_y = characts["resolution_y"]
 
         timeRange = None
         if self.importTimeRange:
