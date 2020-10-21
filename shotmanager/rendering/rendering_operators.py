@@ -131,7 +131,7 @@ class UAS_PT_ShotManager_Render(Operator):
                 renderRootPath += "\\"
 
             # if props.isRenderRootPathValid():
-            launchRender(context, self.renderMode, renderRootPath, useStampInfo=props.useStampInfoDuringRendering)
+            launchRender(context, self.renderMode, renderRootPath, useStampInfo=props.useStampInfoDuringRendering, area = context.area )
 
         #   return {"RUNNING_MODAL"}
         return {"FINISHED"}

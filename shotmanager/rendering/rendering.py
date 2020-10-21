@@ -325,11 +325,10 @@ def launchRenderWithVSEComposite(
             print("Scene.camera:", scene.camera.name)
             if override_all_viewports:
                 for area in context.screen.areas:
-                    utils.setCurrentCameraToViewport(context, area)
+                    utils.setCurrentCameraToViewport2(area)
             else:
-                utils.setCurrentCameraToViewport(context, viewportArea)
+                utils.setCurrentCameraToViewport2(viewportArea)
             # props.setCurrentShot(shot)
-
             numFramesInShot = scene.frame_end - scene.frame_start + 1
             previousFrameRenderTime = time.monotonic()
             currentFrameRenderTime = previousFrameRenderTime
@@ -664,7 +663,7 @@ def renderStampedInfoForShot(
     scene.render.resolution_y = previousResY
 
 
-def launchRender(context, renderMode, rootPath, useStampInfo=True):
+def launchRender(context, renderMode, rootPath, useStampInfo=True, area = None ):
     """
         rootPath: directory to render the files
     """
@@ -782,6 +781,7 @@ def launchRender(context, renderMode, rootPath, useStampInfo=True):
                 generateSequenceVideo=False,
                 specificShotList=[shot],
                 specificFrame=scene.frame_current,
+                area = area
             )
             print(json.dumps(renderedFilesDict, indent=4))
 
@@ -797,6 +797,7 @@ def launchRender(context, renderMode, rootPath, useStampInfo=True):
                 generateSequenceVideo=False,
                 specificShotList=[shot],
                 render_handles=preset.renderHandles if preset.bypass_rendering_project_settings else True,
+                area = area
             )
             print(json.dumps(renderedFilesDict, indent=4))
 
@@ -819,6 +820,7 @@ def launchRender(context, renderMode, rootPath, useStampInfo=True):
                     rerenderExistingShotVideos=preset.rerenderExistingShotVideos,
                     generateSequenceVideo=preset.generateEditVideo,
                     renderAlsoDisabled=preset.renderAlsoDisabled,
+                    area = area
                 )
 
                 if preset.renderOtioFile:

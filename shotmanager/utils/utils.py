@@ -60,7 +60,7 @@ def addonVersion(addonName):
 
     #    versions = (versionStr, versionInt)
 
-    versions = ("1.3.54", 1003054)
+    versions = ("1.3.55", 1003055)
 
     return versions
 
@@ -295,6 +295,14 @@ def cameras_from_scene(scene):
     """
     camList = [c for c in scene.objects if c.type == "CAMERA"]
     return camList
+
+
+def setCurrentCameraToViewport2 ( area ):
+    """Requires a valid area VIEW_3D"""
+    for space_data in area.spaces:
+        if space_data.type == "VIEW_3D":
+            space_data.use_local_camera = False
+            space_data.region_3d.view_perspective = "CAMERA"
 
 
 def setCurrentCameraToViewport(context, area=None):
