@@ -327,7 +327,7 @@ class UAS_VideoShotManager_OT_ExportMarkersEditAsVideos(Operator):
 
             if i < len(scene.timeline_markers) - 1:
                 scene.frame_start = scene.timeline_markers[i].frame
-                scene.frame_end = scene.timeline_markers[i + 1].frame
+                scene.frame_end = scene.timeline_markers[i + 1].frame - 1
                 scene.render.filepath = self.outputDir + mrk.name + ".mp4"
                 bpy.ops.render.opengl(animation=True, sequencer=True)
 

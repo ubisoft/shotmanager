@@ -198,7 +198,12 @@ class MontageOtio(MontageInterface):
                 #     track = self.timeline.video_tracks[0]
 
                 for clip in track:
+                    print(f"Clip name 01: {clip.name}, type:{type(clip)}")
+
+                    # if clip is a media
                     if isinstance(clip, opentimelineio.schema.Clip):
+                        # if True:
+                        #  print(f"  Clip name 02: {clip.name}")
                         if clip.media_reference.is_missing_reference:
                             print(f"Missing Media Reference for Clip: {clip.name}")
                             continue
@@ -216,8 +221,10 @@ class MontageOtio(MontageInterface):
 
                         # get parent sequence
                         seq_pattern = "_seq"
+                        #    print(f"  Clip name 03: {clip.name}")
+
                         if seq_pattern in media_name_lower:
-                            #    print(f"media_name: {media_name}")
+                            #   print(f"media_name: {media_name}")
 
                             media_name_splited = media_name_lower.split("_")
                             if 2 <= len(media_name_splited):
@@ -229,6 +236,30 @@ class MontageOtio(MontageInterface):
                                     newSeq = self.newSequence()
                                     newSeq.set_name(self.getSequenceNameFromMediaName(media_name))
 
+                                else:
+                                    newSeq = self.sequencesList[parentSeqInd]
+                                newSeq.newShot(clip)
+
+                    # clip can be a nested edit (called a stack)
+                    else:
+                        stackName = clip.name
+                        print(f"Stack Seq Name: {stackName}, seq: {self.getSequenceNameFromMediaName(stackName)}")
+                        # get the name of the shot
+                        stackNameLower = stackName.lower()
+                        seq_pattern = "_seq"
+                        if seq_pattern in stackNameLower:
+                            media_name_splited = (stackName.lower()).split("_")
+                            print(f"media_name_splited: {media_name_splited}")
+                            if 2 <= len(media_name_splited):
+                                parentSeqInd = _getParentSeqIndex(self.sequencesList, media_name_splited[1])
+
+                                # add new seq if not found
+                                newSeq = None
+                                print(f"   Stack Seq Name: {self.getSequenceNameFromMediaName(stackName)}")
+
+                                if -1 == parentSeqInd:
+                                    newSeq = self.newSequence()
+                                    newSeq.set_name(self.getSequenceNameFromMediaName(stackName))
                                 else:
                                     newSeq = self.sequencesList[parentSeqInd]
                                 newSeq.newShot(clip)

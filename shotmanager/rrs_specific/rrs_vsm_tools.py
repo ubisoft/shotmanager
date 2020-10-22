@@ -30,14 +30,14 @@ class UAS_VideoShotManager_OT_RRS_ExportShotsFromEdit(Operator):
     bl_options = {"INTERNAL"}
 
     overlayFile: StringProperty(default=r"D:\Workspaces\Workspace_RRS\00_Common\Images\RRS_EditPreviz_Overlay.png")
-    editVideoFile: StringProperty(
-        # default=r"C:\_UAS_ROOT\RRSpecial\04_ActsPredec\Act01\Act01_Predec.mp4"
-        default=r"C:\_UAS_ROOT\RRSpecial\05_Acts\Act01\_Montage\Act01_Edit_Previz.mp4"
-    )
-    otioFile: StringProperty(
-        # default=r"C:\_UAS_ROOT\RRSpecial\04_ActsPredec\Act01\Exports\RRSpecial_ACT01_AQ_XML_200730\RRSpecial_ACT01_AQ_200730__FromPremiere_To40.xml"
-        default=r"C:\_UAS_ROOT\RRSpecial\05_Acts\Act01\_Montage\Act01_Edit_Previz.xml"
-    )
+    editVideoFile: StringProperty(default=r"C:\_UAS_ROOT\RRSpecial\05_Acts\Act01\_Montage\Act01_Edit_Previz.mp4")
+    otioFile: StringProperty(default=r"C:\_UAS_ROOT\RRSpecial\05_Acts\Act01\_Montage\Act01_Edit_Previz.xml")
+    # editVideoFile: StringProperty(
+    #     default=r"D:\Perforce\RRSpecial\_Sandbox\Julien\Fixtures_Montage\Act01_Seq0060_Main_Take_ModifsRename.mp4"
+    # )
+    # otioFile: StringProperty(
+    #     default=r"D:\Perforce\RRSpecial\_Sandbox\Julien\Fixtures_Montage\Act01_Seq0060_Main_Take_ModifsRename.xml"
+    # )
 
     def invoke(self, context, event):
         wm = context.window_manager
@@ -60,7 +60,9 @@ class UAS_VideoShotManager_OT_RRS_ExportShotsFromEdit(Operator):
         config.gMontageOtio = None
         if "" != self.otioFile and Path(self.otioFile).exists():
             config.gMontageOtio = MontageOtio()
-            config.gMontageOtio.fillMontageInfoFromOtioFile(otioFile=self.otioFile, verboseInfo=False)
+            config.gMontageOtio.fillMontageInfoFromOtioFile(
+                otioFile=self.otioFile, refVideoTrackInd=1, verboseInfo=False
+            )
 
             config.gSeqEnumList = list()
             print(f"config.gMontageOtio name: {config.gMontageOtio.get_name()}")
@@ -141,16 +143,24 @@ class UAS_VideoShotManager_OT_RRS_ExportShotsFromEdit(Operator):
         vse_render = bpy.context.window_manager.UAS_vse_render
 
         editVideoClip = vse_render.createNewClip(scene, self.editVideoFile, 1, 0, importAudio=True)
-        overlayClip = vse_render.createNewClip(scene, self.overlayFile, 2, 0, offsetEnd=-60000)
-        scene.sequence_editor.sequences_all[overlayClip.name].blend_type = "ALPHA_OVER"
+
+        # overlayClip = vse_render.createNewClip(scene, self.overlayFile, 2, 0, offsetEnd=-60000)
+        # scene.sequence_editor.sequences_all[overlayClip.name].blend_type = "ALPHA_OVER"
 
         scene.timeline_markers.clear()
 
-        for seq in config.gMontageOtio.get_sequences():
+        for i, seq in enumerate(config.gMontageOtio.get_sequences()):
             print(f"seq name: {seq.get_name()}")
-            for sh in seq.getEditShots():
-                print(f"    shot name: {sh.get_name()}")
-                scene.timeline_markers.new(sh.get_name(), frame=sh.get_frame_final_start())
+            for j, sh in enumerate(seq.getEditShots()):
+                print(
+                    f"    shot name: {sh.get_name()}, starts at: {sh.get_frame_final_start()}"
+                )  # , from media {sh.get_med}
+                marker_name = Path(sh.get_name()).stem
+                scene.timeline_markers.new(marker_name, frame=sh.get_frame_final_start())
+
+                # last marker
+                if len(config.gMontageOtio.get_sequences()) - 1 == i and len(seq.getEditShots()) - 1 == j:
+                    scene.timeline_markers.new("Edit End", frame=sh.get_frame_final_end())
 
         vsm_props = context.scene.UAS_vsm_props
         vsm_props.updateTracksList(scene)
