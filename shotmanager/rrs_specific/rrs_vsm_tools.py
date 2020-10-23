@@ -29,15 +29,16 @@ class UAS_VideoShotManager_OT_RRS_ExportShotsFromEdit(Operator):
     bl_description = "Export Shots From Edit"
     bl_options = {"INTERNAL"}
 
-    overlayFile: StringProperty(default=r"D:\Workspaces\Workspace_RRS\00_Common\Images\RRS_EditPreviz_Overlay.png")
-    editVideoFile: StringProperty(default=r"C:\_UAS_ROOT\RRSpecial\05_Acts\Act01\_Montage\Act01_Edit_Previz.mp4")
-    otioFile: StringProperty(default=r"C:\_UAS_ROOT\RRSpecial\05_Acts\Act01\_Montage\Act01_Edit_Previz.xml")
-    # editVideoFile: StringProperty(
-    #     default=r"D:\Perforce\RRSpecial\_Sandbox\Julien\Fixtures_Montage\Act01_Seq0060_Main_Take_ModifsRename.mp4"
-    # )
-    # otioFile: StringProperty(
-    #     default=r"D:\Perforce\RRSpecial\_Sandbox\Julien\Fixtures_Montage\Act01_Seq0060_Main_Take_ModifsRename.xml"
-    # )
+    overlayFile: StringProperty(default=r"C:\_UAS_ROOT\RRSpecial\00_Common\Images\RRS_EditPreviz_Overlay.png")
+    # editVideoFile: StringProperty(default=r"C:\_UAS_ROOT\RRSpecial\05_Acts\Act01\_Montage\Act01_Edit_Previz.mp4")
+    # otioFile: StringProperty(default=r"C:\_UAS_ROOT\RRSpecial\05_Acts\Act01\_Montage\Act01_Edit_Previz.xml")
+    editVideoFile: StringProperty(
+        default=r"C:\_UAS_ROOT\RRSpecial\_Sandbox\Julien\Fixtures_Montage\PrevizAct01_Seq0060\Act01_Seq0060_Main_Take_ModifsRename.mp4"
+    )
+    otioFile: StringProperty(
+        default=r"C:\_UAS_ROOT\RRSpecial\_Sandbox\Julien\Fixtures_Montage\PrevizAct01_Seq0060\Act01_Seq0060_Main_Take_ModifsRename.xml"
+    )
+    useOverlayFrame: BoolProperty(name="Use Overlay Frame", default=False)
 
     def invoke(self, context, event):
         wm = context.window_manager
@@ -94,6 +95,8 @@ class UAS_VideoShotManager_OT_RRS_ExportShotsFromEdit(Operator):
             row.label(text="Specified EDL file not found! - Verify your local depot")  # wkip rrs specific
             row.alert = False
 
+        box.prop(self, "useOverlayFrame")
+
         if config.gMontageOtio is not None:
             numVideoTracks = len(config.gMontageOtio.timeline.video_tracks())
             numAudioTracks = len(config.gMontageOtio.timeline.audio_tracks())
@@ -140,12 +143,16 @@ class UAS_VideoShotManager_OT_RRS_ExportShotsFromEdit(Operator):
         scene = context.scene
         props = scene.UAS_shot_manager_props
 
+        if not Path(self.otioFile).exists():
+            return
+
         vse_render = bpy.context.window_manager.UAS_vse_render
 
         editVideoClip = vse_render.createNewClip(scene, self.editVideoFile, 1, 0, importAudio=True)
 
-        # overlayClip = vse_render.createNewClip(scene, self.overlayFile, 2, 0, offsetEnd=-60000)
-        # scene.sequence_editor.sequences_all[overlayClip.name].blend_type = "ALPHA_OVER"
+        if self.useOverlayFrame:
+            overlayClip = vse_render.createNewClip(scene, self.overlayFile, 2, 0, offsetEnd=-60000)
+            scene.sequence_editor.sequences_all[overlayClip.name].blend_type = "ALPHA_OVER"
 
         scene.timeline_markers.clear()
 
@@ -173,6 +180,8 @@ class UAS_VideoShotManager_OT_RRS_ExportShotsFromEdit(Operator):
 
         #       scene.render.filepath = output_filepath
         scene.render.use_file_extension = False
+
+        scene.render.resolution_percentage = 75.0
 
         return {"FINISHED"}
 

@@ -232,9 +232,13 @@ def get_media_occurence(timeline, media_name, track_type="ALL", last_occurence=F
 
 
 def get_clip_media_path(clip):
+    """Return the media used by the clip, or None if the clip is not a media user (if it is a stack or nested edit for example)
+    """
     # media_path = clip.media_reference.target_url
     # media_path = Path(utils.file_path_from_url(clip.media_reference.target_url))
-    media_path = utils.file_path_from_url(clip.media_reference.target_url)
+    media_path = None
+    if isinstance(clip, opentimelineio.schema.Clip):
+        media_path = utils.file_path_from_url(clip.media_reference.target_url)
     return media_path
 
 

@@ -321,8 +321,18 @@ class ShotOtio(ShotInterface):
         return self.clip.name
 
     def printInfo(self, only_clip_info=False):
+        infoStr = ""
         super().printInfo(only_clip_info=only_clip_info)
-        infoStr = f"             - Media: {ow.get_clip_media_path(self.clip)}"
+        clipType = type(self.clip).__name__
+        # print(f"clipType: {clipType}")
+        if "Clip" == clipType:
+            infoStr += f"             - Type: OTIO Media Clip"
+        elif "Stack" == clipType:
+            infoStr += f"             - Type: OTIO Nested Edit (Stack)"
+        else:
+            infoStr += f"             - Type: OTIO {clipType}"
+
+        infoStr += f",    Media: {ow.get_clip_media_path(self.clip)}"
         emptyDuration = ow.get_clip_empty_duration(self.clip, self.parent.parent.get_fps())
         if 0 != emptyDuration:
             infoStr += f"\n               Empty duration lenght: {emptyDuration}"

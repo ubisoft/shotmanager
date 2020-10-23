@@ -357,7 +357,7 @@ class UAS_MT_VideoShotManager_ToolsMenu(Menu):
         row.label(text="RRS Specific:")
         row = layout.row(align=True)
         row.operator_context = "INVOKE_DEFAULT"
-        row.operator("uas_video_shot_manager.rrs_export_shots_from_edit", text="   Export Shots From Edit")
+        row.operator("uas_video_shot_manager.rrs_export_shots_from_edit", text="   RRS Export Shots From Edit")
 
 
 _classes = (

@@ -139,6 +139,20 @@ class UAS_ShotManager_OT_Create_Shots_From_OTIO_RRS(Operator):
         items=(list_video_tracks_from_edl),
     )
 
+    ############
+    # EDL edit settings
+    ############
+    mediaInEDLHaveHandles: BoolProperty(
+        name="Media In EDL Have Handles", description="Do media used in the EDL edit have handles?", default=False,
+    )
+    mediaInEDLHandlesDuration: IntProperty(
+        name="EDL Handles Duration",
+        description="Duration of the handles in the EDL edit",
+        soft_min=0,
+        min=0,
+        default=0,
+    )
+
     # starts at 0, not 1!
     refVideoTrackInd: IntProperty(
         name="Reference Track",
@@ -215,6 +229,7 @@ class UAS_ShotManager_OT_Create_Shots_From_OTIO_RRS(Operator):
         description="Clear existing camera backgrounds to avoid conflics",
         default=True,
     )
+    videoShotsFolder: StringProperty()
 
     ############
     # common UI
@@ -235,7 +250,7 @@ class UAS_ShotManager_OT_Create_Shots_From_OTIO_RRS(Operator):
         name="Media Have Handles", description="Do imported media use the project handles?", default=False,
     )
     mediaHandlesDuration: IntProperty(
-        name="Handles Duration", description="", soft_min=0, min=0, default=10,
+        name="Handles Duration", description="", soft_min=0, min=0, default=0,
     )
 
     importAnimaticInVSE: BoolProperty(
@@ -282,12 +297,12 @@ class UAS_ShotManager_OT_Create_Shots_From_OTIO_RRS(Operator):
         scene = context.scene
         props = scene.UAS_shot_manager_props
 
-        if "PREVIZ" == self.importStepMode:
-            self.mediaHaveHandles = props.areShotHandlesUsed()
-            self.mediaHandlesDuration = props.getHandlesDuration()
-        else:
-            self.mediaHaveHandles = False
-            self.mediaHandlesDuration = 0
+        # if "PREVIZ" == self.importStepMode:
+        #     self.mediaHaveHandles = props.areShotHandlesUsed()
+        #     self.mediaHandlesDuration = props.getHandlesDuration()
+        # else:
+        #     self.mediaHaveHandles = False
+        #     self.mediaHandlesDuration = 0
 
         if "" != self.opArgs:
             argsDict = json.loads(self.opArgs)
@@ -299,12 +314,12 @@ class UAS_ShotManager_OT_Create_Shots_From_OTIO_RRS(Operator):
                 self.importStepMode = argsDict["importStepMode"]
 
                 # we need to put this code here again to cover all the cases
-                if "PREVIZ" == self.importStepMode:
-                    self.mediaHaveHandles = props.areShotHandlesUsed()
-                    self.mediaHandlesDuration = props.getHandlesDuration()
-                else:
-                    self.mediaHaveHandles = False
-                    self.mediaHandlesDuration = 0
+                # if "PREVIZ" == self.importStepMode:
+                #     self.mediaHaveHandles = props.areShotHandlesUsed()
+                #     self.mediaHandlesDuration = props.getHandlesDuration()
+                # else:
+                #     self.mediaHaveHandles = False
+                #     self.mediaHandlesDuration = 0
 
             if "otioFile" in argsDict:
                 self.otioFile = argsDict["otioFile"]
@@ -317,6 +332,14 @@ class UAS_ShotManager_OT_Create_Shots_From_OTIO_RRS(Operator):
 
             if "conformMode" in argsDict:
                 self.conformMode = argsDict["conformMode"]
+
+            if "videoShotsFolder" in argsDict:
+                self.videoShotsFolder = argsDict["videoShotsFolder"]
+
+            if "mediaInEDLHaveHandles" in argsDict:
+                self.mediaInEDLHaveHandles = argsDict["mediaInEDLHaveHandles"]
+                if "mediaInEDLHandlesDuration" in argsDict:
+                    self.mediaInEDLHandlesDuration = argsDict["mediaInEDLHandlesDuration"]
 
             if "mediaHaveHandles" in argsDict:
                 self.mediaHaveHandles = argsDict["mediaHaveHandles"]
@@ -446,6 +469,17 @@ class UAS_ShotManager_OT_Create_Shots_From_OTIO_RRS(Operator):
             if config.uasDebug:
                 box.prop(self, "refVideoTrackList")
 
+            if config.uasDebug:
+                row = box.row()
+                # row.enabled = self.useMediaAsCameraBG
+                row.separator(factor=3)
+                row.prop(self, "mediaInEDLHaveHandles")
+
+                subrow = row.row(align=True)
+                # subrow.separator(factor=3)
+                subrow.enabled = self.mediaInEDLHaveHandles
+                subrow.prop(self, "mediaInEDLHandlesDuration")
+
             row = box.row()
             if config.gMontageOtio.get_fps() != context.scene.render.fps:
                 row.alert = True
@@ -511,8 +545,8 @@ class UAS_ShotManager_OT_Create_Shots_From_OTIO_RRS(Operator):
         else:
             boxRow = box.row(align=True)
             boxRow.prop(self, "clearVSE")
-            boxRow = box.row(align=True)
-            boxRow.prop(self, "clearCameraBG")
+            # boxRow = box.row(align=True)
+            # boxRow.prop(self, "clearCameraBG")
 
             box.prop(self, "createMissingShots")
             boxRow = box.row(align=True)
@@ -523,15 +557,16 @@ class UAS_ShotManager_OT_Create_Shots_From_OTIO_RRS(Operator):
         if self.createCameras:
             box.prop(self, "useMediaAsCameraBG")
 
-            row = box.row()
-            row.enabled = self.useMediaAsCameraBG
-            row.separator(factor=3)
-            row.prop(self, "mediaHaveHandles")
+            if config.uasDebug:
+                row = box.row()
+                row.enabled = self.useMediaAsCameraBG
+                row.separator(factor=3)
+                row.prop(self, "mediaHaveHandles")
 
-            subrow = row.row(align=True)
-            # subrow.separator(factor=3)
-            subrow.enabled = self.useMediaAsCameraBG and self.mediaHaveHandles
-            subrow.prop(self, "mediaHandlesDuration")
+                subrow = row.row(align=True)
+                # subrow.separator(factor=3)
+                subrow.enabled = self.useMediaAsCameraBG and self.mediaHaveHandles
+                subrow.prop(self, "mediaHandlesDuration")
 
         layout.label(text="Scene VSE:")
         box = layout.box()
@@ -563,13 +598,11 @@ class UAS_ShotManager_OT_Create_Shots_From_OTIO_RRS(Operator):
 
     def execute(self, context):
         props = context.scene.UAS_shot_manager_props
-
-        #   import opentimelineio as otio
-        # from random import uniform
-        # from math import radians
+        print(f"\n--------------------")
         print(
             f"\nCreateshotsfromotio Import Sequence Exec: {self.sequenceList}, {config.gSeqEnumList[int(self.sequenceList)]}"
         )
+        print(f"\n--------")
 
         # filename, extension = os.path.splitext(self.filepath)
         # print("ex Selected file:", self.filepath)
@@ -628,11 +661,14 @@ class UAS_ShotManager_OT_Create_Shots_From_OTIO_RRS(Operator):
                 context.scene,
                 config.gMontageOtio,
                 selSeq.get_name(),
+                mediaInEDLHaveHandles=self.mediaInEDLHaveHandles,
+                mediaInEDLHandlesDuration=self.mediaInEDLHandlesDuration,
                 clearVSE=self.clearVSE,
                 clearCameraBG=self.clearCameraBG,
                 createMissingShots=self.createMissingShots,
                 createCameras=self.createCameras,
                 useMediaAsCameraBG=self.useMediaAsCameraBG,
+                videoShotsFolder=self.videoShotsFolder,
                 mediaHaveHandles=self.mediaHaveHandles,
                 mediaHandlesDuration=self.mediaHandlesDuration,
             )

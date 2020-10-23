@@ -750,11 +750,14 @@ def conformToRefMontage(
     scene,
     ref_montage,
     ref_sequence_name="",
+    mediaInEDLHaveHandles=False,
+    mediaInEDLHandlesDuration=0,
     clearVSE=True,
     clearCameraBG=True,
     createMissingShots=True,
     createCameras=True,
     useMediaAsCameraBG=False,
+    videoShotsFolder=None,
     mediaHaveHandles=False,
     mediaHandlesDuration=0,
     takeIndex=-1,
@@ -768,11 +771,13 @@ def conformToRefMontage(
         else (takeIndex if 0 <= takeIndex and takeIndex < len(props.getTakes()) else -1)
     )
     if -1 == takeInd:
-        return ()
+        return
 
     take = props.getTakeByIndex(takeInd)
     shotList = props.get_shots(takeIndex=takeInd)
 
+    if not mediaInEDLHaveHandles:
+        mediaInEDLHandlesDuration = 0
     if not mediaHaveHandles:
         mediaHandlesDuration = 0
 
@@ -782,14 +787,25 @@ def conformToRefMontage(
     """
 
     def printInfoLine(col00, col01, col02):
-        print(f"{col00: >10}   {col01: <37}    - {col02: <30}")
+        formatedTextLine = f"{col00: >10}   {col01: <37}    - {col02: <30}"
+        # print(formatedTextLine)
+        return "\n" + formatedTextLine
+
+    def _writeToLogFile(infoText):
+        textFilePath = str(Path(bpy.data.filepath).parent) + "\\" + "ConfoLog.txt"
+        print(f" -- output file: {textFilePath}")
+        with open(textFilePath, "w") as text_file:
+            print(f"{infoText}", file=text_file)
+        return
 
     textSelf = ""
     textRef = ""
 
+    print(f"\n\n {utils.bcolors.HEADER}Conform montage to {ref_montage.get_name()}:{utils.bcolors.ENDC}\n")
+
     infoStr = f"\n\n ------ ------ ------ ------ ------ ------ ------ ------ ------ "
-    infoStr += f"\n\n {utils.bcolors.HEADER}Conform montage to {ref_montage.get_name()}:{utils.bcolors.ENDC}\n"
-    print(infoStr)
+    infoStr += f"\n\n Conform montage to {ref_montage.get_name()}:\n"
+    # print(infoStr)
 
     # infoStr += (
     #     f"\nNote: All the end values are EXCLUSIVE (= not the last used frame of the range but the one after)"
@@ -798,7 +814,7 @@ def conformToRefMontage(
     textRef = ref_montage.get_name()
     textSelf = props.get_name()
     # printInfoLine("", textRef, textSelf)
-    print(f"     {textRef + ':' :<44} {textSelf + ':' :<30}")
+    infoStr += f"\n     {textRef + ':' :<44} {textSelf + ':' :<30}"
 
     # selfSeq = props.get_sequence_by_name(ref_sequence_name)
     selfSeq = (props.get_sequences())[0]  # wkip limité à 1 take pour l'instant
@@ -809,11 +825,14 @@ def conformToRefMontage(
         if refSeq is not None:
             textRef = f"  Ref Sequence: {refSeq.get_name()}"
 
-    print(f"     {textRef + ':' :<44} {textSelf + ':' :<30}")
+    infoStr += f"\n     {textRef + ':' :<44} {textSelf + ':' :<30}"
 
     if refSeq is None:
-        print(" Ref Sequence is None, aborting comparison...")
-        return ()
+        infoStr += "\n Ref Sequence is None, aborting comparison..."
+        print(infoStr)
+        _writeToLogFile(infoStr)
+
+        return
 
     ###################
     # clear VSE
@@ -821,14 +840,6 @@ def conformToRefMontage(
     vse_render = bpy.context.window_manager.UAS_vse_render
     if clearVSE:
         vse_render.clearAllChannels(scene)
-
-    ###################
-    # clear camera BG
-    ###################
-    if clearCameraBG:
-        for sh in shotList:
-            if sh.camera is not None:
-                utils.remove_background_video_from_cam(sh.camera.data)
 
     ###################
     # conform order and enable state
@@ -906,9 +917,9 @@ def conformToRefMontage(
             shotSelf.enabled = True
 
             offsetStart = shotRef.get_frame_offset_start()
-            if offsetStart != mediaHandlesDuration:
-                deltaStart = offsetStart - mediaHandlesDuration
-                textSelf += f" / offset start modified ({offsetStart} instead of {mediaHandlesDuration} fr.) (delta:{deltaStart})"
+            if offsetStart != mediaInEDLHandlesDuration:
+                deltaStart = offsetStart - mediaInEDLHandlesDuration
+                textSelf += f" / offset start modified ({offsetStart} instead of {mediaInEDLHandlesDuration} fr.) (delta:{deltaStart})"
                 shotSelf.start += deltaStart
 
             previousDuration = shotSelf.get_frame_final_duration()
@@ -920,12 +931,36 @@ def conformToRefMontage(
             shotSelf.durationLocked = True
             expectedIndInSelfEdit += 1
 
-        printInfoLine(str(indInRefEdit), f"{textRef}  ({shotRef.get_frame_final_duration()} fr.)", textSelf)
+        infoStr += printInfoLine(str(indInRefEdit), f"{textRef}  ({shotRef.get_frame_final_duration()} fr.)", textSelf)
+
+        ###################
+        # clear camera BG and add new ones from edit
+        ###################
+        # if clearCameraBG:
+        if True:
+            if shotSelf.camera is not None:
+                print(f"--- Adding BG to: {shotSelf.get_name()}")
+                utils.remove_background_video_from_cam(shotSelf.camera.data)
+
+                if useMediaAsCameraBG:
+                    media_path = Path(videoShotsFolder + "/" + shotRef.get_name())
+                    if "" == media_path.suffix:
+                        media_path = Path(str(media_path) + ".mp4")
+                    if not media_path.exists():
+                        print(f"** BG video shot not found: {media_path}")
+                    else:
+                        # start frame of the background video is not set here since it will be linked to the shot start frame
+                        utils.add_background_video_to_cam(
+                            shotSelf.camera.data, str(media_path), 0, alpha=props.shotsGlobalSettings.backgroundAlpha
+                        )
+                        shotSelf.bgImages_linkToShotStart = True
+                        if mediaHaveHandles:
+                            shotSelf.bgImages_offset = -1 * mediaHandlesDuration
 
     ###################
     # list other shots and disabled them
     ###################
-    print("\n       Shots not used in current sequence:")
+    infoStr += f"\n       Shots not used in current sequence:"
     ind = 0
     for i in range(expectedIndInSelfEdit, len(shotList)):
         # if shotList[i] not in newEditShots:
@@ -934,17 +969,27 @@ def conformToRefMontage(
             shotList[i].enabled = False
             textSelf += " / disabled"
 
-        printInfoLine(str(ind + numShotsInRefEdit), "-", textSelf)
+        infoStr += printInfoLine(str(ind + numShotsInRefEdit), "-", textSelf)
         ind += 1
+
+        ###################
+        # clear camera BG
+        ###################
+        # if clearCameraBG:
+        #     if shotList[i].camera is not None:
+        #         utils.remove_background_video_from_cam(shotList[i].camera.data)
+
     if 0 == ind:
-        printInfoLine("", "-", "-")
+        infoStr += printInfoLine("", "-", "-")
 
     ###################
     # sort disabled shots
     ###################
     props.sortShotsVersions()
 
-    print("")
+    infoStr += "\n"
+    print(infoStr)
+    _writeToLogFile(infoStr)
 
 
 def importOtioToVSE(otioFile, vse, importAtFrame=0, importVideoTracks=True, importAudioTracks=True):

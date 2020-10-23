@@ -177,14 +177,14 @@ def add_background_video_to_cam(
     """ Camera argument: use camera.data, not the camera object
         proxyRenderSize is PROXY_25, PROXY_50, PROXY_75, PROXY_100, FULL
     """
-    print("add_background_video_to_cam")
+    # print("add_background_video_to_cam")
     movie_path = Path(movie_path)
     if not movie_path.exists():
         print("    Invalid media path: ", movie_path)
         return
 
     if "FINISHED" in bpy.ops.clip.open(directory=str(movie_path.parent), files=[{"name": movie_path.name}]):
-        print("   Finished block")
+        # print("   Finished block")
         clip = bpy.data.movieclips[movie_path.name]
         clip.frame_start = frame_start
         camera.show_background_images = True
