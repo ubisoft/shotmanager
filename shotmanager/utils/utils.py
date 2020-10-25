@@ -60,7 +60,7 @@ def addonVersion(addonName):
 
     #    versions = (versionStr, versionInt)
 
-    versions = ("1.3.55", 1003055)
+    versions = ("1.3.59", 1003059)
 
     return versions
 
@@ -172,7 +172,7 @@ def file_path_from_url(url):
 
 
 def add_background_video_to_cam(
-    camera: bpy.types.Camera, movie_path, frame_start, alpha=-1, proxyRenderSize="PROXY_50"
+    camera: bpy.types.Camera, movie_path, frame_start, alpha=-1, proxyRenderSize="PROXY_50", relative_path=False
 ):
     """ Camera argument: use camera.data, not the camera object
         proxyRenderSize is PROXY_25, PROXY_50, PROXY_75, PROXY_100, FULL
@@ -183,7 +183,9 @@ def add_background_video_to_cam(
         print("    Invalid media path: ", movie_path)
         return
 
-    if "FINISHED" in bpy.ops.clip.open(directory=str(movie_path.parent), files=[{"name": movie_path.name}]):
+    if "FINISHED" in bpy.ops.clip.open(
+        directory=str(movie_path.parent), files=[{"name": movie_path.name}], relative_path=relative_path
+    ):
         # print("   Finished block")
         clip = bpy.data.movieclips[movie_path.name]
         clip.frame_start = frame_start

@@ -697,6 +697,7 @@ class UAS_MT_ShotManager_Shots_ToolsMenu(Menu):
             {"animaticFile": r"C:\_UAS_ROOT\RRSpecial\05_Acts\Act01\_Montage\Act01_Edit_Previz.mp4"}
         )
         argsDictPrevAct01.update({"conformMode": "UPDATE"})
+        argsDictPrevAct01.update({"videoShotsFolder": r"D:\Perforce\RRSpecial\05_Acts\Act01\_Montage\Shots"})
         argsDictPrevAct01.update({"mediaInEDLHaveHandles": props.areShotHandlesUsed()})
         argsDictPrevAct01.update({"mediaInEDLHandlesDuration": props.getHandlesDuration()})
 

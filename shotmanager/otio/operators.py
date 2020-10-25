@@ -379,18 +379,29 @@ class UAS_ShotManager_OT_Create_Shots_From_OTIO_RRS(Operator):
             )
             print(f"config.gMontageOtio name: {config.gMontageOtio.get_name()}")
 
+            # wkip not very context generic...
+            currentSeqName = (scene.name)[6:]
+            print(f"Current seq name: {currentSeqName}")
+            currentSeqIndex = -1
             config.gSeqEnumList = list()
             if len(config.gMontageOtio.sequencesList):
                 for i, seq in enumerate(config.gMontageOtio.sequencesList):
-                    print(f"- seqList: i:{i}, seq: {seq.get_name()}")
+                    strDebug = f"- seqList: i:{i}, seq: {seq.get_name()}"
+                    if seq.get_name() == currentSeqName:
+                        currentSeqIndex = i
+                        strDebug += " - Is current sequence !"
+                    _logger.debug(strDebug)
                     config.gSeqEnumList.append((str(i), seq.get_name(), f"Import sequence {seq.get_name()}", i + 1))
             else:
                 config.gSeqEnumList.append(
                     (str(0), " ** No Sequence in Ref Track **", f"No sequence found in the specifed reference track", 1)
                 )
 
-            self.sequenceList = config.gSeqEnumList[0][0]
-            print(f"self.sequenceList: {self.sequenceList}")
+            if -1 != currentSeqIndex:
+                self.sequenceList = config.gSeqEnumList[currentSeqIndex][0]
+            else:
+                self.sequenceList = config.gSeqEnumList[0][0]
+            _logger.debug(f"self.sequenceList: {self.sequenceList}")
 
         #    seqList = getSequenceListFromOtioTimeline(config.gMontageOtio)
         #  self.sequenceList.items = list_sequences_from_edl(context, seqList)
@@ -635,6 +646,9 @@ class UAS_ShotManager_OT_Create_Shots_From_OTIO_RRS(Operator):
         # audioTracksToImport = [19, 20]
 
         if "CREATE" == self.conformMode:
+            # track indices are starting from 1, not 0!!
+            videoTracksToImport = [1]
+
             createShotsFromOtioTimelineClass(
                 context.scene,
                 config.gMontageOtio,
@@ -656,6 +670,9 @@ class UAS_ShotManager_OT_Create_Shots_From_OTIO_RRS(Operator):
             )
 
         else:
+            # track indices are starting from 1, not 0!!
+            videoTracksToImport = [2]
+
             bpy.ops.uasshotmanager.compare_otio_and_current_montage(sequenceName=selSeq.get_name())
             conformToRefMontage(
                 context.scene,
@@ -671,6 +688,11 @@ class UAS_ShotManager_OT_Create_Shots_From_OTIO_RRS(Operator):
                 videoShotsFolder=self.videoShotsFolder,
                 mediaHaveHandles=self.mediaHaveHandles,
                 mediaHandlesDuration=self.mediaHandlesDuration,
+                importVideoInVSE=self.importVideoInVSE,
+                importAudioInVSE=self.importAudioInVSE,
+                videoTracksList=videoTracksToImport,
+                audioTracksList=audioTracksToImport,
+                animaticFile=self.animaticFile if self.importAnimaticInVSE else None,
             )
             props.setCurrentShotByIndex(0)
             props.setSelectedShotByIndex(0)

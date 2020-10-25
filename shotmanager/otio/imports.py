@@ -477,7 +477,7 @@ def createShotsFromOtio(
 def createShotsFromOtioTimelineClass(
     scene,
     montageOtio,
-    sequenceName,
+    ref_sequence_name,
     clipList,
     timeRange=None,
     offsetTime=True,
@@ -618,7 +618,7 @@ def createShotsFromOtioTimelineClass(
                 bpy.context.window.workspace = currentWorkspace
 
             if animaticFile is not None:
-                importAnimatic(montageOtio, sequenceName, animaticFile, offsetFrameNumber)
+                importAnimatic(montageOtio, ref_sequence_name, animaticFile, offsetFrameNumber)
 
             # restore context
             # wkip ajouter time range original
@@ -761,7 +761,17 @@ def conformToRefMontage(
     mediaHaveHandles=False,
     mediaHandlesDuration=0,
     takeIndex=-1,
+    importVideoInVSE=False,
+    importAudioInVSE=True,
+    videoTracksList=None,
+    audioTracksList=None,
+    animaticFile=None,
 ):
+    """
+        Conform / update current montage to match specified montage
+        If ref_sequence_name is specified then only this sequence is compared
+    """
+
     # scene = bpy.context.scene
     props = scene.UAS_shot_manager_props
 
@@ -780,11 +790,6 @@ def conformToRefMontage(
         mediaInEDLHandlesDuration = 0
     if not mediaHaveHandles:
         mediaHandlesDuration = 0
-
-    """
-        Conform / update current montage to match specified montage
-        If ref_sequence_name is specified then only this sequence is compared
-    """
 
     def printInfoLine(col00, col01, col02):
         formatedTextLine = f"{col00: >10}   {col01: <37}    - {col02: <30}"
@@ -877,6 +882,10 @@ def conformToRefMontage(
 
             if createMissingShots:
                 seqSelfName = props.renderShotPrefix() + "_"
+                # print(
+                #     f"here 01: seqSelfName: {seqSelfName}, shotRefName: {shotRefName}, {shotRefName.find(seqSelfName)}"
+                # )
+                # if the current ref shot name starts with the current sequence name then it is a valid shot for this sequence
                 if 0 == shotRefName.find(seqSelfName):
                     shotRefNameWithoutPrefix = shotRefName[len(seqSelfName) :]
 
@@ -896,11 +905,14 @@ def conformToRefMontage(
                     shotSelf = props.moveShotToIndex(shotSelf, expectedIndInSelfEdit)
                     expectedIndInSelfEdit += 1
 
-            if shotSelf is None:
-                textSelf = "-"
+                    textSelf = shotSelf.get_name() + "  "
+                    textSelf += " / new shot"
+
+                else:
+                    textSelf = "- (No shot created, ref shot belongs to another sequence)"
+
             else:
-                textSelf = shotSelf.get_name() + "  "
-                textSelf += " / new shot"
+                textSelf = "-"
 
         else:
             textSelf = shotSelf.get_name() + "  "
@@ -931,24 +943,27 @@ def conformToRefMontage(
             shotSelf.durationLocked = True
             expectedIndInSelfEdit += 1
 
-        infoStr += printInfoLine(str(indInRefEdit), f"{textRef}  ({shotRef.get_frame_final_duration()} fr.)", textSelf)
-
         ###################
         # clear camera BG and add new ones from edit
         ###################
         # if clearCameraBG:
-        if True:
+        if shotSelf is not None:
             if shotSelf.camera is not None:
-                print(f"--- Adding BG to: {shotSelf.get_name()}")
+                # print(f"--- Adding BG to: {shotSelf.get_name()}")
                 utils.remove_background_video_from_cam(shotSelf.camera.data)
 
                 if useMediaAsCameraBG:
                     media_path = Path(videoShotsFolder + "/" + shotRef.get_name())
                     if "" == media_path.suffix:
                         media_path = Path(str(media_path) + ".mp4")
+
+                    textSelf += f" / New cam BG: {media_path.name}"
+
                     if not media_path.exists():
                         print(f"** BG video shot not found: {media_path}")
+                        textSelf += f" (!!! Not Found in {media_path.parent})"
                     else:
+                        # if True:
                         # start frame of the background video is not set here since it will be linked to the shot start frame
                         utils.add_background_video_to_cam(
                             shotSelf.camera.data, str(media_path), 0, alpha=props.shotsGlobalSettings.backgroundAlpha
@@ -956,6 +971,8 @@ def conformToRefMontage(
                         shotSelf.bgImages_linkToShotStart = True
                         if mediaHaveHandles:
                             shotSelf.bgImages_offset = -1 * mediaHandlesDuration
+
+        infoStr += printInfoLine(str(indInRefEdit), f"{textRef}  ({shotRef.get_frame_final_duration()} fr.)", textSelf)
 
     ###################
     # list other shots and disabled them
@@ -987,9 +1004,98 @@ def conformToRefMontage(
     ###################
     props.sortShotsVersions()
 
+    ###################
+    # import sound tracks in VSE
+    ###################
+
+    shotList = props.getShotsList(ignoreDisabled=True, takeIndex=takeInd)
+    if len(shotList):
+        if importVideoInVSE or importAudioInVSE:
+            # store current workspace cause it may not be the Layout one
+            currentWorkspace = bpy.context.window.workspace
+
+            # creation VSE si existe pas
+            vse = utils.getSceneVSE(scene.name, createVseTab=True)
+            bpy.context.window.workspace = bpy.data.workspaces["Video Editing"]
+
+            # for area in screen.areas:
+            #     if area.type == "SEQUENCE_EDITOR":
+            #         for space_data in area.spaces:
+            #             if space_data.type == "SEQUENCE_EDITOR":
+            #                 space_data.show_seconds = True
+            #                 break
+
+            trackType = "ALL"
+            if importVideoInVSE and not importAudioInVSE:
+                trackType = "VIDEO"
+            elif not importVideoInVSE and importAudioInVSE:
+                trackType = "AUDIO"
+
+            # timeRange end is inclusive, meaning that clips overlaping this value will be imported
+            timeRange = [refSeq.get_frame_start(), refSeq.get_frame_end() - 1]
+            # get the start time of the first shot
+
+            importAtFrame = shotList[0].start
+            offsetFrameNumber = importAtFrame - timeRange[0]
+
+            # trackType = "ALL"
+            # if importVideoInVSE and not importAudioInVSE:
+            #     trackType = "VIDEO"
+            # elif not importVideoInVSE and importAudioInVSE:
+            #     trackType = "AUDIO"
+
+            # we import the sound only, because videos coming from the EDL are not the shots from the edit!
+            trackType = "AUDIO"
+
+            importToVSE(
+                ref_montage.timeline,
+                vse,
+                timeRange=timeRange,
+                offsetFrameNumber=offsetFrameNumber,
+                track_type=trackType,
+                videoTracksList=videoTracksList,
+                audioTracksList=audioTracksList,
+                alternative_media_folder=Path(ref_montage.otioFile).parent,
+            )
+
+            # add videos from the edit
+            vse_render = bpy.context.window_manager.UAS_vse_render
+
+            for indInRefEdit, shot in enumerate(refSeq.getEditShots()):
+                shotRef = shot
+                textRef = shotRef.get_name()
+                shotRefName = Path(shotRef.get_name()).stem
+
+                media_path = Path(videoShotsFolder + "/" + shotRef.get_name())
+                if "" == media_path.suffix:
+                    media_path = Path(str(media_path) + ".mp4")
+
+                if not media_path.exists():
+                    print(f"** Edit video shot not found for VSE: {media_path}")
+                else:
+                    newClipInVSE = vse_render.createNewClip(
+                        scene,
+                        str(media_path),
+                        18,
+                        shotRef.get_frame_final_start() + offsetFrameNumber,
+                        importVideo=True,
+                        importAudio=False,
+                        clipName=shotRefName,
+                    )
+
+            # restore workspace
+            # bpy.context.window.workspace = bpy.data.workspaces["Layout"]
+            bpy.context.window.workspace = currentWorkspace
+
+    # if animaticFile is not None:
+    #     importAnimatic(ref_montage, sequenceName, animaticFile, offsetFrameNumber)
+
     infoStr += "\n"
     print(infoStr)
     _writeToLogFile(infoStr)
+
+    props.setCurrentShotByIndex(0)
+    props.setSelectedShotByIndex(0)
 
 
 def importOtioToVSE(otioFile, vse, importAtFrame=0, importVideoTracks=True, importAudioTracks=True):
