@@ -32,8 +32,22 @@ class UAS_ShotManager_SetCurrentShot(Operator):
 
     index: bpy.props.IntProperty()
 
+    def adjust_dopesheet_view ( self, context, shot ):
+        ctx = context.copy ( )
+        for area in context.screen.areas:
+            if area.type == "DOPESHEET_EDITOR":
+                ctx[ "area" ] = area
+                for region in area.regions:
+                    if region.type == "WINDOW":
+                        ctx[ "region" ] = region
+                        bpy.ops.view2d.reset ( ctx )
+                        context.scene.frame_current = shot.start + ( shot.end - shot.start ) // 2
+                        bpy.ops.action.view_frame ( ctx )
+                        bpy.ops.view2d.zoom ( ctx, deltax = ( region.width // 2 - ( shot.end - shot.start ) // 2 ) -10 )
+
     def invoke(self, context, event):
         props = context.scene.UAS_shot_manager_props
+        self.adjust_dopesheet_view ( context, props.getShotByIndex(self.index) )
         if event.shift and not event.ctrl and not event.alt:
             shot = props.getShotByIndex(self.index)
             shot.enabled = not shot.enabled
@@ -46,6 +60,7 @@ class UAS_ShotManager_SetCurrentShot(Operator):
         else:
             props.setCurrentShotByIndex(self.index, area=context.area)
             props.setSelectedShotByIndex(self.index)
+
 
         return {"FINISHED"}
 
