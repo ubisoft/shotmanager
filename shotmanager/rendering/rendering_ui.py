@@ -140,7 +140,10 @@ class UAS_PT_ShotManagerRenderPanel(Panel):
             if props.use_project_settings:
                 box.prop(props.renderSettingsStill, "bypass_rendering_project_settings")
                 if props.renderSettingsStill.bypass_rendering_project_settings:
-                    subbox = box.box()
+                    subRow = box.row()
+                    subSubRow = subRow.row()
+                    subSubRow.separator(factor=2)
+                    subbox = subRow.box()
                     row = subbox.row()
                 else:
                     display_bypass_options = False
@@ -164,7 +167,10 @@ class UAS_PT_ShotManagerRenderPanel(Panel):
             if props.use_project_settings:
                 box.prop(props.renderSettingsAnim, "bypass_rendering_project_settings")
                 if props.renderSettingsAnim.bypass_rendering_project_settings:
-                    subbox = box.box()
+                    subRow = box.row()
+                    subSubRow = subRow.row()
+                    subSubRow.separator(factor=2)
+                    subbox = subRow.box()
                     row = subbox.row()
                 else:
                     display_bypass_options = False
@@ -193,7 +199,10 @@ class UAS_PT_ShotManagerRenderPanel(Panel):
             if props.use_project_settings:
                 box.prop(props.renderSettingsAll, "bypass_rendering_project_settings")
                 if props.renderSettingsAll.bypass_rendering_project_settings:
-                    subbox = box.box()
+                    subRow = box.row()
+                    subSubRow = subRow.row()
+                    subSubRow.separator(factor=2)
+                    subbox = subRow.box()
                     row = subbox.row()
                 else:
                     display_bypass_options = False

@@ -832,6 +832,8 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
 
     renderSettingsOtio: PointerProperty(type=UAS_ShotManager_RenderSettings)
 
+    renderSettingsPlayblast: PointerProperty(type=UAS_ShotManager_RenderSettings)
+
     def get_displayStillProps(self):
         val = self.get("displayStillProps", True)
         return val
@@ -875,6 +877,18 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         self["displayAllEditsProps"] = False
         self["displayOtioProps"] = True
 
+    def get_displayPlayblastProps(self):
+        val = self.get("displayPlayblastProps", False)
+        return val
+
+    def set_displayPlayblastProps(self, value):
+        _logger.debug(f" set_displayPlayblastProps: value: {value}")
+        self["displayStillProps"] = False
+        self["displayAnimationProps"] = False
+        self["displayAllEditsProps"] = False
+        self["displayOtioProps"] = False
+        self["displayPlayblastProps"] = True
+
     displayStillProps: BoolProperty(
         name="Display Still Preset Properties", get=get_displayStillProps, set=set_displayStillProps, default=True
     )
@@ -894,6 +908,12 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         name="Display OpenTimelineIO Export Preset Properties",
         get=get_displayOtioProps,
         set=set_displayOtioProps,
+        default=False,
+    )
+    displayPlayblastProps: BoolProperty(
+        name="Display Playblast Preset Properties",
+        get=get_displayPlayblastProps,
+        set=set_displayPlayblastProps,
         default=False,
     )
 
@@ -2417,6 +2437,10 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         self.renderSettingsOtio.renderMode = "OTIO"
         self.renderSettingsOtio.renderOtioFile = True  # not used in this preset
         self.renderSettingsOtio.otioFileType = "XML"
+
+        # Playblast
+        self.renderSettingsStill.name = "Playblast Preset"
+        self.renderSettingsStill.renderMode = "PLAYBLAST"
 
     def setProjectRenderFilePath(self):
         # if '' == bpy.data.filepath:

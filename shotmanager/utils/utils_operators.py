@@ -2,6 +2,8 @@ import os
 from pathlib import Path
 import subprocess
 
+import json
+
 import bpy
 from bpy.types import Operator
 from bpy.props import StringProperty
@@ -61,10 +63,40 @@ class UAS_ShotManager_OpenExplorer(Operator):
         return {"FINISHED"}
 
 
-_classes = (
-    UAS_Utils_RunScript,
-    UAS_ShotManager_OpenExplorer,
-)
+###################
+# Scene control
+###################
+
+
+class UAS_Utils_GetCurrentFrameForTimeRange(Operator):
+    bl_idname = "uas_utils.get_current_frame_for_time_range"
+    bl_label = "Get/Set Current Frame"
+    bl_description = "Click: Set time range with current frame value.\nShift + Click: Get value for current frame"
+    bl_options = {"INTERNAL", "UNDO"}
+
+    # opArgs is a dictionary containing this operator properties and dumped to a json string
+    opArgs: StringProperty(default="")
+    """ use the following entries for opArgs: "{'frame_start': value}", "{'frame_end': value}", "{'frame_preview_start': value}", "{'frame_preview_end': value}"
+    """
+
+    def execute(self, context):
+        scene = context.scene
+        self.opArgs = self.opArgs.replace("'", '"')
+        print(f" self.opArgs: {self.opArgs}")
+        if "" != self.opArgs:
+            argsDict = json.loads(self.opArgs)
+            firstItem = next(iter(argsDict))
+
+            if hasattr(scene, firstItem):
+                setattr(scene, firstItem, argsDict[firstItem])
+
+        # bpy.ops.sequencer.view_all()
+        # bpy.ops.time.view_all()
+
+        return {"FINISHED"}
+
+
+_classes = (UAS_Utils_RunScript, UAS_ShotManager_OpenExplorer, UAS_Utils_GetCurrentFrameForTimeRange)
 
 
 def register():

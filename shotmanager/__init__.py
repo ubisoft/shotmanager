@@ -47,6 +47,7 @@ from .utils import utils
 from .utils import utils_render
 from .utils import utils_handlers
 from .utils import utils_operators
+from .utils import utils_get_set_current_time
 
 from . import videoshotmanager
 from . import viewport_3d
@@ -359,6 +360,7 @@ def register():
     utils_operators.register()
 
     # operators
+    utils_get_set_current_time.register()
     rendering.register()
     takes.register()
     shots.register()
@@ -473,6 +475,7 @@ def unregister():
     shots.unregister()
     takes.unregister()
     utils_operators.unregister()
+    utils_get_set_current_time.unregister()
 
     addon_prefs.unregister()
 

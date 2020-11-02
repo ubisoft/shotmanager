@@ -83,7 +83,7 @@ class UAS_PT_VideoShotManagerSelectedStrip(Panel):
         #     box = layout.box()
         #     box.label(text="Tools:")
         #     row = box.row()
-        #     #  row.operator("uas_shot_manager.selected_to_active")
+        #     #  row.operator("uas_video_shot_manager.selected_to_active")
 
         #     box = layout.box()
 

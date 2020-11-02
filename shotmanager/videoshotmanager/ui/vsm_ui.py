@@ -80,6 +80,35 @@ class UAS_PT_VideoShotManager(Panel):
             row.alert = True
         row.label(text="First Frame: " + str(vseFirstFrame))
 
+        row = layout.row()
+        row.operator("uas_video_shot_manager.frame_all_clips")
+
+        row = layout.row(align=False)
+        subRow = row.row(align=False)
+        subRow.prop(scene, "use_preview_range", text="")
+        subRow = row.row(align=True)
+        if scene.use_preview_range:
+            # row.use_property_split = False
+            subRow.operator("uas_utils.get_current_frame_for_time_range", text="", icon="TRIA_UP_BAR").opArgs = (
+                "{'frame_preview_start': " + str(scene.frame_current) + "}"
+            )
+            subRow.prop(scene, "frame_preview_start", text="Start")
+            subRow.operator("uas_video_shot_manager.frame_time_range", text="", icon="CENTER_ONLY")
+            subRow.prop(scene, "frame_preview_end", text="End")
+            subRow.operator("uas_utils.get_current_frame_for_time_range", text="", icon="TRIA_UP_BAR").opArgs = (
+                "{'frame_preview_end': " + str(scene.frame_current) + "}"
+            )
+        else:
+            subRow.operator("uas_utils.get_current_frame_for_time_range", text="", icon="TRIA_UP_BAR").opArgs = (
+                "{'frame_start': " + str(scene.frame_current) + "}"
+            )
+            subRow.prop(scene, "frame_start", text="Start")
+            subRow.operator("uas_video_shot_manager.frame_time_range", text="", icon="CENTER_ONLY")
+            subRow.prop(scene, "frame_end", text="End")
+            subRow.operator("uas_utils.get_current_frame_for_time_range", text="", icon="TRIA_UP_BAR").opArgs = (
+                "{'frame_end': " + str(scene.frame_current) + "}"
+            )
+
         layout.separator()
 
         row = layout.row()

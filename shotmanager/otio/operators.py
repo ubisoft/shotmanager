@@ -253,6 +253,12 @@ class UAS_ShotManager_OT_Create_Shots_From_OTIO_RRS(Operator):
         name="Handles Duration", description="", soft_min=0, min=0, default=0,
     )
 
+    compare3DAndAnimaticInVSE: BoolProperty(
+        name="Compare Animatic and 3D Shots In VSE",
+        description="Import the video and mixed sounds from the animatic into a new scene VSE and compare them with the 3D cameras",
+        default=True,
+    )
+
     importAnimaticInVSE: BoolProperty(
         name="Import Animatic In VSE",
         description="Import the video and mixed sounds from the animatic into the VSE of the current scene",
