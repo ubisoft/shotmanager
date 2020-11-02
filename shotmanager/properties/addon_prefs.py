@@ -1,6 +1,6 @@
 import bpy
 from bpy.types import AddonPreferences
-from bpy.props import StringProperty, IntProperty, BoolProperty
+from bpy.props import StringProperty, IntProperty, BoolProperty, EnumProperty
 
 from ..config import config
 
@@ -31,6 +31,8 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
     current_shot_changes_time_range: BoolProperty(
         name="Set Time Range To Shot Range When Current Shot Is Changed", description="", default=False,
     )
+
+    playblastFileName: StringProperty(name="Temporary Playblast File", default="toto.mp4")
 
     # def _get_useLockCameraView(self):
     #     # Can also use area.spaces.active to get the space assoc. with the area
@@ -63,6 +65,21 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
     #     options=set(),
     # )
 
+    ##################
+    # rendering ui   ###
+    ##################
+    renderMode: EnumProperty(
+        name="Display Shot Properties Mode",
+        description="Update the content of the Shot Properties panel either on the current shot\nor on the shot seleted in the shots list",
+        items=(
+            ("STILL", "Still", ""),
+            ("ANIMATION", "Animation", ""),
+            ("ALL", "All Edits", ""),
+            ("OTIO", "OTIO", ""),
+            ("PLAYBLAST", "PLAYBLAST", ""),
+        ),
+        default="STILL",
+    )
     ##################
     # ui helpers   ###
     ##################

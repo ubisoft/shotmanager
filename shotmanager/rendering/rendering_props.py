@@ -142,7 +142,13 @@ class UAS_ShotManager_RenderSettings(PropertyGroup):
     renderMode: EnumProperty(
         name="Render Mode",
         description="Render Mode",
-        items=(("STILL", "Still", ""), ("ANIMATION", "Animation", ""), ("ALL", "All Edits", ""), ("OTIO", "Otio", ""),),
+        items=(
+            ("STILL", "Still", ""),
+            ("ANIMATION", "Animation", ""),
+            ("ALL", "All Edits", ""),
+            ("OTIO", "Otio", ""),
+            ("PLAYBLAST", "PLAYBLAST", ""),
+        ),
         default="STILL",
     )
 
@@ -159,6 +165,8 @@ class UAS_ShotManager_RenderSettings(PropertyGroup):
     writeToDisk: BoolProperty(name="Write to Disk", default=False)
 
     renderOtioFile: BoolProperty(name="Render EDL File", default=False)
+
+    useStampInfo: BoolProperty(name="Use Stamp Info", default=True)
 
     rerenderExistingShotVideos: BoolProperty(name="Re-render Exisiting Shot Videos", default=True)
 

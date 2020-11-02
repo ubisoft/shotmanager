@@ -120,7 +120,7 @@ class UAS_ShotManager_Shot(ShotInterface, PropertyGroup):
     def getName_PathCompliant(self, withPrefix=False):
         shotName = self.name.replace(" ", "_")
         if withPrefix:
-            shotName = f"{parentScene.renderShotPrefix()}_{shotName}"
+            shotName = f"{self.parentScene.UAS_shot_manager_props.renderShotPrefix()}_{shotName}"
         return shotName
 
     def _get_name(self):

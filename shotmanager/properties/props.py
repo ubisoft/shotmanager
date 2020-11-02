@@ -844,6 +844,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         self["displayAnimationProps"] = False
         self["displayAllEditsProps"] = False
         self["displayOtioProps"] = False
+        self["displayPlayblastProps"] = False
 
     def get_displayAnimationProps(self):
         val = self.get("displayAnimationProps", False)
@@ -854,6 +855,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         self["displayAnimationProps"] = True
         self["displayAllEditsProps"] = False
         self["displayOtioProps"] = False
+        self["displayPlayblastProps"] = False
 
     def get_displayProjectProps(self):
         val = self.get("displayAllEditsProps", False)
@@ -865,6 +867,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         self["displayAnimationProps"] = False
         self["displayAllEditsProps"] = True
         self["displayOtioProps"] = False
+        self["displayPlayblastProps"] = False
 
     def get_displayOtioProps(self):
         val = self.get("displayOtioProps", False)
@@ -876,6 +879,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         self["displayAnimationProps"] = False
         self["displayAllEditsProps"] = False
         self["displayOtioProps"] = True
+        self["displayPlayblastProps"] = False
 
     def get_displayPlayblastProps(self):
         val = self.get("displayPlayblastProps", False)

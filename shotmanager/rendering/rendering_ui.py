@@ -91,7 +91,7 @@ class UAS_PT_ShotManagerRenderPanel(Panel):
         layout.separator()
 
         row = layout.row(align=True)
-        row.scale_y = 1.6
+        row.scale_y = 1.3
         # row.operator ( renderProps.UAS_PT_ShotManager_RenderDialog.bl_idname, text = "Render Active", icon = "RENDER_ANIMATION" ).only_active = True
 
         # row.use_property_split = True
@@ -111,10 +111,18 @@ class UAS_PT_ShotManagerRenderPanel(Panel):
         row.prop(props, "displayAllEditsProps", text="", icon="RENDERLAYERS")
         row.operator("uas_shot_manager.render", text="Render All").renderMode = "ALL"
 
-        row = layout.row()
+        layout.separator(factor=0.3)
         row = layout.row(align=True)
+        row.scale_y = 1.3
         row.prop(props, "displayOtioProps", text="", icon="SEQ_STRIP_DUPLICATE")
         row.operator("uas_shot_manager.render", text="Render EDL File").renderMode = "OTIO"
+
+        # row = layout.row()
+        # row = layout.row(align=True)
+        row.separator(factor=2)
+        # row.scale_x = 1.2
+        row.prop(props, "displayPlayblastProps", text="", icon="FILE_MOVIE")  # AUTO
+        row.operator("uas_shot_manager.render", text="Playblast").renderMode = "PLAYBLAST"
 
         layout.separator(factor=1)
 
@@ -251,6 +259,28 @@ class UAS_PT_ShotManagerRenderPanel(Panel):
 
             row.label(text="Current Take Edit: " + filePath)
             row.operator("uas_shot_manager.open_explorer", text="", icon_value=iconExplorer.icon_id).path = filePath
+
+        # PLAYBLAST ###
+        elif props.displayPlayblastProps:
+            row = layout.row()
+            row.label(text="Playblast:")
+
+            box = layout.box()
+
+            prefs = context.preferences.addons["shotmanager"].preferences
+            filePath = props.renderRootPath + "\\" + prefs.playblastFileName
+            if not props.isRenderRootPathValid():
+                row02 = box.row()
+                row02.alert = True
+                row02.label(text="*** Invalid Root Path ***")
+
+            row = box.row()
+            row.prop(props.renderSettingsPlayblast, "useStampInfo")
+
+            row = box.row()
+            row.label(text="Playblast Video: " + filePath)
+            row.operator("uas_shot_manager.open_explorer", text="", icon_value=iconExplorer.icon_id).path = filePath
+            # row.prop(props.renderSettingsPlayblast, "otioFileType")
 
         # ------------------------
 

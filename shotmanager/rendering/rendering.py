@@ -10,6 +10,7 @@ from shotmanager.config import config
 from shotmanager.scripts.rrs.RRS_StampInfo import setRRS_StampInfoSettings
 
 from shotmanager.utils import utils
+from shotmanager.utils import utils_store_context as utilsStore
 
 
 import logging
@@ -52,87 +53,6 @@ def launchRenderWithVSEComposite(
         filesDict = {"rendered_files": newMediaFiles, "failed_files": failedFiles}
         specificFrame: When specified, only this frame is rendered. Handles are ignored and the resulting media in an image, not a video
     """
-
-    userRenderSettings = {}
-
-    def _storeUserRenderSettings(context):
-        scene = context.scene
-
-        #    userRenderSettings["show_overlays"] = bpy.context.space_data.overlay.show_overlays
-        userRenderSettings["resolution_x"] = scene.render.resolution_x
-        userRenderSettings["resolution_y"] = scene.render.resolution_y
-        userRenderSettings["render_engine"] = scene.render.engine
-
-        userRenderSettings["frame_start"] = scene.frame_start
-        userRenderSettings["frame_end"] = scene.frame_end
-        userRenderSettings["use_preview_range"] = scene.use_preview_range
-        userRenderSettings["frame_preview_start"] = scene.frame_preview_start
-        userRenderSettings["frame_preview_end"] = scene.frame_preview_end
-
-        userRenderSettings["view_transform"] = bpy.scene.view_settings.view_transform
-
-        userRenderSettings["render_use_compositing"] = bpy.scene.render.use_compositing
-        userRenderSettings["render_use_sequencer"] = bpy.scene.render.use_sequencer
-
-        # eevee
-        ##############
-        # if "BLENDER_EEVEE" == bpy.scene.render.engine:
-        userRenderSettings["eevee_taa_render_samples"] = scene.eevee.taa_render_samples
-        userRenderSettings["eevee_taa_samples"] = scene.eevee.taa_samples
-
-        # workbench
-        ##############
-        # if "BLENDER_WORKBENCH" == bpy.scene.render.engine:
-        userRenderSettings["workbench_render_aa"] = scene.display.render_aa
-        userRenderSettings["workbench_viewport_aa"] = scene.display.viewport_aa
-
-        # cycles
-        ##############
-        #  if "CYCLES" == bpy.scene.render.engine:
-        userRenderSettings["cycles_samples"] = scene.cycles.samples
-        userRenderSettings["cycles_preview_samples"] = scene.cycles.preview_samples
-
-        return userRenderSettings
-
-    def _restoreUserRenderSettings(context, userRenderSettings):
-        scene = context.scene
-        # wkip bug here dans certaines conditions vse
-        #    bpy.context.space_data.overlay.show_overlays = userRenderSettings["show_overlays"]
-
-        scene.render.resolution_x = userRenderSettings["resolution_x"]
-        scene.render.resolution_y = userRenderSettings["resolution_y"]
-        scene.render.engine = userRenderSettings["render_engine"]
-
-        scene.frame_start = userRenderSettings["frame_start"]
-        scene.frame_end = userRenderSettings["frame_end"]
-        scene.use_preview_range = userRenderSettings["use_preview_range"]
-        scene.frame_preview_start = userRenderSettings["frame_preview_start"]
-        scene.frame_preview_end = userRenderSettings["frame_preview_end"]
-
-        bpy.scene.view_settings.view_transform = userRenderSettings["view_transform"]
-
-        bpy.scene.render.use_compositing = userRenderSettings["render_use_compositing"]
-        bpy.scene.render.use_sequencer = userRenderSettings["render_use_sequencer"]
-
-        # eevee
-        ##############
-        #   if "BLENDER_EEVEE" == bpy.scene.render.engine:
-        scene.eevee.taa_render_samples = userRenderSettings["eevee_taa_render_samples"]
-        scene.eevee.taa_samples = userRenderSettings["eevee_taa_samples"]
-
-        # workbench
-        ##############
-        # if "BLENDER_WORKBENCH" == bpy.scene.render.engine:
-        scene.display.render_aa = userRenderSettings["workbench_render_aa"]
-        scene.display.viewport_aa = userRenderSettings["workbench_viewport_aa"]
-
-        # cycles
-        ##############
-        #        if "CYCLES" == bpy.scene.render.engine:
-        scene.cycles.samples = userRenderSettings["cycles_samples"]
-        scene.cycles.preview_samples = userRenderSettings["cycles_preview_samples"]
-
-        return
 
     def _deleteTempFiles(dirPath):
         # delete unsused rendered frames
@@ -251,7 +171,8 @@ def launchRenderWithVSEComposite(
         or "PLAYBLAST_ANIM" == props.renderContext.renderComputationMode
     )
 
-    userRenderSettings = _storeUserRenderSettings(context)
+    userRenderSettings = {}
+    userRenderSettings = utilsStore.storeUserRenderSettings(context, userRenderSettings)
 
     if renderWithOpengl:
         spaces = list()
@@ -541,7 +462,7 @@ def launchRenderWithVSEComposite(
         "failed_files": failedFiles,
         "sequence_video_file": sequenceOutputFullPath,
     }
-    _restoreUserRenderSettings(context, userRenderSettings)
+    utilsStore.restoreUserRenderSettings(context, userRenderSettings)
     props.setCurrentShot(currentShot, changeTime=False)
 
     return filesDict
@@ -679,7 +600,8 @@ def renderStampedInfoForShot(
     scene.render.resolution_y = previousResY
 
 
-def launchRender(context, renderMode, rootPath, useStampInfo=True, area = None ):
+def launchRender(context, renderMode, rootPath, area=None):
+    # def launchRender(context, renderMode, rootPath, useStampInfo=True, area = None ):
     """
         rootPath: directory to render the files
     """
@@ -687,20 +609,6 @@ def launchRender(context, renderMode, rootPath, useStampInfo=True, area = None )
     scene = bpy.context.scene
     props = scene.UAS_shot_manager_props
     renderDisplayInfo = ""
-
-    stampInfoSettings = None
-    preset_useStampInfo = False
-
-    if props.use_project_settings and props.isStampInfoAvailable() and useStampInfo:
-        stampInfoSettings = scene.UAS_StampInfo_Settings
-        preset_useStampInfo = useStampInfo
-        #       stampInfoSettings.stampInfoUsed = False
-        stampInfoSettings.activateStampInfo = True
-    elif props.stampInfoUsed() and useStampInfo:
-        stampInfoSettings = scene.UAS_StampInfo_Settings
-        stampInfoSettings.activateStampInfo = True
-    elif props.isStampInfoAvailable():
-        scene.UAS_StampInfo_Settings.activateStampInfo = False
 
     renderDisplayInfo += "\n\n*** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** ***\n"
     renderDisplayInfo += "\n                                 *** UAS Shot Manager V " + props.version()[0] + " - "
@@ -719,10 +627,31 @@ def launchRender(context, renderMode, rootPath, useStampInfo=True, area = None )
         preset = props.renderSettingsAll
         # renderDisplayInfo += f"   ALL, preset: {preset.name}\n"
         renderDisplayInfo += f"   Render All"
-    else:
+    elif "OTIO" == renderMode:
         preset = props.renderSettingsOtio
         # renderDisplayInfo += f"   EDL, preset: {preset.name}\n"
         renderDisplayInfo += f"   Render EDL File"
+    elif "PLAYBLAST" == renderMode:
+        preset = props.renderSettingsPlayblast
+        # renderDisplayInfo += f"   ALL, preset: {preset.name}\n"
+        renderDisplayInfo += f"   Render Playblast"
+    else:
+        _logger.error(f"No valid render preset found")
+
+    stampInfoSettings = None
+    preset_useStampInfo = False
+    useStampInfo = preset.useStampInfo
+
+    if props.use_project_settings and props.isStampInfoAvailable() and useStampInfo:
+        stampInfoSettings = scene.UAS_StampInfo_Settings
+        preset_useStampInfo = useStampInfo
+        #       stampInfoSettings.stampInfoUsed = False
+        stampInfoSettings.activateStampInfo = True
+    elif props.stampInfoUsed() and useStampInfo:
+        stampInfoSettings = scene.UAS_StampInfo_Settings
+        stampInfoSettings.activateStampInfo = True
+    elif props.isStampInfoAvailable():
+        scene.UAS_StampInfo_Settings.activateStampInfo = False
 
     renderDisplayInfo += "  ***"
     renderDisplayInfo += "\n\n*** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** ***\n\n"
@@ -797,7 +726,7 @@ def launchRender(context, renderMode, rootPath, useStampInfo=True, area = None )
                 generateSequenceVideo=False,
                 specificShotList=[shot],
                 specificFrame=scene.frame_current,
-                area = area
+                area=area,
             )
             print(json.dumps(renderedFilesDict, indent=4))
 
@@ -813,7 +742,7 @@ def launchRender(context, renderMode, rootPath, useStampInfo=True, area = None )
                 generateSequenceVideo=False,
                 specificShotList=[shot],
                 render_handles=preset.renderHandles if preset.bypass_rendering_project_settings else True,
-                area = area
+                area=area,
             )
             print(json.dumps(renderedFilesDict, indent=4))
 
@@ -836,7 +765,7 @@ def launchRender(context, renderMode, rootPath, useStampInfo=True, area = None )
                     rerenderExistingShotVideos=preset.rerenderExistingShotVideos,
                     generateSequenceVideo=preset.generateEditVideo,
                     renderAlsoDisabled=preset.renderAlsoDisabled,
-                    area = area
+                    area=area,
                 )
 
                 if preset.renderOtioFile:
