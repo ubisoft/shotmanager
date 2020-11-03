@@ -528,15 +528,17 @@ class UAS_ShotManager_OT_Create_Shots_From_OTIO_RRS(Operator):
         row = box.row(align=True)
         row.label(text=labelText)
 
-        row = box.row(align=True)
-        row.prop(self, "conformMode")
+        if config.uasDebug:
+            row = box.row(align=True)
+            row.prop(self, "conformMode")
 
-        row = box.row(align=True)
-        row.prop(self, "offsetTime")
-        # row.separator(factor=3)
-        subrow = row.row(align=True)
-        subrow.enabled = self.offsetTime
-        subrow.prop(self, "importAtFrame")
+        if "CREATE" == self.conformMode or config.uasDebug:
+            row = box.row(align=True)
+            row.prop(self, "offsetTime")
+            # row.separator(factor=3)
+            subrow = row.row(align=True)
+            subrow.enabled = self.offsetTime
+            subrow.prop(self, "importAtFrame")
 
         row = layout.row(align=True)
         if "CREATE" == self.conformMode:

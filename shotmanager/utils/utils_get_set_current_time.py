@@ -120,15 +120,16 @@ class UAS_ShotManager_FrameTimeRange(Operator):
                             bpy.ops.action.view_frame(ctx)
                             # viewWidthInPx = int(region.view2d.region_to_view(region.width, region.height)[0])
                             regionWidthInPx = int(region.width)
-                            #    print(f"region.w: {region.width}, {regionWidthInPx}, frameRange: {frameRange}")
+                            print(f"region.w: {region.width}, {regionWidthInPx}, frameRange: {frameRange}")
                             # zoom is based on a constant (why that value of 1.6??? ) and the ui scale
                             # https://devtalk.blender.org/t/proper-way-to-draw-viewport-text-when-using-hi-dpi-displays/6804/4
-                            bpy.ops.view2d.zoom(
-                                ctx,
-                                deltax=int(
-                                    (regionWidthInPx - int(frameRange)) / (1.6 / bpy.context.preferences.view.ui_scale)
-                                ),
+                            delta = int(
+                                (regionWidthInPx - int(frameRange)) / (1.6 / bpy.context.preferences.view.ui_scale)
                             )
+                            print(f"delta: {delta}")
+                            print(f"delta 2: {region.width // 2 - (frameRange) // 2}")
+                            bpy.ops.view2d.zoom(ctx, deltax=delta)
+                            # bpy.ops.view2d.zoom(ctx, deltax=(region.width // 2 - (frameRange) // 2))
 
         if scene.use_preview_range:
             beforeStart = scene.frame_preview_start

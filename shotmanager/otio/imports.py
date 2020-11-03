@@ -977,7 +977,7 @@ def conformToRefMontage(
     ###################
     # list other shots and disabled them
     ###################
-    infoStr += f"\n       Shots not used in current sequence:"
+    infoStr += f"\n       Shots not used in current sequence (and then disabled):"
     ind = 0
     for i in range(expectedIndInSelfEdit, len(shotList)):
         # if shotList[i] not in newEditShots:

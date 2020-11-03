@@ -16,7 +16,7 @@ def initGlobalVariables():
     else:
         uasDebug = True
 
-    uasDebug = True
+    uasDebug = False
 
     global uasDebug_keepVSEContent
     uasDebug_keepVSEContent = True and uasDebug
@@ -43,10 +43,6 @@ def initGlobalVariables():
 
     global gTracksEnumList
     gTracksEnumList = None
-
-    # render user context ############
-    global gUserRenderSettings
-    gUserRenderSettings = None
 
 
 def releaseGlobalVariables():
