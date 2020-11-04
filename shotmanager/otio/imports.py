@@ -633,7 +633,7 @@ def createShotsFromOtioTimelineClass(
 
 def importAnimatic(montageOtio, sequenceName, animaticFile, offsetFrameNumber=0):
     if not Path(animaticFile).exists():
-        return ()
+        return
 
     vse_render = bpy.context.window_manager.UAS_vse_render
     # newClipInVSE = vse_render.createNewClip(

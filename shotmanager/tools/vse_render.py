@@ -1,7 +1,6 @@
 import os
 from pathlib import Path
 
-from ..config import config
 
 import bpy
 
@@ -12,6 +11,7 @@ from bpy.props import (
     PointerProperty,
 )
 
+from shotmanager.config import config
 from shotmanager.utils import utils
 
 # # ------------------------------------------------------------------------#
@@ -183,10 +183,14 @@ class UAS_Vse_Render(PropertyGroup):
 
     inputAudioMediaPath: StringProperty(name="Input Audio Media Path", default="")
 
-    def clearMedia(self, scene):
-        inputOverMediaPath = None
-        inputBGMediaPath = None
-        inputAudioMediaPath = None
+    def clearMedia(self):
+        self.inputOverMediaPath = ""
+        self.inputOverResolution = (-1, -1)
+
+        self.inputBGMediaPath = ""
+        self.inputBGResolution = (-1, -1)
+
+        self.inputAudioMediaPath = ""
 
     def getMediaType(self, filePath):
         """ Return the type of media according to the extension of the provided file path
@@ -633,10 +637,11 @@ class UAS_Vse_Render(PropertyGroup):
         # sequence composite scene
         sequenceScene = bpy.data.scenes.new(name="VSE_SequenceRenderScene")
 
-        sequenceScene = utils.getSceneVSE(sequenceScene.name, createVseTab=True)  # config.uasDebug)
+        createVseTab = False  # config.uasDebug
+        sequenceScene = utils.getSceneVSE(sequenceScene.name, createVseTab=createVseTab)  # config.uasDebug)
         bpy.context.window.scene = sequenceScene
 
-        if config.uasDebug:
+        if createVseTab:
             bpy.context.window.workspace = bpy.data.workspaces["Video Editing"]
 
         #     for area in bpy.context.screen.areas:
@@ -771,8 +776,13 @@ class UAS_Vse_Render(PropertyGroup):
         # Path ( renderPath ).parent.mkdir ( parents = True, exist_ok = True )
 
         # add BG
-        vse_scene.render.resolution_x = self.inputBGResolution[0]
-        vse_scene.render.resolution_y = self.inputBGResolution[1]
+        if "" != self.inputBGMediaPath:
+            vse_scene.render.resolution_x = self.inputBGResolution[0]
+            vse_scene.render.resolution_y = self.inputBGResolution[1]
+        else:
+            vse_scene.render.resolution_x = self.inputOverResolution[0]
+            vse_scene.render.resolution_y = self.inputOverResolution[1]
+
         print(f"  * - * vse_scene.render.resolution_y: {vse_scene.render.resolution_y}")
         vse_scene.frame_start = frame_start
         vse_scene.frame_end = frame_end
@@ -792,7 +802,7 @@ class UAS_Vse_Render(PropertyGroup):
         vse_scene.view_settings.view_transform = "Filmic"  # "raw"
 
         bgClip = None
-        if self.inputBGMediaPath is not None:
+        if "" != self.inputBGMediaPath:
             try:
                 print(f"self.inputBGMediaPath: {self.inputBGMediaPath}")
                 bgClip = self.createNewClip(vse_scene, self.inputBGMediaPath, 1, 1)
@@ -808,7 +818,7 @@ class UAS_Vse_Render(PropertyGroup):
 
         #    print(f"self.inputBGMediaPath: {self.inputOverMediaPath}")
 
-        if self.inputOverMediaPath is not None:
+        if "" != self.inputOverMediaPath:
             overClip = None
             try:
                 overClip = self.createNewClip(vse_scene, self.inputOverMediaPath, 2, 1)
@@ -821,7 +831,7 @@ class UAS_Vse_Render(PropertyGroup):
             # else:
             #     print(f" *** Rendered shot not found: {self.inputOverMediaPath}")
 
-            if overClip is not None:
+            if overClip is not None and "" != self.inputBGMediaPath:
                 overClip.use_crop = True
                 overClip.crop.min_x = -1 * int((self.inputBGResolution[0] - self.inputOverResolution[0]) / 2)
                 overClip.crop.max_x = overClip.crop.min_x
@@ -864,28 +874,9 @@ class UAS_Vse_Render(PropertyGroup):
         #     show_multiview=False,
         # )
 
+        # open rendered media in a player
         if specificFrame is not None:
-            # if True:
-            # Call user prefs window
-            #     previousContext = bpy.context.screen
-            bpy.ops.screen.userpref_show("INVOKE_DEFAULT")
-            # Change area type
-            area = bpy.context.window_manager.windows[-1].screen.areas[0]
-            area.type = "IMAGE_EDITOR"
-
-            # bpy.ops.render.view_show()
-            bpy.ops.image.open(filepath=output_filepath, relative_path=False, show_multiview=False)
-
-            # bpy.data.images.[image_name].reload()
-            from pathlib import Path
-
-            print(f"output_filepath: {output_filepath}")
-            print(f"Path(output_filepath).name: {Path(output_filepath).name}")
-            myImg = bpy.data.images[Path(output_filepath).name]
-            print("myImg:" + str(myImg))
-            bpy.context.area.spaces.active.image = myImg
-            # bpy.ops.screen.screen_set(0)
-        #    bpy.context.screen = previousContext
+            utils.openMedia(output_filepath, inExternalPlayer=False)
 
 
 _classes = (

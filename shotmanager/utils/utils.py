@@ -166,50 +166,52 @@ def file_path_from_url(url):
     return path
 
 
-###################
-# Objects
-###################
-
-
-def add_background_video_to_cam(
-    camera: bpy.types.Camera, movie_path, frame_start, alpha=-1, proxyRenderSize="PROXY_50", relative_path=False
-):
-    """ Camera argument: use camera.data, not the camera object
-        proxyRenderSize is PROXY_25, PROXY_50, PROXY_75, PROXY_100, FULL
-    """
-    # print("add_background_video_to_cam")
-    movie_path = Path(movie_path)
-    if not movie_path.exists():
-        print("    Invalid media path: ", movie_path)
+def openMedia(media_filepath, inExternalPlayer=False):
+    if not Path(media_filepath).exists():
+        print(f"*** Cannot open {media_filepath}")
         return
 
-    if "FINISHED" in bpy.ops.clip.open(
-        directory=str(movie_path.parent), files=[{"name": movie_path.name}], relative_path=relative_path
-    ):
-        # print("   Finished block")
-        clip = bpy.data.movieclips[movie_path.name]
-        clip.frame_start = frame_start
-        camera.show_background_images = True
-        bg = camera.background_images.new()
-        bg.source = "MOVIE_CLIP"
-        bg.clip = clip
-        print("   bg.clip.name:", bg.clip.name)
+    if inExternalPlayer:
 
-        bg.display_depth = "FRONT"
-        bg.frame_method = "CROP"
-        if -1 != alpha:
-            bg.alpha = alpha
+        # wkip subprocess is said to be better but cannot make it work...
+        # import subprocess
+        #  p = subprocess.Popen(["display", media_filepath])
+        # subprocess.run(["open", media_filepath], check=True)
 
-        bg.clip_user.proxy_render_size = proxyRenderSize
+        import subprocess, os, platform
+
+        if platform.system() == "Darwin":  # macOS
+            subprocess.call(("open", media_filepath))
+        elif platform.system() == "Windows":  # Windows
+            os.startfile(media_filepath)
+        else:  # linux variants
+            subprocess.call(("xdg-open", media_filepath))
+    else:
+        # Call user prefs window
+        bpy.ops.screen.userpref_show("INVOKE_DEFAULT")
+        # Change area type
+        area = bpy.context.window_manager.windows[-1].screen.areas[0]
+        area.type = "IMAGE_EDITOR"
+
+        # bpy.ops.render.view_show()
+        bpy.ops.image.open(
+            filepath=media_filepath, relative_path=False, show_multiview=False,
+        )
+
+        # bpy.data.images.[image_name].reload()
+
+        #  print(f"media_filepath: {media_filepath}")
+        #  print(f"Path(media_filepath).name: {Path(media_filepath).name}")
+        myImg = bpy.data.images[Path(media_filepath).name]
+        #  print("myImg:" + str(myImg))
+        bpy.context.area.spaces.active.image = myImg
+
+    return
 
 
-def remove_background_video_from_cam(camera: bpy.types.Camera):
-    """ Camera argument: use camera.data, not the camera object
-    """
-    if camera is not None:
-        camera.background_images.clear()
-        # remove(image)
-        camera.show_background_images = False
+###################
+# Various
+###################
 
 
 def findFirstUniqueName(originalItem, name, itemsArray):
@@ -400,6 +402,47 @@ def create_new_camera(camera_name, location=[0, 0, 0], locate_on_cursor=False):
     #     )
 
     return cam_ob
+
+
+def add_background_video_to_cam(
+    camera: bpy.types.Camera, movie_path, frame_start, alpha=-1, proxyRenderSize="PROXY_50", relative_path=False
+):
+    """ Camera argument: use camera.data, not the camera object
+        proxyRenderSize is PROXY_25, PROXY_50, PROXY_75, PROXY_100, FULL
+    """
+    # print("add_background_video_to_cam")
+    movie_path = Path(movie_path)
+    if not movie_path.exists():
+        print("    Invalid media path: ", movie_path)
+        return
+
+    if "FINISHED" in bpy.ops.clip.open(
+        directory=str(movie_path.parent), files=[{"name": movie_path.name}], relative_path=relative_path
+    ):
+        # print("   Finished block")
+        clip = bpy.data.movieclips[movie_path.name]
+        clip.frame_start = frame_start
+        camera.show_background_images = True
+        bg = camera.background_images.new()
+        bg.source = "MOVIE_CLIP"
+        bg.clip = clip
+        print("   bg.clip.name:", bg.clip.name)
+
+        bg.display_depth = "FRONT"
+        bg.frame_method = "CROP"
+        if -1 != alpha:
+            bg.alpha = alpha
+
+        bg.clip_user.proxy_render_size = proxyRenderSize
+
+
+def remove_background_video_from_cam(camera: bpy.types.Camera):
+    """ Camera argument: use camera.data, not the camera object
+    """
+    if camera is not None:
+        camera.background_images.clear()
+        # remove(image)
+        camera.show_background_images = False
 
 
 ###################

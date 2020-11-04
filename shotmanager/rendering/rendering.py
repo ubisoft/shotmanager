@@ -172,6 +172,9 @@ def launchRenderWithVSEComposite(
         or "PLAYBLAST_ANIM" == props.renderContext.renderComputationMode
     )
 
+    #######################
+    # store current scene settings
+    #######################
     userRenderSettings = {}
     userRenderSettings = utilsStore.storeUserRenderSettings(context, userRenderSettings)
 
@@ -208,6 +211,8 @@ def launchRenderWithVSEComposite(
 
     if "PLAYBLAST" == renderMode:
         props.renderContext.applyRenderQualitySettings(context, renderQuality="VERY_LOW")
+        if not preset_useStampInfo:
+            props.renderContext.applyBurnInfos(context)
     else:
         props.renderContext.applyRenderQualitySettings(context)
     context.scene.view_settings.view_transform = "Standard"
@@ -242,8 +247,8 @@ def launchRenderWithVSEComposite(
                 infoStr += f"{props.renderContext.renderEngine}"
             print(infoStr)
 
-            print("\n     newTempRenderPath: ", newTempRenderPath)
-            print("     compositedMediaPath: ", compositedMediaPath)
+            # print("\n     newTempRenderPath: ", newTempRenderPath)
+            # print("     compositedMediaPath: ", compositedMediaPath)
 
             _deleteTempFiles(newTempRenderPath)
 
@@ -419,6 +424,7 @@ def launchRenderWithVSEComposite(
                 #     + frameIndStr
                 #     + ".png"
                 # )
+                vse_render.clearMedia()
                 if specificFrame is None:
                     vse_render.inputOverMediaPath = overImgSeq
                 else:
@@ -477,7 +483,7 @@ def launchRenderWithVSEComposite(
 
                 renderedShotSequencesArr.append(videoAndSound)
 
-                print(f"** renderedShotSequencesArr: {renderedShotSequencesArr}")
+            #  print(f"** renderedShotSequencesArr: {renderedShotSequencesArr}")
 
     #######################
     # render sequence video
@@ -509,13 +515,22 @@ def launchRenderWithVSEComposite(
             #######################
             # render sequence video based on shot image sequences
             #######################
-            sequenceOutputFullPath = f"{rootPath}{takeName}\\playblast_{sequenceFileName}.{props.getOutputFileFormat()}"
+            # wkip tmp
+            sequenceOutputFullPath = f"{rootPath}\\_playblast_.{props.getOutputFileFormat()}"
+            # sequenceOutputFullPath = (
+            #     f"{rootPath}{takeName}\\_playblast_{sequenceFileName}.{props.getOutputFileFormat()}"
+            # )
             print(f"  Rendered sequence from shot sequences: {sequenceOutputFullPath}")
 
             if len(renderedShotSequencesArr):
                 vse_render.buildSequenceVideoFromImgSequences(
                     renderedShotSequencesArr, sequenceOutputFullPath, handles, projectFps
                 )
+
+            deleteTempFiles = not config.uasDebug_keepVSEContent
+            if deleteTempFiles:
+                for i in range(len(renderedShotSequencesArr)):
+                    _deleteTempFiles(str(Path(renderedShotSequencesArr[i]["image_sequence"]).parent))
 
     failedFiles = []
 
@@ -524,7 +539,12 @@ def launchRenderWithVSEComposite(
         "failed_files": failedFiles,
         "sequence_video_file": sequenceOutputFullPath,
     }
+
+    #######################
+    # restore current scene settings
+    #######################
     utilsStore.restoreUserRenderSettings(context, userRenderSettings)
+
     props.setCurrentShot(currentShot, changeTime=False)
 
     return filesDict
@@ -778,6 +798,7 @@ def launchRender(context, renderMode, rootPath, area=None):
                 context,
                 "PROJECT",
                 filePath=props.renderRootPath,
+                useStampInfo=preset.useStampInfo,
                 generateSequenceVideo=False,
                 specificShotList=[shot],
                 specificFrame=scene.frame_current,
@@ -794,6 +815,7 @@ def launchRender(context, renderMode, rootPath, area=None):
                 context,
                 "PROJECT",
                 filePath=props.renderRootPath,
+                useStampInfo=preset.useStampInfo,
                 generateSequenceVideo=False,
                 specificShotList=[shot],
                 render_handles=preset.renderHandles if preset.bypass_rendering_project_settings else True,
@@ -817,6 +839,7 @@ def launchRender(context, renderMode, rootPath, area=None):
                     takeIndex=takeInd,
                     filePath=props.renderRootPath,
                     fileListOnly=False,
+                    useStampInfo=preset.useStampInfo,
                     rerenderExistingShotVideos=preset.rerenderExistingShotVideos,
                     generateSequenceVideo=preset.generateEditVideo,
                     renderAlsoDisabled=preset.renderAlsoDisabled,
@@ -852,6 +875,10 @@ def launchRender(context, renderMode, rootPath, area=None):
                 render_handles=False,
                 area=area,
             )
+
+            # open rendered media in a player
+            if len(renderedFilesDict["sequence_video_file"]):
+                utils.openMedia(renderedFilesDict["sequence_video_file"], inExternalPlayer=True)
 
         else:
             print("\n *** preset.renderMode is invalid, cannot render anything... ***\n")

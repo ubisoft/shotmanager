@@ -56,6 +56,13 @@ class UAS_ShotManager_RenderGlobalContext(PropertyGroup):
         # update=_update_renderEngine,
     )
 
+    useOverlays: BoolProperty(
+        name="With Overlays",
+        description="Also render overlays when the rendering is a playblast",
+        default=False,
+        options=set(),
+    )
+
     def _update_renderQuality(self, context):
         self.applyRenderQualitySettings(context, renderQuality=self.renderQuality)
 
@@ -71,6 +78,13 @@ class UAS_ShotManager_RenderGlobalContext(PropertyGroup):
         ),
         default="LOW",
         update=_update_renderQuality,
+    )
+
+    useOverlays: BoolProperty(
+        name="With Overlays",
+        description="Also render overlays when the rendering is a playblast",
+        default=False,
+        options=set(),
     )
 
     def applyRenderQualitySettings(self, context, renderQuality=None, renderWithOpengl=True):
@@ -146,12 +160,13 @@ class UAS_ShotManager_RenderGlobalContext(PropertyGroup):
 
         return
 
-    useOverlays: BoolProperty(
-        name="With Overlays",
-        description="Also render overlays when the rendering is a playblast",
-        default=False,
-        options=set(),
-    )
+    def applyBurnInfos(self, context):
+        context.scene.render.use_stamp = True
+        context.scene.render.use_stamp_scene = True
+        context.scene.render.use_stamp_frame = True
+        context.scene.render.use_stamp_date = True
+        context.scene.render.use_stamp_time = True
+        context.scene.render.use_stamp_time = True
 
 
 class UAS_ShotManager_RenderSettings(PropertyGroup):

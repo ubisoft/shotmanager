@@ -38,6 +38,40 @@ def storeUserRenderSettings(context, userRenderSettings):
     userRenderSettings["cycles_samples"] = scene.cycles.samples
     userRenderSettings["cycles_preview_samples"] = scene.cycles.preview_samples
 
+    #######################
+    # image stamping
+    #######################
+
+    # not used: "stamp_background",
+    propertiesArr = ["stamp_font_size", "stamp_foreground", "stamp_note_text"]
+    propertiesArr += [
+        "use_stamp",
+        "use_stamp_camera",
+        "use_stamp_camera",
+        "use_stamp_date",
+        "use_stamp_filename",
+        "use_stamp_frame",
+        "use_stamp_frame_range",
+        "use_stamp_hostname",
+        "use_stamp_labels",
+        "use_stamp_lens",
+        "use_stamp_marker",
+        "use_stamp_memory",
+        "use_stamp_note",
+        "use_stamp_render_time",
+        "use_stamp_scene",
+        "use_stamp_sequencer_strip",
+        "use_stamp_strip_meta",
+        "use_stamp_time",
+    ]
+
+    categImageStamping = dict()
+    for prop in propertiesArr:
+        categImageStamping[prop] = getattr(context.scene.render, prop)
+
+    userRenderSettings["categ_image_stamping"] = categImageStamping
+    # print(f"userRenderSettings: \n{userRenderSettings}")
+
     return userRenderSettings
 
 
@@ -78,5 +112,12 @@ def restoreUserRenderSettings(context, userRenderSettings):
     #        if "CYCLES" == bpy.scene.render.engine:
     scene.cycles.samples = userRenderSettings["cycles_samples"]
     scene.cycles.preview_samples = userRenderSettings["cycles_preview_samples"]
+
+    #######################
+    # image stamping
+    #######################
+    categImageStamping = userRenderSettings["categ_image_stamping"]
+    for key in categImageStamping:
+        setattr(context.scene.render, key, categImageStamping[key])
 
     return
