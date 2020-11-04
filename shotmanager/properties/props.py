@@ -2443,8 +2443,8 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         self.renderSettingsOtio.otioFileType = "XML"
 
         # Playblast
-        self.renderSettingsStill.name = "Playblast Preset"
-        self.renderSettingsStill.renderMode = "PLAYBLAST"
+        self.renderSettingsPlayblast.name = "Playblast Preset"
+        self.renderSettingsPlayblast.renderMode = "PLAYBLAST"
 
     def setProjectRenderFilePath(self):
         # if '' == bpy.data.filepath:

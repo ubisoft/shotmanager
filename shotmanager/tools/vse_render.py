@@ -279,11 +279,12 @@ class UAS_Vse_Render(PropertyGroup):
         atFrame,
         offsetStart=0,
         offsetEnd=0,
+        final_duration=-1,
         cameraScene=None,
         cameraObject=None,
         clipName="",
         importVideo=True,
-        importAudio=False
+        importAudio=False,
     ):
         """
             A strip is placed at a specified time in the edit by putting its media start at the place where
@@ -294,7 +295,9 @@ class UAS_Vse_Render(PropertyGroup):
             audio_volume_keyframes is a list of paired values (Frame, Value)
         """
 
-        def _new_camera_sequence(scene, name, channelInd, atFrame, offsetStart, offsetEnd, cameraScene, cameraObject):
+        def _new_camera_sequence(
+            scene, name, channelInd, atFrame, offsetStart, offsetEnd, cameraScene, cameraObject, final_duration=-1
+        ):
             """ Create the camera sequence
             """
             # !!! When the 3D scence range is not starting at zero the camera strip is clipped at the begining...
@@ -308,6 +311,9 @@ class UAS_Vse_Render(PropertyGroup):
             camSeq.frame_offset_start = offsetStart
             camSeq.frame_offset_end = 0
 
+            # code not tested...
+            if -1 != final_duration:
+                camSeq.frame_final_duration = final_duration
             # cameraScene.frame_start = OriRangeStart
             # cameraScene.frame_end = OriRangeEnd
 
@@ -396,18 +402,24 @@ class UAS_Vse_Render(PropertyGroup):
                 )
                 newClip.frame_offset_start = offsetStart
                 newClip.frame_offset_end = offsetEnd
+                if -1 != final_duration:
+                    newClip.frame_final_duration = final_duration
             if importAudio:
                 newClip = scene.sequence_editor.sequences.new_sound(
                     newClipName + "Sound", mediaPath, channelInd + 1, atFrame
                 )
                 newClip.frame_offset_start = offsetStart
                 newClip.frame_offset_end = offsetEnd
+                if -1 != final_duration:
+                    newClip.frame_final_duration = final_duration
 
         elif "IMAGE" == mediaType:
             newClipName = clipName if "" != clipName else "myImage"
             newClip = scene.sequence_editor.sequences.new_image(newClipName, mediaPath, channelInd, atFrame)
             newClip.frame_offset_start = offsetStart
             newClip.frame_offset_end = offsetEnd
+            if -1 != final_duration:
+                newClip.frame_final_duration = final_duration
 
         elif "IMAGES_SEQUENCE" == mediaType:
             newClipName = clipName if "" != clipName else "myImagesSequence"
@@ -415,17 +427,21 @@ class UAS_Vse_Render(PropertyGroup):
             # newClip = scene.sequence_editor.sequences.new_image("myVideo", mediaPath, channelInd, atFrame)
             newClip.frame_offset_start = offsetStart
             newClip.frame_offset_end = offsetEnd
+            if -1 != final_duration:
+                newClip.frame_final_duration = final_duration
 
         elif "SOUND" == mediaType:
             newClipName = clipName if "" != clipName else "mySound"
             newClip = scene.sequence_editor.sequences.new_sound(newClipName, mediaPath, channelInd, atFrame)
             newClip.frame_offset_start = offsetStart
             newClip.frame_offset_end = offsetEnd
+            if -1 != final_duration:
+                newClip.frame_final_duration = final_duration
 
         elif "CAMERA" == mediaType:
             newClipName = clipName if "" != clipName else "myCamera"
             newClip = _new_camera_sequence(
-                scene, newClipName, channelInd, atFrame, offsetStart, offsetEnd, cameraScene, cameraObject
+                scene, newClipName, channelInd, atFrame, offsetStart, offsetEnd, cameraScene, cameraObject,
             )
 
         elif "UNKNOWN" == mediaType:
@@ -606,6 +622,129 @@ class UAS_Vse_Render(PropertyGroup):
             pass
 
         bpy.context.window.scene = previousScene
+
+    def buildSequenceVideoFromImgSequences(self, mediaDictArr, outputFile, handles, fps):
+        # props = bpy.context.scene.UAS_shot_manager_props
+        # scene = .sequence_editor
+
+        previousScene = bpy.context.window.scene
+
+        sequenceScene = None
+        # sequence composite scene
+        sequenceScene = bpy.data.scenes.new(name="VSE_SequenceRenderScene")
+
+        sequenceScene = utils.getSceneVSE(sequenceScene.name, createVseTab=True)  # config.uasDebug)
+        bpy.context.window.scene = sequenceScene
+
+        if config.uasDebug:
+            bpy.context.window.workspace = bpy.data.workspaces["Video Editing"]
+
+        #     for area in bpy.context.screen.areas:
+        #         print(f"area type: {area.type}")
+        #         if area.type == "SEQUENCE_EDITOR":
+        #             area.spaces.items()[0][1].show_seconds = True
+
+        sequenceScene.render.fps = fps  # projectFps
+        sequenceScene.render.resolution_x = mediaDictArr[0]["bg_resolution"][0]
+        sequenceScene.render.resolution_y = mediaDictArr[0]["bg_resolution"][1]
+        inputOverResolution = mediaDictArr[0]["image_sequence_resolution"]
+
+        sequenceScene.frame_start = 0
+        # sequenceScene.frame_end = props.getEditDuration() - 1
+        sequenceScene.render.image_settings.file_format = "FFMPEG"
+        sequenceScene.render.ffmpeg.format = "MPEG4"
+        sequenceScene.render.ffmpeg.constant_rate_factor = "PERC_LOSSLESS"  # "PERC_LOSSLESS"
+        sequenceScene.render.ffmpeg.gopsize = 2  # keyframe interval
+        sequenceScene.render.ffmpeg.audio_codec = "AAC"
+        sequenceScene.render.filepath = outputFile
+
+        # sequenceScene.view_settings.view_transform = "Raw"
+
+        atFrame = 0
+        for i, mediaDict in enumerate(mediaDictArr):
+            # sequenceScene.sequence_editor
+            frameToPaste = self.get_frame_end_from_content(sequenceScene)
+            print("\n---- Importing image sequences ----")
+            print(f"  frametopaste: {frameToPaste}")
+
+            bgClip = None
+            if "bg" in mediaDict and mediaDict["bg"] is not None:
+                try:
+                    print(f"self.inputBGMediaPath: {mediaDict['bg']}")
+                    bgClip = self.createNewClip(sequenceScene, mediaDict["bg"], 2, atFrame)
+                    print("BG Media OK")
+                except Exception as e:
+                    print(f" *** Rendered shot not found: {mediaDict['bg']}")
+
+                # bgClip = None
+                # if os.path.exists(self.inputBGMediaPath):
+                #     bgClip = self.createNewClip(vse_scene, self.inputBGMediaPath, 1, 1)
+                # else:
+                #     print(f" *** Rendered shot not found: {self.inputBGMediaPath}")
+
+            #    print(f"self.inputBGMediaPath: {self.inputOverMediaPath}")
+
+            shotDuration = 0
+            if "image_sequence" in mediaDict and mediaDict["image_sequence"] is not None:
+                overClip = None
+                try:
+                    overClip = self.createNewClip(sequenceScene, mediaDict["image_sequence"], 3, atFrame)
+                    print("Over Media OK")
+                except Exception as e:
+                    print(f" *** Rendered shot not found: {mediaDict['image_sequence']}")
+                # overClip = None
+                # if os.path.exists(self.inputOverMediaPath):
+                #     overClip = self.createNewClip(vse_scene, self.inputOverMediaPath, 2, 1)
+                # else:
+                #     print(f" *** Rendered shot not found: {self.inputOverMediaPath}")
+
+                if overClip is not None:
+                    overClip.use_crop = True
+                    overClip.crop.min_x = -1 * int((mediaDictArr[0]["bg_resolution"][0] - inputOverResolution[0]) / 2)
+                    overClip.crop.max_x = overClip.crop.min_x
+                    overClip.crop.min_y = -1 * int((mediaDictArr[0]["bg_resolution"][1] - inputOverResolution[1]) / 2)
+                    overClip.crop.max_y = overClip.crop.min_y
+
+                    overClip.blend_type = "OVER_DROP"
+                    shotDuration = overClip.frame_final_duration
+
+            if "sound" in mediaDict and mediaDict["sound"] is not None:
+                audioClip = None
+                if os.path.exists(mediaDict["sound"]):
+                    audioClip = self.createNewClip(
+                        sequenceScene, mediaDict["sound"], 1, atFrame, final_duration=shotDuration
+                    )
+                    audioClip = self.createNewClipFromRange(sequenceScene, mediaDict["sound"], 1,)
+                else:
+                    print(f" *** Rendered shot not found: {mediaDict['sound']}")
+
+            # bpy.context.scene.sequence_editor.sequences
+            # get res of video: bpy.context.scene.sequence_editor.sequences[1].elements[0].orig_width
+            # ne marche que sur vidéos
+
+            # sequenceScene.frame_end = self.get_frame_end_from_content(sequenceScene) - 1
+            # print(f"sequenceScene.frame_end: {sequenceScene.frame_end}")
+            atFrame += shotDuration
+            print(f"atFrame: {atFrame}")
+
+        # Make "My New Scene" the active one
+        # bpy.context.window.scene = vse_scene
+
+        sequenceScene.frame_end = atFrame - 1
+
+        bpy.ops.render.opengl(animation=True, sequencer=True, write_still=False)
+
+        # cleaning current file from temp scenes
+        if not config.uasDebug_keepVSEContent:
+            # current scene is sequenceScene
+            bpy.ops.scene.delete()
+            pass
+
+        # wkip changer ca fait que le time range n'est pas pris en compte...
+        # if not config.uasDebug:
+        bpy.context.window.scene = previousScene
+        # if config.uasDebug:
+        #     bpy.context.window.scene = sequenceScene
 
     def compositeVideoInVSE(self, fps, frame_start, frame_end, output_filepath, postfixSceneName=""):
 

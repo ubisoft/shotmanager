@@ -41,6 +41,7 @@ def launchRenderWithVSEComposite(
     rerenderExistingShotVideos=True,
     fileListOnly=False,
     generateSequenceVideo=True,
+    generateShotVideos=True,
     specificShotList=None,
     specificFrame=None,
     render_handles=True,
@@ -205,8 +206,13 @@ def launchRenderWithVSEComposite(
         if not "CUSTOM" == props.renderContext.renderEngine:
             context.scene.render.engine = props.renderContext.renderEngine
 
-    props.renderContext.applyRenderQualitySettings(context)
+    if "PLAYBLAST" == renderMode:
+        props.renderContext.applyRenderQualitySettings(context, renderQuality="VERY_LOW")
+    else:
+        props.renderContext.applyRenderQualitySettings(context)
     context.scene.view_settings.view_transform = "Standard"
+
+    renderedShotSequencesArr = []
 
     for i, shot in enumerate(shotList):
         # context.window_manager.UAS_shot_manager_progressbar = (i + 1) / len(shotList) * 100.0
@@ -367,6 +373,11 @@ def launchRenderWithVSEComposite(
             print("----------------------------------------")
             previousShotRenderTime = currentShotRenderTime
 
+            #######################
+            # render sound
+            #######################
+
+            audioFilePath = None
             if specificFrame is None:
                 # render sound
                 audioFilePath = (
@@ -380,60 +391,93 @@ def launchRenderWithVSEComposite(
                 # os.path.exists(file_path)
                 bpy.ops.sound.mixdown(filepath=audioFilePath, relative_path=False, container="WAV", codec="PCM")
 
-            # use vse_render to store all the elements to composite
+            overImgSeq = newTempRenderPath + shot.getOutputMediaPath(providePath=False, genericFrame=True)
+            overImgSeq_resolution = (1280, 720)
 
-            # frameIndStr = "####" if specificFrame is None else f"{specificFrame:04}"
-            # vse_render.clearMedia(scene)
-            # vse_render.inputOverMediaPath = (
-            #     newTempRenderPath
-            #     + shot.getOutputFileName(fullPath=False, noExtension=True)
-            #     + "_"
-            #     + frameIndStr
-            #     + ".png"
-            # )
-            if specificFrame is None:
-                vse_render.inputOverMediaPath = newTempRenderPath + shot.getOutputMediaPath(
-                    providePath=False, genericFrame=True
-                )
-            else:
-                vse_render.inputOverMediaPath = newTempRenderPath + shot.getOutputMediaPath(
-                    providePath=False, specificFrame=specificFrame
-                )
-
-            _logger.debug(f"\n - OverMediaPath: {vse_render.inputOverMediaPath}")
-            vse_render.inputOverResolution = (1280, 720)
-
+            bgImgSeq = None
+            bgImgSeq_resolution = overImgSeq_resolution
             if preset_useStampInfo:
                 frameIndStr = "####" if specificFrame is None else f"{specificFrame:04}"
                 _logger.debug(f"\n - specificFrame: {specificFrame}")
-                vse_render.inputBGMediaPath = newTempRenderPath + "_tmp_StampInfo." + frameIndStr + ".png"
-                _logger.debug(f"\n - BGMediaPath: {vse_render.inputBGMediaPath}")
-                vse_render.inputBGResolution = (1280, 960)
+                bgImgSeq = newTempRenderPath + "_tmp_StampInfo." + frameIndStr + ".png"
+                bgImgSeq_resolution = (1280, 960)
 
-            if specificFrame is None:
-                vse_render.inputAudioMediaPath = audioFilePath
+            if generateShotVideos:
 
-            if specificFrame is None:
-                video_frame_end = shot.end - shot.start + 1
-                if renderHandles:
-                    video_frame_end += 2 * handles
+                #######################
+                # Generate shot video
+                #######################
 
-                vse_render.compositeVideoInVSE(
-                    projectFps, 1, video_frame_end, compositedMediaPath, shot.getName_PathCompliant(),
-                )
+                # use vse_render to store all the elements to composite
+
+                # frameIndStr = "####" if specificFrame is None else f"{specificFrame:04}"
+                # vse_render.clearMedia(scene)
+                # vse_render.inputOverMediaPath = (
+                #     newTempRenderPath
+                #     + shot.getOutputFileName(fullPath=False, noExtension=True)
+                #     + "_"
+                #     + frameIndStr
+                #     + ".png"
+                # )
+                if specificFrame is None:
+                    vse_render.inputOverMediaPath = overImgSeq
+                else:
+                    vse_render.inputOverMediaPath = newTempRenderPath + shot.getOutputMediaPath(
+                        providePath=False, specificFrame=specificFrame
+                    )
+
+                _logger.debug(f"\n - OverMediaPath: {vse_render.inputOverMediaPath}")
+                vse_render.inputOverResolution = overImgSeq_resolution
+
+                if preset_useStampInfo:
+                    frameIndStr = "####" if specificFrame is None else f"{specificFrame:04}"
+                    _logger.debug(f"\n - specificFrame: {specificFrame}")
+                    vse_render.inputBGMediaPath = bgImgSeq
+                    _logger.debug(f"\n - BGMediaPath: {vse_render.inputBGMediaPath}")
+                    vse_render.inputBGResolution = bgImgSeq_resolution
+
+                if specificFrame is None:
+                    vse_render.inputAudioMediaPath = audioFilePath
+
+                if specificFrame is None:
+                    video_frame_end = shot.end - shot.start + 1
+                    if renderHandles:
+                        video_frame_end += 2 * handles
+
+                    vse_render.compositeVideoInVSE(
+                        projectFps, 1, video_frame_end, compositedMediaPath, shot.getName_PathCompliant(),
+                    )
+                else:
+                    print(f"compositedMediaPath: {compositedMediaPath}")
+                    vse_render.compositeVideoInVSE(
+                        projectFps, 1, 1, compositedMediaPath, shot.getName_PathCompliant(),
+                    )
+
+                # bpy.ops.render.render("INVOKE_DEFAULT", animation=False, write_still=True)
+                # bpy.ops.render.render('INVOKE_DEFAULT', animation = True)
+                # bpy.ops.render.opengl ( animation = True )
+
+                deleteTempFiles = not config.uasDebug_keepVSEContent
+                if deleteTempFiles:
+                    _deleteTempFiles(newTempRenderPath)
+
             else:
-                print(f"compositedMediaPath: {compositedMediaPath}")
-                vse_render.compositeVideoInVSE(
-                    projectFps, 1, 1, compositedMediaPath, shot.getName_PathCompliant(),
-                )
+                #######################
+                # Collect rendered image sequences
+                #######################
+                videoAndSound = dict()
 
-            # bpy.ops.render.render("INVOKE_DEFAULT", animation=False, write_still=True)
-            # bpy.ops.render.render('INVOKE_DEFAULT', animation = True)
-            # bpy.ops.render.opengl ( animation = True )
+                videoAndSound["image_sequence"] = overImgSeq
+                videoAndSound["image_sequence_resolution"] = overImgSeq_resolution
 
-            deleteTempFiles = not config.uasDebug_keepVSEContent
-            if deleteTempFiles:
-                _deleteTempFiles(newTempRenderPath)
+                videoAndSound["bg_resolution"] = bgImgSeq_resolution
+                if preset_useStampInfo:
+                    videoAndSound["bg"] = bgImgSeq
+                videoAndSound["sound"] = audioFilePath
+
+                renderedShotSequencesArr.append(videoAndSound)
+
+                print(f"** renderedShotSequencesArr: {renderedShotSequencesArr}")
 
     #######################
     # render sequence video
@@ -441,19 +485,37 @@ def launchRenderWithVSEComposite(
 
     sequenceOutputFullPath = ""
     if generateSequenceVideo and specificFrame is None:
-        sequenceOutputFullPath = f"{rootPath}{takeName}\\{sequenceFileName}.{props.getOutputFileFormat()}"
-        print("  sequenceOutputFullPath: ", sequenceOutputFullPath)
 
-        if not fileListOnly:
-            print(f"sequenceFiles: {sequenceFiles}")
-            vse_render.buildSequenceVideo(sequenceFiles, sequenceOutputFullPath, handles, projectFps)
+        if generateShotVideos:
+            #######################
+            # render sequence video based on shot videos
+            #######################
 
-            currentTakeRenderTime = time.monotonic()
-            print(f"      \nTake render time: {(currentTakeRenderTime - previousTakeRenderTime):0.2f} sec.")
-            print("----------------------------------------")
-            previousTakeRenderTime = currentTakeRenderTime
+            sequenceOutputFullPath = f"{rootPath}{takeName}\\{sequenceFileName}.{props.getOutputFileFormat()}"
+            print(f"  Rendered sequence from shot videos: {sequenceOutputFullPath}")
 
-        newMediaFiles.append(sequenceOutputFullPath)
+            if not fileListOnly:
+                print(f"sequenceFiles: {sequenceFiles}")
+                vse_render.buildSequenceVideo(sequenceFiles, sequenceOutputFullPath, handles, projectFps)
+
+                currentTakeRenderTime = time.monotonic()
+                print(f"      \nTake render time: {(currentTakeRenderTime - previousTakeRenderTime):0.2f} sec.")
+                print("----------------------------------------")
+                previousTakeRenderTime = currentTakeRenderTime
+
+            newMediaFiles.append(sequenceOutputFullPath)
+
+        else:
+            #######################
+            # render sequence video based on shot image sequences
+            #######################
+            sequenceOutputFullPath = f"{rootPath}{takeName}\\playblast_{sequenceFileName}.{props.getOutputFileFormat()}"
+            print(f"  Rendered sequence from shot sequences: {sequenceOutputFullPath}")
+
+            if len(renderedShotSequencesArr):
+                vse_render.buildSequenceVideoFromImgSequences(
+                    renderedShotSequencesArr, sequenceOutputFullPath, handles, projectFps
+                )
 
     failedFiles = []
 
@@ -506,6 +568,9 @@ def renderStampedInfoForShot(
         stampInfoSettings.cornerNote = " *** Shot Muted in the take ***"
     else:
         stampInfoSettings.cornerNote = ""
+
+    if not render_handles:
+        handles = 0
 
     stampInfoSettings.shotHandles = handles
 
@@ -614,27 +679,21 @@ def launchRender(context, renderMode, rootPath, area=None):
     renderDisplayInfo += "\n                                 *** UAS Shot Manager V " + props.version()[0] + " - "
 
     preset = None
-    # renderDisplayInfo += "     - Render mode: "
     if "STILL" == renderMode:
         preset = props.renderSettingsStill
-        # renderDisplayInfo += f"   STILL, preset: {preset.name}\n"
-        renderDisplayInfo += f"   Render Image"
+        renderDisplayInfo += f"  Rendering with {preset.name}"
     elif "ANIMATION" == renderMode:
         preset = props.renderSettingsAnim
-        # renderDisplayInfo += f"   ANIMATION, preset: {preset.name}\n"
-        renderDisplayInfo += f"   Render Current Shot"
+        renderDisplayInfo += f"  Rendering with {preset.name}"
     elif "ALL" == renderMode:
         preset = props.renderSettingsAll
-        # renderDisplayInfo += f"   ALL, preset: {preset.name}\n"
-        renderDisplayInfo += f"   Render All"
+        renderDisplayInfo += f"  Rendering with {preset.name}"
     elif "OTIO" == renderMode:
         preset = props.renderSettingsOtio
-        # renderDisplayInfo += f"   EDL, preset: {preset.name}\n"
-        renderDisplayInfo += f"   Render EDL File"
+        renderDisplayInfo += f"  Rendering with {preset.name}"
     elif "PLAYBLAST" == renderMode:
         preset = props.renderSettingsPlayblast
-        # renderDisplayInfo += f"   ALL, preset: {preset.name}\n"
-        renderDisplayInfo += f"   Render Playblast"
+        renderDisplayInfo += f"  Rendering with {preset.name}"
     else:
         _logger.error(f"No valid render preset found")
 
@@ -659,21 +718,17 @@ def launchRender(context, renderMode, rootPath, area=None):
     from datetime import datetime
 
     now = datetime.now()
-    renderDisplayInfo += f"   Date: {now.strftime('%b-%d-%Y')}  -  {now.strftime('%H:%M:%S')}\n"
+    renderDisplayInfo += f"{'   - Date: ': <20}{now.strftime('%b-%d-%Y')}  -  {now.strftime('%H:%M:%S')}\n"
 
-    renderDisplayInfo += f"   - File: {bpy.data.filepath}\n"
-    renderDisplayInfo += f"   - Scene: {scene.name}\n"
-    renderDisplayInfo += f"   - RootPath: {rootPath}\n"
+    renderDisplayInfo += f"{'   - File: ': <20}{bpy.data.filepath}\n"
+    renderDisplayInfo += f"{'   - Scene: ': <20}{scene.name}\n"
+    renderDisplayInfo += f"{'   - RootPath: ': <20}{rootPath}\n"
+    if config.uasDebug:
+        renderDisplayInfo += f"{'   - Debug Mode: ': <20}{config.uasDebug}\n"
 
     renderDisplayInfo += f"\n"
     print(renderDisplayInfo)
 
-    # with utils.PropertyRestoreCtx ( (scene.render, "filepath"),
-    #                         ( scene, "frame_start"),
-    #                         ( scene, "frame_end" ),
-    #                                 ( scene.render.image_settings, "file_format" ),
-    #                                 ( scene.render.ffmpeg, "format" )
-    #                               ):
     if True:
         # prepare render settings
         # camera
@@ -747,8 +802,8 @@ def launchRender(context, renderMode, rootPath, area=None):
             print(json.dumps(renderedFilesDict, indent=4))
 
         elif "ALL" == preset.renderMode:
-            print(f"Render All:" + str(props.renderSettingsAll.renderAllTakes))
-            print(f"Render All, preset.renderAllTakes: {preset.renderAllTakes}")
+            _logger.debug(f"Render All:" + str(props.renderSettingsAll.renderAllTakes))
+            _logger.debug(f"Render All, preset.renderAllTakes: {preset.renderAllTakes}")
 
             takesToRender = [-1]
             if preset.renderAllTakes:
@@ -780,7 +835,26 @@ def launchRender(context, renderMode, rootPath, area=None):
                     # renderedFilesDict["edl_files"] = [renderedOtioFile]
             print(json.dumps(renderedFilesDict, indent=4))
 
+        elif "PLAYBLAST" == preset.renderMode:
+            _logger.debug(f"Render Playblast")
+
+            renderedFilesDict = launchRenderWithVSEComposite(
+                context,
+                "PLAYBLAST",
+                takeIndex=-1,
+                filePath=props.renderRootPath,
+                fileListOnly=False,
+                useStampInfo=preset.useStampInfo,
+                rerenderExistingShotVideos=True,
+                generateShotVideos=False,
+                generateSequenceVideo=True,
+                renderAlsoDisabled=False,
+                render_handles=False,
+                area=area,
+            )
+
         else:
+            print("\n *** preset.renderMode is invalid, cannot render anything... ***\n")
             pass
 
         print("Render done\n")

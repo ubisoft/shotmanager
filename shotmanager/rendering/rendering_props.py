@@ -57,12 +57,13 @@ class UAS_ShotManager_RenderGlobalContext(PropertyGroup):
     )
 
     def _update_renderQuality(self, context):
-        self.applyRenderQualitySettings(context)
+        self.applyRenderQualitySettings(context, renderQuality=self.renderQuality)
 
     renderQuality: EnumProperty(
         name="Render Quality",
         description="Set the Render Quality settings to use for the rendering.\nSettings are applied immediatly.",
         items=(
+            # ("VERY_LOW", "Very Low (faster)", ""),
             ("LOW", "Low (faster)", ""),
             ("MEDIUM", "Medium", ""),
             ("HIGH", "High (slower)", ""),
@@ -72,13 +73,31 @@ class UAS_ShotManager_RenderGlobalContext(PropertyGroup):
         update=_update_renderQuality,
     )
 
-    def applyRenderQualitySettings(self, context, renderWithOpengl=True):
+    def applyRenderQualitySettings(self, context, renderQuality=None, renderWithOpengl=True):
         # wkip les Quality Settings devraient etre globales au fichier
         # wkip faire une distinction avec le moteur courant pour l'application des settings
+
+        if renderQuality is None:
+            renderQuality = self.renderQuality
+
         props = context.scene.UAS_shot_manager_props
         #  bpy.context.space_data.overlay.show_overlays = props.useOverlays
 
-        if "LOW" == self.renderQuality:
+        if "VERY_LOW" == renderQuality:
+            # eevee
+            context.scene.eevee.taa_render_samples = 1
+            context.scene.eevee.taa_samples = 1
+
+            # workbench
+            # if "BLENDER_WORKBENCH" == bpy.context.scene.render.engine:
+            context.scene.display.render_aa = "OFF"
+            context.scene.display.viewport_aa = "OFF"
+
+            # cycles
+            context.scene.cycles.samples = 1
+            context.scene.cycles.preview_samples = 1
+
+        elif "LOW" == renderQuality:
             # eevee
             context.scene.eevee.taa_render_samples = 6
             context.scene.eevee.taa_samples = 2
@@ -92,7 +111,7 @@ class UAS_ShotManager_RenderGlobalContext(PropertyGroup):
             context.scene.cycles.samples = 6
             context.scene.cycles.preview_samples = 2
 
-        elif "MEDIUM" == self.renderQuality:
+        elif "MEDIUM" == renderQuality:
             # eevee
             context.scene.eevee.taa_render_samples = 32  # 64
             context.scene.eevee.taa_samples = 6  # 16
@@ -106,7 +125,7 @@ class UAS_ShotManager_RenderGlobalContext(PropertyGroup):
             context.scene.cycles.samples = 64
             context.scene.cycles.preview_samples = 16
 
-        elif "HIGH" == self.renderQuality:
+        elif "HIGH" == renderQuality:
             # eevee
             context.scene.eevee.taa_render_samples = 64  # 128
             context.scene.eevee.taa_samples = 12  # 32
