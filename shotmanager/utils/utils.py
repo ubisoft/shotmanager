@@ -60,7 +60,7 @@ def addonVersion(addonName):
 
     #    versions = (versionStr, versionInt)
 
-    versions = ("1.3.60", 1003060)
+    versions = ("1.3.61", 1003061)
 
     return versions
 
@@ -133,10 +133,17 @@ def ShowMessageBox(message="", title="Message Box", icon="INFO"):
 
         # #Shows a message box with a message, custom title, and a specific icon
         # ShowMessageBox("This is a message", "This is a custom title", 'ERROR')
+
+        Icon can be "INFO" (default), "WARNING", "ERROR"
     """
 
+    # else use return context.window_manager.invoke_props_dialog(self, width=400) in a invoke function
     def draw(self, context):
-        self.layout.label(text=message)
+        layout = self.layout
+        row = layout.row()
+        if "ERROR" == icon:
+            row.alert = True  # doesn't seem to work with popup_menu
+        row.label(text=message)
 
     bpy.context.window_manager.popup_menu(draw, title=title, icon=icon)
 

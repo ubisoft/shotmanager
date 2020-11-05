@@ -61,7 +61,7 @@ def storeUserRenderSettings(context, userRenderSettings):
         "use_stamp_render_time",
         "use_stamp_scene",
         "use_stamp_sequencer_strip",
-        "use_stamp_strip_meta",
+        # "use_stamp_strip_meta",
         "use_stamp_time",
     ]
 

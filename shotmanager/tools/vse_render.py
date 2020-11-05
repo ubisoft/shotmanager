@@ -192,6 +192,11 @@ class UAS_Vse_Render(PropertyGroup):
 
         self.inputAudioMediaPath = ""
 
+    def getMediaList(self, video=True, audio=True):
+        """Return a dictionary made of "media_video" and "media_audio", both having an array of media
+        """
+        pass
+
     def getMediaType(self, filePath):
         """ Return the type of media according to the extension of the provided file path
             Rturned types: 'MOVIE', 'IMAGES_SEQUENCE', 'IMAGE', 'SOUND', 'UNKNOWN'

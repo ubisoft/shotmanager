@@ -263,6 +263,16 @@ def publishRRS(
 
     generatedFilesDict["sequence_video_file"] = renderedFilesDict["sequence_video_file"]
 
+    ################
+    # get the list of all the sound files used in the VSE of the sequence
+    ################
+    vse_render = bpy.context.window_manager.UAS_vse_render
+    vse_render.getMediaList(video=False, audio=True)
+
+    ################
+    # build the output dictionary
+    ################
+
     jsonFile = prodFilePath
     if not jsonFile.endswith("\\"):
         jsonFile += "\\"

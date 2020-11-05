@@ -89,7 +89,7 @@ class UAS_ShotManager_FrameTimeRange(Operator):
     bl_description = "Change the VSE zoom value to fit the scene time range"
     bl_options = {"INTERNAL"}
 
-    spacerPercent = FloatProperty(
+    spacerPercent: FloatProperty(
         description="Range of time, in percentage, before and after the time range", min=0.0, max=40.0, default=5
     )
 

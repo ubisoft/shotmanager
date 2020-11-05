@@ -54,10 +54,10 @@ from . import viewport_3d
 
 from .scripts import rrs
 
-from .data_patches.data_patch_to_v1_2_25 import data_patch_to_v1_2_25
-from .data_patches.data_patch_to_v1_3_16 import data_patch_to_v1_3_16
+# from .data_patches.data_patch_to_v1_2_25 import data_patch_to_v1_2_25
+# from .data_patches.data_patch_to_v1_3_16 import data_patch_to_v1_3_16
 
-# from .data_patches.data_patch_to_v1_3_31 import data_patch_to_v1_3_31
+# # from .data_patches.data_patch_to_v1_3_31 import data_patch_to_v1_3_31
 
 from .debug import sm_debug
 
@@ -66,7 +66,7 @@ bl_info = {
     "author": "Julien Blervaque (aka Werwack), Romain Carriquiry Borchiari",
     "description": "Manage a sequence of shots and cameras in the 3D View - Ubisoft Animation Studio",
     "blender": (2, 90, 0),
-    "version": (1, 3, 60),
+    "version": (1, 3, 61),
     "location": "View3D > UAS Shot Manager",
     "wiki_url": "https://gitlab-ncsa.ubisoft.org/animation-studio/blender/shotmanager-addon/-/wikis/home",
     "warning": "BETA Version - Fais gaffe à tes données !!!",
@@ -205,8 +205,10 @@ def checkDataVersion_post_load_handler(self, context):
                 #   print("     Data version: ", props.dataVersion)
                 #   print("     Shot Manager version: ", bpy.context.window_manager.UAS_shot_manager_version)
                 # if props.dataVersion <= 0 or props.dataVersion < bpy.context.window_manager.UAS_shot_manager_version:
-                if props.dataVersion <= 0 or props.dataVersion < 1003016:
-                    _logger.info("     *** Shot Manager Data Version is lower than the current Shot Manager version")
+                if props.dataVersion <= 0 or props.dataVersion < props.version()[1]:
+                    _logger.info(
+                        f"     *** Scene {scn.name}: Shot Manager Data Version is lower than the current Shot Manager version"
+                    )
                     numScenesToUpgrade += 1
                     if -1 == lowerSceneVersion or props.dataVersion < lowerSceneVersion:
                         lowerSceneVersion = props.dataVersion
@@ -218,23 +220,35 @@ def checkDataVersion_post_load_handler(self, context):
                     # print("       Data upgraded to version V. ", props.dataVersion)
 
         if numScenesToUpgrade:
+            print(
+                f"Shot Manager Data Version is lower than the current Shot Manager version - Upgrading data with patches..."
+            )
             # apply patch and apply new data version
             # wkip patch strategy to re-think. Collect the data versions and apply the respective patches?
 
-            if lowerSceneVersion < 1002026:
-                print("       Applying data patch to file: upgrade to 1002025")
+            patchVersion = 1002026
+            if lowerSceneVersion < patchVersion:
+                from .data_patches.data_patch_to_v1_2_25 import data_patch_to_v1_2_25
+
+                print(f"       Applying data patch to file: upgrade to {patchVersion}")
                 data_patch_to_v1_2_25()
-                lowerSceneVersion = 1002026
+                lowerSceneVersion = patchVersion
 
-            if lowerSceneVersion < 1003016:
-                print("       Applying data patch to file: upgrade to 1002025")
+            patchVersion = 1003016
+            if lowerSceneVersion < patchVersion:
+                from .data_patches.data_patch_to_v1_3_16 import data_patch_to_v1_3_16
+
+                print(f"       Applying data patch to file: upgrade to {patchVersion}")
                 data_patch_to_v1_3_16()
-                lowerSceneVersion = 1003016
+                lowerSceneVersion = patchVersion
 
-            # if lowerSceneVersion < 1003031:
-            #     print("       Applying data patch to file: upgrade to 1002031")
-            #     data_patch_to_v1_3_31()
-            #     lowerSceneVersion = 1003031
+            patchVersion = 1003061
+            if lowerSceneVersion < patchVersion:
+                from .data_patches.data_patch_to_v1_3_61 import data_patch_to_v1_3_61
+
+                print(f"       Applying data patch to file: upgrade to {patchVersion}")
+                data_patch_to_v1_3_61()
+                lowerSceneVersion = patchVersion
 
             # current version, no patch required but data version is updated
             if lowerSceneVersion < props.version()[1]:
@@ -292,7 +306,7 @@ def register():
             ch = "~"  # "\u02EB"
             formatter = Formatter(ch + " {message:<140}", style="{")
         else:
-            formatter = Formatter("{asctime} {levelname[0]} {name:<36}  - {message:<80}", style="{")
+            formatter = Formatter("{asctime} {levelname[0]} {name:<30}  - {message:<80}", style="{")
         handler = logging.StreamHandler()
         handler.setFormatter(formatter)
         _logger.addHandler(handler)

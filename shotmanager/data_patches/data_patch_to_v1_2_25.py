@@ -9,15 +9,15 @@ def data_patch_to_v1_2_25():
     for scn in bpy.data.scenes:
         # if "UAS_shot_manager_props" in scn:
         if getattr(bpy.context.scene, "UAS_shot_manager_props", None) is not None:
-            print("\n   Shot Manager instance found in scene " + scn.name)
+            #  print("\n   Shot Manager instance found in scene " + scn.name)
             props = scn.UAS_shot_manager_props
 
-            print("     Data version: ", props.dataVersion)
-            print("     Shot Manager version: ", bpy.context.window_manager.UAS_shot_manager_version)
+            # print("     Data version: ", props.dataVersion)
+            # print("     Shot Manager version: ", bpy.context.window_manager.UAS_shot_manager_version)
             if props.dataVersion <= 0 or props.dataVersion < bpy.context.window_manager.UAS_shot_manager_version:
 
                 # apply patch and apply new data version
-                print("       Applying data patch data_patch_to_v1_2_25 to scenes")
+                #   print("       Applying data patch data_patch_to_v1_2_25 to scenes")
                 takes = props.getTakes()
                 for take in takes:
                     take.getParentScene()

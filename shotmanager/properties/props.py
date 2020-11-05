@@ -57,12 +57,12 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
     )
 
     def initialize_shot_manager(self):
-        _logger.info(f"\nInitializing Shot Manager... Scene: {bpy.context.scene.name}")
+        print(f"\nInitializing Shot Manager... Scene: {bpy.context.scene.name}")
         # self.parentScene = self.getParentScene()
 
         if self.parentScene is None:
             self.parentScene = self.findParentScene()
-        _logger.info(f"\n  self.parentScene : {self.parentScene}")
+        # _logger.info(f"\n  self.parentScene : {self.parentScene}")
 
         self.initialize()
         self.dataVersion = bpy.context.window_manager.UAS_shot_manager_version
@@ -606,7 +606,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         else:
             self.current_take_name = ""
 
-        print(f" ---- currentTakeByIndex: {currentTakeInd}, {self.getTakeByIndex(currentTakeInd)}")
+        # print(f" ---- currentTakeByIndex: {currentTakeInd}, {self.getTakeByIndex(currentTakeInd)}")
 
     def getCurrentTake(self):
         currentTakeInd = self.getCurrentTakeIndex()
