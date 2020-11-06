@@ -301,7 +301,7 @@ class UAS_VideoShotManager_OT_PrintMontageInfo(Operator):
 
 class UAS_VideoShotManager_OT_ExportMarkersEditAsVideos(Operator):
     bl_idname = "uas_video_shot_manager.export_markers_edit_as_videos"
-    bl_label = "Export Markers Edit as Videos"
+    bl_label = "Export Markers Edit as Videos..."
     bl_description = "Export all the segments defined by the markers as separated videos"
     bl_options = {"INTERNAL"}
 

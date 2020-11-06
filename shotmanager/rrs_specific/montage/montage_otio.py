@@ -103,7 +103,7 @@ class MontageOtio(MontageInterface):
             return -1
 
         def _getVideoCharacteristicsFromXML():
-            print("_getVideoCharacteristicsFromXML")
+            #    print("_getVideoCharacteristicsFromXML")
 
             from xml.dom.minidom import parse
 
@@ -142,7 +142,7 @@ class MontageOtio(MontageInterface):
                     seqMediaVideoFormat, "samplecharacteristics"
                 )
 
-            print(f"videoSampleCharacteristics: {videoSampleCharacteristics}")
+            #    print(f"videoSampleCharacteristics: {videoSampleCharacteristics}")
 
             if videoSampleCharacteristics is not None:
                 seqRate = utils_xml.getFirstChildWithName(videoSampleCharacteristics, "rate")
@@ -198,7 +198,7 @@ class MontageOtio(MontageInterface):
                 #     track = self.timeline.video_tracks[0]
 
                 for clip in track:
-                    print(f"Clip name 01: {clip.name}, type:{type(clip)}")
+                    #    print(f"Clip name 01: {clip.name}, type:{type(clip)}")
 
                     # if clip is a media
                     if isinstance(clip, opentimelineio.schema.Clip):

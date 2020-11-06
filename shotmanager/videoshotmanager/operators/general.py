@@ -40,6 +40,11 @@ class UAS_VideoShotManager_FrameAllClips(Operator):
 
         bpy.ops.sequencer.view_all()
         # bpy.ops.time.view_all()
+
+        # for test only
+        # filedit = bpy.context.window_manager.UAS_vse_render.getMediaList(context.scene, listVideo=False, listAudio=True)
+        # print(f"filedit: \n{filedit}")
+
         return {"FINISHED"}
 
 

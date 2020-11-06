@@ -177,7 +177,7 @@ def publishRRS(
         renderAlsoDisabled=renderAlsoDisabled,
         area=bpy.context.area,
         stampInfoCustomSettingsDict=stampInfoCustomSettingsDict,
-        override_all_viewports=True
+        override_all_viewports=True,
     )
 
     ################
@@ -267,7 +267,9 @@ def publishRRS(
     # get the list of all the sound files used in the VSE of the sequence
     ################
     vse_render = bpy.context.window_manager.UAS_vse_render
-    vse_render.getMediaList(video=False, audio=True)
+    # Return a dictionary made of "media_video" and "media_audio", both having an array of media filepaths
+    soundsMedia = vse_render.getMediaList(scene, listVideo=False, listAudio=True)
+    generatedFilesDict["sounds_media"] = soundsMedia["media_audio"]
 
     ################
     # build the output dictionary

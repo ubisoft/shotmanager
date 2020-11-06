@@ -25,19 +25,19 @@ _logger = logging.getLogger(__name__)
 
 class UAS_VideoShotManager_OT_RRS_ExportShotsFromEdit(Operator):
     bl_idname = "uas_video_shot_manager.rrs_export_shots_from_edit"
-    bl_label = "Export Shots From Previz Edit"
-    bl_description = "Export Shots From Edit"
+    bl_label = "Export Shots From Previz Edit..."
+    bl_description = "Open the specified animatic edit video and import it with markers added at each shot"
     bl_options = {"INTERNAL"}
 
     overlayFile: StringProperty(default=r"C:\_UAS_ROOT\RRSpecial\00_Common\Images\RRS_EditPreviz_Overlay.png")
-    # editVideoFile: StringProperty(default=r"C:\_UAS_ROOT\RRSpecial\05_Acts\Act01\_Montage\Act01_Edit_Previz.mp4")
-    # otioFile: StringProperty(default=r"C:\_UAS_ROOT\RRSpecial\05_Acts\Act01\_Montage\Act01_Edit_Previz.xml")
-    editVideoFile: StringProperty(
-        default=r"C:\_UAS_ROOT\RRSpecial\_Sandbox\Julien\Fixtures_Montage\PrevizAct01_Seq0060\Act01_Seq0060_Main_Take_ModifsRename.mp4"
-    )
-    otioFile: StringProperty(
-        default=r"C:\_UAS_ROOT\RRSpecial\_Sandbox\Julien\Fixtures_Montage\PrevizAct01_Seq0060\Act01_Seq0060_Main_Take_ModifsRename.xml"
-    )
+    editVideoFile: StringProperty(default=r"C:\_UAS_ROOT\RRSpecial\05_Acts\Act01\_Montage\Act01_Edit_Previz.mp4")
+    otioFile: StringProperty(default=r"C:\_UAS_ROOT\RRSpecial\05_Acts\Act01\_Montage\Act01_Edit_Previz.xml")
+    # editVideoFile: StringProperty(
+    #     default=r"C:\_UAS_ROOT\RRSpecial\_Sandbox\Julien\Fixtures_Montage\PrevizAct01_Seq0060\Act01_Seq0060_Main_Take_ModifsRename.mp4"
+    # )
+    # otioFile: StringProperty(
+    #     default=r"C:\_UAS_ROOT\RRSpecial\_Sandbox\Julien\Fixtures_Montage\PrevizAct01_Seq0060\Act01_Seq0060_Main_Take_ModifsRename.xml"
+    # )
     useOverlayFrame: BoolProperty(name="Use Overlay Frame", default=False)
 
     def invoke(self, context, event):

@@ -192,10 +192,46 @@ class UAS_Vse_Render(PropertyGroup):
 
         self.inputAudioMediaPath = ""
 
-    def getMediaList(self, video=True, audio=True):
-        """Return a dictionary made of "media_video" and "media_audio", both having an array of media
+    def getMediaList(self, scene, listVideo=True, listAudio=True):
+        """Return a dictionary made of "media_video" and "media_audio", both having an array of media filepaths
         """
-        pass
+        mediaList = {"media_video": None, "media_audio": None}
+        audioFiles = []
+        videoFiles = []
+        for seq in scene.sequence_editor.sequences:
+            mediaPath = self.getClipMediaPath(scene, seq)
+            # print("mediaPath: ", mediaPath)
+            mediaType = self.getMediaType(mediaPath)
+            # print("mediaType: ", mediaType)
+            if listAudio:
+                if "SOUND" == mediaType:
+                    if mediaPath not in audioFiles:
+                        audioFiles.append(mediaPath)
+            if listVideo:
+                if "MOVIE" == mediaType:
+                    if mediaPath not in videoFiles:
+                        videoFiles.append(mediaPath)
+        if listAudio:
+            mediaList["media_audio"] = audioFiles
+        if listVideo:
+            mediaList["media_video"] = videoFiles
+
+        return mediaList
+
+    def getClipMediaPath(self, scene, clip):
+        mediaPath = None
+        # print(f"  clip: {clip.name}, type: {clip.type}")
+        if "SOUND" == clip.type:
+            # if clip.name in bpy.data.sounds:
+            #     mediaPath = bpy.data.sounds[clip.name].filepath
+            # elif clip.name in bpy.context.scene.sequence_editor.sequences_all:
+            #     mediaPath = bpy.context.scene.sequence_editor.sequences_all[clip.name].filepath
+            mediaPath = bpy.context.scene.sequence_editor.sequences[clip.name].sound.filepath
+
+        elif "MOVIE" == clip.type:
+            mediaPath = bpy.context.scene.sequence_editor.sequences_all[clip.name].filepath
+
+        return bpy.path.abspath(mediaPath)
 
     def getMediaType(self, filePath):
         """ Return the type of media according to the extension of the provided file path
