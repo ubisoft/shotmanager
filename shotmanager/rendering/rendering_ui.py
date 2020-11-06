@@ -288,7 +288,13 @@ class UAS_PT_ShotManagerRenderPanel(Panel):
                 rowAlert.label(text="*** Invalid Root Path ***")
 
             row = box.row()
-            row.prop(props.renderSettingsPlayblast, "useStampInfo")
+            colFlow = row.column_flow(columns=2)
+            col = colFlow.row()
+            col.prop(props.renderSettingsPlayblast, "useStampInfo")
+            col = colFlow.row()
+            col.label(text="Resolution %")
+            col.prop(props.renderSettingsPlayblast, "resolutionPercentage", text="")
+            # row.use_property_split = False
 
             row = box.row()
             row.label(text="Playblast Video: " + filePath)

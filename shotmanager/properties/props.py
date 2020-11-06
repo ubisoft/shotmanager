@@ -2363,9 +2363,9 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         if project_asset_name is not None:
             self.project_asset_name = project_asset_name
 
-        self.restoreProjectSettings()
+        self.applyProjectSettings()
 
-    def restoreProjectSettings(self, settingsListOnly=False):
+    def applyProjectSettings(self, settingsListOnly=False):
 
         settingsList = []
 
@@ -2445,6 +2445,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         # Playblast
         self.renderSettingsPlayblast.name = "Playblast Preset"
         self.renderSettingsPlayblast.renderMode = "PLAYBLAST"
+        self.renderSettingsPlayblast.useStampInfo = False
 
     def setProjectRenderFilePath(self):
         # if '' == bpy.data.filepath:

@@ -7,6 +7,7 @@ def storeUserRenderSettings(context, userRenderSettings):
     #    userRenderSettings["show_overlays"] = bpy.context.space_data.overlay.show_overlays
     userRenderSettings["resolution_x"] = scene.render.resolution_x
     userRenderSettings["resolution_y"] = scene.render.resolution_y
+    userRenderSettings["resolution_percentage"] = scene.render.resolution_percentage
     userRenderSettings["render_engine"] = scene.render.engine
 
     userRenderSettings["frame_start"] = scene.frame_start
@@ -82,6 +83,7 @@ def restoreUserRenderSettings(context, userRenderSettings):
 
     scene.render.resolution_x = userRenderSettings["resolution_x"]
     scene.render.resolution_y = userRenderSettings["resolution_y"]
+    scene.render.resolution_percentage = userRenderSettings["resolution_percentage"]
     scene.render.engine = userRenderSettings["render_engine"]
 
     scene.frame_start = userRenderSettings["frame_start"]

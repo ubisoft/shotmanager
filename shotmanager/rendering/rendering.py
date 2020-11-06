@@ -111,15 +111,6 @@ def launchRenderWithVSEComposite(
     takeName = take.getName_PathCompliant()
     shotList = take.getShotList(ignoreDisabled=not renderAlsoDisabled) if specificShotList is None else specificShotList
 
-    projectFps = scene.render.fps
-    sequenceFileName = props.renderShotPrefix() + takeName
-
-    if props.use_project_settings:
-        props.restoreProjectSettings()
-        scene.render.image_settings.file_format = props.project_images_output_format
-        projectFps = scene.render.fps
-        sequenceFileName = props.renderShotPrefix()
-
     newMediaFiles = []
     sequenceFiles = []  # only enabled shots
 
@@ -161,8 +152,6 @@ def launchRenderWithVSEComposite(
     previousShotRenderTime = time.monotonic()
     currentShotRenderTime = previousShotRenderTime
 
-    context.scene.use_preview_range = False
-
     renderFrameByFrame = (
         "PLAYBLAST_LOOP" == props.renderContext.renderComputationMode
         or "ENGINE_LOOP" == props.renderContext.renderComputationMode
@@ -172,42 +161,86 @@ def launchRenderWithVSEComposite(
         or "PLAYBLAST_ANIM" == props.renderContext.renderComputationMode
     )
 
+    if "PLAYBLAST" == renderMode:
+        renderFrameByFrame = False
+        renderWithOpengl = True
+
     #######################
     # store current scene settings
     #######################
     userRenderSettings = {}
     userRenderSettings = utilsStore.storeUserRenderSettings(context, userRenderSettings)
 
-    if renderWithOpengl:
-        spaces = list()
-        if override_all_viewports:
-            for area in context.screen.areas:
-                if area.type == "VIEW_3D":
-                    for space_data in area.spaces:
-                        if space_data.type == "VIEW_3D":
-                            spaces.append(space_data)
+    #######################
+    # set specific render context
+    #######################
+
+    projectFps = scene.render.fps
+    sequenceFileName = props.renderShotPrefix() + takeName
+    scene.use_preview_range = False
+    renderResolution = [scene.render.resolution_x, scene.render.resolution_y]
+    renderResolutionFramed = [scene.render.resolution_x, scene.render.resolution_y]
+
+    # override local variables with project settings
+    if props.use_project_settings:
+        props.applyProjectSettings()
+        scene.render.image_settings.file_format = props.project_images_output_format
+        projectFps = scene.render.fps
+        sequenceFileName = props.renderShotPrefix()
+        renderResolution = [props.project_resolution_x, props.project_resolution_y]
+        renderResolutionFramed = [props.project_resolution_framed_x, props.project_resolution_framed_y]
+
+    if "PLAYBLAST" == renderMode:
+        scene.render.resolution_percentage = props.renderSettingsPlayblast.resolutionPercentage
+        renderResolution[0] = int(renderResolution[0] * props.renderSettingsPlayblast.resolutionPercentage / 100)
+        renderResolution[1] = int(renderResolution[0] * props.renderSettingsPlayblast.resolutionPercentage / 100)
+
+        if preset_useStampInfo:
+            # wkip
+            renderResolutionFramed[0] = int(1280 * props.renderSettingsPlayblast.resolutionPercentage / 100)
+            renderResolutionFramed[1] = int(960 * props.renderSettingsPlayblast.resolutionPercentage / 100)
         else:
-            spaces.append(context.space_data)
+            renderResolutionFramed[0] = int(
+                renderResolutionFramed[0] * props.renderSettingsPlayblast.resolutionPercentage / 100
+            )
+            renderResolutionFramed[1] = int(
+                renderResolutionFramed[0] * props.renderSettingsPlayblast.resolutionPercentage / 100
+            )
 
-        for space_data in spaces:
-            if not "CUSTOM" == props.renderContext.renderEngineOpengl:
-                context.scene.render.engine = props.renderContext.renderEngineOpengl
-                if "BLENDER_EEVEE" == props.renderContext.renderEngineOpengl:
-                    if space_data is not None:  # case where Blender is running in background
-                        space_data.shading.type = "RENDERED"
-                elif "BLENDER_WORKBENCH" == props.renderContext.renderEngineOpengl:
-                    if space_data is not None:  # case where Blender is running in background
-                        space_data.shading.type = "SOLID"
-            if space_data is not None:  # case where Blender is running in background
-                space_data.overlay.show_overlays = props.renderContext.useOverlays
+    # set render quality
+    #######################
 
-    else:
-        # wkip hack rrs
-        bpy.context.scene.render.use_compositing = False
-        bpy.context.scene.render.use_sequencer = False
+    if not "PLAYBLAST" == renderMode:
+        if renderWithOpengl:
+            spaces = list()
+            if override_all_viewports:
+                for area in context.screen.areas:
+                    if area.type == "VIEW_3D":
+                        for space_data in area.spaces:
+                            if space_data.type == "VIEW_3D":
+                                spaces.append(space_data)
+            else:
+                spaces.append(context.space_data)
 
-        if not "CUSTOM" == props.renderContext.renderEngine:
-            context.scene.render.engine = props.renderContext.renderEngine
+            for space_data in spaces:
+                if not "CUSTOM" == props.renderContext.renderEngineOpengl:
+                    scene.render.engine = props.renderContext.renderEngineOpengl
+                    if "BLENDER_EEVEE" == props.renderContext.renderEngineOpengl:
+                        if space_data is not None:  # case where Blender is running in background
+                            space_data.shading.type = "RENDERED"
+                    elif "BLENDER_WORKBENCH" == props.renderContext.renderEngineOpengl:
+                        if space_data is not None:  # case where Blender is running in background
+                            space_data.shading.type = "SOLID"
+                if space_data is not None:  # case where Blender is running in background
+                    space_data.overlay.show_overlays = props.renderContext.useOverlays
+
+        else:
+            # wkip hack rrs
+            scene.render.use_compositing = False
+            scene.render.use_sequencer = False
+
+            if not "CUSTOM" == props.renderContext.renderEngine:
+                scene.render.engine = props.renderContext.renderEngine
 
     if "PLAYBLAST" == renderMode:
         props.renderContext.applyRenderQualitySettings(context, renderQuality="VERY_LOW")
@@ -215,10 +248,14 @@ def launchRenderWithVSEComposite(
             props.renderContext.applyBurnInfos(context)
     else:
         props.renderContext.applyRenderQualitySettings(context)
-    context.scene.view_settings.view_transform = "Standard"
+
+    scene.view_settings.view_transform = "Standard"
 
     renderedShotSequencesArr = []
 
+    #######################
+    # render each shots
+    #######################
     for i, shot in enumerate(shotList):
         # context.window_manager.UAS_shot_manager_progressbar = (i + 1) / len(shotList) * 100.0
         # bpy.ops.wm.redraw_timer(type="DRAW_WIN_SWAP", iterations=2)
@@ -287,8 +324,6 @@ def launchRenderWithVSEComposite(
 
             renderShotContent = True
             if renderShotContent and not fileListOnly:
-                scene.render.resolution_x = 1280
-                scene.render.resolution_y = 720
 
                 if renderFrameByFrame:
                     for f, currentFrame in enumerate(range(scene.frame_start, scene.frame_end + 1)):
@@ -397,7 +432,7 @@ def launchRenderWithVSEComposite(
                 bpy.ops.sound.mixdown(filepath=audioFilePath, relative_path=False, container="WAV", codec="PCM")
 
             overImgSeq = newTempRenderPath + shot.getOutputMediaPath(providePath=False, genericFrame=True)
-            overImgSeq_resolution = (1280, 720)
+            overImgSeq_resolution = renderResolution
 
             bgImgSeq = None
             bgImgSeq_resolution = overImgSeq_resolution
@@ -405,7 +440,7 @@ def launchRenderWithVSEComposite(
                 frameIndStr = "####" if specificFrame is None else f"{specificFrame:04}"
                 _logger.debug(f"\n - specificFrame: {specificFrame}")
                 bgImgSeq = newTempRenderPath + "_tmp_StampInfo." + frameIndStr + ".png"
-                bgImgSeq_resolution = (1280, 960)
+                bgImgSeq_resolution = renderResolutionFramed
 
             if generateShotVideos:
 
@@ -759,14 +794,12 @@ def launchRender(context, renderMode, rootPath, area=None):
         if take is None:
             print("Shot Manager Rendering: No current take found - Rendering aborted")
             return False
-        else:
-            take_name = take.name
 
         context.window_manager.UAS_shot_manager_shots_play_mode = False
         context.window_manager.UAS_shot_manager_display_timeline = False
 
         # if props.use_project_settings:
-        #     props.restoreProjectSettings()
+        #     props.applyProjectSettings()
 
         #     if preset_useStampInfo:  # framed output resolution is used only when StampInfo is used
         #         if "UAS_PROJECT_RESOLUTIONFRAMED" in os.environ.keys():

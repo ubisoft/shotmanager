@@ -181,7 +181,7 @@ class UAS_VideoShotManager_OT_RRS_ExportShotsFromEdit(Operator):
         #       scene.render.filepath = output_filepath
         scene.render.use_file_extension = False
 
-        scene.render.resolution_percentage = 75.0
+        # scene.render.resolution_percentage = 75.0
 
         return {"FINISHED"}
 

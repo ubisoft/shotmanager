@@ -1,6 +1,6 @@
 import bpy
 from bpy.types import PropertyGroup
-from bpy.props import StringProperty, BoolProperty, EnumProperty
+from bpy.props import StringProperty, BoolProperty, EnumProperty, IntProperty
 
 
 # def list_available_render_engines(self, context):
@@ -203,6 +203,11 @@ class UAS_ShotManager_RenderSettings(PropertyGroup):
     useStampInfo: BoolProperty(name="Use Stamp Info", default=True)
 
     rerenderExistingShotVideos: BoolProperty(name="Re-render Exisiting Shot Videos", default=True)
+
+    # used only by PLAYBLAST
+    resolutionPercentage: IntProperty(
+        name="Resolution Percentage", min=10, soft_max=100, max=300, subtype="PERCENTAGE", default=100
+    )
 
     bypass_rendering_project_settings: BoolProperty(
         name="Bypass Project Settings",

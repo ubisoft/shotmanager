@@ -86,7 +86,7 @@ class UAS_PT_ShotManager_Render(Operator):
         elif "OTIO" == properties.renderMode:
             descr = "Render the EDL"
         elif "PLAYBLAST" == properties.renderMode:
-            descr = "Render a playblast according to the settings"
+            descr = "Fast-render the enabled shots to a single video based on the current viewport settings."
 
         return descr
 
@@ -284,12 +284,12 @@ class UAS_PT_ShotManager_RenderDialog(Operator):
 
 class UAS_ShotManager_Render_RestoreProjectSettings(Operator):
     bl_idname = "uas_shot_manager.render_restore_project_settings"
-    bl_label = "Restore Project Settings"
-    bl_description = "Restore Project Settings"
+    bl_label = "Apply Project Settings"
+    bl_description = "Apply Project Settings"
     bl_options = {"INTERNAL"}
 
     def execute(self, context):
-        context.scene.UAS_shot_manager_props.restoreProjectSettings()
+        context.scene.UAS_shot_manager_props.applyProjectSettings()
         return {"FINISHED"}
 
 

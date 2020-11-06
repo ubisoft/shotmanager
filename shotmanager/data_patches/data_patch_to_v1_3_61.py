@@ -25,6 +25,7 @@ def data_patch_to_v1_3_61():
 
                 props.renderSettingsPlayblast.name = "Playblast Preset"
                 props.renderSettingsPlayblast.renderMode = "PLAYBLAST"
+                props.renderSettingsPlayblast.useStampInfo = False
 
                 # set right data version
                 # props.dataVersion = bpy.context.window_manager.UAS_shot_manager_version
