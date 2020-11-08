@@ -292,7 +292,7 @@ class UAS_PT_ShotManagerRenderPanel(Panel):
             col = colFlow.row()
             col.prop(props.renderSettingsPlayblast, "useStampInfo")
             col = colFlow.row()
-            col.label(text="Resolution %")
+            col.label(text="Resolution %:")
             col.prop(props.renderSettingsPlayblast, "resolutionPercentage", text="")
             # row.use_property_split = False
 

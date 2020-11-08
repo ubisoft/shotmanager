@@ -1533,7 +1533,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
 
     def setCurrentShot(self, currentShot, changeTime=None, area=None):
         shotInd = self.getShotIndex(currentShot)
-        print("setCurrentShot: shotInd:", shotInd)
+        #print("setCurrentShot: shotInd:", shotInd)
         self.setCurrentShotByIndex(shotInd, changeTime=changeTime, area=area)
 
     def getSelectedShotIndex(self):

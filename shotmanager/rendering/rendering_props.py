@@ -166,7 +166,8 @@ class UAS_ShotManager_RenderGlobalContext(PropertyGroup):
         context.scene.render.use_stamp_frame = True
         context.scene.render.use_stamp_date = True
         context.scene.render.use_stamp_time = True
-        context.scene.render.use_stamp_time = True
+
+        # scene.render.use_stamp_note = True
 
 
 class UAS_ShotManager_RenderSettings(PropertyGroup):

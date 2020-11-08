@@ -791,8 +791,17 @@ def conformToRefMontage(
     if not mediaHaveHandles:
         mediaHandlesDuration = 0
 
-    def printInfoLine(col00, col01, col02):
-        formatedTextLine = f"{col00: >10}   {col01: <37}    - {col02: <30}"
+    def printInfoLine(col00, col01, col02=None, modifsSelf=None):
+        if col02 is not None:
+            formatedTextLine = f"{col00: >10}   {col01: <37}    - {col02: <30}"
+        else:
+            if len(modifsSelf):
+                formatedTextLine = f"{col00: >10}   {col01: <37}    - {modifsSelf[0]: <30}"
+                for i in range(1, len(modifsSelf)):
+                    col00 = ""
+                    col01 = ""
+                    formatedTextLine += f"{col00: >10}   {col01: <37}    - {modifsSelf[i]: <30}"
+
         # print(formatedTextLine)
         return "\n" + formatedTextLine
 
@@ -860,6 +869,8 @@ def conformToRefMontage(
         textRef = shotRef.get_name()
         shotRefName = Path(shotRef.get_name()).stem
 
+        shotSelfModifs = []
+
         shotSelf = None
         for sh in shotList:
             # if sh.get_name() == shotRef.get_name():
@@ -902,6 +913,9 @@ def conformToRefMontage(
                         media_path="",  # media_path,
                         handlesDuration=mediaHandlesDuration,
                     )
+                    if shotSelf.camera is not None:
+                        shotSelf.camera.color = [0, 0, 1, 1]
+
                     shotSelf = props.moveShotToIndex(shotSelf, expectedIndInSelfEdit)
                     expectedIndInSelfEdit += 1
 
@@ -922,23 +936,29 @@ def conformToRefMontage(
             if expectedIndInSelfEdit != shotInd:
                 shotSelf = props.moveShotToIndex(shotSelf, expectedIndInSelfEdit)
 
-            #               newEditShots.append(shotSelf)
+            # newEditShots.append(shotSelf)
             if not shotSelf.enabled:
-                textSelf += " / enabled"
+                modifStr = "enabled"
+                shotSelfModifs.append(modifStr)
+                textSelf += f" / {modifStr}"
             # print(f" ++ shot name before enabled: {shotSelf.name}, enabled: {shotSelf.enabled}")
             shotSelf.enabled = True
 
             offsetStart = shotRef.get_frame_offset_start()
             if offsetStart != mediaInEDLHandlesDuration:
                 deltaStart = offsetStart - mediaInEDLHandlesDuration
-                textSelf += f" / offset start modified ({offsetStart} instead of {mediaInEDLHandlesDuration} fr.) (delta:{deltaStart})"
+                modifStr = f"offset start modified ({offsetStart} instead of {mediaInEDLHandlesDuration} fr.) (delta:{deltaStart})"
+                shotSelfModifs.append(modifStr)
+                textSelf += f" / {modifStr}"
                 shotSelf.start += deltaStart
 
             previousDuration = shotSelf.get_frame_final_duration()
             newDuration = shotRef.get_frame_final_duration()
             if previousDuration != newDuration:
                 shotSelf.setDuration(newDuration)
-                textSelf += f" / duration changed (was {previousDuration} fr.)"
+                modifStr = f"duration changed (was {previousDuration} fr.)"
+                shotSelfModifs.append(modifStr)
+                textSelf += f" / {modifStr}"
 
             shotSelf.durationLocked = True
             expectedIndInSelfEdit += 1
@@ -957,11 +977,13 @@ def conformToRefMontage(
                     if "" == media_path.suffix:
                         media_path = Path(str(media_path) + ".mp4")
 
-                    textSelf += f" / New cam BG: {media_path.name}"
+                    modifStr = f"New cam BG: {media_path.name}"
+                    textSelf += f" / {modifStr}"
 
                     if not media_path.exists():
                         print(f"** BG video shot not found: {media_path}")
                         textSelf += f" (!!! Not Found in {media_path.parent})"
+                        modifStr += f" (!!! Not Found in {media_path.parent})"
                     else:
                         # if True:
                         # start frame of the background video is not set here since it will be linked to the shot start frame
@@ -972,18 +994,26 @@ def conformToRefMontage(
                         if mediaHaveHandles:
                             shotSelf.bgImages_offset = -1 * mediaHandlesDuration
 
-        infoStr += printInfoLine(str(indInRefEdit), f"{textRef}  ({shotRef.get_frame_final_duration()} fr.)", textSelf)
+                    shotSelfModifs.append(modifStr)
+
+        infoStr += printInfoLine(
+            str(indInRefEdit), f"{textRef}  ({shotRef.get_frame_final_duration()} fr.)", modifsSelf=shotSelfModifs
+        )
 
     ###################
     # list other shots and disabled them
     ###################
-    infoStr += f"\n       Shots not used in current sequence (and then disabled):"
+    infoStr += f"\n\n       Shots not used in current sequence (and then disabled):"
     ind = 0
     for i in range(expectedIndInSelfEdit, len(shotList)):
         # if shotList[i] not in newEditShots:
         textSelf = shotList[i].get_name()
         if shotList[i].enabled:
             shotList[i].enabled = False
+            shotList[i].name += "__removed"
+            if shotList[i].camera is not None:
+                shotList[i].camera.color = [1, 0, 0, 1]
+            shotList[i].note01 = f"Shot removed from {ref_montage.get_name()}"  # Edit Previz 04/11/20"
             textSelf += " / disabled"
 
         infoStr += printInfoLine(str(ind + numShotsInRefEdit), "-", textSelf)

@@ -146,12 +146,6 @@ def launchRenderWithVSEComposite(
         context.window_manager.UAS_shot_manager_shots_play_mode = False
         context.window_manager.UAS_shot_manager_display_timeline = False
 
-    previousTakeRenderTime = time.monotonic()
-    currentTakeRenderTime = previousTakeRenderTime
-
-    previousShotRenderTime = time.monotonic()
-    currentShotRenderTime = previousShotRenderTime
-
     renderFrameByFrame = (
         "PLAYBLAST_LOOP" == props.renderContext.renderComputationMode
         or "ENGINE_LOOP" == props.renderContext.renderComputationMode
@@ -162,7 +156,7 @@ def launchRenderWithVSEComposite(
     )
 
     if "PLAYBLAST" == renderMode:
-        renderFrameByFrame = False
+        renderFrameByFrame = False  # wkip crash a la génération du son si mode framebyframe...
         renderWithOpengl = True
 
     #######################
@@ -193,7 +187,7 @@ def launchRenderWithVSEComposite(
     if "PLAYBLAST" == renderMode:
         scene.render.resolution_percentage = props.renderSettingsPlayblast.resolutionPercentage
         renderResolution[0] = int(renderResolution[0] * props.renderSettingsPlayblast.resolutionPercentage / 100)
-        renderResolution[1] = int(renderResolution[0] * props.renderSettingsPlayblast.resolutionPercentage / 100)
+        renderResolution[1] = int(renderResolution[1] * props.renderSettingsPlayblast.resolutionPercentage / 100)
 
         if preset_useStampInfo:
             # wkip
@@ -204,7 +198,7 @@ def launchRenderWithVSEComposite(
                 renderResolutionFramed[0] * props.renderSettingsPlayblast.resolutionPercentage / 100
             )
             renderResolutionFramed[1] = int(
-                renderResolutionFramed[0] * props.renderSettingsPlayblast.resolutionPercentage / 100
+                renderResolutionFramed[1] * props.renderSettingsPlayblast.resolutionPercentage / 100
             )
 
     # set render quality
@@ -251,11 +245,18 @@ def launchRenderWithVSEComposite(
 
     scene.view_settings.view_transform = "Standard"
 
-    renderedShotSequencesArr = []
-
     #######################
     # render each shots
     #######################
+
+    renderedShotSequencesArr = []
+
+    previousTakeRenderTime = time.monotonic()
+    currentTakeRenderTime = previousTakeRenderTime
+
+    startRenderTime = time.monotonic()
+    allRenderTimes = dict()
+
     for i, shot in enumerate(shotList):
         # context.window_manager.UAS_shot_manager_progressbar = (i + 1) / len(shotList) * 100.0
         # bpy.ops.wm.redraw_timer(type="DRAW_WIN_SWAP", iterations=2)
@@ -274,14 +275,29 @@ def launchRenderWithVSEComposite(
                 continue
 
         if not fileListOnly:
+            startShotRenderTime = time.monotonic()
             infoStr = f"\n----------------------------------------------------"
             infoStr += f"\n\n  Rendering Shot: {shot.getName_PathCompliant(withPrefix=True)} - {shot.getDuration()} fr."
             infoStr += f"\n  ---------------"
-            infoStr += f"\n\n    Render: {props.renderContext.renderComputationMode} - "
-            if renderWithOpengl:
-                infoStr += f"{props.renderContext.renderEngineOpengl}"
+            infoStr += f"\n\nRenderer: "
+
+            if "PLAYBLAST" == renderMode:
+                infoStr += f"PLAYBLAST: "
+                if renderWithOpengl:
+                    infoStr += f"OpenGl - "
+                else:
+                    infoStr += f"Engine - "
+                if renderFrameByFrame:
+                    infoStr += f"Frame by Frame Mode"
+                else:
+                    infoStr += f"Loop Mode"
             else:
-                infoStr += f"{props.renderContext.renderEngine}"
+                if renderWithOpengl:
+                    infoStr += f"{props.renderContext.renderEngineOpengl} - "
+                else:
+                    infoStr += f"{props.renderContext.renderEngine} - "
+                infoStr += f"{props.renderContext.renderComputationMode}"
+
             print(infoStr)
 
             # print("\n     newTempRenderPath: ", newTempRenderPath)
@@ -337,12 +353,17 @@ def launchRenderWithVSEComposite(
                             rootPath=rootPath, specificFrame=scene.frame_current
                         )
 
+                        print("      \n")
+                        textInfo = f"Frame: {currentFrame}  ( {f + 1} / {numFramesInShot} )"
+                        textInfo02 = f"Shot: {shot.name}"
                         print("      ------------------------------------------")
-                        print(
-                            f"      \nFrame: {currentFrame}    ( {f + 1} / {numFramesInShot} )    -     Shot: {shot.name}"
-                        )
+                        print("      \n" + textInfo + "  -  " + textInfo02)
 
-                        print("scene.render.filepath (frame by frame): ", scene.render.filepath)
+                        if "PLAYBLAST" == renderMode and not preset_useStampInfo:
+                            bpy.context.scene.render.use_stamp_frame = False
+                            scene.render.use_stamp_note = True
+                            scene.render.stamp_note_text += textInfo02 + "\\n" + textInfo
+
                         if renderWithOpengl:
                             #     _logger.debug("ici loop playblast")
 
@@ -372,6 +393,12 @@ def launchRenderWithVSEComposite(
                     )
                     print("scene.render.filepath (anim): ", scene.render.filepath)
                     #   _logger.debug("ici PAS loop")
+
+                    if "PLAYBLAST" == renderMode and not preset_useStampInfo:
+                        textInfo02 = f"Shot: {shot.name}"
+                        scene.render.use_stamp_note = True
+                        scene.render.stamp_note_text = textInfo02
+
                     if renderWithOpengl:
                         #    _logger.debug("ici PAS loop Playblast opengl")
                         # print(f"scene.frame_start: {scene.frame_start}")
@@ -402,16 +429,12 @@ def launchRenderWithVSEComposite(
                     verbose=False,
                 )
 
-            #######################
-            # print info
+            # print render time
             #######################
 
-            currentShotRenderTime = time.monotonic()
-            print(
-                f"      \nShot render time (images only): {(currentShotRenderTime - previousShotRenderTime):0.2f} sec."
-            )
-            print("----------------------------------------")
-            previousShotRenderTime = currentShotRenderTime
+            deltaTime = time.monotonic() - startShotRenderTime
+            print(f"      \nShot render time (images only): {deltaTime:0.2f} sec.")
+            allRenderTimes[shot.name + "_" + "images"] = deltaTime
 
             #######################
             # render sound
@@ -423,13 +446,39 @@ def launchRenderWithVSEComposite(
                 audioFilePath = (
                     newTempRenderPath + f"{props.renderShotPrefix()}_{shot.getName_PathCompliant()}" + ".wav"
                 )
-                print(f"\n Sound for shot {shot.name}:")
-                print("    audioFilePath: ", audioFilePath)
-                # bpy.ops.sound.mixdown(filepath=audioFilePath, relative_path=True, container='WAV', codec='PCM')
-                # if my_file.exists():
+                print(f"\n Sound for shot {shot.name}:{audioFilePath}")
+
+                if Path(audioFilePath).exists():
+                    print(f" *** Sound file still exists... Should have been deleted ***")
+                    try:
+                        os.remove(audioFilePath)
+                        if Path(audioFilePath).exists():
+                            print(f"\n*** File locked (by system?): {audioFilePath}")
+                    except Exception as e:
+                        _logger.exception(f"\n*** File locked (by system?): {audioFilePath}")
+                        print(f"\n*** File locked (by system?): {audioFilePath}")
+                        audioFilePath = (
+                            str(Path(audioFilePath).parent)
+                            + "/"
+                            + str(Path(audioFilePath).stem)
+                            + "1"
+                            + "."
+                            + str(Path(audioFilePath).suffix)
+                        )
+
                 #     import os.path
                 # os.path.exists(file_path)
-                bpy.ops.sound.mixdown(filepath=audioFilePath, relative_path=False, container="WAV", codec="PCM")
+
+                # crash ici lorsqu'on est en rendu frame per frame
+
+                # wkip pour que ca marche, mettre les render settings en mode video ??
+                scene.render.filepath = "//"
+                scene.frame_start = 0
+                scene.frame_end = 50
+                bpy.ops.render.opengl(animation=True, write_still=False)
+                # https://blenderartists.org/t/scripterror-mixdown-operstor/548056/4
+                bpy.ops.sound.mixdown(filepath=str(audioFilePath), relative_path=False, container="WAV", codec="PCM")
+                # bpy.ops.sound.mixdown(filepath=audioFilePath, relative_path=False, container="MP3", codec="MP3")
 
             overImgSeq = newTempRenderPath + shot.getOutputMediaPath(providePath=False, genericFrame=True)
             overImgSeq_resolution = renderResolution
@@ -520,10 +569,24 @@ def launchRenderWithVSEComposite(
 
             #  print(f"** renderedShotSequencesArr: {renderedShotSequencesArr}")
 
+            # print render time
+            #######################
+
+            deltaTime = time.monotonic() - startShotRenderTime
+            print(f"      \nShot render time (incl. video): {deltaTime:0.2f} sec.")
+            allRenderTimes[shot.name + "_" + "full"] = deltaTime
+
+            print("----------------------------------------")
+
     #######################
     # render sequence video
     #######################
 
+    deltaTime = time.monotonic() - startRenderTime
+    print(f"      \nAll shots render time: {deltaTime:0.2f} sec.")
+    allRenderTimes["AllShots"] = deltaTime
+
+    startSequenceRenderTime = time.monotonic()
     sequenceOutputFullPath = ""
     if generateSequenceVideo and specificFrame is None:
 
@@ -536,13 +599,14 @@ def launchRenderWithVSEComposite(
             print(f"  Rendered sequence from shot videos: {sequenceOutputFullPath}")
 
             if not fileListOnly:
-                print(f"sequenceFiles: {sequenceFiles}")
+                # print(f"sequenceFiles: {sequenceFiles}")
                 vse_render.buildSequenceVideo(sequenceFiles, sequenceOutputFullPath, handles, projectFps)
 
-                currentTakeRenderTime = time.monotonic()
-                print(f"      \nTake render time: {(currentTakeRenderTime - previousTakeRenderTime):0.2f} sec.")
-                print("----------------------------------------")
-                previousTakeRenderTime = currentTakeRenderTime
+                # currentTakeRenderTime = time.monotonic()
+                # print(f"      \nTake render time: {(currentTakeRenderTime - previousTakeRenderTime):0.2f} sec.")
+                # print("----------------------------------------")
+                # previousTakeRenderTime = currentTakeRenderTime
+                pass
 
             newMediaFiles.append(sequenceOutputFullPath)
 
@@ -567,6 +631,10 @@ def launchRenderWithVSEComposite(
                 for i in range(len(renderedShotSequencesArr)):
                     _deleteTempFiles(str(Path(renderedShotSequencesArr[i]["image_sequence"]).parent))
 
+        deltaTime = time.monotonic() - startSequenceRenderTime
+        print(f"      \nSequence video render time: {deltaTime:0.2f} sec.")
+        allRenderTimes["SequenceVideo"] = deltaTime
+
     failedFiles = []
 
     filesDict = {
@@ -574,6 +642,17 @@ def launchRenderWithVSEComposite(
         "failed_files": failedFiles,
         "sequence_video_file": sequenceOutputFullPath,
     }
+
+    deltaTime = time.monotonic() - startRenderTime
+    print(f"      \nFull Sequence render time: {deltaTime:0.2f} sec.")
+    allRenderTimes["SequenceAndShots"] = deltaTime
+
+    printAllRenderTimes = True  # config.uasDebug
+    if printAllRenderTimes:
+        print("\nRender times:")
+        for key, value in allRenderTimes.items():
+            print(f"{key:>20}: {value:0.2f} sec.")
+        print("\n")
 
     #######################
     # restore current scene settings
