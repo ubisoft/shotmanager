@@ -318,7 +318,72 @@ class ShotOtio(ShotInterface):
         pass
 
     def get_name(self):
-        return self.clip.name
+        """
+            The clip name retuned for a Stak clip is the name of the nested edit, not the name of the clip.
+            We then have to dig into the XML to get the right clip name
+        """
+
+        clipName = self.clip.name
+        clipType = self.get_type()
+        clipId = ""
+
+        InfoStr = ""
+
+        ###############
+        # wkip note: this is SLOW SLOW becauce the whole xml file is parsed every time. It should be parsed once for all
+
+        if "Stack" == clipType:
+            # InfoStr += ", b stack "
+            if self.parent.parent.otioFile is not None:
+                # InfoStr += ", in otio "
+                # InfoStr += f"\n   Otio file: {self.parent.parent.otioFile}"
+                # InfoStr += f"\n   Otio file ext: {str(Path(self.parent.parent.otioFile).suffix).lower()}"
+                if ".xml" == str(Path(self.parent.parent.otioFile).suffix).lower():
+                    # InfoStr += ", in xml "
+                    # print(f" dir clip:{dir(self.clip)}")
+                    # if "metadata" in self.clip:
+                    # print("metadata in ")
+                    if hasattr(self.clip, "metadata"):
+                        # print(f" la")
+
+                        if "fcp_xml" in self.clip.metadata:
+                            # print(f"  la la la")
+                            # InfoStr += ", in fcp_xml "
+                            if "@id" in self.clip.metadata["fcp_xml"]:
+                                # print(f"  la la la encore")
+                                # InfoStr += ", in @id "
+                                clipId = self.clip.metadata["fcp_xml"]["@id"]
+                                InfoStr += f", clip ID: {clipId}"
+
+                                from xml.dom.minidom import parse
+
+                                dom1 = parse(self.parent.parent.otioFile)
+                                clipItems = dom1.getElementsByTagName("clipitem")
+
+                                for item in clipItems:
+                                    if item.getAttribute("id") == clipId:
+                                        #   print(f'item.getAttribute("id"): {item.getAttribute("id")}')
+                                        nameItem = item.getElementsByTagName("name")[0]
+                                        #   print(f"nameItem: {nameItem}")
+                                        clipName = nameItem.childNodes[0].nodeValue
+                                        # for child in nameItem.childNodes:
+                                        #     clipName = child.nodeValue
+                                        #     print(f"   child.nodeValue: {clipName}")
+                                        break
+
+                                #         subXml = item.toxml()
+                                #         # print(f" To XML: {subXml}")
+                                #         clipNameItem = item.getElementsByTagName("name")
+                                #         print(f"    clipNameItem {clipNameItem}")
+                                #         clipName = clipNameItem.data
+                                #         print(f"    clipName {clipName}")
+                                # print(f"- item: {item.getAttribute('id')}")
+                                # if item.getAttribute('id') == '':
+
+        # print(f" Clip ID: {InfoStr}")
+
+        # return clipName + "_" + clipId
+        return clipName
 
     def printInfo(self, only_clip_info=False):
         infoStr = ""
@@ -329,6 +394,8 @@ class ShotOtio(ShotInterface):
             infoStr += f"             - Type: OTIO Media Clip"
         elif "Stack" == clipType:
             infoStr += f"             - Type: OTIO Nested Edit (Stack)"
+        #   infoStr += f"   Clip Name: {self.get_name()}"
+        #   infoStr += f"\n   Clip: {self.clip}"
         else:
             infoStr += f"             - Type: OTIO {clipType}"
 

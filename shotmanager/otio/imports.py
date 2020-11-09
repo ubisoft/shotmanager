@@ -54,7 +54,6 @@ def importTrack(track, trackInd, track_type, timeRange=None, offsetFrameNumber=0
             # print(f"{excludInfo}")
             continue
 
-        print(f"wkdg 01 {clipInfo}")
         media_path = Path(ow.get_clip_media_path(clip))
 
         # possibly excluse some media types
@@ -861,7 +860,7 @@ def conformToRefMontage(
     infoStr += f"\n  {textRef + ':' :<44} {textSelf + ':' :<30}"
 
     if refSeq is None:
-        infoStr += "\n Ref Sequence is None, aborting comparison..."
+        infoStr += "\n Ref Sequence is None, aborting conformation..."
         print(infoStr)
         return _writeToLogFile(infoStr)
 
@@ -869,6 +868,7 @@ def conformToRefMontage(
     # update take infos
     ###################
     # wkip dir hardcoded :S
+    print(f"\n *** animatif file: {animaticFile}")
     if animaticFile is not None:
         take.globalEditDirectory = str(Path(animaticFile).parent)
         take.globalEditVideo = animaticFile

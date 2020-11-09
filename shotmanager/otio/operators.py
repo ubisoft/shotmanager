@@ -263,7 +263,7 @@ class UAS_ShotManager_OT_Create_Shots_From_OTIO_RRS(Operator):
     importAnimaticInVSE: BoolProperty(
         name="Import Animatic In VSE",
         description="Import the video and mixed sounds from the animatic into the VSE of the current scene",
-        default=False,
+        default=True,
     )
     animaticFile: StringProperty(name="Animatic")
 
@@ -521,6 +521,7 @@ class UAS_ShotManager_OT_Create_Shots_From_OTIO_RRS(Operator):
         if selSeq is not None:
             labelText = f"Start: {selSeq.get_frame_start()}, End: {selSeq.get_frame_end()}, Duration: {selSeq.get_frame_duration()}, Num Shots: {len(selSeq.shotsList)}"
 
+            # display the shots infos
             # sm_montage.printInfo()
 
         else:
