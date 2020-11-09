@@ -229,9 +229,10 @@ class UAS_ShotManager_DrawHUD(bpy.types.Operator):
 
     def draw(self, context):
         #    print("Draw lines persp")
-        if not bpy.context.space_data.overlay.show_overlays:
-            # if not bpy.context.space_data.show_gizmo:
-            return
+        # wkip wkip wkip quick fix crado pour éviter un crash
+        # if not bpy.context.space_data.overlay.show_overlays:
+        #     # if not bpy.context.space_data.show_gizmo:
+        #     return
 
         props = context.scene.UAS_shot_manager_props
         current_shot = props.getCurrentShot()

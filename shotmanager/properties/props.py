@@ -979,7 +979,9 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
                     shotInd += 1
 
                 frameIndInEdit += frameIndexIn3DTime - referenceShot.start
-                frameIndInEdit += self.editStartFrame
+
+                # frameIndInEdit += self.editStartFrame       # at project level
+                frameIndInEdit += referenceShot.getParentTake().startInGlobalEdit  # at take level
 
         return frameIndInEdit
 
@@ -1533,7 +1535,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
 
     def setCurrentShot(self, currentShot, changeTime=None, area=None):
         shotInd = self.getShotIndex(currentShot)
-        #print("setCurrentShot: shotInd:", shotInd)
+        # print("setCurrentShot: shotInd:", shotInd)
         self.setCurrentShotByIndex(shotInd, changeTime=changeTime, area=area)
 
     def getSelectedShotIndex(self):

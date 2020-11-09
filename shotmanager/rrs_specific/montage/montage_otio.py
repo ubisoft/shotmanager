@@ -243,19 +243,19 @@ class MontageOtio(MontageInterface):
                     # clip can be a nested edit (called a stack)
                     else:
                         stackName = clip.name
-                        print(f"Stack Seq Name: {stackName}, seq: {self.getSequenceNameFromMediaName(stackName)}")
+                        # print(f"Stack Seq Name: {stackName}, seq: {self.getSequenceNameFromMediaName(stackName)}")
                         # get the name of the shot
                         stackNameLower = stackName.lower()
                         seq_pattern = "_seq"
                         if seq_pattern in stackNameLower:
                             media_name_splited = (stackName.lower()).split("_")
-                            print(f"media_name_splited: {media_name_splited}")
+                            # print(f"media_name_splited: {media_name_splited}")
                             if 2 <= len(media_name_splited):
                                 parentSeqInd = _getParentSeqIndex(self.sequencesList, media_name_splited[1])
 
                                 # add new seq if not found
                                 newSeq = None
-                                print(f"   Stack Seq Name: {self.getSequenceNameFromMediaName(stackName)}")
+                                #   print(f"   Stack Seq Name: {self.getSequenceNameFromMediaName(stackName)}")
 
                                 if -1 == parentSeqInd:
                                     newSeq = self.newSequence()
@@ -323,7 +323,7 @@ class ShotOtio(ShotInterface):
     def printInfo(self, only_clip_info=False):
         infoStr = ""
         super().printInfo(only_clip_info=only_clip_info)
-        clipType = type(self.clip).__name__
+        clipType = self.get_type()
         # print(f"clipType: {clipType}")
         if "Clip" == clipType:
             infoStr += f"             - Type: OTIO Media Clip"
@@ -337,6 +337,18 @@ class ShotOtio(ShotInterface):
         if 0 != emptyDuration:
             infoStr += f"\n               Empty duration lenght: {emptyDuration}"
         print(infoStr)
+
+    def get_type(self):
+        clipType = type(self.clip).__name__
+        # print(f"clipType: {clipType}")
+        # if "Clip" == clipType:
+        #     infoStr += f"             - Type: OTIO Media Clip"
+        # elif "Stack" == clipType:
+        #     infoStr += f"             - Type: OTIO Nested Edit (Stack)"
+        # else:
+        #     infoStr += f"             - Type: OTIO {clipType}"
+
+        return clipType
 
     def get_frame_start(self):
         return ow.get_clip_frame_start(self.clip, self.parent.parent.get_fps())

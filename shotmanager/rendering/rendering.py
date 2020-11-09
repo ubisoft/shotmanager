@@ -472,10 +472,10 @@ def launchRenderWithVSEComposite(
                 # crash ici lorsqu'on est en rendu frame per frame
 
                 # wkip pour que ca marche, mettre les render settings en mode video ??
-                scene.render.filepath = "//"
-                scene.frame_start = 0
-                scene.frame_end = 50
-                bpy.ops.render.opengl(animation=True, write_still=False)
+                # scene.render.filepath = "//"
+                # scene.frame_start = 0
+                # scene.frame_end = 50
+                # bpy.ops.render.opengl(animation=True, write_still=False)
                 # https://blenderartists.org/t/scripterror-mixdown-operstor/548056/4
                 bpy.ops.sound.mixdown(filepath=str(audioFilePath), relative_path=False, container="WAV", codec="PCM")
                 # bpy.ops.sound.mixdown(filepath=audioFilePath, relative_path=False, container="MP3", codec="MP3")

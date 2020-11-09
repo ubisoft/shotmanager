@@ -1,6 +1,7 @@
 import os
 from pathlib import Path
 import json
+import subprocess, platform
 
 import bpy
 from bpy.types import Operator
@@ -605,13 +606,17 @@ class UAS_ShotManager_OT_Create_Shots_From_OTIO_RRS(Operator):
         row = box.row()
         row.enabled = self.importAudioInVSE
         row.separator(factor=3)
-        row.prop(self, "importAudio_HumanVoices")
-        row.prop(self, "importAudio_RabbidVoices")
+        itemText = "Human Voices (1 to 6)" if "CREATE" == self.conformMode else "Human Voices (1 to 3)"
+        row.prop(self, "importAudio_HumanVoices", text=itemText)
+        itemText = "Human Voices (7 to 14)" if "CREATE" == self.conformMode else "Human Voices (4 to 7)"
+        row.prop(self, "importAudio_RabbidVoices", text=itemText)
         row = box.row()
         row.enabled = self.importAudioInVSE
         row.separator(factor=3)
-        row.prop(self, "importAudio_Sounds")
-        row.prop(self, "importAudio_Music")
+        itemText = "Human Voices (15 to 29)" if "CREATE" == self.conformMode else "Human Voices (9 to 15)"
+        row.prop(self, "importAudio_Sounds", text=itemText)
+        itemText = "Human Voices (30 to 33)" if "CREATE" == self.conformMode else "Human Voices (17 to 18)"
+        row.prop(self, "importAudio_Music", text=itemText)
 
         layout.separator()
 
@@ -640,22 +645,23 @@ class UAS_ShotManager_OT_Create_Shots_From_OTIO_RRS(Operator):
         timeRange = [selSeq.get_frame_start(), selSeq.get_frame_end() - 1] if useTimeRange else None
 
         # track indices are starting from 1, not 0!!
-        videoTracksToImport = [1]
+        videoTracksToImport = []
         audioTracksToImport = []
-        if self.importAudio_HumanVoices:
-            audioTracksToImport.extend(list(range(1, 6)))
-        if self.importAudio_RabbidVoices:
-            audioTracksToImport.extend(list(range(6, 13)))
-        if self.importAudio_Sounds:
-            audioTracksToImport.extend(list(range(14, 26)))
-        if self.importAudio_Music:
-            audioTracksToImport.extend(list(range(28, 30)))
 
         # audioTracksToImport = [19, 20]
 
         if "CREATE" == self.conformMode:
             # track indices are starting from 1, not 0!!
             videoTracksToImport = [1]
+
+            if self.importAudio_HumanVoices:
+                audioTracksToImport.extend(list(range(1, 4)))
+            if self.importAudio_RabbidVoices:
+                audioTracksToImport.extend(list(range(4, 7)))
+            if self.importAudio_Sounds:
+                audioTracksToImport.extend(list(range(9, 16)))
+            if self.importAudio_Music:
+                audioTracksToImport.extend(list(range(17, 19)))
 
             createShotsFromOtioTimelineClass(
                 context.scene,
@@ -677,12 +683,34 @@ class UAS_ShotManager_OT_Create_Shots_From_OTIO_RRS(Operator):
                 animaticFile=self.animaticFile if self.importAnimaticInVSE else None,
             )
 
+            props.setCurrentShotByIndex(0)
+            props.setSelectedShotByIndex(0)
+            props.display_camerabgtools_in_properties = True
+            props.shotsGlobalSettings.backgroundAlpha = 1
+            props.renderContext.useOverlays = True
+
+            try:
+                bpy.context.space_data.overlay.show_overlays = True
+            except Exception as e:
+                print("Cannot set Overlay")
+
         else:
             # track indices are starting from 1, not 0!!
             videoTracksToImport = [2]
 
-            bpy.ops.uasshotmanager.compare_otio_and_current_montage(sequenceName=selSeq.get_name())
-            conformToRefMontage(
+            if self.importAudio_HumanVoices:
+                audioTracksToImport.extend(list(range(1, 6)))
+            if self.importAudio_RabbidVoices:
+                audioTracksToImport.extend(list(range(6, 13)))
+            if self.importAudio_Sounds:
+                audioTracksToImport.extend(list(range(14, 26)))
+            if self.importAudio_Music:
+                audioTracksToImport.extend(list(range(28, 30)))
+
+            if config.uasDebug:
+                bpy.ops.uasshotmanager.compare_otio_and_current_montage(sequenceName=selSeq.get_name())
+
+            textFile = conformToRefMontage(
                 context.scene,
                 config.gMontageOtio,
                 selSeq.get_name(),
@@ -704,6 +732,27 @@ class UAS_ShotManager_OT_Create_Shots_From_OTIO_RRS(Operator):
             )
             props.setCurrentShotByIndex(0)
             props.setSelectedShotByIndex(0)
+            props.display_camerabgtools_in_properties = True
+            # props.renderContext.useOverlays = True
+
+            try:
+                bpy.context.space_data.overlay.show_overlays = True
+            except Exception as e:
+                print("Cannot set Overlay")
+
+            props.display_notes_in_properties = True
+
+            # update track list in VSM
+            #            context.scene.uas_video_shot_manager.update_tracks_list()
+
+            # open notes
+            # import subprocess, os, platform
+            if platform.system() == "Darwin":  # macOS
+                subprocess.call(("open", textFile))
+            elif platform.system() == "Windows":  # Windows
+                os.startfile(textFile)
+            else:  # linux variants
+                subprocess.call(("xdg-open", textFile))
 
         return {"FINISHED"}
 
