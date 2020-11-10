@@ -1002,7 +1002,7 @@ def conformToRefMontage(
             previousDuration = shotSelf.get_frame_final_duration()
             newDuration = shotRef.get_frame_final_duration()
             if previousDuration != newDuration:
-                shotSelf.setDuration(newDuration)
+                shotSelf.setDuration(newDuration, bypassLock=True)
                 modifStr = f"duration changed (was {previousDuration} fr.)"
                 shotSelfModifs.append(modifStr)
                 textSelf += f" / {modifStr}"

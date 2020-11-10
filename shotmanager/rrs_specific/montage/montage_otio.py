@@ -102,13 +102,13 @@ class MontageOtio(MontageInterface):
 
             return -1
 
-        def _getVideoCharacteristicsFromXML():
+        def _getVideoCharacteristicsFromXML(xmlDom):
             #    print("_getVideoCharacteristicsFromXML")
 
-            from xml.dom.minidom import parse
+            # from xml.dom.minidom import parse
+            # xmlDom = parse(self.otioFile)
 
-            dom1 = parse(self.otioFile)
-            seq = dom1.getElementsByTagName("sequence")[0]
+            seq = xmlDom.getElementsByTagName("sequence")[0]
 
             seqCharacteristics = dict()
 
@@ -184,8 +184,27 @@ class MontageOtio(MontageInterface):
 
             return ()
 
+        def _getXmlClipNames(xmlDom):
+
+            # from xml.dom.minidom import parse
+            # xmlDom = parse(self.parent.parent.otioFile)
+
+            xmlClipNamesArr = []
+
+            clipItems = xmlDom.getElementsByTagName("clipitem")
+            for item in clipItems:
+                nameItem = item.getElementsByTagName("name")[0]
+                xmlClipNamesArr.append((item.getAttribute("id"), nameItem.childNodes[0].nodeValue))
+
+            return xmlClipNamesArr
+
+        xmlClipNames = []
         if ".xml" == (Path(self.otioFile).suffix).lower():
-            _getVideoCharacteristicsFromXML()
+            from xml.dom.minidom import parse
+
+            xmlDom = parse(self.otioFile)
+            _getVideoCharacteristicsFromXML(xmlDom)
+            xmlClipNames = _getXmlClipNames(xmlDom)
 
         self.sequencesList = None
         self.sequencesList = list()
@@ -262,7 +281,8 @@ class MontageOtio(MontageInterface):
                                     newSeq.set_name(self.getSequenceNameFromMediaName(stackName))
                                 else:
                                     newSeq = self.sequencesList[parentSeqInd]
-                                newSeq.newShot(clip)
+                                newClip = newSeq.newShot(clip)
+                                newClip.set_name_from_xml_clip_name(xmlClipNames)
 
         # for seq in self.sequencesList:
         #     # get the start and end of every seq
@@ -313,11 +333,35 @@ class ShotOtio(ShotInterface):
 
     def __init__(self, parent, shot):
         super().__init__()
+
         self.initialize(parent)
+
+        # new properties:
         self.clip = shot
+
+        # !!! warning: when clip is of type Stack (and not Clip) then the clip.name is the name of the
+        # nested edit, not the name of the clip itself! This is an issue when the nested edit is shared by
+        # several clips. Otio works like this so the real clip name has to be set afterwards by reading the xml file.
+        self.name = self.clip.name
+
         pass
 
     def get_name(self):
+        return self.name
+
+    def set_name_from_xml_clip_name(self, xmlClipNames):
+        if "Stack" == self.get_type():
+            if hasattr(self.clip, "metadata"):
+                if "fcp_xml" in self.clip.metadata:
+                    if "@id" in self.clip.metadata["fcp_xml"]:
+                        clipId = self.clip.metadata["fcp_xml"]["@id"]
+                        for item in xmlClipNames:
+                            if item[0] == clipId:
+                                self.name = item[1]
+                                break
+        return self.name
+
+    def get_name_old(self):
         """
             The clip name retuned for a Stak clip is the name of the nested edit, not the name of the clip.
             We then have to dig into the XML to get the right clip name
@@ -357,8 +401,8 @@ class ShotOtio(ShotInterface):
 
                                 from xml.dom.minidom import parse
 
-                                dom1 = parse(self.parent.parent.otioFile)
-                                clipItems = dom1.getElementsByTagName("clipitem")
+                                xmlDom = parse(self.parent.parent.otioFile)
+                                clipItems = xmlDom.getElementsByTagName("clipitem")
 
                                 for item in clipItems:
                                     if item.getAttribute("id") == clipId:
