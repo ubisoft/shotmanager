@@ -307,7 +307,14 @@ class UAS_VideoShotManager_OT_ExportMarkersEditAsVideos(Operator):
 
     outputDir: StringProperty(default=r"C:\_UAS_ROOT\RRSpecial\05_Acts\Act01\_Montage\_OutputShots")
 
+    start: IntProperty(name="Start", default=10)
+    end: IntProperty(name="end", default=150)
+
     def invoke(self, context, event):
+
+        self.start = context.scene.frame_start
+        self.end = context.scene.frame_end
+
         wm = context.window_manager
         wm.invoke_props_dialog(self, width=500)
         return {"RUNNING_MODAL"}
@@ -315,6 +322,9 @@ class UAS_VideoShotManager_OT_ExportMarkersEditAsVideos(Operator):
     def draw(self, context):
         layout = self.layout
         layout.prop(self, "outputDir")
+        row = layout.row()
+        row.prop(self, "start")
+        row.prop(self, "end")
 
     def execute(self, context):
         scene = context.scene
@@ -332,13 +342,16 @@ class UAS_VideoShotManager_OT_ExportMarkersEditAsVideos(Operator):
         scene.render.use_file_extension = False
 
         for i, mrk in enumerate(scene.timeline_markers):
-            print(f"{i} Marker name: {mrk.name}")
 
-            if i < len(scene.timeline_markers) - 1:
-                scene.frame_start = scene.timeline_markers[i].frame
-                scene.frame_end = scene.timeline_markers[i + 1].frame - 1
-                scene.render.filepath = self.outputDir + "/" + mrk.name + ".mp4"
-                bpy.ops.render.opengl(animation=True, sequencer=True)
+            if self.start <= scene.timeline_markers[i].frame <= self.end:
+                if i < len(scene.timeline_markers) - 1:
+                    if self.start <= scene.timeline_markers[i + 1].frame <= self.end:
+                        print(f"{i} Marker name: {mrk.name}")
+
+                        scene.frame_start = scene.timeline_markers[i].frame
+                        scene.frame_end = scene.timeline_markers[i + 1].frame - 1
+                        scene.render.filepath = self.outputDir + "/" + mrk.name + ".mp4"
+                        bpy.ops.render.opengl(animation=True, sequencer=True)
 
         return {"FINISHED"}
 

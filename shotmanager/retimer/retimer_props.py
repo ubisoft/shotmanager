@@ -132,6 +132,9 @@ class UAS_Retimer_Properties(PropertyGroup):
     applytToGreasePencil: BoolProperty(
         name="Grease Pencil", default=True, options=set(),
     )
+    applytToVSE: BoolProperty(
+        name="VSE", default=True, options=set(),
+    )
 
 
 _classes = (UAS_Retimer_Properties,)

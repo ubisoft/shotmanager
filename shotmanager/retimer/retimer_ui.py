@@ -261,11 +261,14 @@ class UAS_PT_ShotManagerRetimer_Settings(Panel):
         col = box.column()
         row = col.row(align=True)
         row.prop(retimerProps, "applyToShots")
+        row.prop(retimerProps, "applyToObjects")
+        row.label(text=" ")
 
         row = col.row(align=True)
-        row.prop(retimerProps, "applyToObjects")
         row.prop(retimerProps, "applyToShapeKeys")
         row.prop(retimerProps, "applytToGreasePencil")
+        row.prop(retimerProps, "applytToVSE")
+        row = col.row(align=True)
 
 
 class UAS_ShotManager_GetTimeRange(Operator):

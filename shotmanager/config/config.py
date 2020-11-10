@@ -14,9 +14,9 @@ def initGlobalVariables():
     if "UasDebug" in os.environ.keys():
         uasDebug = bool(int(os.environ["UasDebug"]))
     else:
-        uasDebug = True
+        uasDebug = False
 
-    uasDebug = False
+    uasDebug = True
 
     global uasDebug_keepVSEContent
     uasDebug_keepVSEContent = True and uasDebug

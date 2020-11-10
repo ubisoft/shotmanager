@@ -350,14 +350,14 @@ class UAS_MT_VideoShotManager_ToolsMenu(Menu):
         row = layout.row(align=True)
         row.operator_context = "INVOKE_DEFAULT"
         row.operator(
-            "uas_video_shot_manager.export_markers_edit_as_videos", text="   Export Markers Edit as Videos"
+            "uas_video_shot_manager.export_markers_edit_as_videos", text="   Export Markers Edit as Videos..."
         )  # , text="Import Edit From EDL")
 
         layout.separator()
         # wkip debug - to remove:
         if config.uasDebug:
             row = layout.row(align=True)
-            row.operator("uas_video_shot_manager.importeditfromotio", text="   Import Edit From EDL - Debug")
+            row.operator("uas_video_shot_manager.importeditfromotio", text="   Import Edit From EDL - Debug...")
 
         if config.uasDebug:
             row = layout.row(align=True)

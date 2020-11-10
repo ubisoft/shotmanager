@@ -609,14 +609,14 @@ class UAS_ShotManager_OT_Create_Shots_From_OTIO_RRS(Operator):
         row.separator(factor=3)
         itemText = "Human Voices (1 to 6)" if "CREATE" == self.conformMode else "Human Voices (1 to 3)"
         row.prop(self, "importAudio_HumanVoices", text=itemText)
-        itemText = "Human Voices (7 to 14)" if "CREATE" == self.conformMode else "Human Voices (4 to 7)"
+        itemText = "Rabbid Voices (7 to 14)" if "CREATE" == self.conformMode else "Rabbid Voices (4 to 7)"
         row.prop(self, "importAudio_RabbidVoices", text=itemText)
         row = box.row()
         row.enabled = self.importAudioInVSE
         row.separator(factor=3)
-        itemText = "Human Voices (15 to 29)" if "CREATE" == self.conformMode else "Human Voices (9 to 15)"
+        itemText = "Sounds (15 to 29)" if "CREATE" == self.conformMode else "Sounds (9 to 15)"
         row.prop(self, "importAudio_Sounds", text=itemText)
-        itemText = "Human Voices (30 to 33)" if "CREATE" == self.conformMode else "Human Voices (17 to 18)"
+        itemText = "Music (30 to 33)" if "CREATE" == self.conformMode else "Music (17 to 18)"
         row.prop(self, "importAudio_Music", text=itemText)
 
         layout.separator()

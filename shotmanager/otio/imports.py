@@ -1056,7 +1056,8 @@ def conformToRefMontage(
     # fit time range
     ###################
     scene.use_preview_range = False
-    scene.frame_start = take.shots[0].start
+    if len(take.shots):
+        scene.frame_start = take.shots[0].start
 
     if previousShotSelf is not None:
         scene.frame_end = previousShotSelf.end
