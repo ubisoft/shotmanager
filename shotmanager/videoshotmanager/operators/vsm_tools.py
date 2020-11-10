@@ -184,8 +184,10 @@ class UAS_VideoShotManager_OT_Import_Edit_From_OTIO(Operator):
                 print(f" *** config.gMontageOtio._characteristics is None - EDL Edit resolution cannot be set *** ")
             else:
                 characts = config.gMontageOtio.get_montage_characteristics()
-                context.scene.render.resolution_x = characts["resolution_x"]
-                context.scene.render.resolution_y = characts["resolution_y"]
+                if "resolution_x" in characts:
+                    context.scene.render.resolution_x = characts["resolution_x"]
+                if "resolution_y" in characts:
+                    context.scene.render.resolution_y = characts["resolution_y"]
 
         timeRange = None
         if self.importTimeRange:
@@ -299,11 +301,20 @@ class UAS_VideoShotManager_OT_PrintMontageInfo(Operator):
 
 class UAS_VideoShotManager_OT_ExportMarkersEditAsVideos(Operator):
     bl_idname = "uas_video_shot_manager.export_markers_edit_as_videos"
-    bl_label = "Export Markers Edit as Videos"
+    bl_label = "Export Markers Edit as Videos..."
     bl_description = "Export all the segments defined by the markers as separated videos"
     bl_options = {"INTERNAL"}
 
-    outputDir: StringProperty(default=r"C:\_UAS_ROOT\RRSpecial\05_Acts\Act01\_Montage\_OutputShots\\")
+    outputDir: StringProperty(default=r"C:\_UAS_ROOT\RRSpecial\05_Acts\Act01\_Montage\_OutputShots")
+
+    def invoke(self, context, event):
+        wm = context.window_manager
+        wm.invoke_props_dialog(self, width=500)
+        return {"RUNNING_MODAL"}
+
+    def draw(self, context):
+        layout = self.layout
+        layout.prop(self, "outputDir")
 
     def execute(self, context):
         scene = context.scene
@@ -325,8 +336,8 @@ class UAS_VideoShotManager_OT_ExportMarkersEditAsVideos(Operator):
 
             if i < len(scene.timeline_markers) - 1:
                 scene.frame_start = scene.timeline_markers[i].frame
-                scene.frame_end = scene.timeline_markers[i + 1].frame
-                scene.render.filepath = self.outputDir + mrk.name + ".mp4"
+                scene.frame_end = scene.timeline_markers[i + 1].frame - 1
+                scene.render.filepath = self.outputDir + "/" + mrk.name + ".mp4"
                 bpy.ops.render.opengl(animation=True, sequencer=True)
 
         return {"FINISHED"}

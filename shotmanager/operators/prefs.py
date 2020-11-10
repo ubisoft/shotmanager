@@ -188,7 +188,7 @@ class UAS_ShotManager_ProjectSettings_Prefs(Operator):
 
         # project settings summary display
         if config.uasDebug:
-            settingsList = props.restoreProjectSettings(settingsListOnly=True)
+            settingsList = props.applyProjectSettings(settingsListOnly=True)
             box = layout.box()
             for prop in settingsList:
                 row = box.row(align=True)
@@ -197,14 +197,14 @@ class UAS_ShotManager_ProjectSettings_Prefs(Operator):
 
     def execute(self, context):
         print("exec proj settings")
-        context.scene.UAS_shot_manager_props.restoreProjectSettings()
+        context.scene.UAS_shot_manager_props.applyProjectSettings()
         return {"FINISHED"}
 
     def cancel(self, context):
         print("cancel proj settings")
         # since project properties are immediatly applied to Shot Manager properties then we also force the
         # application of the settings in the scene even if the user is not clicking on OK button
-        context.scene.UAS_shot_manager_props.restoreProjectSettings()
+        context.scene.UAS_shot_manager_props.applyProjectSettings()
 
 
 class UAS_PT_ShotManagerPref_General(Panel):

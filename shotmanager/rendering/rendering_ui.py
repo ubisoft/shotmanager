@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import bpy
 from bpy.types import Panel
 
@@ -91,7 +93,7 @@ class UAS_PT_ShotManagerRenderPanel(Panel):
         layout.separator()
 
         row = layout.row(align=True)
-        row.scale_y = 1.6
+        row.scale_y = 1.3
         # row.operator ( renderProps.UAS_PT_ShotManager_RenderDialog.bl_idname, text = "Render Active", icon = "RENDER_ANIMATION" ).only_active = True
 
         # row.use_property_split = True
@@ -111,23 +113,31 @@ class UAS_PT_ShotManagerRenderPanel(Panel):
         row.prop(props, "displayAllEditsProps", text="", icon="RENDERLAYERS")
         row.operator("uas_shot_manager.render", text="Render All").renderMode = "ALL"
 
-        row = layout.row()
+        layout.separator(factor=0.3)
         row = layout.row(align=True)
+        row.scale_y = 1.3
         row.prop(props, "displayOtioProps", text="", icon="SEQ_STRIP_DUPLICATE")
         row.operator("uas_shot_manager.render", text="Render EDL File").renderMode = "OTIO"
 
+        # row = layout.row()
+        # row = layout.row(align=True)
+        row.separator(factor=2)
+        # row.scale_x = 1.2
+        row.prop(props, "displayPlayblastProps", text="", icon="FILE_MOVIE")  # AUTO
+        row.operator("uas_shot_manager.render", text="Playblast").renderMode = "PLAYBLAST"
+
         layout.separator(factor=1)
 
-        if config.uasDebug:
-            row = layout.row()
-            row.label(text="Last Render Results:")
-            subRow = row.row()
-            if True:
-                subRow.alert = True
-                subRow.operator("uas_shot_manager.open_last_render_results", text="Errors")
-            else:
-                subRow.operator("uas_shot_manager.open_last_render_results", text="OK")
-            row.operator("uas_shot_manager.clear_last_render_results")
+        # if config.uasDebug:
+        #     row = layout.row()
+        #     row.label(text="Last Render Results:")
+        #     subRow = row.row()
+        #     if True:
+        #         subRow.alert = True
+        #         subRow.operator("uas_shot_manager.open_last_render_results", text="Errors")
+        #     else:
+        #         subRow.operator("uas_shot_manager.open_last_render_results", text="OK")
+        #     row.operator("uas_shot_manager.clear_last_render_results")
 
         display_bypass_options = True
 
@@ -140,7 +150,10 @@ class UAS_PT_ShotManagerRenderPanel(Panel):
             if props.use_project_settings:
                 box.prop(props.renderSettingsStill, "bypass_rendering_project_settings")
                 if props.renderSettingsStill.bypass_rendering_project_settings:
-                    subbox = box.box()
+                    subRow = box.row()
+                    subSubRow = subRow.row()
+                    subSubRow.separator(factor=2)
+                    subbox = subRow.box()
                     row = subbox.row()
                 else:
                     display_bypass_options = False
@@ -149,6 +162,7 @@ class UAS_PT_ShotManagerRenderPanel(Panel):
 
             if display_bypass_options:
                 row.prop(props.renderSettingsStill, "writeToDisk")
+                row.prop(props.renderSettingsStill, "useStampInfo")
 
             row = box.row()
             filePath = props.getCurrentShot().getOutputMediaPath(specificFrame=bpy.context.scene.frame_current)
@@ -164,7 +178,10 @@ class UAS_PT_ShotManagerRenderPanel(Panel):
             if props.use_project_settings:
                 box.prop(props.renderSettingsAnim, "bypass_rendering_project_settings")
                 if props.renderSettingsAnim.bypass_rendering_project_settings:
-                    subbox = box.box()
+                    subRow = box.row()
+                    subSubRow = subRow.row()
+                    subSubRow.separator(factor=2)
+                    subbox = subRow.box()
                     row = subbox.row()
                 else:
                     display_bypass_options = False
@@ -173,6 +190,7 @@ class UAS_PT_ShotManagerRenderPanel(Panel):
 
             if display_bypass_options:
                 row.prop(props.renderSettingsAnim, "renderHandles")
+                row.prop(props.renderSettingsAnim, "useStampInfo")
 
             row = box.row()
             filePath = props.getCurrentShot().getOutputMediaPath()
@@ -193,7 +211,10 @@ class UAS_PT_ShotManagerRenderPanel(Panel):
             if props.use_project_settings:
                 box.prop(props.renderSettingsAll, "bypass_rendering_project_settings")
                 if props.renderSettingsAll.bypass_rendering_project_settings:
-                    subbox = box.box()
+                    subRow = box.row()
+                    subSubRow = subRow.row()
+                    subSubRow.separator(factor=2)
+                    subbox = subRow.box()
                     row = subbox.row()
                 else:
                     display_bypass_options = False
@@ -201,8 +222,13 @@ class UAS_PT_ShotManagerRenderPanel(Panel):
                 row = box.row()
 
             if display_bypass_options:
-                row.prop(props.renderSettingsAll, "renderAllTakes")
                 row.prop(props.renderSettingsAll, "renderAlsoDisabled")
+                row.prop(props.renderSettingsAll, "useStampInfo")
+                if props.use_project_settings:
+                    row = subbox.row()
+                else:
+                    row = box.row()
+                row.prop(props.renderSettingsAll, "renderAllTakes")
                 row.prop(props.renderSettingsAll, "renderOtioFile")
 
             row = box.row()
@@ -242,6 +268,39 @@ class UAS_PT_ShotManagerRenderPanel(Panel):
 
             row.label(text="Current Take Edit: " + filePath)
             row.operator("uas_shot_manager.open_explorer", text="", icon_value=iconExplorer.icon_id).path = filePath
+
+        # PLAYBLAST ###
+        elif props.displayPlayblastProps:
+            row = layout.row()
+            row.label(text="Playblast:")
+
+            box = layout.box()
+
+            prefs = context.preferences.addons["shotmanager"].preferences
+            #   filePath = props.renderRootPath + "\\" + prefs.playblastFileName
+            filePath = props.renderRootPath
+            if not filePath.endswith("\\") and not filePath.endswith("/"):
+                filePath += "\\"
+            filePath += f"_playblast_.{props.getOutputFileFormat()}"
+            if not props.isRenderRootPathValid():
+                rowAlert = box.row()
+                rowAlert.alert = True
+                rowAlert.label(text="*** Invalid Root Path ***")
+
+            row = box.row()
+            colFlow = row.column_flow(columns=2)
+            col = colFlow.row()
+            col.prop(props.renderSettingsPlayblast, "useStampInfo")
+            col = colFlow.row()
+            col.label(text="Resolution %:")
+            col.prop(props.renderSettingsPlayblast, "resolutionPercentage", text="")
+            # row.use_property_split = False
+
+            row = box.row()
+            row.label(text="Playblast Video: " + filePath)
+            row.operator("uas_shot_manager.open_explorer", text="", icon_value=iconExplorer.icon_id).path = str(
+                Path(bpy.path.abspath(filePath))
+            )
 
         # ------------------------
 

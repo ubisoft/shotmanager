@@ -129,7 +129,7 @@ class Square:
 #
 # Blender windows system utils
 #
-def get_region_at_xy ( context, x, y, area_type = "VIEW_3D" ):
+def get_region_at_xy(context, x, y, area_type="VIEW_3D"):
     """
     Does not support quadview right now
 
@@ -588,8 +588,9 @@ class BL_UI_Timeline:
             offset_x += int(self.width * float(shot.end + 1 - shot.start) / total_range)
 
     def draw(self):
-        if not bpy.context.space_data.overlay.show_overlays:
-            return
+        # wkip wkip wkip code removed: quick fix crado pour éviter un crash
+        # if not bpy.context.space_data.overlay.show_overlays:
+        #     return
 
         self.width = self.context.area.width
         area_height = self.get_area_height()

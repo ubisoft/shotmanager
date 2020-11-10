@@ -233,8 +233,7 @@ class UAS_PT_ShotManager(Panel):
         layout.separator(factor=0.3)
         box = layout.box()
         row = box.row(align=False)
-        if config.uasDebug:
-            row.prop(prefs, "take_properties_extended", text="", icon=panelIcon, emboss=False)
+        row.prop(prefs, "take_properties_extended", text="", icon=panelIcon, emboss=False)
         row.label(text="Take:")
         subrow = row.row(align=True)
         #    row.scale_y = 1.5
@@ -270,6 +269,12 @@ class UAS_PT_ShotManager(Panel):
         if prefs.take_properties_extended:
             row = box.row()
             row.label(text="Take Properties")
+            row = box.row()
+            row.prop(currentTake, "globalEditDirectory", text="Edit Dir")
+            row = box.row()
+            row.prop(currentTake, "globalEditVideo", text="Edit Animatic")
+            row = box.row()
+            row.prop(currentTake, "startInGlobalEdit", text="Start in Global Edit")
 
         # Notes
         ######################

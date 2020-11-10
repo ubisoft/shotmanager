@@ -12,7 +12,8 @@ class UAS_ShotManager_ShotsGlobalSettings(PropertyGroup):
     )
 
     def _update_backgroundAlpha(self, context):
-        take = context.scene.UAS_shot_manager_props.getCurrentTake()
+        props = context.scene.UAS_shot_manager_props
+        take = props.getCurrentTake()
         shotList = take.getShotList(ignoreDisabled=False)
 
         for shot in shotList:

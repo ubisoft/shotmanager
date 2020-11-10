@@ -57,12 +57,12 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
     )
 
     def initialize_shot_manager(self):
-        _logger.info(f"\nInitializing Shot Manager... Scene: {bpy.context.scene.name}")
+        print(f"\nInitializing Shot Manager... Scene: {bpy.context.scene.name}")
         # self.parentScene = self.getParentScene()
 
         if self.parentScene is None:
             self.parentScene = self.findParentScene()
-        _logger.info(f"\n  self.parentScene : {self.parentScene}")
+        # _logger.info(f"\n  self.parentScene : {self.parentScene}")
 
         self.initialize()
         self.dataVersion = bpy.context.window_manager.UAS_shot_manager_version
@@ -606,7 +606,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         else:
             self.current_take_name = ""
 
-        print(f" ---- currentTakeByIndex: {currentTakeInd}, {self.getTakeByIndex(currentTakeInd)}")
+        # print(f" ---- currentTakeByIndex: {currentTakeInd}, {self.getTakeByIndex(currentTakeInd)}")
 
     def getCurrentTake(self):
         currentTakeInd = self.getCurrentTakeIndex()
@@ -832,6 +832,8 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
 
     renderSettingsOtio: PointerProperty(type=UAS_ShotManager_RenderSettings)
 
+    renderSettingsPlayblast: PointerProperty(type=UAS_ShotManager_RenderSettings)
+
     def get_displayStillProps(self):
         val = self.get("displayStillProps", True)
         return val
@@ -842,6 +844,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         self["displayAnimationProps"] = False
         self["displayAllEditsProps"] = False
         self["displayOtioProps"] = False
+        self["displayPlayblastProps"] = False
 
     def get_displayAnimationProps(self):
         val = self.get("displayAnimationProps", False)
@@ -852,6 +855,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         self["displayAnimationProps"] = True
         self["displayAllEditsProps"] = False
         self["displayOtioProps"] = False
+        self["displayPlayblastProps"] = False
 
     def get_displayProjectProps(self):
         val = self.get("displayAllEditsProps", False)
@@ -863,6 +867,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         self["displayAnimationProps"] = False
         self["displayAllEditsProps"] = True
         self["displayOtioProps"] = False
+        self["displayPlayblastProps"] = False
 
     def get_displayOtioProps(self):
         val = self.get("displayOtioProps", False)
@@ -874,6 +879,19 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         self["displayAnimationProps"] = False
         self["displayAllEditsProps"] = False
         self["displayOtioProps"] = True
+        self["displayPlayblastProps"] = False
+
+    def get_displayPlayblastProps(self):
+        val = self.get("displayPlayblastProps", False)
+        return val
+
+    def set_displayPlayblastProps(self, value):
+        _logger.debug(f" set_displayPlayblastProps: value: {value}")
+        self["displayStillProps"] = False
+        self["displayAnimationProps"] = False
+        self["displayAllEditsProps"] = False
+        self["displayOtioProps"] = False
+        self["displayPlayblastProps"] = True
 
     displayStillProps: BoolProperty(
         name="Display Still Preset Properties", get=get_displayStillProps, set=set_displayStillProps, default=True
@@ -894,6 +912,12 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         name="Display OpenTimelineIO Export Preset Properties",
         get=get_displayOtioProps,
         set=set_displayOtioProps,
+        default=False,
+    )
+    displayPlayblastProps: BoolProperty(
+        name="Display Playblast Preset Properties",
+        get=get_displayPlayblastProps,
+        set=set_displayPlayblastProps,
         default=False,
     )
 
@@ -955,7 +979,9 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
                     shotInd += 1
 
                 frameIndInEdit += frameIndexIn3DTime - referenceShot.start
-                frameIndInEdit += self.editStartFrame
+
+                # frameIndInEdit += self.editStartFrame       # at project level
+                frameIndInEdit += referenceShot.getParentTake().startInGlobalEdit  # at take level
 
         return frameIndInEdit
 
@@ -1509,7 +1535,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
 
     def setCurrentShot(self, currentShot, changeTime=None, area=None):
         shotInd = self.getShotIndex(currentShot)
-        print("setCurrentShot: shotInd:", shotInd)
+        # print("setCurrentShot: shotInd:", shotInd)
         self.setCurrentShotByIndex(shotInd, changeTime=changeTime, area=area)
 
     def getSelectedShotIndex(self):
@@ -2339,9 +2365,9 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         if project_asset_name is not None:
             self.project_asset_name = project_asset_name
 
-        self.restoreProjectSettings()
+        self.applyProjectSettings()
 
-    def restoreProjectSettings(self, settingsListOnly=False):
+    def applyProjectSettings(self, settingsListOnly=False):
 
         settingsList = []
 
@@ -2417,6 +2443,11 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         self.renderSettingsOtio.renderMode = "OTIO"
         self.renderSettingsOtio.renderOtioFile = True  # not used in this preset
         self.renderSettingsOtio.otioFileType = "XML"
+
+        # Playblast
+        self.renderSettingsPlayblast.name = "Playblast Preset"
+        self.renderSettingsPlayblast.renderMode = "PLAYBLAST"
+        self.renderSettingsPlayblast.useStampInfo = False
 
     def setProjectRenderFilePath(self):
         # if '' == bpy.data.filepath:

@@ -211,7 +211,7 @@ class MontageInterface(object):
         ###################
         # list other shots and disabled them
         ###################
-        print("\n       Shots not used in current sequence:")
+        print("\n\n       Shots not used in current sequence (set to disabled):")
         ind = 0
         for i, sh in enumerate(comparedShotsList):
             if sh not in newEditShots:

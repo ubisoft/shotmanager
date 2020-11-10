@@ -1,6 +1,6 @@
 import bpy
 from bpy.types import PropertyGroup
-from bpy.props import StringProperty, BoolProperty, EnumProperty
+from bpy.props import StringProperty, BoolProperty, EnumProperty, IntProperty
 
 
 # def list_available_render_engines(self, context):
@@ -56,13 +56,21 @@ class UAS_ShotManager_RenderGlobalContext(PropertyGroup):
         # update=_update_renderEngine,
     )
 
+    useOverlays: BoolProperty(
+        name="With Overlays",
+        description="Also render overlays when the rendering is a playblast",
+        default=False,
+        options=set(),
+    )
+
     def _update_renderQuality(self, context):
-        self.applyRenderQualitySettings(context)
+        self.applyRenderQualitySettings(context, renderQuality=self.renderQuality)
 
     renderQuality: EnumProperty(
         name="Render Quality",
         description="Set the Render Quality settings to use for the rendering.\nSettings are applied immediatly.",
         items=(
+            # ("VERY_LOW", "Very Low (faster)", ""),
             ("LOW", "Low (faster)", ""),
             ("MEDIUM", "Medium", ""),
             ("HIGH", "High (slower)", ""),
@@ -72,13 +80,38 @@ class UAS_ShotManager_RenderGlobalContext(PropertyGroup):
         update=_update_renderQuality,
     )
 
-    def applyRenderQualitySettings(self, context, renderWithOpengl=True):
+    useOverlays: BoolProperty(
+        name="With Overlays",
+        description="Also render overlays when the rendering is a playblast",
+        default=False,
+        options=set(),
+    )
+
+    def applyRenderQualitySettings(self, context, renderQuality=None, renderWithOpengl=True):
         # wkip les Quality Settings devraient etre globales au fichier
         # wkip faire une distinction avec le moteur courant pour l'application des settings
+
+        if renderQuality is None:
+            renderQuality = self.renderQuality
+
         props = context.scene.UAS_shot_manager_props
         #  bpy.context.space_data.overlay.show_overlays = props.useOverlays
 
-        if "LOW" == self.renderQuality:
+        if "VERY_LOW" == renderQuality:
+            # eevee
+            context.scene.eevee.taa_render_samples = 1
+            context.scene.eevee.taa_samples = 1
+
+            # workbench
+            # if "BLENDER_WORKBENCH" == bpy.context.scene.render.engine:
+            context.scene.display.render_aa = "OFF"
+            context.scene.display.viewport_aa = "OFF"
+
+            # cycles
+            context.scene.cycles.samples = 1
+            context.scene.cycles.preview_samples = 1
+
+        elif "LOW" == renderQuality:
             # eevee
             context.scene.eevee.taa_render_samples = 6
             context.scene.eevee.taa_samples = 2
@@ -92,7 +125,7 @@ class UAS_ShotManager_RenderGlobalContext(PropertyGroup):
             context.scene.cycles.samples = 6
             context.scene.cycles.preview_samples = 2
 
-        elif "MEDIUM" == self.renderQuality:
+        elif "MEDIUM" == renderQuality:
             # eevee
             context.scene.eevee.taa_render_samples = 32  # 64
             context.scene.eevee.taa_samples = 6  # 16
@@ -106,7 +139,7 @@ class UAS_ShotManager_RenderGlobalContext(PropertyGroup):
             context.scene.cycles.samples = 64
             context.scene.cycles.preview_samples = 16
 
-        elif "HIGH" == self.renderQuality:
+        elif "HIGH" == renderQuality:
             # eevee
             context.scene.eevee.taa_render_samples = 64  # 128
             context.scene.eevee.taa_samples = 12  # 32
@@ -127,12 +160,14 @@ class UAS_ShotManager_RenderGlobalContext(PropertyGroup):
 
         return
 
-    useOverlays: BoolProperty(
-        name="With Overlays",
-        description="Also render overlays when the rendering is a playblast",
-        default=False,
-        options=set(),
-    )
+    def applyBurnInfos(self, context):
+        context.scene.render.use_stamp = True
+        context.scene.render.use_stamp_scene = True
+        context.scene.render.use_stamp_frame = True
+        context.scene.render.use_stamp_date = True
+        context.scene.render.use_stamp_time = True
+
+        # scene.render.use_stamp_note = True
 
 
 class UAS_ShotManager_RenderSettings(PropertyGroup):
@@ -142,7 +177,13 @@ class UAS_ShotManager_RenderSettings(PropertyGroup):
     renderMode: EnumProperty(
         name="Render Mode",
         description="Render Mode",
-        items=(("STILL", "Still", ""), ("ANIMATION", "Animation", ""), ("ALL", "All Edits", ""), ("OTIO", "Otio", ""),),
+        items=(
+            ("STILL", "Still", ""),
+            ("ANIMATION", "Animation", ""),
+            ("ALL", "All Edits", ""),
+            ("OTIO", "Otio", ""),
+            ("PLAYBLAST", "PLAYBLAST", ""),
+        ),
         default="STILL",
     )
 
@@ -160,7 +201,14 @@ class UAS_ShotManager_RenderSettings(PropertyGroup):
 
     renderOtioFile: BoolProperty(name="Render EDL File", default=False)
 
+    useStampInfo: BoolProperty(name="Use Stamp Info", default=True)
+
     rerenderExistingShotVideos: BoolProperty(name="Re-render Exisiting Shot Videos", default=True)
+
+    # used only by PLAYBLAST
+    resolutionPercentage: IntProperty(
+        name="Resolution Percentage", min=10, soft_max=100, max=300, subtype="PERCENTAGE", default=100
+    )
 
     bypass_rendering_project_settings: BoolProperty(
         name="Bypass Project Settings",

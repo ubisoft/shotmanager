@@ -2,7 +2,7 @@ import bpy
 
 from bpy.types import Scene
 from bpy.types import PropertyGroup
-from bpy.props import StringProperty, CollectionProperty, PointerProperty, BoolProperty
+from bpy.props import StringProperty, CollectionProperty, PointerProperty, BoolProperty, IntProperty
 
 from .shot import UAS_ShotManager_Shot
 
@@ -130,6 +130,13 @@ class UAS_ShotManager_Take(SequenceInterface, PropertyGroup):
 
     def getEditShots(self, ignoreDisabled=True):
         return self.getShotsList(ignoreDisabled=ignoreDisabled)
+
+    #############
+    # global edit infos #####
+    #############
+    globalEditDirectory: StringProperty(default="")
+    globalEditVideo: StringProperty(default="")
+    startInGlobalEdit: IntProperty(min=0, default=0)
 
     #############
     # notes #####
