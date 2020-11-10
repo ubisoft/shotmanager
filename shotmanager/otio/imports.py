@@ -1029,14 +1029,18 @@ def conformToRefMontage(
 
                     if not media_path.exists():
                         print(f"** BG video shot not found: {media_path}")
-                        textSelf += f" (!!! Not Found in {media_path.parent})"
                         modifStr += f" (!!! Not Found in {media_path.parent})"
+                        textSelf += f" (!!! Not Found in {media_path.parent})"
                     else:
                         # if True:
                         # start frame of the background video is not set here since it will be linked to the shot start frame
                         utils.add_background_video_to_cam(
                             shotSelf.camera.data, str(media_path), 0, alpha=props.shotsGlobalSettings.backgroundAlpha
                         )
+
+                        # modifStr += f" (BG Added, new BG: {shotSelf.camera.data.background_images[0].clip.name})"
+                        # print(f"shotSelf.camera.data BG:{shotSelf.camera.data.background_images[0].clip.name}")
+
                         shotSelf.bgImages_linkToShotStart = True
                         if mediaHaveHandles:
                             shotSelf.bgImages_offset = -1 * mediaHandlesDuration

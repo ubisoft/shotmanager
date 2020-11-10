@@ -1,6 +1,6 @@
 import bpy
-from bpy.types import Panel, Operator, PropertyGroup
-from bpy.props import IntProperty, EnumProperty, BoolProperty, FloatProperty, StringProperty
+from bpy.types import Operator, PropertyGroup
+from bpy.props import IntProperty, EnumProperty, BoolProperty, FloatProperty
 
 
 class UAS_Retimer_Properties(PropertyGroup):

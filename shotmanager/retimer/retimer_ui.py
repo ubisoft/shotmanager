@@ -351,6 +351,7 @@ class UAS_ShotManager_RetimerApply(Operator):
                 retimerProps.applyToShapeKeys,
                 retimerProps.applytToGreasePencil,
                 retimerProps.applyToShots,
+                retimerProps.applyToVse,
             )
         elif "DELETE" == retimerProps.mode:
             retimer.retimeScene(
@@ -366,6 +367,7 @@ class UAS_ShotManager_RetimerApply(Operator):
                 retimerProps.applyToShapeKeys,
                 retimerProps.applytToGreasePencil,
                 retimerProps.applyToShots,
+                retimerProps.applyToVse,
             )
         elif "RESCALE" == retimerProps.mode:
             retimer.retimeScene(
@@ -381,6 +383,7 @@ class UAS_ShotManager_RetimerApply(Operator):
                 retimerProps.applyToShapeKeys,
                 retimerProps.applytToGreasePencil,
                 retimerProps.applyToShots,
+                retimerProps.applyToVse,
             )
         elif "CLEAR_ANIM" == retimerProps.mode:
             retimer.retimeScene(
@@ -396,6 +399,7 @@ class UAS_ShotManager_RetimerApply(Operator):
                 retimerProps.applyToShapeKeys,
                 retimerProps.applytToGreasePencil,
                 False,
+                retimerProps.applyToVse,
             )
         else:
             retimer.retimer(
@@ -411,6 +415,7 @@ class UAS_ShotManager_RetimerApply(Operator):
                 retimerProps.applyToShapeKeys,
                 retimerProps.applytToGreasePencil,
                 retimerProps.applyToShots,
+                retimerProps.applyToVse,
             )
 
         context.area.tag_redraw()
