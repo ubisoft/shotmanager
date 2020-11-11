@@ -66,7 +66,7 @@ bl_info = {
     "author": "Julien Blervaque (aka Werwack), Romain Carriquiry Borchiari",
     "description": "Manage a sequence of shots and cameras in the 3D View - Ubisoft Animation Studio",
     "blender": (2, 90, 0),
-    "version": (1, 3, 66),
+    "version": (1, 3, 67),
     "location": "View3D > UAS Shot Manager",
     "wiki_url": "https://gitlab-ncsa.ubisoft.org/animation-studio/blender/shotmanager-addon/-/wikis/home",
     "warning": "BETA Version - Fais gaffe à tes données !!!",
@@ -180,6 +180,8 @@ def checkDataVersion_post_load_handler(self, context):
         print("\nExisting file loaded: ", bpy.path.basename(bpy.context.blend_data.filepath))
         _logger.info("  - Shot Manager is checking the version used to create the loaded scene data...")
 
+        latestVersionToPatch = 1003061
+
         numScenesToUpgrade = 0
         lowerSceneVersion = -1
         for scn in bpy.data.scenes:
@@ -205,9 +207,10 @@ def checkDataVersion_post_load_handler(self, context):
                 #   print("     Data version: ", props.dataVersion)
                 #   print("     Shot Manager version: ", bpy.context.window_manager.UAS_shot_manager_version)
                 # if props.dataVersion <= 0 or props.dataVersion < bpy.context.window_manager.UAS_shot_manager_version:
-                if props.dataVersion <= 0 or props.dataVersion < props.version()[1]:
+                # if props.dataVersion <= 0 or props.dataVersion < props.version()[1]:
+                if props.dataVersion <= 0 or props.dataVersion < latestVersionToPatch:  # <= ???
                     _logger.info(
-                        f"     *** Scene {scn.name}: Shot Manager Data Version is lower than the current Shot Manager version"
+                        f"     *** Scene {scn.name}: Shot Manager Data Version is lower than the latest Shot Manager version to patch"
                     )
                     numScenesToUpgrade += 1
                     if -1 == lowerSceneVersion or props.dataVersion < lowerSceneVersion:

@@ -4,7 +4,7 @@ from bpy.types import Scene
 from bpy.types import PropertyGroup
 from bpy.props import StringProperty, IntProperty, BoolProperty, PointerProperty, FloatVectorProperty
 
-from shotmanager.utils.utils import findFirstUniqueName
+from shotmanager.utils import utils
 from shotmanager.rrs_specific.montage.montage_interface import ShotInterface
 
 import logging
@@ -131,7 +131,7 @@ class UAS_ShotManager_Shot(ShotInterface, PropertyGroup):
         """ Set a unique name to the shot
         """
         shots = self.parentScene.UAS_shot_manager_props.getShotsList(takeIndex=self.getParentTakeIndex())
-        newName = findFirstUniqueName(self, value, shots)
+        newName = utils.findFirstUniqueName(self, value, shots)
         self["name"] = newName
 
     name: StringProperty(name="Name", get=_get_name, set=_set_name)
@@ -323,6 +323,11 @@ class UAS_ShotManager_Shot(ShotInterface, PropertyGroup):
             # _logger.error(f"Error: Shot {self.name} uses a camera {self.camera.name} not found in the scene")
 
         return cameraIsInvalid
+
+    def makeCameraUnique(self):
+        if self.camera is not None:
+            if 1 < self.parentScene.UAS_shot_manager_props.getNumSharedCamera(self.camera):
+                self.camera = utils.duplicateObject(self.camera, newName="Camera_" + self.name)
 
     ##############
     # color

@@ -60,7 +60,7 @@ def addonVersion(addonName):
 
     #    versions = (versionStr, versionInt)
 
-    versions = ("1.3.66", 1003066)
+    versions = ("1.3.67", 1003067)
 
     return versions
 
@@ -277,7 +277,7 @@ def getSceneVSE(vsm_sceneName, createVseTab=False):
 ###################
 
 
-def duplicateObject(sourceObject):
+def duplicateObject(sourceObject, newName=None):
     """ Duplicate (deepcopy) an object and place it in the same collection
     """
     newObject = sourceObject.copy()
@@ -293,6 +293,11 @@ def duplicateObject(sourceObject):
         sourceCollections[0].objects.link(newObject)
     else:
         (sourceObject.users_scene)[0].collection.objects.link(newObject)
+
+    if newName is not None and "" != newName:
+        newObject.name = newName
+        newObject.data.name = newName
+
     return newObject
 
 

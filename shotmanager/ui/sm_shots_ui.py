@@ -230,14 +230,18 @@ class UAS_UL_ShotManager_Items(bpy.types.UIList):
         # camera
         ###########
         row = layout.row(align=True)
-        grid_flow = row.grid_flow(align=True, columns=2, even_columns=False)
+        grid_flow = row.grid_flow(align=True, columns=3, even_columns=False)
         grid_flow.use_property_split = False
-        grid_flow.scale_x = 1.0
+        grid_flow.scale_x = 2.6
 
         if props.display_camera_in_shotlist:
             if item.camera is None:
                 grid_flow.alert = True
             grid_flow.prop(item, "camera", text="")
+            grid_flow.scale_x = 0.3
+            grid_flow.operator(
+                "uas_shot_manager.list_camera_instances", text=str(props.getNumSharedCamera(item.camera))
+            ).index = index
             if item.camera is None:
                 grid_flow.alert = False
 
@@ -387,29 +391,54 @@ class UAS_PT_ShotManager_ShotProperties(Panel):
             cameraIsValid = shot.isCameraValid()
 
             row = box.row()
-            row.separator(factor=1.0)
-            c = row.column()
-            grid_flow = c.grid_flow(align=False, columns=4, even_columns=False)
-            if not cameraIsValid:
-                grid_flow.alert = True
-            grid_flow.prop(shot, "camera", text="Camera")
-            if not cameraIsValid:
-                grid_flow.alert = False
-            grid_flow.prop(props, "display_camera_in_shotlist", text="")
+            row.separator(factor=0.5)
+            # c = row.column()
+            grid_flow = row.grid_flow(align=False, columns=4, even_columns=False)
 
-            # c.separator( factor = 0.5 )   # prevents stange look when panel is narrow
-            grid_flow.scale_x = 0.7
-            #     row.label ( text = "Lens: " )
-            grid_flow.use_property_decorate = True
             if not cameraIsValid:
                 grid_flow.alert = True
-                grid_flow.operator("uas_shot_manager.nolens", text="No Lens")
-                grid_flow.alert = False
+
+            rowCam = grid_flow.row(align=False)
+            subRowCam = rowCam.row(align=True)
+            # subRowCam.scale_x = 0.7
+
+            #  subRowCam = rowCam.row(align=True)
+            subRowCam.scale_x = 1.2
+
+            grid_flow = subRowCam.grid_flow(align=True, columns=4, even_columns=False)
+            # subSubRowCam = subRowCam.row(align=True)
+            grid_flow.scale_x = 0.2
+            grid_flow.label(text="Camera:")
+            grid_flow.scale_x = 1.8
+            grid_flow.prop(shot, "camera", text="")
+            grid_flow.scale_x = 0.4
+            grid_flow.operator(
+                "uas_shot_manager.list_camera_instances", text=str(props.getNumSharedCamera(shot.camera))
+            ).index = props.selected_shot_index
+
+            if not cameraIsValid:
+                grid_flow.alert = True
+            subRowCam.separator(factor=1)
+            subRowCam.prop(props, "display_camera_in_shotlist", text="")
+
+            subRowCam = rowCam.row(align=True)
+            # c.separator( factor = 0.5 )   # prevents strange look when panel is narrow
+            subRowCam.scale_x = 1
+            #     row.label ( text = "Lens: " )
+            subRowCam.use_property_decorate = True
+            subSubRowCam = subRowCam.row(align=False)
+            subSubRowCam.scale_x = 0.5
+            if not cameraIsValid:
+                subSubRowCam.alert = True
+                subSubRowCam.operator("uas_shot_manager.nolens", text="No Lens")
+                subSubRowCam.alert = False
             else:
-                grid_flow.prop(shot.camera.data, "lens", text="Lens")
-            grid_flow.scale_x = 1.0
-            grid_flow.prop(props, "display_lens_in_shotlist", text="")
-            row.separator(factor=0.5)  # prevents strange look when panel is narrow
+                subSubRowCam.prop(shot.camera.data, "lens", text="Lens")
+            # subRowCam.scale_x = 1.0
+            subRowCam.separator(factor=1)  # prevents strange look when panel is narrow
+            subRowCam.prop(props, "display_lens_in_shotlist", text="")
+            subRowCam.separator(factor=0.5)  # prevents strange look when panel is narrow
+            # row.separator(factor=0.5)  # prevents strange look when panel is narrow
 
             box.separator(factor=0.5)
 

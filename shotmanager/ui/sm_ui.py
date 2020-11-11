@@ -133,6 +133,14 @@ class UAS_PT_ShotManager(Panel):
                 row.label(text=w)
                 row.alert = False
 
+        if props.use_project_settings and "Scene" in scene.name:
+            c = layout.column()
+            c.alert = True
+            c.alignment = "CENTER"
+            c.label(text=" *************************************** ")
+            c.label(text=" *    SCENE NAME IS INVALID !!!    * ")
+            c.label(text=" *************************************** ")
+
         # play and timeline
         ################
         row = layout.row()

@@ -1,11 +1,11 @@
 import bpy
 from bpy.types import Operator
-from bpy.props import IntProperty, StringProperty, EnumProperty, BoolProperty, FloatVectorProperty
+from bpy.props import IntProperty, StringProperty, EnumProperty, BoolProperty, FloatVectorProperty, PointerProperty
 
 from random import uniform
 import json
 
-from ..utils import utils
+from shotmanager.utils import utils
 
 
 def list_cameras(self, context):
@@ -32,22 +32,22 @@ class UAS_ShotManager_SetCurrentShot(Operator):
 
     index: bpy.props.IntProperty()
 
-    def adjust_dopesheet_view ( self, context, shot ):
-        ctx = context.copy ( )
+    def adjust_dopesheet_view(self, context, shot):
+        ctx = context.copy()
         for area in context.screen.areas:
             if area.type == "DOPESHEET_EDITOR":
-                ctx[ "area" ] = area
+                ctx["area"] = area
                 for region in area.regions:
                     if region.type == "WINDOW":
-                        ctx[ "region" ] = region
-                        bpy.ops.view2d.reset ( ctx )
-                        context.scene.frame_current = shot.start + ( shot.end - shot.start ) // 2
-                        bpy.ops.action.view_frame ( ctx )
-                        bpy.ops.view2d.zoom ( ctx, deltax = ( region.width // 2 - ( shot.end - shot.start ) // 2 ) -10 )
+                        ctx["region"] = region
+                        bpy.ops.view2d.reset(ctx)
+                        context.scene.frame_current = shot.start + (shot.end - shot.start) // 2
+                        bpy.ops.action.view_frame(ctx)
+                        bpy.ops.view2d.zoom(ctx, deltax=(region.width // 2 - (shot.end - shot.start) // 2) - 10)
 
     def invoke(self, context, event):
         props = context.scene.UAS_shot_manager_props
-        self.adjust_dopesheet_view ( context, props.getShotByIndex(self.index) )
+        self.adjust_dopesheet_view(context, props.getShotByIndex(self.index))
         if event.shift and not event.ctrl and not event.alt:
             shot = props.getShotByIndex(self.index)
             shot.enabled = not shot.enabled
@@ -60,7 +60,6 @@ class UAS_ShotManager_SetCurrentShot(Operator):
         else:
             props.setCurrentShotByIndex(self.index, area=context.area)
             props.setSelectedShotByIndex(self.index)
-
 
         return {"FINISHED"}
 
@@ -165,6 +164,62 @@ class UAS_ShotManager_ShowNotes(Operator):
         props = context.scene.UAS_shot_manager_props
         shot = props.getShotByIndex(self.index)
         shot.selectShotInUI()
+        return {"FINISHED"}
+
+
+class UAS_ShotManager_ListCameraInstances(Operator):
+    bl_idname = "uas_shot_manager.list_camera_instances"
+    bl_label = "Shots Using This Camera "
+    bl_description = "Number of shots using this camera in all the takes (this shot included)"
+    bl_options = {"INTERNAL"}
+
+    index: IntProperty(default=0)
+
+    def invoke(self, context, event):
+        wm = context.window_manager
+        context.scene.UAS_shot_manager_props.setSelectedShotByIndex(self.index)
+        return wm.invoke_props_dialog(self, width=300)
+
+    def draw(self, context):
+        props = context.scene.UAS_shot_manager_props
+        layout = self.layout
+        row = layout.row()
+        shot = props.getShotByIndex(self.index)
+        if shot.camera is not None:
+            numSharedCam = props.getNumSharedCamera(shot.camera) - 1
+            if 0 < numSharedCam:
+                row.label(text=f"Camera shared with {numSharedCam} other shot(s)")
+                row = layout.row()
+                row.label(text=f"from this take or other ones")
+                row = layout.row()
+                row.operator("uas_shot_manager.make_shot_camera_unique").shotName = props.getShotByIndex(
+                    self.index
+                ).name
+            else:
+                row.label(text=f"Camera used only in this shot, only in this take")
+        else:
+            row.label(text=f"No camera defined")
+
+    def execute(self, context):
+        return {"FINISHED"}
+
+
+class UAS_ShotManager_MakeShotCameraUnique(Operator):
+    bl_idname = "uas_shot_manager.make_shot_camera_unique"
+    bl_label = "Make Shot Camera Unique"
+    bl_description = "If the camera is also used by another shot of the scene then it gets duplicated"
+    bl_options = {"INTERNAL", "UNDO"}
+
+    shotName: StringProperty(default="")
+
+    def execute(self, context):
+        props = context.scene.UAS_shot_manager_props
+        # selectedShot = props.getSelectedShot()
+        # selectedShotInd = props.getSelectedShotIndex()
+
+        shot = props.getShotByName(self.shotName)
+        if shot is not None:
+            shot.makeCameraUnique()
         return {"FINISHED"}
 
 
@@ -1126,6 +1181,8 @@ _classes = (
     UAS_ShotManager_NoLens,
     UAS_ShotManager_ShotTimeInEdit,
     UAS_ShotManager_ShowNotes,
+    UAS_ShotManager_ListCameraInstances,
+    UAS_ShotManager_MakeShotCameraUnique,
     # for shot manipulation:
     UAS_ShotManager_ShotAdd_GetCurrentFrameFor,
     UAS_ShotManager_ShotAdd,

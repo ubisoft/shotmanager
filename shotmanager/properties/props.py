@@ -1712,6 +1712,60 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
 
         return self.takes[takeInd].getShotsUsingCamera(cam, ignoreDisabled=ignoreDisabled)
 
+    def getShotsSharingCamera(self, cam, ignoreDisabled=False, takeIndex=-1, inAllTakes=True):
+        """ Return a dictionary with all the shots using the specified camera in the specified takes
+            The dictionary is made of "take name" / Shots array
+        """
+        shotsDict = dict()
+
+        if cam is None:
+            return shotsDict
+
+        if not inAllTakes:
+            takeInd = (
+                self.getCurrentTakeIndex()
+                if -1 == takeIndex
+                else (takeIndex if 0 <= takeIndex and takeIndex < len(self.getTakes()) else -1)
+            )
+            if -1 == takeInd:
+                return shotsDict
+
+            shotList = self.takes[takeInd].getShotsUsingCamera(cam, ignoreDisabled=ignoreDisabled)
+            if len(shotList):
+                shotsDict[self.takes[takeInd].getName_PathCompliant()] = shotList
+
+        else:
+            if len(self.takes):
+                for take in self.takes:
+                    shotList = []
+                    shotList = take.getShotsUsingCamera(cam, ignoreDisabled=ignoreDisabled)
+                    if len(shotList):
+                        shotsDict[take.getName_PathCompliant()] = shotList
+
+        return shotsDict
+
+    def getNumSharedCamera(self, cam, ignoreDisabled=False, takeIndex=-1, inAllTakes=True):
+        """ Return the number of times the specified camera is used by the shots of the specified takes
+            0 means the camera is not used at all, -1 that the specified take is not valid
+        """
+        if not inAllTakes:
+            takeInd = (
+                self.getCurrentTakeIndex()
+                if -1 == takeIndex
+                else (takeIndex if 0 <= takeIndex and takeIndex < len(self.getTakes()) else -1)
+            )
+            if -1 == takeInd:
+                return -1
+
+        sharedCams = self.getShotsSharingCamera(
+            cam, ignoreDisabled=ignoreDisabled, takeIndex=takeIndex, inAllTakes=inAllTakes
+        )
+        numSharedCams = 0
+        for k in sharedCams:
+            numSharedCams += len(sharedCams[k])
+
+        return numSharedCams
+
     def deleteShotCamera(self, shot):
         """ Check in all takes if the camera is used by another shot and if not then delete it
         """
