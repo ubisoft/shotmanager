@@ -256,7 +256,7 @@ class UAS_Vse_Render(PropertyGroup):
         self,
         scene,
         mediaPath,
-        channelInd,
+        channelInd=1,
         frame_start=0,
         frame_final_start=0,
         frame_final_end=0,
@@ -320,8 +320,8 @@ class UAS_Vse_Render(PropertyGroup):
         self,
         scene,
         mediaPath,
-        channelInd,
-        atFrame,
+        channelInd=1,
+        atFrame=0,
         offsetStart=0,
         offsetEnd=0,
         final_duration=-1,
@@ -429,6 +429,13 @@ class UAS_Vse_Render(PropertyGroup):
 
             return seq
 
+        ########################################################################
+        ########################################################################
+
+        trackType = (
+            "ALL" if importVideo and importAudio else ("VIDEO" if importVideo else ("AUDIO" if importAudio else "NONE"))
+        )
+
         # Clip creation
         ##########
 
@@ -441,6 +448,8 @@ class UAS_Vse_Render(PropertyGroup):
 
         if "MOVIE" == mediaType:
             newClipName = clipName if "" != clipName else "myMovie"
+            audioChannel = channelInd - 1 if "ALL" == trackType else channelInd
+
             if importVideo:
                 newClip = scene.sequence_editor.sequences.new_movie(
                     newClipName + "Video", mediaPath, channelInd, atFrame
@@ -449,9 +458,10 @@ class UAS_Vse_Render(PropertyGroup):
                 newClip.frame_offset_end = offsetEnd
                 if -1 != final_duration:
                     newClip.frame_final_duration = final_duration
+
             if importAudio:
                 newClip = scene.sequence_editor.sequences.new_sound(
-                    newClipName + "Sound", mediaPath, channelInd + 1, atFrame
+                    newClipName + "Sound", mediaPath, audioChannel, atFrame
                 )
                 newClip.frame_offset_start = offsetStart
                 newClip.frame_offset_end = offsetEnd

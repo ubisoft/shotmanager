@@ -324,6 +324,8 @@ class UAS_ShotManager_RetimerApply(Operator):
 
     def execute(self, context):
         retimerProps = context.scene.UAS_shot_manager_props.retimer
+        # wkip wkip wkip temp
+        applToVSE = setattr(retimerProps, "applyToVse", True)
 
         if retimerProps.onlyOnSelection:
             obj_list = context.selected_objects

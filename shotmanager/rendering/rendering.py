@@ -45,6 +45,7 @@ def launchRenderWithVSEComposite(
     specificShotList=None,
     specificFrame=None,
     render_handles=True,
+    renderSound=True,
     renderAlsoDisabled=False,
     area=None,
     override_all_viewports=False,
@@ -201,6 +202,20 @@ def launchRenderWithVSEComposite(
                 renderResolutionFramed[1] * props.renderSettingsPlayblast.resolutionPercentage / 100
             )
 
+    # set output format settings
+    #######################
+
+    ################
+    # video settings
+    ################
+
+    # scene.render.image_settings.file_format = "FFMPEG"
+    # scene.render.ffmpeg.format = "MPEG4"
+    # scene.render.ffmpeg.constant_rate_factor = "PERC_LOSSLESS"  # "PERC_LOSSLESS"
+    # scene.render.ffmpeg.gopsize = 5  # keyframe interval
+    # scene.render.ffmpeg.audio_codec = "AAC"
+    scene.render.use_file_extension = True
+
     # set render quality
     #######################
 
@@ -257,7 +272,16 @@ def launchRenderWithVSEComposite(
     startRenderTime = time.monotonic()
     allRenderTimes = dict()
 
+    startFrameIn3D = -1
+    startFrameInEdit = -1
     for i, shot in enumerate(shotList):
+
+        if 0 == i:
+            startFrameIn3D = shot.start
+            startFrameInEdit = shot.getEditStart()
+            textInfo = f"  *** Playblast Start Time: 3D: {startFrameIn3D}, Edit: {startFrameInEdit}"
+            print(f"TextInfo: {textInfo}")
+
         # context.window_manager.UAS_shot_manager_progressbar = (i + 1) / len(shotList) * 100.0
         # bpy.ops.wm.redraw_timer(type="DRAW_WIN_SWAP", iterations=2)
 
@@ -396,6 +420,8 @@ def launchRenderWithVSEComposite(
 
                     if "PLAYBLAST" == renderMode and not preset_useStampInfo:
                         textInfo02 = f"Shot: {shot.name}"
+                        textInfo02 += f"  *** Playblast Start Time: 3D: {startFrameIn3D}, Edit: {startFrameInEdit}"
+                        print(f"TextInfo02: {textInfo02}")
                         scene.render.use_stamp_note = True
                         scene.render.stamp_note_text = textInfo02
 
@@ -441,12 +467,12 @@ def launchRenderWithVSEComposite(
             #######################
 
             audioFilePath = None
-            if specificFrame is None:
+            if specificFrame is None and renderSound:
                 # render sound
                 audioFilePath = (
                     newTempRenderPath + f"{props.renderShotPrefix()}_{shot.getName_PathCompliant()}" + ".wav"
                 )
-                print(f"\n Sound for shot {shot.name}:{audioFilePath}")
+                print(f"\n Sound for shot {shot.name}:  {audioFilePath}")
 
                 if Path(audioFilePath).exists():
                     print(f" *** Sound file still exists... Should have been deleted ***")
@@ -456,13 +482,13 @@ def launchRenderWithVSEComposite(
                             print(f"\n*** File locked (by system?): {audioFilePath}")
                     except Exception as e:
                         _logger.exception(f"\n*** File locked (by system?): {audioFilePath}")
-                        print(f"\n*** File locked (by system?): {audioFilePath}")
+                        print(f"\n*** Exception : File locked (by system?): {audioFilePath}")
                         audioFilePath = (
                             str(Path(audioFilePath).parent)
                             + "/"
                             + str(Path(audioFilePath).stem)
                             + "1"
-                            + "."
+                            # + "."
                             + str(Path(audioFilePath).suffix)
                         )
 
@@ -526,7 +552,7 @@ def launchRenderWithVSEComposite(
                     _logger.debug(f"\n - BGMediaPath: {vse_render.inputBGMediaPath}")
                     vse_render.inputBGResolution = bgImgSeq_resolution
 
-                if specificFrame is None:
+                if specificFrame is None and renderSound:
                     vse_render.inputAudioMediaPath = audioFilePath
 
                 if specificFrame is None:
@@ -921,6 +947,8 @@ def launchRender(context, renderMode, rootPath, area=None):
         elif "ANIMATION" == preset.renderMode:
             _logger.debug("Render Animation")
 
+            bpy.ops.wm.save_mainfile()
+
             shot = props.getCurrentShot()
 
             renderedFilesDict = launchRenderWithVSEComposite(
@@ -938,6 +966,8 @@ def launchRender(context, renderMode, rootPath, area=None):
         elif "ALL" == preset.renderMode:
             _logger.debug(f"Render All:" + str(props.renderSettingsAll.renderAllTakes))
             _logger.debug(f"Render All, preset.renderAllTakes: {preset.renderAllTakes}")
+
+            bpy.ops.wm.save_mainfile()
 
             takesToRender = [-1]
             if preset.renderAllTakes:
@@ -973,6 +1003,8 @@ def launchRender(context, renderMode, rootPath, area=None):
         elif "PLAYBLAST" == preset.renderMode:
             _logger.debug(f"Render Playblast")
 
+            bpy.ops.wm.save_mainfile()
+
             renderedFilesDict = launchRenderWithVSEComposite(
                 context,
                 "PLAYBLAST",
@@ -985,6 +1017,7 @@ def launchRender(context, renderMode, rootPath, area=None):
                 generateSequenceVideo=True,
                 renderAlsoDisabled=False,
                 render_handles=False,
+                renderSound=preset.renderSound,
                 area=area,
             )
 

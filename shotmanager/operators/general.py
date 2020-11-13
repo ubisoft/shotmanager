@@ -34,6 +34,34 @@ class UAS_ShotManager_OT_GoToVideoShotManager(Operator):
         return {"FINISHED"}
 
 
+class UAS_ShotManager_OT_GoToUpdatedVideoShotManager(Operator):
+    bl_idname = "uas_shot_manager.go_to_updated_video_shot_manager"
+    bl_label = "Go To Updated Video Shot Manager"
+    bl_description = "Go to Updated Video Shot Manager"
+    bl_options = {"INTERNAL"}
+
+    def invoke(self, context, event):
+
+        vsm_scene = None
+        vsm_scene = getSceneVSE("VideoShotManger", createVseTab=True)
+
+        # startup_blend = os.path.join(
+        #     bpy.utils.resource_path("LOCAL"),
+        #     "scripts",
+        #     "startup",
+        #     "bl_app_templates_system",
+        #     "Video_Editing",
+        #     "startup.blend",
+        # )
+
+        # bpy.context.window.scene = vsm_scene
+        # if "Video Editing" not in bpy.data.workspaces:
+        #     bpy.ops.workspace.append_activate(idname="Video Editing", filepath=startup_blend)
+        bpy.context.window.workspace = bpy.data.workspaces["Video Editing"]
+
+        return {"FINISHED"}
+
+
 class UAS_ShotManager_OT_FileInfo(Operator):
     bl_idname = "uas_shot_manager.file_info"
     bl_label = "File Info"
@@ -132,6 +160,7 @@ class UAS_ShotManager_OT_EnableDebug(Operator):
 
 _classes = (
     UAS_ShotManager_OT_GoToVideoShotManager,
+    UAS_ShotManager_OT_GoToUpdatedVideoShotManager,
     UAS_ShotManager_OT_FileInfo,
     UAS_ShotManager_OT_EnableDebug,
 )

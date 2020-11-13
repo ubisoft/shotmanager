@@ -273,6 +273,9 @@ class UAS_PT_ShotManagerRenderPanel(Panel):
         elif props.displayPlayblastProps:
             row = layout.row()
             row.label(text="Playblast:")
+            subRow = row.row()
+            subRow.operator("uas_shot_manager.go_to_updated_video_shot_manager", text="", icon="SEQ_STRIP_DUPLICATE")
+            subRow.separator(factor=0.2)
 
             box = layout.box()
 
@@ -295,6 +298,10 @@ class UAS_PT_ShotManagerRenderPanel(Panel):
             col.label(text="Resolution %:")
             col.prop(props.renderSettingsPlayblast, "resolutionPercentage", text="")
             # row.use_property_split = False
+
+            row = box.row()
+            row.prop(props.renderSettingsPlayblast, "updatePlaybalstInVSM")
+            row.prop(props.renderSettingsPlayblast, "renderSound")
 
             row = box.row()
             row.label(text="Playblast Video: " + filePath)

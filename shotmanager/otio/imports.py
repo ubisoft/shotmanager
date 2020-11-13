@@ -1010,6 +1010,17 @@ def conformToRefMontage(
             shotSelf.durationLocked = True
             expectedIndInSelfEdit += 1
 
+            # make camera unique
+            if useMediaAsCameraBG:
+                if shotSelf.camera is not None and 1 < props.getNumSharedCamera(shotSelf.camera):
+                    camName = shotSelf.camera.name
+                    shotSelf.makeCameraUnique()
+                    modifStr = (
+                        f"camera {camName} was shared with another shot, duplicated to become {shotSelf.camera.name}"
+                    )
+                    shotSelfModifs.append(modifStr)
+                    textSelf += f" / {modifStr}"
+
         ###################
         # clear camera BG and add new ones from edit
         ###################

@@ -114,7 +114,7 @@ class UAS_VSM_Props(PropertyGroup):
             newTrack.sceneTakeName = sceneTakeName
 
         if -1 != atIndex:  # move track at specified index
-            trackList.move(len(trackList) - 1, atIndex)
+            trackList.move(len(trackList) - 1, len(trackList) - atIndex)
 
         #  self.numTracks += 1
 
@@ -139,6 +139,50 @@ class UAS_VSM_Props(PropertyGroup):
             newTrack = trackList[atIndex]
 
         return newTrack
+
+    def setTrackInfo(
+        self,
+        trackIndex,
+        name=None,
+        start=None,
+        end=None,
+        camera=-1,
+        color=None,
+        enabled=None,
+        trackType=None,
+        sceneName=None,
+        sceneTakeName=None,
+    ):
+        """ Set the information of an existing track
+        """
+
+        trackList = self.getTracks()
+
+        track = trackList[len(trackList) - trackIndex]
+
+        if name is not None:
+            track.name = name
+
+        if enabled is not None:
+            track.enabled = enabled
+
+        if color is not None:
+            track.color = color
+
+        if trackType is not None:
+            track.trackType = trackType
+
+        # if "" != sceneName:
+        #     newTrack.shotManagerScene = bpy.data.scenes[sceneName]
+        # if "" != sceneTakeName:
+        #     newTrack.sceneTakeName = sceneTakeName
+
+        # if -1 != atIndex:  # move track at specified index
+        #     trackList.move(len(trackList) - 1, len(trackList) - atIndex)
+
+        # #  self.numTracks += 1
+
+        return
 
     def setCurrentTrackByIndex(self, currentTrackIndex):
         """ Changing the current track doesn't affect the selected one

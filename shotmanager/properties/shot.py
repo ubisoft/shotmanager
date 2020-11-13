@@ -327,7 +327,7 @@ class UAS_ShotManager_Shot(ShotInterface, PropertyGroup):
     def makeCameraUnique(self):
         if self.camera is not None:
             if 1 < self.parentScene.UAS_shot_manager_props.getNumSharedCamera(self.camera):
-                self.camera = utils.duplicateObject(self.camera, newName="Camera_" + self.name)
+                self.camera = utils.duplicateObject(self.camera, newName="Cam_" + self.name)
 
     ##############
     # color

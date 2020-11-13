@@ -80,6 +80,27 @@ class UAS_PT_VideoShotManager(Panel):
             row.alert = True
         row.label(text="First Frame: " + str(vseFirstFrame))
 
+        #########################################
+        # RRS Specific
+        #########################################
+
+        layout.separator(factor=2)
+        row = layout.row()
+        row.scale_y = 1
+        row.operator(
+            "uas_video_shot_manager.go_to_sequence_scene", text="Go to Sequence Scene", icon="SCENE_DATA"
+        ).sceneName = bpy.data.scenes[0].name
+        layout.separator()
+        row = layout.row()
+        row.scale_y = 2
+        row.operator("uas_video_shot_manager.rrs_check_sequence", text="Check Sequence")
+
+        #########################################
+        # Time
+        #########################################
+
+        layout.separator(factor=2)
+        layout.label(text="Time Range:")
         row = layout.row()
         row.operator("uas_video_shot_manager.frame_all_clips")
 
@@ -98,6 +119,7 @@ class UAS_PT_VideoShotManager(Panel):
             subRow.operator("uas_utils.get_current_frame_for_time_range", text="", icon="TRIA_UP_BAR").opArgs = (
                 "{'frame_preview_end': " + str(scene.frame_current) + "}"
             )
+            row.label(text=f"Duration: {scene.frame_preview_end - scene.frame_preview_start + 1}")
         else:
             subRow.operator("uas_utils.get_current_frame_for_time_range", text="", icon="TRIA_UP_BAR").opArgs = (
                 "{'frame_start': " + str(scene.frame_current) + "}"
@@ -108,11 +130,15 @@ class UAS_PT_VideoShotManager(Panel):
             subRow.operator("uas_utils.get_current_frame_for_time_range", text="", icon="TRIA_UP_BAR").opArgs = (
                 "{'frame_end': " + str(scene.frame_current) + "}"
             )
+            row.label(text=f"Duration: {scene.frame_end - scene.frame_start + 1}")
 
-        layout.separator()
+        #########################################
+        # Tracks
+        #########################################
 
+        layout.separator(factor=2)
         row = layout.row()
-        row.label(text="Tracks")
+        row.label(text="Tracks:")
 
         row.prop(vsm_props, "numTracks")
         row.operator("uas_video_shot_manager.update_tracks_list", text="", icon="FILE_REFRESH")
