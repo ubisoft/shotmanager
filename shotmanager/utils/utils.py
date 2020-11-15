@@ -217,6 +217,75 @@ def openMedia(media_filepath, inExternalPlayer=False):
 
 
 ###################
+# Markers
+###################
+
+
+def sortMarkers(markers):
+    return sorted(markers, key=lambda x: x.frame, reverse=False)
+
+
+def getFirstMarker(scene, frame):
+    markers = sortMarkers(scene.timeline_markers)
+    return markers[0] if len(markers) else None
+
+
+def getMarkerBeforeFrame(scene, frame):
+    markers = sortMarkers(scene.timeline_markers)
+    previousMarker = None
+    for m in markers:
+        if frame > m.frame:
+            previousMarker = m
+        else:
+            return previousMarker
+    return previousMarker
+
+
+def getMarkerAtFrame(scene, frame):
+    # markers = sortMarkers(scene.timeline_markers)
+    # for m in markers:
+    for m in scene.timeline_markers:
+        if frame == m.frame:
+            return m
+    return None
+
+
+def getMarkerAfterFrame(scene, frame):
+    markers = sortMarkers(scene.timeline_markers)
+    for m in markers:
+        if frame < m.frame:
+            return m
+    return None
+
+
+def getLastMarker(scene, frame):
+    markers = sortMarkers(scene.timeline_markers)
+    return markers[len(markers) - 1] if len(markers) else None
+
+
+def clearMarkersSelection(markers):
+    for m in markers:
+        m.select = False
+
+
+def addMarkerAtFrame(scene, frame, name):
+    marker = getMarkerAtFrame(scene, frame)
+    if marker is not None:
+        marker = getMarkerAtFrame(scene, frame)
+        marker.name = name
+    else:
+        if "" == name:
+            name = f"F_{scene.frame_current}"
+        marker = scene.timeline_markers.new(name, frame=frame)
+
+
+def deleteMarkerAtFrame(scene, frame):
+    marker = getMarkerAtFrame(scene, frame)
+    if marker is not None:
+        scene.timeline_markers.remove(marker)
+
+
+###################
 # Various
 ###################
 

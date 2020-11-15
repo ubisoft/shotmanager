@@ -3,6 +3,7 @@ import bpy
 from bpy.types import Panel, Menu
 from bpy.props import IntProperty, EnumProperty, BoolProperty, FloatProperty, StringProperty
 
+from shotmanager import utils
 from ..properties import vsm_props
 from ..operators import tracks
 
@@ -95,6 +96,34 @@ class UAS_PT_VideoShotManager(Panel):
         row.scale_y = 2
         row.operator("uas_video_shot_manager.rrs_check_sequence", text="Check Sequence")
 
+        #########################################
+        # Markers
+        #########################################
+
+        layout.separator(factor=2)
+        layout.label(text="Markers:")
+        row = layout.row()
+        row.operator("uas_video_shot_manager.go_to_marker", text="", icon="REW").goToMode = "FIRST"
+        row.operator("uas_video_shot_manager.go_to_marker", text="", icon="TRIA_LEFT").goToMode = "PREVIOUS"
+        currentMarker = utils.getMarkerAtFrame(scene, scene.frame_current)
+        if currentMarker is not None:
+            row.label(text=f"Marker: {currentMarker.name}")
+            row.operator(
+                "uas_video_shot_manager.add_marker", text="", icon="SYNTAX_OFF"
+            ).markerName = currentMarker.name
+            row.operator("uas_video_shot_manager.delete_marker", text="", icon="X")
+        else:
+            row.label(text="Marker: -")
+            row.operator(
+                "uas_video_shot_manager.add_marker", text="", icon="ADD"
+            ).markerName = f"F_{scene.frame_current}"
+            subRow = row.row()
+            subRow.enabled = False
+            subRow.operator("uas_video_shot_manager.delete_marker", text="", icon="X")
+        row.operator("uas_video_shot_manager.go_to_marker", text="", icon="TRIA_RIGHT").goToMode = "NEXT"
+        row.operator("uas_video_shot_manager.go_to_marker", text="", icon="FF").goToMode = "LAST"
+
+        scene.timeline_markers
         #########################################
         # Time
         #########################################
