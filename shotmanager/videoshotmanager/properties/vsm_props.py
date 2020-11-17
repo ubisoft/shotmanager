@@ -20,10 +20,11 @@ class UAS_VSM_Props(PropertyGroup):
         return val
 
     def _set_numTracks(self, value):
+        # new tracks are added at the top
         if value > len(self.tracks):
             v = value
             while v > len(self.tracks):
-                self.addTrack(trackType="STANDARD",)
+                self.addTrack(trackType="STANDARD", atIndex=(len(self.tracks) + 1))
             self["numTracks"] = value
         else:
             self["numTracks"] = len(self.tracks)
@@ -46,11 +47,54 @@ class UAS_VSM_Props(PropertyGroup):
 
     tracks: CollectionProperty(type=UAS_VideoShotManager_Track)
 
-    current_track_index: IntProperty(default=-1)
+    # property used by the template_list component in an inverted order than selected_track_index in order
+    # to reflect the VSE channels stack
+    def _get_selected_track_index_inverted(self):
+        val = self.get("selected_track_index_inverted", -1)
+        return val
 
-    selected_track_index: IntProperty(default=-1)
+    def _set_selected_track_index_inverted(self, value):
+        self["selected_track_index_inverted"] = value
+
+    # self.selected_track_index = len(self.tracks) - self["selected_track_index_inverted"]
+
+    def _update_selected_track_index_inverted(self, context):
+        if self.selected_track_index != len(self.tracks) - self["selected_track_index_inverted"]:
+            self.selected_track_index = len(self.tracks) - self["selected_track_index_inverted"]
+        print("\n*** _update_selected_track_index_inverted updated. New state: ", self.selected_track_index_inverted)
+
+    # Works from 0 to len(self.track) - 1
+    selected_track_index_inverted: IntProperty(
+        name="Selected Track Index Inverted",
+        get=_get_selected_track_index_inverted,
+        set=_set_selected_track_index_inverted,
+        update=_update_selected_track_index_inverted,
+        default=-1,
+    )
+
+    def _get_selected_track_index(self):
+        val = self.get("selected_track_index", -1)
+        return val
+
+    def _set_selected_track_index(self, value):
+        self["selected_track_index"] = value
+
+    def _update_selected_track_index(self, context):
+        print("\n*** _update_selected_track_index updated. New state: ", self.selected_track_index)
+        if self.selected_track_index_inverted != len(self.tracks) - self["selected_track_index"]:
+            self.selected_track_index_inverted = len(self.tracks) - self["selected_track_index"]
+
+    # Works from len(self.track) to 1
+    selected_track_index: IntProperty(
+        name="Selected Track Index",
+        get=_get_selected_track_index,
+        set=_set_selected_track_index,
+        update=_update_selected_track_index,
+        default=-1,
+    )
 
     display_color_in_tracklist: BoolProperty(name="Display Color in Track List", default=True, options=set())
+    display_opacity_in_tracklist: BoolProperty(name="Display Opacity in Track List", default=True, options=set())
 
     def getTracks(self):
         return self.tracks
@@ -92,7 +136,7 @@ class UAS_VSM_Props(PropertyGroup):
         sceneName="",
         sceneTakeName="",
     ):
-        """ Add a new track after the current track if possible or at the end of the track list otherwise
+        """ Add a new track after the selected track if possible or at the end of the track list otherwise
             Return the newly added track
         """
 
@@ -121,7 +165,7 @@ class UAS_VSM_Props(PropertyGroup):
         return newTrack
 
     def copyTrack(self, track, atIndex=-1):
-        """ Copy a track after the current track if possible or at the end of the track list otherwise
+        """ Copy a track after the selected track if possible or at the end of the track list otherwise
             Return the newly added track
         """
 
@@ -184,21 +228,6 @@ class UAS_VSM_Props(PropertyGroup):
 
         return
 
-    def setCurrentTrackByIndex(self, currentTrackIndex):
-        """ Changing the current track doesn't affect the selected one
-        """
-        #  print(" setCurrentTrackByIndex")
-        scene = bpy.context.scene
-        vsm_props = scene.UAS_vsm_props
-
-        trackList = self.getTracks()
-        self.current_track_index = currentTrackIndex
-
-    def setCurrentTrack(self, currentTrack):
-        trackInd = self.getTrackIndex(currentTrack)
-        #    print("setCurrentTrack: trackInd:", trackInd)
-        self.setCurrentTrackByIndex(trackInd)
-
     def getTrackIndex(self, track):
         trackInd = -1
 
@@ -237,51 +266,6 @@ class UAS_VSM_Props(PropertyGroup):
 
         return trackList
 
-    def getCurrentTrackIndex(self, ignoreDisabled=False):
-        """ Return the index of the current track in the enabled track list
-            Use this function instead of a direct call to self.current_track_index
-            
-            if ignoreDisabled is false (default) then the track index is relative to the whole track list,
-               otherwise it is relative to the list of the enabled tracks
-            can return -1 if all the tracks are disabled!!
-        """
-        #   print(" *** getCurrentTrackIndex")
-
-        currentTrackInd = -1
-
-        if ignoreDisabled and 0 < len(self.tracks):
-            # for i, track in enumerate ( self.context.scene.UAS_track_manager_props.takes[self.context.scene.UAS_track_manager_props.sceneTakeName].tracks ):
-            currentTrackInd = self.current_track_index
-            for i in range(self.current_track_index + 1):
-                if not self.tracks[i].enabled:
-                    currentTrackInd -= 1
-        #      print("  in ignoreDisabled, currentTrackInd: ", currentTrackInd)
-        else:
-            if 0 < len(self.tracks):
-
-                if len(self.tracks) > self.current_track_index:
-                    #          print("    in 01")
-                    currentTrackInd = self.current_track_index
-                else:
-                    #          print("    in 02")
-                    currentTrackInd = len(self.tracks) - 1
-                    self.setCurrentTrackByIndex(currentTrackInd)
-
-        # print("  NOT in ignoreDisabled, currentTrackInd: ", currentTrackInd)
-
-        return currentTrackInd
-
-    def getCurrentTrack(self, ignoreDisabled=False):
-        currentTrackInd = -1
-
-        currentTrackInd = self.getCurrentTrackIndex(ignoreDisabled=ignoreDisabled)
-        #   print("getCurrentTrack: currentTrackInd: ", currentTrackInd)
-        currentTrack = None
-        if -1 != currentTrackInd:
-            currentTrack = self.tracks[currentTrackInd]
-
-        return currentTrack
-
     def getSelectedTrackIndex(self):
         """ Return the index of the selected track in the enabled track list
             Use this function instead of a direct call to self.selected_track_index
@@ -308,6 +292,8 @@ class UAS_VSM_Props(PropertyGroup):
         self.setSelectedTrackByIndex(trackInd)
 
     def updateTracksList(self, scene):
+        """Add new track at the top of the list
+        """
         numChannels = self.getNumUsedChannels(scene)
 
         if self.numTracks < numChannels:

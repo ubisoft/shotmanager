@@ -314,6 +314,7 @@ class UAS_PT_ShotManager_ShotProperties(Panel):
 
     def draw(self, context):
         scene = context.scene
+        prefs = context.preferences.addons["shotmanager"].preferences
         props = scene.UAS_shot_manager_props
         iconExplorer = config.icons_col["General_Explorer_32"]
 
@@ -464,29 +465,34 @@ class UAS_PT_ShotManager_ShotProperties(Panel):
             # Notes
             ######################
             if props.display_notes_in_properties:
+                panelIcon = "TRIA_DOWN" if prefs.shot_notes_extended else "TRIA_RIGHT"
+
                 box = layout.box()
                 box.use_property_decorate = False
                 row = box.row()
-                row.separator(factor=1.0)
+                row.prop(prefs, "shot_notes_extended", text="", icon=panelIcon, emboss=False)
+                # row.separator(factor=1.0)
                 c = row.column()
                 # grid_flow = c.grid_flow(align=False, columns=3, even_columns=False)
                 subrow = c.row()
                 subrow.label(text="Notes:")
                 subrow.prop(props, "display_notes_in_shotlist", text="")
                 subrow.separator(factor=0.5)  # prevents strange look when panel is narrow
-                row = box.row()
-                row.separator(factor=1.0)
-                row.prop(shot, "note01", text="")
-                row.separator(factor=1.0)
-                row = box.row()
-                row.separator(factor=1.0)
-                row.prop(shot, "note02", text="")
-                row.separator(factor=1.0)
-                row = box.row()
-                row.separator(factor=1.0)
-                row.prop(shot, "note03", text="")
-                row.separator(factor=1.0)
-                box.separator(factor=0.1)
+
+                if prefs.shot_notes_extended:
+                    row = box.row()
+                    row.separator(factor=1.0)
+                    row.prop(shot, "note01", text="")
+                    row.separator(factor=1.0)
+                    row = box.row()
+                    row.separator(factor=1.0)
+                    row.prop(shot, "note02", text="")
+                    row.separator(factor=1.0)
+                    row = box.row()
+                    row.separator(factor=1.0)
+                    row.prop(shot, "note03", text="")
+                    row.separator(factor=1.0)
+                    box.separator(factor=0.1)
 
             # Camera background images
             ######################

@@ -276,13 +276,17 @@ class UAS_PT_ShotManager(Panel):
 
         if prefs.take_properties_extended:
             row = box.row()
-            row.label(text="Take Properties")
-            row = box.row()
-            row.prop(currentTake, "globalEditDirectory", text="Edit Dir")
-            row = box.row()
-            row.prop(currentTake, "globalEditVideo", text="Edit Animatic")
-            row = box.row()
-            row.prop(currentTake, "startInGlobalEdit", text="Start in Global Edit")
+            row.label(text="Take Properties:")
+            subBox = box.box()
+            subRow = subBox.row()
+            subRow.separator()
+            subRow.prop(currentTake, "globalEditDirectory", text="Edit Dir")
+            subRow = subBox.row()
+            subRow.separator()
+            subRow.prop(currentTake, "globalEditVideo", text="Edit Animatic")
+            subRow = subBox.row()
+            subRow.separator()
+            subRow.prop(currentTake, "startInGlobalEdit", text="Start in Global Edit")
 
         # Notes
         ######################

@@ -244,3 +244,10 @@ class UAS_ShotManager_RenderSettings(PropertyGroup):
         name="Update Playblast in Video Shot Manager", description="bla bla", default=True, options=set(),
     )
 
+    # renderCameraBG: BoolProperty(
+    #     name="Render Camera Backgrounds",
+    #     description="Render Camera Backgrounds (available only with Overlay)",
+    #     default=False,
+    #     options=set(),
+    # )
+

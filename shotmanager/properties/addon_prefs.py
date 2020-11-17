@@ -23,7 +23,13 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
         min=0, default=50,
     )
 
-    take_properties_extended: BoolProperty(default=False,)
+    take_properties_extended: BoolProperty(
+        name="Extend Take Properties", default=False,
+    )
+
+    shot_notes_extended: BoolProperty(
+        name="Extend Shot Notes", default=False,
+    )
 
     current_shot_changes_current_time: BoolProperty(
         name="Set Current Frame To Shot Start When Current Shot Is Changed", description="", default=True,
@@ -86,6 +92,7 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
 
     # used for example as a placehoder in VSM to have a text field when no strip is selected
     emptyField: StringProperty(name=" ")
+    emptyBool: BoolProperty(name=" ", default=False)
 
     ##################
     # add new shot ###
@@ -129,6 +136,20 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
         name="Add Shot End UI Only", soft_min=0, get=_get_addShot_end, set=_set_addShot_end, default=50,
     )
 
+    ##################
+    # global temps values   ###
+    ##################
+
+    # Playblast
+    ####################
+
+    playblast_frame_start: IntProperty(
+        name="Last Playblast Start Frame", soft_min=0, default=7165,
+    )
+
+    ##################################################################################
+    # Draw
+    ##################################################################################
     def draw(self, context):
         layout = self.layout
         prefs = context.preferences.addons["shotmanager"].preferences
@@ -150,6 +171,10 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
             col = box.column(align=False)
             col.prop(self, "addShot_start")
             col.prop(self, "addShot_end")
+
+            box = layout.box()
+            col = box.column(align=False)
+            col.prop(self, "playblast_frame_start")
 
 
 _classes = (UAS_ShotManager_AddonPrefs,)

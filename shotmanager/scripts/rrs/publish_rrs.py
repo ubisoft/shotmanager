@@ -169,7 +169,7 @@ def publishRRS(
     # shot videos are rendered in the directory of the take, not anymore in a directory with the shot name
     renderedFilesDict = rendering.launchRenderWithVSEComposite(
         bpy.context,
-        "PROJECT",
+        renderPreset=None,
         takeIndex=takeIndex,
         filePath=renderDir,
         fileListOnly=fileListOnly,

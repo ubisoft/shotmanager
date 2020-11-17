@@ -11,11 +11,6 @@ import shotmanager.config as config
 from .vsm_ui import UAS_PT_VideoShotManager
 
 
-######
-# Video Shot Manager main panel #
-######
-
-
 class UAS_VideoShotManager_SelectStrip(Operator):
     bl_idname = "uas_videoshotmanager.select_strip"
     bl_label = "Select"
@@ -53,11 +48,6 @@ class UAS_PT_VideoShotManagerSelectedStrip(Panel):
     bl_category = "UAS Video Shot Man"
     bl_parent_id = "UAS_PT_Video_Shot_Manager"
     # bl_options = {"DEFAULT_CLOSED"}
-
-    @classmethod
-    def poll(cls, context):
-        props = context.scene.UAS_shot_manager_props
-        return not props.dontRefreshUI()
 
     def draw(self, context):
         prefs = context.preferences.addons["shotmanager"].preferences
@@ -103,6 +93,5 @@ def register():
 
 
 def unregister():
-
     for cls in reversed(_classes):
         bpy.utils.unregister_class(cls)

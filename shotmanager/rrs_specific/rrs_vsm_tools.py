@@ -202,7 +202,7 @@ class UAS_VideoShotManager_OT_RRS_CheckSequence(Operator):
     #     default=r"C:\_UAS_ROOT\RRSpecial\_Sandbox\Julien\Fixtures_Montage\PrevizAct01_Seq0060\Act01_Seq0060_Main_Take_ModifsRename.xml"
     # )
     useOverlayFrame: BoolProperty(name="Use Overlay Frame", default=False)
-    importMarkers: BoolProperty(name="Imoprt Markers", default=False)
+    importMarkers: BoolProperty(name="Import Markers", default=False)
 
     def invoke(self, context, event):
         wm = context.window_manager
@@ -237,8 +237,10 @@ class UAS_VideoShotManager_OT_RRS_CheckSequence(Operator):
 
             self.sequenceList = config.gSeqEnumList[0][0]
 
-        wm.invoke_props_dialog(self, width=500)
-        return {"RUNNING_MODAL"}
+        if False:
+            return {wm.invoke_props_dialog(self, width=500)}
+            # return {"RUNNING_MODAL"}
+        return self.execute(context)
 
     def draw(self, context):
         scene = context.scene
@@ -259,7 +261,8 @@ class UAS_VideoShotManager_OT_RRS_CheckSequence(Operator):
             row.label(text="Specified EDL file not found! - Verify your local depot")  # wkip rrs specific
             row.alert = False
 
-        box.prop(self, "useOverlayFrame")
+        # box.prop(self, "useOverlayFrame")
+        #  box.prop(self, "importMarkers")
 
         if config.gMontageOtio is not None:
             numVideoTracks = len(config.gMontageOtio.timeline.video_tracks())
@@ -364,22 +367,50 @@ class UAS_VideoShotManager_OT_RRS_CheckSequence(Operator):
         vsm_props.updateTracksList(scene)
         vsm_props.setTrackInfo(channelInd, trackType="STANDARD", name="Previz_Edit (audio)", color=(0.1, 0.5, 0.2, 1))
 
-        if self.useOverlayFrame:
-            overlayClip = vse_render.createNewClip(scene, self.overlayFile, 2, 0, offsetEnd=-60000)
-            scene.sequence_editor.sequences_all[overlayClip.name].blend_type = "ALPHA_OVER"
+        # if self.useOverlayFrame:
+        #     overlayClip = vse_render.createNewClip(scene, self.overlayFile, 2, 0, offsetEnd=-60000)
+        #     scene.sequence_editor.sequences_all[overlayClip.name].blend_type = "ALPHA_OVER"
 
         # playblast
-        channelInd = 3
+        playblastClip = None
         filePath = props.renderRootPath
         if not filePath.endswith("\\") and not filePath.endswith("/"):
             filePath += "\\"
         filePath += f"_playblast_.{props.getOutputFileFormat()}"
         filePath = bpy.path.abspath(filePath)
+
+        prefs = context.preferences.addons["shotmanager"].preferences
+        importPlayblastAtFrame = prefs.playblast_frame_start
+
         print(f"Playblast filepath: {filePath}")
-        playblastClip = vse_render.createNewClip(scene, filePath, channelInd=channelInd, atFrame=0, importAudio=False)
-        # vsm_props.addTrack(atIndex=3, trackType="STANDARD", name="Playblast", color=(0.5, 0.4, 0.6, 1))
-        vsm_props.updateTracksList(scene)
-        vsm_props.setTrackInfo(channelInd, trackType="STANDARD", name="Playblast", color=(0.5, 0.4, 0.6, 1))
+        if not Path(filePath).exists():
+            print("Playblast Clip not found")
+        else:
+            channelInd = 3
+            playblastClip = vse_render.createNewClip(
+                scene,
+                filePath,
+                channelInd=channelInd,
+                atFrame=importPlayblastAtFrame,
+                importAudio=False,
+                clipName="Playblast",
+            )
+            # vsm_props.addTrack(atIndex=3, trackType="STANDARD", name="Playblast", color=(0.5, 0.4, 0.6, 1))
+            vsm_props.updateTracksList(scene)
+            vsm_props.setTrackInfo(channelInd, trackType="STANDARD", name="Playblast", color=(0.5, 0.4, 0.6, 1))
+
+        # works on selection
+        bpy.ops.sequencer.set_range_to_strips(preview=False)
+
+        bpy.ops.sequencer.select_all(action="DESELECT")
+
+        if playblastClip is not None:
+            playblastClip.select = True
+        # scene.sequence_editor.sequences[2].select = Tru
+
+        scene.frame_set(importPlayblastAtFrame)
+        #  bpy.ops.sequencer.view_frame()
+        bpy.ops.sequencer.view_selected()
 
         ################
         # create tracks

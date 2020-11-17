@@ -300,8 +300,12 @@ class UAS_PT_ShotManagerRenderPanel(Panel):
             # row.use_property_split = False
 
             row = box.row()
-            row.prop(props.renderSettingsPlayblast, "updatePlaybalstInVSM")
+            if config.uasDebug:
+                row.prop(props.renderSettingsPlayblast, "updatePlaybalstInVSM")
             row.prop(props.renderSettingsPlayblast, "renderSound")
+
+            # row = box.row()
+            # row.prop(props.renderSettingsPlayblast, "renderCameraBG")
 
             row = box.row()
             row.label(text="Playblast Video: " + filePath)

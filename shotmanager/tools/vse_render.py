@@ -452,8 +452,9 @@ class UAS_Vse_Render(PropertyGroup):
 
             if importVideo:
                 newClip = scene.sequence_editor.sequences.new_movie(
-                    newClipName + "Video", mediaPath, channelInd, atFrame
+                    newClipName + " (video)", mediaPath, channelInd, atFrame
                 )
+                newClip.blend_type = "ALPHA_OVER"
                 newClip.frame_offset_start = offsetStart
                 newClip.frame_offset_end = offsetEnd
                 if -1 != final_duration:
@@ -461,7 +462,7 @@ class UAS_Vse_Render(PropertyGroup):
 
             if importAudio:
                 newClip = scene.sequence_editor.sequences.new_sound(
-                    newClipName + "Sound", mediaPath, audioChannel, atFrame
+                    newClipName + " (sound)", mediaPath, audioChannel, atFrame
                 )
                 newClip.frame_offset_start = offsetStart
                 newClip.frame_offset_end = offsetEnd
@@ -471,6 +472,7 @@ class UAS_Vse_Render(PropertyGroup):
         elif "IMAGE" == mediaType:
             newClipName = clipName if "" != clipName else "myImage"
             newClip = scene.sequence_editor.sequences.new_image(newClipName, mediaPath, channelInd, atFrame)
+            newClip.blend_type = "ALPHA_OVER"
             newClip.frame_offset_start = offsetStart
             newClip.frame_offset_end = offsetEnd
             if -1 != final_duration:
@@ -480,6 +482,7 @@ class UAS_Vse_Render(PropertyGroup):
             newClipName = clipName if "" != clipName else "myImagesSequence"
             newClip = _new_images_sequence(scene, newClipName, mediaPath, channelInd, atFrame)
             # newClip = scene.sequence_editor.sequences.new_image("myVideo", mediaPath, channelInd, atFrame)
+            newClip.blend_type = "ALPHA_OVER"
             newClip.frame_offset_start = offsetStart
             newClip.frame_offset_end = offsetEnd
             if -1 != final_duration:
@@ -498,6 +501,7 @@ class UAS_Vse_Render(PropertyGroup):
             newClip = _new_camera_sequence(
                 scene, newClipName, channelInd, atFrame, offsetStart, offsetEnd, cameraScene, cameraObject,
             )
+            newClip.blend_type = "ALPHA_OVER"
 
         elif "UNKNOWN" == mediaType:
             print("\n *** UNKNOWN media sent to Shot Manager - createNewClip(): ", mediaPath)
@@ -635,6 +639,7 @@ class UAS_Vse_Render(PropertyGroup):
         sequenceScene.render.ffmpeg.audio_codec = "AAC"
         sequenceScene.render.filepath = outputFile
 
+        # change color tone mode to prevent washout bug with "filmic" rendered image mode
         sequenceScene.view_settings.view_transform = "Raw"
 
         for mediaPath in mediaFiles:
@@ -714,7 +719,8 @@ class UAS_Vse_Render(PropertyGroup):
         sequenceScene.render.ffmpeg.audio_codec = "AAC"
         sequenceScene.render.filepath = outputFile
 
-        # sequenceScene.view_settings.view_transform = "Raw"
+        # change color tone mode to prevent washout bug with "filmic" rendered image mode
+        sequenceScene.view_settings.view_transform = "Raw"
 
         atFrame = 0
         for i, mediaDict in enumerate(mediaDictArr):
@@ -850,6 +856,7 @@ class UAS_Vse_Render(PropertyGroup):
         vse_scene.render.filepath = output_filepath
         vse_scene.render.use_file_extension = False
 
+        # change color tone mode to prevent washout bug
         vse_scene.view_settings.view_transform = "Filmic"  # "raw"
 
         bgClip = None

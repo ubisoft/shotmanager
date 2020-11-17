@@ -68,6 +68,25 @@ class UAS_VideoShotManager_Track(PropertyGroup):
         name="Enabled", description="Use - or not - the track in the edit", update=_update_enabled, default=True
     )
 
+    def _get_opacity(self):
+        val = self.get("opacity", 100)
+        return val
+
+    def _set_opacity(self, value):
+        self["opacity"] = value
+
+    opacity: IntProperty(
+        name="Opacity",
+        description="Track opacity",
+        min=0,
+        max=100,
+        get=_get_opacity,
+        set=_set_opacity,
+        default=100,
+        subtype="PERCENTAGE",
+        options=set(),
+    )
+
     color: FloatVectorProperty(
         subtype="COLOR", min=0.0, max=1.0, size=4, default=(1.0, 1.0, 1.0, 1.0), options=set(),
     )
@@ -96,7 +115,7 @@ class UAS_VideoShotManager_Track(PropertyGroup):
         items=(
             ("STANDARD", "Standard", ""),
             ("RENDERED_SHOTS", "Rendered Shots", ""),
-            ("SHOT_CAMERAS", "Shot Cameras", ""),
+            ("SHOT_CAMERAS", "Shot Manager Cameras", ""),
             ("CAM_FROM_SCENE", "Camera From Scene", ""),
             ("CAM_BG", "Camera Backgrounds", ""),
             ("CUSTOM", "Custom", ""),

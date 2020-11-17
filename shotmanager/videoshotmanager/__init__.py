@@ -7,6 +7,7 @@ from .properties import vsm_props
 # from .ui.vsm_ui import UAS_PT_VideoShotManager
 from .ui import vsm_ui
 from .ui import vsm_panels_ui
+from .ui import vsm_time_control_ui
 
 
 def register():
@@ -19,9 +20,11 @@ def register():
     vsm_tools.register()
     vsm_ui.register()
     vsm_panels_ui.register()
+    vsm_time_control_ui.register()
 
 
 def unregister():
+    vsm_time_control_ui.unregister()
     vsm_panels_ui.unregister()
     vsm_ui.unregister()
     vsm_tools.unregister()

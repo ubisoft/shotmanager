@@ -72,14 +72,16 @@ class UAS_PT_VideoShotManager(Panel):
         # tracks
 
         row = layout.row()
-        row.alert = True
-        row.label(text=" !!! EXPERIMENTAL !!!" + ("  Debug  " if config.uasDebug else ""))
+        subRow = row.row()
+        subRow.alert = True
+        subRow.label(text=" !!! EXPERIMENTAL !!!" + ("  Debug  " if config.uasDebug else ""))
 
-        row = layout.row()  # just to give some space...
+        # row = layout.row()
+        subRow = row.row()
         vseFirstFrame = scene.frame_start
         if vseFirstFrame != 0:
-            row.alert = True
-        row.label(text="First Frame: " + str(vseFirstFrame))
+            subRow.alert = True
+        subRow.label(text="First Frame: " + str(vseFirstFrame))
 
         #########################################
         # RRS Specific
@@ -95,71 +97,6 @@ class UAS_PT_VideoShotManager(Panel):
         row = layout.row()
         row.scale_y = 2
         row.operator("uas_video_shot_manager.rrs_check_sequence", text="Check Sequence")
-
-        #########################################
-        # Markers
-        #########################################
-
-        layout.separator(factor=2)
-        layout.label(text="Markers:")
-        row = layout.row()
-        row.operator("uas_video_shot_manager.go_to_marker", text="", icon="REW").goToMode = "FIRST"
-        row.operator("uas_video_shot_manager.go_to_marker", text="", icon="TRIA_LEFT").goToMode = "PREVIOUS"
-        currentMarker = utils.getMarkerAtFrame(scene, scene.frame_current)
-        if currentMarker is not None:
-            row.label(text=f"Marker: {currentMarker.name}")
-            row.operator(
-                "uas_video_shot_manager.add_marker", text="", icon="SYNTAX_OFF"
-            ).markerName = currentMarker.name
-            row.operator("uas_video_shot_manager.delete_marker", text="", icon="X")
-        else:
-            row.label(text="Marker: -")
-            row.operator(
-                "uas_video_shot_manager.add_marker", text="", icon="ADD"
-            ).markerName = f"F_{scene.frame_current}"
-            subRow = row.row()
-            subRow.enabled = False
-            subRow.operator("uas_video_shot_manager.delete_marker", text="", icon="X")
-        row.operator("uas_video_shot_manager.go_to_marker", text="", icon="TRIA_RIGHT").goToMode = "NEXT"
-        row.operator("uas_video_shot_manager.go_to_marker", text="", icon="FF").goToMode = "LAST"
-
-        scene.timeline_markers
-        #########################################
-        # Time
-        #########################################
-
-        layout.separator(factor=2)
-        layout.label(text="Time Range:")
-        row = layout.row()
-        row.operator("uas_video_shot_manager.frame_all_clips")
-
-        row = layout.row(align=False)
-        subRow = row.row(align=False)
-        subRow.prop(scene, "use_preview_range", text="")
-        subRow = row.row(align=True)
-        if scene.use_preview_range:
-            # row.use_property_split = False
-            subRow.operator("uas_utils.get_current_frame_for_time_range", text="", icon="TRIA_UP_BAR").opArgs = (
-                "{'frame_preview_start': " + str(scene.frame_current) + "}"
-            )
-            subRow.prop(scene, "frame_preview_start", text="Start")
-            subRow.operator("uas_video_shot_manager.frame_time_range", text="", icon="CENTER_ONLY")
-            subRow.prop(scene, "frame_preview_end", text="End")
-            subRow.operator("uas_utils.get_current_frame_for_time_range", text="", icon="TRIA_UP_BAR").opArgs = (
-                "{'frame_preview_end': " + str(scene.frame_current) + "}"
-            )
-            row.label(text=f"Duration: {scene.frame_preview_end - scene.frame_preview_start + 1}")
-        else:
-            subRow.operator("uas_utils.get_current_frame_for_time_range", text="", icon="TRIA_UP_BAR").opArgs = (
-                "{'frame_start': " + str(scene.frame_current) + "}"
-            )
-            subRow.prop(scene, "frame_start", text="Start")
-            subRow.operator("uas_video_shot_manager.frame_time_range", text="", icon="CENTER_ONLY")
-            subRow.prop(scene, "frame_end", text="End")
-            subRow.operator("uas_utils.get_current_frame_for_time_range", text="", icon="TRIA_UP_BAR").opArgs = (
-                "{'frame_end': " + str(scene.frame_current) + "}"
-            )
-            row.label(text=f"Duration: {scene.frame_end - scene.frame_start + 1}")
 
         #########################################
         # Tracks
@@ -178,7 +115,13 @@ class UAS_PT_VideoShotManager(Panel):
         box = layout.box()
         row = box.row()
         templateList = row.template_list(
-            "UAS_UL_VideoShotManager_Items", "", vsm_props, "tracks", vsm_props, "selected_track_index", rows=6,
+            "UAS_UL_VideoShotManager_Items",
+            "",
+            vsm_props,
+            "tracks",
+            vsm_props,
+            "selected_track_index_inverted",
+            rows=6,
         )
 
         col = row.column(align=True)
@@ -203,48 +146,47 @@ class UAS_UL_VideoShotManager_Items(bpy.types.UIList):
     def draw_item(self, context, layout, data, item, icon, active_data, active_propname, index):
         global icons_col
         vsm_props = context.scene.UAS_vsm_props
-        current_track_index = vsm_props.current_track_index
+        prefs = context.preferences.addons["shotmanager"].preferences
 
-        row = layout.row()
-        row.scale_x = 0.4
-
-        subrow = row.row(align=True)
-        subrow.scale_x = 0.5
+        row = layout.row(align=True)
 
         if vsm_props.display_color_in_tracklist:
-            # row = layout.row(align=True)
-            subrow.prop(item, "color", text="")
-            subrow.scale_x = 0.45
-            subrow.separator(factor=2)
+            row.scale_x = 0.3
+            row.prop(item, "color", text="")
+            row.separator(factor=0.2)
 
-        # row = layout.row(align=True)
-
-        # row.scale_x = 1.0
-        # subrow = row.row(align=False)
-        subrow.prop(item, "enabled", text=" ")
-        subrow.separator(factor=0.9)
-        subrow.scale_x = 0.9
-        subrow.label(text=str(item.vseTrackIndex) + ": " + item.name)
-
-        # row.scale_x = 0.8
-        # row.label(text=item.name)
-
-        # grid_flow.label(text="   " + str(item.vseTrackIndex))
+        row = layout.row(align=True)
+        subRow = row.row(align=False)
+        subRow.scale_x = 0.3
+        subRow.prop(item, "enabled", text=f" ")
+        # subrow.separator(factor=0.2)
+        row.label(text=f" {item.vseTrackIndex}: {item.name}")
 
         # c.operator("uas_shot_manager.set_current_shot", icon_value=icon.icon_id, text="").index = index
         # layout.separator(factor=0.1)
 
+        ###############
+        # opacity
         row = layout.row(align=True)
-        row.scale_x = 1.0
-        grid_flow = row.grid_flow(align=True, columns=4, even_columns=False)
-        grid_flow.use_property_split = False
-        button_x_factor = 0.6
+        if vsm_props.display_opacity_in_tracklist:
+            row.scale_x = 0.5
+            row.prop(item, "opacity", text="")
+            row.separator(factor=0.2)
 
-        row = grid_flow.row(align=True)
-        row.scale_x = 2.0
-        row.prop(item, "trackType", text="")
+        ###############
+        # track type
+        subRow = row.row(align=True)
+        subRow.scale_x = 1.6
+        subRow.prop(item, "trackType", text="")
+        subSubRow = subRow.row(align=True)
+        subSubRow.scale_x = 1.2
 
-        if not "CUSTOM" == item.trackType and not "STANDARD" == item.trackType:
+        if "CUSTOM" == item.trackType or "STANDARD" == item.trackType:
+            subSubRow.enabled = False
+            subSubRow.prop(prefs, "emptyBool", text="", icon="BLANK1")
+            subSubRow.prop(prefs, "emptyBool", text="", icon="BLANK1")
+            pass
+        else:
 
             #     if item.shotManagerScene is None:
             #         grid_flow.alert = True
@@ -258,15 +200,15 @@ class UAS_UL_VideoShotManager_Items(bpy.types.UIList):
             #     if item.shotManagerScene is None:
             #         grid_flow.alert = False
 
-            grid_flow.scale_x = 1.0
-            grid_flow.operator(
+            #   grid_flow.scale_x = 1.0
+            subSubRow.operator(
                 "uas_video_shot_manager.update_vse_track", text="", icon="FILE_REFRESH"
             ).trackName = item.name
 
-            grid_flow.operator(
+            subSubRow.operator(
                 "uas_video_shot_manager.go_to_specified_scene", text="", icon="SCENE_DATA"
             ).trackName = item.name
-            grid_flow.scale_x = 1.8
+        # grid_flow.scale_x = 1.8
 
 
 # ##################
@@ -288,7 +230,6 @@ class UAS_PT_VideoShotManager_TrackProperties(Panel):
         vsm_props = context.scene.UAS_vsm_props
         track = vsm_props.getTrack(vsm_props.selected_track_index)
         val = track
-
         return val
 
     def draw_header(self, context):
@@ -312,17 +253,18 @@ class UAS_PT_VideoShotManager_TrackProperties(Panel):
             # name and color
             row = box.row()
             row.separator(factor=1.0)
-            c = row.column()
-            grid_flow = c.grid_flow(align=False, columns=4, even_columns=False)
-            grid_flow.prop(track, "name", text="Name")
-            #   grid_flow.scale_x = 0.7
-            grid_flow.prop(track, "color", text="")
-            #   grid_flow.scale_x = 1.0
-            grid_flow.prop(vsm_props, "display_color_in_tracklist", text="")
-            row.separator(factor=0.5)  # prevents stange look when panel is narrow
+            row.prop(track, "name", text="Name")
+            row.prop(track, "color", text="")
+            row.prop(vsm_props, "display_color_in_tracklist", text="")
 
-            grid_flow = c.grid_flow(align=False, columns=4, even_columns=False)
-            grid_flow.prop(track, "trackType")
+            row = box.row()
+            row.separator(factor=1.0)
+            row.prop(track, "opacity", text="Opacity")
+            row.prop(vsm_props, "display_opacity_in_tracklist", text="")
+
+            row = box.row()
+            row.separator(factor=1.0)
+            row.prop(track, "trackType")
 
             row = box.row()
             c = row.column()

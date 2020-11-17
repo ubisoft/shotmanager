@@ -33,7 +33,7 @@ _logger = logging.getLogger(__name__)
 
 def launchRenderWithVSEComposite(
     context,
-    renderMode,
+    renderPreset=None,
     takeIndex=-1,
     filePath="",
     useStampInfo=True,
@@ -83,6 +83,8 @@ def launchRenderWithVSEComposite(
     vse_render = context.window_manager.UAS_vse_render
 
     currentShot = props.getCurrentShot()
+
+    renderMode = "PROJECT" if renderPreset is None else renderPreset.renderMode
 
     # it is possible to have handles but not to render them (case of still frame),
     # it is also possible not to use the handles, whitch is different on stamp info
@@ -258,6 +260,7 @@ def launchRenderWithVSEComposite(
     else:
         props.renderContext.applyRenderQualitySettings(context)
 
+    # change color tone mode to prevent washout bug
     scene.view_settings.view_transform = "Standard"
 
     #######################
@@ -661,13 +664,19 @@ def launchRenderWithVSEComposite(
         print(f"      \nSequence video render time: {deltaTime:0.2f} sec.")
         allRenderTimes["SequenceVideo"] = deltaTime
 
-    failedFiles = []
+    playblastInfos = {"startFrameIn3D": startFrameIn3D, "startFrameInEdit": startFrameInEdit}
+    # startFrameIn3D = -1
+    # startFrameInEdit = -1
 
+    failedFiles = []
     filesDict = {
         "rendered_files": newMediaFiles,
         "failed_files": failedFiles,
         "sequence_video_file": sequenceOutputFullPath,
     }
+
+    if "PLAYBLAST" == renderMode:
+        filesDict["playblastInfos"] = playblastInfos
 
     deltaTime = time.monotonic() - startRenderTime
     print(f"      \nFull Sequence render time: {deltaTime:0.2f} sec.")
@@ -915,7 +924,6 @@ def launchRender(context, renderMode, rootPath, area=None):
         # render window
         if "STILL" == preset.renderMode:
             _logger.debug("Render Animation")
-
             shot = props.getCurrentShot()
 
             # get the list of files to write, delete them is they exists, stop everithing if the delete cannot be done
@@ -923,7 +931,7 @@ def launchRender(context, renderMode, rootPath, area=None):
 
             willBeRenderedFilesDict = launchRenderWithVSEComposite(
                 context,
-                "PROJECT",
+                preset,
                 filePath=props.renderRootPath,
                 generateSequenceVideo=False,
                 specificShotList=[shot],
@@ -934,7 +942,7 @@ def launchRender(context, renderMode, rootPath, area=None):
 
             renderedFilesDict = launchRenderWithVSEComposite(
                 context,
-                "PROJECT",
+                preset,
                 filePath=props.renderRootPath,
                 useStampInfo=preset.useStampInfo,
                 generateSequenceVideo=False,
@@ -946,14 +954,12 @@ def launchRender(context, renderMode, rootPath, area=None):
 
         elif "ANIMATION" == preset.renderMode:
             _logger.debug("Render Animation")
-
             bpy.ops.wm.save_mainfile()
-
             shot = props.getCurrentShot()
 
             renderedFilesDict = launchRenderWithVSEComposite(
                 context,
-                "PROJECT",
+                preset,
                 filePath=props.renderRootPath,
                 useStampInfo=preset.useStampInfo,
                 generateSequenceVideo=False,
@@ -966,7 +972,6 @@ def launchRender(context, renderMode, rootPath, area=None):
         elif "ALL" == preset.renderMode:
             _logger.debug(f"Render All:" + str(props.renderSettingsAll.renderAllTakes))
             _logger.debug(f"Render All, preset.renderAllTakes: {preset.renderAllTakes}")
-
             bpy.ops.wm.save_mainfile()
 
             takesToRender = [-1]
@@ -977,7 +982,7 @@ def launchRender(context, renderMode, rootPath, area=None):
             for takeInd in takesToRender:
                 renderedFilesDict = launchRenderWithVSEComposite(
                     context,
-                    "PROJECT",
+                    preset,
                     takeIndex=takeInd,
                     filePath=props.renderRootPath,
                     fileListOnly=False,
@@ -1002,12 +1007,11 @@ def launchRender(context, renderMode, rootPath, area=None):
 
         elif "PLAYBLAST" == preset.renderMode:
             _logger.debug(f"Render Playblast")
-
             bpy.ops.wm.save_mainfile()
 
             renderedFilesDict = launchRenderWithVSEComposite(
                 context,
-                "PLAYBLAST",
+                preset,
                 takeIndex=-1,
                 filePath=props.renderRootPath,
                 fileListOnly=False,
@@ -1020,6 +1024,10 @@ def launchRender(context, renderMode, rootPath, area=None):
                 renderSound=preset.renderSound,
                 area=area,
             )
+
+            prefs = context.preferences.addons["shotmanager"].preferences
+            prefs.playblast_frame_start = renderedFilesDict["playblastInfos"]["startFrameInEdit"]
+            print(f"prefs.playblast_frame_start: {prefs.playblast_frame_start}")
 
             # open rendered media in a player
             if len(renderedFilesDict["sequence_video_file"]):
