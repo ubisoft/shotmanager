@@ -98,7 +98,6 @@ class UAS_PT_ShotManager(Panel):
         # ]
 
         addonWarning = [""]
-        # addonWarning = ["Beta Yannick"]
         if "" != addonWarning[0]:
             row = layout.row()
             row.alignment = "CENTER"
@@ -334,7 +333,9 @@ class UAS_PT_ShotManager(Panel):
             subrow = column_flow.row()
             subrow.alignment = "LEFT"
             #   subrow.scale_x = 1.0
-            subrow.operator("uas_shot_manager.enabledisableall", text="", icon="CHECKBOX_HLT")
+            prefs = context.preferences.addons["shotmanager"].preferences
+            iconCheckBoxes = "CHECKBOX_HLT" if not prefs.toggleShotsEnabledState else "CHECKBOX_DEHLT"
+            subrow.operator("uas_shot_manager.enabledisableall", text="", icon=iconCheckBoxes)
 
             # subrow.separator(factor=0.2)
             subrow.prop(
@@ -344,6 +345,8 @@ class UAS_PT_ShotManager(Panel):
             subrow = column_flow.row()
             subrow.scale_x = 0.9
             subrow.alignment = "RIGHT"
+
+            subrow.operator("uas_shot_manager.enabledisablecamsbg", text="", icon="VIEW_CAMERA")
 
             if props.useLockCameraView:
                 subrow.alert = True
@@ -384,12 +387,11 @@ class UAS_PT_ShotManager(Panel):
 
 class UAS_PT_ShotManager_Initialize(Operator):
     bl_idname = "uas_shot_manager.initialize"
-    bl_label = "Initialize"
-    bl_description = "Initialize"
+    bl_label = "Initialize Shot Manager"
+    bl_description = "Initialize Shot Manager"
     bl_options = {"INTERNAL"}
 
     def execute(self, context):
-        print("*** uas_shot_manager.render ***")
         context.scene.UAS_shot_manager_props.initialize_shot_manager()
 
         return {"FINISHED"}

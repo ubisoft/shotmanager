@@ -1,6 +1,6 @@
 import bpy
 from bpy.types import Operator
-from bpy.props import StringProperty, FloatProperty
+from bpy.props import StringProperty, FloatProperty, IntProperty
 
 from shotmanager.config import config
 from shotmanager.utils import utils
@@ -103,8 +103,9 @@ class UAS_VideoShotManager_ZoomView(Operator):
     bl_description = "Change VSE zoom value to make all the clips fit into the view"
     bl_options = {"INTERNAL"}
 
-    # Can be "TIMERANGE", "ALLCLIPS", "SELECTEDCLIPS", "TOCURRENTFRAME"
+    # Can be "TIMERANGE", "ALLCLIPS", "SELECTEDCLIPS", "TOCURRENTFRAME", "TRACKCLIPS"
     zoomMode: StringProperty(default="TIMERANGE")
+    trackIndex: IntProperty(default=-1)
 
     @classmethod
     def description(self, context, properties):
@@ -117,6 +118,8 @@ class UAS_VideoShotManager_ZoomView(Operator):
             descr = "Set zoom to frame selected clips"
         elif "TOCURRENTFRAME" == properties.zoomMode:
             descr = "Center view to current frame"
+        elif "TRACKCLIPS" == properties.zoomMode:
+            descr = "Set zoom to frame clips of the selected track"
         return descr
 
     def execute(self, context):
@@ -128,17 +131,18 @@ class UAS_VideoShotManager_ZoomView(Operator):
         # bpy.ops.sequencer.view_selected()
         # bpy.ops.sequencer.view_all_preview()
         scene = context.scene
+        vse_render = bpy.context.window_manager.UAS_vse_render
 
-        start = scene.frame_preview_start if context.scene.use_preview_range else scene.frame_start
-        end = scene.frame_preview_end if context.scene.use_preview_range else scene.frame_end
-        activeClip = bpy.context.scene.sequence_editor.active_strip
-        bpy.context.scene.sequence_editor.active_strip = None
+        start = scene.frame_preview_start if scene.use_preview_range else scene.frame_start
+        end = scene.frame_preview_end if scene.use_preview_range else scene.frame_end
+        activeClip = scene.sequence_editor.active_strip
+        scene.sequence_editor.active_strip = None
 
         if "TOCURRENTFRAME" == self.zoomMode:
             bpy.ops.sequencer.view_frame()
 
         elif "TIMERANGE" == self.zoomMode:
-            # marche pas !!!
+            # doesn't work directly cause they include the active clip !!!
             # bpy.ops.sequencer.view_all_preview()
             # bpy.ops.sequencer.view_all()
             # if context.scene.use_preview_range:
@@ -158,7 +162,6 @@ class UAS_VideoShotManager_ZoomView(Operator):
             bpy.ops.sequencer.select_all(action="DESELECT")
             #     bpy.context.scene.sequence_editor.active_strip = None
 
-            vse_render = bpy.context.window_manager.UAS_vse_render
             vse_render.changeClipsChannel(scene, 1, 32)
 
             tmpClip = scene.sequence_editor.sequences.new_effect(
@@ -197,6 +200,11 @@ class UAS_VideoShotManager_ZoomView(Operator):
                 bpy.ops.sequencer.view_all()
                 scene.frame_start = start
                 scene.frame_end = end
+
+        elif "TRACKCLIPS" == self.zoomMode:
+            # bpy.ops.sequencer.select_all(action="DESELECT")
+            vse_render.selectChannelClips(scene, self.trackIndex)
+            bpy.ops.sequencer.view_selected()
 
         # for test only
         # filedit = bpy.context.window_manager.UAS_vse_render.getMediaList(context.scene, listVideo=False, listAudio=True)

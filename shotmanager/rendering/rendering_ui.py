@@ -291,18 +291,32 @@ class UAS_PT_ShotManagerRenderPanel(Panel):
                 rowAlert.label(text="*** Invalid Root Path ***")
 
             row = box.row()
-            colFlow = row.column_flow(columns=2)
+            row.prop(props.renderSettingsPlayblast, "stampRenderInfo")
+            subRow = row.row()
+            subRow.enabled = props.renderSettingsPlayblast.stampRenderInfo
+            subRow.prop(props.renderSettingsPlayblast, "useStampInfo")
+            box.separator(factor=0.3)
+
+            row = box.row()
+            colFlow = row.column_flow(columns=3)
             col = colFlow.row()
-            col.prop(props.renderSettingsPlayblast, "useStampInfo")
+            col.prop(props.renderSettingsPlayblast, "renderSound")
+            col = colFlow.row()
+            col.prop(props.renderSettingsPlayblast, "disableCameraBG")
             col = colFlow.row()
             col.label(text="Resolution %:")
             col.prop(props.renderSettingsPlayblast, "resolutionPercentage", text="")
             # row.use_property_split = False
 
             row = box.row()
-            if config.uasDebug:
-                row.prop(props.renderSettingsPlayblast, "updatePlaybalstInVSM")
-            row.prop(props.renderSettingsPlayblast, "renderSound")
+            # # if config.uasDebug:
+            # row.label(text="After Rendering:")
+
+            # row = box.row()
+            # row.separator(factor=1)
+            row.label(text="After Rendering:")
+            row.prop(props.renderSettingsPlayblast, "openPlayblastInPlayer")
+            row.prop(props.renderSettingsPlayblast, "updatePlayblastInVSM")
 
             # row = box.row()
             # row.prop(props.renderSettingsPlayblast, "renderCameraBG")

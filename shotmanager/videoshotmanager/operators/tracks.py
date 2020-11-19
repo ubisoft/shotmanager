@@ -241,56 +241,25 @@ class UAS_VideoShotManager_TrackDuplicate(Operator):
         return context.window_manager.invoke_props_dialog(self)
 
 
-class UAS_VideoShotManager_RemoveTrack(Operator):
-    bl_idname = "uas_video_shot_manager.remove_track"
-    bl_label = "Remove Selected Track"
-    bl_description = "Remove the track selected in the track list."
-    bl_options = {"INTERNAL", "UNDO"}
+class UAS_VideoShotManager_MoveTrackUpDown(Operator):
+    """Move items up and down in the list
+    """
 
-    @classmethod
-    def poll(cls, context):
-        tracks = context.scene.UAS_vsm_props.getTracks()
-        if len(tracks) <= 0:
-            return False
-
-        return True
-
-    def invoke(self, context, event):
-        scene = context.scene
-        vsm_props = scene.UAS_vsm_props
-        tracks = vsm_props.getTracks()
-        selectedTrackInd = vsm_props.getSelectedTrackIndex()
-
-        try:
-            item = tracks[selectedTrackInd]
-        except IndexError:
-            pass
-        else:
-            # case of the last track
-            if selectedTrackInd == len(tracks) - 1:
-                tracks.remove(selectedTrackInd)
-                #  vsm_props.selected_track_index = selectedTrackInd - 1
-                vsm_props.setSelectedTrackByIndex(selectedTrackInd - 1)
-            else:
-                tracks.remove(selectedTrackInd)
-
-                if selectedTrackInd < len(tracks):
-                    vsm_props.setSelectedTrackByIndex(selectedTrackInd)
-                else:
-                    vsm_props.setSelectedTrackByIndex(selectedTrackInd - 1)
-
-        return {"FINISHED"}
-
-
-class UAS_VideoShotManager_Actions(Operator):
-    """Move items up and down, add and remove"""
-
-    bl_idname = "uas_video_shot_manager.list_action"
-    bl_label = "List Actions 02"
-    bl_description = "Move items up and down, add and remove"
+    bl_idname = "uas_video_shot_manager.move_treack_up_down"
+    bl_label = "Move Track Up of Down"
+    bl_description = "Move track up or down in the track stack"
     bl_options = {"INTERNAL", "UNDO"}
 
     action: bpy.props.EnumProperty(items=(("UP", "Up", ""), ("DOWN", "Down", "")))
+
+    @classmethod
+    def description(self, context, properties):
+        descr = "_"
+        if "UP" == properties.action:
+            descr = "Move track up in the track stack"
+        elif "DOWN" == properties.action:
+            descr = "Move track down in the track stack"
+        return descr
 
     def execute(self, context):
         scene = context.scene
@@ -300,18 +269,44 @@ class UAS_VideoShotManager_Actions(Operator):
 
         selectedTrackInd = vsm_props.getSelectedTrackIndex()
 
-        if self.action == "DOWN" and selectedTrackInd < len(tracks) - 1:
-            bpy.context.window_manager.UAS_vse_render.swapChannels(
-                scene, numTracks - selectedTrackInd, numTracks - selectedTrackInd - 1
-            )
-            tracks.move(selectedTrackInd, selectedTrackInd + 1)
+        if self.action == "DOWN" and selectedTrackInd > 1:
+            movedTrack = vsm_props.moveTrackFromIndexToIndex(selectedTrackInd, selectedTrackInd - 1)
+            print(f"MovedTrack: {movedTrack.name}")
+            # context.window_manager.UAS_vse_render.swapChannels(
+            #     scene, numTracks - selectedTrackInd, numTracks - selectedTrackInd - 1
+            # )
+            # tracks.move(selectedTrackInd, selectedTrackInd + 1)
+            vsm_props.setSelectedTrackByIndex(selectedTrackInd - 1)
+
+        elif self.action == "UP" and selectedTrackInd < numTracks:
+            movedTrack = vsm_props.moveTrackFromIndexToIndex(selectedTrackInd, selectedTrackInd + 1)
+            print(f"MovedTrack: {movedTrack.name}")
+            # context.window_manager.UAS_vse_render.swapChannels(
+            #     scene, numTracks - selectedTrackInd, numTracks - selectedTrackInd + 1
+            # )
+            # tracks.move(selectedTrackInd, selectedTrackInd - 1)
             vsm_props.setSelectedTrackByIndex(selectedTrackInd + 1)
 
-        elif self.action == "UP" and selectedTrackInd >= 1:
-            bpy.context.window_manager.UAS_vse_render.swapChannels(
-                scene, numTracks - selectedTrackInd, numTracks - selectedTrackInd + 1
-            )
-            tracks.move(selectedTrackInd, selectedTrackInd - 1)
+        return {"FINISHED"}
+
+
+class UAS_VideoShotManager_RemoveTrack(Operator):
+    bl_idname = "uas_video_shot_manager.remove_track"
+    bl_label = "Remove Selected Track"
+    bl_description = "Remove the track selected in the track list."
+    bl_options = {"INTERNAL", "UNDO"}
+
+    @classmethod
+    def poll(cls, context):
+        return context.scene.UAS_vsm_props.getTracks()
+
+    def invoke(self, context, event):
+        scene = context.scene
+        vsm_props = scene.UAS_vsm_props
+        selectedTrackInd = vsm_props.getSelectedTrackIndex()
+        if 0 < selectedTrackInd:
+            track = vsm_props.getTrackByIndex(selectedTrackInd)
+            vsm_props.removeTrack(track)
             vsm_props.setSelectedTrackByIndex(selectedTrackInd - 1)
 
         return {"FINISHED"}
@@ -330,27 +325,45 @@ class UAS_VideoShotManager_TrackRemoveMultiple(Operator):
         vsm_props = scene.UAS_vsm_props
         selectedTrackInd = vsm_props.getSelectedTrackIndex()
 
-        tracks = vsm_props.getTracks()
+        if "ALL" == self.action:
+            print("ALL in remove multiple")
+            tracks = vsm_props.getTracks()
+            # tracks = vsm_props.tracks
+            print(f"tracks: {tracks}")
+            for t in tracks:
+                print(f"track name: {t.name}")
+                vsm_props.removeTrack(t)
+                tracksCheck = vsm_props.getTracks()
+                print(f"tracksCheck: {tracksCheck}")
 
-        try:
-            item = tracks[selectedTrackInd]
-        except IndexError:
-            pass
-        else:
-            if self.action == "ALL":
-                i = len(tracks) - 1
-                while i > -1:
-                    tracks.remove(i)
-                    i -= 1
-                vsm_props.setSelectedTrackByIndex(-1)
-            elif self.action == "DISABLED":
-                i = len(tracks) - 1
-                while i > -1:
-                    if not tracks[i].enabled:
-                        tracks.remove(i)
-                    i -= 1
-                if 0 < len(tracks):  # wkip pas parfait, on devrait conserver la sel currente
-                    vsm_props.setSelectedTrackByIndex(0)
+            vsm_props.setSelectedTrackByIndex(-1)
+
+        elif "DISABLED" == self.action:
+            print("DISABLED")
+            tracks = vsm_props.getTracks()
+            for t in tracks:
+                if not t.enabled:
+                    vsm_props.removeTrack(t)
+            vsm_props.setSelectedTrackByIndex(1)
+        # try:
+        #     item = tracks[selectedTrackInd]
+        # except IndexError:
+        #     pass
+        # else:
+        #     if self.action == "ALL":
+        #         i = len(tracks) - 1
+        #         while i > -1:
+        #             tracks.remove(i)
+        #             i -= 1
+        #         vsm_props.setSelectedTrackByIndex(-1)
+        #     elif self.action == "DISABLED":
+        #         i = len(tracks) - 1
+        #         while i > -1:
+        #             if not tracks[i].enabled:
+        #                 tracks.remove(i)
+        #             i -= 1
+        #         if 0 < len(tracks):  # wkip pas parfait, on devrait conserver la sel currente
+        #             vsm_props.setSelectedTrackByIndex(0)
 
         return {"FINISHED"}
 
@@ -418,7 +431,7 @@ _classes = (
     UAS_VideoShotManager_TrackAdd,
     UAS_VideoShotManager_TrackDuplicate,
     UAS_VideoShotManager_RemoveTrack,
-    UAS_VideoShotManager_Actions,
+    UAS_VideoShotManager_MoveTrackUpDown,
     UAS_VideoShotManager_TrackRemoveMultiple,
     UAS_VideoShotManager_UpdateVSETrack,
     UAS_VideoShotManager_ClearVSETrack,

@@ -520,12 +520,14 @@ class UAS_Vse_Render(PropertyGroup):
 
         return newClip
 
+    # wkip added to utils_vse
     def clearAllChannels(self, scene):
         for seq in scene.sequence_editor.sequences:
             scene.sequence_editor.sequences.remove(seq)
 
         bpy.ops.sequencer.refresh_all()
 
+    # wkip added to utils_vse
     def clearChannel(self, scene, channelIndex):
         sequencesList = list()
         for seq in scene.sequence_editor.sequences:
@@ -537,6 +539,7 @@ class UAS_Vse_Render(PropertyGroup):
 
         bpy.ops.sequencer.refresh_all()
 
+    # wkip added to utils_vse
     def getChannelClips(self, scene, channelIndex):
         sequencesList = list()
         for seq in scene.sequence_editor.sequences:
@@ -545,10 +548,32 @@ class UAS_Vse_Render(PropertyGroup):
 
         return sequencesList
 
+    def deselectChannel(self, scene, channelIndex):
+        for seq in scene.sequence_editor.sequences:
+            if channelIndex == seq.channel:
+                seq.select = False
+
+    def deselectAllChannel(self, scene):
+        for seq in scene.sequence_editor.sequences:
+            seq.select = False
+
+    def selectChannelClips(self, scene, channelIndex, addToSelection=False):
+        sequencesList = list()
+        if not addToSelection:
+            self.deselectAllChannel(scene)
+        for seq in scene.sequence_editor.sequences:
+            if channelIndex == seq.channel:
+                sequencesList.append(seq)
+                seq.select = True
+
+        return sequencesList
+
+    # wkip added to utils_vse
     def getChannelClipsNumber(self, scene, channelIndex):
         sequencesList = self.getChannelClips(scene, channelIndex)
         return len(sequencesList)
 
+    # wkip added to utils_vse
     def changeClipsChannel(self, scene, sourceChannelIndex, targetChannelIndex):
         sourceSequencesList = self.getChannelClips(scene, sourceChannelIndex)
         targetSequencesList = list()
@@ -565,6 +590,7 @@ class UAS_Vse_Render(PropertyGroup):
 
         return targetSequencesList
 
+    # wkip added to utils_vse
     def swapChannels(self, scene, channelIndexA, channelIndexB):
         tempChannelInd = 0
         self.changeClipsChannel(scene, channelIndexA, tempChannelInd)

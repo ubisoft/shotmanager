@@ -1,6 +1,6 @@
 import bpy
 
-from bpy.types import Panel, Menu
+from bpy.types import Panel, Menu, Operator
 from bpy.props import IntProperty, EnumProperty, BoolProperty, FloatProperty, StringProperty
 
 from shotmanager import utils
@@ -66,10 +66,22 @@ class UAS_PT_VideoShotManager(Panel):
         scene = context.scene
         vsm_props = scene.UAS_vsm_props
 
+        # if not "UAS_shot_manager_props" in context.scene:
+        if not vsm_props.isInitialized:
+            layout.separator()
+            row = layout.row()
+            row.alert = True
+            row.operator("uas_video_shot_manager.initialize")
+            row.alert = False
+            layout.separator()
+
+        # if 32 > vsm_props.numTracks:
+        #     vsm_props.numTracks = 32
+
         row = layout.row()
 
+        # scene warnings
         ################
-        # tracks
 
         row = layout.row()
         subRow = row.row()
@@ -93,10 +105,12 @@ class UAS_PT_VideoShotManager(Panel):
         row.operator(
             "uas_video_shot_manager.go_to_sequence_scene", text="Go to Sequence Scene", icon="SCENE_DATA"
         ).sceneName = bpy.data.scenes[0].name
-        layout.separator()
-        row = layout.row()
-        row.scale_y = 2
-        row.operator("uas_video_shot_manager.rrs_check_sequence", text="Check Sequence")
+
+        if config.uasDebug:
+            layout.separator()
+            row = layout.row()
+            row.scale_y = 2
+            row.operator("uas_video_shot_manager.rrs_check_sequence", text="Check Sequence")
 
         #########################################
         # Tracks
@@ -106,10 +120,12 @@ class UAS_PT_VideoShotManager(Panel):
         row = layout.row()
         row.label(text="Tracks:")
 
-        row.prop(vsm_props, "numTracks")
+        if config.uasDebug:
+            row.prop(vsm_props, "numTracks")
         row.operator("uas_video_shot_manager.update_tracks_list", text="", icon="FILE_REFRESH")
         subRow = row.row(align=True)
-        subRow.operator("uas_video_shot_manager.clear_all")
+        if config.uasDebug:
+            subRow.operator("uas_video_shot_manager.clear_all")
         subRow.menu("UAS_MT_Video_Shot_Manager_clear_menu", icon="TRIA_RIGHT", text="")
 
         box = layout.box()
@@ -125,12 +141,13 @@ class UAS_PT_VideoShotManager(Panel):
         )
 
         col = row.column(align=True)
-        col.operator("uas_video_shot_manager.add_track", icon="ADD", text="")
-        col.operator("uas_video_shot_manager.duplicate_track", icon="DUPLICATE", text="")
-        col.operator("uas_video_shot_manager.remove_track", icon="REMOVE", text="")
-        col.separator()
-        col.operator("uas_video_shot_manager.list_action", icon="TRIA_UP", text="").action = "UP"
-        col.operator("uas_video_shot_manager.list_action", icon="TRIA_DOWN", text="").action = "DOWN"
+        if config.uasDebug:
+            col.operator("uas_video_shot_manager.add_track", icon="ADD", text="")
+            col.operator("uas_video_shot_manager.duplicate_track", icon="DUPLICATE", text="")
+            col.operator("uas_video_shot_manager.remove_track", icon="REMOVE", text="")
+            col.separator()
+        col.operator("uas_video_shot_manager.move_treack_up_down", icon="TRIA_UP", text="").action = "UP"
+        col.operator("uas_video_shot_manager.move_treack_up_down", icon="TRIA_DOWN", text="").action = "DOWN"
         col.separator()
         col.menu("UAS_MT_Video_Shot_Manager_toolsmenu", icon="TOOL_SETTINGS", text="")
 
@@ -147,6 +164,9 @@ class UAS_UL_VideoShotManager_Items(bpy.types.UIList):
         global icons_col
         vsm_props = context.scene.UAS_vsm_props
         prefs = context.preferences.addons["shotmanager"].preferences
+
+        if not "CUSTOM" == item.trackType and not "STANDARD" == item.trackType:
+            layout.alert = item.shotManagerScene is None
 
         row = layout.row(align=True)
 
@@ -165,9 +185,10 @@ class UAS_UL_VideoShotManager_Items(bpy.types.UIList):
         # c.operator("uas_shot_manager.set_current_shot", icon_value=icon.icon_id, text="").index = index
         # layout.separator(factor=0.1)
 
+        row = layout.row(align=True)
+
         ###############
         # opacity
-        row = layout.row(align=True)
         if vsm_props.display_opacity_in_tracklist:
             row.scale_x = 0.5
             row.prop(item, "opacity", text="")
@@ -175,40 +196,41 @@ class UAS_UL_VideoShotManager_Items(bpy.types.UIList):
 
         ###############
         # track type
-        subRow = row.row(align=True)
-        subRow.scale_x = 1.6
-        subRow.prop(item, "trackType", text="")
-        subSubRow = subRow.row(align=True)
-        subSubRow.scale_x = 1.2
+        if vsm_props.display_track_type_in_tracklist:
+            subRow = row.row(align=True)
+            subRow.scale_x = 1.3
+            subRow.prop(item, "trackType", text="")
+            subSubRow = subRow.row(align=True)
+            subSubRow.scale_x = 1.2
 
-        if "CUSTOM" == item.trackType or "STANDARD" == item.trackType:
-            subSubRow.enabled = False
-            subSubRow.prop(prefs, "emptyBool", text="", icon="BLANK1")
-            subSubRow.prop(prefs, "emptyBool", text="", icon="BLANK1")
-            pass
-        else:
+            if "CUSTOM" == item.trackType or "STANDARD" == item.trackType:
+                subSubRow.enabled = False
+                subSubRow.prop(prefs, "emptyBool", text="", icon="BLANK1")
+                subSubRow.prop(prefs, "emptyBool", text="", icon="BLANK1")
+                pass
+            else:
 
-            #     if item.shotManagerScene is None:
-            #         grid_flow.alert = True
-            #     grid_flow.prop(item, "shotManagerScene", text="")
-            #     if item.shotManagerScene is None:
-            #         grid_flow.alert = False
+                #     if item.shotManagerScene is None:
+                #         grid_flow.alert = True
+                #     grid_flow.prop(item, "shotManagerScene", text="")
+                #     if item.shotManagerScene is None:
+                #         grid_flow.alert = False
 
-            #     if item.shotManagerScene is None or item.sceneTakeName == "":
-            #         grid_flow.alert = True
-            #     grid_flow.prop(item, "sceneTakeName", text="")
-            #     if item.shotManagerScene is None:
-            #         grid_flow.alert = False
+                #     if item.shotManagerScene is None or item.sceneTakeName == "":
+                #         grid_flow.alert = True
+                #     grid_flow.prop(item, "sceneTakeName", text="")
+                #     if item.shotManagerScene is None:
+                #         grid_flow.alert = False
 
-            #   grid_flow.scale_x = 1.0
-            subSubRow.operator(
-                "uas_video_shot_manager.update_vse_track", text="", icon="FILE_REFRESH"
-            ).trackName = item.name
+                #   grid_flow.scale_x = 1.0
+                subSubRow.operator(
+                    "uas_video_shot_manager.update_vse_track", text="", icon="FILE_REFRESH"
+                ).trackName = item.name
 
-            subSubRow.operator(
-                "uas_video_shot_manager.go_to_specified_scene", text="", icon="SCENE_DATA"
-            ).trackName = item.name
-        # grid_flow.scale_x = 1.8
+                subSubRow.operator(
+                    "uas_video_shot_manager.go_to_specified_scene", text="", icon="SCENE_DATA"
+                ).trackName = item.name
+            # grid_flow.scale_x = 1.8
 
 
 # ##################
@@ -228,9 +250,8 @@ class UAS_PT_VideoShotManager_TrackProperties(Panel):
     @classmethod
     def poll(cls, context):
         vsm_props = context.scene.UAS_vsm_props
-        track = vsm_props.getTrack(vsm_props.selected_track_index)
-        val = track
-        return val
+        track = vsm_props.getTrackByIndex(vsm_props.selected_track_index)
+        return track is not None
 
     def draw_header(self, context):
         layout = self.layout
@@ -239,16 +260,31 @@ class UAS_PT_VideoShotManager_TrackProperties(Panel):
 
         row.label(text="Selected Track Properties")
 
+    def draw_header_preset(self, context):
+        vsm_props = context.scene.UAS_vsm_props
+        layout = self.layout
+        # layout.emboss = "NONE"
+
+        row = layout.row(align=True)
+        op = row.operator("uas_video_shot_manager.zoom_view", text="Zoom on Clips")
+        op.zoomMode = "TRACKCLIPS"
+        op.trackIndex = vsm_props.getSelectedTrackIndex()
+
     def draw(self, context):
         scene = context.scene
         vsm_props = scene.UAS_vsm_props
 
-        track = vsm_props.getTrack(vsm_props.selected_track_index)
+        track = vsm_props.getTrackByIndex(vsm_props.selected_track_index)
 
         layout = self.layout
 
         if track is not None:
             box = layout.box()
+
+            # channel
+            row = box.row()
+            row.separator(factor=1.0)
+            row.label(text=f"Channel: {track.vseTrackIndex}")
 
             # name and color
             row = box.row()
@@ -265,6 +301,7 @@ class UAS_PT_VideoShotManager_TrackProperties(Panel):
             row = box.row()
             row.separator(factor=1.0)
             row.prop(track, "trackType")
+            row.prop(vsm_props, "display_track_type_in_tracklist", text="")
 
             row = box.row()
             c = row.column()
@@ -386,11 +423,29 @@ class UAS_MT_VideoShotManager_ToolsMenu(Menu):
         row.operator("uas_video_shot_manager.rrs_export_shots_from_edit", text="   RRS Export Shots From Edit")
 
 
+#########
+# MISC
+#########
+
+
+class UAS_PT_VideoShotManager_Initialize(Operator):
+    bl_idname = "uas_video_shot_manager.initialize"
+    bl_label = "Initialize Video Shot Manager"
+    bl_description = "Initialize Video Shot Manager"
+    bl_options = {"INTERNAL"}
+
+    def execute(self, context):
+        context.scene.UAS_vsm_props.initialize_video_shot_manager()
+
+        return {"FINISHED"}
+
+
 _classes = (
     UAS_PT_VideoShotManager,
     UAS_PT_VideoShotManager_TrackProperties,
     UAS_UL_VideoShotManager_Items,
     UAS_MT_VideoShotManager_ToolsMenu,
+    UAS_PT_VideoShotManager_Initialize,
 )
 
 

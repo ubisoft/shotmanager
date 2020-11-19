@@ -33,20 +33,26 @@ from bpy.types import Operator
 class UAS_ShotManager_EnableDisableAll(Operator):
     bl_idname = "uas_shot_manager.enabledisableall"
     bl_label = "Enable / Disable All Shots"
-    bl_description = "Enable all shots,\nShift + Click: Invert shots state,\nCtrl + Click: Disable all shots,\nAlt + Click: Isolate Selected Shot,"
+    bl_description = "Toggle shot enabled state.\nShift + Click: Enable all shots,\nCtrl + Click: Disable all shots,\nCtrl + Shift + Click: Invert shots state,\nAlt + Click: Isolate Selected Shot,"
     bl_options = {"INTERNAL", "UNDO"}
 
     def invoke(self, context, event):
         scene = context.scene
         props = scene.UAS_shot_manager_props
+        prefs = context.preferences.addons["shotmanager"].preferences
 
         enableMode = "ENABLEALL"
         if event.shift and not event.ctrl and not event.alt:
-            enableMode = "INVERT"
+            enableMode = "ENABLEALL"
         elif event.ctrl and not event.shift and not event.alt:
             enableMode = "DISABLEALL"
+        elif event.shift and event.ctrl and not event.alt:
+            enableMode = "INVERT"
         elif event.alt and not event.shift and not event.ctrl:
             enableMode = "ENABLEONLYCSELECTED"
+        elif not event.alt and not event.shift and not event.ctrl:
+            enableMode = "ENABLEALL" if prefs.toggleShotsEnabledState else "DISABLEALL"
+            prefs.toggleShotsEnabledState = not prefs.toggleShotsEnabledState
 
         selectedShot = props.getSelectedShot()
         shotsList = props.getShotsList()
@@ -61,6 +67,20 @@ class UAS_ShotManager_EnableDisableAll(Operator):
                 shot.enabled = shot == selectedShot
 
         props.setSelectedShot(selectedShot)
+
+        return {"FINISHED"}
+
+
+class UAS_ShotManager_EnableDisableCamsBG(Operator):
+    bl_idname = "uas_shot_manager.enabledisablecamsbg"
+    bl_label = "Enable / Disable Camera Backgrounds"
+    bl_description = "Alternatively enable or disable the background image of the cameras used by the shots"
+    bl_options = {"INTERNAL", "UNDO"}
+
+    def invoke(self, context, event):
+        prefs = context.preferences.addons["shotmanager"].preferences
+        bpy.ops.uas_shots_settings.use_background(useBackground=prefs.toggleCamsBG)
+        prefs.toggleCamsBG = not prefs.toggleCamsBG
 
         return {"FINISHED"}
 
@@ -129,6 +149,7 @@ class UAS_ShotManager_SceneRangeFrom3DEdit(Operator):
 
 _classes = (
     UAS_ShotManager_EnableDisableAll,
+    UAS_ShotManager_EnableDisableCamsBG,
     #   UAS_ShotManager_LockCamToView,
     UAS_ShotManager_SceneRangeFromShot,
     #    UAS_ShotManager_SceneRangeFromEnabledShots,

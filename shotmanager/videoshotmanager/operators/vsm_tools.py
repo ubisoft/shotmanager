@@ -404,10 +404,10 @@ class UAS_VideoShotManager_OT_ClearAll(Operator):
     bl_options = {"INTERNAL", "UNDO"}
 
     def execute(self, context):
-
-        bpy.ops.uas_video_shot_manager.clear_markers()
-        bpy.ops.uas_video_shot_manager.clear_clips()
+        print("Clear all ici")
         bpy.ops.uas_video_shot_manager.remove_multiple_tracks(action="ALL")
+        bpy.ops.uas_video_shot_manager.clear_markers()
+        #    bpy.ops.uas_video_shot_manager.clear_clips()
 
         return {"FINISHED"}
 

@@ -85,6 +85,7 @@ def launchRenderWithVSEComposite(
     currentShot = props.getCurrentShot()
 
     renderMode = "PROJECT" if renderPreset is None else renderPreset.renderMode
+    renderInfo = dict()
 
     # it is possible to have handles but not to render them (case of still frame),
     # it is also possible not to use the handles, whitch is different on stamp info
@@ -283,7 +284,7 @@ def launchRenderWithVSEComposite(
             startFrameIn3D = shot.start
             startFrameInEdit = shot.getEditStart()
             textInfo = f"  *** Playblast Start Time: 3D: {startFrameIn3D}, Edit: {startFrameInEdit}"
-            print(f"TextInfo: {textInfo}")
+            print(f"{textInfo}")
 
         # context.window_manager.UAS_shot_manager_progressbar = (i + 1) / len(shotList) * 100.0
         # bpy.ops.wm.redraw_timer(type="DRAW_WIN_SWAP", iterations=2)
@@ -386,7 +387,7 @@ def launchRenderWithVSEComposite(
                         print("      ------------------------------------------")
                         print("      \n" + textInfo + "  -  " + textInfo02)
 
-                        if "PLAYBLAST" == renderMode and not preset_useStampInfo:
+                        if "PLAYBLAST" == renderMode and renderPreset.stampRenderInfo and not preset_useStampInfo:
                             bpy.context.scene.render.use_stamp_frame = False
                             scene.render.use_stamp_note = True
                             scene.render.stamp_note_text += textInfo02 + "\\n" + textInfo
@@ -660,11 +661,18 @@ def launchRenderWithVSEComposite(
                 for i in range(len(renderedShotSequencesArr)):
                     _deleteTempFiles(str(Path(renderedShotSequencesArr[i]["image_sequence"]).parent))
 
+        renderInfo["scene"] = scene.name
+        renderInfo["outputFullPath"] = sequenceOutputFullPath
+        renderInfo["resolution_x"] = scene.render.resolution_x
+        renderInfo["resolution_y"] = scene.render.resolution_y
+
         deltaTime = time.monotonic() - startSequenceRenderTime
         print(f"      \nSequence video render time: {deltaTime:0.2f} sec.")
         allRenderTimes["SequenceVideo"] = deltaTime
 
-    playblastInfos = {"startFrameIn3D": startFrameIn3D, "startFrameInEdit": startFrameInEdit}
+    # playblastInfos = {"startFrameIn3D": startFrameIn3D, "startFrameInEdit": startFrameInEdit}
+    renderInfo["startFrameIn3D"] = startFrameIn3D
+    renderInfo["startFrameInEdit"] = startFrameInEdit
     # startFrameIn3D = -1
     # startFrameInEdit = -1
 
@@ -676,7 +684,7 @@ def launchRenderWithVSEComposite(
     }
 
     if "PLAYBLAST" == renderMode:
-        filesDict["playblastInfos"] = playblastInfos
+        filesDict["playblastInfos"] = renderInfo
 
     deltaTime = time.monotonic() - startRenderTime
     print(f"      \nFull Sequence render time: {deltaTime:0.2f} sec.")
@@ -1009,13 +1017,16 @@ def launchRender(context, renderMode, rootPath, area=None):
             _logger.debug(f"Render Playblast")
             bpy.ops.wm.save_mainfile()
 
+            if context.space_data.overlay.show_overlays and preset.disableCameraBG:
+                bpy.ops.uas_shots_settings.use_background(useBackground=False)
+
             renderedFilesDict = launchRenderWithVSEComposite(
                 context,
                 preset,
                 takeIndex=-1,
                 filePath=props.renderRootPath,
                 fileListOnly=False,
-                useStampInfo=preset.useStampInfo,
+                useStampInfo=preset.stampRenderInfo and preset.useStampInfo,
                 rerenderExistingShotVideos=True,
                 generateShotVideos=False,
                 generateSequenceVideo=True,
@@ -1025,13 +1036,18 @@ def launchRender(context, renderMode, rootPath, area=None):
                 area=area,
             )
 
-            prefs = context.preferences.addons["shotmanager"].preferences
-            prefs.playblast_frame_start = renderedFilesDict["playblastInfos"]["startFrameInEdit"]
-            print(f"prefs.playblast_frame_start: {prefs.playblast_frame_start}")
-
             # open rendered media in a player
-            if len(renderedFilesDict["sequence_video_file"]):
-                utils.openMedia(renderedFilesDict["sequence_video_file"], inExternalPlayer=True)
+            if preset.openPlayblastInPlayer:
+                if len(renderedFilesDict["sequence_video_file"]):
+                    utils.openMedia(renderedFilesDict["sequence_video_file"], inExternalPlayer=True)
+
+            # open rendered media in vse
+            if preset.updatePlayblastInVSM:
+                from shotmanager.scripts.rrs.rrs_playblast import rrs_playblast_to_vsm
+
+                rrs_playblast_to_vsm(playblastInfo=renderedFilesDict["playblastInfos"])
+
+                pass
 
         else:
             print("\n *** preset.renderMode is invalid, cannot render anything... ***\n")

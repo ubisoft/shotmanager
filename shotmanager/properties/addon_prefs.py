@@ -86,6 +86,13 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
         ),
         default="STILL",
     )
+
+    ##################
+    # tools ui     ###
+    ##################
+    toggleCamsBG: BoolProperty(name=" ", default=False)
+    toggleShotsEnabledState: BoolProperty(name=" ", default=False)
+
     ##################
     # ui helpers   ###
     ##################
@@ -143,10 +150,6 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
     # Playblast
     ####################
 
-    playblast_frame_start: IntProperty(
-        name="Last Playblast Start Frame", soft_min=0, default=7165,
-    )
-
     ##################################################################################
     # Draw
     ##################################################################################
@@ -171,10 +174,6 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
             col = box.column(align=False)
             col.prop(self, "addShot_start")
             col.prop(self, "addShot_end")
-
-            box = layout.box()
-            col = box.column(align=False)
-            col.prop(self, "playblast_frame_start")
 
 
 _classes = (UAS_ShotManager_AddonPrefs,)

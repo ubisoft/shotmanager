@@ -4,6 +4,7 @@ from bpy.props import BoolProperty
 
 from shotmanager.config import config
 from ..utils.utils import getSceneVSE, convertVersionIntToStr
+from ..utils import utils
 
 
 class UAS_ShotManager_OT_GoToVideoShotManager(Operator):
@@ -15,7 +16,7 @@ class UAS_ShotManager_OT_GoToVideoShotManager(Operator):
     def invoke(self, context, event):
 
         vsm_scene = None
-        vsm_scene = getSceneVSE("VideoShotManger", createVseTab=True)
+        vsm_scene = utils.getSceneVSE("VideoShotManger", createVseTab=True)
 
         # startup_blend = os.path.join(
         #     bpy.utils.resource_path("LOCAL"),

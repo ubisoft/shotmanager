@@ -577,6 +577,15 @@ class UAS_ShotManager_ShotMove(Operator):
     action: bpy.props.EnumProperty(items=(("UP", "Up", ""), ("DOWN", "Down", "")))
 
     @classmethod
+    def description(self, context, properties):
+        descr = "_"
+        if "UP" == properties.action:
+            descr = "Move shot up in the take list"
+        elif "DOWN" == properties.action:
+            descr = "Move shot down in the take list"
+        return descr
+
+    @classmethod
     def poll(cls, context):
         shots = context.scene.UAS_shot_manager_props.get_shots()
         return len(shots)

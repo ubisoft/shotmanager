@@ -1,4 +1,5 @@
 import bpy
+from bpy.types import Scene
 from bpy.types import PropertyGroup
 from bpy.props import (
     CollectionProperty,
@@ -12,8 +13,77 @@ from bpy.props import (
 
 from .track import UAS_VideoShotManager_Track
 
+from shotmanager.utils import utils_vse
+
 
 class UAS_VSM_Props(PropertyGroup):
+    def initialize_video_shot_manager(self):
+        print(f"\nInitializing Video Shot Manager... Scene: {bpy.context.scene.name}")
+        # self.parentScene = self.getParentScene()
+
+        if self.parentScene is None:
+            self.parentScene = self.findParentScene()
+        # _logger.info(f"\n  self.parentScene : {self.parentScene}")
+
+        # self.initialize()
+        # self.dataVersion = bpy.context.window_manager.UAS_shot_manager_version
+        # self.createDefaultTake()
+        # self.createRenderSettings()
+        self.isInitialized = True
+
+    def get_isInitialized(self):
+        #    print(" get_isInitialized")
+        val = self.get("isInitialized", False)
+
+        if not val:
+            self.initialize_video_shot_manager()
+
+        return val
+
+    def set_isInitialized(self, value):
+        #  print(" set_isInitialized: value: ", value)
+        self["isInitialized"] = value
+
+    isInitialized: BoolProperty(get=get_isInitialized, set=set_isInitialized, default=False)
+
+    # def _get_parentScene(self):
+    #     val = self.get("parentScene", None)
+    #     if val is None:
+    #         val = self.findParentScene()
+    #         self["parentScene"] = val
+    #     return val
+
+    # def _set_parentScene(self, value):
+    #     self["parentScene"] = value
+
+    parentScene: PointerProperty(type=Scene,)  # get=_get_parentScene, set=_set_parentScene,
+
+    def findParentScene(self):
+        for scn in bpy.data.scenes:
+            if "UAS_vsm_props" in scn:
+                props = scn.UAS_vsm_props
+                if self == props:
+                    #    print("findParentScene: Scene found")
+                    return scn
+        # print("findParentScene: Scene NOT found")
+        return None
+
+    def getParentScene(self):
+        parentScn = None
+        try:
+            parentScn = self.parentScene
+        except Exception:  # as e
+            print("Error - parentScene property is None in vsm_props.getParentScene():", sys.exc_info()[0])
+
+        # if parentScn is not None:
+        #     return parentScn
+        if parentScn is None:
+            print("\n\n WkError: parentScn in None in Props !!! *** ")
+
+        # findParentScene is done in initialize function
+
+        return parentScn
+
     def _get_numTracks(self):
         val = self.get("numTracks", 0)
         val = len(self.tracks)
@@ -39,6 +109,7 @@ class UAS_VSM_Props(PropertyGroup):
         name="Num Tracks",
         min=0,
         soft_max=20,
+        max=32,
         get=_get_numTracks,
         set=_set_numTracks,
         update=_update_numTracks,
@@ -61,7 +132,8 @@ class UAS_VSM_Props(PropertyGroup):
     def _update_selected_track_index_inverted(self, context):
         if self.selected_track_index != len(self.tracks) - self["selected_track_index_inverted"]:
             self.selected_track_index = len(self.tracks) - self["selected_track_index_inverted"]
-        print("\n*** _update_selected_track_index_inverted updated. New state: ", self.selected_track_index_inverted)
+
+    #    print("\n*** _update_selected_track_index_inverted updated. New state: ", self.selected_track_index_inverted)
 
     # Works from 0 to len(self.track) - 1
     selected_track_index_inverted: IntProperty(
@@ -80,11 +152,11 @@ class UAS_VSM_Props(PropertyGroup):
         self["selected_track_index"] = value
 
     def _update_selected_track_index(self, context):
-        print("\n*** _update_selected_track_index updated. New state: ", self.selected_track_index)
+        #    print("\n*** _update_selected_track_index updated. New state: ", self.selected_track_index)
         if self.selected_track_index_inverted != len(self.tracks) - self["selected_track_index"]:
             self.selected_track_index_inverted = len(self.tracks) - self["selected_track_index"]
 
-    # Works from len(self.track) to 1
+    # Really represent the track (or channel) index. Then goes from 1 to number of tracks
     selected_track_index: IntProperty(
         name="Selected Track Index",
         get=_get_selected_track_index,
@@ -95,9 +167,7 @@ class UAS_VSM_Props(PropertyGroup):
 
     display_color_in_tracklist: BoolProperty(name="Display Color in Track List", default=True, options=set())
     display_opacity_in_tracklist: BoolProperty(name="Display Opacity in Track List", default=True, options=set())
-
-    def getTracks(self):
-        return self.tracks
+    display_track_type_in_tracklist: BoolProperty(name="Display Track Type in Track List", default=True, options=set())
 
     def getParentScene(self):
         for scene in bpy.data.scenes:
@@ -112,7 +182,7 @@ class UAS_VSM_Props(PropertyGroup):
     def getUniqueTrackName(self, nameToMakeUnique):
         uniqueName = nameToMakeUnique
 
-        trackList = self.getTracksList(ignoreDisabled=False)
+        trackList = self.getTracks()
 
         dup_name = False
         for track in trackList:
@@ -142,9 +212,9 @@ class UAS_VSM_Props(PropertyGroup):
 
         newTrack = None
 
-        trackList = self.getTracks()
+        trackListInverted = self.tracks
 
-        newTrack = trackList.add()  # track is added at the end
+        newTrack = trackListInverted.add()  # track is added at the end
         newTrack.parentScene = self.getParentScene()
         newTrack.name = name
         newTrack.enabled = enabled
@@ -158,9 +228,9 @@ class UAS_VSM_Props(PropertyGroup):
             newTrack.sceneTakeName = sceneTakeName
 
         if -1 != atIndex:  # move track at specified index
-            trackList.move(len(trackList) - 1, len(trackList) - atIndex)
-
-        #  self.numTracks += 1
+            # trackListInverted.move(len(trackList) - 1, len(trackList) - atIndex)
+            trackListInverted.move(len(trackListInverted) - 1, len(trackListInverted) - atIndex)
+            newTrack = trackListInverted[len(trackListInverted) - atIndex]
 
         return newTrack
 
@@ -170,19 +240,26 @@ class UAS_VSM_Props(PropertyGroup):
         """
 
         newTrack = None
+        trackListInverted = self.tracks
 
-        trackList = self.getTracks()
-
-        newTrack = trackList.add()  # track is added at the end
+        newTrack = trackListInverted.add()  # track is added at the end
         newTrack.name = track.name
         newTrack.enabled = track.enabled
         newTrack.color = track.color
 
         if -1 != atIndex:  # move track at specified index
-            trackList.move(len(trackList) - 1, atIndex)
-            newTrack = trackList[atIndex]
+            # trackList.move(len(trackListInverted) - 1, atIndex)
+            trackListInverted.move(len(trackListInverted) - 1, len(trackListInverted) - atIndex)
+            newTrack = trackListInverted[len(trackListInverted) - atIndex]
 
         return newTrack
+
+    def removeTrack(self, track):
+        trackInd = self.getTrackIndex(track)
+        print(f"Remove TRack: Name: {track.name} at {trackInd}")
+        utils_vse.clearChannel(self.parentScene, trackInd)
+        trackListInverted = self.tracks
+        trackListInverted.remove(len(trackListInverted) - trackInd)
 
     def setTrackInfo(
         self,
@@ -198,11 +275,14 @@ class UAS_VSM_Props(PropertyGroup):
         sceneTakeName=None,
     ):
         """ Set the information of an existing track
+            Returns the track
         """
-
+        track = None
         trackList = self.getTracks()
 
-        track = trackList[len(trackList) - trackIndex]
+        if not 0 <= trackIndex <= len(trackList):
+            return track
+        track = trackList[trackIndex - 1]
 
         if name is not None:
             track.name = name
@@ -226,45 +306,54 @@ class UAS_VSM_Props(PropertyGroup):
 
         # #  self.numTracks += 1
 
-        return
-
-    def getTrackIndex(self, track):
-        trackInd = -1
-
-        trackList = self.getTracksList(ignoreDisabled=False)
-
-        trackInd = 0
-        while trackInd < len(trackList) and track != trackList[trackInd]:  # wkip mettre trackList[trackInd].name?
-            trackInd += 1
-        if trackInd == len(trackList):
-            trackInd = -1
-
-        return trackInd
-
-    def getTrack(self, trackIndex, ignoreDisabled=False):
-        track = None
-
-        trackList = self.getTracksList(ignoreDisabled=ignoreDisabled)
-
-        # if ignoreDisabled:
-        #     if 0 < len(trackList) and trackIndex < len(trackList):
-        #         track = trackList[trackIndex]
-        # else if 0 < trackNumber and trackIndex < trackNumber:
-        #     track = self.tracks[trackIndex]
-
-        if 0 < len(trackList) and trackIndex < len(trackList):
-            track = trackList[trackIndex]
-
         return track
 
-    def getTracksList(self, ignoreDisabled=False):
-        trackList = []
+    def getTrackIndex(self, track):
+        trackList = self.getTracks()
+        for i in range(len(trackList)):
+            if track == trackList[i]:
+                return i + 1
+        return -1
+        # trackInd = -1
 
-        for track in self.tracks:
-            if not ignoreDisabled or track.enabled:
-                trackList.append(track)
+        # trackList = self.getTracks()
 
-        return trackList
+        # trackInd = 0
+        # while trackInd < len(trackList) and track != trackList[trackInd]:  # wkip mettre trackList[trackInd].name?
+        #     trackInd += 1
+        # if trackInd == len(trackList):
+        #     trackInd = -1
+
+        # return trackInd
+
+    def moveTrackFromIndexToIndex(self, fromIndex, toIndex):
+        utils_vse.swapChannels(self.parentScene, fromIndex, toIndex)
+        newTrack = None
+        trackListInverted = self.tracks
+        trackListInverted.move(len(trackListInverted) - fromIndex, len(trackListInverted) - toIndex)
+        newTrack = trackListInverted[len(trackListInverted) - toIndex]
+        return newTrack
+
+    def getTrackByIndex(self, trackIndex):
+        if not (0 < trackIndex <= len(self.tracks)):
+            return None
+        return self.getTracks()[trackIndex - 1]
+
+    def getTracks(self, ignoreDisabled=False):
+        """Return a list of tracks inverted from the one stored internally. This is because tracks are directly used by the
+            template list ui component.
+            The list starts at 0 and ends at number of channels - 1
+        """
+        return [t for t in reversed(self.tracks) if not ignoreDisabled or t.enabled]
+
+    # def getTracksList(self, ignoreDisabled=False):
+    #     trackList = []
+
+    #     for track in self.tracks:
+    #         if not ignoreDisabled or track.enabled:
+    #             trackList.append(track)
+
+    #     return trackList
 
     def getSelectedTrackIndex(self):
         """ Return the index of the selected track in the enabled track list
@@ -276,12 +365,17 @@ class UAS_VSM_Props(PropertyGroup):
         return self.selected_track_index
 
     def getSelectedTrack(self):
-        selectedTrackInd = self.getSelectedTrackIndex()
-        selectedTrack = None
-        if -1 != selectedTrackInd:
-            selectedTrack = (self.getTracks())[selectedTrackInd]
+        selTrackInd = self.getSelectedTrackIndex()
+        if 0 >= selTrackInd:
+            return None
+        trackList = self.getTracks()
+        return trackList[selTrackInd - 1]
+        # selectedTrackInd = self.getSelectedTrackIndex()
+        # selectedTrack = None
+        # if -1 != selectedTrackInd:
+        #     selectedTrack = (self.getTracks())[selectedTrackInd]
 
-        return selectedTrack
+        # return selectedTrack
 
     def setSelectedTrackByIndex(self, selectedTrackIndex):
         # print("setSelectedTrackByIndex: selectedTrackIndex:", selectedTrackIndex)
@@ -294,20 +388,29 @@ class UAS_VSM_Props(PropertyGroup):
     def updateTracksList(self, scene):
         """Add new track at the top of the list
         """
-        numChannels = self.getNumUsedChannels(scene)
+        # numChannels = utils_vse.getNumUsedChannels(self.parentScene)
 
-        if self.numTracks < numChannels:
-            self.numTracks = numChannels
+        # if self.numTracks < numChannels:
+        #     self.numTracks = numChannels
+
+        if 32 > self.numTracks:
+            self.numTracks = 32
 
     ####################
     # channels
     ####################
 
-    def getNumUsedChannels(self, scene):
-        numChannels = 0
-        for i, seq in enumerate(scene.sequence_editor.sequences):
-            numChannels = max(seq.channel, numChannels)
-        return numChannels
+    def getChannelClips(self, channelIndex):
+        clipsList = list()
+        for seq in self.parentScene.sequence_editor.sequences:
+            if channelIndex == seq.channel:
+                clipsList.append(seq)
+
+        return clipsList
+
+    def getChannelClipsNumber(self, channelIndex):
+        clipsList = self.getChannelClips(channelIndex)
+        return len(clipsList)
 
 
 _classes = (

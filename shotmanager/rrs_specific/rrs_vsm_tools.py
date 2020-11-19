@@ -1,19 +1,11 @@
-import os
 from pathlib import Path
 
 import bpy
 from bpy.types import Operator
-from bpy.props import StringProperty, BoolProperty, IntProperty, EnumProperty, PointerProperty
-from bpy_extras.io_utils import ImportHelper
-
+from bpy.props import StringProperty, BoolProperty
 
 from shotmanager.config import config
 from shotmanager.utils import utils
-
-import opentimelineio
-from shotmanager.otio import otio_wrapper as ow
-from shotmanager.otio.exports import exportOtio
-from shotmanager.otio.imports import importToVSE
 
 from shotmanager.rrs_specific.montage.montage_otio import MontageOtio
 
@@ -307,6 +299,18 @@ class UAS_VideoShotManager_OT_RRS_CheckSequence(Operator):
         #     labelText = f"Start: {-1}, End: {-1}, Num Shots: {0}"
 
     def execute(self, context):
+
+        playblastInfos = dict()
+        from shotmanager.scripts.rrs.rrs_playblast import rrs_playblast_to_vsm
+
+        rrs_playblast_to_vsm(
+            playblastInfo=None,
+            editVideoFile=self.editVideoFile,
+            montageOtio=config.gMontageOtio,
+            importMarkers=self.importMarkers,
+        )
+        return {"FINISHED"}
+
         scene = context.scene
         props = scene.UAS_shot_manager_props
         vsm_props = scene.UAS_vsm_props
@@ -398,6 +402,7 @@ class UAS_VideoShotManager_OT_RRS_CheckSequence(Operator):
             # vsm_props.addTrack(atIndex=3, trackType="STANDARD", name="Playblast", color=(0.5, 0.4, 0.6, 1))
             vsm_props.updateTracksList(scene)
             vsm_props.setTrackInfo(channelInd, trackType="STANDARD", name="Playblast", color=(0.5, 0.4, 0.6, 1))
+            vsm_props.setSelectedTrackByIndex(channelInd)
 
         # works on selection
         bpy.ops.sequencer.set_range_to_strips(preview=False)

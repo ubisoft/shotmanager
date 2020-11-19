@@ -201,6 +201,12 @@ class UAS_ShotManager_RenderSettings(PropertyGroup):
         name="Render Sound", description="Also generate sound in rendered media", default=True,
     )
 
+    disableCameraBG: BoolProperty(
+        name="Disable Camera BG",
+        description="Disable camera background images for openGl rendering, when overlay is activated",
+        default=True,
+    )
+
     writeToDisk: BoolProperty(name="Write to Disk", default=False)
 
     renderOtioFile: BoolProperty(name="Render EDL File", default=False)
@@ -240,8 +246,25 @@ class UAS_ShotManager_RenderSettings(PropertyGroup):
         name="Resolution Percentage", min=10, soft_max=100, max=300, subtype="PERCENTAGE", default=100
     )
 
-    updatePlaybalstInVSM: BoolProperty(
-        name="Update Playblast in Video Shot Manager", description="bla bla", default=True, options=set(),
+    updatePlayblastInVSM: BoolProperty(
+        name="Open in Video Shot Manager",
+        description="Open the rendered playblast in the VSE",
+        default=True,
+        options=set(),
+    )
+
+    openPlayblastInPlayer: BoolProperty(
+        name="Open in Player",
+        description="Open the rendered playblast in the default OS media player",
+        default=False,
+        options=set(),
+    )
+
+    stampRenderInfo: BoolProperty(
+        name="Stamp Render Info",
+        description="Open the rendered playblast in the default OS media player",
+        default=True,
+        options=set(),
     )
 
     # renderCameraBG: BoolProperty(
