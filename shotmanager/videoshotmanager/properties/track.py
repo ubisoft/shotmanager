@@ -120,9 +120,9 @@ class UAS_VideoShotManager_Track(PropertyGroup):
         description="Type of the track",
         items=(
             ("STANDARD", "Standard", ""),
-            ("RENDERED_SHOTS", "Rendered Shots", ""),
-            ("SHOT_CAMERAS", "Shot Manager Cameras", ""),
             ("CAM_FROM_SCENE", "Camera From Scene", ""),
+            ("SHOT_CAMERAS", "Shot Manager Cameras", "Cameras from Shot Manager"),
+            ("RENDERED_SHOTS", "Rendered Shots", ""),
             ("CAM_BG", "Camera Backgrounds", ""),
             ("CUSTOM", "Custom", ""),
         ),
@@ -180,22 +180,53 @@ class UAS_VideoShotManager_Track(PropertyGroup):
     def regenerateTrackContent(self):
         print(f"\nregenerateTrackContent: {self.name}, type: {self.trackType}")
 
+        if "CAM_FROM_SCENE" == self.trackType:
+            # wkip to do
+            return
+
         if self.shotManagerScene is None:
             return
 
         props = self.shotManagerScene.UAS_shot_manager_props
+        vse_render = bpy.context.window_manager.UAS_vse_render
         takeInd = props.getTakeIndex(props.takes[self.sceneTakeName])
         shotsList = props.getShotsList(ignoreDisabled=True, takeIndex=takeInd)
 
+        trackScene_resolution_x = self.shotManagerScene.render.resolution_x
+        trackScene_resolution_y = self.shotManagerScene.render.resolution_y
+
         self.clearContent()
 
-        # playblastClip.use_crop = True
-        # playblastClip.crop.min_x = -1 * int((1280 - playblastInfo["resolution_x"]) / 2)
-        # playblastClip.crop.max_x = playblastClip.crop.min_x
-        # playblastClip.crop.min_y = -1 * int((960 - playblastInfo["resolution_y"]) / 2)
-        # playblastClip.crop.max_y = playblastClip.crop.min_y
+        if "SHOT_CAMERAS" == self.trackType:
+            for shot in shotsList:
+                print("\nShot:", shot.name)
+                print(f"Start: {shot.start}, Edit Start: {shot.getEditStart()}")
+                newClip = vse_render.createNewClip(
+                    self.parentScene,
+                    "",
+                    self.vseTrackIndex,
+                    -1 * shot.start + shot.getEditStart(),
+                    offsetStart=shot.start,  # + shot.getEditStart(),
+                    offsetEnd=shot.end,
+                    cameraScene=self.shotManagerScene,
+                    cameraObject=shot.camera,
+                    clipName=shot.name,
+                )
 
-        if "CAM_BG" == self.trackType:
+                res_x = 1280
+                res_y = 960
+                clip_x = trackScene_resolution_x
+                clip_y = trackScene_resolution_y
+                self.cropClipToCanvas(
+                    res_x, res_y, newClip, clip_x, clip_y, mode="FIT_WIDTH",
+                )
+                # newClip.use_crop = True
+                # newClip.crop.min_x = -1 * int((1280 - trackScene_resolution_x) / 2)
+                # newClip.crop.max_x = newClip.crop.min_x
+                # newClip.crop.min_y = -1 * int((960 - trackScene_resolution_y) / 2)
+                # newClip.crop.max_y = newClip.crop.min_y
+
+        elif "CAM_BG" == self.trackType:
             for shot in shotsList:
                 print("\nShot:", shot.name)
 
@@ -217,28 +248,6 @@ class UAS_VideoShotManager_Track(PropertyGroup):
                         offsetStart=-1 * shot.bgImages_offset,
                         offsetEnd=offsetEnd,
                     )
-
-        elif "SHOT_CAMERAS" == self.trackType:
-            pass
-
-        elif "CAM_FROM_SCENE" == self.trackType:
-
-            for shot in shotsList:
-                print("\nShot:", shot.name)
-                print(f"Start: {shot.start}, Edit Start: {shot.getEditStart()}")
-                bpy.context.window_manager.UAS_vse_render.createNewClip(
-                    self.parentScene,
-                    "",
-                    self.vseTrackIndex,
-                    -1 * shot.start + shot.getEditStart(),
-                    offsetStart=shot.start,  # + shot.getEditStart(),
-                    offsetEnd=shot.end,
-                    cameraScene=self.shotManagerScene,
-                    cameraObject=shot.camera,
-                )
-
-            # self.shotManagerScene.frame_start = 14  # OriRangeStart
-            # self.shotManagerScene.frame_end = OriRangeEnd
 
         elif "RENDERED_SHOTS" == self.trackType:
             pass

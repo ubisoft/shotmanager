@@ -93,6 +93,46 @@ class UAS_VideoShotManager_DeleteMarker(Operator):
 
 
 ####################
+# Track specific Select and Zoom
+####################
+
+
+class UAS_VideoShotManager_TrackSelectAndZoomView(Operator):
+    bl_idname = "uas_video_shot_manager.track_select_and_zoom_view"
+    bl_label = "Select and Zoom on Track Content"
+    bl_description = "Select the track content and change zoom value to make all the track clips fit into the view.\n"
+    bl_options = {"INTERNAL"}
+
+    # Can be "TRACKCLIPS"
+    actionMode: StringProperty(default="TRACKCLIPS")
+    trackIndex: IntProperty(default=-1)
+
+    @classmethod
+    def description(self, context, properties):
+        descr = "_"
+        if "TRACKCLIPS" == properties.actionMode:
+            descr = "Select the track content and change zoom value to make all the track clips fit into the view"
+        return descr
+
+    def execute(self, context):
+        scene = context.scene
+        vse_render = bpy.context.window_manager.UAS_vse_render
+
+        start = scene.frame_preview_start if scene.use_preview_range else scene.frame_start
+        end = scene.frame_preview_end if scene.use_preview_range else scene.frame_end
+        activeClip = scene.sequence_editor.active_strip
+        scene.sequence_editor.active_strip = None
+
+        if "TRACKCLIPS" == self.actionMode:
+            # bpy.ops.sequencer.select_all(action="DESELECT")
+            vse_render.selectChannelClips(scene, self.trackIndex, mode="CLEARANDSELECT")
+            bpy.ops.sequencer.view_selected()
+
+        bpy.context.scene.sequence_editor.active_strip = activeClip
+        return {"FINISHED"}
+
+
+####################
 # Zoom
 ####################
 
@@ -100,7 +140,7 @@ class UAS_VideoShotManager_DeleteMarker(Operator):
 class UAS_VideoShotManager_ZoomView(Operator):
     bl_idname = "uas_video_shot_manager.zoom_view"
     bl_label = "Zoom VSE View"
-    bl_description = "Change VSE zoom value to make all the clips fit into the view"
+    bl_description = "Change VSE zoom value to make all the clips fit into the view.\nCurrent selection and time range are not modified"
     bl_options = {"INTERNAL"}
 
     # Can be "TIMERANGE", "ALLCLIPS", "SELECTEDCLIPS", "TOCURRENTFRAME", "TRACKCLIPS"
@@ -126,7 +166,7 @@ class UAS_VideoShotManager_ZoomView(Operator):
         """
             Dev notes:
             - view_all / vie_all_preview: zoom on the max range beteen time range and all clips
-
+            - selection nor time range are modified
         """
         # bpy.ops.sequencer.view_selected()
         # bpy.ops.sequencer.view_all_preview()
@@ -202,9 +242,24 @@ class UAS_VideoShotManager_ZoomView(Operator):
                 scene.frame_end = end
 
         elif "TRACKCLIPS" == self.zoomMode:
-            # bpy.ops.sequencer.select_all(action="DESELECT")
-            vse_render.selectChannelClips(scene, self.trackIndex)
+            # backup and clear selection
+            selArr = []
+            numSel = 0
+            for clip in scene.sequence_editor.sequences:
+                selArr.append(clip.select)
+                if clip.select:
+                    numSel += 1
+
+            bpy.ops.sequencer.select_all(action="DESELECT")
+
+            # select only track clip
+            for clip in scene.sequence_editor.sequences:
+                clip.select = self.trackIndex == clip.channel
             bpy.ops.sequencer.view_selected()
+
+            # restore selection
+            for i, clip in enumerate(scene.sequence_editor.sequences):
+                clip.select = selArr[i]
 
         # for test only
         # filedit = bpy.context.window_manager.UAS_vse_render.getMediaList(context.scene, listVideo=False, listAudio=True)
@@ -333,6 +388,7 @@ _classes = (
     UAS_VideoShotManager_GoToMarker,
     UAS_VideoShotManager_AddMarker,
     UAS_VideoShotManager_DeleteMarker,
+    UAS_VideoShotManager_TrackSelectAndZoomView,
     UAS_VideoShotManager_ZoomView,
     UAS_VideoShotManager_FrameTimeRange,
 )

@@ -557,14 +557,21 @@ class UAS_Vse_Render(PropertyGroup):
         for seq in scene.sequence_editor.sequences:
             seq.select = False
 
-    def selectChannelClips(self, scene, channelIndex, addToSelection=False):
+    # wkip mettre les mute: faut il les selectionner?
+    def selectChannelClips(self, scene, channelIndex, mode="CLEARANDSELECT"):
+        """ Modes: "CLEARANDSELECT", "ADD", "REMOVE"
+            Returns the resulting selected clips belonging to the track
+        """
         sequencesList = list()
-        if not addToSelection:
-            self.deselectAllChannel(scene)
         for seq in scene.sequence_editor.sequences:
             if channelIndex == seq.channel:
-                sequencesList.append(seq)
-                seq.select = True
+                if "REMOVE" == mode:
+                    seq.select = False
+                else:
+                    seq.select = True
+                    sequencesList.append(seq)
+            elif "CLEARANDSELECT" == mode:
+                seq.select = False
 
         return sequencesList
 
@@ -596,6 +603,41 @@ class UAS_Vse_Render(PropertyGroup):
         self.changeClipsChannel(scene, channelIndexA, tempChannelInd)
         self.changeClipsChannel(scene, channelIndexB, channelIndexA)
         self.changeClipsChannel(scene, tempChannelInd, channelIndexB)
+
+    def cropClipToCanvas(
+        self, canvasWidth, canvasHeight, clip, clipWidth, clipHeight, clipRenderPercentage=100, mode="FIT_ALL"
+    ):
+        """Mode can be FIT_ALL, FIT_WIDTH, FIT_HEIGHT, NO_RESIZE
+        """
+        clipRatio = clipWidth / clipHeight
+        canvasRatio = canvasWidth / canvasHeight
+
+        clipRealWidth = int(clipWidth * (clipRenderPercentage / 100))
+        clipRealHeight = int(clipHeight * (clipRenderPercentage / 100))
+
+        if "FIT_ALL" == mode or (canvasWidth == clipRealWidth and canvasHeight == clipRealHeight):
+            clip.use_crop = False
+            clip.crop.min_x = clip.crop.max_x = clip.crop.min_y = clip.crop.max_y = 0
+
+        else:
+            clip.use_crop = True
+            clip.crop.min_x = clip.crop.max_x = 0
+            clip.crop.min_y = clip.crop.max_y = 0
+
+            if "FIT_WIDTH" == mode:
+                clipNewHeight = canvasWidth / clipRealWidth * clipRealHeight
+                clip.crop.min_y = clip.crop.max_y = -0.5 * (clipRenderPercentage / 100) * (canvasHeight - clipNewHeight)
+
+            if "FIT_HEIGHT" == mode:
+                clipNewWidth = canvasHeight / clipRealHeight * clipRealWidth
+                clip.crop.min_x = clip.crop.max_x = -0.5 * (clipRenderPercentage / 100) * (canvasWidth - clipNewWidth)
+
+            if "NO_RESIZE" == mode:
+                clip.crop.min_x = clip.crop.max_x = -0.5 * (clipRenderPercentage / 100) * (canvasWidth - clipRealWidth)
+                clip.crop.min_y = clip.crop.max_y = (
+                    -0.5 * (clipRenderPercentage / 100) * (canvasHeight - clipRealHeight)
+                )
+                pass
 
     def get_frame_end_from_content(self, scene):
         # wkipwkipwkip erreur ici, devrait etre exclusive pour extre consistant et ne l'est pas
@@ -787,11 +829,18 @@ class UAS_Vse_Render(PropertyGroup):
                 #     print(f" *** Rendered shot not found: {self.inputOverMediaPath}")
 
                 if overClip is not None:
-                    overClip.use_crop = True
-                    overClip.crop.min_x = -1 * int((mediaDictArr[0]["bg_resolution"][0] - inputOverResolution[0]) / 2)
-                    overClip.crop.max_x = overClip.crop.min_x
-                    overClip.crop.min_y = -1 * int((mediaDictArr[0]["bg_resolution"][1] - inputOverResolution[1]) / 2)
-                    overClip.crop.max_y = overClip.crop.min_y
+                    res_x = mediaDictArr[0]["bg_resolution"][0]
+                    res_y = mediaDictArr[0]["bg_resolution"][1]
+                    clip_x = inputOverResolution[0]
+                    clip_y = inputOverResolution[1]
+                    self.cropClipToCanvas(
+                        res_x, res_y, overClip, clip_x, clip_y, mode="FIT_WIDTH",
+                    )
+                    # overClip.use_crop = True
+                    # overClip.crop.min_x = -1 * int((mediaDictArr[0]["bg_resolution"][0] - inputOverResolution[0]) / 2)
+                    # overClip.crop.max_x = overClip.crop.min_x
+                    # overClip.crop.min_y = -1 * int((mediaDictArr[0]["bg_resolution"][1] - inputOverResolution[1]) / 2)
+                    # overClip.crop.max_y = overClip.crop.min_y
 
                     overClip.blend_type = "OVER_DROP"
                     shotDuration = overClip.frame_final_duration
@@ -819,6 +868,28 @@ class UAS_Vse_Render(PropertyGroup):
         # bpy.context.window.scene = vse_scene
 
         sequenceScene.frame_end = atFrame - 1
+
+        # fix to get even resolution values:
+        # print(
+        #     f"Render W: {sequenceScene.render.resolution_x} and H: {sequenceScene.render.resolution_y}, %: {sequenceScene.render.resolution_percentage}"
+        # )
+        if 100 != sequenceScene.render.resolution_percentage:
+            sequenceScene.render.resolution_x = int(
+                sequenceScene.render.resolution_x * sequenceScene.render.resolution_percentage / 100.0
+            )
+            sequenceScene.render.resolution_y = int(
+                sequenceScene.render.resolution_y * sequenceScene.render.resolution_percentage / 100.0
+            )
+            sequenceScene.render.resolution_percentage = 100
+
+        if 1 == sequenceScene.render.resolution_x % 2:
+            sequenceScene.render.resolution_x += 1
+        if 1 == sequenceScene.render.resolution_y % 2:
+            sequenceScene.render.resolution_y += 1
+
+        # print(
+        #     f"Render New W: {sequenceScene.render.resolution_x} and H: {sequenceScene.render.resolution_y}, %: {sequenceScene.render.resolution_percentage}"
+        # )
 
         bpy.ops.render.opengl(animation=True, sequencer=True, write_still=False)
 

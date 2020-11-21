@@ -1088,7 +1088,8 @@ def conformToRefMontage(
         shotSelfModifs = []
 
         # if shotList[i] not in newEditShots:
-        shotList[i].name += "__removed"
+        if not shotList[i].name.endswith("_removed"):
+            shotList[i].name += "__removed"
         textSelf = shotList[i].get_name()
 
         # following code removed because a camera can be shared by several shots
@@ -1207,11 +1208,18 @@ def conformToRefMontage(
                     )
 
                     if newClipInVSE is not None:
-                        newClipInVSE.use_crop = True
-                        newClipInVSE.crop.min_x = 1 * int((1280 - 1280) / 2)
-                        newClipInVSE.crop.max_x = newClipInVSE.crop.min_x
-                        newClipInVSE.crop.min_y = 1 * int((960 - 720) / 2)
-                        newClipInVSE.crop.max_y = newClipInVSE.crop.min_y
+                        res_x = 1280
+                        res_y = 960
+                        clip_x = 1280
+                        clip_y = 720
+                        vse_render.cropClipToCanvas(
+                            res_x, res_y, newClipInVSE, clip_x, clip_y, mode="FIT_WIDTH",
+                        )
+                        # newClipInVSE.use_crop = True
+                        # newClipInVSE.crop.min_x = 1 * int((1280 - 1280) / 2)
+                        # newClipInVSE.crop.max_x = newClipInVSE.crop.min_x
+                        # newClipInVSE.crop.min_y = 1 * int((960 - 720) / 2)
+                        # newClipInVSE.crop.max_y = newClipInVSE.crop.min_y
 
                         # overClip.blend_type = "OVER_DROP"
 

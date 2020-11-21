@@ -101,28 +101,53 @@ def rrs_playblast_to_vsm(playblastInfo=None, editVideoFile=None, otioFile=None, 
 
     print(f"Playblast filepath: {filePath}")
     if not Path(filePath).exists():
-        print("Playblast Clip not found")
+        print(f" *** Playblast video file not found: {Path(filePath)}")
     else:
-        channelInd = 3
+        channelInd = 2
+        if playblastInfo["renderSound"]:
+            # create audio clip
+            channelInd += 1
+            playblastAudioClip = vse_render.createNewClip(
+                scene,
+                filePath,
+                channelInd=channelInd,
+                atFrame=importPlayblastAtFrame,
+                importVideo=False,
+                importAudio=True,
+                clipName=f'Playblast (audio){playblastInfo["scene"]}',
+            )
+            vsm_props.updateTracksList(scene)
+            vsm_props.setTrackInfo(channelInd, trackType="STANDARD", name="Playblast (audio)", color=(0.1, 0.5, 0.2, 1))
+
+        # create video clip
+        channelInd += 1
         playblastClip = vse_render.createNewClip(
             scene,
             filePath,
             channelInd=channelInd,
             atFrame=importPlayblastAtFrame,
             importAudio=False,
-            clipName=f'Playblast {playblastInfo["scene"]}',
+            clipName=f'Playblast (video){playblastInfo["scene"]}',
         )
 
         if playblastClip is not None:
-            playblastClip.use_crop = True
-            playblastClip.crop.min_x = -1 * int((1280 - playblastInfo["resolution_x"]) / 2)
-            playblastClip.crop.max_x = playblastClip.crop.min_x
-            playblastClip.crop.min_y = -1 * int((960 - playblastInfo["resolution_y"]) / 2)
-            playblastClip.crop.max_y = playblastClip.crop.min_y
+            res_x = 1280
+            res_y = 960
+            vse_render.cropClipToCanvas(
+                res_x,
+                res_y,
+                playblastClip,
+                playblastInfo["resolution_x"],
+                playblastInfo["resolution_y"],
+                clipRenderPercentage=playblastInfo["render_percentage"],
+                mode="FIT_WIDTH",
+            )
+
+            scene.sequence_editor.active_strip = playblastClip
 
         # vsm_props.addTrack(atIndex=3, trackType="STANDARD", name="Playblast", color=(0.5, 0.4, 0.6, 1))
         vsm_props.updateTracksList(scene)
-        vsm_props.setTrackInfo(channelInd, trackType="STANDARD", name="Playblast", color=(0.5, 0.4, 0.6, 1))
+        vsm_props.setTrackInfo(channelInd, trackType="STANDARD", name="Playblast (video)", color=(0.5, 0.4, 0.6, 1))
         vsm_props.setSelectedTrackByIndex(channelInd)
 
     # works on selection

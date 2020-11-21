@@ -189,21 +189,17 @@ def launchRenderWithVSEComposite(
         renderResolutionFramed = [props.project_resolution_framed_x, props.project_resolution_framed_y]
 
     if "PLAYBLAST" == renderMode:
-        scene.render.resolution_percentage = props.renderSettingsPlayblast.resolutionPercentage
-        renderResolution[0] = int(renderResolution[0] * props.renderSettingsPlayblast.resolutionPercentage / 100)
-        renderResolution[1] = int(renderResolution[1] * props.renderSettingsPlayblast.resolutionPercentage / 100)
+        scene.render.resolution_percentage = renderPreset.resolutionPercentage
+        renderResolution[0] = int(renderResolution[0] * renderPreset.resolutionPercentage / 100)
+        renderResolution[1] = int(renderResolution[1] * renderPreset.resolutionPercentage / 100)
 
         if preset_useStampInfo:
             # wkip
-            renderResolutionFramed[0] = int(1280 * props.renderSettingsPlayblast.resolutionPercentage / 100)
-            renderResolutionFramed[1] = int(960 * props.renderSettingsPlayblast.resolutionPercentage / 100)
+            renderResolutionFramed[0] = int(1280 * renderPreset.resolutionPercentage / 100)
+            renderResolutionFramed[1] = int(960 * renderPreset.resolutionPercentage / 100)
         else:
-            renderResolutionFramed[0] = int(
-                renderResolutionFramed[0] * props.renderSettingsPlayblast.resolutionPercentage / 100
-            )
-            renderResolutionFramed[1] = int(
-                renderResolutionFramed[1] * props.renderSettingsPlayblast.resolutionPercentage / 100
-            )
+            renderResolutionFramed[0] = int(renderResolutionFramed[0] * renderPreset.resolutionPercentage / 100)
+            renderResolutionFramed[1] = int(renderResolutionFramed[1] * renderPreset.resolutionPercentage / 100)
 
     # set output format settings
     #######################
@@ -665,6 +661,11 @@ def launchRenderWithVSEComposite(
         renderInfo["outputFullPath"] = sequenceOutputFullPath
         renderInfo["resolution_x"] = scene.render.resolution_x
         renderInfo["resolution_y"] = scene.render.resolution_y
+
+        renderInfo["render_percentage"] = (
+            renderPreset.resolutionPercentage if "PLAYBLAST" == renderMode else scene.render.resolution_percentage
+        )
+        renderInfo["renderSound"] = renderSound
 
         deltaTime = time.monotonic() - startSequenceRenderTime
         print(f"      \nSequence video render time: {deltaTime:0.2f} sec.")

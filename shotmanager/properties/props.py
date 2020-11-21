@@ -108,7 +108,12 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         #     return parentScn
         if parentScn is None:
             print("\n\n WkError: parentScn in None in Props !!! *** ")
+            self.parentScene = self.findParentScene()
+        else:
+            self.parentScene = parentScn
 
+        if self.parentScene is None:
+            print("\n\n Re WkError: self.parentScene in still None in Props !!! *** ")
         # findParentScene is done in initialize function
 
         return parentScn
@@ -2059,9 +2064,10 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         shotPrefix = ""
 
         if self.use_project_settings:
-            # wkip to improve with project_shot_format!!!
-            # scene name is used but it may be weak
-            shotPrefix = self.getParentScene().name
+            # wkip wkip wkip to improve with project_shot_format!!!
+            # scene name is used but it may be weak. Replace by take name??
+            # shotPrefix = self.getParentScene().name
+            shotPrefix = self.parentScene.name
         else:
             shotPrefix = self.render_shot_prefix
 
