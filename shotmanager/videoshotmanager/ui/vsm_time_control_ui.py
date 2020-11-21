@@ -64,6 +64,13 @@ class UAS_PT_VideoShotManagerTimeControl(Panel):
         subRow.operator("uas_video_shot_manager.go_to_marker", text="", icon="TRIA_RIGHT").goToMode = "NEXT"
         subRow.operator("uas_video_shot_manager.go_to_marker", text="", icon="FF").goToMode = "LAST"
 
+        prefs = context.preferences.addons["shotmanager"].preferences
+        subRow = row.row(align=True)
+        subRow.prop(prefs, "mnavbar_use_filter", text="", icon="FILTER")
+        subSubRow = subRow.row(align=True)
+        subSubRow.enabled = prefs.mnavbar_use_filter
+        subSubRow.prop(prefs, "mnavbar_filter_text", text="")
+
         #########################################
         # Zoom
         #########################################

@@ -46,17 +46,21 @@ class UAS_VideoShotManager_GoToMarker(Operator):
 
     def invoke(self, context, event):
         scene = context.scene
+        prefs = context.preferences.addons["shotmanager"].preferences
         marker = None
+
+        filterText = "" if not prefs.mnavbar_use_filter else prefs.mnavbar_filter_text
+
         if len(scene.timeline_markers):
-            print(self.goToMode)
+            #print(self.goToMode)
             if "FIRST" == self.goToMode:
-                marker = utils.getFirstMarker(scene, scene.frame_current)
+                marker = utils.getFirstMarker(scene, scene.frame_current, filter=filterText)
             elif "PREVIOUS" == self.goToMode:
-                marker = utils.getMarkerBeforeFrame(scene, scene.frame_current)
+                marker = utils.getMarkerBeforeFrame(scene, scene.frame_current, filter=filterText)
             elif "NEXT" == self.goToMode:
-                marker = utils.getMarkerAfterFrame(scene, scene.frame_current)
+                marker = utils.getMarkerAfterFrame(scene, scene.frame_current, filter=filterText)
             elif "LAST" == self.goToMode:
-                marker = utils.getLastMarker(scene, scene.frame_current)
+                marker = utils.getLastMarker(scene, scene.frame_current, filter=filterText)
 
             if marker is not None:
                 scene.frame_set(marker.frame)

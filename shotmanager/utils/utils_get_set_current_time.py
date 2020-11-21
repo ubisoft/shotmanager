@@ -189,6 +189,9 @@ def register():
 
     bpy.types.TIME_MT_editor_menus.append(draw_op_item)
 
+    # vse
+    # bpy.types.SEQUENCER_HT_header.append(draw_op_item)
+
 
 #   bpy.types.TIME_HT_editor_buttons.append(draw_op_item)
 # bpy.types.TIME_MT_editor_menus.append(draw_item)

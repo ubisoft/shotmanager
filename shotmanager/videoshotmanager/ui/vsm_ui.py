@@ -43,23 +43,23 @@ class UAS_PT_VideoShotManager(Panel):
 
         row = layout.row(align=True)
 
-        row.operator("utils.launchrender", text="", icon="RENDER_STILL").renderMode = "STILL"
-        row.operator("utils.launchrender", text="", icon="RENDER_ANIMATION").renderMode = "ANIMATION"
+        # row.operator("utils.launchrender", text="", icon="RENDER_STILL").renderMode = "STILL"
+        # row.operator("utils.launchrender", text="", icon="RENDER_ANIMATION").renderMode = "ANIMATION"
 
         #    row.operator("render.opengl", text="", icon='IMAGE_DATA')
         #   row.operator("render.opengl", text="", icon='RENDER_ANIMATION').animation = True
         #    row.operator("screen.screen_full_area", text ="", icon = 'FULLSCREEN_ENTER').use_hide_panels=False
 
-        row.separator(factor=2)
+        # row.separator(factor=2)
         icon = config.icons_col["General_Explorer_32"]
         row.operator("uas_shot_manager.open_explorer", text="", icon_value=icon.icon_id).path = bpy.path.abspath(
             bpy.data.filepath
         )
 
-        row.separator(factor=2)
+        row.separator(factor=1)
         row.menu("UAS_MT_Video_Shot_Manager_prefs_mainmenu", icon="PREFERENCES", text="")
 
-        row.separator(factor=3)
+        # row.separator(factor=3)
 
     def draw(self, context):
         layout = self.layout
@@ -99,18 +99,25 @@ class UAS_PT_VideoShotManager(Panel):
         # RRS Specific
         #########################################
 
-        layout.separator(factor=2)
-        row = layout.row()
-        row.scale_y = 1
-        row.operator(
-            "uas_video_shot_manager.go_to_sequence_scene", text="Go to Sequence Scene", icon="SCENE_DATA"
-        ).sceneName = bpy.data.scenes[0].name
-
-        if config.uasDebug:
-            layout.separator()
-            row = layout.row()
-            row.scale_y = 2
+        if not (
+            scene.name.startswith("Act01_Seq")
+            or scene.name.startswith("Act02_Seq")
+            or scene.name.startswith("Act03_Seq")
+        ):
+            layout.separator(factor=1)
+            layout.label(text="RR-Special: Visual Check:")
+            box = layout.box()
+            row = box.row()
+            row.scale_y = 1
             row.operator("uas_video_shot_manager.rrs_check_sequence", text="Check Sequence")
+
+            layout.separator()
+
+            row = layout.row()
+            row.scale_y = 1.4
+            row.operator(
+                "uas_video_shot_manager.go_to_sequence_scene", text="Go to Sequence Scene", icon="SCENE_DATA"
+            ).sceneName = bpy.data.scenes[0].name
 
         #########################################
         # Tracks

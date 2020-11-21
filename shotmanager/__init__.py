@@ -40,6 +40,9 @@ from .rrs_specific import rrs_vsm_tools
 from .scripts import precut_tools
 
 from .tools import vse_render
+from .tools.markers_nav_bar import markers_nav_bar
+
+# from .tools.markers_nav_bar import markers_nav_bar_addon_prefs
 
 from .ui import sm_ui
 
@@ -377,6 +380,8 @@ def register():
     utils_operators.register()
 
     # operators
+    # markers_nav_bar_addon_prefs.register()
+    markers_nav_bar.register()
     utils_get_set_current_time.register()
     rendering.register()
     takes.register()
@@ -493,6 +498,8 @@ def unregister():
     takes.unregister()
     utils_operators.unregister()
     utils_get_set_current_time.unregister()
+    markers_nav_bar.unregister()
+    #   markers_nav_bar_addon_prefs.unregister()
 
     addon_prefs.unregister()
 

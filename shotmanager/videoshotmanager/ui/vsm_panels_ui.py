@@ -27,22 +27,30 @@ class UAS_VideoShotManager_SelectStrip(Operator):
     #     props = context.scene.UAS_shot_manager_props
 
     #     return {"FINISHED"}
+    # can be "SEL_SEQ", "ACTIVE"
+    mode: StringProperty("SEL_SEQ")
 
     def execute(self, context):
         scene = context.scene
 
-        if bpy.context.selected_sequences is not None and 1 == len(bpy.context.selected_sequences):
-            seq = bpy.context.selected_sequences[0]
-            seq.select = False
-            seq.select = True
+        if "SEL_SEQ" == self.mode:
+            if bpy.context.selected_sequences is not None and 1 == len(bpy.context.selected_sequences):
+                seq = bpy.context.selected_sequences[0]
+                seq.select = False
+                seq.select = True
+        elif "ACTIVE" == self.mode:
+            if scene.sequence_editor.active_strip is not None:
+                seq = scene.sequence_editor.active_strip
+                seq.select = False
+                seq.select = True
 
         return {"FINISHED"}
 
 
 class UAS_PT_VideoShotManagerSelectedStrip(Panel):
     bl_idname = "UAS_PT_VideoShotManagerSelectedStripPanel"
-    bl_label = "Selected Strip"
-    bl_description = "Selected Strip Options"
+    bl_label = "Active Strip"
+    bl_description = "Active Strip Options"
     bl_space_type = "SEQUENCE_EDITOR"
     bl_region_type = "UI"
     bl_category = "UAS Video Shot Man"
@@ -50,19 +58,23 @@ class UAS_PT_VideoShotManagerSelectedStrip(Panel):
     # bl_options = {"DEFAULT_CLOSED"}
 
     def draw(self, context):
+        scene = context.scene
         prefs = context.preferences.addons["shotmanager"].preferences
-
         layout = self.layout
 
         row = layout.row()
-        row.label(text="Selected Strip:")
+        row.label(text="Active Strip:")
         subRow = row.row()
-        if bpy.context.selected_sequences is not None and 1 == len(bpy.context.selected_sequences):
-            subRow.prop(bpy.context.selected_sequences[0], "name", text="")
+        # if bpy.context.selected_sequences is not None and 1 == len(bpy.context.selected_sequences):
+        #     subRow.prop(bpy.context.selected_sequences[0], "name", text="")
+        if scene.sequence_editor.active_strip is not None:
+            subRow.prop(scene.sequence_editor.active_strip, "name", text="")
         else:
             subRow.enabled = False
             subRow.prop(prefs, "emptyField", text="")
-        subRow.operator("uas_videoshotmanager.select_strip", text="", icon="RESTRICT_SELECT_OFF")
+        subRow.operator(
+            "uas_videoshotmanager.select_strip", text="", icon="RESTRICT_SELECT_OFF"
+        ).mode = "ACTIVE"  # "SEL_SEQ"
 
         row = layout.row()
         row.label(text="Type:")

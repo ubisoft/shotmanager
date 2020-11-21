@@ -221,17 +221,18 @@ def openMedia(media_filepath, inExternalPlayer=False):
 ###################
 
 
-def sortMarkers(markers):
-    return sorted(markers, key=lambda x: x.frame, reverse=False)
+def sortMarkers(markers, filter=""):
+    sortedMarkers = [m for m in sorted(markers, key=lambda x: x.frame, reverse=False) if filter in m.name]
+    return sortedMarkers
 
 
-def getFirstMarker(scene, frame):
-    markers = sortMarkers(scene.timeline_markers)
+def getFirstMarker(scene, frame, filter=""):
+    markers = sortMarkers(scene.timeline_markers, filter)
     return markers[0] if len(markers) else None
 
 
-def getMarkerBeforeFrame(scene, frame):
-    markers = sortMarkers(scene.timeline_markers)
+def getMarkerBeforeFrame(scene, frame, filter=""):
+    markers = sortMarkers(scene.timeline_markers, filter)
     previousMarker = None
     for m in markers:
         if frame > m.frame:
@@ -241,25 +242,25 @@ def getMarkerBeforeFrame(scene, frame):
     return previousMarker
 
 
-def getMarkerAtFrame(scene, frame):
-    # markers = sortMarkers(scene.timeline_markers)
-    # for m in markers:
-    for m in scene.timeline_markers:
+def getMarkerAtFrame(scene, frame, filter=""):
+    markers = sortMarkers(scene.timeline_markers, filter)
+    for m in markers:
+        # for m in scene.timeline_markers:
         if frame == m.frame:
             return m
     return None
 
 
-def getMarkerAfterFrame(scene, frame):
-    markers = sortMarkers(scene.timeline_markers)
+def getMarkerAfterFrame(scene, frame, filter=""):
+    markers = sortMarkers(scene.timeline_markers, filter)
     for m in markers:
         if frame < m.frame:
             return m
     return None
 
 
-def getLastMarker(scene, frame):
-    markers = sortMarkers(scene.timeline_markers)
+def getLastMarker(scene, frame, filter=""):
+    markers = sortMarkers(scene.timeline_markers, filter)
     return markers[len(markers) - 1] if len(markers) else None
 
 

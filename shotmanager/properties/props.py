@@ -2256,20 +2256,20 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
 
         # path is absolute and ends with a /
         if fullPathOnly:
-            _logger.debug(" ** fullPathOnly")
+            # _logger.debug(" ** fullPathOnly")
             resultStr = filePath
         elif fullPath:
-            _logger.debug(" ** fullpath")
+            #            _logger.debug(" ** fullpath")
             resultStr = filePath + fileFullName
             if not noExtension:
                 resultStr += "." + self.getOutputFileFormat(isVideo=specificFrame is None)
         else:
-            _logger.debug(" ** else")
+            #           _logger.debug(" ** else")
             resultStr = fileFullName
-            _logger.debug(f" ** resultStr 1:  {resultStr}")
+            #          _logger.debug(f" ** resultStr 1:  {resultStr}")
             if not noExtension:
                 resultStr += "." + self.getOutputFileFormat(isVideo=specificFrame is None)
-            _logger.debug(f" ** resultStr 2:  {resultStr}")
+        #         _logger.debug(f" ** resultStr 2:  {resultStr}")
 
         _logger.debug(f" ** resultStr: {resultStr}")
         return resultStr
