@@ -381,11 +381,17 @@ class UAS_ShotManager_Shot(ShotInterface, PropertyGroup):
         options=set(),
     )
 
-    def getEditStart(self):
-        return self.parentScene.UAS_shot_manager_props.getEditTime(self, self.start)
+    def getEditStart(self, referenceLevel="TAKE"):
+        """
+            referenceLevel can be "TAKE" or "GLOBAL_EDIT"
+        """
+        return self.parentScene.UAS_shot_manager_props.getEditTime(self, self.start, referenceLevel=referenceLevel)
 
-    def getEditEnd(self):
-        return self.parentScene.UAS_shot_manager_props.getEditTime(self, self.end)
+    def getEditEnd(self, referenceLevel="TAKE"):
+        """
+            referenceLevel can be "TAKE" or "GLOBAL_EDIT"
+        """
+        return self.parentScene.UAS_shot_manager_props.getEditTime(self, self.end, referenceLevel=referenceLevel)
 
     def updateClipLinkToShotStart(self):
         if self.camera is not None and len(self.camera.data.background_images):

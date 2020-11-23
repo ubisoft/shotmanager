@@ -319,18 +319,20 @@ def get_edit_duration(shot_manager, take_index):
     return shot_manager.getEditDuration(takeIndex=take_index)
 
 
-def get_edit_time(shot_manager, reference_shot, frame_index_in_3D_time):
+def get_edit_time(shot_manager, reference_shot, frame_index_in_3D_time, reference_level="TAKE"):
     """ Return edit current time in frames, -1 if no shots or if current shot is disabled
         Works on the take from which referenceShot is coming from.
         Disabled shots are always ignored and considered as not belonging to the edit.
+        reference_level can be "TAKE" or "GLOBAL_EDIT"
         wkip negative times issues coming here... :/
     """
-    return shot_manager.getEditTime(reference_shot, frame_index_in_3D_time)
+    return shot_manager.getEditTime(reference_shot, frame_index_in_3D_time, referenceLevel=reference_level)
 
 
-def get_edit_current_time(shot_manager):
+def get_edit_current_time(shot_manager, reference_level="TAKE"):
     """ Return edit current time in frames, -1 if no shots or if current shot is disabled
         works only on current take
+        reference_level can be "TAKE" or "GLOBAL_EDIT"
         wkip negative times issues coming here... :/
     """
-    return shot_manager.getEditCurrentTime()
+    return shot_manager.getEditCurrentTime(referenceLevel=reference_level)

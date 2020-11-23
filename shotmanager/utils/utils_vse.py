@@ -1,7 +1,31 @@
 import bpy
 
+
 ###################
-# vse
+# sequence editor
+###################
+
+
+# wkip works but applies the modifs on every sequence editor occurence of the file
+def showSecondsInVSE(showSeconds):
+    edSeqWksp = bpy.data.workspaces["Video Editing"]
+    for screen in edSeqWksp.screens:
+        #   print(f"Screen type: {screen.name}")
+        for area in screen.areas:
+            #      print(f"Area type: {area.type}")
+            if area.type == "SEQUENCE_EDITOR":
+                #         print("Area seq ed")
+                override = bpy.context.copy()
+                override["area"] = area
+                override["region"] = area.regions[-1]
+
+                for space_data in area.spaces:
+                    if space_data.type == "SEQUENCE_EDITOR":
+                        space_data.show_seconds = showSeconds
+
+
+###################
+# vse sequences
 ###################
 
 

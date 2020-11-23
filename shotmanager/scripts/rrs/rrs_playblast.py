@@ -260,6 +260,8 @@ def rrs_playblast_to_vsm(playblastInfo=None, editVideoFile=None, otioFile=None, 
 
     #    bpy.ops.workspace.append_activate(idname="Video Editing")
 
+    utils.showSecondsInVSE(False)
+
     # wkip works but applies the modifs on every sequence editor occurence of the file
     edSeqWksp = bpy.data.workspaces["Video Editing"]
     for screen in edSeqWksp.screens:
@@ -274,17 +276,6 @@ def rrs_playblast_to_vsm(playblastInfo=None, editVideoFile=None, otioFile=None, 
 
                 bpy.ops.sequencer.view_selected(override)
                 # bpy.context.space_data.show_seconds = False
-
-                for space_data in area.spaces:
-                    if space_data.type == "SEQUENCE_EDITOR":
-                        space_data.show_seconds = False
-
-        # for area in screen.areas:
-        #       if area.type == "SEQUENCE_EDITOR":
-        # for space_data in area.spaces:
-        #     if space_data.type == "SEQUENCE_EDITOR":
-        #         space_data.show_seconds = True
-        #         break
 
     ################
     # video settings

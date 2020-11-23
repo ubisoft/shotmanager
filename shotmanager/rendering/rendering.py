@@ -290,7 +290,7 @@ def launchRenderWithVSEComposite(
 
         if 0 == i:
             startFrameIn3D = shot.start
-            startFrameInEdit = shot.getEditStart()
+            startFrameInEdit = shot.getEditStart(referenceLevel="GLOBAL_EDIT")
             startShot = shot
             textInfo = f"  *** Playblast Start Time: 3D: {startFrameIn3D}, Edit: {startFrameInEdit}"
             print(f"{textInfo}")
@@ -841,7 +841,7 @@ def renderStampedInfoForShot(
                 stampInfoSettings.bottomNote = ""
 
         stampInfoSettings.cameraName = shot.camera.name
-        stampInfoSettings.edit3DFrame = props.getEditTime(shot, currentFrame)
+        stampInfoSettings.edit3DFrame = props.getEditTime(shot, currentFrame, referenceLevel="GLOBAL_EDIT")
         stampInfoSettings.renderRootPath = newTempRenderPath
         stampInfoSettings.renderTmpImageWithStampedInfo(scene, currentFrame)
 

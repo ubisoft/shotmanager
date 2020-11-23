@@ -951,11 +951,12 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
 
         return duration
 
-    def getEditTime(self, referenceShot, frameIndexIn3DTime):
+    def getEditTime(self, referenceShot, frameIndexIn3DTime, referenceLevel="TAKE"):
         """ Return edit current time in frames, -1 if no shots or if current shot is disabled
             Works on the take from which referenceShot is coming from.
             Disabled shots are always ignored and considered as not belonging to the edit.
             wkip negative times issues coming here... :/
+            referenceLevel can be "TAKE" or "GLOBAL_EDIT"
         """
         frameIndInEdit = -1
         if referenceShot is None:
@@ -985,12 +986,15 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
 
                 frameIndInEdit += frameIndexIn3DTime - referenceShot.start
 
-                # frameIndInEdit += self.editStartFrame       # at project level
-                frameIndInEdit += referenceShot.getParentTake().startInGlobalEdit  # at take level
+                if "GLOBAL_EDIT" == referenceLevel:
+                    frameIndInEdit += referenceShot.getParentTake().startInGlobalEdit
+                else:
+                    # at take level
+                    frameIndInEdit += self.editStartFrame  # at project level
 
         return frameIndInEdit
 
-    def getEditCurrentTime(self, ignoreDisabled=True):
+    def getEditCurrentTime(self, referenceLevel="TAKE", ignoreDisabled=True):
         """ Return edit current time in frames, -1 if no shots or if current shot is disabled
             works only on current take
             wkip negative times issues coming here... :/
@@ -1007,7 +1011,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         #        shotList = self.getShotsList(ignoreDisabled=ignoreDisabled, takeIndex=takeInd)
         shot = self.getCurrentShot()
 
-        return self.getEditTime(shot, bpy.context.scene.frame_current)
+        return self.getEditTime(shot, bpy.context.scene.frame_current, referenceLevel=referenceLevel)
 
         # # works only on current take
         # takeInd = self.getCurrentTakeIndex()
@@ -1041,7 +1045,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
 
         # return editCurrentTime
 
-    def getEditCurrentTimeForSelectedShot(self, ignoreDisabled=True):
+    def getEditCurrentTimeForSelectedShot(self, referenceLevel="TAKE", ignoreDisabled=True):
         """ Return edit current time in frames, -1 if no shots or if current shot is disabled
             works only on current take
             wkip negative times issues coming here... :/
@@ -1057,7 +1061,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         #        shotList = self.getShotsList(ignoreDisabled=ignoreDisabled, takeIndex=takeInd)
         shot = self.getSelectedShot()
 
-        return self.getEditTime(shot, bpy.context.scene.frame_current)
+        return self.getEditTime(shot, bpy.context.scene.frame_current, referenceLevel=referenceLevel)
 
     def getEditShots(self, ignoreDisabled=True):
         return self.getShotsList(ignoreDisabled=ignoreDisabled)

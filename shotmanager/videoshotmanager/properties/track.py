@@ -216,7 +216,7 @@ class UAS_VideoShotManager_Track(PropertyGroup):
                 res_y = 960
                 clip_x = trackScene_resolution_x
                 clip_y = trackScene_resolution_y
-                self.cropClipToCanvas(
+                vse_render.cropClipToCanvas(
                     res_x, res_y, newClip, clip_x, clip_y, mode="FIT_WIDTH",
                 )
                 # newClip.use_crop = True
