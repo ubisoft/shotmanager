@@ -501,22 +501,21 @@ class UAS_PT_ShotManager_ShotProperties(Panel):
                 box = layout.box()
                 box.use_property_decorate = False
                 row = box.row()
-                row.separator(factor=1.0)
-                c = row.column()
-                grid_flow = c.grid_flow(align=True, columns=4, even_columns=False)
+                # row.separator(factor=1.0)
 
-                # grid_flow.prop(shot.camera.data.background_images[0].clip.name)
+                subRow = row.row(align=True)
+                subRow.scale_x = 0.6
+                subRow.label(text="Camera BG:")
                 if len(shot.camera.data.background_images) and shot.camera.data.background_images[0].clip is not None:
-                    grid_flow.prop(shot.camera.data.background_images[0].clip, "filepath")
+                    subRow = row.row(align=True)
+                    subRow.prop(shot.camera.data.background_images[0].clip, "filepath", text="")
+                    subRow.operator(
+                        "uas_shot_manager.remove_bg_images", text="", icon="PANEL_CLOSE", emboss=True
+                    ).shotIndex = props.getShotIndex(shot)
                 else:
-                    # tmpBGPath
-                    grid_flow.operator(
-                        "uas_shot_manager.openfilebrowser_for_cam_bg", text="", icon="FILEBROWSER", emboss=True
+                    row.operator(
+                        "uas_shot_manager.openfilebrowser_for_cam_bg", text="", icon="ADD", emboss=True
                     ).pathProp = "inputOverMediaPath"
-
-                grid_flow.operator(
-                    "uas_shot_manager.remove_bg_images", text="", icon="PANEL_CLOSE", emboss=True
-                ).shotIndex = props.getShotIndex(shot)
 
                 row = box.row()
                 if not len(shot.camera.data.background_images):

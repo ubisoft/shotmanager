@@ -61,9 +61,10 @@ def swapChannels(scene, channelIndexA, channelIndexB):
 
 
 def muteChannel(scene, channelIndex, mute):
-    for i, seq in enumerate(scene.sequence_editor.sequences):
-        if channelIndex == seq.channel:
-            seq.mute = mute
+    if scene.sequence_editor is not None:
+        for i, seq in enumerate(scene.sequence_editor.sequences):
+            if channelIndex == seq.channel:
+                seq.mute = mute
 
 
 def setChannelAlpha(scene, channelIndex, alpha):

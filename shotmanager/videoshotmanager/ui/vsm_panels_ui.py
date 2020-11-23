@@ -67,7 +67,7 @@ class UAS_PT_VideoShotManagerSelectedStrip(Panel):
         subRow = row.row()
         # if bpy.context.selected_sequences is not None and 1 == len(bpy.context.selected_sequences):
         #     subRow.prop(bpy.context.selected_sequences[0], "name", text="")
-        if scene.sequence_editor.active_strip is not None:
+        if scene.sequence_editor is not None and scene.sequence_editor.active_strip is not None:
             subRow.prop(scene.sequence_editor.active_strip, "name", text="")
         else:
             subRow.enabled = False

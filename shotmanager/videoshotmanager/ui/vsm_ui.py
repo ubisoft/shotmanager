@@ -72,7 +72,6 @@ class UAS_PT_VideoShotManager(Panel):
             row = layout.row()
             row.alert = True
             row.operator("uas_video_shot_manager.initialize")
-            row.alert = False
             layout.separator()
 
         # if 32 > vsm_props.numTracks:
@@ -109,7 +108,7 @@ class UAS_PT_VideoShotManager(Panel):
             box = layout.box()
             row = box.row()
             row.scale_y = 1
-            row.operator("uas_video_shot_manager.rrs_check_sequence", text="Check Sequence")
+            row.operator("uas_video_shot_manager.rrs_check_sequence", text="Import Previz Montage Act 01")
 
             layout.separator()
 
@@ -172,7 +171,12 @@ class UAS_UL_VideoShotManager_Items(bpy.types.UIList):
         vsm_props = context.scene.UAS_vsm_props
         prefs = context.preferences.addons["shotmanager"].preferences
 
-        if not "CUSTOM" == item.trackType and not "STANDARD" == item.trackType:
+        if not (
+            "CUSTOM" == item.trackType
+            or "STANDARD" == item.trackType
+            or "AUDIO" == item.trackType
+            or "VIDEO" == item.trackType
+        ):
             layout.alert = item.shotManagerScene is None
 
         row = layout.row(align=True)
@@ -210,7 +214,12 @@ class UAS_UL_VideoShotManager_Items(bpy.types.UIList):
             subSubRow = subRow.row(align=True)
             subSubRow.scale_x = 1.2
 
-            if "CUSTOM" == item.trackType or "STANDARD" == item.trackType:
+            if (
+                "CUSTOM" == item.trackType
+                or "STANDARD" == item.trackType
+                or "AUDIO" == item.trackType
+                or "VIDEO" == item.trackType
+            ):
                 subSubRow.enabled = False
                 subSubRow.prop(prefs, "emptyBool", text="", icon="BLANK1")
                 subSubRow.prop(prefs, "emptyBool", text="", icon="BLANK1")
@@ -313,18 +322,19 @@ class UAS_PT_VideoShotManager_TrackProperties(Panel):
             row = box.row()
             c = row.column()
             grid_flow = c.grid_flow(align=False, columns=4, even_columns=False)
+
             if "CUSTOM" == track.trackType:
                 layout.separator()
                 row = layout.row()
                 row.operator("uas_video_shot_manager.clear_vse_track")
-
                 pass
-            elif "STANDARD" == track.trackType:
+
+            elif "STANDARD" == track.trackType or "AUDIO" == track.trackType or "VIDEO" == track.trackType:
                 layout.separator()
                 row = layout.row()
                 row.operator("uas_video_shot_manager.clear_vse_track")
-
                 pass
+
             else:
                 if track.shotManagerScene is None:
                     grid_flow.alert = True

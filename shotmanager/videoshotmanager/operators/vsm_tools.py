@@ -430,7 +430,7 @@ class UAS_VideoShotManager_OT_ClearMarkers(Operator):
 #     bl_options = {"INTERNAL", "UNDO"}
 
 #     def invoke(self, context, event):
-#         # vsm_sceneName = "VideoShotManger"
+#         # vsm_sceneName = "VideoShotManager"
 #         # vsm_scene = bpy.data.scenes[vsm_sceneName]
 #         vsm_scene = bpy.context.scene
 #         vsm_scene.sequence_editor_clear()

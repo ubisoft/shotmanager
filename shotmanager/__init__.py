@@ -361,9 +361,9 @@ def register():
     ##################
 
     # data version is written in the initialize function
-    bpy.types.WindowManager.UAS_shot_manager_isInitialized = BoolProperty(
-        name="Shot Manager is initialized", description="", default=False
-    )
+    # bpy.types.WindowManager.UAS_shot_manager_isInitialized = BoolProperty(
+    #     name="Shot Manager is initialized", description="", default=False
+    # )
 
     # utils_handlers.displayHandlers()
     utils_handlers.removeAllHandlerOccurences(jump_to_shot, handlerCateg=bpy.app.handlers.frame_change_pre)
@@ -512,7 +512,7 @@ def unregister():
     del bpy.types.WindowManager.UAS_shot_manager_shots_play_mode
     del bpy.types.WindowManager.UAS_shot_manager_display_timeline
 
-    del bpy.types.WindowManager.UAS_shot_manager_isInitialized
+    #   del bpy.types.WindowManager.UAS_shot_manager_isInitialized
     del bpy.types.WindowManager.UAS_shot_manager_version
 
     config.releaseGlobalVariables()

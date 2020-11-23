@@ -15,6 +15,10 @@ from .track import UAS_VideoShotManager_Track
 
 from shotmanager.utils import utils_vse
 
+import logging
+
+_logger = logging.getLogger(__name__)
+
 
 class UAS_VSM_Props(PropertyGroup):
     def initialize_video_shot_manager(self):
@@ -29,6 +33,8 @@ class UAS_VSM_Props(PropertyGroup):
         # self.dataVersion = bpy.context.window_manager.UAS_shot_manager_version
         # self.createDefaultTake()
         # self.createRenderSettings()
+        self.updateTracksList(self.parentScene)  # bad context
+
         self.isInitialized = True
 
     def get_isInitialized(self):
@@ -46,27 +52,7 @@ class UAS_VSM_Props(PropertyGroup):
 
     isInitialized: BoolProperty(get=get_isInitialized, set=set_isInitialized, default=False)
 
-    # def _get_parentScene(self):
-    #     val = self.get("parentScene", None)
-    #     if val is None:
-    #         val = self.findParentScene()
-    #         self["parentScene"] = val
-    #     return val
-
-    # def _set_parentScene(self, value):
-    #     self["parentScene"] = value
-
     parentScene: PointerProperty(type=Scene,)  # get=_get_parentScene, set=_set_parentScene,
-
-    def findParentScene(self):
-        for scn in bpy.data.scenes:
-            if "UAS_vsm_props" in scn:
-                props = scn.UAS_vsm_props
-                if self == props:
-                    #    print("findParentScene: Scene found")
-                    return scn
-        # print("findParentScene: Scene NOT found")
-        return None
 
     def getParentScene(self):
         parentScn = None
@@ -78,11 +64,26 @@ class UAS_VSM_Props(PropertyGroup):
         # if parentScn is not None:
         #     return parentScn
         if parentScn is None:
-            print("\n\n WkError: parentScn in None in Props !!! *** ")
+            _logger.error("\n\n WkError: parentScn in None in Props !!! *** ")
+            self.parentScene = self.findParentScene()
+        else:
+            self.parentScene = parentScn
 
+        if self.parentScene is None:
+            print("\n\n Re WkError: self.parentScene in still None in Props !!! *** ")
         # findParentScene is done in initialize function
 
-        return parentScn
+        return self.parentScene
+
+    def findParentScene(self):
+        for scn in bpy.data.scenes:
+            if "UAS_vsm_props" in scn:
+                props = scn.UAS_vsm_props
+                if self == props:
+                    #    print("findParentScene: Scene found")
+                    return scn
+        # print("findParentScene: Scene NOT found")
+        return None
 
     def _get_numTracks(self):
         val = self.get("numTracks", 0)
@@ -94,7 +95,8 @@ class UAS_VSM_Props(PropertyGroup):
         if value > len(self.tracks):
             v = value
             while v > len(self.tracks):
-                self.addTrack(trackType="STANDARD", atIndex=(len(self.tracks) + 1))
+                atIndex = len(self.tracks) + 1
+                self.addTrack(name=f"Track {atIndex}", trackType="STANDARD", atIndex=atIndex)
             self["numTracks"] = value
         else:
             self["numTracks"] = len(self.tracks)
@@ -169,12 +171,6 @@ class UAS_VSM_Props(PropertyGroup):
     display_opacity_in_tracklist: BoolProperty(name="Display Opacity in Track List", default=True, options=set())
     display_track_type_in_tracklist: BoolProperty(name="Display Track Type in Track List", default=True, options=set())
 
-    def getParentScene(self):
-        for scene in bpy.data.scenes:
-            if "UAS_vsm_props" in scene and self == scene["UAS_vsm_props"]:
-                return scene
-        return None
-
     ####################
     # tracks
     ####################
@@ -200,7 +196,7 @@ class UAS_VSM_Props(PropertyGroup):
         start=10,
         end=20,
         camera=None,
-        color=(0.2, 0.6, 0.8, 1),
+        color=None,
         enabled=True,
         trackType="STANDARD",
         sceneName="",
@@ -216,11 +212,16 @@ class UAS_VSM_Props(PropertyGroup):
 
         newTrack = trackListInverted.add()  # track is added at the end
         newTrack.parentScene = self.getParentScene()
+        # print(f"****Add Track: newTrack.parentScene: {newTrack.parentScene}")
         newTrack.name = name
         newTrack.enabled = enabled
-        newTrack.color = color
-
         newTrack.trackType = trackType
+
+        if color is None:
+            newTrack.setColorFromTrackType()
+
+        else:
+            newTrack.color = color
 
         if "" != sceneName:
             newTrack.shotManagerScene = bpy.data.scenes[sceneName]
@@ -280,7 +281,7 @@ class UAS_VSM_Props(PropertyGroup):
         track = None
         trackList = self.getTracks()
 
-        if not 0 <= trackIndex <= len(trackList):
+        if not 0 <= trackIndex - 1 < len(trackList):
             return track
         track = trackList[trackIndex - 1]
 
@@ -290,11 +291,11 @@ class UAS_VSM_Props(PropertyGroup):
         if enabled is not None:
             track.enabled = enabled
 
-        if color is not None:
-            track.color = color
-
         if trackType is not None:
             track.trackType = trackType
+
+        if color is not None:
+            track.color = color
 
         # if "" != sceneName:
         #     newTrack.shotManagerScene = bpy.data.scenes[sceneName]
@@ -338,6 +339,12 @@ class UAS_VSM_Props(PropertyGroup):
         if not (0 < trackIndex <= len(self.tracks)):
             return None
         return self.getTracks()[trackIndex - 1]
+
+    def getTrackByName(self, trackName):
+        for t in self.tracks:
+            if t.name == trackName:
+                return t
+        return None
 
     def getTracks(self, ignoreDisabled=False):
         """Return a list of tracks inverted from the one stored internally. This is because tracks are directly used by the

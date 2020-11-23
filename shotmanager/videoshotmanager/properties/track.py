@@ -9,24 +9,19 @@ from shotmanager.properties.take import UAS_ShotManager_Take
 from shotmanager.utils.utils import findFirstUniqueName
 from shotmanager.utils import utils_vse
 
+# ("STANDARD", "Standard", ""),
+# ("AUDIO", "Audio", ""),
+# ("VIDEO", "Video", ""),
+# ("CAM_FROM_SCENE", "Camera From Scene", ""),
+# ("SHOT_CAMERAS", "Shot Manager Cameras", "Cameras from Shot Manager"),
+# ("RENDERED_SHOTS", "Rendered Shots", ""),
+# ("CAM_BG", "Camera Backgrounds", ""),
+# ("CUSTOM", "Custom", ""),
+
 
 class UAS_VideoShotManager_Track(PropertyGroup):
 
     parentScene: PointerProperty(type=Scene, description="Scene to which this track belongs to")
-
-    # deprecated? Use self.parentScene.UAS_vsm_props instead
-    def videoShotManager(self):
-        """Return the video shot manager properties instance the shot is belonging to.
-        """
-        parentVideoShotManager = None
-
-        # wkip dirty if self.parentScene is not None
-        if self.parentScene is None:
-            self.parentScene = bpy.context.scene
-
-        if self.parentScene is not None and "UAS_vsm_props" in self.parentScene:
-            parentVideoShotManager = self.parentScene.UAS_vsm_props
-        return parentVideoShotManager
 
     def getName_PathCompliant(self):
         trackName = self.name.replace(" ", "_")
@@ -39,7 +34,7 @@ class UAS_VideoShotManager_Track(PropertyGroup):
     def set_name(self, value):
         """ Set a unique name to the track
         """
-        tracks = self.videoShotManager().getTracks()
+        tracks = self.parentScene.UAS_vsm_props.getTracks()
 
         # newName = value
         # foundDuplicateName = False
@@ -56,7 +51,8 @@ class UAS_VideoShotManager_Track(PropertyGroup):
     name: StringProperty(name="Name", get=get_name, set=set_name)
 
     def _update_enabled(self, context):
-        utils_vse.muteChannel(self.parentScene, self.vseTrackIndex, not self.enabled)
+        if 0 < self.vseTrackIndex:
+            utils_vse.muteChannel(self.parentScene, self.vseTrackIndex, not self.enabled)
         self.parentScene.UAS_vsm_props.setSelectedTrack(self)
 
     enabled: BoolProperty(
@@ -113,6 +109,7 @@ class UAS_VideoShotManager_Track(PropertyGroup):
     )
 
     def _update_trackType(self, context):
+        self.setColorFromTrackType()
         self.parentScene.UAS_vsm_props.setSelectedTrack(self)
 
     trackType: EnumProperty(
@@ -120,6 +117,8 @@ class UAS_VideoShotManager_Track(PropertyGroup):
         description="Type of the track",
         items=(
             ("STANDARD", "Standard", ""),
+            ("AUDIO", "Audio", ""),
+            ("VIDEO", "Video", ""),
             ("CAM_FROM_SCENE", "Camera From Scene", ""),
             ("SHOT_CAMERAS", "Shot Manager Cameras", "Cameras from Shot Manager"),
             ("RENDERED_SHOTS", "Rendered Shots", ""),
@@ -268,3 +267,20 @@ class UAS_VideoShotManager_Track(PropertyGroup):
             self.parentScene, self.vseTrackIndex, targetTrackIndex
         )
 
+    def setColorFromTrackType(self):
+        if "STANDARD" == self.trackType:
+            self.color = (0.15, 0.06, 0.25, 1)
+        elif "AUDIO" == self.trackType:
+            self.color = (0.1, 0.5, 0.2, 1)
+        elif "VIDEO" == self.trackType:
+            self.color = (0.1, 0.2, 0.8, 1)
+        elif "CAM_FROM_SCENE" == self.trackType:
+            self.color = (0.6, 0.5, 0.0, 1)
+        elif "SHOT_CAMERAS" == self.trackType:
+            self.color = (0.6, 0.2, 0.0, 1)
+        elif "RENDERED_SHOTS" == self.trackType:
+            self.color = (0.4, 0.7, 0.0, 1)
+        elif "CAM_BG" == self.trackType:
+            self.color = (0.7, 0.0, 0.2, 1)
+        elif "CUSTOM" == self.trackType:
+            self.color = (0.3, 0.5, 0.4, 1)

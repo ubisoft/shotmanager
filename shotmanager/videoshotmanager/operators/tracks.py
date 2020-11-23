@@ -58,6 +58,8 @@ class UAS_VideoShotManager_TrackAdd(Operator):
         description="Type of the track",
         items=(
             ("STANDARD", "Standard", ""),
+            ("AUDIO", "Audio", ""),
+            ("VIDEO", "Video", ""),
             ("CAM_FROM_SCENE", "Camera From Scene", ""),
             ("SHOT_CAMERAS", "Shot Manager Cameras", "Cameras from Shot Manager"),
             ("RENDERED_SHOTS", "Rendered Shots", ""),

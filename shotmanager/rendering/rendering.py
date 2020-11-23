@@ -274,11 +274,13 @@ def launchRenderWithVSEComposite(
 
     startFrameIn3D = -1
     startFrameInEdit = -1
+    startShot = None
     for i, shot in enumerate(shotList):
 
         if 0 == i:
             startFrameIn3D = shot.start
             startFrameInEdit = shot.getEditStart()
+            startShot = shot
             textInfo = f"  *** Playblast Start Time: 3D: {startFrameIn3D}, Edit: {startFrameInEdit}"
             print(f"{textInfo}")
 
@@ -674,6 +676,7 @@ def launchRenderWithVSEComposite(
     # playblastInfos = {"startFrameIn3D": startFrameIn3D, "startFrameInEdit": startFrameInEdit}
     renderInfo["startFrameIn3D"] = startFrameIn3D
     renderInfo["startFrameInEdit"] = startFrameInEdit
+    renderInfo["startShotName"] = props.renderShotPrefix() + "_" + startShot.get_name()
     # startFrameIn3D = -1
     # startFrameInEdit = -1
 

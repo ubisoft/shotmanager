@@ -102,12 +102,12 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         try:
             parentScn = self.parentScene
         except Exception:  # as e
-            print("Error - parentScene property is None is props.getParentScene():", sys.exc_info()[0])
+            print("Error - parentScene property is None in props.getParentScene():", sys.exc_info()[0])
 
         # if parentScn is not None:
         #     return parentScn
         if parentScn is None:
-            print("\n\n WkError: parentScn in None in Props !!! *** ")
+            _logger.error("\n\n WkError: parentScn in None in Props !!! *** ")
             self.parentScene = self.findParentScene()
         else:
             self.parentScene = parentScn
@@ -116,7 +116,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
             print("\n\n Re WkError: self.parentScene in still None in Props !!! *** ")
         # findParentScene is done in initialize function
 
-        return parentScn
+        return self.parentScene
 
     retimer: PointerProperty(type=UAS_Retimer_Properties)
 

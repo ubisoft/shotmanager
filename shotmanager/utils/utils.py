@@ -221,6 +221,13 @@ def openMedia(media_filepath, inExternalPlayer=False):
 ###################
 
 
+def getMarkerbyName(scene, markerName, filter=""):
+    for m in scene.timeline_markers:
+        if filter in m.name and markerName == m.name:
+            return m
+    return None
+
+
 def sortMarkers(markers, filter=""):
     sortedMarkers = [m for m in sorted(markers, key=lambda x: x.frame, reverse=False) if filter in m.name]
     return sortedMarkers
@@ -312,7 +319,7 @@ def getSceneVSE(vsm_sceneName, createVseTab=False):
     """ Return the scene that has the name held by vsm_sceneName and adds a VSE in it if there is not already one.
         Use <returned scene>.sequence_editor to get the vse of the scene
     """
-    # vsm_sceneName = "VideoShotManger"
+    # vsm_sceneName = "VideoShotManager"
     vsm_scene = None
 
     if vsm_sceneName in bpy.data.scenes:

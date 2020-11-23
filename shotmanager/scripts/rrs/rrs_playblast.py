@@ -8,15 +8,8 @@ from shotmanager.config import config
 from shotmanager.rrs_specific.montage.montage_otio import MontageOtio
 
 
-def rrs_playblast_to_vsm(playblastInfo=None, editVideoFile=None, otioFile=None, montageOtio=None, importMarkers=True):
-    print("\n ********************** \n rrs_playblast_to_vsm\n")
-
-    if playblastInfo is not None:
-        print(f"playblastInfo dict:")
-        for k, v in playblastInfo.items():
-            print(f"  {k}: {v}")
-
-    scene = utils.getSceneVSE("VideoShotManger", createVseTab=True)
+def rrs_animatic_to_vsm(editVideoFile=None, otioFile=None, montageOtio=None, importMarkers=True):
+    scene = utils.getSceneVSE("RRS_CheckSequence", createVseTab=True)
     bpy.context.window.workspace = bpy.data.workspaces["Video Editing"]
 
     vse_render = bpy.context.window_manager.UAS_vse_render
@@ -30,7 +23,9 @@ def rrs_playblast_to_vsm(playblastInfo=None, editVideoFile=None, otioFile=None, 
         otioFile = r"C:\_UAS_ROOT\RRSpecial\05_Acts\Act01\_Montage\Act01_Edit_Previz.xml"
     importMarkers = importMarkers
 
-    importMarkers = False
+    # if config.uasDebug:
+    #        importMarkers = False
+
     # vsm_props.updateTracksList(scene)
 
     #    bpy.context.space_data.show_seconds = False
@@ -73,7 +68,7 @@ def rrs_playblast_to_vsm(playblastInfo=None, editVideoFile=None, otioFile=None, 
     editVideoClip = vse_render.createNewClip(scene, editVideoFile, channelInd=channelInd, atFrame=0, importAudio=False)
     # vsm_props.addTrack(atIndex=1, trackType="STANDARD", name="Previz_Edit (video)", color=(0.1, 0.2, 0.8, 1))
     vsm_props.updateTracksList(scene)
-    vsm_props.setTrackInfo(channelInd, trackType="STANDARD", name="Previz_Edit (video)", color=(0.1, 0.2, 0.8, 1))
+    vsm_props.setTrackInfo(channelInd, trackType="VIDEO", name="Previz_Edit (video)")
 
     # audio
     channelInd = 1
@@ -82,91 +77,14 @@ def rrs_playblast_to_vsm(playblastInfo=None, editVideoFile=None, otioFile=None, 
     )
     # vsm_props.addTrack(atIndex=2, trackType="STANDARD", name="Previz_Edit (audio)", color=(0.1, 0.5, 0.2, 1))
     vsm_props.updateTracksList(scene)
-    vsm_props.setTrackInfo(channelInd, trackType="STANDARD", name="Previz_Edit (audio)", color=(0.1, 0.5, 0.2, 1))
+    vsm_props.setTrackInfo(channelInd, trackType="AUDIO", name="Previz_Edit (audio)")
 
     # if self.useOverlayFrame:
     #     overlayClip = vse_render.createNewClip(scene, self.overlayFile, 2, 0, offsetEnd=-60000)
     #     scene.sequence_editor.sequences_all[overlayClip.name].blend_type = "ALPHA_OVER"
 
-    # playblast
-    playblastClip = None
-    # filePath = props.renderRootPath
-    # if not filePath.endswith("\\") and not filePath.endswith("/"):
-    #     filePath += "\\"
-    # filePath += f"_playblast_.{props.getOutputFileFormat()}"
-    # filePath = bpy.path.abspath(filePath)
-
-    filePath = playblastInfo["outputFullPath"]
-    importPlayblastAtFrame = playblastInfo["startFrameInEdit"]
-
-    print(f"Playblast filepath: {filePath}")
-    if not Path(filePath).exists():
-        print(f" *** Playblast video file not found: {Path(filePath)}")
-    else:
-        channelInd = 2
-        if playblastInfo["renderSound"]:
-            # create audio clip
-            channelInd += 1
-            playblastAudioClip = vse_render.createNewClip(
-                scene,
-                filePath,
-                channelInd=channelInd,
-                atFrame=importPlayblastAtFrame,
-                importVideo=False,
-                importAudio=True,
-                clipName=f'Playblast (audio){playblastInfo["scene"]}',
-            )
-            vsm_props.updateTracksList(scene)
-            vsm_props.setTrackInfo(channelInd, trackType="STANDARD", name="Playblast (audio)", color=(0.1, 0.5, 0.2, 1))
-
-        # create video clip
-        channelInd += 1
-        playblastClip = vse_render.createNewClip(
-            scene,
-            filePath,
-            channelInd=channelInd,
-            atFrame=importPlayblastAtFrame,
-            importAudio=False,
-            clipName=f'Playblast (video){playblastInfo["scene"]}',
-        )
-
-        if playblastClip is not None:
-            res_x = 1280
-            res_y = 960
-            vse_render.cropClipToCanvas(
-                res_x,
-                res_y,
-                playblastClip,
-                playblastInfo["resolution_x"],
-                playblastInfo["resolution_y"],
-                clipRenderPercentage=playblastInfo["render_percentage"],
-                mode="FIT_WIDTH",
-            )
-
-            scene.sequence_editor.active_strip = playblastClip
-
-        # vsm_props.addTrack(atIndex=3, trackType="STANDARD", name="Playblast", color=(0.5, 0.4, 0.6, 1))
-        vsm_props.updateTracksList(scene)
-        vsm_props.setTrackInfo(channelInd, trackType="STANDARD", name="Playblast (video)", color=(0.5, 0.4, 0.6, 1))
-        vsm_props.setSelectedTrackByIndex(channelInd)
-
     # works on selection
     bpy.ops.sequencer.set_range_to_strips(preview=False)
-
-    bpy.ops.sequencer.select_all(action="DESELECT")
-
-    if playblastClip is not None:
-        playblastClip.select = True
-    # scene.sequence_editor.sequences[2].select = Tru
-
-    scene.frame_set(importPlayblastAtFrame)
-    #  bpy.ops.sequencer.view_frame()
-    # bpy.ops.sequencer.view_selected()
-
-    ################
-    # create tracks
-    ################
-    #  self.addTrack(trackType="STANDARD",)
 
     ################
     # import markers
@@ -203,6 +121,147 @@ def rrs_playblast_to_vsm(playblastInfo=None, editVideoFile=None, otioFile=None, 
                 # last marker
                 if len(montageOtio.get_sequences()) - 1 == i and len(seq.getEditShots()) - 1 == j:
                     scene.timeline_markers.new("Edit End", frame=sh.get_frame_final_end())
+
+
+def rrs_playblast_to_vsm(playblastInfo=None, editVideoFile=None, otioFile=None, montageOtio=None, importMarkers=True):
+    print("\n ********************** \n rrs_playblast_to_vsm\n")
+
+    if playblastInfo is not None:
+        print(f"playblastInfo dict:")
+        for k, v in playblastInfo.items():
+            print(f"  {k}: {v}")
+
+    scene = utils.getSceneVSE("RRS_CheckSequence", createVseTab=True)
+    bpy.context.window.workspace = bpy.data.workspaces["Video Editing"]
+
+    vse_render = bpy.context.window_manager.UAS_vse_render
+    props = scene.UAS_shot_manager_props
+    vsm_props = scene.UAS_vsm_props
+
+    editVideoFile = editVideoFile
+    if editVideoFile is None:
+        editVideoFile = r"C:\_UAS_ROOT\RRSpecial\05_Acts\Act01\_Montage\Act01_Edit_Previz.mp4"
+    if otioFile is None:
+        otioFile = r"C:\_UAS_ROOT\RRSpecial\05_Acts\Act01\_Montage\Act01_Edit_Previz.xml"
+    importMarkers = importMarkers
+
+    if vsm_props.getTrackByName("Previz_Edit (video)") is None:
+        rrs_animatic_to_vsm(
+            editVideoFile=editVideoFile, otioFile=otioFile, montageOtio=montageOtio, importMarkers=importMarkers
+        )
+
+    ############################################
+    ############################################
+
+    # playblast
+    playblastClip = None
+    # filePath = props.renderRootPath
+    # if not filePath.endswith("\\") and not filePath.endswith("/"):
+    #     filePath += "\\"
+    # filePath += f"_playblast_.{props.getOutputFileFormat()}"
+    # filePath = bpy.path.abspath(filePath)
+
+    filePath = playblastInfo["outputFullPath"]
+    importPlayblastAtFrame = playblastInfo["startFrameInEdit"]
+
+    # find if a marker exists with the name of the first shot
+    firstShotMarker = utils.getMarkerbyName(scene, playblastInfo["startShotName"])
+    if firstShotMarker is not None:
+        importPlayblastAtFrame = firstShotMarker.frame
+
+    print(f"Playblast filepath: {filePath}")
+    if not Path(filePath).exists():
+        print(f" *** Playblast video file not found: {Path(filePath)}")
+    else:
+        playblast_AudioTrack_name = f'Playblast {playblastInfo["scene"]} (audio)'
+        playblast_VideoTrack_name = f'Playblast {playblastInfo["scene"]} (video)'
+        playblast_AudioTrack = None
+        playblast_VideoTrack = None
+
+        channelInd = 2
+
+        playblast_AudioTrack = vsm_props.getTrackByName(playblast_AudioTrack_name)
+        if playblast_AudioTrack is not None:
+            playblast_AudioTrack.clearContent()
+        playblast_VideoTrack = vsm_props.getTrackByName(playblast_VideoTrack_name)
+        if playblast_VideoTrack is not None:
+            playblast_VideoTrack.clearContent()
+
+        channelInd_audio = channelInd + 1
+        if playblastInfo["renderSound"]:
+            # create audio clip
+            if playblast_AudioTrack is not None:
+                channelInd_audio = vsm_props.getTrackIndex(playblast_AudioTrack)
+            playblastAudioClip = vse_render.createNewClip(
+                scene,
+                filePath,
+                channelInd=channelInd_audio,
+                atFrame=importPlayblastAtFrame,
+                importVideo=False,
+                importAudio=True,
+                clipName=playblast_AudioTrack_name,
+            )
+            vsm_props.updateTracksList(scene)
+            playblast_AudioTrack = vsm_props.setTrackInfo(
+                channelInd_audio, trackType="AUDIO", name=playblast_AudioTrack_name, color=(0.1, 0.5, 0.2, 1),
+            )
+
+        # create video clip
+        channelInd_video = channelInd + 1
+        if playblast_AudioTrack is not None:
+            channelInd_video = channelInd_audio + 1
+
+        if playblast_VideoTrack is not None:
+            channelInd_video = vsm_props.getTrackIndex(playblast_VideoTrack)
+
+        playblastClip = vse_render.createNewClip(
+            scene,
+            filePath,
+            channelInd=channelInd_video,
+            atFrame=importPlayblastAtFrame,
+            importAudio=False,
+            clipName=playblast_VideoTrack_name,
+        )
+
+        if playblastClip is not None:
+            res_x = 1280
+            res_y = 960
+            vse_render.cropClipToCanvas(
+                res_x,
+                res_y,
+                playblastClip,
+                playblastInfo["resolution_x"],
+                playblastInfo["resolution_y"],
+                clipRenderPercentage=playblastInfo["render_percentage"],
+                mode="FIT_WIDTH",
+            )
+
+            scene.sequence_editor.active_strip = playblastClip
+
+        # vsm_props.addTrack(atIndex=3, trackType="STANDARD", name="Playblast", color=(0.5, 0.4, 0.6, 1))
+        vsm_props.updateTracksList(scene)
+        playblast_VideoTrack = vsm_props.setTrackInfo(
+            channelInd_video, trackType="VIDEO", name=playblast_VideoTrack_name, color=(0.6, 0.3, 0.3, 1),
+        )
+        vsm_props.setSelectedTrackByIndex(channelInd_video)
+
+    # works on selection
+    #  bpy.ops.sequencer.set_range_to_strips(preview=False)
+
+    bpy.ops.sequencer.select_all(action="DESELECT")
+
+    if playblastClip is not None:
+        playblastClip.select = True
+    # scene.sequence_editor.sequences[2].select = Tru
+
+    scene.frame_set(importPlayblastAtFrame)
+    #  bpy.ops.sequencer.view_frame()
+    # bpy.ops.sequencer.view_selected()
+
+    ################
+    # create tracks
+    ################
+    #  self.addTrack(trackType="STANDARD",)
 
     ################
     # update

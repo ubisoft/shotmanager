@@ -194,7 +194,7 @@ class UAS_VideoShotManager_OT_RRS_CheckSequence(Operator):
     #     default=r"C:\_UAS_ROOT\RRSpecial\_Sandbox\Julien\Fixtures_Montage\PrevizAct01_Seq0060\Act01_Seq0060_Main_Take_ModifsRename.xml"
     # )
     useOverlayFrame: BoolProperty(name="Use Overlay Frame", default=False)
-    importMarkers: BoolProperty(name="Import Markers", default=False)
+    importMarkers: BoolProperty(name="Import Markers", default=True)
 
     def invoke(self, context, event):
         wm = context.window_manager
@@ -301,166 +301,18 @@ class UAS_VideoShotManager_OT_RRS_CheckSequence(Operator):
     def execute(self, context):
 
         playblastInfos = dict()
-        from shotmanager.scripts.rrs.rrs_playblast import rrs_playblast_to_vsm
+        from shotmanager.scripts.rrs.rrs_playblast import rrs_playblast_to_vsm, rrs_animatic_to_vsm
 
-        rrs_playblast_to_vsm(
-            playblastInfo=None,
-            editVideoFile=self.editVideoFile,
-            montageOtio=config.gMontageOtio,
-            importMarkers=self.importMarkers,
+        rrs_animatic_to_vsm(
+            editVideoFile=self.editVideoFile, montageOtio=config.gMontageOtio, importMarkers=self.importMarkers,
         )
-        return {"FINISHED"}
 
-        scene = context.scene
-        props = scene.UAS_shot_manager_props
-        vsm_props = scene.UAS_vsm_props
-        vse_render = bpy.context.window_manager.UAS_vse_render
-
-        # vsm_props.updateTracksList(scene)
-
-        bpy.context.space_data.show_seconds = False
-        scene.frame_start = 0
-        scene.frame_end = 40000
-        if props.use_project_settings:
-            # scene.render.image_settings.file_format = props.project_images_output_format
-            scene.render.fps = props.project_fps
-            scene.render.resolution_x = props.project_resolution_framed_x
-            scene.render.resolution_y = props.project_resolution_framed_y
-
-        scene.render.fps = 25
-        scene.render.resolution_x = 1280
-        scene.render.resolution_y = 960
-
-        # projectFps = scene.render.fps
-        # sequenceFileName = props.renderShotPrefix() + takeName
-        # scene.use_preview_range = False
-        # renderResolution = [scene.render.resolution_x, scene.render.resolution_y]
-        # renderResolutionFramed = [scene.render.resolution_x, scene.render.resolution_y]
-
-        # # override local variables with project settings
-        # if props.use_project_settings:
-        #     props.applyProjectSettings()
-        #     scene.render.image_settings.file_format = props.project_images_output_format
-        #     projectFps = scene.render.fps
-        #     sequenceFileName = props.renderShotPrefix()
-        #     renderResolution = [props.project_resolution_x, props.project_resolution_y]
-        #     renderResolutionFramed = [props.project_resolution_framed_x, props.project_resolution_framed_y]
-
-        # clear all
-        # vsm_props.clear_all()
-        # wkip a remplacer par des fonctions
-        bpy.ops.uas_video_shot_manager.clear_markers()
-        bpy.ops.uas_video_shot_manager.clear_clips()
-        bpy.ops.uas_video_shot_manager.remove_multiple_tracks(action="ALL")
-
-        # video
-        channelInd = 2
-        editVideoClip = vse_render.createNewClip(
-            scene, self.editVideoFile, channelInd=channelInd, atFrame=0, importAudio=False
-        )
-        # vsm_props.addTrack(atIndex=1, trackType="STANDARD", name="Previz_Edit (video)", color=(0.1, 0.2, 0.8, 1))
-        vsm_props.updateTracksList(scene)
-        vsm_props.setTrackInfo(channelInd, trackType="STANDARD", name="Previz_Edit (video)", color=(0.1, 0.2, 0.8, 1))
-
-        # audio
-        channelInd = 1
-        editAudioClip = vse_render.createNewClip(
-            scene, self.editVideoFile, channelInd=channelInd, atFrame=0, importVideo=False, importAudio=True
-        )
-        # vsm_props.addTrack(atIndex=2, trackType="STANDARD", name="Previz_Edit (audio)", color=(0.1, 0.5, 0.2, 1))
-        vsm_props.updateTracksList(scene)
-        vsm_props.setTrackInfo(channelInd, trackType="STANDARD", name="Previz_Edit (audio)", color=(0.1, 0.5, 0.2, 1))
-
-        # if self.useOverlayFrame:
-        #     overlayClip = vse_render.createNewClip(scene, self.overlayFile, 2, 0, offsetEnd=-60000)
-        #     scene.sequence_editor.sequences_all[overlayClip.name].blend_type = "ALPHA_OVER"
-
-        # playblast
-        playblastClip = None
-        filePath = props.renderRootPath
-        if not filePath.endswith("\\") and not filePath.endswith("/"):
-            filePath += "\\"
-        filePath += f"_playblast_.{props.getOutputFileFormat()}"
-        filePath = bpy.path.abspath(filePath)
-
-        prefs = context.preferences.addons["shotmanager"].preferences
-        importPlayblastAtFrame = prefs.playblast_frame_start
-
-        print(f"Playblast filepath: {filePath}")
-        if not Path(filePath).exists():
-            print("Playblast Clip not found")
-        else:
-            channelInd = 3
-            playblastClip = vse_render.createNewClip(
-                scene,
-                filePath,
-                channelInd=channelInd,
-                atFrame=importPlayblastAtFrame,
-                importAudio=False,
-                clipName="Playblast",
-            )
-            # vsm_props.addTrack(atIndex=3, trackType="STANDARD", name="Playblast", color=(0.5, 0.4, 0.6, 1))
-            vsm_props.updateTracksList(scene)
-            vsm_props.setTrackInfo(channelInd, trackType="STANDARD", name="Playblast", color=(0.5, 0.4, 0.6, 1))
-            vsm_props.setSelectedTrackByIndex(channelInd)
-
-        # works on selection
-        bpy.ops.sequencer.set_range_to_strips(preview=False)
-
-        bpy.ops.sequencer.select_all(action="DESELECT")
-
-        if playblastClip is not None:
-            playblastClip.select = True
-        # scene.sequence_editor.sequences[2].select = Tru
-
-        scene.frame_set(importPlayblastAtFrame)
-        #  bpy.ops.sequencer.view_frame()
-        bpy.ops.sequencer.view_selected()
-
-        ################
-        # create tracks
-        ################
-        #  self.addTrack(trackType="STANDARD",)
-
-        ################
-        # import markers
-        ################
-
-        scene.timeline_markers.clear()
-        if self.importMarkers and config.gMontageOtio is not None:
-            for i, seq in enumerate(config.gMontageOtio.get_sequences()):
-                print(f"seq name: {seq.get_name()}")
-                for j, sh in enumerate(seq.getEditShots()):
-                    print(
-                        f"    shot name: {sh.get_name()}, starts at: {sh.get_frame_final_start()}"
-                    )  # , from media {sh.get_med}
-                    marker_name = Path(sh.get_name()).stem
-                    scene.timeline_markers.new(marker_name, frame=sh.get_frame_final_start())
-
-                    # last marker
-                    if len(config.gMontageOtio.get_sequences()) - 1 == i and len(seq.getEditShots()) - 1 == j:
-                        scene.timeline_markers.new("Edit End", frame=sh.get_frame_final_end())
-
-        ################
-        # update
-        ################
-        #      vsm_props.updateTracksList(scene)
-
-        ################
-        # video settings
-        ################
-
-        scene.render.image_settings.file_format = "FFMPEG"
-        scene.render.ffmpeg.format = "MPEG4"
-        scene.render.ffmpeg.constant_rate_factor = "PERC_LOSSLESS"  # "PERC_LOSSLESS"
-        scene.render.ffmpeg.gopsize = 5  # keyframe interval
-        scene.render.ffmpeg.audio_codec = "AAC"
-
-        #       scene.render.filepath = output_filepath
-        scene.render.use_file_extension = False
-
-        # scene.render.resolution_percentage = 75.0
-
+        # rrs_playblast_to_vsm(
+        #     playblastInfo=None,
+        #     editVideoFile=self.editVideoFile,
+        #     montageOtio=config.gMontageOtio,
+        #     importMarkers=self.importMarkers,
+        # )
         return {"FINISHED"}
 
 

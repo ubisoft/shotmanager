@@ -87,7 +87,7 @@ class UAS_PT_VideoShotManagerTimeControl(Panel):
         # op = row.operator("uas_video_shot_manager.zoom_view", text="Track Clips").zoomMode = "TRACKCLIPS"
         op = row.operator("uas_video_shot_manager.zoom_view", text="Track Clips")
         op.zoomMode = "TRACKCLIPS"
-        op.trackIndex = vsm_props.getSelectedTrackIndex()
+        op.trackIndex = vsm_props.selected_track_index
 
         #########################################
         # Time

@@ -16,7 +16,7 @@ class UAS_ShotManager_OT_GoToVideoShotManager(Operator):
     def invoke(self, context, event):
 
         vsm_scene = None
-        vsm_scene = utils.getSceneVSE("VideoShotManger", createVseTab=True)
+        vsm_scene = utils.getSceneVSE("VideoShotManager", createVseTab=True)
 
         # startup_blend = os.path.join(
         #     bpy.utils.resource_path("LOCAL"),
@@ -44,7 +44,8 @@ class UAS_ShotManager_OT_GoToUpdatedVideoShotManager(Operator):
     def invoke(self, context, event):
 
         vsm_scene = None
-        vsm_scene = getSceneVSE("VideoShotManger", createVseTab=True)
+        # vsm_scene = getSceneVSE("VideoShotManager", createVseTab=True)
+        vsm_scene = getSceneVSE("RRS_CheckSequence", createVseTab=True)
 
         # startup_blend = os.path.join(
         #     bpy.utils.resource_path("LOCAL"),
