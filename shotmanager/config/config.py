@@ -16,7 +16,7 @@ def initGlobalVariables():
     else:
         uasDebug = False
 
-    uasDebug = True
+    uasDebug = False
 
     global uasDebug_keepVSEContent
     uasDebug_keepVSEContent = False and uasDebug

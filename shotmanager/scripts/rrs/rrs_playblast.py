@@ -256,17 +256,35 @@ def rrs_playblast_to_vsm(playblastInfo=None, editVideoFile=None, otioFile=None, 
 
     scene.frame_set(importPlayblastAtFrame)
     #  bpy.ops.sequencer.view_frame()
-    # bpy.ops.sequencer.view_selected()
+    # bpy.context.window.workspace = bpy.data.workspaces["Video Editing"]
 
-    ################
-    # create tracks
-    ################
-    #  self.addTrack(trackType="STANDARD",)
+    #    bpy.ops.workspace.append_activate(idname="Video Editing")
 
-    ################
-    # update
-    ################
-    #      vsm_props.updateTracksList(scene)
+    # wkip works but applies the modifs on every sequence editor occurence of the file
+    edSeqWksp = bpy.data.workspaces["Video Editing"]
+    for screen in edSeqWksp.screens:
+        #   print(f"Screen type: {screen.name}")
+        for area in screen.areas:
+            #      print(f"Area type: {area.type}")
+            if area.type == "SEQUENCE_EDITOR":
+                #         print("Area seq ed")
+                override = bpy.context.copy()
+                override["area"] = area
+                override["region"] = area.regions[-1]
+
+                bpy.ops.sequencer.view_selected(override)
+                # bpy.context.space_data.show_seconds = False
+
+                for space_data in area.spaces:
+                    if space_data.type == "SEQUENCE_EDITOR":
+                        space_data.show_seconds = False
+
+        # for area in screen.areas:
+        #       if area.type == "SEQUENCE_EDITOR":
+        # for space_data in area.spaces:
+        #     if space_data.type == "SEQUENCE_EDITOR":
+        #         space_data.show_seconds = True
+        #         break
 
     ################
     # video settings

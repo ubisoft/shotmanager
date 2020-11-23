@@ -77,6 +77,17 @@ def launchRenderWithVSEComposite(
             except Exception:
                 print("Cannot delete Dir: ", dirPath)
 
+        if config.uasDebug:
+            print(f"Cleaning temp scenes")
+
+        scenesToDelete = [
+            s
+            for s in bpy.data.scenes
+            if (s.name.startswith("Tmp_VSE_RenderScene") or s.name.startswith("VSE_SequenceRenderScene"))
+        ]
+        for s in scenesToDelete:
+            bpy.data.scenes.remove(s, do_unlink=True)
+
     # context = bpy.context
     scene = context.scene
     props = scene.UAS_shot_manager_props

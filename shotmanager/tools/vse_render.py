@@ -683,12 +683,12 @@ class UAS_Vse_Render(PropertyGroup):
         print(infoStr)
 
     def buildSequenceVideo(self, mediaFiles, outputFile, handles, fps):
-        # props = bpy.context.scene.UAS_shot_manager_props
-        # scene = .sequence_editor
-
         previousScene = bpy.context.window.scene
+
         sequenceScene = None
-        # sequence composite scene
+        if "VSE_SequenceRenderScene" in bpy.data.scenes:
+            sequenceScene = bpy.data.scenes["VSE_SequenceRenderScene"]
+            bpy.data.scenes.remove(sequenceScene, do_unlink=True)
         sequenceScene = bpy.data.scenes.new(name="VSE_SequenceRenderScene")
 
         sequenceScene = utils.getSceneVSE(sequenceScene.name, createVseTab=False)  # config.uasDebug)
@@ -752,13 +752,12 @@ class UAS_Vse_Render(PropertyGroup):
         bpy.context.window.scene = previousScene
 
     def buildSequenceVideoFromImgSequences(self, mediaDictArr, outputFile, handles, fps):
-        # props = bpy.context.scene.UAS_shot_manager_props
-        # scene = .sequence_editor
-
         previousScene = bpy.context.window.scene
 
         sequenceScene = None
-        # sequence composite scene
+        if "VSE_SequenceRenderScene" in bpy.data.scenes:
+            sequenceScene = bpy.data.scenes["VSE_SequenceRenderScene"]
+            bpy.data.scenes.remove(sequenceScene, do_unlink=True)
         sequenceScene = bpy.data.scenes.new(name="VSE_SequenceRenderScene")
 
         createVseTab = False  # config.uasDebug

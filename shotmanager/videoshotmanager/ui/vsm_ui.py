@@ -85,7 +85,7 @@ class UAS_PT_VideoShotManager(Panel):
         row = layout.row()
         subRow = row.row()
         subRow.alert = True
-        subRow.label(text=" !!! EXPERIMENTAL !!!" + ("  Debug  " if config.uasDebug else ""))
+        subRow.label(text=" " + ("  Debug  " if config.uasDebug else ""))
 
         # row = layout.row()
         subRow = row.row()
