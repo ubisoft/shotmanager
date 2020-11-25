@@ -214,12 +214,21 @@ class UAS_ShotManager_OT_Create_Shots_From_OTIO_RRS(Operator):
     # Update mode UI only
     ############
 
+    changeShotsTiming: BoolProperty(
+        name="Update Timing of Existing Shots",
+        description="Update the timing of the existing shots to match the reference edit",
+        default=True,
+    )
+
     createMissingShots: BoolProperty(
         name="Create Missing Shots",
         description="Create shots in the current take for shots exisiting only in the reference edit",
         default=True,
     )
 
+    ############
+    # VSE
+    ############
     clearVSE: BoolProperty(
         name="Clear VSE From Previous Sounds and Videos",
         description="Clear VSE From Previous Sounds and Videos to avoid conflics",
@@ -247,6 +256,12 @@ class UAS_ShotManager_OT_Create_Shots_From_OTIO_RRS(Operator):
         description="Use the clips and videos from the edit file as background for the cameras",
         default=True,
     )
+    useMediaSoundtrackForCameraBG: BoolProperty(
+        name="Use Media Soundtrack for Camera Backgrounds",
+        description="Use the clip and video soundtracks from the edit file as sound associated to the camera backgrounds",
+        default=True,
+    )
+
     mediaHaveHandles: BoolProperty(
         name="Media Have Handles", description="Do imported media use the project handles?", default=False,
     )
@@ -565,7 +580,7 @@ class UAS_ShotManager_OT_Create_Shots_From_OTIO_RRS(Operator):
         ############
         else:
             boxRow = box.row(align=True)
-            boxRow.prop(self, "clearVSE")
+            boxRow.prop(self, "changeShotsTiming")
             # boxRow = box.row(align=True)
             # boxRow.prop(self, "clearCameraBG")
 
@@ -589,35 +604,43 @@ class UAS_ShotManager_OT_Create_Shots_From_OTIO_RRS(Operator):
                 subrow.enabled = self.useMediaAsCameraBG and self.mediaHaveHandles
                 subrow.prop(self, "mediaHandlesDuration")
 
+            boxRow = box.row(align=True)
+            boxRow.separator(factor=3)
+            boxRow.enabled = self.useMediaAsCameraBG
+            boxRow.prop(self, "useMediaSoundtrackForCameraBG")
+
         layout.label(text="Scene VSE:")
         box = layout.box()
 
-        if config.uasDebug:
-            row = box.row()
-            row.prop(self, "importAnimaticInVSE")
-            row = box.row()
-            row.separator(factor=3)
-            row.enabled = self.importAnimaticInVSE
-            row.prop(self, "animaticFile", text="")
+        row = box.row()
+        row.prop(self, "clearVSE")
 
-        row = box.row()
-        row.prop(self, "importVideoInVSE")
-        row = box.row()
-        row.prop(self, "importAudioInVSE")
-        row = box.row()
-        row.enabled = self.importAudioInVSE
-        row.separator(factor=3)
-        itemText = "Human Voices (1 to 6)" if "CREATE" == self.conformMode else "Human Voices (1 to 3)"
-        row.prop(self, "importAudio_HumanVoices", text=itemText)
-        itemText = "Rabbid Voices (7 to 14)" if "CREATE" == self.conformMode else "Rabbid Voices (4 to 7)"
-        row.prop(self, "importAudio_RabbidVoices", text=itemText)
-        row = box.row()
-        row.enabled = self.importAudioInVSE
-        row.separator(factor=3)
-        itemText = "Sounds (15 to 29)" if "CREATE" == self.conformMode else "Sounds (9 to 15)"
-        row.prop(self, "importAudio_Sounds", text=itemText)
-        itemText = "Music (30 to 33)" if "CREATE" == self.conformMode else "Music (17 to 18)"
-        row.prop(self, "importAudio_Music", text=itemText)
+        # if config.uasDebug:
+        #     row = box.row()
+        #     row.prop(self, "importAnimaticInVSE")
+        #     row = box.row()
+        #     row.separator(factor=3)
+        #     row.enabled = self.importAnimaticInVSE
+        #     row.prop(self, "animaticFile", text="")
+
+        # row = box.row()
+        # row.prop(self, "importVideoInVSE")
+        # row = box.row()
+        # row.prop(self, "importAudioInVSE")
+        # row = box.row()
+        # row.enabled = self.importAudioInVSE
+        # row.separator(factor=3)
+        # itemText = "Human Voices (1 to 6)" if "CREATE" == self.conformMode else "Human Voices (1 to 3)"
+        # row.prop(self, "importAudio_HumanVoices", text=itemText)
+        # itemText = "Rabbid Voices (7 to 14)" if "CREATE" == self.conformMode else "Rabbid Voices (4 to 7)"
+        # row.prop(self, "importAudio_RabbidVoices", text=itemText)
+        # row = box.row()
+        # row.enabled = self.importAudioInVSE
+        # row.separator(factor=3)
+        # itemText = "Sounds (15 to 29)" if "CREATE" == self.conformMode else "Sounds (9 to 15)"
+        # row.prop(self, "importAudio_Sounds", text=itemText)
+        # itemText = "Music (30 to 33)" if "CREATE" == self.conformMode else "Music (17 to 18)"
+        # row.prop(self, "importAudio_Music", text=itemText)
 
         layout.separator()
 
@@ -677,6 +700,7 @@ class UAS_ShotManager_OT_Create_Shots_From_OTIO_RRS(Operator):
                 useMediaAsCameraBG=self.useMediaAsCameraBG,
                 mediaHaveHandles=self.mediaHaveHandles,
                 mediaHandlesDuration=self.mediaHandlesDuration,
+                useMediaSoundtrackForCameraBG=self.useMediaSoundtrackForCameraBG,
                 importVideoInVSE=self.importVideoInVSE,
                 importAudioInVSE=self.importAudioInVSE,
                 videoTracksList=videoTracksToImport,
@@ -719,17 +743,21 @@ class UAS_ShotManager_OT_Create_Shots_From_OTIO_RRS(Operator):
                 mediaInEDLHandlesDuration=self.mediaInEDLHandlesDuration,
                 clearVSE=self.clearVSE,
                 clearCameraBG=self.clearCameraBG,
+                changeShotsTiming=self.changeShotsTiming,
                 createMissingShots=self.createMissingShots,
                 createCameras=self.createCameras,
                 useMediaAsCameraBG=self.useMediaAsCameraBG,
                 videoShotsFolder=self.videoShotsFolder,
                 mediaHaveHandles=self.mediaHaveHandles,
                 mediaHandlesDuration=self.mediaHandlesDuration,
-                importVideoInVSE=self.importVideoInVSE,
-                importAudioInVSE=self.importAudioInVSE,
-                videoTracksList=videoTracksToImport,
-                audioTracksList=audioTracksToImport,
-                animaticFile=self.animaticFile if self.importAnimaticInVSE else None,
+                useMediaSoundtrackForCameraBG=self.useMediaSoundtrackForCameraBG,
+                #########
+                # VSE - No imports anymore
+                # importVideoInVSE=self.importVideoInVSE,
+                # importAudioInVSE=self.importAudioInVSE,
+                # videoTracksList=videoTracksToImport,
+                # audioTracksList=audioTracksToImport,
+                # animaticFile=self.animaticFile if self.importAnimaticInVSE else None,
             )
             props.setCurrentShotByIndex(0)
             props.setSelectedShotByIndex(0)

@@ -465,6 +465,8 @@ class UAS_ShotManager_Shot(ShotInterface, PropertyGroup):
         if currentTakeInd == self.getParentTakeIndex():
             self.parentScene.UAS_shot_manager_props.setSelectedShot(self)
 
+    bgImages_sound_trackIndex: IntProperty(name="Sound Track Index", min=-1, max=32, default=-1)
+
     #############
     # notes #####
     #############

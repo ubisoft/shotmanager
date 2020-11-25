@@ -11,6 +11,7 @@ import opentimelineio
 
 from shotmanager import config
 from shotmanager.utils import utils
+from shotmanager.utils import utils_vse
 
 from . import otio_wrapper as ow
 
@@ -488,6 +489,7 @@ def createShotsFromOtioTimelineClass(
     useMediaAsCameraBG=False,
     mediaHaveHandles=False,
     mediaHandlesDuration=0,
+    useMediaSoundtrackForCameraBG=False,
     importVideoInVSE=False,
     importAudioInVSE=True,
     videoTracksList=None,
@@ -755,15 +757,17 @@ def conformToRefMontage(
     mediaInEDLHandlesDuration=0,
     clearVSE=True,
     clearCameraBG=True,
+    changeShotsTiming=True,
     createMissingShots=True,
     createCameras=True,
     useMediaAsCameraBG=False,
+    useMediaSoundtrackForCameraBG=False,
     videoShotsFolder=None,
     mediaHaveHandles=False,
     mediaHandlesDuration=0,
     takeIndex=-1,
     importVideoInVSE=False,
-    importAudioInVSE=True,
+    importAudioInVSE=False,
     videoTracksList=None,
     audioTracksList=None,
     animaticFile=None,
@@ -880,6 +884,7 @@ def conformToRefMontage(
     vse_render = bpy.context.window_manager.UAS_vse_render
     if clearVSE:
         vse_render.clearAllChannels(scene)
+    utils_vse.showSecondsInVSE(False)
 
     ###################
     # conform order and enable state
@@ -891,6 +896,7 @@ def conformToRefMontage(
     numShotsInRefEdit = len(refSeq.getEditShots())
     expectedIndInSelfEdit = 0
     previousShotSelf = None
+    shotIndForBGCam = 0
     for indInRefEdit, shot in enumerate(refSeq.getEditShots()):
         shotRef = shot
         textRef = shotRef.get_name()
@@ -989,25 +995,27 @@ def conformToRefMontage(
             # print(f" ++ shot name before enabled: {shotSelf.name}, enabled: {shotSelf.enabled}")
             shotSelf.enabled = True
 
-            # we check if the start handle is used in the edit. When the clip is a Stack we cannot know if there is a clip start frame in the handle
-            if "Clip" == shotRefType:
-                offsetStart = shotRef.get_frame_offset_start()
-                if offsetStart != mediaInEDLHandlesDuration:
-                    deltaStart = offsetStart - mediaInEDLHandlesDuration
-                    modifStr = f"offset start modified ({offsetStart} instead of {mediaInEDLHandlesDuration} fr.) (delta:{deltaStart})"
+            if changeShotsTiming:
+                # we check if the start handle is used in the edit. When the clip is a Stack we cannot know if there is a clip start frame in the handle
+                if "Clip" == shotRefType:
+                    offsetStart = shotRef.get_frame_offset_start()
+                    if offsetStart != mediaInEDLHandlesDuration:
+                        deltaStart = offsetStart - mediaInEDLHandlesDuration
+                        modifStr = f"offset start modified ({offsetStart} instead of {mediaInEDLHandlesDuration} fr.) (delta:{deltaStart})"
+                        shotSelfModifs.append(modifStr)
+                        textSelf += f" / {modifStr}"
+                        shotSelf.start += deltaStart
+
+                previousDuration = shotSelf.get_frame_final_duration()
+                newDuration = shotRef.get_frame_final_duration()
+                if previousDuration != newDuration:
+                    shotSelf.setDuration(newDuration, bypassLock=True)
+                    modifStr = f"duration changed (was {previousDuration} fr.)"
                     shotSelfModifs.append(modifStr)
                     textSelf += f" / {modifStr}"
-                    shotSelf.start += deltaStart
 
-            previousDuration = shotSelf.get_frame_final_duration()
-            newDuration = shotRef.get_frame_final_duration()
-            if previousDuration != newDuration:
-                shotSelf.setDuration(newDuration, bypassLock=True)
-                modifStr = f"duration changed (was {previousDuration} fr.)"
-                shotSelfModifs.append(modifStr)
-                textSelf += f" / {modifStr}"
+                shotSelf.durationLocked = True
 
-            shotSelf.durationLocked = True
             expectedIndInSelfEdit += 1
 
             # make camera unique
@@ -1057,6 +1065,47 @@ def conformToRefMontage(
                             shotSelf.bgImages_offset = -1 * mediaHandlesDuration
 
                     shotSelfModifs.append(modifStr)
+
+                    ###################
+                    # use sound for cam BG
+                    ###################
+                    if useMediaSoundtrackForCameraBG:
+
+                        # store current workspace cause it may not be the Layout one
+                        # currentWorkspace = bpy.context.window.workspace
+
+                        # # creation VSE si existe pas
+                        # vse = utils.getSceneVSE(scene.name, createVseTab=True)
+                        # bpy.context.window.workspace = bpy.data.workspaces["Video Editing"]
+
+                        # for indInRefEdit, shot in enumerate(refSeq.getEditShots()):
+                        #     shotRef = shot
+                        #     textRef = shotRef.get_name()
+                        #     shotRefName = Path(shotRef.get_name()).stem
+
+                        #     media_path = Path(videoShotsFolder + "/" + shotRef.get_name())
+                        #     if "" == media_path.suffix:
+                        #         media_path = Path(str(media_path) + ".mp4")
+
+                        # if not media_path.exists():
+                        #     print(f"** Edit video shot not found for VSE: {media_path}")
+                        # else:
+                        trackInd = 4 + shotIndForBGCam
+                        newClipInVSE = vse_render.createNewClip(
+                            scene,
+                            str(media_path),
+                            trackInd,
+                            # shotRef.get_frame_final_start(),  # shotSelf.start + offsetFrameNumber
+                            shotSelf.start,
+                            importVideo=False,
+                            importAudio=True,
+                            clipName=shotRefName,
+                        )
+                        if newClipInVSE is not None:
+                            shotSelf.bgImages_sound_trackIndex = newClipInVSE.channel
+
+                        shotIndForBGCam += 1
+                        pass
 
         infoStr += printInfoLine(
             str(indInRefEdit),

@@ -1,5 +1,7 @@
 import os
 from pathlib import Path
+from stat import S_IMODE, S_IWRITE
+
 import json
 import time
 
@@ -124,7 +126,15 @@ def launchRenderWithVSEComposite(
 
     take = props.getCurrentTake() if -1 == takeIndex else props.getTakeByIndex(takeIndex)
     takeName = take.getName_PathCompliant()
-    shotList = take.getShotList(ignoreDisabled=not renderAlsoDisabled) if specificShotList is None else specificShotList
+    shotListTmp = (
+        take.getShotList(ignoreDisabled=not renderAlsoDisabled) if specificShotList is None else specificShotList
+    )
+
+    # remove shots ending with "_removed" and not enabled
+    shotList = list()
+    for shot in shotListTmp:
+        if not shot.get_name().endswith("_removed") or shot.enabled:
+            shotList.append(shot)
 
     newMediaFiles = []
     sequenceFiles = []  # only enabled shots
@@ -893,6 +903,15 @@ def launchRender(context, renderMode, rootPath, area=None):
     preset_useStampInfo = False
     useStampInfo = preset.useStampInfo
 
+    fileIsReadOnly = False
+    currentFilePath = bpy.path.abspath(bpy.data.filepath)
+    if "" == currentFilePath:
+        fileIsReadOnly = True
+    else:
+        stat = Path(currentFilePath).stat()
+        # print(f"Blender file Stats: {stat.st_mode}")
+        fileIsReadOnly = S_IMODE(stat.st_mode) & S_IWRITE == 0
+
     if props.use_project_settings and props.isStampInfoAvailable() and useStampInfo:
         stampInfoSettings = scene.UAS_StampInfo_Settings
         preset_useStampInfo = useStampInfo
@@ -977,7 +996,8 @@ def launchRender(context, renderMode, rootPath, area=None):
 
         elif "ANIMATION" == preset.renderMode:
             _logger.debug("Render Animation")
-            bpy.ops.wm.save_mainfile()
+            if not fileIsReadOnly:
+                bpy.ops.wm.save_mainfile()
             shot = props.getCurrentShot()
 
             renderedFilesDict = launchRenderWithVSEComposite(
@@ -995,7 +1015,8 @@ def launchRender(context, renderMode, rootPath, area=None):
         elif "ALL" == preset.renderMode:
             _logger.debug(f"Render All:" + str(props.renderSettingsAll.renderAllTakes))
             _logger.debug(f"Render All, preset.renderAllTakes: {preset.renderAllTakes}")
-            bpy.ops.wm.save_mainfile()
+            if not fileIsReadOnly:
+                bpy.ops.wm.save_mainfile()
 
             takesToRender = [-1]
             if preset.renderAllTakes:
@@ -1030,7 +1051,8 @@ def launchRender(context, renderMode, rootPath, area=None):
 
         elif "PLAYBLAST" == preset.renderMode:
             _logger.debug(f"Render Playblast")
-            bpy.ops.wm.save_mainfile()
+            if not fileIsReadOnly:
+                bpy.ops.wm.save_mainfile()
 
             if context.space_data.overlay.show_overlays and preset.disableCameraBG:
                 bpy.ops.uas_shots_settings.use_background(useBackground=False)

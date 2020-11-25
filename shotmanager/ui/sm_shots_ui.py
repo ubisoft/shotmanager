@@ -529,7 +529,9 @@ class UAS_PT_ShotManager_ShotProperties(Panel):
                         bgClip = shot.camera.data.background_images[0].clip
                         row = box.row()
                         row.separator(factor=1.0)
-                        row.label(text=f"BG Clip:  {bgClip.name},  start:  {bgClip.frame_start} fr.")
+                        row.label(
+                            text=f"BG Clip:  {bgClip.name},  start:  {bgClip.frame_start} fr.,  Sound track ind.: {shot.bgImages_sound_trackIndex}"
+                        )
 
 
 class UAS_PT_ShotManager_ShotsGlobalSettings(Panel):
@@ -561,28 +563,45 @@ class UAS_PT_ShotManager_ShotsGlobalSettings(Panel):
 
         if props.display_camerabgtools_in_properties:
 
-            box.label(text="Camera Background Images:")
+            # box.label(text="Camera Background Images:")
 
             subBox = box.box()
             subBox.use_property_decorate = False
 
             row = subBox.row()
-            row.separator(factor=1.0)
+            # row.separator(factor=1.0)
             c = row.column()
-            grid_flow = c.grid_flow(align=False, columns=3, even_columns=False)
+            grid_flow = c.grid_flow(align=False, columns=4, even_columns=False)
+            grid_flow.label(text="Camera BG Images:")
             grid_flow.operator("uas_shots_settings.use_background", text="Turn On").useBackground = True
             grid_flow.operator("uas_shots_settings.use_background", text="Turn Off").useBackground = False
             grid_flow.prop(props.shotsGlobalSettings, "backgroundAlpha", text="Alpha")
-            row.separator(factor=0.5)  # prevents stange look when panel is narrow
+            #  row.separator(factor=0.5)  # prevents stange look when panel is narrow
+
+            if config.uasDebug:
+                row = subBox.row()
+                row.separator(factor=1.0)
+                c = row.column()
+                c.enabled = False
+                c.prop(props.shotsGlobalSettings, "proxyRenderSize")
 
             row = subBox.row()
-            row.separator(factor=1.0)
+            # row.separator(factor=1.0)
             c = row.column()
-            c.enabled = False
-            c.prop(props.shotsGlobalSettings, "proxyRenderSize")
+            grid_flow = c.grid_flow(align=False, columns=4, even_columns=False)
+            grid_flow.label(text="Camera BG Sound:")
+            grid_flow.operator("uas_shots_settings.use_background_sound", text="Turn On").useBackgroundSound = True
+            grid_flow.operator("uas_shots_settings.use_background_sound", text="Turn Off").useBackgroundSound = False
+            grid_flow.prop(props.shotsGlobalSettings, "backgroundVolume", text="Volume")
+            # row.separator(factor=0.5)  # prevents stange look when panel is narrow
+            c.separator(factor=0.5)  # prevents stange look when panel is narrow
 
+            row = subBox.row()
             c = row.column()
-            c.operator("uas_shot_manager.remove_bg_images", text="", icon="PANEL_CLOSE", emboss=True)
+            # c.align = "RIGHT"
+            c.operator(
+                "uas_shot_manager.remove_bg_images", text="Clear All Backgrounds", emboss=True
+            )  #  icon="PANEL_CLOSE"
 
             # c = row.column()
             # grid_flow = c.grid_flow(align=False, columns=3, even_columns=False)
@@ -590,7 +609,7 @@ class UAS_PT_ShotManager_ShotsGlobalSettings(Panel):
 
             # grid_flow.operator("uas_shot_manager.remove_bg_images", text="", icon="PANEL_CLOSE", emboss=True)
 
-            row.separator(factor=0.5)  # prevents stange look when panel is narrow
+        #  row.separator(factor=0.5)  # prevents stange look when panel is narrow
 
 
 # This operator requires   from bpy_extras.io_utils import ImportHelper

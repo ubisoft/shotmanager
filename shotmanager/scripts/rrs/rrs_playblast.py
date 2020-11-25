@@ -3,6 +3,7 @@ from pathlib import Path
 import bpy
 
 from shotmanager.utils import utils
+from shotmanager.utils import utils_vse
 from shotmanager.config import config
 
 from shotmanager.rrs_specific.montage.montage_otio import MontageOtio
@@ -260,7 +261,7 @@ def rrs_playblast_to_vsm(playblastInfo=None, editVideoFile=None, otioFile=None, 
 
     #    bpy.ops.workspace.append_activate(idname="Video Editing")
 
-    utils.showSecondsInVSE(False)
+    utils_vse.showSecondsInVSE(False)
 
     # wkip works but applies the modifs on every sequence editor occurence of the file
     edSeqWksp = bpy.data.workspaces["Video Editing"]

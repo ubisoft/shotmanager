@@ -9,9 +9,14 @@ from .ui import vsm_ui
 from .ui import vsm_panels_ui
 from .ui import vsm_time_control_ui
 
+from shotmanager.rrs_specific import rrs_vsm_tools
+
 
 def register():
     print("       - Registering Video Shot Manager Package")
+
+    # rrs specific
+    rrs_vsm_tools.register()
 
     general.register()
     prefs.register()
@@ -24,6 +29,7 @@ def register():
 
 
 def unregister():
+
     vsm_time_control_ui.unregister()
     vsm_panels_ui.unregister()
     vsm_ui.unregister()
@@ -32,4 +38,7 @@ def unregister():
     vsm_props.unregister()
     prefs.unregister()
     general.unregister()
+
+    # rrs specific
+    rrs_vsm_tools.unregister()
 

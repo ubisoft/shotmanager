@@ -35,6 +35,31 @@ class UAS_ShotManager_ShotsGlobalSettings(PropertyGroup):
         default=0.9,
     )
 
+    def _update_backgroundVolume(self, context):
+        props = context.scene.UAS_shot_manager_props
+        take = props.getCurrentTake()
+        shotList = take.getShotList(ignoreDisabled=False)
+
+        for shot in shotList:
+            if shot.enabled or props.shotsGlobalSettings.alsoApplyToDisabledShots:
+                if shot.camera is not None and len(shot.camera.data.background_images):
+                    # shot.camera.data.background_images[0].alpha = self.backgroundAlpha
+                    #   gamma = 2.2
+                    #   shot.camera.data.background_images[0].alpha = pow(self.backgroundAlpha, gamma)
+                    pass
+
+    backgroundVolume: FloatProperty(
+        name="Background Volume",
+        description="Change the volume of the camera backgrounds sound",
+        soft_min=0.0,
+        min=0.0,
+        soft_max=3.0,
+        max=30.0,
+        step=0.1,
+        update=_update_backgroundVolume,
+        default=1.0,
+    )
+
     def _update_proxyRenderSize(self, context):
         take = context.scene.UAS_shot_manager_props.getCurrentTake()
         shotList = take.getShotList(ignoreDisabled=False)
@@ -78,6 +103,28 @@ class UAS_ShotsSettings_UseBackground(Operator):
             if shot.enabled or props.shotsGlobalSettings.alsoApplyToDisabledShots:
                 if shot.camera is not None:
                     shot.camera.data.show_background_images = self.useBackground
+
+        return {"FINISHED"}
+
+
+class UAS_ShotsSettings_UseBackgroundSound(Operator):
+    bl_idname = "uas_shots_settings.use_background_sound"
+    bl_label = "Use Background Sound"
+    bl_description = "Enable or disable the background sound for the shot cameras"
+    bl_options = {"INTERNAL", "UNDO"}
+
+    useBackgroundSound: BoolProperty(default=False)
+
+    def execute(self, context):
+        props = context.scene.UAS_shot_manager_props
+
+        take = props.getCurrentTake()
+        shotList = take.getShotList(ignoreDisabled=False)
+        # wkip
+        for shot in shotList:
+            if shot.enabled or props.shotsGlobalSettings.alsoApplyToDisabledShots:
+                if shot.camera is not None:
+                    shot.camera.data.show_background_images = self.useBackgroundSound
 
         return {"FINISHED"}
 
@@ -136,6 +183,7 @@ class UAS_ShotsSettings_UseBackground(Operator):
 _classes = (
     UAS_ShotManager_ShotsGlobalSettings,
     UAS_ShotsSettings_UseBackground,
+    UAS_ShotsSettings_UseBackgroundSound,
     # UAS_ShotsSettings_BackgroundAlpha,
     # UAS_ShotsSettings_BackgroundProxyRenderSize,
 )

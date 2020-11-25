@@ -52,7 +52,7 @@ class UAS_VideoShotManager_GoToMarker(Operator):
         filterText = "" if not prefs.mnavbar_use_filter else prefs.mnavbar_filter_text
 
         if len(scene.timeline_markers):
-            #print(self.goToMode)
+            # print(self.goToMode)
             if "FIRST" == self.goToMode:
                 marker = utils.getFirstMarker(scene, scene.frame_current, filter=filterText)
             elif "PREVIOUS" == self.goToMode:
@@ -133,6 +133,28 @@ class UAS_VideoShotManager_TrackSelectAndZoomView(Operator):
             bpy.ops.sequencer.view_selected()
 
         bpy.context.scene.sequence_editor.active_strip = activeClip
+        return {"FINISHED"}
+
+
+class UAS_VideoShotManager_SelectTrackFromClipSelection(Operator):
+    bl_idname = "uas_video_shot_manager.select_track_from_clip_selection"
+    bl_label = "Select Track"
+    bl_description = (
+        "Select the track corresponding to the last clip of the selection (usually the active one),\n"
+        "or the active clip if the selection is empty."
+    )
+    bl_options = {"INTERNAL"}
+
+    def execute(self, context):
+        scene = context.scene
+        vsm_props = scene.UAS_vsm_props
+        if len(context.selected_sequences):
+            if scene.sequence_editor.active_strip is not None and scene.sequence_editor.active_strip.select:
+                vsm_props.setSelectedTrackByIndex(scene.sequence_editor.active_strip.channel)
+            else:
+                vsm_props.setSelectedTrackByIndex(context.selected_sequences[0].channel)
+        elif scene.sequence_editor.active_strip is not None:
+            vsm_props.setSelectedTrackByIndex(scene.sequence_editor.active_strip.channel)
         return {"FINISHED"}
 
 
@@ -393,6 +415,7 @@ _classes = (
     UAS_VideoShotManager_AddMarker,
     UAS_VideoShotManager_DeleteMarker,
     UAS_VideoShotManager_TrackSelectAndZoomView,
+    UAS_VideoShotManager_SelectTrackFromClipSelection,
     UAS_VideoShotManager_ZoomView,
     UAS_VideoShotManager_FrameTimeRange,
 )

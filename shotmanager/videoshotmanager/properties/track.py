@@ -2,7 +2,15 @@ import bpy
 
 from bpy.types import Scene
 from bpy.types import PropertyGroup
-from bpy.props import StringProperty, IntProperty, BoolProperty, PointerProperty, FloatVectorProperty, EnumProperty
+from bpy.props import (
+    StringProperty,
+    IntProperty,
+    BoolProperty,
+    PointerProperty,
+    FloatVectorProperty,
+    EnumProperty,
+    FloatProperty,
+)
 
 from shotmanager.properties.take import UAS_ShotManager_Take
 
@@ -80,6 +88,31 @@ class UAS_VideoShotManager_Track(PropertyGroup):
         update=_update_opacity,
         default=100,
         subtype="PERCENTAGE",
+        options=set(),
+    )
+
+    def _get_volume(self):
+        val = self.get("volume", 1.0)
+        return val
+
+    def _set_volume(self, value):
+        self["volume"] = value
+
+    def _update_volume(self, context):
+        # utils_vse.setChannelAlpha(self.parentScene, self.vseTrackIndex, self.volume * 0.01)
+        self.parentScene.UAS_vsm_props.setSelectedTrack(self)
+
+    volume: FloatProperty(
+        name="Volume",
+        description="Track volume",
+        min=0.0,
+        soft_max=2,
+        max=5,
+        get=_get_volume,
+        set=_set_volume,
+        update=_update_volume,
+        default=1.0,
+        subtype="FACTOR",
         options=set(),
     )
 

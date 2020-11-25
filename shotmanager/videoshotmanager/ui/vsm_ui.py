@@ -82,41 +82,24 @@ class UAS_PT_VideoShotManager(Panel):
         # scene warnings
         ################
 
-        row = layout.row()
-        subRow = row.row()
-        subRow.alert = True
-        subRow.label(text=" " + ("  Debug  " if config.uasDebug else ""))
+        if config.uasDebug:
+            row = layout.row()
+            subRow = row.row()
+            subRow.alert = True
+            subRow.label(text=" " + ("  Debug  " if config.uasDebug else ""))
 
         # row = layout.row()
-        subRow = row.row()
         vseFirstFrame = scene.frame_start
         if vseFirstFrame != 0:
-            subRow.alert = True
-        subRow.label(text="First Frame: " + str(vseFirstFrame))
-
-        #########################################
-        # RRS Specific
-        #########################################
-
-        if not (
-            scene.name.startswith("Act01_Seq")
-            or scene.name.startswith("Act02_Seq")
-            or scene.name.startswith("Act03_Seq")
-        ):
-            layout.separator(factor=1)
-            layout.label(text="RR-Special: Visual Check:")
-            box = layout.box()
-            row = box.row()
-            row.scale_y = 1
-            row.operator("uas_video_shot_manager.rrs_check_sequence", text="Import Previz Montage Act 01")
-
-            layout.separator()
-
-            row = layout.row()
-            row.scale_y = 1.4
-            row.operator(
-                "uas_video_shot_manager.go_to_sequence_scene", text="Go to Sequence Scene", icon="SCENE_DATA"
-            ).sceneName = bpy.data.scenes[0].name
+            # wkip RRS Specific
+            if not (
+                scene.name.startswith("Act01_Seq")
+                or scene.name.startswith("Act02_Seq")
+                or scene.name.startswith("Act03_Seq")
+            ):
+                subRow = row.row()
+                subRow.alert = True
+                subRow.label(text=f" ***    First Frame is not 0 !!!: {vseFirstFrame}    *** ")
 
         #########################################
         # Tracks
@@ -282,6 +265,7 @@ class UAS_PT_VideoShotManager_TrackProperties(Panel):
         # layout.emboss = "NONE"
 
         row = layout.row(align=True)
+        op = row.operator("uas_video_shot_manager.select_track_from_clip_selection", text="Sel. Track")
         op = row.operator("uas_video_shot_manager.track_select_and_zoom_view", text="Zoom on Clips")
         op.actionMode = "TRACKCLIPS"
         op.trackIndex = vsm_props.getSelectedTrackIndex()
@@ -311,8 +295,12 @@ class UAS_PT_VideoShotManager_TrackProperties(Panel):
 
             row = box.row()
             row.separator(factor=1.0)
-            row.prop(track, "opacity", text="Opacity")
-            row.prop(vsm_props, "display_opacity_in_tracklist", text="")
+            if "AUDIO" == track.trackType:
+                row.prop(track, "volume", text="Volume")
+                row.prop(vsm_props, "display_opacity_in_tracklist", text="")
+            else:
+                row.prop(track, "opacity", text="Opacity")
+                row.prop(vsm_props, "display_opacity_in_tracklist", text="")
 
             row = box.row()
             row.separator(factor=1.0)
@@ -401,8 +389,8 @@ class UAS_MT_VideoShotManager_ToolsMenu(Menu):
         row = layout.row(align=True)
         row.operator_context = "INVOKE_DEFAULT"
         row.operator(
-            "uas_video_shot_manager.export_markers_edit_as_videos", text="   Export Markers Edit as Videos..."
-        )  # , text="Import Edit From EDL")
+            "uas_video_shot_manager.export_content_between_markers", text="   Batch Export Content Between Markers..."
+        )
 
         layout.separator()
         # wkip debug - to remove:
@@ -430,14 +418,6 @@ class UAS_MT_VideoShotManager_ToolsMenu(Menu):
             row.operator(
                 "uas_video_shot_manager.parseeditfromotio", text="   Import Edit From EDL - Debug"
             ).otioFile = ""
-
-        layout.separator()
-
-        row = layout.row(align=True)
-        row.label(text="RRS Specific:")
-        row = layout.row(align=True)
-        row.operator_context = "INVOKE_DEFAULT"
-        row.operator("uas_video_shot_manager.rrs_export_shots_from_edit", text="   RRS Export Shots From Edit")
 
 
 #########

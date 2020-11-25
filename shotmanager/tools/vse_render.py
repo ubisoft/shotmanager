@@ -193,16 +193,18 @@ class UAS_Vse_Render(PropertyGroup):
         self.inputAudioMediaPath = ""
 
     def getMediaList(self, scene, listVideo=True, listAudio=True):
-        """Return a dictionary made of "media_video" and "media_audio", both having an array of media filepaths
+        """
+            Return a dictionary made of "media_video" and "media_audio", both having an array of media filepaths
+            Movies are not listed in audio media !
         """
         mediaList = {"media_video": None, "media_audio": None}
         audioFiles = []
         videoFiles = []
         for seq in scene.sequence_editor.sequences:
             mediaPath = self.getClipMediaPath(scene, seq)
-            # print("mediaPath: ", mediaPath)
+            # print("  mediaPath: ", mediaPath)
             mediaType = self.getMediaType(mediaPath)
-            # print("mediaType: ", mediaType)
+            # print("  mediaType: ", mediaType)
             if listAudio:
                 if "SOUND" == mediaType:
                     if mediaPath not in audioFiles:

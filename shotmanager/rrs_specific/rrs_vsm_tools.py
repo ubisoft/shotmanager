@@ -1,7 +1,7 @@
 from pathlib import Path
 
 import bpy
-from bpy.types import Operator
+from bpy.types import Operator, Panel
 from bpy.props import StringProperty, BoolProperty
 
 from shotmanager.config import config
@@ -13,6 +13,79 @@ from shotmanager.rrs_specific.montage.montage_otio import MontageOtio
 import logging
 
 _logger = logging.getLogger(__name__)
+
+
+######
+# RRS VSE panel #
+######
+
+
+class UAS_PT_RRSVSMTools(Panel):
+    bl_idname = "UAS_PT_RRSVSMTools"
+    bl_label = "RR Special VSE Tools"
+    bl_description = "RRS Options"
+    bl_space_type = "SEQUENCE_EDITOR"
+    bl_region_type = "UI"
+    bl_category = "UAS Video Shot Man"
+    #  bl_parent_id = "UAS_PT_Video_Shot_Manager"
+    bl_options = {"DEFAULT_CLOSED"}
+
+    @classmethod
+    def poll(cls, context):
+        scene = context.scene
+        val = not (
+            scene.name.startswith("Act01_Seq")
+            or scene.name.startswith("Act02_Seq")
+            or scene.name.startswith("Act03_Seq")
+        )
+        return val
+
+    def draw(self, context):
+        scene = context.scene
+        vsm_props = scene.UAS_vsm_props
+        layout = self.layout
+
+        #########################################
+        # RRS Specific
+        #########################################
+
+        layout.separator(factor=1)
+
+        # wkip conditions dégueu
+        if not (
+            scene.name.startswith("Act01_Seq")
+            or scene.name.startswith("Act02_Seq")
+            or scene.name.startswith("Act03_Seq")
+        ):
+            layout.label(text="RR-Special: Visual Check:")
+            box = layout.box()
+            row = box.row()
+            row.scale_y = 1
+            row.operator("uas_video_shot_manager.rrs_check_sequence", text="Import Previz Montage Act 01")
+
+            if (
+                bpy.data.scenes[0].name.startswith("Act01_Seq")
+                or bpy.data.scenes[0].name.startswith("Act02_Seq")
+                or bpy.data.scenes[0].name.startswith("Act03_Seq")
+            ) and bpy.data.scenes[0] is not scene:
+                layout.separator()
+                row = layout.row()
+                row.scale_y = 1.4
+                row.operator(
+                    "uas_video_shot_manager.go_to_sequence_scene", text="Go to Sequence Scene", icon="SCENE_DATA"
+                ).sceneName = bpy.data.scenes[0].name
+
+        layout.separator(factor=1)
+
+        layout.label(text="For Montages and Confos:")
+        box = layout.box()
+        row = box.row(align=True)
+        row.operator_context = "INVOKE_DEFAULT"
+        row.operator(
+            "uas_video_shot_manager.export_content_between_markers", text="   Batch Export Content Between Markers..."
+        ).outputDir = r"C:\_UAS_ROOT\RRSpecial\05_Acts\Act01\_Montage\_OutputShots"
+
+        layout.separator(factor=1)
 
 
 class UAS_VideoShotManager_OT_RRS_ExportShotsFromEdit(Operator):
@@ -339,6 +412,7 @@ _classes = (
     UAS_VideoShotManager_OT_RRS_ExportShotsFromEdit,
     UAS_VideoShotManager_OT_RRS_CheckSequence,
     UAS_VideoShotManager_GoToSequenceScene,
+    UAS_PT_RRSVSMTools,
 )
 
 

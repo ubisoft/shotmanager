@@ -1,5 +1,6 @@
 import os
 import json
+from pathlib import Path
 
 import bpy
 from shotmanager.otio.exports import exportOtio
@@ -268,7 +269,21 @@ def publishRRS(
     ################
     vse_render = bpy.context.window_manager.UAS_vse_render
     # Return a dictionary made of "media_video" and "media_audio", both having an array of media filepaths
-    soundsMedia = vse_render.getMediaList(scene, listVideo=False, listAudio=True)
+    # obsolete cause we now export the sound from the shot videos:
+    # soundsMedia = vse_render.getMediaList(scene, listVideo=False, listAudio=True)
+    # generatedFilesDict["sounds_media"] = soundsMedia["media_audio"]
+
+    soundsMedia = dict()
+    soundsList = []
+    fileDir = Path(r"C:\_UAS_ROOT\RRSpecial\05_Acts\Act01\_Montage\Shots\\")
+    # my_icons_dir = os.path.join(os.path.dirname(__file__), "../icons")
+    seqName = scene.name
+    for soundFile in Path(fileDir).rglob("*.mp3"):
+        if seqName in soundFile.stem:
+            soundsList.append(str(soundFile))
+
+    soundsMedia["media_audio"] = soundsList
+
     generatedFilesDict["sounds_media"] = soundsMedia["media_audio"]
 
     ################
