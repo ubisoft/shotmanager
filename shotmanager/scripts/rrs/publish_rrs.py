@@ -3,7 +3,7 @@ import json
 from pathlib import Path
 
 import bpy
-from shotmanager.otio.exports import exportOtio
+from shotmanager.otio.exports import exportShotManagerEditToOtio
 from shotmanager.rendering import rendering
 
 import logging
@@ -187,7 +187,10 @@ def publishRRS(
 
     # wkip beurk pour récuperer le bon contexte de scene
     bpy.context.window.scene = scene
-    renderedOtioFile = exportOtio(scene, takeIndex=takeIndex, filePath=renderDir, fileListOnly=fileListOnly)
+    print("publish RRS")
+    renderedOtioFile = exportShotManagerEditToOtio(
+        scene, takeIndex=takeIndex, filePath=renderDir, fileListOnly=fileListOnly
+    )
     renderedFilesDict["edl_files"] = [renderedOtioFile]
 
     # if verbose:

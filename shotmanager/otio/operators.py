@@ -12,7 +12,7 @@ from shotmanager.config import config
 from shotmanager.utils import utils
 
 import opentimelineio
-from .exports import exportOtio
+from .exports import exportShotManagerEditToOtio
 
 # from shotmanager.otio import imports
 from .imports import createShotsFromOtio, importOtioToVSE
@@ -73,11 +73,11 @@ class UAS_ShotManager_Export_OTIO(Operator):
         props = context.scene.UAS_shot_manager_props
 
         if props.isRenderRootPathValid():
-            exportOtio(
+            exportShotManagerEditToOtio(
                 context.scene,
                 filePath=props.renderRootPath,
                 fps=context.scene.render.fps,
-                montageCharacteristics=props.get_montage_characteristics(),
+                # montageCharacteristics=props.get_montage_characteristics(),
             )
         else:
             utils.ShowMessageBox("Render root path is invalid", "OpenTimelineIO Export Aborted", "ERROR")

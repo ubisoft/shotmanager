@@ -98,3 +98,11 @@ def setChannelAlpha(scene, channelIndex, alpha):
     for clip in channelClips:
         clip.blend_alpha = alpha
 
+
+def setChannelVolume(scene, channelIndex, volume):
+    """Volume is in range [0, 10 or above]
+    """
+    channelClips = getChannelClips(scene, channelIndex)
+    for clip in channelClips:
+        clip.volume = volume
+

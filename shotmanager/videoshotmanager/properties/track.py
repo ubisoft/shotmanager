@@ -99,7 +99,7 @@ class UAS_VideoShotManager_Track(PropertyGroup):
         self["volume"] = value
 
     def _update_volume(self, context):
-        # utils_vse.setChannelAlpha(self.parentScene, self.vseTrackIndex, self.volume * 0.01)
+        utils_vse.setChannelVolume(self.parentScene, self.vseTrackIndex, self.volume)
         self.parentScene.UAS_vsm_props.setSelectedTrack(self)
 
     volume: FloatProperty(

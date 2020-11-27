@@ -618,8 +618,9 @@ class UAS_Vse_Render(PropertyGroup):
         clipRealHeight = int(clipHeight * (clipRenderPercentage / 100))
 
         if "FIT_ALL" == mode or (canvasWidth == clipRealWidth and canvasHeight == clipRealHeight):
-            clip.use_crop = False
+            clip.use_crop = True
             clip.crop.min_x = clip.crop.max_x = clip.crop.min_y = clip.crop.max_y = 0
+            clip.use_crop = False
 
         else:
             clip.use_crop = True

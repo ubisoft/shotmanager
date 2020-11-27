@@ -7,7 +7,7 @@ import time
 
 import bpy
 
-from shotmanager.otio.exports import exportOtio
+from shotmanager.otio.exports import exportShotManagerEditToOtio
 from shotmanager.config import config
 from shotmanager.scripts.rrs.RRS_StampInfo import setRRS_StampInfoSettings
 
@@ -1039,12 +1039,12 @@ def launchRender(context, renderMode, rootPath, area=None):
 
                 if preset.renderOtioFile:
                     bpy.context.window.scene = scene
-                    renderedOtioFile = exportOtio(
+                    renderedOtioFile = exportShotManagerEditToOtio(
                         scene,
                         takeIndex=takeInd,
                         filePath=props.renderRootPath,
                         fileListOnly=False,
-                        montageCharacteristics=props.get_montage_characteristics(),
+                        #  montageCharacteristics=props.get_montage_characteristics(),
                     )
                     # renderedFilesDict["edl_files"] = [renderedOtioFile]
             print(json.dumps(renderedFilesDict, indent=4))

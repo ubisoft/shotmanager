@@ -168,7 +168,9 @@ class UAS_VSM_Props(PropertyGroup):
     )
 
     display_color_in_tracklist: BoolProperty(name="Display Color in Track List", default=True, options=set())
-    display_opacity_in_tracklist: BoolProperty(name="Display Opacity in Track List", default=True, options=set())
+    display_opacity_or_volume_in_tracklist: BoolProperty(
+        name="Display Opacity in Track List", default=True, options=set()
+    )
     display_track_type_in_tracklist: BoolProperty(name="Display Track Type in Track List", default=True, options=set())
 
     ####################

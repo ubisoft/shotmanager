@@ -436,11 +436,14 @@ class UAS_VideoShotManager_OT_ClearAll(Operator):
     bl_description = "Clear all channels"
     bl_options = {"INTERNAL", "UNDO"}
 
-    def execute(self, context):
-        print("Clear all ici")
+    def invoke(self, context, event):
+        vsm_props = context.scene.UAS_vsm_props
+        # print("Clear all ici")
         bpy.ops.uas_video_shot_manager.remove_multiple_tracks(action="ALL")
+        bpy.ops.uas_video_shot_manager.clear_clips()
         bpy.ops.uas_video_shot_manager.clear_markers()
-        #    bpy.ops.uas_video_shot_manager.clear_clips()
+
+        vsm_props.updateTracksList(context.scene)
 
         return {"FINISHED"}
 

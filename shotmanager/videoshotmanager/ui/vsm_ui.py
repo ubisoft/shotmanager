@@ -182,10 +182,13 @@ class UAS_UL_VideoShotManager_Items(bpy.types.UIList):
         row = layout.row(align=True)
 
         ###############
-        # opacity
-        if vsm_props.display_opacity_in_tracklist:
+        # volume and opacity
+        if vsm_props.display_opacity_or_volume_in_tracklist:
             row.scale_x = 0.5
-            row.prop(item, "opacity", text="")
+            if "AUDIO" == item.trackType:
+                row.prop(item, "volume", text="")
+            else:
+                row.prop(item, "opacity", text="")
             row.separator(factor=0.2)
 
         ###############
@@ -297,10 +300,9 @@ class UAS_PT_VideoShotManager_TrackProperties(Panel):
             row.separator(factor=1.0)
             if "AUDIO" == track.trackType:
                 row.prop(track, "volume", text="Volume")
-                row.prop(vsm_props, "display_opacity_in_tracklist", text="")
             else:
                 row.prop(track, "opacity", text="Opacity")
-                row.prop(vsm_props, "display_opacity_in_tracklist", text="")
+            row.prop(vsm_props, "display_opacity_or_volume_in_tracklist", text="")
 
             row = box.row()
             row.separator(factor=1.0)
