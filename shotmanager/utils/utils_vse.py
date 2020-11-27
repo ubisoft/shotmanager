@@ -1,3 +1,4 @@
+import os
 import bpy
 
 
@@ -7,9 +8,28 @@ import bpy
 
 
 # wkip works but applies the modifs on every sequence editor occurence of the file
-def showSecondsInVSE(showSeconds):
-    edSeqWksp = bpy.data.workspaces["Video Editing"]
-    for screen in edSeqWksp.screens:
+# applies to the current workspace
+def showSecondsInVSE(showSeconds, workspace=None):
+    # startup_blend = os.path.join(
+    #     bpy.utils.resource_path("LOCAL"),
+    #     "scripts",
+    #     "startup",
+    #     "bl_app_templates_system",
+    #     "Video_Editing",
+    #     "startup.blend",
+    # )
+
+    # if "Video Editing" not in bpy.data.workspaces:
+    #     bpy.ops.workspace.append_activate(idname="Video Editing", filepath=startup_blend)
+
+    # if "Video Editing" not in bpy.data.workspaces:
+    #     print(f"*** showSecondsInVSE: Video Editing workspace not found ***")
+
+    if workspace is None:
+        workspace = bpy.context.workspace
+
+    #   edSeqWksp = bpy.data.workspaces["Video Editing"]
+    for screen in workspace.screens:
         #   print(f"Screen type: {screen.name}")
         for area in screen.areas:
             #      print(f"Area type: {area.type}")

@@ -1,6 +1,6 @@
 import bpy
 from bpy.types import Operator
-from bpy.props import BoolProperty
+from bpy.props import BoolProperty, StringProperty
 
 from shotmanager.config import config
 from ..utils.utils import getSceneVSE, convertVersionIntToStr
@@ -9,43 +9,18 @@ from ..utils import utils
 
 class UAS_ShotManager_OT_GoToVideoShotManager(Operator):
     bl_idname = "uas_shot_manager.go_to_video_shot_manager"
-    bl_label = "Go To Video Shot Manager"
-    bl_description = "Go to Video Shot Manager"
-    bl_options = {"INTERNAL"}
-
-    def invoke(self, context, event):
-
-        vsm_scene = None
-        vsm_scene = utils.getSceneVSE("VideoShotManager", createVseTab=True)
-
-        # startup_blend = os.path.join(
-        #     bpy.utils.resource_path("LOCAL"),
-        #     "scripts",
-        #     "startup",
-        #     "bl_app_templates_system",
-        #     "Video_Editing",
-        #     "startup.blend",
-        # )
-
-        # bpy.context.window.scene = vsm_scene
-        # if "Video Editing" not in bpy.data.workspaces:
-        #     bpy.ops.workspace.append_activate(idname="Video Editing", filepath=startup_blend)
-        bpy.context.window.workspace = bpy.data.workspaces["Video Editing"]
-
-        return {"FINISHED"}
-
-
-class UAS_ShotManager_OT_GoToUpdatedVideoShotManager(Operator):
-    bl_idname = "uas_shot_manager.go_to_updated_video_shot_manager"
     bl_label = "Go To Updated Video Shot Manager"
     bl_description = "Go to Updated Video Shot Manager"
     bl_options = {"INTERNAL"}
 
+    vseSceneName: StringProperty(default="")
+
     def invoke(self, context, event):
 
         vsm_scene = None
-        # vsm_scene = getSceneVSE("VideoShotManager", createVseTab=True)
-        vsm_scene = getSceneVSE("RRS_CheckSequence", createVseTab=True)
+        if "" == self.vseSceneName:
+            self.vseSceneName = "VideoShotManager"
+        vsm_scene = getSceneVSE(self.vseSceneName, createVseTab=True)
 
         # startup_blend = os.path.join(
         #     bpy.utils.resource_path("LOCAL"),
@@ -162,7 +137,6 @@ class UAS_ShotManager_OT_EnableDebug(Operator):
 
 _classes = (
     UAS_ShotManager_OT_GoToVideoShotManager,
-    UAS_ShotManager_OT_GoToUpdatedVideoShotManager,
     UAS_ShotManager_OT_FileInfo,
     UAS_ShotManager_OT_EnableDebug,
 )

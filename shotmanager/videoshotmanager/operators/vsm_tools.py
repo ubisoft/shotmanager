@@ -498,6 +498,25 @@ class UAS_VideoShotManager_OT_ClearClips(Operator):
         return {"FINISHED"}
 
 
+class UAS_VideoShotManager_OT_GoToScene(Operator):
+    bl_idname = "uas_video_shot_manager.go_to_scene"
+    bl_label = "Go To Specified Scene"
+    bl_description = "Go to specified scene"
+    bl_options = {"INTERNAL"}
+
+    sceneName: StringProperty()
+
+    def invoke(self, context, event):
+
+        # print("trackName: ", self.trackName)
+        # Make track scene the current one
+        # bpy.context.window.scene = context.scene.UAS_vsm_props.tracks[self.trackName].shotManagerScene
+        bpy.context.window.scene = bpy.data.scenes[self.sceneName]
+        bpy.context.window.workspace = bpy.data.workspaces["Layout"]
+
+        return {"FINISHED"}
+
+
 _classes = (
     UAS_VideoShotManager_OT_Import_Edit_From_OTIO,
     UAS_VideoShotManager_OT_Parse_Edit_From_OTIO,
@@ -508,6 +527,7 @@ _classes = (
     UAS_VideoShotManager_OT_ClearMarkers,
     # UAS_VideoShotManager_OT_ClearTracks,
     UAS_VideoShotManager_OT_ClearClips,
+    UAS_VideoShotManager_OT_GoToScene,
 )
 
 

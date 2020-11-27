@@ -77,8 +77,6 @@ class UAS_PT_VideoShotManager(Panel):
         # if 32 > vsm_props.numTracks:
         #     vsm_props.numTracks = 32
 
-        row = layout.row()
-
         # scene warnings
         ################
 
@@ -100,6 +98,27 @@ class UAS_PT_VideoShotManager(Panel):
                 subRow = row.row()
                 subRow.alert = True
                 subRow.label(text=f" ***    First Frame is not 0 !!!: {vseFirstFrame}    *** ")
+
+        #########################################
+        # Tools
+        #########################################
+
+        if 1 < len(bpy.data.scenes):
+            row = layout.row(align=True)
+            row.separator(factor=1)
+            row.prop(vsm_props, "jumpToScene", text="")
+            if vsm_props.jumpToScene is None:
+                #                vsm_props.jumpToScene = bpy.data.scenes[0] if bpy.data.scenes[0] is not context.scene else bpy.data.scenes[1]
+                subRow = row.row()
+                subRow.enabled = False
+                subRow.alert = True
+                subRow.operator("uas_video_shot_manager.go_to_scene", text="Jump to Scene")
+            else:
+                row.operator(
+                    "uas_video_shot_manager.go_to_scene", text="Jump to Scene"
+                ).sceneName = vsm_props.jumpToScene.name
+            row.separator(factor=1)
+            # icon="SCENE_DATA"
 
         #########################################
         # Tracks

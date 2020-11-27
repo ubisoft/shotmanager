@@ -67,18 +67,20 @@ class UAS_PT_ShotManager(Panel):
         #   row.operator("render.opengl", text="", icon='RENDER_ANIMATION').animation = True
         #    row.operator("screen.screen_full_area", text ="", icon = 'FULLSCREEN_ENTER').use_hide_panels=False
 
-        row.operator("uas_shot_manager.go_to_video_shot_manager", text="", icon="SEQ_STRIP_DUPLICATE")
+        row.operator(
+            "uas_shot_manager.go_to_video_shot_manager", text="", icon="SEQ_STRIP_DUPLICATE"
+        ).vseSceneName = "RRS_CheckSequence"
 
-        row.separator(factor=1.5)
+        row.separator(factor=0.5)
         icon = config.icons_col["General_Explorer_32"]
         row.operator("uas_shot_manager.open_explorer", text="", icon_value=icon.icon_id).path = bpy.path.abspath(
             bpy.data.filepath
         )
 
-        row.separator(factor=1.5)
+        row.separator(factor=0.5)
         row.menu("UAS_MT_Shot_Manager_prefs_mainmenu", icon="PREFERENCES", text="")
 
-        row.separator(factor=2.5)
+        row.separator(factor=1.0)
 
     def draw(self, context):
         layout = self.layout

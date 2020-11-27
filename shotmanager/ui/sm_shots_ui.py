@@ -309,8 +309,13 @@ class UAS_PT_ShotManager_ShotProperties(Panel):
         itemHasWarnings = not cameraIsValid
 
         if itemHasWarnings:
-            self.layout.alert = True
-            self.layout.label(text="*** Warning: Camera not in scene !*** ")
+            row = self.layout.row()
+            self.layout.alignment = "RIGHT"
+            row.alignment = "RIGHT"
+            row.alert = True
+            row.label(text="*** Warning: Camera not in scene !***")
+
+        self.layout.operator("uas_shot_manager.go_to_video_shot_manager", text="", icon="SEQ_STRIP_DUPLICATE").vseSceneName = "RRS_CheckSequence"
 
     def draw(self, context):
         scene = context.scene

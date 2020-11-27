@@ -274,7 +274,9 @@ class UAS_PT_ShotManagerRenderPanel(Panel):
             row = layout.row()
             row.label(text="Playblast:")
             subRow = row.row()
-            subRow.operator("uas_shot_manager.go_to_updated_video_shot_manager", text="", icon="SEQ_STRIP_DUPLICATE")
+            subRow.operator(
+                "uas_shot_manager.go_to_video_shot_manager", text="", icon="SEQ_STRIP_DUPLICATE"
+            ).vseSceneName = "RRS_CheckSequence"
             subRow.separator(factor=0.2)
 
             box = layout.box()

@@ -173,6 +173,22 @@ class UAS_VSM_Props(PropertyGroup):
     )
     display_track_type_in_tracklist: BoolProperty(name="Display Track Type in Track List", default=True, options=set())
 
+    def _filter_jumpToScene(self, object):
+        """ Return true only for cameras from the same scene as the shot
+        """
+        # print("self", str(self))  # this shot
+        # print("object", str(object))  # all the objects of the property type
+
+        # if object.type == "SCENE" and object.name in self.parentScene.objects:
+        if object is bpy.context.scene:
+            return False
+        else:
+            return True
+
+    jumpToScene: PointerProperty(
+        name="Jump To Scene", description="Scene to go to", type=bpy.types.Scene, poll=_filter_jumpToScene,
+    )
+
     ####################
     # tracks
     ####################

@@ -7,7 +7,6 @@ import bpy
 from .ui_rrs import UAS_PT_ShotManager_RRS_Debug
 from .operators_rrs import UAS_InitializeRRSProject, UAS_LaunchRRSRender
 
-
 _classes = (
     UAS_InitializeRRSProject,
     UAS_LaunchRRSRender,
