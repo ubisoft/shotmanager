@@ -152,8 +152,12 @@ class ShotClip:
             self.shot.start += mouse_disp
         else:
             # Very important, don't use properties for changing both start and ends. Depending of the amount of displacement duration can change.
-            self.shot[ "end" ] += mouse_disp
-            self.shot[ "start" ] += mouse_disp
+            if mouse_disp > 0:
+                self.shot.end += mouse_disp
+                self.shot.start += mouse_disp
+            else:
+                self.shot.start += mouse_disp
+                self.shot.end += mouse_disp
 
     def update ( self ):
         self.width = self.shot.end - self.shot.start + 1
