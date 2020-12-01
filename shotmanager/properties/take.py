@@ -186,6 +186,7 @@ class UAS_ShotManager_Take(SequenceInterface, PropertyGroup):
 
     def getInfoAsDictionnary(self, shotsDetails=True):
         dictSeq = dict()
+        dictSeq["duration"] = self.get_frame_duration()
         dictSeq["shots"] = []
         for shot in self.getEditShots():
             dictSeq["shots"].append(shot.getInfoAsDictionnary(shotsDetails=shotsDetails))

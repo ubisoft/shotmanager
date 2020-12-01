@@ -9,6 +9,23 @@ from shotmanager.config import config
 from shotmanager.rrs_specific.montage.montage_otio import MontageOtio
 
 
+def importShotMarkersFromMontage(scene, montageOtio, verbose=False):
+    for i, seq in enumerate(montageOtio.get_sequences()):
+        if verbose:
+            print(f"seq name: {seq.get_name()}")
+        for j, sh in enumerate(seq.getEditShots()):
+            if verbose:
+                print(
+                    f"    shot name: {sh.get_name()}, starts at: {sh.get_frame_final_start()}"
+                )  # , from media {sh.get_med}
+            marker_name = Path(sh.get_name()).stem
+            scene.timeline_markers.new(marker_name, frame=sh.get_frame_final_start())
+
+            # last marker
+            if len(montageOtio.get_sequences()) - 1 == i and len(seq.getEditShots()) - 1 == j:
+                scene.timeline_markers.new("Edit End", frame=sh.get_frame_final_end())
+
+
 def rrs_animatic_to_vsm(editVideoFile=None, otioFile=None, montageOtio=None, importMarkers=True):
     scene = utils.getSceneVSE("RRS_CheckSequence", createVseTab=True)
     bpy.context.window.workspace = bpy.data.workspaces["Video Editing"]
@@ -64,21 +81,25 @@ def rrs_animatic_to_vsm(editVideoFile=None, otioFile=None, montageOtio=None, imp
     bpy.ops.uas_video_shot_manager.clear_clips()
     bpy.ops.uas_video_shot_manager.remove_multiple_tracks(action="ALL")
 
+    vsm_props.updateTracksList(scene)
+
     # video
     channelInd = 2
-    editVideoClip = vse_render.createNewClip(scene, editVideoFile, channelInd=channelInd, atFrame=0, importAudio=False)
+    trackName = "Act01 Previz_Edit (video)"
+    editVideoClip = vse_render.createNewClip(
+        scene, editVideoFile, clipName=trackName, channelInd=channelInd, atFrame=0, importAudio=False
+    )
     # vsm_props.addTrack(atIndex=1, trackType="STANDARD", name="Previz_Edit (video)", color=(0.1, 0.2, 0.8, 1))
-    vsm_props.updateTracksList(scene)
-    vsm_props.setTrackInfo(channelInd, trackType="VIDEO", name="Previz_Edit (video)")
+    vsm_props.setTrackInfo(channelInd, trackType="VIDEO", name=trackName)
 
     # audio
     channelInd = 1
+    trackName = "Act01 Previz_Edit (audio)"
     editAudioClip = vse_render.createNewClip(
-        scene, editVideoFile, channelInd=channelInd, atFrame=0, importVideo=False, importAudio=True
+        scene, editVideoFile, clipName=trackName, channelInd=channelInd, atFrame=0, importVideo=False, importAudio=True
     )
     # vsm_props.addTrack(atIndex=2, trackType="STANDARD", name="Previz_Edit (audio)", color=(0.1, 0.5, 0.2, 1))
-    vsm_props.updateTracksList(scene)
-    vsm_props.setTrackInfo(channelInd, trackType="AUDIO", name="Previz_Edit (audio)")
+    vsm_props.setTrackInfo(channelInd, trackType="AUDIO", name=trackName)
 
     # if self.useOverlayFrame:
     #     overlayClip = vse_render.createNewClip(scene, self.overlayFile, 2, 0, offsetEnd=-60000)
@@ -106,22 +127,158 @@ def rrs_animatic_to_vsm(editVideoFile=None, otioFile=None, montageOtio=None, imp
                 config.gSeqEnumList = list()
                 print(f"config.gMontageOtio name: {config.gMontageOtio.get_name()}")
                 for i, seq in enumerate(config.gMontageOtio.sequencesList):
-                    print(f"- seqList: i:{i}, seq: {seq.get_name()}")
+                    #    print(f"- seqList: i:{i}, seq: {seq.get_name()}")
                     config.gSeqEnumList.append((str(i), seq.get_name(), f"Import sequence {seq.get_name()}", i + 1))
             montageOtio = config.gMontageOtio
 
-        for i, seq in enumerate(montageOtio.get_sequences()):
-            print(f"seq name: {seq.get_name()}")
-            for j, sh in enumerate(seq.getEditShots()):
-                print(
-                    f"    shot name: {sh.get_name()}, starts at: {sh.get_frame_final_start()}"
-                )  # , from media {sh.get_med}
-                marker_name = Path(sh.get_name()).stem
-                scene.timeline_markers.new(marker_name, frame=sh.get_frame_final_start())
+        importShotMarkersFromMontage(scene, config.gMontageOtio)
 
-                # last marker
-                if len(montageOtio.get_sequences()) - 1 == i and len(seq.getEditShots()) - 1 == j:
-                    scene.timeline_markers.new("Edit End", frame=sh.get_frame_final_end())
+
+def getSoundFilesForEachShot(montageOtio, seqName, otioFile):
+    if montageOtio is None:
+        config.gMontageOtio = MontageOtio()
+        config.gMontageOtio.fillMontageInfoFromOtioFile(otioFile=otioFile, refVideoTrackInd=1, verboseInfo=False)
+    seq = config.gMontageOtio.get_sequence_by_name(seqName)
+    print(f" here seq sound name avant")
+    soundsDict = dict()
+    if seq is not None:
+        print(f" here seq sound name: {seq.get_name()}")
+        seqSoundsListArr = []
+        shotSounds = dict()
+        for s in seq.getEditShots():
+
+            print(f"  shot sound name: {s.get_name()}")
+            shotSounds[s.get_name()] = s.get_media_soundfiles()
+            soundsDict.append(shotSounds)
+
+    return soundsDict
+
+
+def rrs_sequence_to_vsm(scene):
+    vse_render = bpy.context.window_manager.UAS_vse_render
+    props = scene.UAS_shot_manager_props
+    vsm_props = scene.UAS_vsm_props
+
+    # if not len(config.gMontageOtio.sequencesList):
+    #     return {"CANCELLED"}
+
+    # selSeq = config.gMontageOtio.sequencesList[int(self.sequenceList)]
+
+    # selSeq.printInfo()
+
+    sequenceClip = None
+    sequenceName = bpy.data.scenes[0].name
+    # wkip mettre un RE match ici
+    act = sequenceName[0:5]
+    filePath = (
+        r"C:\_UAS_ROOT\RRSpecial\05_Acts\\" + act + r"\\" + sequenceName + r"\Shots\Main_Take\\" + sequenceName + ".mp4"
+    )
+
+    print(f" *** Seq filePath: {filePath}")
+
+    importSequenceAtFrame = 0
+
+    # find if a marker exists with the name of the first shot
+    markers = utils.sortMarkers(scene.timeline_markers, sequenceName)
+    if len(markers):
+        # if firstShotMarker is not None:
+        importSequenceAtFrame = markers[0].frame
+
+    if not Path(filePath).exists():
+        print(f" *** Sequence video file not found: {Path(filePath)}")
+    else:
+        sequence_AudioTrack_name = f"{sequenceName} (audio)"
+        sequence_VideoTrack_name = f"{sequenceName} (video)"
+        sequence_AudioTrack = None
+        sequence_VideoTrack = None
+
+        channelInd = 2
+
+        sequence_AudioTrack = vsm_props.getTrackByName(sequence_AudioTrack_name)
+        if sequence_AudioTrack is not None:
+            sequence_AudioTrack.clearContent()
+        sequence_VideoTrack = vsm_props.getTrackByName(sequence_VideoTrack_name)
+        if sequence_VideoTrack is not None:
+            sequence_VideoTrack.clearContent()
+
+        channelInd_audio = channelInd + 1
+        importSound = True
+        if importSound:
+            # create audio clip
+            if sequence_AudioTrack is not None:
+                channelInd_audio = vsm_props.getTrackIndex(sequence_AudioTrack)
+            sequenceAudioClip = vse_render.createNewClip(
+                scene,
+                filePath,
+                channelInd=channelInd_audio,
+                atFrame=importSequenceAtFrame,
+                importVideo=False,
+                importAudio=True,
+                clipName=sequence_AudioTrack_name,
+            )
+            vsm_props.updateTracksList(scene)
+            sequence_AudioTrack = vsm_props.setTrackInfo(
+                channelInd_audio, trackType="AUDIO", name=sequence_AudioTrack_name,
+            )
+
+        # create video clip
+        channelInd_video = channelInd + 1
+        if sequence_AudioTrack is not None:
+            channelInd_video = channelInd_audio + 1
+
+        if sequence_VideoTrack is not None:
+            channelInd_video = vsm_props.getTrackIndex(sequence_VideoTrack)
+
+        sequenceClip = vse_render.createNewClip(
+            scene,
+            filePath,
+            channelInd=channelInd_video,
+            atFrame=importSequenceAtFrame,
+            importAudio=False,
+            clipName=sequence_VideoTrack_name,
+        )
+
+        if sequenceClip is not None:
+            res_x = 1280
+            res_y = 960
+            vse_render.cropClipToCanvas(
+                res_x, res_y, sequenceClip, 1280, 960, mode="FIT_WIDTH",
+            )
+
+            scene.sequence_editor.active_strip = sequenceClip
+
+        # vsm_props.addTrack(atIndex=3, trackType="STANDARD", name="Sequence", color=(0.5, 0.4, 0.6, 1))
+        vsm_props.updateTracksList(scene)
+        sequence_VideoTrack = vsm_props.setTrackInfo(
+            channelInd_video, trackType="VIDEO", name=sequence_VideoTrack_name,
+        )
+        vsm_props.setSelectedTrackByIndex(channelInd_video)
+
+    # works on selection
+    #  bpy.ops.sequencer.set_range_to_strips(preview=False)
+
+    bpy.ops.sequencer.select_all(action="DESELECT")
+
+    if sequenceClip is not None:
+        sequenceClip.select = True
+    # scene.sequence_editor.sequences[2].select = Tru
+
+    scene.frame_set(importSequenceAtFrame)
+
+    # wkip works but applies the modifs on every sequence editor occurence of the file
+    edSeqWksp = bpy.data.workspaces["Video Editing"]
+    for screen in edSeqWksp.screens:
+        #   print(f"Screen type: {screen.name}")
+        for area in screen.areas:
+            #      print(f"Area type: {area.type}")
+            if area.type == "SEQUENCE_EDITOR":
+                #         print("Area seq ed")
+                override = bpy.context.copy()
+                override["area"] = area
+                override["region"] = area.regions[-1]
+
+                bpy.ops.sequencer.view_selected(override)
+                # bpy.context.space_data.show_seconds = False
 
 
 def rrs_playblast_to_vsm(playblastInfo=None, editVideoFile=None, otioFile=None, montageOtio=None, importMarkers=True):
@@ -179,7 +336,7 @@ def rrs_playblast_to_vsm(playblastInfo=None, editVideoFile=None, otioFile=None, 
         playblast_AudioTrack = None
         playblast_VideoTrack = None
 
-        channelInd = 2
+        channelInd = 4
 
         playblast_AudioTrack = vsm_props.getTrackByName(playblast_AudioTrack_name)
         if playblast_AudioTrack is not None:
@@ -204,7 +361,7 @@ def rrs_playblast_to_vsm(playblastInfo=None, editVideoFile=None, otioFile=None, 
             )
             vsm_props.updateTracksList(scene)
             playblast_AudioTrack = vsm_props.setTrackInfo(
-                channelInd_audio, trackType="AUDIO", name=playblast_AudioTrack_name, color=(0.1, 0.5, 0.2, 1),
+                channelInd_audio, trackType="AUDIO", name=playblast_AudioTrack_name, color=(0.6, 0.4, 0.4, 1),
             )
 
         # create video clip
@@ -261,7 +418,8 @@ def rrs_playblast_to_vsm(playblastInfo=None, editVideoFile=None, otioFile=None, 
 
     #    bpy.ops.workspace.append_activate(idname="Video Editing")
 
-    utils_vse.showSecondsInVSE(False)
+    #  utils_vse.showSecondsInVSE(False, workspace=bpy.context.workspace)
+    utils_vse.showSecondsInVSE(False, workspace=bpy.data.workspaces["Video Editing"])
 
     # wkip works but applies the modifs on every sequence editor occurence of the file
     edSeqWksp = bpy.data.workspaces["Video Editing"]
@@ -290,6 +448,8 @@ def rrs_playblast_to_vsm(playblastInfo=None, editVideoFile=None, otioFile=None, 
 
     #       scene.render.filepath = output_filepath
     scene.render.use_file_extension = False
+
+    vsm_props.jumpToScene = bpy.data.scenes[playblastInfo["scene"]]
 
     # scene.render.resolution_percentage = 75.0
 

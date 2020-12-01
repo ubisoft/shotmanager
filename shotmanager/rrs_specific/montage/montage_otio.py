@@ -89,8 +89,8 @@ class MontageOtio(MontageInterface):
         if otioFile is not None:
             self.initialize(otioFile)
 
-        print(f"\n\n   fillMontageInfoFromOtioFile \n")
-        print(f"\n\n      EDL: {self.otioFile} \n")
+        print(f"\n\n   fillMontageInfoFromOtioFile:")
+        print(f"      EDL: {self.otioFile} \n")
 
         if self.timeline is None:
             _logger.error("fillMontageInfoFromOtioFile: self.timeline is None!")
@@ -360,6 +360,7 @@ class ShotOtio(ShotInterface):
 
         # new properties:
         self.clip = shot
+        self.soundClips = []
 
         # !!! warning: when clip is of type Stack (and not Clip) then the clip.name is the name of the
         # nested edit, not the name of the clip itself! This is an issue when the nested edit is shared by
@@ -510,3 +511,36 @@ class ShotOtio(ShotInterface):
 
     def get_frame_offset_end(self):
         return ow.get_clip_frame_offset_end(self.clip, self.parent.parent.get_fps())
+
+    def get_media_soundfiles(self):
+        sounds = []
+        sounds.append("c:\\toto.mp3")
+
+        tracks = self.timeline.video_tracks()
+        for i, track in enumerate(tracks):
+            if refVideoTrackInd == i:
+                #     track = self.timeline.video_tracks[0]
+
+                for clip in track:
+                    #    print(f"Clip name 01: {clip.name}, type:{type(clip)}")
+
+                    # if clip is a media
+                    if isinstance(clip, opentimelineio.schema.Clip):
+                        # if True:
+                        #  print(f"  Clip name 02: {clip.name}")
+                        if clip.media_reference.is_missing_reference:
+                            print(f"Missing Media Reference for Clip: {clip.name}")
+                            continue
+                        media_path = Path(utils.file_path_from_url(clip.media_reference.target_url))
+                        # if config.uasDebug:
+                        #     print(f"\n** clip: {clip.name}")
+                        # print(f"** clip.media_reference: {clip.media_reference}")
+                        # print(f"** media_path: {media_path}")
+                        # wkip ici mettre une exception pour attraper les media manquants (._otio.MissingReference)
+
+                        # get media name
+                        filename = os.path.split(media_path)[1]
+                        media_name = os.path.splitext(filename)[0]
+                        media_name_lower = media_name.lower()
+
+        return sounds

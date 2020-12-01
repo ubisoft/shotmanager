@@ -2086,13 +2086,17 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
                 outputFileFormat = self.project_output_format.lower()
                 if "" == outputFileFormat:
                     print("\n---------------------------")
-                    print("*** Project video output file format not correctly set in the Preferences ***\n")
+                    print(
+                        "*** Shot Manager: Project video output file format not correctly set in the Preferences ***\n"
+                    )
             #   _logger.debug(f"  /// outputFileFormat vid: {outputFileFormat}")
             else:
                 outputFileFormat = self.project_images_output_format.lower()
                 if "" == outputFileFormat:
                     print("\n---------------------------")
-                    print("*** Project image output file format not correctly set in the Preferences ***\n")
+                    print(
+                        "*** Shot Manager: Project image output file format not correctly set in the Preferences ***\n"
+                    )
             #    _logger.debug(f"  /// outputFileFormat: {outputFileFormat}")
         else:
             if isVideo:

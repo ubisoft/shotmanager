@@ -193,7 +193,7 @@ class UAS_Vse_Render(PropertyGroup):
         self.inputAudioMediaPath = ""
 
     def getMediaList(self, scene, listVideo=True, listAudio=True):
-        """
+        """ Return the list of the media used in the VSE
             Return a dictionary made of "media_video" and "media_audio", both having an array of media filepaths
             Movies are not listed in audio media !
         """

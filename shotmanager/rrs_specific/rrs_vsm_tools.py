@@ -8,7 +8,14 @@ from shotmanager.config import config
 from shotmanager.utils import utils
 
 from shotmanager.rrs_specific.montage.montage_otio import MontageOtio
+from shotmanager.scripts.rrs import utils_rrs
 
+from shotmanager.scripts.rrs.rrs_playblast import (
+    rrs_playblast_to_vsm,
+    rrs_animatic_to_vsm,
+    rrs_sequence_to_vsm,
+    getSoundFilesForEachShot,
+)
 
 import logging
 
@@ -63,24 +70,34 @@ class UAS_PT_RRSVSMTools(Panel):
             row = box.row()
             row.scale_y = 1
             row.operator("uas_video_shot_manager.rrs_check_sequence", text="Import Previz Montage Act 01")
+            row.label(text="On Tracks 1 (audio) and 2 (video)")
+
+            if (
+                not (
+                    bpy.data.scenes[0].name.startswith("Act01_Seq")
+                    or bpy.data.scenes[0].name.startswith("Act02_Seq")
+                    or bpy.data.scenes[0].name.startswith("Act03_Seq")
+                )
+                or "RRS_CheckSequence" == scene.name
+            ):
+                box.separator(factor=0.1)
+                row = box.row()
+                row.operator("uas_video_shot_manager.import_published_sequence")
+                row.label(text="On Tracks 3 (audio) and 4 (video)")
+                layout.separator()
 
             if (
                 bpy.data.scenes[0].name.startswith("Act01_Seq")
                 or bpy.data.scenes[0].name.startswith("Act02_Seq")
                 or bpy.data.scenes[0].name.startswith("Act03_Seq")
             ) and bpy.data.scenes[0] is not scene:
-                box.separator(factor=0.1)
-                row = box.row()
-                row.operator(
-                    "uas_video_shot_manager.import_published_sequence"
-                )  # , text="Import Previz Montage Act 01")
-                layout.separator()
                 row = layout.row()
                 row.scale_y = 1.4
                 row.operator(
                     "uas_video_shot_manager.go_to_sequence_scene", text="Go to Sequence Scene", icon="SCENE_DATA"
                 ).sceneName = bpy.data.scenes[0].name
 
+            box.label(text="Playblast Tracks: 5 (audio) and 6 (video)")
             box.separator(factor=0.2)
 
         layout.separator(factor=1)
@@ -93,6 +110,9 @@ class UAS_PT_RRSVSMTools(Panel):
             "uas_video_shot_manager.export_content_between_markers", text="   Batch Export Content Between Markers..."
         ).outputDir = r"C:\_UAS_ROOT\RRSpecial\05_Acts\Act01\_Montage\_OutputShots"
 
+        row = box.row(align=True)
+        row.operator_context = "INVOKE_DEFAULT"
+        row.operator("uas_video_shot_manager.rrs_export_sounds_per_shot")
         layout.separator(factor=1)
 
 
@@ -228,19 +248,7 @@ class UAS_VideoShotManager_OT_RRS_ExportShotsFromEdit(Operator):
             scene.sequence_editor.sequences_all[overlayClip.name].blend_type = "ALPHA_OVER"
 
         scene.timeline_markers.clear()
-
-        for i, seq in enumerate(config.gMontageOtio.get_sequences()):
-            print(f"seq name: {seq.get_name()}")
-            for j, sh in enumerate(seq.getEditShots()):
-                print(
-                    f"    shot name: {sh.get_name()}, starts at: {sh.get_frame_final_start()}"
-                )  # , from media {sh.get_med}
-                marker_name = Path(sh.get_name()).stem
-                scene.timeline_markers.new(marker_name, frame=sh.get_frame_final_start())
-
-                # last marker
-                if len(config.gMontageOtio.get_sequences()) - 1 == i and len(seq.getEditShots()) - 1 == j:
-                    scene.timeline_markers.new("Edit End", frame=sh.get_frame_final_end())
+        importShotMarkersFromMontage(scene, config.gMontageOtio)
 
         vsm_props = context.scene.UAS_vsm_props
         vsm_props.updateTracksList(scene)
@@ -382,11 +390,12 @@ class UAS_VideoShotManager_OT_RRS_CheckSequence(Operator):
     def execute(self, context):
 
         playblastInfos = dict()
-        from shotmanager.scripts.rrs.rrs_playblast import rrs_playblast_to_vsm, rrs_animatic_to_vsm
 
         rrs_animatic_to_vsm(
             editVideoFile=self.editVideoFile, montageOtio=config.gMontageOtio, importMarkers=self.importMarkers,
         )
+
+        bpy.ops.uas_video_shot_manager.zoom_view(zoomMode="SELECTEDCLIPS")
 
         # rrs_playblast_to_vsm(
         #     playblastInfo=None,
@@ -456,9 +465,44 @@ class UAS_VideoShotManager_ImportPublishedSequence(Operator):
         scene = context.scene
         props = scene.UAS_shot_manager_props
 
+        # parse the markers to get the shots list
+        previzMarkers = scene.timeline_markers
+        seqNames = list()
+        currentSeqName = ""
+        # if bpy.data.scenes[0].name.startswith("Act"):  # wkip re match
+        if utils_rrs.start_with_act(bpy.data.scenes[0].name):  # wkip re match
+            currentSeqName = (bpy.data.scenes[0].name)[6:13]
+        print(f"Current seq name: {currentSeqName}")
+        currentSeqIndex = -1
+        seqInd = -1
+        config.gSeqEnumList = list()
+        for i, m in enumerate(previzMarkers):
+            if utils_rrs.start_with_seq(m.name):
+                seqName = m.name[6:13]
+                print(f"Marker seq name: {seqName}")
+                if seqName not in seqNames:
+                    seqNames.append(seqName)
+                    seqInd += 1
+                    config.gSeqEnumList.append((str(seqInd), seqName, f"Import sequence {seqName}", seqInd + 1))
+                    if seqName == currentSeqName:
+                        currentSeqIndex = seqInd
+                        # strDebug += " - Is current sequence !"
+
+        if not len(config.gSeqEnumList):
+            config.gSeqEnumList.append(
+                (str(0), " ** No Sequence in the markers list **", f"No sequence found in the markers list", 1)
+            )
+
+        if -1 != currentSeqIndex:
+            self.sequenceList = config.gSeqEnumList[currentSeqIndex][0]
+        else:
+            self.sequenceList = config.gSeqEnumList[0][0]
+        _logger.debug(f"self.sequenceList: {self.sequenceList}")
+
         return wm.invoke_props_dialog(self, width=500)
 
     def draw(self, context):
+        layout = self.layout
         scene = context.scene
         props = scene.UAS_shot_manager_props
 
@@ -484,130 +528,20 @@ class UAS_VideoShotManager_ImportPublishedSequence(Operator):
         #     labelText = f"Start: {-1}, End: {-1}, Num Shots: {0}"
 
     def execute(self, context):
-        scene = context.scene
-        vse_render = bpy.context.window_manager.UAS_vse_render
-        props = scene.UAS_shot_manager_props
-        vsm_props = scene.UAS_vsm_props
+        rrs_sequence_to_vsm(context.scene)
 
-        sequenceClip = None
-        sequenceName = bpy.data.scenes[0].name
-        # wkip mettre un RE match ici
-        act = sequenceName[0:5]
-        filePath = (
-            r"C:\_UAS_ROOT\RRSpecial\05_Acts\\"
-            + act
-            + r"\\"
-            + sequenceName
-            + r"\Shots\Main_Take\\"
-            + sequenceName
-            + ".mp4"
-        )
+        return {"FINISHED"}
 
-        print(f" *** Seq filePath: {filePath}")
 
-        importSequenceAtFrame = 0
+class UAS_VideoShotManager_OT_RRS_ExportAllSoundsPerShot(Operator):
+    bl_idname = "uas_video_shot_manager.rrs_export_sounds_per_shot"
+    bl_label = "Export Sounds Per Shot"
+    bl_description = "Bla bla"
+    bl_options = {"INTERNAL", "UNDO"}
 
-        # find if a marker exists with the name of the first shot
-        markers = utils.sortMarkers(scene.timeline_markers, sequenceName)
-        if len(markers):
-            # if firstShotMarker is not None:
-            importSequenceAtFrame = markers[0].frame
-
-        if not Path(filePath).exists():
-            print(f" *** Sequence video file not found: {Path(filePath)}")
-        else:
-            sequence_AudioTrack_name = f"{sequenceName} (audio)"
-            sequence_VideoTrack_name = f"{sequenceName} (video)"
-            sequence_AudioTrack = None
-            sequence_VideoTrack = None
-
-            channelInd = 2
-
-            sequence_AudioTrack = vsm_props.getTrackByName(sequence_AudioTrack_name)
-            if sequence_AudioTrack is not None:
-                sequence_AudioTrack.clearContent()
-            sequence_VideoTrack = vsm_props.getTrackByName(sequence_VideoTrack_name)
-            if sequence_VideoTrack is not None:
-                sequence_VideoTrack.clearContent()
-
-            channelInd_audio = channelInd + 1
-            importSound = True
-            if importSound:
-                # create audio clip
-                if sequence_AudioTrack is not None:
-                    channelInd_audio = vsm_props.getTrackIndex(sequence_AudioTrack)
-                sequenceAudioClip = vse_render.createNewClip(
-                    scene,
-                    filePath,
-                    channelInd=channelInd_audio,
-                    atFrame=importSequenceAtFrame,
-                    importVideo=False,
-                    importAudio=True,
-                    clipName=sequence_AudioTrack_name,
-                )
-                vsm_props.updateTracksList(scene)
-                sequence_AudioTrack = vsm_props.setTrackInfo(
-                    channelInd_audio, trackType="AUDIO", name=sequence_AudioTrack_name, color=(0.1, 0.5, 0.2, 1),
-                )
-
-            # create video clip
-            channelInd_video = channelInd + 1
-            if sequence_AudioTrack is not None:
-                channelInd_video = channelInd_audio + 1
-
-            if sequence_VideoTrack is not None:
-                channelInd_video = vsm_props.getTrackIndex(sequence_VideoTrack)
-
-            sequenceClip = vse_render.createNewClip(
-                scene,
-                filePath,
-                channelInd=channelInd_video,
-                atFrame=importSequenceAtFrame,
-                importAudio=False,
-                clipName=sequence_VideoTrack_name,
-            )
-
-            if sequenceClip is not None:
-                res_x = 1280
-                res_y = 960
-                vse_render.cropClipToCanvas(
-                    res_x, res_y, sequenceClip, 1280, 960, mode="FIT_WIDTH",
-                )
-
-                scene.sequence_editor.active_strip = sequenceClip
-
-            # vsm_props.addTrack(atIndex=3, trackType="STANDARD", name="Sequence", color=(0.5, 0.4, 0.6, 1))
-            vsm_props.updateTracksList(scene)
-            sequence_VideoTrack = vsm_props.setTrackInfo(
-                channelInd_video, trackType="VIDEO", name=sequence_VideoTrack_name, color=(0.6, 0.3, 0.3, 1),
-            )
-            vsm_props.setSelectedTrackByIndex(channelInd_video)
-
-        # works on selection
-        #  bpy.ops.sequencer.set_range_to_strips(preview=False)
-
-        bpy.ops.sequencer.select_all(action="DESELECT")
-
-        if sequenceClip is not None:
-            sequenceClip.select = True
-        # scene.sequence_editor.sequences[2].select = Tru
-
-        scene.frame_set(importSequenceAtFrame)
-
-        # wkip works but applies the modifs on every sequence editor occurence of the file
-        edSeqWksp = bpy.data.workspaces["Video Editing"]
-        for screen in edSeqWksp.screens:
-            #   print(f"Screen type: {screen.name}")
-            for area in screen.areas:
-                #      print(f"Area type: {area.type}")
-                if area.type == "SEQUENCE_EDITOR":
-                    #         print("Area seq ed")
-                    override = bpy.context.copy()
-                    override["area"] = area
-                    override["region"] = area.regions[-1]
-
-                    bpy.ops.sequencer.view_selected(override)
-                    # bpy.context.space_data.show_seconds = False
+    def execute(self, context):
+        soundsPerShot = getSoundFilesForEachShot(config.gMontageOtio, "Act01_Seq0100", otioFile)
+        print("soundsPerShot: ", soundsPerShot)
 
         return {"FINISHED"}
 
@@ -618,6 +552,7 @@ _classes = (
     UAS_VideoShotManager_GoToSequenceScene,
     UAS_VideoShotManager_ImportPublishedSequence,
     UAS_PT_RRSVSMTools,
+    UAS_VideoShotManager_OT_RRS_ExportAllSoundsPerShot,
 )
 
 

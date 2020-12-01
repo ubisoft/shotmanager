@@ -171,7 +171,7 @@ class UAS_VSM_Props(PropertyGroup):
     display_opacity_or_volume_in_tracklist: BoolProperty(
         name="Display Opacity in Track List", default=True, options=set()
     )
-    display_track_type_in_tracklist: BoolProperty(name="Display Track Type in Track List", default=True, options=set())
+    display_track_type_in_tracklist: BoolProperty(name="Display Track Type in Track List", default=False, options=set())
 
     def _filter_jumpToScene(self, object):
         """ Return true only for cameras from the same scene as the shot

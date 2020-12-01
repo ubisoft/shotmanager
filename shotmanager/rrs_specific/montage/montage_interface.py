@@ -254,6 +254,7 @@ class SequenceInterface(object):
         self.shotsList.append(newShot)
         return newShot
 
+    # use getEditShots
     # def get_shots(self, ignoreDisabled=True):
     #     return self.getEditShots(ignoreDisabled=ignoreDisabled)
 
@@ -354,7 +355,7 @@ class ShotInterface(object):
 
     def getInfoAsDictionnary(self, shotsDetails=True):
         dictShot = dict()
-        dictShot["shot_name"] = self.get_name()
+        dictShot["shot"] = self.get_name()
         if shotsDetails:
             dictShot["frame_final_start"] = self.get_frame_final_start()
             dictShot["frame_final_duration"] = self.get_frame_final_duration()

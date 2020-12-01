@@ -155,7 +155,7 @@ def launchRenderWithVSEComposite(
 
             # remove handlers and compo!!!
             RRS_StampInfo.clearRenderHandlers()
-            RRS_StampInfo.clearInfoCompoNodes(scene)
+            #   RRS_StampInfo.clearInfoCompoNodes(scene)
 
             preset_useStampInfo = useStampInfo
             if not useStampInfo:
@@ -265,7 +265,7 @@ def launchRenderWithVSEComposite(
 
         else:
             # wkip hack rrs
-            scene.render.use_compositing = False
+            # scene.render.use_compositing = False
             scene.render.use_sequencer = False
 
             if not "CUSTOM" == props.renderContext.renderEngine:

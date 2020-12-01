@@ -333,10 +333,8 @@ class UAS_VideoShotManager_TrackRemoveMultiple(Operator):
             # tracks = vsm_props.tracks
             print(f"tracks: {tracks}")
             for t in tracks:
-                print(f"track name: {t.name}")
                 vsm_props.removeTrack(t)
                 tracksCheck = vsm_props.getTracks()
-                print(f"tracksCheck: {tracksCheck}")
 
             vsm_props.setSelectedTrackByIndex(-1)
 

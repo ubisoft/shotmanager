@@ -285,9 +285,9 @@ def publishRRS(
         if seqName in soundFile.stem:
             soundsList.append(str(soundFile))
 
-    soundsMedia["media_audio"] = soundsList
+    soundsMedia["media_audio_mixed"] = soundsList
 
-    generatedFilesDict["sounds_media"] = soundsMedia["media_audio"]
+    generatedFilesDict["sounds_media"] = soundsMedia["media_audio_mixed"]
 
     ################
     # build the output dictionary
@@ -315,12 +315,11 @@ def publishRRS(
     #     print(" ")
 
     # add shots info
+    dictMontage = dict()
+    dictMontage["sequence"] = scene.name
+    props.getInfoAsDictionnary(dictMontage=dictMontage)
 
-    # dictMontage = dict()
-    # dictMontage["sequence"] = scene.name
-    # props.getInfoAsDictionnary(dictMontage=dictMontage)
-
-    # generatedFilesDict.update(dictMontage)
+    generatedFilesDict.update(dictMontage)
 
     if verbose:
         print(json.dumps(generatedFilesDict, indent=3))
