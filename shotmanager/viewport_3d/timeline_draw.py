@@ -116,7 +116,9 @@ class ShotClip:
         self.start_interaction_mesh.draw ( UNIFORM_SHADER_2D, context.region )
         self.end_interaction_mesh.draw ( UNIFORM_SHADER_2D, context.region )
 
-        if self.shot.name == self.sm_props.getCurrentShot ( ).name:
+        current_shot = self.sm_props.getCurrentShot ( )
+
+        if current_shot != -1 and self.shot.name == current_shot.name:
             UNIFORM_SHADER_2D.uniform_float ( "color", ( .6, .6, .9, .9 ) )
             self.contour_mesh.draw ( UNIFORM_SHADER_2D, context.region, "LINES" )
 
