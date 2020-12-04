@@ -90,8 +90,9 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
     ##################
     # tools ui     ###
     ##################
-    toggleCamsBG: BoolProperty(name=" ", default=False)
     toggleShotsEnabledState: BoolProperty(name=" ", default=False)
+    toggleCamsBG: BoolProperty(name=" ", default=False)
+    toggleGreasePencil: BoolProperty(name=" ", default=False)
 
     ##################
     # ui helpers   ###

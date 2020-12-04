@@ -8,6 +8,8 @@ from shotmanager.utils import utils
 
 from . import sm_shots_ui
 from . import sm_takes_ui
+from . import sm_shot_settings_ui
+from . import sm_shots_global_settings_ui
 
 import logging
 
@@ -348,6 +350,8 @@ class UAS_PT_ShotManager(Panel):
             subrow.scale_x = 0.9
             subrow.alignment = "RIGHT"
 
+            if config.uasDebug:
+                subrow.operator("uas_shot_manager.enabledisablegreasepencil", text="", icon="OUTLINER_OB_GREASEPENCIL")
             subrow.operator("uas_shot_manager.enabledisablecamsbg", text="", icon="VIEW_CAMERA")
 
             if props.useLockCameraView:
@@ -412,9 +416,13 @@ def register():
 
     sm_takes_ui.register()
     sm_shots_ui.register()
+    sm_shot_settings_ui.register()
+    sm_shots_global_settings_ui.register()
 
 
 def unregister():
+    sm_shots_global_settings_ui.unregister()
+    sm_shot_settings_ui.unregister()
     sm_shots_ui.unregister()
     sm_takes_ui.unregister()
 

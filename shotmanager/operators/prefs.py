@@ -24,6 +24,15 @@ class UAS_MT_ShotManager_Prefs_MainMenu(Menu):
         if config.uasDebug:
             layout.separator()
             row = layout.row(align=True)
+            row.operator_context = "INVOKE_DEFAULT"
+            row.operator("uas_shot_manager.playbar_prefs", text="Playbar Settings...")  # , icon="SETTINGS")
+
+            row = layout.row(align=True)
+            row.operator_context = "INVOKE_DEFAULT"
+            row.operator("uas_shot_manager.shots_prefs", text="Shots Settings...")  # , icon="SETTINGS")
+
+            layout.separator()
+            row = layout.row(align=True)
             row.label(text="Tools for Debug:")
 
             row = layout.row(align=True)
@@ -369,6 +378,9 @@ class UAS_ShotManager_Shots_Prefs(Operator):
 
         # row = box.column_flow(columns=2)
         # c = row.column()
+
+        ################
+        # Notes
         row = box.row()
         # row.separator(factor=2)
         # subrow.separator(factor=25)
@@ -385,6 +397,8 @@ class UAS_ShotManager_Shots_Prefs(Operator):
         row.label(text="Shot Notes")
         # row.use_property_split = True
 
+        ################
+        # Camera BG
         row = box.row()
         # row.separator(factor=2)
         subrow = row.row()
@@ -396,6 +410,21 @@ class UAS_ShotManager_Shots_Prefs(Operator):
         subrow.prop(props, "display_camerabgtools_in_properties", text="", icon="VIEW_CAMERA")
 
         row.label(text="Camera Backgrounds")
+
+        ################
+        # Grease Pencil
+        row = box.row()
+        # row.separator(factor=2)
+        subrow = row.row()
+        subrow.scale_x = 0.8
+        subrow.label(text=" ")
+
+        subrow = row.row()
+        subrow.scale_x = 1.5
+        subrow.prop(props, "display_greasepencil_in_properties", text="", icon="OUTLINER_OB_GREASEPENCIL")
+
+        row.label(text="Grease Pencil")
+
         # col.prop(
         #     props, "display_selectbut_in_shotlist", text="Display Camera Select Button",
         # )

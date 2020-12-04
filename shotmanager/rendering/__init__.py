@@ -1,15 +1,11 @@
-import logging
-
-_logger = logging.getLogger(__name__)
-
 import bpy
-from bpy.types import PointerProperty
-
 
 from .rendering_props import UAS_ShotManager_RenderGlobalContext, UAS_ShotManager_RenderSettings
 from . import rendering_operators
 
-# from . import rendering_ui
+import logging
+
+_logger = logging.getLogger(__name__)
 
 
 _classes = (

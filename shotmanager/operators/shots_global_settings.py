@@ -2,6 +2,8 @@ import bpy
 from bpy.types import Operator, PropertyGroup
 from bpy.props import EnumProperty, BoolProperty, FloatProperty
 
+from shotmanager.utils import utils
+
 
 class UAS_ShotManager_ShotsGlobalSettings(PropertyGroup):
 
@@ -10,6 +12,10 @@ class UAS_ShotManager_ShotsGlobalSettings(PropertyGroup):
         description="Apply Global Settings changes to disabled shots as well as to enabled ones",
         default=True,
     )
+
+    #########################
+    # Camera BG
+    #########################
 
     def _update_backgroundAlpha(self, context):
         props = context.scene.UAS_shot_manager_props
@@ -34,6 +40,34 @@ class UAS_ShotManager_ShotsGlobalSettings(PropertyGroup):
         update=_update_backgroundAlpha,
         default=0.9,
     )
+
+    def _update_proxyRenderSize(self, context):
+        take = context.scene.UAS_shot_manager_props.getCurrentTake()
+        shotList = take.getShotList(ignoreDisabled=False)
+
+        for shot in shotList:
+            if shot.enabled or props.shotsGlobalSettings.alsoApplyToDisabledShots:
+                if shot.camera is not None and len(shot.camera.data.background_images):
+                    shot.camera.data.background_images[0].clip_user.proxy_render_size = self.proxyRenderSize
+
+    proxyRenderSize: EnumProperty(
+        name="Proxy Render Size",
+        description="Draw preview using full resolution or different proxy resolution",
+        items=(
+            ("PROXY_25", "25%", ""),
+            ("PROXY_50", "50%", ""),
+            ("PROXY_75", "75%", ""),
+            ("PROXY_100", "100%", ""),
+            ("FULL", "None, Full render", ""),
+        ),
+        update=_update_proxyRenderSize,
+        # default="PROXY_50",
+        default="FULL",
+    )
+
+    #########################
+    # Sound
+    #########################
 
     def _update_backgroundVolume(self, context):
         props = context.scene.UAS_shot_manager_props
@@ -60,29 +94,38 @@ class UAS_ShotManager_ShotsGlobalSettings(PropertyGroup):
         default=1.0,
     )
 
-    def _update_proxyRenderSize(self, context):
-        take = context.scene.UAS_shot_manager_props.getCurrentTake()
+    #########################
+    # Grease Pencil
+    #########################
+
+    def _update_greasepencilAlpha(self, context):
+        props = context.scene.UAS_shot_manager_props
+        take = props.getCurrentTake()
         shotList = take.getShotList(ignoreDisabled=False)
 
         for shot in shotList:
             if shot.enabled or props.shotsGlobalSettings.alsoApplyToDisabledShots:
                 if shot.camera is not None and len(shot.camera.data.background_images):
-                    shot.camera.data.background_images[0].clip_user.proxy_render_size = self.proxyRenderSize
+                    # shot.camera.data.background_images[0].alpha = self.backgroundAlpha
+                    gamma = 2.2
+                    shot.camera.data.background_images[0].alpha = pow(self.backgroundAlpha, gamma)
 
-    proxyRenderSize: EnumProperty(
-        name="Proxy Render Size",
-        description="Draw preview using full resolution or different proxy resolution",
-        items=(
-            ("PROXY_25", "25%", ""),
-            ("PROXY_50", "50%", ""),
-            ("PROXY_75", "75%", ""),
-            ("PROXY_100", "100%", ""),
-            ("FULL", "None, Full render", ""),
-        ),
-        update=_update_proxyRenderSize,
-        # default="PROXY_50",
-        default="FULL",
+    greasepencilAlpha: FloatProperty(
+        name="Grease Pencil Alpha",
+        description="Change the opacity of the grease pencils",
+        soft_min=0.0,
+        min=0.0,
+        soft_max=1.0,
+        max=1.0,
+        step=0.1,
+        update=_update_greasepencilAlpha,
+        default=0.9,
     )
+
+
+#####################################################################################
+# Operators
+#####################################################################################
 
 
 class UAS_ShotsSettings_UseBackground(Operator):
@@ -125,6 +168,31 @@ class UAS_ShotsSettings_UseBackgroundSound(Operator):
             if shot.enabled or props.shotsGlobalSettings.alsoApplyToDisabledShots:
                 if shot.camera is not None:
                     shot.camera.data.show_background_images = self.useBackgroundSound
+
+        return {"FINISHED"}
+
+
+class UAS_ShotsSettings_UseGreasePencil(Operator):
+    bl_idname = "uas_shots_settings.use_greasepencil"
+    bl_label = "Use Grease Pencil"
+    bl_description = "Enable or disable the grease pencil for the shot cameras"
+    bl_options = {"INTERNAL", "UNDO"}
+
+    useGreasepencil: BoolProperty(default=False)
+
+    def execute(self, context):
+        props = context.scene.UAS_shot_manager_props
+
+        take = props.getCurrentTake()
+        shotList = take.getShotList(ignoreDisabled=False)
+
+        for shot in shotList:
+            if shot.enabled or props.shotsGlobalSettings.alsoApplyToDisabledShots:
+                if shot.camera is not None:
+                    gp_child = utils.get_greasepencil_child(shot.camera)
+                    if gp_child is not None:
+                        gp_child.hide_viewport = self.useGreasepencil
+                        gp_child.hide_render = self.useGreasepencil
 
         return {"FINISHED"}
 
@@ -184,6 +252,7 @@ _classes = (
     UAS_ShotManager_ShotsGlobalSettings,
     UAS_ShotsSettings_UseBackground,
     UAS_ShotsSettings_UseBackgroundSound,
+    UAS_ShotsSettings_UseGreasePencil,
     # UAS_ShotsSettings_BackgroundAlpha,
     # UAS_ShotsSettings_BackgroundProxyRenderSize,
 )

@@ -387,6 +387,13 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         options=set(),
     )
 
+    display_greasepencil_in_properties: BoolProperty(
+        name="Display Grease Pencil in Shot Properties",
+        description="Display grease pencil in the shot properties panels",
+        default=False,
+        options=set(),
+    )
+
     display_notes_in_shotlist: BoolProperty(name="Display Color in Shot List", default=True, options=set())
 
     def _get_useLockCameraView(self):
