@@ -155,11 +155,20 @@ class UAS_PT_ShotManager(Panel):
             toggle=True,
             icon="ANIM",
         )
-        row.prop(context.window_manager, "UAS_shot_manager_display_timeline", text="", toggle=True, icon="TIME")
-        row.prop(context.window_manager, "UAS_shot_manager_toggle_montage_interaction", text="", toggle=True)
+        subRow = row.row(align=True)
+        subRow.prop(context.window_manager, "UAS_shot_manager_display_timeline", text="", toggle=True, icon="TIME")
+        subSubRow = subRow.row(align=True)
+        subSubRow.enabled = context.window_manager.UAS_shot_manager_display_timeline
+        subSubRow.prop(
+            context.window_manager,
+            "UAS_shot_manager_toggle_montage_interaction",
+            text="",
+            icon="ARROW_LEFTRIGHT",
+            toggle=True,
+        )
 
-        row.emboss = "PULLDOWN_MENU"
-        row.operator("uas_shot_manager.playbar_prefs", text="", icon="SETTINGS")
+        # row.emboss = "PULLDOWN_MENU"
+        row.operator("uas_shot_manager.features", text="", icon="PROPERTIES")
 
         # play bar
         ################
@@ -253,23 +262,28 @@ class UAS_PT_ShotManager(Panel):
         subsubrow = subrow.row(align=False)
         subsubrow.scale_x = 0.8
 
+        takeHasNotes = False
         if currentTake is not None:
-            if currentTake.hasNotes():
+            takeHasNotes = currentTake.hasNotes()
+            if takeHasNotes:
                 # if item.hasNotes():
                 notesIcon = "ALIGN_TOP"
                 notesIcon = "ALIGN_JUSTIFY"
                 notesIcon = "WORDWRAP_OFF"
                 # notesIcon = "TEXT"
                 # notesIcon = "OUTLINER_DATA_GP_LAYER"
-                subsubrow.prop(currentTake, "showNotes", text="", icon=notesIcon, emboss=currentTake.showNotes)
+                subsubrow.prop(prefs, "take_notes_extended", text="", icon=notesIcon, emboss=prefs.take_notes_extended)
             else:
-                notesIcon = "WORDWRAP_ON"
-                notesIcon = "MESH_PLANE"
-                subsubrow.prop(currentTake, "showNotes", text="", icon=notesIcon, emboss=currentTake.showNotes)
-                # emptyIcon = config.icons_col["General_Empty_32"]
-                # row.operator(
-                #     "uas_shot_manager.shots_shownotes", text="", icon_value=emptyIcon.icon_id
-                # ).index = index
+                if props.display_notes_in_properties:
+                    notesIcon = "WORDWRAP_ON"
+                    notesIcon = "MESH_PLANE"
+                    subsubrow.prop(
+                        prefs, "take_notes_extended", text="", icon=notesIcon, emboss=prefs.take_notes_extended
+                    )
+                    # emptyIcon = config.icons_col["General_Empty_32"]
+                    # row.operator(
+                    #     "uas_shot_manager.shots_shownotes", text="", icon_value=emptyIcon.icon_id
+                    # ).index = index
 
         subrow.prop(props, "current_take_name", text="")
         #    row.menu(UAS_MT_ShotManager_Takes_ToolsMenu.bl_idname,text="Tools",icon='TOOL_SETTINGS')
@@ -293,29 +307,40 @@ class UAS_PT_ShotManager(Panel):
 
         # Notes
         ######################
-        if currentTake is not None and currentTake.showNotes:
+        if currentTake is not None and (
+            (props.display_notes_in_properties and prefs.take_properties_extended)
+            or (props.display_notes_in_properties and prefs.take_notes_extended)
+            or (takeHasNotes and prefs.take_notes_extended)
+        ):
+            # or (props.display_notes_in_properties and prefs.take_properties_extended)
+            # ):
+            panelIcon = "TRIA_DOWN" if prefs.take_notes_extended else "TRIA_RIGHT"
+
             box = box.box()
             box.use_property_decorate = False
             row = box.row()
-            row.separator(factor=1.0)
+            row.prop(prefs, "take_notes_extended", text="", icon=panelIcon, emboss=False)
+            # row.separator(factor=1.0)
             c = row.column()
             # grid_flow = c.grid_flow(align=False, columns=3, even_columns=False)
             subrow = c.row()
             subrow.label(text="Take Notes:")
             subrow.separator(factor=0.5)  # prevents strange look when panel is narrow
-            row = box.row()
-            row.separator(factor=1.0)
-            row.prop(currentTake, "note01", text="")
-            row.separator(factor=1.0)
-            row = box.row()
-            row.separator(factor=1.0)
-            row.prop(currentTake, "note02", text="")
-            row.separator(factor=1.0)
-            row = box.row()
-            row.separator(factor=1.0)
-            row.prop(currentTake, "note03", text="")
-            row.separator(factor=1.0)
-            box.separator(factor=0.1)
+
+            if prefs.take_notes_extended:
+                row = box.row()
+                row.separator(factor=1.0)
+                row.prop(currentTake, "note01", text="")
+                row.separator(factor=1.0)
+                row = box.row()
+                row.separator(factor=1.0)
+                row.prop(currentTake, "note02", text="")
+                row.separator(factor=1.0)
+                row = box.row()
+                row.separator(factor=1.0)
+                row.prop(currentTake, "note03", text="")
+                row.separator(factor=1.0)
+                box.separator(factor=0.1)
 
         # shots
         ################
@@ -365,8 +390,9 @@ class UAS_PT_ShotManager(Panel):
             #    row.operator("uas_shot_manager.scenerangefromenabledshots", text="", icon="PREVIEW_RANGE")
             subrow.operator("uas_shot_manager.scenerangefrom3dedit", text="", icon="PREVIEW_RANGE")
 
-            row.emboss = "PULLDOWN_MENU"
-            row.operator("uas_shot_manager.shots_prefs", text="", icon="SETTINGS")
+            col = row.column(align=True)
+            col.separator(factor=3.0)
+            # row.operator("uas_shot_manager.shots_prefs", text="", icon="SETTINGS")
 
             row = box.row()
             row.template_list(

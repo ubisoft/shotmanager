@@ -308,7 +308,7 @@ class UAS_ShotManager_Shots_Prefs(Operator):
     bl_options = {"INTERNAL"}
 
     def invoke(self, context, event):
-        return context.window_manager.invoke_props_dialog(self, width=580)
+        return context.window_manager.invoke_props_dialog(self, width=480)
 
     def draw(self, context):
         props = context.scene.UAS_shot_manager_props
@@ -324,10 +324,16 @@ class UAS_ShotManager_Shots_Prefs(Operator):
         layout.label(text="Shot List:")
         box = layout.box()
         box.use_property_decorate = False
-        col = box.column()
+
+        # empty spacer column
+        row = box.row()
+        col = row.column()
+        col.scale_x = 0.4
+        col.label(text=" ")
+        col = row.column()
 
         col.separator(factor=0.5)
-        col.use_property_split = True
+        col.use_property_split = False
         col.prop(props, "display_selectbut_in_shotlist", text="Display Camera Select Button")
         col.prop(props, "display_enabled_in_shotlist", text="Display Enabled State")
         col.prop(props, "display_getsetcurrentframe_in_shotlist", text="Display Get/Set current Frame Buttons")
@@ -340,16 +346,25 @@ class UAS_ShotManager_Shots_Prefs(Operator):
         col.separator(factor=1.0)
         col.prop(props, "use_camera_color", text="Use Camera Color for Shots ")
 
-        col.use_property_split = True
+        col.use_property_split = False
         col.separator(factor=1.7)
         col.prop(props, "current_shot_properties_mode")
+
         box.separator(factor=0.5)
 
         # User Prefs at addon level
         ###############
         prefs = bpy.context.preferences.addons["shotmanager"].preferences
+
+        # empty spacer column
+        row = box.row()
+        col = row.column()
+        col.scale_x = 0.4
+        col.label(text=" ")
+        col = row.column()
+
         col.separator(factor=2.0)
-        col.label(text="User Preferenes (in Preference Add-on Window):")
+        #  col.label(text="User Preferenes (in Preference Add-on Window):")
         col.prop(
             prefs,
             "current_shot_changes_current_time",
@@ -369,61 +384,6 @@ class UAS_ShotManager_Shots_Prefs(Operator):
         col.use_property_split = True
         col.prop(props, "display_shotname_in_3dviewport", text="Display Shot name in 3D Viewport")
         col.prop(props, "display_hud_in_3dviewport", text="Display HUD in 3D Viewport")
-
-        # Properties themes
-        ###############
-        layout.separator(factor=1)
-        layout.label(text="Additional Properties and Tools by Themes:")
-        box = layout.box()
-
-        # row = box.column_flow(columns=2)
-        # c = row.column()
-
-        ################
-        # Notes
-        row = box.row()
-        # row.separator(factor=2)
-        # subrow.separator(factor=25)
-        subrow = row.row()
-        subrow.scale_x = 0.8
-        subrow.label(text=" ")
-
-        subrow = row.row()
-        subrow.scale_x = 1.5
-        notesIcon = "TEXT"
-        notesIcon = "WORDWRAP_OFF"
-        subrow.prop(props, "display_notes_in_properties", text="", icon=notesIcon)
-
-        row.label(text="Shot Notes")
-        # row.use_property_split = True
-
-        ################
-        # Camera BG
-        row = box.row()
-        # row.separator(factor=2)
-        subrow = row.row()
-        subrow.scale_x = 0.8
-        subrow.label(text=" ")
-
-        subrow = row.row()
-        subrow.scale_x = 1.5
-        subrow.prop(props, "display_camerabgtools_in_properties", text="", icon="VIEW_CAMERA")
-
-        row.label(text="Camera Backgrounds")
-
-        ################
-        # Grease Pencil
-        row = box.row()
-        # row.separator(factor=2)
-        subrow = row.row()
-        subrow.scale_x = 0.8
-        subrow.label(text=" ")
-
-        subrow = row.row()
-        subrow.scale_x = 1.5
-        subrow.prop(props, "display_greasepencil_in_properties", text="", icon="OUTLINER_OB_GREASEPENCIL")
-
-        row.label(text="Grease Pencil")
 
         # col.prop(
         #     props, "display_selectbut_in_shotlist", text="Display Camera Select Button",

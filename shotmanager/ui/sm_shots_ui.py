@@ -48,7 +48,12 @@ class UAS_UL_ShotManager_Items(bpy.types.UIList):
 
         row.operator("uas_shot_manager.set_current_shot", icon_value=icon.icon_id, text="").index = index
 
-        if props.display_selectbut_in_shotlist or props.display_color_in_shotlist:
+        if (
+            props.display_selectbut_in_shotlist
+            or props.display_color_in_shotlist
+            or props.display_cameraBG_in_shotlist
+            or props.display_greasepencil_in_shotlist
+        ):
             row = layout.row(align=True)
             row.scale_x = 1.0
             if props.display_selectbut_in_shotlist:
@@ -74,6 +79,18 @@ class UAS_UL_ShotManager_Items(bpy.types.UIList):
                     # row.operator(
                     #     "uas_shot_manager.shots_shownotes", text="", icon_value=emptyIcon.icon_id
                     # ).index = index
+                row.scale_x = 0.9
+
+            if props.display_cameraBG_in_shotlist:
+                row = row.row(align=True)
+                row.scale_x = 1.0
+                row.operator("uas.empty_operator", text="", icon="BLANK1")
+                row.scale_x = 0.9
+
+            if props.display_greasepencil_in_shotlist:
+                row = row.row(align=True)
+                row.scale_x = 1.0
+                row.operator("uas.empty_operator", text="", icon="BLANK1")
                 row.scale_x = 0.9
 
             if props.display_color_in_shotlist:

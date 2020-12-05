@@ -22,7 +22,8 @@ class UAS_PT_ShotManagerRetimer(Panel):
     @classmethod
     def poll(cls, context):
         props = context.scene.UAS_shot_manager_props
-        return not props.dontRefreshUI()
+        val = props.display_retimer_in_properties and not props.dontRefreshUI()
+        return val
 
     def draw(self, context):
 

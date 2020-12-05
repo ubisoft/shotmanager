@@ -5,6 +5,7 @@ from bpy.props import StringProperty
 from shotmanager.config import config
 from shotmanager.utils import utils
 
+from shotmanager.cameraBG import cameraBG_ui as cBG
 from shotmanager.greasepencil import greasepencil_ui as gp
 import logging
 
@@ -136,28 +137,40 @@ class UAS_PT_ShotManager_ShotProperties(Panel):
             #         )
             #     )
 
+            ####################
             # name and color
             row = box.row()
-            row.separator(factor=1.0)
-            c = row.column()
-            grid_flow = c.grid_flow(align=False, columns=4, even_columns=False)
-            grid_flow.prop(shot, "name", text="Name")
-            #   grid_flow.scale_x = 0.7
-            grid_flow.prop(shot, "color", text="")
-            #   grid_flow.scale_x = 1.0
-            grid_flow.prop(props, "display_color_in_shotlist", text="")
-            row.separator(factor=0.5)  # prevents stange look when panel is narrow
+            row.separator(factor=0.5)
+            grid_flow = row.grid_flow(align=False, columns=4, even_columns=False)
+            rowCam = grid_flow.row(align=False)
+            subRowCam = rowCam.row(align=False)
 
+            subRowCam.prop(shot, "name", text="Name")
+            #   grid_flow.scale_x = 0.7
+            # rowCam = grid_flow.row(align=False)
+            subSubRow = subRowCam.row(align=True)
+            subColor = subSubRow.row()
+            subColor.scale_x = 0.2
+            subColor.prop(shot, "color", text="")
+            #   grid_flow.scale_x = 1.0
+            subSubRow.separator(factor=1.0)
+            subSubRow.prop(props, "display_color_in_shotlist", text="")
+            subSubRow.separator(factor=0.5)  # prevents stange look when panel is narrow
+
+            ####################
             # Duration
             row = box.row()
-            row.separator(factor=1.0)
-            c = row.column()
-            grid_flow = c.grid_flow(align=True, columns=4, even_columns=False)
+            row.separator(factor=0.5)
+            grid_flow = row.grid_flow(align=True, columns=4, even_columns=False)
             # row.label ( text = r"Duration: " + str(shot.getDuration()) + " frames" )
-            grid_flow.label(text="Duration: ")
 
-            grid_flow.use_property_split = False
-            grid_flow.prop(
+            rowCam = grid_flow.row(align=False)
+            subRowCam = rowCam.row(align=True)
+
+            subRowCam.label(text="Duration: ")
+
+            subRowCam.use_property_split = False
+            subRowCam.prop(
                 shot,
                 "durationLocked",
                 text="",
@@ -165,19 +178,19 @@ class UAS_PT_ShotManager_ShotProperties(Panel):
                 toggle=True,
             )
 
-            grid_flow.prop(shot, "duration_fp", text="")
+            subRowCam.prop(shot, "duration_fp", text="")
 
             #    grid_flow.label(text=str(shot.getDuration()) + " frames")
-            grid_flow.prop(props, "display_duration_in_shotlist", text="")
-            row.separator(factor=0.5)  # prevents stange look when panel is narrow
+            subRowCam.separator(factor=1.0)
+            subRowCam.prop(props, "display_duration_in_shotlist", text="")
+            subRowCam.separator(factor=0.5)  # prevents stange look when panel is narrow
 
+            ####################
             # camera and lens
-
             cameraIsValid = shot.isCameraValid()
 
             row = box.row()
             row.separator(factor=0.5)
-            # c = row.column()
             grid_flow = row.grid_flow(align=False, columns=4, even_columns=False)
 
             if not cameraIsValid:
@@ -185,9 +198,6 @@ class UAS_PT_ShotManager_ShotProperties(Panel):
 
             rowCam = grid_flow.row(align=False)
             subRowCam = rowCam.row(align=True)
-            # subRowCam.scale_x = 0.7
-
-            #  subRowCam = rowCam.row(align=True)
             subRowCam.scale_x = 1.2
 
             grid_flow = subRowCam.grid_flow(align=True, columns=4, even_columns=False)
@@ -227,22 +237,25 @@ class UAS_PT_ShotManager_ShotProperties(Panel):
 
             box.separator(factor=0.5)
 
+            ####################
             # Output
             row = box.row()
             row.separator(factor=1.0)
-            c = row.column()
-            grid_flow = c.grid_flow(align=False, columns=3, even_columns=False)
-            grid_flow.label(text="Output: ")
-            grid_flow.label(
+            grid_flow = row.grid_flow(align=False, columns=3, even_columns=False)
+            rowCam = grid_flow.row(align=False)
+            subRowCam = rowCam.row(align=True)
+
+            subRowCam.label(text="Output: ")
+            subRowCam.label(
                 text="<Render Root Path> \\ "
                 + shot.getParentTake().getName_PathCompliant()
                 + " \\ "
                 + shot.getOutputMediaPath(providePath=False)
             )
-            grid_flow.operator(
+            subRowCam.operator(
                 "uas_shot_manager.open_explorer", emboss=True, icon_value=iconExplorer.icon_id, text=""
             ).path = shot.getOutputMediaPath()
-            row.separator(factor=0.5)  # prevents strange look when panel is narrow
+            subRowCam.separator(factor=0.5)  # prevents strange look when panel is narrow
 
             # row.prop ( context.props, "display_duration_in_shotlist", text = "" )
 
@@ -260,9 +273,9 @@ class UAS_PT_ShotManager_ShotProperties(Panel):
                 c = row.column()
                 # grid_flow = c.grid_flow(align=False, columns=3, even_columns=False)
                 subrow = c.row()
-                subrow.label(text="Notes:")
+                subrow.label(text="Shot Notes:")
                 subrow.prop(props, "display_notes_in_shotlist", text="")
-                subrow.separator(factor=0.5)  # prevents strange look when panel is narrow
+                #    subrow.separator(factor=0.5)
 
                 if prefs.shot_notes_extended:
                     row = box.row()
@@ -282,47 +295,13 @@ class UAS_PT_ShotManager_ShotProperties(Panel):
             ######################
             # Camera background images
             ######################
-
             if props.display_camerabgtools_in_properties and shot.camera is not None:
-                box = layout.box()
-                box.use_property_decorate = False
-                row = box.row()
-                # row.separator(factor=1.0)
-
-                subRow = row.row(align=True)
-                subRow.scale_x = 0.6
-                subRow.label(text="Camera BG:")
-                if len(shot.camera.data.background_images) and shot.camera.data.background_images[0].clip is not None:
-                    subRow = row.row(align=True)
-                    subRow.prop(shot.camera.data.background_images[0].clip, "filepath", text="")
-                    subRow.operator(
-                        "uas_shot_manager.remove_bg_images", text="", icon="PANEL_CLOSE", emboss=True
-                    ).shotIndex = props.getShotIndex(shot)
-                else:
-                    row.operator(
-                        "uas_shot_manager.openfilebrowser_for_cam_bg", text="", icon="ADD", emboss=True
-                    ).pathProp = "inputOverMediaPath"
-
-                if len(shot.camera.data.background_images):
-                    row = box.row()
-                    #    row.enabled = False
-                    row.separator(factor=1.0)
-                    row.prop(shot, "bgImages_linkToShotStart")
-                    row.prop(shot, "bgImages_offset")
-
-                if config.uasDebug:
-                    if shot.camera is not None and len(shot.camera.data.background_images):
-                        bgClip = shot.camera.data.background_images[0].clip
-                        row = box.row()
-                        row.separator(factor=1.0)
-                        row.label(
-                            text=f"BG Clip:  {bgClip.name},  start:  {bgClip.frame_start} fr.,  Sound track ind.: {shot.bgImages_sound_trackIndex}"
-                        )
+                cBG.draw_cameraBG_shot_properties(self, context, shot)
 
             ######################
             # Grease pencil
             ######################
-            if props.display_greasepencil_in_properties:
+            if props.display_greasepencil_in_properties and shot.camera is not None:
                 gp.draw_greasepencil_shot_properties(self, context, shot)
 
 

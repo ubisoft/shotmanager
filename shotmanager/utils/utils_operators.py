@@ -9,6 +9,23 @@ from bpy.types import Operator
 from bpy.props import StringProperty
 
 
+###################
+# UI
+###################
+
+# used as UI placeholder
+class UAS_OT_EmptyOperator(Operator):
+    bl_idname = "uas.empty_operator"
+    bl_label = " "
+    # bl_description = "Bla"
+    bl_options = {"INTERNAL"}
+
+    def invoke(self, context, event):
+        pass
+
+        return {"FINISHED"}
+
+
 class UAS_Utils_RunScript(Operator):
     bl_idname = "uas_utils.run_script"
     bl_label = "Run Script"
@@ -96,7 +113,12 @@ class UAS_Utils_GetCurrentFrameForTimeRange(Operator):
         return {"FINISHED"}
 
 
-_classes = (UAS_Utils_RunScript, UAS_ShotManager_OpenExplorer, UAS_Utils_GetCurrentFrameForTimeRange)
+_classes = (
+    UAS_OT_EmptyOperator,
+    UAS_Utils_RunScript,
+    UAS_ShotManager_OpenExplorer,
+    UAS_Utils_GetCurrentFrameForTimeRange,
+)
 
 
 def register():

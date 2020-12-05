@@ -174,7 +174,7 @@ class UAS_ShotManager_OT_EnableDisableGreasePencil(Operator):
 
     def invoke(self, context, event):
         prefs = context.preferences.addons["shotmanager"].preferences
-        bpy.ops.uas_shots_settings.use_greasepencil(useBackground=prefs.toggleGreasePencil)
+        bpy.ops.uas_shots_settings.use_greasepencil(useGreasepencil=prefs.toggleGreasePencil)
         prefs.toggleGreasePencil = not prefs.toggleGreasePencil
 
         return {"FINISHED"}

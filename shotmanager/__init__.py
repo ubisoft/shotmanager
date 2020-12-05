@@ -24,6 +24,7 @@ from .operators import playbar
 from .operators import shots_toolbar
 
 from .operators import prefs
+from .operators import features
 from .operators import about
 
 from .properties import props
@@ -409,6 +410,7 @@ def register():
     viewport_3d.register()
     videoshotmanager.register()
     prefs.register()
+    features.register()
     about.register()
 
     # rrs specific
@@ -476,6 +478,7 @@ def unregister():
 
     # ui
     about.unregister()
+    features.unregister()
     prefs.unregister()
     videoshotmanager.unregister()
     viewport_3d.unregister()

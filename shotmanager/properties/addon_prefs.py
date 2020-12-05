@@ -26,9 +26,21 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
     take_properties_extended: BoolProperty(
         name="Extend Take Properties", default=False,
     )
+    take_notes_extended: BoolProperty(
+        name="Extend Take Notes", default=False,
+    )
 
+    shot_properties_extended: BoolProperty(
+        name="Extend Shot Properties", default=True,
+    )
     shot_notes_extended: BoolProperty(
         name="Extend Shot Notes", default=False,
+    )
+    shot_cameraBG_extended: BoolProperty(
+        name="Extend Shot Camera BG", default=False,
+    )
+    shot_greasepencil_extended: BoolProperty(
+        name="Extend Shot Grease Pencil", default=False,
     )
 
     current_shot_changes_current_time: BoolProperty(
