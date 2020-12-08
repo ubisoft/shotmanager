@@ -389,7 +389,7 @@ class UAS_ShotManager_OT_Create_Shots_From_OTIO_RRS(Operator):
 
             self.refVideoTrackInd = 0
             if "PREVIZ" == self.importStepMode:
-                self.refVideoTrackInd = min(numVideoTracks - 1, 1)
+                self.refVideoTrackInd = min(numVideoTracks - 1, 0)
             print(
                 f"**** self.importStepMode: {self.importStepMode}, self.refVideoTrackInd: {self.refVideoTrackInd}, numVideoTracks: {numVideoTracks}"
             )

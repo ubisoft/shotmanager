@@ -18,13 +18,15 @@ def draw_cameraBG_shot_properties(sm_ui, context, shot):
     box = layout.box()
     box.use_property_decorate = False
     row = box.row()
-    row.prop(prefs, "shot_cameraBG_extended", text="", icon=panelIcon, emboss=False)
+    extendSubRow = row.row(align=True)
+    extendSubRow.prop(prefs, "shot_cameraBG_extended", text="", icon=panelIcon, emboss=False)
     # row.separator(factor=1.0)
 
     subRow = row.row(align=True)
     subRow.scale_x = 0.6
     subRow.label(text="Camera BG:")
     if not shotHasCamBG:
+        extendSubRow.enabled = False
         row.operator(
             "uas_shot_manager.openfilebrowser_for_cam_bg", text="", icon="ADD", emboss=True
         ).pathProp = "inputOverMediaPath"

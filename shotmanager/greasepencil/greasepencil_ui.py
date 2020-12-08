@@ -24,7 +24,8 @@ def draw_greasepencil_shot_properties(sm_ui, context, shot):
     box = layout.box()
     box.use_property_decorate = False
     row = box.row()
-    row.prop(prefs, "shot_greasepencil_extended", text="", icon=panelIcon, emboss=False)
+    extendSubRow = row.row(align=True)
+    extendSubRow.prop(prefs, "shot_greasepencil_extended", text="", icon=panelIcon, emboss=False)
     # row.separator(factor=1.0)
 
     subRow = row.row(align=False)
@@ -32,7 +33,7 @@ def draw_greasepencil_shot_properties(sm_ui, context, shot):
     subRow.label(text="Grease Pencil:")
 
     if gp_child is None:
-
+        extendSubRow.enabled = False
         row.operator(
             "uas_shot_manager.add_grease_pencil", text="", icon="ADD", emboss=True
         ).cameraGpName = shot.camera.name

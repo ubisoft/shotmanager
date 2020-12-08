@@ -121,7 +121,7 @@ def rrs_animatic_to_vsm(editVideoFile=None, otioFile=None, montageOtio=None, imp
             if importMarkers and "" != otioFile and Path(otioFile).exists():
                 config.gMontageOtio = MontageOtio()
                 config.gMontageOtio.fillMontageInfoFromOtioFile(
-                    otioFile=otioFile, refVideoTrackInd=1, verboseInfo=False
+                    otioFile=otioFile, refVideoTrackInd=0, verboseInfo=False
                 )
 
                 config.gSeqEnumList = list()
@@ -137,7 +137,7 @@ def rrs_animatic_to_vsm(editVideoFile=None, otioFile=None, montageOtio=None, imp
 def getSoundFilesForEachShot(montageOtio, seqName, otioFile):
     if montageOtio is None:
         config.gMontageOtio = MontageOtio()
-        config.gMontageOtio.fillMontageInfoFromOtioFile(otioFile=otioFile, refVideoTrackInd=1, verboseInfo=False)
+        config.gMontageOtio.fillMontageInfoFromOtioFile(otioFile=otioFile, refVideoTrackInd=0, verboseInfo=False)
     seq = config.gMontageOtio.get_sequence_by_name(seqName)
     print(f" here seq sound name avant")
     soundsDict = dict()

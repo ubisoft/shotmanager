@@ -155,7 +155,7 @@ class UAS_VideoShotManager_OT_RRS_ExportShotsFromEdit(Operator):
         if "" != self.otioFile and Path(self.otioFile).exists():
             config.gMontageOtio = MontageOtio()
             config.gMontageOtio.fillMontageInfoFromOtioFile(
-                otioFile=self.otioFile, refVideoTrackInd=1, verboseInfo=False
+                otioFile=self.otioFile, refVideoTrackInd=0, verboseInfo=False
             )
 
             config.gSeqEnumList = list()
@@ -307,7 +307,7 @@ class UAS_VideoShotManager_OT_RRS_CheckSequence(Operator):
         if self.importMarkers and "" != self.otioFile and Path(self.otioFile).exists():
             config.gMontageOtio = MontageOtio()
             config.gMontageOtio.fillMontageInfoFromOtioFile(
-                otioFile=self.otioFile, refVideoTrackInd=1, verboseInfo=False
+                otioFile=self.otioFile, refVideoTrackInd=0, verboseInfo=False
             )
 
             config.gSeqEnumList = list()

@@ -45,10 +45,11 @@ class UAS_ShotManager_Features(Operator):
 
         ################
         # Grease Pencil
-        subrow = col.row()
-        subrow.scale_x = 1.5
-        subrow.prop(props, "display_greasepencil_in_properties", text="", icon="OUTLINER_OB_GREASEPENCIL")
-        subrow.label(text="Grease Pencil")
+        if config.uasDebug:
+            subrow = col.row()
+            subrow.scale_x = 1.5
+            subrow.prop(props, "display_greasepencil_in_properties", text="", icon="OUTLINER_OB_GREASEPENCIL")
+            subrow.label(text="Camera Grease Pencil")
 
         layout.separator()
         layout.label(text="Display additionnal panels:")
