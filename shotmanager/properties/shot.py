@@ -1,6 +1,7 @@
 import bpy
 
 from bpy.types import Scene
+from bpy.types import Sound
 from bpy.types import PropertyGroup
 from bpy.props import StringProperty, IntProperty, BoolProperty, PointerProperty, FloatVectorProperty
 
@@ -146,6 +147,11 @@ class UAS_ShotManager_Shot(ShotInterface, PropertyGroup):
         default=True,
         options=set(),
     )
+
+    def selectShotInUI(self):
+        currentTakeInd = self.parentScene.UAS_shot_manager_props.getCurrentTakeIndex()
+        if currentTakeInd == self.getParentTakeIndex():
+            self.parentScene.UAS_shot_manager_props.setSelectedShot(self)
 
     #############
     # start #####
@@ -460,12 +466,16 @@ class UAS_ShotManager_Shot(ShotInterface, PropertyGroup):
         default=0,
     )
 
-    def selectShotInUI(self):
-        currentTakeInd = self.parentScene.UAS_shot_manager_props.getCurrentTakeIndex()
-        if currentTakeInd == self.getParentTakeIndex():
-            self.parentScene.UAS_shot_manager_props.setSelectedShot(self)
+    ##############
+    # background sounds
+    ##############
 
     bgImages_sound_trackIndex: IntProperty(name="Sound Track Index", min=-1, max=32, default=-1)
+    bgSoundClip: PointerProperty(type=Sound)
+
+    def enableBGSound(self, useBgSound):
+        if self.bgSoundClip is not None:
+            bgSoundClip.mute = not useBgSound
 
     #############
     # notes #####

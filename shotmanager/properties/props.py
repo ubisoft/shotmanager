@@ -337,8 +337,10 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
     display_enabled_in_shotlist: BoolProperty(name="Display Enabled State in Shot List", default=True, options=set())
 
     display_cameraBG_in_shotlist: BoolProperty(name="Display Camera BG in Shot List", default=False, options=set())
-    display_greasepencil_in_shotlist: BoolProperty(name="Display Grease Pencil in Shot List", default=False, options=set())
-    
+    display_greasepencil_in_shotlist: BoolProperty(
+        name="Display Grease Pencil in Shot List", default=False, options=set()
+    )
+
     display_getsetcurrentframe_in_shotlist: BoolProperty(
         name="Display Get/Set current Frame Buttons in Shot List", default=True, options=set()
     )
@@ -1557,7 +1559,10 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
                 # area.spaces[0].use_local_camera = False
                 # area.spaces[0].region_3d.view_perspective = "CAMERA"
 
-            # bpy.context.scene.objects["Camera_Sapin"]
+                # wkip use if
+        #     self.enableBGSoundForShot()
+
+        # bpy.context.scene.objects["Camera_Sapin"]
 
     def setCurrentShot(self, currentShot, changeTime=None, area=None):
         shotInd = self.getShotIndex(currentShot)
@@ -1814,6 +1819,17 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         bpy.ops.object.delete()
 
         return deleteOk
+
+    def enableBGSoundForShot(self, useBgSound, shot):
+        """ Turn off all the sounds of all the shots of all the takes and enable only the one of the specified shot
+        """
+        scene = props.parentScene
+        for clip in scene.sequence_editor.sequences:
+            clip.mute = True
+
+        if shot is not None:
+            if shot.bgSoundClip is not None:
+                bgSoundClip.mute = not useBgSound
 
     ###############
     # functions working only on current take !!!

@@ -270,7 +270,7 @@ class UAS_VideoShotManager_OT_RRS_ExportShotsFromEdit(Operator):
 class UAS_VideoShotManager_OT_RRS_CheckSequence(Operator):
     bl_idname = "uas_video_shot_manager.rrs_check_sequence"
     bl_label = "Check Sequence..."
-    bl_description = "Bla bla"
+    bl_description = "Import the animatic of the scpecified act into the VSE"
     bl_options = {"INTERNAL", "UNDO"}
 
     overlayFile: StringProperty(default=r"C:\_UAS_ROOT\RRSpecial\00_Common\Images\RRS_EditPreviz_Overlay.png")

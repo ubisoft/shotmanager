@@ -352,6 +352,9 @@ def launchRenderWithVSEComposite(
 
             _deleteTempFiles(newTempRenderPath)
 
+            # wkip if bg sounds used
+            #  props.enableBGSoundForShot()
+
             # set scene as current
             context.window.scene = scene
             #     props.setCurrentShotByIndex(i)
