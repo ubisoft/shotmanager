@@ -1540,27 +1540,30 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
 
         if -1 < currentShotIndex and len(shotList) > currentShotIndex:
             prefs = bpy.context.preferences.addons["shotmanager"].preferences
+            currentShot = shotList[currentShotIndex]
 
             if changeTime is None:
                 if prefs.current_shot_changes_current_time:
-                    scene.frame_current = shotList[currentShotIndex].start
+                    scene.frame_current = currentShot.start
             elif changeTime:
-                scene.frame_current = shotList[currentShotIndex].start
+                scene.frame_current = currentShot.start
 
             if prefs.current_shot_changes_time_range and scene.use_preview_range:
                 bpy.ops.uas_shot_manager.scenerangefromshot()
 
-            if shotList[currentShotIndex].camera is not None and bpy.context.screen is not None:
+            if currentShot.camera is not None and bpy.context.screen is not None:
                 # set the current camera in the 3D view: [‘PERSP’, ‘ORTHO’, ‘CAMERA’]
-                scene.camera = shotList[currentShotIndex].camera
+                scene.camera = currentShot.camera
                 utils.setCurrentCameraToViewport(bpy.context, area)
                 # area = next(area for area in bpy.context.screen.areas if area.type == "VIEW_3D")
 
                 # area.spaces[0].use_local_camera = False
                 # area.spaces[0].region_3d.view_perspective = "CAMERA"
 
-                # wkip use if
-        #     self.enableBGSoundForShot()
+            # wkip use if
+            # if prefs.toggleCamsSoundBG:
+            # self.enableBGSoundForShot(prefs.toggleCamsSoundBG, currentShot)
+            self.enableBGSoundForShot(True, currentShot)
 
         # bpy.context.scene.objects["Camera_Sapin"]
 
@@ -1820,15 +1823,34 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
 
         return deleteOk
 
+    ###############
+    # sounds BG
+    ###############
+
+    useBGSounds: BoolProperty(default=True)
+
+    def addBGSoundToShot(self, sound_path, shot):
+        scene = self.parentScene
+        vse_render = bpy.context.window_manager.UAS_vse_render
+        channelInd = 2
+        clipName = "myBGSound"
+        newClipInVSE = vse_render.createNewClip(
+            scene, str(sound_path), channelInd, 0, importVideo=False, importAudio=True, clipName=clipName,
+        )
+
+        shot.bgSoundClipName = newClipInVSE.name
+
     def enableBGSoundForShot(self, useBgSound, shot):
         """ Turn off all the sounds of all the shots of all the takes and enable only the one of the specified shot
         """
-        scene = props.parentScene
+        # print("----++++ enableBGSoundForShot")
+        scene = self.parentScene
         for clip in scene.sequence_editor.sequences:
             clip.mute = True
 
-        if shot is not None:
-            if shot.bgSoundClip is not None:
+        if self.useBGSounds and shot is not None:
+            bgSoundClip = shot.getSoundSequence()
+            if bgSoundClip is not None:
                 bgSoundClip.mute = not useBgSound
 
     ###############

@@ -71,20 +71,6 @@ class UAS_ShotManager_EnableDisableAll(Operator):
         return {"FINISHED"}
 
 
-class UAS_ShotManager_EnableDisableCamsBG(Operator):
-    bl_idname = "uas_shot_manager.enabledisablecamsbg"
-    bl_label = "Enable / Disable Camera Backgrounds"
-    bl_description = "Alternatively enable or disable the background image of the cameras used by the shots"
-    bl_options = {"INTERNAL", "UNDO"}
-
-    def invoke(self, context, event):
-        prefs = context.preferences.addons["shotmanager"].preferences
-        bpy.ops.uas_shots_settings.use_background(useBackground=prefs.toggleCamsBG)
-        prefs.toggleCamsBG = not prefs.toggleCamsBG
-
-        return {"FINISHED"}
-
-
 class UAS_ShotManager_SceneRangeFromShot(Operator):
     bl_idname = "uas_shot_manager.scenerangefromshot"
     bl_label = "Scene Range From Shot"
@@ -149,7 +135,6 @@ class UAS_ShotManager_SceneRangeFrom3DEdit(Operator):
 
 _classes = (
     UAS_ShotManager_EnableDisableAll,
-    UAS_ShotManager_EnableDisableCamsBG,
     #   UAS_ShotManager_LockCamToView,
     UAS_ShotManager_SceneRangeFromShot,
     #    UAS_ShotManager_SceneRangeFromEnabledShots,

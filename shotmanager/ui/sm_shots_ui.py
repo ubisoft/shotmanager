@@ -1,14 +1,11 @@
-import os
 import json
 
 import bpy
-from bpy.types import Panel, Operator, Menu
-from bpy.props import StringProperty, IntProperty
+from bpy.types import Menu
 
 from shotmanager.config import config
 from shotmanager.utils import utils
 
-from shotmanager.greasepencil import greasepencil_ui as gp
 import logging
 
 _logger = logging.getLogger(__name__)
@@ -85,13 +82,15 @@ class UAS_UL_ShotManager_Items(bpy.types.UIList):
             if props.display_cameraBG_in_shotlist:
                 row = row.row(align=True)
                 row.scale_x = 1.0
-                row.operator("uas.empty_operator", text="", icon="BLANK1")
+                icon = "VIEW_CAMERA" if item.hasBGImage() else "BLANK1"
+                row.operator("uas.empty_operator", text="", icon=icon)
                 row.scale_x = 0.9
 
             if props.display_greasepencil_in_shotlist:
                 row = row.row(align=True)
                 row.scale_x = 1.0
-                row.operator("uas.empty_operator", text="", icon="BLANK1")
+                icon = "OUTLINER_OB_GREASEPENCIL" if item.hasGreasePencil() else "BLANK1"
+                row.operator("uas.empty_operator", text="", icon=icon)
                 row.scale_x = 0.9
 
             if props.display_color_in_shotlist:
@@ -274,89 +273,6 @@ class UAS_UL_ShotManager_Items(bpy.types.UIList):
                 grid_flow.operator("uas_shot_manager.nolens", text="-").index = index
                 grid_flow.alert = False
             grid_flow.scale_x = 1.0
-
-
-class UAS_ShotManager_OpenDialogForCamBG(Operator):
-    bl_idname = "uas_shot_manager.opendialog_for_cam_bg"
-    bl_label = "Add Camera Background"
-    bl_description = "Add an image or video to the shot to use it as camera background"
-    bl_options = {"INTERNAL", "UNDO"}
-
-    filepath: StringProperty(subtype="FILE_PATH")
-
-    filter_glob: StringProperty(default="*.mov;*.mp4", options={"HIDDEN"})
-
-    importSoundFromVideo: IntProperty(name="Import Sound", default=True)
-
-    def invoke(self, context, event):  # See comments at end  [1]
-        wm = context.window_manager
-        scene = context.scene
-        props = scene.UAS_shot_manager_props
-
-        wm.invoke_props_dialog(self, width=500)
-
-        return {"RUNNING_MODAL"}
-
-    def draw(self, context):
-        scene = context.scene
-        props = scene.UAS_shot_manager_props
-        layout = self.layout
-        box = layout.box()
-
-        # box.label(text="otot")
-        box.prop(self, "filepath")
-        box.prop(self, "importSoundFromVideo")
-
-    def execute(self, context):
-        """Use the selected file as a stamped logo"""
-        #  filename, extension = os.path.splitext(self.filepath)
-        #   print('Selected file:', self.filepath)
-        #   print('File name:', filename)
-        #   print('File extension:', extension)
-        props = context.scene.UAS_shot_manager_props
-        shot = props.getCurrentShot()
-
-        # start frame of the background video is not set here since it will be linked to the shot start frame
-        utils.add_background_video_to_cam(
-            shot.camera.data, str(self.filepath), 0, alpha=props.shotsGlobalSettings.backgroundAlpha
-        )
-
-        shot.bgImages_linkToShotStart = shot.bgImages_linkToShotStart
-        shot.bgImages_offset = shot.bgImages_offset
-
-        return {"FINISHED"}
-
-
-# This operator requires   from bpy_extras.io_utils import ImportHelper
-# See https://sinestesia.co/blog/tutorials/using-blenders-filebrowser-with-python/
-class UAS_ShotManager_OpenFileBrowserForCamBG(Operator):  # from bpy_extras.io_utils import ImportHelper
-    bl_idname = "uas_shot_manager.openfilebrowser_for_cam_bg"
-    bl_label = "Camera Background"
-    bl_description = "Open a file browser to define the image or video to use as camera background"
-    bl_options = {"INTERNAL", "UNDO"}
-
-    pathProp: StringProperty()
-
-    filepath: StringProperty(subtype="FILE_PATH")
-
-    filter_glob: StringProperty(default="*.mov;*.mp4", options={"HIDDEN"})
-
-    def invoke(self, context, event):  # See comments at end  [1]
-
-        context.window_manager.fileselect_add(self)
-
-        return {"RUNNING_MODAL"}
-
-    def execute(self, context):
-        """Open image or video file """
-        filename, extension = os.path.splitext(self.filepath)
-        print("ex Selected file:", self.filepath)
-        # print("ex File name:", filename)
-        # print("ex File extension:", extension)
-
-        bpy.ops.uas_shot_manager.opendialog_for_cam_bg("INVOKE_DEFAULT", filepath=self.filepath)
-
-        return {"FINISHED"}
 
 
 #################
@@ -582,8 +498,6 @@ class UAS_MT_ShotManager_Shots_ToolsMenu(Menu):
 classes = (
     UAS_UL_ShotManager_Items,
     UAS_MT_ShotManager_Shots_ToolsMenu,
-    UAS_ShotManager_OpenDialogForCamBG,
-    UAS_ShotManager_OpenFileBrowserForCamBG,
 )
 
 

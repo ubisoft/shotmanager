@@ -161,13 +161,11 @@ class UAS_ShotsSettings_UseBackgroundSound(Operator):
     def execute(self, context):
         props = context.scene.UAS_shot_manager_props
 
-        take = props.getCurrentTake()
-        shotList = take.getShotList(ignoreDisabled=False)
-        # wkip
-        for shot in shotList:
-            if shot.enabled or props.shotsGlobalSettings.alsoApplyToDisabledShots:
-                if shot.camera is not None:
-                    shot.camera.data.show_background_images = self.useBackgroundSound
+        props.useBGSounds = self.useBackgroundSound
+        # if self.useBackgroundSound:
+        props.enableBGSoundForShot(True, props.getCurrentShot())
+        # else:
+        #     props.enableBGSoundForShot(False, None)
 
         return {"FINISHED"}
 

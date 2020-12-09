@@ -15,6 +15,9 @@ from .handlers import jump_to_shot
 
 from . import otio
 
+from .features import cameraBG
+from .features import greasepencil
+
 from .operators import takes
 from .operators import shots
 from .operators import shots_global_settings
@@ -33,7 +36,6 @@ from .properties import addon_prefs
 from .retimer import retimer_ui
 from .retimer import retimer_props
 
-from . import greasepencil
 
 from . import rendering
 from .rendering import rendering_ui
@@ -384,6 +386,7 @@ def register():
 
     # operators
     # markers_nav_bar_addon_prefs.register()
+    cameraBG.register()
     greasepencil.register()
     markers_nav_bar.register()
     utils_get_set_current_time.register()
@@ -506,6 +509,7 @@ def unregister():
     utils_get_set_current_time.unregister()
     markers_nav_bar.unregister()
     greasepencil.unregister()
+    cameraBG.unregister()
     #   markers_nav_bar_addon_prefs.unregister()
 
     addon_prefs.unregister()

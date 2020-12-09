@@ -5,7 +5,8 @@ from bpy.props import StringProperty
 from shotmanager.config import config
 from shotmanager.utils import utils
 
-from shotmanager.greasepencil import greasepencil_ui as gp
+from shotmanager.features.greasepencil import greasepencil_ui as gp
+
 import logging
 
 _logger = logging.getLogger(__name__)

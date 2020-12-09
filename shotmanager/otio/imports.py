@@ -1036,7 +1036,8 @@ def conformToRefMontage(
         if shotSelf is not None:
             if shotSelf.camera is not None:
                 # print(f"--- Adding BG to: {shotSelf.get_name()}")
-                utils.remove_background_video_from_cam(shotSelf.camera.data)
+                # utils.remove_background_video_from_cam(shotSelf.camera.data)
+                shotSelf.removeBGImages()
 
                 if useMediaAsCameraBG:
                     media_path = Path(videoShotsFolder + "/" + shotRef.get_name())
@@ -1090,19 +1091,27 @@ def conformToRefMontage(
                         # if not media_path.exists():
                         #     print(f"** Edit video shot not found for VSE: {media_path}")
                         # else:
-                        trackInd = 4 + shotIndForBGCam
-                        newClipInVSE = vse_render.createNewClip(
-                            scene,
-                            str(media_path),
-                            trackInd,
-                            # shotRef.get_frame_final_start(),  # shotSelf.start + offsetFrameNumber
-                            shotSelf.start,
-                            importVideo=False,
-                            importAudio=True,
-                            clipName=shotRefName,
-                        )
-                        if newClipInVSE is not None:
-                            shotSelf.bgImages_sound_trackIndex = newClipInVSE.channel
+
+                        #####################
+                        # trackInd = 4 + shotIndForBGCam
+                        # newClipInVSE = vse_render.createNewClip(
+                        #     scene,
+                        #     str(media_path),
+                        #     trackInd,
+                        #     # shotRef.get_frame_final_start(),  # shotSelf.start + offsetFrameNumber
+                        #     shotSelf.start,
+                        #     importVideo=False,
+                        #     importAudio=True,
+                        #     clipName=shotRefName,
+                        # )
+                        # if newClipInVSE is not None:
+                        #     shotSelf.bgImages_sound_trackIndex = newClipInVSE.channel
+
+                        props.addBGSoundToShot(str(media_path), shotSelf)
+
+                        # refresh properties and their update function
+                        shotSelf.bgImages_linkToShotStart = shotSelf.bgImages_linkToShotStart
+                        shotSelf.bgImages_offset = shotSelf.bgImages_offset
 
                         shotIndForBGCam += 1
                         pass

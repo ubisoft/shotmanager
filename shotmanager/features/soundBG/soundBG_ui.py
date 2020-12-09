@@ -6,7 +6,7 @@ from shotmanager.utils import utils
 from shotmanager.config import config
 
 
-def draw_cameraBG_shot_properties(sm_ui, context, shot):
+def draw_soundBG_shot_properties(sm_ui, context, shot):
     layout = sm_ui.layout
     props = context.scene.UAS_shot_manager_props
     prefs = context.preferences.addons["shotmanager"].preferences
