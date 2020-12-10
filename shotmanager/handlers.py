@@ -46,9 +46,12 @@ def jump_to_shot(scene):
         not_scrubbing = bpy.context.screen.is_animation_playing
 
     if not_scrubbing:
-        if current_frame == scene_frame_end and get_previous_shot ( shotList, current_shot ) is None:
-            props.setCurrentShot ( shotList[ -1 ] )
-            scene.frame_current = shotList[ -1 ].end
+        # Order of if clauses is very important.
+
+        if current_frame == scene_frame_end and get_previous_shot ( shotList, current_shot ) is None: # While backward playing if we hit the last frame and we are playing the first shot jump to the last shot.
+            last_enabled = [ s for s in shotList if s.enabled ][ -1 ]
+            props.setCurrentShot ( last_enabled )
+            scene.frame_current = last_enabled.end
         elif current_frame > current_shot_end:
             disp = current_frame - current_shot_end
             next_shot = get_next_shot  ( shotList, current_shot )
@@ -61,10 +64,10 @@ def jump_to_shot(scene):
                 next_shot = get_next_shot  ( shotList, next_shot )
             else:
                 # Scene end is farther than the last shot so loop back.
-                props.setCurrentShot ( shotList[ 0 ] )
-        elif current_frame == scene_frame_start and get_next_shot  ( shotList, current_shot ) is None: # Loop back at start.
+                props.setCurrentShot ( [ s for s in shotList if s.enabled ][ 0 ] )
+        elif current_frame == scene_frame_start and get_next_shot  ( shotList, current_shot ) is None: # While forward playing if we hit the first frame and we are playing the last shot jump to the first shot.
             # Seems that the first frame is always hit even in frame dropping playblack
-            props.setCurrentShot ( shotList[ 0 ] )
+            props.setCurrentShot ( [ s for s in shotList if s.enabled ][ 0 ] )
         elif current_frame < current_shot_start:
             disp = current_shot_start - current_frame
             previous_shot = get_previous_shot ( shotList, current_shot )
@@ -74,11 +77,12 @@ def jump_to_shot(scene):
                     scene.frame_current = previous_shot.end - disp
                     break
                 disp -= previous_shot.getDuration ( )
-                previous_shot = get_next_shot ( shotList, previous_shot )
+                previous_shot = get_previous_shot ( shotList, previous_shot )
             else:
                 # Scene end is farther than the first shot so loop back.
-                props.setCurrentShot ( shotList[ -1 ] )
-                scene.frame_current = shotList[ -1 ].end
+                last_enabled = [ s for s in shotList if s.enabled ][ -1 ]
+                props.setCurrentShot ( last_enabled )
+                scene.frame_current = last_enabled.end
     else:
         # User is scrubbing in the timeline so try to guess a shot in the range of the timeline.
         if not ( current_shot.start <= current_frame <= current_shot.end ):
