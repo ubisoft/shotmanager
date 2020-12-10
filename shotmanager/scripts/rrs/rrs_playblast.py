@@ -154,7 +154,9 @@ def getSoundFilesForEachShot(montageOtio, seqName, otioFile):
     return soundsDict
 
 
-def rrs_sequence_to_vsm(scene):
+def rrs_sequence_to_vsm(scene, sequenceName):
+    """Import specified sequence video to the VSM
+    """
     vse_render = bpy.context.window_manager.UAS_vse_render
     props = scene.UAS_shot_manager_props
     vsm_props = scene.UAS_vsm_props
@@ -167,7 +169,7 @@ def rrs_sequence_to_vsm(scene):
     # selSeq.printInfo()
 
     sequenceClip = None
-    sequenceName = bpy.data.scenes[0].name
+    # sequenceName = bpy.data.scenes[0].name
     # wkip mettre un RE match ici
     act = sequenceName[0:5]
     filePath = (

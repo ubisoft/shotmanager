@@ -478,12 +478,13 @@ class UAS_VideoShotManager_ImportPublishedSequence(Operator):
         config.gSeqEnumList = list()
         for i, m in enumerate(previzMarkers):
             if utils_rrs.start_with_seq(m.name):
-                seqName = m.name[6:13]
-                print(f"Marker seq name: {seqName}")
+                seqName = m.name[0:13]
+                seqNameShort = m.name[6:13]
                 if seqName not in seqNames:
                     seqNames.append(seqName)
                     seqInd += 1
-                    config.gSeqEnumList.append((str(seqInd), seqName, f"Import sequence {seqName}", seqInd + 1))
+                    # config.gSeqEnumList.append((str(seqInd), seqName, f"Import sequence {seqName}", seqInd + 1))
+                    config.gSeqEnumList.append((seqName, seqNameShort, f"Import sequence {seqName}", seqInd + 1))
                     if seqName == currentSeqName:
                         currentSeqIndex = seqInd
                         # strDebug += " - Is current sequence !"
@@ -528,8 +529,13 @@ class UAS_VideoShotManager_ImportPublishedSequence(Operator):
         #     labelText = f"Start: {-1}, End: {-1}, Num Shots: {0}"
 
     def execute(self, context):
-        rrs_sequence_to_vsm(context.scene)
-
+        seqToImport = self.sequenceList
+        # seqToImport = config.gSeqEnumList[self.sequenceList][1]
+        print("seq list to import:", seqToImport)
+        success = rrs_sequence_to_vsm(context.scene, seqToImport)
+        if not success:
+            utils.ShowMessageBox(f"Sequence {seqToImport} cannot be loaded", "Cannot load sequence", "ERROR")
+            return {"CANCELLED"}
         return {"FINISHED"}
 
 

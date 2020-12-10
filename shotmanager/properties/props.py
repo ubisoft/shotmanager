@@ -202,8 +202,8 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
     #############
 
     rrs_useRenderRoot: BoolProperty(name="Use Render Root", default=True)
-    rrs_fileListOnly: BoolProperty(name="File List Only", default=False)
     rrs_rerenderExistingShotVideos: BoolProperty(name="Force Re-render", default=True)
+    rrs_fileListOnly: BoolProperty(name="File List Only", default=True)
     rrs_renderAlsoDisabled: BoolProperty(name="Render Also Disabled", default=False)
 
     # project settings
@@ -1829,10 +1829,10 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
 
     useBGSounds: BoolProperty(default=True)
 
-    def addBGSoundToShot(self, sound_path, shot):
+    def addBGSoundToShot(self, sound_path, shot, channelIndex=1):
         scene = self.parentScene
         vse_render = bpy.context.window_manager.UAS_vse_render
-        channelInd = 2
+        channelInd = max(1, min(32, channelIndex))
         clipName = "myBGSound"
         newClipInVSE = vse_render.createNewClip(
             scene, str(sound_path), channelInd, 0, importVideo=False, importAudio=True, clipName=clipName,

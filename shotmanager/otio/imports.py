@@ -91,7 +91,7 @@ def importTrack(track, trackInd, track_type, timeRange=None, offsetFrameNumber=0
             _logger.debug(f"   and new media_path: {media_path}")
 
         if not media_path.exists():
-            print(f"    *** Media not found: {media_path}")
+            print(f"    *** Media still not found: {media_path}")
         else:
             media_path = str(media_path)
 
@@ -1107,7 +1107,8 @@ def conformToRefMontage(
                         # if newClipInVSE is not None:
                         #     shotSelf.bgImages_sound_trackIndex = newClipInVSE.channel
 
-                        props.addBGSoundToShot(str(media_path), shotSelf)
+                        trackInd = 4 + shotIndForBGCam
+                        props.addBGSoundToShot(str(media_path), shotSelf, channelIndex=trackInd)
 
                         # refresh properties and their update function
                         shotSelf.bgImages_linkToShotStart = shotSelf.bgImages_linkToShotStart

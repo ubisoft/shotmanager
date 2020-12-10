@@ -122,13 +122,30 @@ def publishRRS(
         return False
 
     props = scene.UAS_shot_manager_props
-    if (
-        not len(props.getTakes())
-        or len(props.getTakes()) <= takeIndex
-        or (not len(props.getTakes()[takeIndex].getShotList(ignoreDisabled=True)))
-    ):
-        print("No take or no shots to render - Aborting Publish")
-        return False
+    # _logger.debug(
+    #     f" + len takes: {len(props.getTakes())}, takeInd: {takeIndex}, len truc: {len(props.getTakes()[takeIndex].getShotList(ignoreDisabled=True))}"
+    # )
+
+    # if (
+    #     not len(props.getTakes())
+    #     or len(props.getTakes()) <= takeIndex
+    #     or (not len(props.getTakes()[takeIndex].getShotList(ignoreDisabled=True)))
+    # ):
+
+    takeInd = 0 if -1 == takeIndex else takeIndex
+
+    if not len(props.getTakes()):
+        errorStr = "No take found to render - Aborting Publish"
+        print(errorStr)
+        return errorStr
+    elif len(props.getTakes()) <= takeInd:
+        errorStr = "Take index higher than the number of takes - Aborting Publish"
+        print(errorStr)
+        return errorStr
+    elif not len(props.getTakes()[takeInd].getShotList(ignoreDisabled=True)):
+        errorStr = f"No take or no shots to render in take {props.getTakes()[takeInd].name} - Aborting Publish"
+        print(errorStr)
+        return errorStr
 
     print("\n---------------------------------------------------------")
     print(" -- * publishRRS * --\n\n")
@@ -171,7 +188,7 @@ def publishRRS(
     renderedFilesDict = rendering.launchRenderWithVSEComposite(
         bpy.context,
         renderPreset=None,
-        takeIndex=takeIndex,
+        takeIndex=takeInd,
         filePath=renderDir,
         fileListOnly=fileListOnly,
         rerenderExistingShotVideos=rerenderExistingShotVideos,
@@ -189,7 +206,7 @@ def publishRRS(
     bpy.context.window.scene = scene
     print("publish RRS")
     renderedOtioFile = exportShotManagerEditToOtio(
-        scene, takeIndex=takeIndex, filePath=renderDir, fileListOnly=fileListOnly
+        scene, takeIndex=takeInd, filePath=renderDir, fileListOnly=fileListOnly
     )
     renderedFilesDict["edl_files"] = [renderedOtioFile]
 
