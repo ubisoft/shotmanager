@@ -86,7 +86,7 @@ class UAS_PT_VideoShotManager(Panel):
             subRow.alert = True
             subRow.label(text=" " + ("  Debug  " if config.uasDebug else ""))
 
-        # row = layout.row()
+        row = layout.row()
         vseFirstFrame = scene.frame_start
         if vseFirstFrame != 0:
             # wkip RRS Specific

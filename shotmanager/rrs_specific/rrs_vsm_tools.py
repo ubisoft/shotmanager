@@ -112,7 +112,7 @@ class UAS_PT_RRSVSMTools(Panel):
 
         row = box.row(align=True)
         row.operator_context = "INVOKE_DEFAULT"
-        row.operator("uas_video_shot_manager.rrs_export_sounds_per_shot")
+        #   row.operator("uas_video_shot_manager.rrs_export_sounds_per_shot")
         layout.separator(factor=1)
 
 
@@ -539,17 +539,17 @@ class UAS_VideoShotManager_ImportPublishedSequence(Operator):
         return {"FINISHED"}
 
 
-class UAS_VideoShotManager_OT_RRS_ExportAllSoundsPerShot(Operator):
-    bl_idname = "uas_video_shot_manager.rrs_export_sounds_per_shot"
-    bl_label = "Export Sounds Per Shot"
-    bl_description = "Bla bla"
-    bl_options = {"INTERNAL", "UNDO"}
+# class UAS_VideoShotManager_OT_RRS_ExportAllSoundsPerShot(Operator):
+#     bl_idname = "uas_video_shot_manager.rrs_export_sounds_per_shot"
+#     bl_label = "Export Sounds Per Shot"
+#     bl_description = "Bla bla"
+#     bl_options = {"INTERNAL", "UNDO"}
 
-    def execute(self, context):
-        soundsPerShot = getSoundFilesForEachShot(config.gMontageOtio, "Act01_Seq0100", otioFile)
-        print("soundsPerShot: ", soundsPerShot)
+#     def execute(self, context):
+#         soundsPerShot = getSoundFilesForEachShot(config.gMontageOtio, "Act01_Seq0100", otioFile)
+#         print("soundsPerShot: ", soundsPerShot)
 
-        return {"FINISHED"}
+#         return {"FINISHED"}
 
 
 _classes = (
@@ -558,7 +558,7 @@ _classes = (
     UAS_VideoShotManager_GoToSequenceScene,
     UAS_VideoShotManager_ImportPublishedSequence,
     UAS_PT_RRSVSMTools,
-    UAS_VideoShotManager_OT_RRS_ExportAllSoundsPerShot,
+    # UAS_VideoShotManager_OT_RRS_ExportAllSoundsPerShot,
 )
 
 

@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 
 import bpy
@@ -313,6 +314,7 @@ class UAS_VideoShotManager_OT_ExportContentbetweenMarkers(Operator):
     exportAsVideoFiles: BoolProperty(name="Export as Video Files", default=True)
     exportVideosWithSound: BoolProperty(name="With Sound", default=True)
     exportAsAudioFiles: BoolProperty(name="Export as Audio Files", default=True)
+    exportEditSoundtracks: BoolProperty(name="Export Edit Sound Tracks", default=True)
 
     def invoke(self, context, event):
 
@@ -334,6 +336,8 @@ class UAS_VideoShotManager_OT_ExportContentbetweenMarkers(Operator):
         row.prop(self, "exportVideosWithSound")
         row = layout.row()
         row.prop(self, "exportAsAudioFiles")
+        row = layout.row()
+        row.prop(self, "exportEditSoundtracks")
 
     def execute(self, context):
         scene = context.scene
@@ -359,13 +363,14 @@ class UAS_VideoShotManager_OT_ExportContentbetweenMarkers(Operator):
 
         markers = utils.sortMarkers(scene.timeline_markers)
 
+        # print(f"markers: {markers}")
         if self.exportAsVideoFiles:
             print(f"\n * Exporting video files:")
             for i, mrk in enumerate(markers):
                 if self.start <= markers[i].frame <= self.end:
                     if i < len(markers) - 1:
                         if self.start <= markers[i + 1].frame <= self.end:
-                            print(f"{i} Marker name: {mrk.name}")
+                            #    print(f"{i} Marker name: {mrk.name}")
                             scene.frame_start = markers[i].frame
                             scene.frame_end = markers[i + 1].frame - 1
                             scene.render.filepath = self.outputDir + "/" + mrk.name + ".mp4"
@@ -381,7 +386,7 @@ class UAS_VideoShotManager_OT_ExportContentbetweenMarkers(Operator):
                     if i < len(markers) - 1:
                         #       print(f"{i} if 02 - Marker name: {mrk.name}, {self.start}, {markers[i + 1].frame}, {self.end}")
                         if self.start <= markers[i + 1].frame <= self.end:
-                            print(f"{i} Marker name: {mrk.name}")
+                            #    print(f"{i} Marker name: {mrk.name}")
                             scene.frame_start = markers[i].frame
                             scene.frame_end = markers[i + 1].frame - 1
                             # https://blenderartists.org/t/scripterror-mixdown-operstor/548056/4
@@ -390,6 +395,64 @@ class UAS_VideoShotManager_OT_ExportContentbetweenMarkers(Operator):
                             bpy.ops.sound.mixdown(
                                 filepath=audioFilePath, relative_path=False, container="MP3", codec="MP3"
                             )
+
+        ######
+        # Export Sound Tracks
+
+        if self.exportEditSoundtracks:
+            vsm_props = context.scene.UAS_vsm_props
+            tracks = vsm_props.getTracks()
+            for t in tracks:
+                t.enabled = False
+
+            for t in tracks:
+                if (
+                    t.get_name() == "SFX"
+                    or t.get_name() == "Rabbids"
+                    or t.get_name() == "Humans_Rabbids"
+                    or t.get_name() == "Humans"
+                ):
+                    t.enabled = True
+
+                    # print(f" Len markers: {len(markers)}")
+                    for i, mrk in enumerate(markers):
+                        if self.start <= markers[i].frame <= self.end:
+                            #       print(f"{i} if 01 - Marker name: {mrk.name}")
+                            if i < len(markers) - 1:
+                                # print(
+                                #     f"{i} if 02 - Marker name: {mrk.name}, {self.start}, {markers[i + 1].frame}, {self.end}"
+                                # )
+                                if self.start <= markers[i + 1].frame <= self.end + 1:
+                                    #   print(f"{i} Marker 3 name: {mrk.name}")
+                                    scene.frame_start = markers[i].frame
+                                    scene.frame_end = markers[i + 1].frame - 1
+                                    # https://blenderartists.org/t/scripterror-mixdown-operstor/548056/4
+                                    # bpy.ops.sound.mixdown(filepath=str(audioFilePath), relative_path=False, container="WAV", codec="PCM", bitrate=192)
+                                    seqName = mrk.name[0:13]
+                                    audioFile = f"C:/_UAS_ROOT/RRSpecial/05_Acts/Act01/{seqName}/_Exports/Sound/{mrk.name}_{t.get_name()}.wav"
+
+                                    audioFilePath = Path(audioFile).parent
+                                    if Path(audioFilePath).exists():
+                                        # print(f"Path Ok: {audioFilePath}")
+                                        pass
+                                    else:
+                                        # print(f"Path not found: {audioFilePath}")
+                                        try:
+                                            os.makedirs(audioFilePath)
+                                        except OSError:
+                                            print("Creation of the directory %s failed" % audioFilePath)
+                                        else:
+                                            # print("Successfully created the directory %s" % audioFilePath)
+                                            pass
+
+                                    print(f"Exporting audioFile: {audioFile}")
+
+                                    bpy.ops.sound.mixdown(
+                                        filepath=audioFile, relative_path=False, container="WAV",
+                                    )
+
+                    print("")
+                    t.enabled = False
 
         context.scene.frame_start = self.start
         context.scene.frame_end = self.end
