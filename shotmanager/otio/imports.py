@@ -1108,7 +1108,7 @@ def conformToRefMontage(
                         #     shotSelf.bgImages_sound_trackIndex = newClipInVSE.channel
 
                         trackInd = 4 + shotIndForBGCam
-                        props.addBGSoundToShot(str(media_path), shotSelf, channelIndex=trackInd)
+                        props.addBGSoundToShot(str(media_path), shotSelf)
 
                         # refresh properties and their update function
                         shotSelf.bgImages_linkToShotStart = shotSelf.bgImages_linkToShotStart

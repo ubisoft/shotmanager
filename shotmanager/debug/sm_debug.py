@@ -17,6 +17,9 @@ class UAS_PT_Shot_Manager_Debug(Panel):
     bl_category = "SM Debug"
     #  bl_options      = {'DEFAULT_CLOSED'}
 
+    def __init__(self):
+        pass
+
     def draw(self, context):
         layout = self.layout
 
