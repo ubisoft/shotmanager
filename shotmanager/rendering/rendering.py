@@ -296,8 +296,8 @@ def launchRenderWithVSEComposite(
     startFrameIn3D = -1
     startFrameInEdit = -1
     startShot = None
-    for i, shot in enumerate(shotList):
 
+    for i, shot in enumerate(shotList):
         if 0 == i:
             startFrameIn3D = shot.start
             startFrameInEdit = shot.getEditStart(referenceLevel="GLOBAL_EDIT")

@@ -1,5 +1,6 @@
 import os
 from pathlib import Path
+from stat import S_IMODE, S_IWRITE
 
 import bpy
 from bpy.types import Operator, Menu
@@ -435,6 +436,13 @@ class UAS_VideoShotManager_OT_ExportContentbetweenMarkers(Operator):
                                     if Path(audioFilePath).exists():
                                         # print(f"Path Ok: {audioFilePath}")
                                         pass
+                                        if Path(audioFile).exists():
+                                            stat = Path(audioFile).stat()
+                                            #   print(f"Blender file Stats: {stat.st_mode}")
+                                            fileIsReadOnly = S_IMODE(stat.st_mode) & S_IWRITE == 0
+                                            if fileIsReadOnly:
+                                                os.chmod(audioFile, 0o666)
+
                                     else:
                                         # print(f"Path not found: {audioFilePath}")
                                         try:

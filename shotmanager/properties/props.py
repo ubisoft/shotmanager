@@ -1563,7 +1563,8 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
             # wkip use if
             # if prefs.toggleCamsSoundBG:
             # self.enableBGSoundForShot(prefs.toggleCamsSoundBG, currentShot)
-            self.enableBGSoundForShot(True, currentShot)
+            if self.useBGSounds:
+                self.enableBGSoundForShot(True, currentShot)
 
         # bpy.context.scene.objects["Camera_Sapin"]
 
@@ -1827,7 +1828,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
     # sounds BG
     ###############
 
-    useBGSounds: BoolProperty(default=True)
+    useBGSounds: BoolProperty(default=False)
 
     def addBGSoundToShot(self, sound_path, shot, channelIndex=1):
         scene = self.parentScene
@@ -1840,13 +1841,17 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
 
         shot.bgSoundClipName = newClipInVSE.name
 
+    def disableAllShotsBGSounds(self):
+        """ Turn off all the sounds of all the shots of all the takes
+        """
+        for clip in self.parentScene.sequence_editor.sequences:
+            clip.mute = True
+
     def enableBGSoundForShot(self, useBgSound, shot):
         """ Turn off all the sounds of all the shots of all the takes and enable only the one of the specified shot
         """
         # print("----++++ enableBGSoundForShot")
-        scene = self.parentScene
-        for clip in scene.sequence_editor.sequences:
-            clip.mute = True
+        self.disableAllShotsBGSounds()
 
         if self.useBGSounds and shot is not None:
             bgSoundClip = shot.getSoundSequence()

@@ -78,8 +78,11 @@ def rrs_animatic_to_vsm(editVideoFile=None, otioFile=None, montageOtio=None, imp
     # vsm_props.clear_all()
     # wkip a remplacer par des fonctions
     bpy.ops.uas_video_shot_manager.clear_markers()
-    bpy.ops.uas_video_shot_manager.clear_clips()
-    bpy.ops.uas_video_shot_manager.remove_multiple_tracks(action="ALL")
+
+    # bpy.ops.uas_video_shot_manager.clear_clips()
+    vsm_props.getTrackByIndex(1).clearContent()
+    vsm_props.getTrackByIndex(2).clearContent()
+    # bpy.ops.uas_video_shot_manager.remove_multiple_tracks(action="ALL")
 
     vsm_props.updateTracksList(scene)
 

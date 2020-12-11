@@ -112,8 +112,12 @@ class UAS_PT_ShotManager(Panel):
         if config.uasDebug:
             row = layout.row()
             row.alignment = "CENTER"
+            strDebug = " *** Debug Mode ***"
+            # if props.useBGSounds:
+            #     strDebug += "  BG Sounds Used"
             row.alert = True
-            row.label(text=" *** Debug Mode ***")
+            row.label(text=strDebug)
+            row.prop(props, "useBGSounds")
             row.alert = False
 
         # if not "UAS_shot_manager_props" in context.scene:
