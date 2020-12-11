@@ -44,7 +44,7 @@ def rrs_animatic_to_vsm(editVideoFile=None, otioFile=None, montageOtio=None, imp
     # if config.uasDebug:
     #        importMarkers = False
 
-    # vsm_props.updateTracksList(scene)
+    vsm_props.updateTracksList(scene)
 
     #    bpy.context.space_data.show_seconds = False
     scene.frame_start = 0

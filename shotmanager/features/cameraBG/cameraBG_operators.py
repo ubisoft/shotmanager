@@ -55,7 +55,9 @@ class UAS_ShotManager_OpenDialogForCamBG(Operator):
 
         shot.removeBGImages()
 
-        shot.addBGImages(str(self.filepath), frame_start=0, alpha=props.shotsGlobalSettings.backgroundAlpha, addSoundFromVideo=True)
+        shot.addBGImages(
+            str(self.filepath), frame_start=0, alpha=props.shotsGlobalSettings.backgroundAlpha, addSoundFromVideo=True
+        )
         # # start frame of the background video is not set here since it will be linked to the shot start frame
         # utils.add_background_video_to_cam(
         #     shot.camera.data, str(self.filepath), 0, alpha=props.shotsGlobalSettings.backgroundAlpha
