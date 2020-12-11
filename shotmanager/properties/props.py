@@ -378,6 +378,9 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         options=set(),
     )
 
+    # Features
+    #############
+
     display_camerabgtools_in_properties: BoolProperty(
         name="Display Camera Background Image Tools in Shot Properties",
         description="Display the Camera Background Image Tools in the shot properties panels",
@@ -407,6 +410,15 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
     )
 
     display_notes_in_shotlist: BoolProperty(name="Display Color in Shot List", default=True, options=set())
+
+    display_advanced_infos: BoolProperty(
+        name="Display Advanced Infos",
+        description="Display technical information and feedback in the UI",
+        default=False,
+        options=set(),
+    )
+    
+
 
     def _get_useLockCameraView(self):
         # Can also use area.spaces.active to get the space assoc. with the area
@@ -567,6 +579,9 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
 
     def getTakes(self):
         return self.takes
+
+    def getNumTakes(self):
+        return len(self.takes)
 
     def getTakeByIndex(self, takeIndex):
         """ Return the take corresponding to the specified index

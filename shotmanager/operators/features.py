@@ -69,6 +69,12 @@ class UAS_ShotManager_Features(Operator):
         subrow.prop(props, "display_retimer_in_properties", text="", icon="TIME")
         subrow.label(text="Retimer")
 
+        layout.separator()
+        layout.label(text="Other:")
+        row = layout.row()
+        row.separator(factor=2)
+        row.prop(props, "display_advanced_infos")
+
         layout.separator(factor=2)
 
     def execute(self, context):

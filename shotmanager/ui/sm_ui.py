@@ -90,6 +90,7 @@ class UAS_PT_ShotManager(Panel):
         props = scene.UAS_shot_manager_props
         prefs = context.preferences.addons["shotmanager"].preferences
         currentTake = props.getCurrentTake()
+        currentTakeInd = props.getCurrentTakeIndex()
 
         # addon warning message - for beta message display
         ###############
@@ -258,7 +259,9 @@ class UAS_PT_ShotManager(Panel):
         box = layout.box()
         row = box.row(align=False)
         row.prop(prefs, "take_properties_extended", text="", icon=panelIcon, emboss=False)
-        row.label(text="Take:")
+
+        takeStr = "Take:" if not props.display_advanced_infos else f"Take ({currentTakeInd + 1}/{props.getNumTakes()}):"
+        row.label(text=takeStr)
         subrow = row.row(align=True)
         #    row.scale_y = 1.5
         subrow.scale_x = 2.0
@@ -360,7 +363,9 @@ class UAS_PT_ShotManager(Panel):
             subrow = column_flow.row()
             subrow.alignment = "LEFT"
             subrow.scale_x = 1.0
-            subrow.label(text=f"Shots ({numEnabledShots}/{numShots}):")
+
+            shotsStr = "Shots:" if not props.display_advanced_infos else f"Shots ({numEnabledShots}/{numShots}):"
+            subrow.label(text=shotsStr)
             # subrow.separator()
             #  column_flow.scale_x = 1.0
             subrow = column_flow.row()
