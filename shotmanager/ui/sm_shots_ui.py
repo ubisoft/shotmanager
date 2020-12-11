@@ -83,14 +83,14 @@ class UAS_UL_ShotManager_Items(bpy.types.UIList):
                 row = row.row(align=True)
                 row.scale_x = 1.0
                 icon = "VIEW_CAMERA" if item.hasBGImage() else "BLANK1"
-                row.operator("uas.empty_operator", text="", icon=icon)
+                row.operator("uas_shot_manager.cambgitem", text="", icon=icon).index = index
                 row.scale_x = 0.9
 
             if props.display_greasepencil_in_shotlist:
                 row = row.row(align=True)
                 row.scale_x = 1.0
                 icon = "OUTLINER_OB_GREASEPENCIL" if item.hasGreasePencil() else "BLANK1"
-                row.operator("uas.empty_operator", text="", icon=icon)
+                row.operator("uas_shot_manager.greasepencilitem", text="", icon=icon).index = index
                 row.scale_x = 0.9
 
             if props.display_color_in_shotlist:

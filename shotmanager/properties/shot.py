@@ -474,6 +474,16 @@ class UAS_ShotManager_Shot(ShotInterface, PropertyGroup):
         default=0,
     )
 
+    def addBGImages(self, mediaFile, frame_start=0, alpha=1.0, addSoundFromVideo=False):
+        if self.camera is not None:
+            if len(self.camera.data.background_images):
+                self.removeBGImages()
+
+            utils.add_background_video_to_cam(self.camera.data, str(mediaFile), frame_start, alpha=alpha)
+
+        if addSoundFromVideo:
+            self.parentScene.UAS_shot_manager_props.addBGSoundToShot(mediaFile, self)
+
     def removeBGImages(self):
         if self.camera is not None and len(self.camera.data.background_images):
             # if shot.camera.data.background_images[0].clip is not None:

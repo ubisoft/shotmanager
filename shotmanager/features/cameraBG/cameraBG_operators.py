@@ -54,14 +54,15 @@ class UAS_ShotManager_OpenDialogForCamBG(Operator):
         shot = props.getCurrentShot()
 
         shot.removeBGImages()
-        
-        # start frame of the background video is not set here since it will be linked to the shot start frame
-        utils.add_background_video_to_cam(
-            shot.camera.data, str(self.filepath), 0, alpha=props.shotsGlobalSettings.backgroundAlpha
-        )
 
-        if self.importSoundFromVideo:
-            props.addBGSoundToShot(self.filepath, shot)
+        shot.addBGImages(str(self.filepath), frame_start=0, alpha=props.shotsGlobalSettings.backgroundAlpha, addSoundFromVideo=True)
+        # # start frame of the background video is not set here since it will be linked to the shot start frame
+        # utils.add_background_video_to_cam(
+        #     shot.camera.data, str(self.filepath), 0, alpha=props.shotsGlobalSettings.backgroundAlpha
+        # )
+
+        # if self.importSoundFromVideo:
+        #     props.addBGSoundToShot(self.filepath, shot)
 
         # refresh properties and their update function
         shot.bgImages_linkToShotStart = shot.bgImages_linkToShotStart
@@ -157,11 +158,26 @@ class UAS_ShotManager_EnableDisableCamsBG(Operator):
         return {"FINISHED"}
 
 
+class UAS_ShotManager_CamsBGItem(Operator):
+    bl_idname = "uas_shot_manager.cambgitem"
+    bl_label = " "
+    bl_description = "Select shot"
+    bl_options = {"INTERNAL"}
+
+    index: bpy.props.IntProperty(default=0)
+
+    def invoke(self, context, event):
+        context.scene.UAS_shot_manager_props.setSelectedShotByIndex(self.index)
+
+        return {"FINISHED"}
+
+
 classes = (
     UAS_ShotManager_OpenDialogForCamBG,
     UAS_ShotManager_OpenFileBrowserForCamBG,
     UAS_ShotManager_RemoveBGImages,
     UAS_ShotManager_EnableDisableCamsBG,
+    UAS_ShotManager_CamsBGItem,
 )
 
 

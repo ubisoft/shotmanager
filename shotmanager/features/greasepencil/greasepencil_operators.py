@@ -210,12 +210,27 @@ class UAS_ShotManager_OT_EnableDisableGreasePencil(Operator):
 #         return {"FINISHED"}
 
 
+class UAS_ShotManager_GreasePencilItem(Operator):
+    bl_idname = "uas_shot_manager.greasepencilitem"
+    bl_label = " "
+    bl_description = "Select shot"
+    bl_options = {"INTERNAL"}
+
+    index: bpy.props.IntProperty(default=0)
+
+    def invoke(self, context, event):
+        context.scene.UAS_shot_manager_props.setSelectedShotByIndex(self.index)
+
+        return {"FINISHED"}
+
+
 _classes = (
     UAS_ShotManager_OT_AddGreasePencil,
     UAS_ShotManager_OT_SelectGreasePencil,
     UAS_ShotManager_OT_DrawOnGreasePencil,
     UAS_ShotManager_OT_RemoveGreasePencil,
     UAS_ShotManager_OT_EnableDisableGreasePencil,
+    UAS_ShotManager_GreasePencilItem,
     #   UAS_ShotManager_OT_ChangeGreasePencilOpacity,
 )
 

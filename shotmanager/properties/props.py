@@ -1829,17 +1829,59 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
     ###############
 
     useBGSounds: BoolProperty(default=False)
+    meta_bgSoundsName01: StringProperty(default="")
+
+    def getBGSoundsMeta(self):
+        """ Get the first meta strip dedicated to the bg sounds and with some room in it (ie that has less than 32 tracks occupied)
+            Meta strips for sounds are placed on tracks 30 to 32
+        """
+        scene = self.parentScene
+        bgSoundsMeta = None
+
+        # a stocker dans une propriété
+        if "" != self.meta_bgSoundsName01:
+            if self.meta_bgSoundsName01 not in scene.sequences:
+                self.meta_bgSoundsName01 = ""
+            else:
+                bgSoundsMeta = scene.sequences[self.meta_bgSoundsName01]
+
+        if bgSoundsMeta is None:
+            # close any meta opened:
+            while len(scene.sequence_editor.meta_stack) > 0:
+                bpy.ops.sequencer.meta_toggle()
+
+            # create meta
+            bpy.ops.sequencer.select_all(action="DESELECT")
+            tmpClip = scene.sequence_editor.sequences.new_effect(
+                "_tmp_clip-to_delete", "COLOR", 30, frame_start=0, frame_end=45000
+            )
+            bpy.ops.sequencer.meta_make()
+            bpy.ops.sequencer.meta_toggle()  # Close meta
+            bgSoundsMeta = scene.sequence_editor.active_strip
+            bgSoundsMeta.name = "ShotMan--BGSounds"
+            self.meta_bgSoundsName01 = bgSoundsMeta.name
+
+        return bgSoundsMeta
 
     def addBGSoundToShot(self, sound_path, shot, channelIndex=1):
+        """ Add the sound of the specified media (sound or video) into one of the meta strips of the VSE reserved for shot Manager (from 30 to 32)
+        """
         scene = self.parentScene
-        vse_render = bpy.context.window_manager.UAS_vse_render
-        channelInd = max(1, min(32, channelIndex))
-        clipName = "myBGSound"
-        newClipInVSE = vse_render.createNewClip(
-            scene, str(sound_path), channelInd, 0, importVideo=False, importAudio=True, clipName=clipName,
-        )
 
-        shot.bgSoundClipName = newClipInVSE.name
+        bgSoundsMeta = self.getBGSoundsMeta()
+        if bgSoundsMeta is not None:
+            # close meta if opened:
+            # if len(seq_editor.meta_stack) > 0:
+            # bpy.ops.sequencer.meta_toggle()
+
+            vse_render = bpy.context.window_manager.UAS_vse_render
+            channelInd = max(1, min(32, channelIndex))
+            clipName = "myBGSound"
+            newClipInVSE = vse_render.createNewClip(
+                scene, str(sound_path), channelInd, 0, importVideo=False, importAudio=True, clipName=clipName,
+            )
+
+            shot.bgSoundClipName = newClipInVSE.name
 
     def disableAllShotsBGSounds(self):
         """ Turn off all the sounds of all the shots of all the takes
