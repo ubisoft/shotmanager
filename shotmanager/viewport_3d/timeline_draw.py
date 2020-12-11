@@ -175,7 +175,7 @@ class ShotClip:
 class UAS_ShotManager_DrawMontageTimeline(bpy.types.Operator):
     bl_idname = "uas_shot_manager.draw_montage_timeline"
     bl_label = "Draw Montage in timeline"
-
+    bl_options = { "REGISTER", "INTERNAL" }
     def __init__(self):
         self.asset_browser = None
         self.compact_display = False

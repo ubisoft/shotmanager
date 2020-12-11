@@ -454,7 +454,6 @@ class UAS_ShotManager_Shot(ShotInterface, PropertyGroup):
 
     def _set_bgImages_offset(self, value):
         self["bgImages_offset"] = value
-        print("Tititi")
         self.updateClipLinkToShotStart()
         # if self.camera is not None and len(self.camera.data.background_images):
         #     bgClip = self.camera.data.background_images[0].clip
