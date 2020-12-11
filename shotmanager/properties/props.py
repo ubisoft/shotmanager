@@ -1840,7 +1840,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
 
         # a stocker dans une propriété
         if "" != self.meta_bgSoundsName01:
-            if self.meta_bgSoundsName01 not in scene.sequences:
+            if self.meta_bgSoundsName01 not in scene.sequence_editor.sequences:
                 self.meta_bgSoundsName01 = ""
             else:
                 bgSoundsMeta = scene.sequences[self.meta_bgSoundsName01]
@@ -1855,10 +1855,21 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
             tmpClip = scene.sequence_editor.sequences.new_effect(
                 "_tmp_clip-to_delete", "COLOR", 30, frame_start=0, frame_end=45000
             )
+            # tmpClip is selected so we can call meta_make()
             bpy.ops.sequencer.meta_make()
-            bpy.ops.sequencer.meta_toggle()  # Close meta
+            # bpy.ops.sequencer.meta_toggle()  # close meta
             bgSoundsMeta = scene.sequence_editor.active_strip
             bgSoundsMeta.name = "ShotMan--BGSounds"
+
+            # go back inside the meta to delete the temp strip
+            bpy.ops.sequencer.meta_toggle()  # open meta
+            # scene.sequence_editor.sequences_all[tmpClip.name]
+            bpy.ops.sequencer.select_all(action="SELECT")
+            bpy.ops.sequencer.delete()
+
+            bpy.ops.sequencer.meta_toggle()  # close meta
+            # scene.sequence_editor.sequences.remove(tmpClip)
+
             self.meta_bgSoundsName01 = bgSoundsMeta.name
 
         return bgSoundsMeta
@@ -1869,11 +1880,14 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         scene = self.parentScene
 
         bgSoundsMeta = self.getBGSoundsMeta()
-        if bgSoundsMeta is not None:
+        if bgSoundsMeta is None:
+            print("Pb in addBGSoundToShot: no bgSoundsMeta strip")
+        else:
             # close meta if opened:
             # if len(seq_editor.meta_stack) > 0:
             # bpy.ops.sequencer.meta_toggle()
 
+            targetTrackInd = self.getFirstFreeTrack()
             vse_render = bpy.context.window_manager.UAS_vse_render
             channelInd = max(1, min(32, channelIndex))
             clipName = "myBGSound"
