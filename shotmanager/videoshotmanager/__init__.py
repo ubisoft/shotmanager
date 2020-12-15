@@ -10,7 +10,8 @@ from .ui import vsm_panels_ui
 from .ui import vsm_time_control_ui
 
 from shotmanager.rrs_specific import rrs_vsm_tools
-from . import sequencer_draw
+
+# from . import sequencer_draw
 
 
 def register():
@@ -27,7 +28,9 @@ def register():
     vsm_ui.register()
     vsm_panels_ui.register()
     vsm_time_control_ui.register()
-    sequencer_draw.register ( )
+
+
+#   sequencer_draw.register ( )
 
 
 def unregister():
@@ -43,5 +46,6 @@ def unregister():
 
     # rrs specific
     rrs_vsm_tools.unregister()
-    sequencer_draw.unregister ( )
+
+#  sequencer_draw.unregister ( )
 

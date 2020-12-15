@@ -3,9 +3,7 @@ import bpy, bgl, blf, gpu
 from gpu_extras.batch import batch_for_shader
 
 
-def get_rectangle_region_coordinates(
-    rectangle=(0, 0, 5, 5), view_boundaries=(0, 0, 1920, 1080)
-):
+def get_rectangle_region_coordinates(rectangle=(0, 0, 5, 5), view_boundaries=(0, 0, 1920, 1080)):
     """Calculates strip coordinates in region's pixels norm, clamped into region
 
     :param rectangle: Rectangle to get coordinates of
@@ -55,13 +53,13 @@ def draw_channel_name(tracks, view_boundaries):
 
     x_view_fixed, y_view_fixed = region.view2d.region_to_view(20, 50)
     width_track_frame_fixed = 150
-    shader = gpu.shader.from_builtin ( "2D_UNIFORM_COLOR" )
+    shader = gpu.shader.from_builtin("2D_UNIFORM_COLOR")
     shader.bind()
 
     # Draw track rectangles
     bgl.glEnable(bgl.GL_BLEND)  # Enables alpha channel
     dark_track = False
-    for i,track in enumerate ( tracks ):  # Out of text loop because of OpenGL issue, rectangles are bugging
+    for i, track in enumerate(tracks):  # Out of text loop because of OpenGL issue, rectangles are bugging
         shader.uniform_float("color", (0.66, 0.66, 0.66, 0.7))
 
         # Alternate track color
@@ -70,17 +68,10 @@ def draw_channel_name(tracks, view_boundaries):
         dark_track = not dark_track
 
         # Build track rectangle
-        track_rectangle = get_rectangle_region_coordinates(
-            (x_view_fixed, i + 1, x_view_fixed, i + 2), view_boundaries
-        )
+        track_rectangle = get_rectangle_region_coordinates((x_view_fixed, i + 1, x_view_fixed, i + 2), view_boundaries)
 
         vertices, indices = build_rectangle(
-            (
-                track_rectangle[0],
-                track_rectangle[1],
-                track_rectangle[2] + width_track_frame_fixed,
-                track_rectangle[3],
-            )
+            (track_rectangle[0], track_rectangle[1], track_rectangle[2] + width_track_frame_fixed, track_rectangle[3],)
         )
 
         # Draw the rectangle
@@ -88,18 +79,18 @@ def draw_channel_name(tracks, view_boundaries):
         batch.draw(shader)
 
     # Display text
-    for i, track in enumerate ( reversed ( tracks ) ):
+    for i, track in enumerate(reversed(tracks)):
         x, y = region.view2d.view_to_region(x_view_fixed, i + 1.4)
 
         blf.position(font_id, 30, y, 0)
         blf.size(font_id, 14, 72)
         blf.color(font_id, 1, 1, 1, 0.9)
-        blf.draw(font_id, track.name )
+        blf.draw(font_id, track.name)
 
         i += 1
 
 
-def draw_sequencer ( ):
+def draw_sequencer():
     """Draw sequencer OpenGL"""
     # Sentinel if no sequences, abort
     if not hasattr(bpy.context.scene.sequence_editor, "sequences"):
@@ -109,19 +100,15 @@ def draw_sequencer ( ):
 
     # Defining boundaries of the area to crop rectangles in view pixels' space
     x_view_min, y_view_min = region.view2d.region_to_view(0, 11)
-    x_view_max, y_view_max = region.view2d.region_to_view(
-        region.width - 11, region.height - 22
-    )
+    x_view_max, y_view_max = region.view2d.region_to_view(region.width - 11, region.height - 22)
     view_boundaries = (x_view_min, y_view_min, x_view_max, y_view_max)
 
-    draw_channel_name( props.tracks, view_boundaries )
+    draw_channel_name(props.tracks, view_boundaries)
 
 
 def register():
-    bpy.types.SpaceSequenceEditor.draw_handler_add(
-        draw_sequencer, ( ), "WINDOW", "POST_PIXEL"
-    )
+    bpy.types.SpaceSequenceEditor.draw_handler_add(draw_sequencer, (), "WINDOW", "POST_PIXEL")
 
 
 def unregister():
-    bpy.types.SpaceSequenceEditor.draw_handler_remove ( draw_sequencer, "WINDOW" )
+    bpy.types.SpaceSequenceEditor.draw_handler_remove(draw_sequencer, "WINDOW")
