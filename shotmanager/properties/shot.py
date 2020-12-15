@@ -477,11 +477,14 @@ class UAS_ShotManager_Shot(ShotInterface, PropertyGroup):
         if self.camera is not None:
             if len(self.camera.data.background_images):
                 self.removeBGImages()
-
+            print("addBGImages 01")
             utils.add_background_video_to_cam(self.camera.data, str(mediaFile), frame_start, alpha=alpha)
+            print(f"addBGImages 02 {self.camera.data.background_images[0].clip.name}")
 
         if addSoundFromVideo:
-            self.parentScene.UAS_shot_manager_props.addBGSoundToShot(mediaFile, self)
+            soundClip = self.parentScene.UAS_shot_manager_props.addBGSoundToShot(mediaFile, self)
+            if soundClip is not None:
+                soundClip.frame_start = frame_start
 
     def removeBGImages(self):
         if self.camera is not None and len(self.camera.data.background_images):
@@ -491,12 +494,12 @@ class UAS_ShotManager_Shot(ShotInterface, PropertyGroup):
             self.camera.data.background_images.clear()
             # shot.camera.data.background_images[0].clip.filepath = ""
 
-        # wkip le faire porter par props??
-        if "" != self.bgSoundClipName:
-            soundSeq = self.getSoundSequence()
-            if soundSeq is not None:
-                self.parentScene.sequence_editor.sequences.remove(soundSeq)
-            self.bgSoundClipName = ""
+        self.parentScene.UAS_shot_manager_props.removeBGSoundFromShot(self)
+        # if "" != self.bgSoundClipName:
+        #     soundSeq = self.getSoundSequence()
+        #     if soundSeq is not None:
+        #         self.parentScene.sequence_editor.sequences.remove(soundSeq)
+        #     self.bgSoundClipName = ""
 
     ##############
     # background sounds
@@ -524,8 +527,11 @@ class UAS_ShotManager_Shot(ShotInterface, PropertyGroup):
 
     def getSoundSequence(self):
         soundClip = None
-        if "" != self.bgSoundClipName and self.bgSoundClipName in self.parentScene.sequence_editor.sequences:
-            soundClip = self.parentScene.sequence_editor.sequences[self.bgSoundClipName]
+        print("Soundseq")
+        if "" != self.bgSoundClipName and self.bgSoundClipName in self.parentScene.sequence_editor.sequences_all:
+            soundClip = self.parentScene.sequence_editor.sequences_all[self.bgSoundClipName]
+        print(f"Sounclip: {soundClip.name}")
+
         return soundClip
 
     #############

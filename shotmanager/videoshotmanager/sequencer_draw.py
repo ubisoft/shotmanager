@@ -43,6 +43,22 @@ def build_rectangle(coordinates, indices=((0, 1, 2), (2, 1, 3))):
     return vertices, indices
 
 
+def draw_rect(rect_width, shader, i, view_boundaries):
+    region = bpy.context.region
+    x_view_fixed, y_view_fixed = region.view2d.region_to_view(20, 50)
+
+    # Build track rectangle
+    track_rectangle = get_rectangle_region_coordinates((x_view_fixed, i + 1, x_view_fixed, i + 2), view_boundaries)
+
+    vertices, indices = build_rectangle(
+        (track_rectangle[0], track_rectangle[1], track_rectangle[2] + rect_width, track_rectangle[3],)
+    )
+
+    # Draw the rectangle
+    batch = batch_for_shader(shader, "TRIS", {"pos": vertices}, indices=indices)
+    batch.draw(shader)
+
+
 def draw_channel_name(tracks, view_boundaries):
     """Draw tracks name
 
@@ -59,6 +75,7 @@ def draw_channel_name(tracks, view_boundaries):
     # Draw track rectangles
     bgl.glEnable(bgl.GL_BLEND)  # Enables alpha channel
     dark_track = False
+<<<<<<< HEAD
     for i, track in enumerate(tracks):  # Out of text loop because of OpenGL issue, rectangles are bugging
         shader.uniform_float("color", (0.66, 0.66, 0.66, 0.7))
 
@@ -77,13 +94,44 @@ def draw_channel_name(tracks, view_boundaries):
         # Draw the rectangle
         batch = batch_for_shader(shader, "TRIS", {"pos": vertices}, indices=indices)
         batch.draw(shader)
+=======
+    for i, track in enumerate(reversed(tracks)):  # Out of text loop because of OpenGL issue, rectangles are bugging
+        # shader.uniform_float("color", (0.66, 0.66, 0.66, 0.7))
+        shader.uniform_float("color", (track.color[0], track.color[1], track.color[2], 0.7))
+
+        # Alternate track color
+        # if dark_track:
+        #     shader.uniform_float("color", (0.5, 0.5, 0.5, 0.7))
+        # dark_track = not dark_track
+
+        draw_rect(width_track_frame_fixed, shader, i, view_boundaries)
+
+        # draw selected rect
+        vsm_props = bpy.context.scene.UAS_vsm_props
+        currentTrackInd = vsm_props.getSelectedTrackIndex()
+        if i + 1 == currentTrackInd:
+            # shader.uniform_float("color", (0.5, 0.2, 0.2, 0.2))
+            shader.uniform_float("color", (track.color[0], track.color[1], track.color[2], 0.15))
+            draw_rect(1800, shader, i, view_boundaries)
+
+        # # Build track rectangle
+        # track_rectangle = get_rectangle_region_coordinates((x_view_fixed, i + 1, x_view_fixed, i + 2), view_boundaries)
+
+        # vertices, indices = build_rectangle(
+        #     (track_rectangle[0], track_rectangle[1], track_rectangle[2] + width_track_frame_fixed, track_rectangle[3],)
+        # )
+
+        # # Draw the rectangle
+        # batch = batch_for_shader(shader, "TRIS", {"pos": vertices}, indices=indices)
+        # batch.draw(shader)
+>>>>>>> 9e4343492f6dd09de835ef81412be5e0f0030a07
 
     # Display text
     for i, track in enumerate(reversed(tracks)):
         x, y = region.view2d.view_to_region(x_view_fixed, i + 1.4)
 
         blf.position(font_id, 30, y, 0)
-        blf.size(font_id, 14, 72)
+        blf.size(font_id, 12, 72)
         blf.color(font_id, 1, 1, 1, 0.9)
         blf.draw(font_id, track.name)
 
@@ -92,10 +140,12 @@ def draw_channel_name(tracks, view_boundaries):
 
 def draw_sequencer():
     """Draw sequencer OpenGL"""
+    # if True == True:
+    # return ()
     # Sentinel if no sequences, abort
-    if not hasattr(bpy.context.scene.sequence_editor, "sequences"):
-        return
-    props = bpy.context.scene.UAS_vsm_props
+    # if not hasattr(bpy.context.scene.sequence_editor, "sequences"):
+    #     return
+    vsm_props = bpy.context.scene.UAS_vsm_props
     region = bpy.context.region
 
     # Defining boundaries of the area to crop rectangles in view pixels' space
@@ -103,7 +153,11 @@ def draw_sequencer():
     x_view_max, y_view_max = region.view2d.region_to_view(region.width - 11, region.height - 22)
     view_boundaries = (x_view_min, y_view_min, x_view_max, y_view_max)
 
+<<<<<<< HEAD
     draw_channel_name(props.tracks, view_boundaries)
+=======
+    draw_channel_name(vsm_props.tracks, view_boundaries)
+>>>>>>> 9e4343492f6dd09de835ef81412be5e0f0030a07
 
 
 def register():

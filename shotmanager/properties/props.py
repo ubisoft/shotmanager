@@ -417,8 +417,6 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         default=False,
         options=set(),
     )
-    
-
 
     def _get_useLockCameraView(self):
         # Can also use area.spaces.active to get the space assoc. with the area
@@ -1846,19 +1844,25 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
     useBGSounds: BoolProperty(default=False)
     meta_bgSoundsName01: StringProperty(default="")
 
+    def getBGSoundsMetaContainingClip(self, clip):
+        # wkip wkip wkip finir ici pour tester qu'on a le bon meta
+        return self.getBGSoundsMeta()
+
     def getBGSoundsMeta(self):
         """ Get the first meta strip dedicated to the bg sounds and with some room in it (ie that has less than 32 tracks occupied)
             Meta strips for sounds are placed on tracks 30 to 32
         """
         scene = self.parentScene
         bgSoundsMeta = None
+        newMetaTrackInd = 10  # 30
 
         # a stocker dans une propriété
         if "" != self.meta_bgSoundsName01:
             if self.meta_bgSoundsName01 not in scene.sequence_editor.sequences:
                 self.meta_bgSoundsName01 = ""
             else:
-                bgSoundsMeta = scene.sequences[self.meta_bgSoundsName01]
+                # bgSoundsMeta = bpy.context.sequences[self.meta_bgSoundsName01]
+                bgSoundsMeta = bpy.context.scene.sequence_editor.sequences_all[self.meta_bgSoundsName01]
 
         if bgSoundsMeta is None:
             # close any meta opened:
@@ -1868,7 +1872,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
             # create meta
             bpy.ops.sequencer.select_all(action="DESELECT")
             tmpClip = scene.sequence_editor.sequences.new_effect(
-                "_tmp_clip-to_delete", "COLOR", 30, frame_start=0, frame_end=45000
+                "_tmp_clip-to_delete", "COLOR", newMetaTrackInd, frame_start=0, frame_end=45000
             )
             # tmpClip is selected so we can call meta_make()
             bpy.ops.sequencer.meta_make()
@@ -1889,28 +1893,114 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
 
         return bgSoundsMeta
 
-    def addBGSoundToShot(self, sound_path, shot, channelIndex=1):
-        """ Add the sound of the specified media (sound or video) into one of the meta strips of the VSE reserved for shot Manager (from 30 to 32)
+    def openMetaStrip(self, context, metaClip):
+        self.closeAllMetaStrips(context)
+
+        bpy.ops.sequencer.select_all(action="DESELECT")
+        context.scene.sequence_editor.sequences_all[metaClip.name].select = True
+        bpy.ops.sequencer.meta_toggle()
+
+    def closeAllMetaStrips(self, context):
+        # close meta if one is opened:
+        while len(context.scene.sequence_editor.meta_stack) > 0:
+            bpy.ops.sequencer.meta_toggle()
+
+    def getFirstEmptyTrack(self, context, bgSoundsMeta):
+        """ Return the first empty track index of the specified meta strip
         """
+        firstEmptyTrackInd = -1
+        self.openMetaStrip(context, bgSoundsMeta)
+        channelsList = list(range(1, 33))
+        for seq in context.sequences:
+            if seq.channel in channelsList:
+                channelsList.remove(seq.channel)
+        # print(f"channelsList: {channelsList}")
+        if len(channelsList):
+            firstEmptyTrackInd = channelsList[0]
+        self.closeAllMetaStrips(context)
+        return firstEmptyTrackInd
+
+    def addBGSoundToShot(self, sound_path, shot):
+        """ Add the sound of the specified media (sound or video) into one of the meta strips of the VSE reserved for shot Manager (from 30 to 32)
+            Return the sound clip
+        """
+        context = bpy.context
         scene = self.parentScene
+        newSoundClip = None
 
         bgSoundsMeta = self.getBGSoundsMeta()
         if bgSoundsMeta is None:
             print("Pb in addBGSoundToShot: no bgSoundsMeta strip")
         else:
-            # close meta if opened:
-            # if len(seq_editor.meta_stack) > 0:
-            # bpy.ops.sequencer.meta_toggle()
+            # # close meta if opened:
+            # while len(scene.sequence_editor.meta_stack) > 0:
+            #     bpy.ops.sequencer.meta_toggle()
 
-            targetTrackInd = self.getFirstFreeTrack()
-            vse_render = bpy.context.window_manager.UAS_vse_render
-            channelInd = max(1, min(32, channelIndex))
-            clipName = "myBGSound"
-            newClipInVSE = vse_render.createNewClip(
-                scene, str(sound_path), channelInd, 0, importVideo=False, importAudio=True, clipName=clipName,
-            )
+            # bpy.ops.sequencer.select_all(action="DESELECT")
+            # scene.sequence_editor.sequences_all[bgSoundsMeta.name].select = True
 
-            shot.bgSoundClipName = newClipInVSE.name
+            targetTrackInd = self.getFirstEmptyTrack(bpy.context, bgSoundsMeta)
+
+            if -1 < targetTrackInd:
+                self.openMetaStrip(context, bgSoundsMeta)
+
+                vse_render = context.window_manager.UAS_vse_render
+
+                clipName = "myBGSound"
+                newSoundClip = vse_render.createNewClip(
+                    scene, str(sound_path), targetTrackInd, 0, importVideo=False, importAudio=True, clipName=clipName,
+                )
+
+                shot.bgSoundClipName = newSoundClip.name
+
+        self.closeAllMetaStrips(context)
+
+        return newSoundClip
+
+    #################
+    #################
+    #################
+    #################
+    #################
+    #################
+    #################
+    # to do:
+    # fonction clear orphans in tracks
+    # fonction enable seulement le clip actif
+    # move clip doit bien mettre a jour le son
+    #################
+    #################
+    #################
+    #################
+    #################
+    #################
+    #################
+    #################
+    #################
+
+    def removeBGSoundFromShot(self, shot):
+        context = bpy.context
+        scene = self.parentScene
+        metaSeq = self.getBGSoundsMetaContainingClip(shot.bgSoundClipName)
+        if metaSeq is not None:
+            self.openMetaStrip(context, metaSeq)
+            bpy.ops.sequencer.select_all(action="DESELECT")
+            print(f"removeBGSoundFromShot 01, shot.bgSoundClipName: {shot.bgSoundClipName} ")
+            # for i, c in enumerate(context.scene.sequence_editor.sequences):
+            for i, c in enumerate(context.sequences):
+                print(f"   seq {i + 1}  {c.name}")
+            # if shot.bgSoundClipName in context.scene.sequence_editor.sequences:
+
+            for i in context.sequences:
+                if shot.bgSoundClipName == i.name:
+                    # if shot.bgSoundClipName in context.sequences:  # name and seq, marche pas
+                    print("removeBGSoundFromShot 02")
+                    # context.scene.sequence_editor.sequences[shot.bgSoundClipName].select = True
+                    i.select = True
+                    bpy.ops.sequencer.delete()
+                    break
+                #    self.closeAllMetaStrips(context)
+            shot.bgSoundClipName = ""
 
     def disableAllShotsBGSounds(self):
         """ Turn off all the sounds of all the shots of all the takes
