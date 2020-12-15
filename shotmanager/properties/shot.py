@@ -1,10 +1,12 @@
 import bpy
 
 from bpy.types import Scene
+
+# from bpy.types import SoundSequence
 from bpy.types import PropertyGroup
 from bpy.props import StringProperty, IntProperty, BoolProperty, PointerProperty, FloatVectorProperty
 
-from shotmanager.utils.utils import findFirstUniqueName
+from shotmanager.utils import utils
 from shotmanager.rrs_specific.montage.montage_interface import ShotInterface
 
 import logging
@@ -131,7 +133,7 @@ class UAS_ShotManager_Shot(ShotInterface, PropertyGroup):
         """ Set a unique name to the shot
         """
         shots = self.parentScene.UAS_shot_manager_props.getShotsList(takeIndex=self.getParentTakeIndex())
-        newName = findFirstUniqueName(self, value, shots)
+        newName = utils.findFirstUniqueName(self, value, shots)
         self["name"] = newName
 
     name: StringProperty(name="Name", get=_get_name, set=_set_name)
@@ -146,6 +148,11 @@ class UAS_ShotManager_Shot(ShotInterface, PropertyGroup):
         default=True,
         options=set(),
     )
+
+    def selectShotInUI(self):
+        currentTakeInd = self.parentScene.UAS_shot_manager_props.getCurrentTakeIndex()
+        if currentTakeInd == self.getParentTakeIndex():
+            self.parentScene.UAS_shot_manager_props.setSelectedShot(self)
 
     #############
     # start #####
@@ -172,11 +179,7 @@ class UAS_ShotManager_Shot(ShotInterface, PropertyGroup):
 
     def _update_start(self, context):
         self.selectShotInUI()
-
-        if self.camera is not None and len(self.camera.data.background_images):
-            bgClip = self.camera.data.background_images[0].clip
-            if bgClip is not None and self.bgImages_linkToShotStart:
-                bgClip.frame_start = self.start + self.bgImages_offset
+        self.updateClipLinkToShotStart()
 
     start: IntProperty(
         name="Start",
@@ -324,6 +327,11 @@ class UAS_ShotManager_Shot(ShotInterface, PropertyGroup):
 
         return cameraIsInvalid
 
+    def makeCameraUnique(self):
+        if self.camera is not None:
+            if 1 < self.parentScene.UAS_shot_manager_props.getNumSharedCamera(self.camera):
+                self.camera = utils.duplicateObject(self.camera, newName="Cam_" + self.name)
+
     ##############
     # color
     ##############
@@ -376,24 +384,40 @@ class UAS_ShotManager_Shot(ShotInterface, PropertyGroup):
         options=set(),
     )
 
-    def getEditStart(self):
-        return self.parentScene.UAS_shot_manager_props.getEditTime(self, self.start)
+    def getEditStart(self, referenceLevel="TAKE"):
+        """
+            referenceLevel can be "TAKE" or "GLOBAL_EDIT"
+        """
+        return self.parentScene.UAS_shot_manager_props.getEditTime(self, self.start, referenceLevel=referenceLevel)
 
-    def getEditEnd(self):
-        return self.parentScene.UAS_shot_manager_props.getEditTime(self, self.end)
-
-    def updateClipLinkToShotStart(self):
-        if self.camera is not None and len(self.camera.data.background_images):
-            bgClip = self.camera.data.background_images[0].clip
-            if bgClip is not None:
-                if self.bgImages_linkToShotStart:
-                    bgClip.frame_start = self.start + self.bgImages_offset
-                else:
-                    bgClip.frame_start = self.bgImages_offset
+    def getEditEnd(self, referenceLevel="TAKE"):
+        """
+            referenceLevel can be "TAKE" or "GLOBAL_EDIT"
+        """
+        return self.parentScene.UAS_shot_manager_props.getEditTime(self, self.end, referenceLevel=referenceLevel)
 
     ##############
     # background images
     ##############
+
+    def hasBGImage(self):
+        return self.camera is not None and len(self.camera.data.background_images)
+
+    def updateClipLinkToShotStart(self):
+        if self.camera is not None and len(self.camera.data.background_images):
+            bgClip = self.camera.data.background_images[0].clip
+            bgSoundSequence = self.getSoundSequence()
+
+            if self.bgImages_linkToShotStart:
+                if bgClip is not None:
+                    bgClip.frame_start = self.start + self.bgImages_offset
+                if bgSoundSequence is not None:
+                    bgSoundSequence.frame_start = self.start + self.bgImages_offset
+            else:
+                if bgClip is not None:
+                    bgClip.frame_start = self.bgImages_offset
+                if bgSoundSequence is not None:
+                    bgSoundSequence.frame_start = self.bgImages_offset
 
     def _get_bgImages_linkToShotStart(self):
         val = self.get("bgImages_linkToShotStart", True)
@@ -449,10 +473,77 @@ class UAS_ShotManager_Shot(ShotInterface, PropertyGroup):
         default=0,
     )
 
-    def selectShotInUI(self):
-        currentTakeInd = self.parentScene.UAS_shot_manager_props.getCurrentTakeIndex()
-        if currentTakeInd == self.getParentTakeIndex():
-            self.parentScene.UAS_shot_manager_props.setSelectedShot(self)
+    def addBGImages(self, mediaFile, frame_start=0, alpha=1.0, addSoundFromVideo=False):
+        if self.camera is not None:
+            if len(self.camera.data.background_images):
+                self.removeBGImages()
+            print("addBGImages 01")
+            utils.add_background_video_to_cam(self.camera.data, str(mediaFile), frame_start, alpha=alpha)
+            print(f"addBGImages 02 {self.camera.data.background_images[0].clip.name}")
+
+        if addSoundFromVideo:
+            soundClip = self.parentScene.UAS_shot_manager_props.addBGSoundToShot(mediaFile, self)
+            if soundClip is not None:
+                soundClip.frame_start = frame_start
+
+    def removeBGImages(self):
+        if self.camera is not None and len(self.camera.data.background_images):
+            # if shot.camera.data.background_images[0].clip is not None:
+            self.camera.data.show_background_images = False
+            # shot.camera.data.background_images[0].clip = None
+            self.camera.data.background_images.clear()
+            # shot.camera.data.background_images[0].clip.filepath = ""
+
+        self.parentScene.UAS_shot_manager_props.removeBGSoundFromShot(self)
+        # if "" != self.bgSoundClipName:
+        #     soundSeq = self.getSoundSequence()
+        #     if soundSeq is not None:
+        #         self.parentScene.sequence_editor.sequences.remove(soundSeq)
+        #     self.bgSoundClipName = ""
+
+    ##############
+    # background sounds
+    ##############
+
+    bgImages_sound_trackIndex: IntProperty(name="Sound Track Index", min=-1, max=32, default=-1)
+    # bgSoundClip: PointerProperty(type=SoundSequence)
+    bgSoundClipName: StringProperty(default="")
+
+    def enableBGSound(self, useBgSound):
+        # if self.bgSoundClip is not None:
+        #     self.bgSoundClip.mute = not useBgSound
+        if "" != self.bgSoundClipName:
+            soundClip = self.parentScene.sequence_editor.sequences[self.bgSoundClipName]
+            if soundClip is not None:
+                soundClip.mute = not useBgSound
+
+    def isSoundSequenceValid(self):
+        """ Return true if there is no sound sequence -ie self.bgSoundClipName is "") or if a sequence with this name
+            is found in the VSE, false otherwise
+        """
+        if "" == self.bgSoundClipName or self.bgSoundClipName in self.parentScene.sequence_editor.sequences:
+            return True
+        return False
+
+    def getSoundSequence(self):
+        soundClip = None
+        print("Soundseq")
+        if "" != self.bgSoundClipName and self.bgSoundClipName in self.parentScene.sequence_editor.sequences_all:
+            soundClip = self.parentScene.sequence_editor.sequences_all[self.bgSoundClipName]
+        print(f"Sounclip: {soundClip.name}")
+
+        return soundClip
+
+    #############
+    # grease pencil
+    #############
+
+    def hasGreasePencil(self):
+        if self.camera is not None:
+            gp_child = utils.get_greasepencil_child(self.camera)
+            return gp_child is not None
+        else:
+            return False
 
     #############
     # notes #####
@@ -476,7 +567,6 @@ class UAS_ShotManager_Shot(ShotInterface, PropertyGroup):
             parent: reference to the parent take
         """
         #  self.parent = None
-        print(" icicicic parent in shot")
         super().__init__()
         pass
 

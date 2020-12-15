@@ -197,6 +197,16 @@ class UAS_ShotManager_RenderSettings(PropertyGroup):
 
     renderHandles: BoolProperty(name="Render With Handles", default=False)
 
+    renderSound: BoolProperty(
+        name="Render Sound", description="Also generate sound in rendered media", default=True,
+    )
+
+    disableCameraBG: BoolProperty(
+        name="Disable Camera BG",
+        description="Disable camera background images for openGl rendering, when overlay is activated",
+        default=True,
+    )
+
     writeToDisk: BoolProperty(name="Write to Disk", default=False)
 
     renderOtioFile: BoolProperty(name="Render EDL File", default=False)
@@ -204,11 +214,6 @@ class UAS_ShotManager_RenderSettings(PropertyGroup):
     useStampInfo: BoolProperty(name="Use Stamp Info", default=True)
 
     rerenderExistingShotVideos: BoolProperty(name="Re-render Exisiting Shot Videos", default=True)
-
-    # used only by PLAYBLAST
-    resolutionPercentage: IntProperty(
-        name="Resolution Percentage", min=10, soft_max=100, max=300, subtype="PERCENTAGE", default=100
-    )
 
     bypass_rendering_project_settings: BoolProperty(
         name="Bypass Project Settings",
@@ -233,3 +238,39 @@ class UAS_ShotManager_RenderSettings(PropertyGroup):
     # file format
     # image_settings_file_format = 'FFMPEG'
     # scene.render.ffmpeg.format = 'MPEG4'
+
+    ##################
+    # used only by PLAYBLAST
+    ##################
+    resolutionPercentage: IntProperty(
+        name="Resolution Percentage", min=10, soft_max=100, max=300, subtype="PERCENTAGE", default=100
+    )
+
+    updatePlayblastInVSM: BoolProperty(
+        name="Open in Video Shot Manager",
+        description="Open the rendered playblast in the VSE",
+        default=True,
+        options=set(),
+    )
+
+    openPlayblastInPlayer: BoolProperty(
+        name="Open in Player",
+        description="Open the rendered playblast in the default OS media player",
+        default=False,
+        options=set(),
+    )
+
+    stampRenderInfo: BoolProperty(
+        name="Stamp Render Info",
+        description="Open the rendered playblast in the default OS media player",
+        default=True,
+        options=set(),
+    )
+
+    # renderCameraBG: BoolProperty(
+    #     name="Render Camera Backgrounds",
+    #     description="Render Camera Backgrounds (available only with Overlay)",
+    #     default=False,
+    #     options=set(),
+    # )
+

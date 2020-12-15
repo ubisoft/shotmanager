@@ -12,7 +12,7 @@ import logging
 _logger = logging.getLogger(__name__)
 
 
-def exportOtio(
+def exportShotManagerEditToOtio(
     scene,
     takeIndex=-1,
     filePath="",
@@ -31,6 +31,7 @@ def exportOtio(
     def _addEditCharacteristicsToXML(xml_filename, montageCharacteristics):
 
         if montageCharacteristics is None:
+            print("  *** Exporting edit XML: _addEditCharacteristicsToXML: No characteristics found for the montage")
             return ()
 
         filename = xml_filename
@@ -112,11 +113,12 @@ def exportOtio(
 
         return ()
 
-    # print("  ** -- ** exportOtio, fileListOnly: ", fileListOnly)
+    print("  ** -- ** exportShotManagerEditToOtio from exports.py, fileListOnly: ", fileListOnly)
     props = scene.UAS_shot_manager_props
-
     sceneFps = fps if fps != -1 else scene.render.fps
     #   import opentimelineio as opentimelineio
+
+    montageCharacteristics = props.get_montage_characteristics()
 
     take = props.getCurrentTake() if -1 == takeIndex else props.getTakeByIndex(takeIndex)
     shotList = take.getShotList(ignoreDisabled=True)
@@ -249,11 +251,16 @@ def exportOtio(
     audioTrack.extend(audioClips)
 
     Path(otioRenderPath).parent.mkdir(parents=True, exist_ok=True)
+    print("Ici")
     if otioRenderPath.endswith(".xml"):
+        print("Ici 02 ")
         opentimelineio.adapters.write_to_file(timeline, otioRenderPath, adapter_name="fcp_xml")
 
+        print("Ici 03 ")
+        montageCharacteristics = props.get_montage_characteristics()
         _addEditCharacteristicsToXML(otioRenderPath, montageCharacteristics)
 
+        print("Ici 04 ")
     else:
         opentimelineio.adapters.write_to_file(timeline, otioRenderPath)
 

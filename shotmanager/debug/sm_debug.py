@@ -1,15 +1,8 @@
-import os
-
 import bpy
 
-from bpy.types import Panel, Operator, PropertyGroup
-from bpy.props import (
-    IntVectorProperty,
-    StringProperty,
-    PointerProperty,
-)
+from bpy.types import Panel, Operator
+from bpy.props import StringProperty
 
-from ..utils.utils import getSceneVSE
 
 # ------------------------------------------------------------------------#
 #                                debug Panel                              #
@@ -23,6 +16,9 @@ class UAS_PT_Shot_Manager_Debug(Panel):
     bl_region_type = "UI"
     bl_category = "SM Debug"
     #  bl_options      = {'DEFAULT_CLOSED'}
+
+    def __init__(self):
+        pass
 
     def draw(self, context):
         layout = self.layout

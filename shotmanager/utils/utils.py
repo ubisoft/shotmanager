@@ -60,7 +60,7 @@ def addonVersion(addonName):
 
     #    versions = (versionStr, versionInt)
 
-    versions = ("1.3.65", 1003065)
+    versions = ("1.3.80", 1003080)
 
     return versions
 
@@ -217,6 +217,83 @@ def openMedia(media_filepath, inExternalPlayer=False):
 
 
 ###################
+# Markers
+###################
+
+
+def getMarkerbyName(scene, markerName, filter=""):
+    for m in scene.timeline_markers:
+        if filter in m.name and markerName == m.name:
+            return m
+    return None
+
+
+def sortMarkers(markers, filter=""):
+    sortedMarkers = [m for m in sorted(markers, key=lambda x: x.frame, reverse=False) if filter in m.name]
+    return sortedMarkers
+
+
+def getFirstMarker(scene, frame, filter=""):
+    markers = sortMarkers(scene.timeline_markers, filter)
+    return markers[0] if len(markers) else None
+
+
+def getMarkerBeforeFrame(scene, frame, filter=""):
+    markers = sortMarkers(scene.timeline_markers, filter)
+    previousMarker = None
+    for m in markers:
+        if frame > m.frame:
+            previousMarker = m
+        else:
+            return previousMarker
+    return previousMarker
+
+
+def getMarkerAtFrame(scene, frame, filter=""):
+    markers = sortMarkers(scene.timeline_markers, filter)
+    for m in markers:
+        # for m in scene.timeline_markers:
+        if frame == m.frame:
+            return m
+    return None
+
+
+def getMarkerAfterFrame(scene, frame, filter=""):
+    markers = sortMarkers(scene.timeline_markers, filter)
+    for m in markers:
+        if frame < m.frame:
+            return m
+    return None
+
+
+def getLastMarker(scene, frame, filter=""):
+    markers = sortMarkers(scene.timeline_markers, filter)
+    return markers[len(markers) - 1] if len(markers) else None
+
+
+def clearMarkersSelection(markers):
+    for m in markers:
+        m.select = False
+
+
+def addMarkerAtFrame(scene, frame, name):
+    marker = getMarkerAtFrame(scene, frame)
+    if marker is not None:
+        marker = getMarkerAtFrame(scene, frame)
+        marker.name = name
+    else:
+        if "" == name:
+            name = f"F_{scene.frame_current}"
+        marker = scene.timeline_markers.new(name, frame=frame)
+
+
+def deleteMarkerAtFrame(scene, frame):
+    marker = getMarkerAtFrame(scene, frame)
+    if marker is not None:
+        scene.timeline_markers.remove(marker)
+
+
+###################
 # Various
 ###################
 
@@ -242,7 +319,7 @@ def getSceneVSE(vsm_sceneName, createVseTab=False):
     """ Return the scene that has the name held by vsm_sceneName and adds a VSE in it if there is not already one.
         Use <returned scene>.sequence_editor to get the vse of the scene
     """
-    # vsm_sceneName = "VideoShotManger"
+    # vsm_sceneName = "VideoShotManager"
     vsm_scene = None
 
     if vsm_sceneName in bpy.data.scenes:
@@ -277,7 +354,7 @@ def getSceneVSE(vsm_sceneName, createVseTab=False):
 ###################
 
 
-def duplicateObject(sourceObject):
+def duplicateObject(sourceObject, newName=None):
     """ Duplicate (deepcopy) an object and place it in the same collection
     """
     newObject = sourceObject.copy()
@@ -293,7 +370,80 @@ def duplicateObject(sourceObject):
         sourceCollections[0].objects.link(newObject)
     else:
         (sourceObject.users_scene)[0].collection.objects.link(newObject)
+
+    if newName is not None and "" != newName:
+        newObject.name = newName
+        newObject.data.name = newName
+
     return newObject
+
+
+###################
+# Grease Pencil
+###################
+
+
+def create_new_greasepencil(gp_name, parent_object=None, location=None, locate_on_cursor=False):
+    new_gp_data = bpy.data.grease_pencils.new(gp_name)
+    new_gp_obj = bpy.data.objects.new(new_gp_data.name, new_gp_data)
+    new_gp_obj.name = new_gp_data.name
+
+    # add to main collection
+    # bpy.context.collection.objects.link(new_gp_obj)
+
+    # add to a collection named "Cameras"
+    gpCollName = "GreasePencil"
+    cpColl = None
+    if gpCollName not in bpy.context.scene.collection.children:
+        cpColl = bpy.data.collections.new(name=gpCollName)
+        bpy.context.scene.collection.children.link(cpColl)
+    else:
+        cpColl = bpy.context.scene.collection.children[gpCollName]
+    cpColl.objects.link(new_gp_obj)
+
+    if parent_object is not None:
+        new_gp_obj.parent = parent_object
+
+    if location is None:
+        new_gp_obj.location = [0, 0, 0]
+    else:
+        new_gp_obj.location = location
+
+    if locate_on_cursor:
+        new_gp_obj.location = bpy.context.scene.cursor.location
+
+    from math import radians
+
+    new_gp_obj.rotation_euler = (radians(90), 0.0, radians(90))
+
+    # import math
+    # import mathutils
+
+    # eul = mathutils.Euler((math.radians(90.0), 0.0, 0.0), "XYZ")
+
+    # if new_gp_obj.rotation_mode == "QUATERNION":
+    #     new_gp_obj.rotation_quaternion = eul.to_quaternion()
+    # elif new_gp_obj.rotation_mode == "AXIS_ANGLE":
+    #     q = eul.to_quaternion()
+    #     new_gp_obj.rotation_axis_angle[0] = q.angle
+    #     new_gp_obj.rotation_axis_angle[1:] = q.axis
+    # else:
+    #     new_gp_obj.rotation_euler = (
+    #         eul if eul.order == new_gp_obj.rotation_mode else (eul.to_quaternion().to_euler(new_gp_obj.rotation_mode))
+    #     )
+
+    return new_gp_obj
+
+
+def get_greasepencil_child(obj, name_filter=""):
+    gpChild = None
+
+    if obj is not None:
+        if len(obj.children):
+            for c in obj.children:
+                if "GPENCIL" == c.type:
+                    return c
+    return gpChild
 
 
 ###################

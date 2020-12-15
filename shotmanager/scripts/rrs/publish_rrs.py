@@ -1,8 +1,9 @@
 import os
 import json
+from pathlib import Path
 
 import bpy
-from shotmanager.otio.exports import exportOtio
+from shotmanager.otio.exports import exportShotManagerEditToOtio
 from shotmanager.rendering import rendering
 
 import logging
@@ -121,13 +122,30 @@ def publishRRS(
         return False
 
     props = scene.UAS_shot_manager_props
-    if (
-        not len(props.getTakes())
-        or len(props.getTakes()) <= takeIndex
-        or (not len(props.getTakes()[takeIndex].getShotList(ignoreDisabled=True)))
-    ):
-        print("No take or no shots to render - Aborting Publish")
-        return False
+    # _logger.debug(
+    #     f" + len takes: {len(props.getTakes())}, takeInd: {takeIndex}, len truc: {len(props.getTakes()[takeIndex].getShotList(ignoreDisabled=True))}"
+    # )
+
+    # if (
+    #     not len(props.getTakes())
+    #     or len(props.getTakes()) <= takeIndex
+    #     or (not len(props.getTakes()[takeIndex].getShotList(ignoreDisabled=True)))
+    # ):
+
+    takeInd = 0 if -1 == takeIndex else takeIndex
+
+    if not len(props.getTakes()):
+        errorStr = "No take found to render - Aborting Publish"
+        print(errorStr)
+        return errorStr
+    elif len(props.getTakes()) <= takeInd:
+        errorStr = "Take index higher than the number of takes - Aborting Publish"
+        print(errorStr)
+        return errorStr
+    elif not len(props.getTakes()[takeInd].getShotList(ignoreDisabled=True)):
+        errorStr = f"No take or no shots to render in take {props.getTakes()[takeInd].name} - Aborting Publish"
+        print(errorStr)
+        return errorStr
 
     print("\n---------------------------------------------------------")
     print(" -- * publishRRS * --\n\n")
@@ -169,8 +187,8 @@ def publishRRS(
     # shot videos are rendered in the directory of the take, not anymore in a directory with the shot name
     renderedFilesDict = rendering.launchRenderWithVSEComposite(
         bpy.context,
-        "PROJECT",
-        takeIndex=takeIndex,
+        renderPreset=None,
+        takeIndex=takeInd,
         filePath=renderDir,
         fileListOnly=fileListOnly,
         rerenderExistingShotVideos=rerenderExistingShotVideos,
@@ -186,7 +204,10 @@ def publishRRS(
 
     # wkip beurk pour récuperer le bon contexte de scene
     bpy.context.window.scene = scene
-    renderedOtioFile = exportOtio(scene, takeIndex=takeIndex, filePath=renderDir, fileListOnly=fileListOnly)
+    print("publish RRS")
+    renderedOtioFile = exportShotManagerEditToOtio(
+        scene, takeIndex=takeInd, filePath=renderDir, fileListOnly=fileListOnly
+    )
     renderedFilesDict["edl_files"] = [renderedOtioFile]
 
     # if verbose:
@@ -268,8 +289,22 @@ def publishRRS(
     ################
     vse_render = bpy.context.window_manager.UAS_vse_render
     # Return a dictionary made of "media_video" and "media_audio", both having an array of media filepaths
-    soundsMedia = vse_render.getMediaList(scene, listVideo=False, listAudio=True)
-    generatedFilesDict["sounds_media"] = soundsMedia["media_audio"]
+    # obsolete cause we now export the sound from the shot videos:
+    # soundsMedia = vse_render.getMediaList(scene, listVideo=False, listAudio=True)
+    # generatedFilesDict["sounds_media"] = soundsMedia["media_audio"]
+
+    soundsMedia = dict()
+    soundsList = []
+    fileDir = Path(r"C:\_UAS_ROOT\RRSpecial\05_Acts\Act01\_Montage\Shots\\")
+    # my_icons_dir = os.path.join(os.path.dirname(__file__), "../icons")
+    seqName = scene.name
+    for soundFile in Path(fileDir).rglob("*.mp3"):
+        if seqName in soundFile.stem:
+            soundsList.append(str(soundFile))
+
+    soundsMedia["media_audio_mixed"] = soundsList
+
+    generatedFilesDict["sounds_media"] = soundsMedia["media_audio_mixed"]
 
     ################
     # build the output dictionary
@@ -297,12 +332,11 @@ def publishRRS(
     #     print(" ")
 
     # add shots info
+    dictMontage = dict()
+    dictMontage["sequence"] = scene.name
+    props.getInfoAsDictionnary(dictMontage=dictMontage)
 
-    # dictMontage = dict()
-    # dictMontage["sequence"] = scene.name
-    # props.getInfoAsDictionnary(dictMontage=dictMontage)
-
-    # generatedFilesDict.update(dictMontage)
+    generatedFilesDict.update(dictMontage)
 
     if verbose:
         print(json.dumps(generatedFilesDict, indent=3))

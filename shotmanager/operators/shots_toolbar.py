@@ -33,20 +33,26 @@ from bpy.types import Operator
 class UAS_ShotManager_EnableDisableAll(Operator):
     bl_idname = "uas_shot_manager.enabledisableall"
     bl_label = "Enable / Disable All Shots"
-    bl_description = "Enable all shots,\nShift + Click: Invert shots state,\nCtrl + Click: Disable all shots,\nAlt + Click: Isolate Selected Shot,"
+    bl_description = "Toggle shot enabled state.\nShift + Click: Enable all shots,\nCtrl + Click: Disable all shots,\nCtrl + Shift + Click: Invert shots state,\nAlt + Click: Isolate Selected Shot,"
     bl_options = {"INTERNAL", "UNDO"}
 
     def invoke(self, context, event):
         scene = context.scene
         props = scene.UAS_shot_manager_props
+        prefs = context.preferences.addons["shotmanager"].preferences
 
         enableMode = "ENABLEALL"
         if event.shift and not event.ctrl and not event.alt:
-            enableMode = "INVERT"
+            enableMode = "ENABLEALL"
         elif event.ctrl and not event.shift and not event.alt:
             enableMode = "DISABLEALL"
+        elif event.shift and event.ctrl and not event.alt:
+            enableMode = "INVERT"
         elif event.alt and not event.shift and not event.ctrl:
             enableMode = "ENABLEONLYCSELECTED"
+        elif not event.alt and not event.shift and not event.ctrl:
+            enableMode = "ENABLEALL" if prefs.toggleShotsEnabledState else "DISABLEALL"
+            prefs.toggleShotsEnabledState = not prefs.toggleShotsEnabledState
 
         selectedShot = props.getSelectedShot()
         shotsList = props.getShotsList()

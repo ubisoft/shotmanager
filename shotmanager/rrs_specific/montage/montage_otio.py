@@ -89,6 +89,9 @@ class MontageOtio(MontageInterface):
         if otioFile is not None:
             self.initialize(otioFile)
 
+        print(f"\n\n   fillMontageInfoFromOtioFile:")
+        print(f"      EDL: {self.otioFile} \n")
+
         if self.timeline is None:
             _logger.error("fillMontageInfoFromOtioFile: self.timeline is None!")
             return
@@ -198,6 +201,20 @@ class MontageOtio(MontageInterface):
 
             return xmlClipNamesArr
 
+        def _get_name_from_xml_clip_name(clip, xmlClipNames):
+            newName = clip.name
+            if "Stack" == type(clip).__name__:
+                if hasattr(clip, "metadata"):
+                    if "fcp_xml" in clip.metadata:
+                        if "@id" in clip.metadata["fcp_xml"]:
+                            clipId = clip.metadata["fcp_xml"]["@id"]
+                            for item in xmlClipNames:
+                                if item[0] == clipId:
+                                    # self.name = item[1]
+                                    newName = item[1]
+                                    break
+            return newName
+
         xmlClipNames = []
         if ".xml" == (Path(self.otioFile).suffix).lower():
             from xml.dom.minidom import parse
@@ -228,7 +245,7 @@ class MontageOtio(MontageInterface):
                             continue
                         media_path = Path(utils.file_path_from_url(clip.media_reference.target_url))
                         # if config.uasDebug:
-                        #   print(f"\n** clip: {clip.name}")
+                        #     print(f"\n** clip: {clip.name}")
                         # print(f"** clip.media_reference: {clip.media_reference}")
                         # print(f"** media_path: {media_path}")
                         # wkip ici mettre une exception pour attraper les media manquants (._otio.MissingReference)
@@ -240,10 +257,10 @@ class MontageOtio(MontageInterface):
 
                         # get parent sequence
                         seq_pattern = "_seq"
-                        #    print(f"  Clip name 03: {clip.name}")
+                        #  print(f"  Clip name 03: {clip.name}")
 
                         if seq_pattern in media_name_lower:
-                            #   print(f"media_name: {media_name}")
+                            #       print(f"media_name: {media_name}")
 
                             media_name_splited = media_name_lower.split("_")
                             if 2 <= len(media_name_splited):
@@ -261,8 +278,12 @@ class MontageOtio(MontageInterface):
 
                     # clip can be a nested edit (called a stack)
                     else:
-                        stackName = clip.name
+                        # stackName = clip.name
+                        stackName = _get_name_from_xml_clip_name(clip, xmlClipNames)
+                        #  if config.uasDebug:
+                        # print(f"\n** clip: {clip.name}")
                         # print(f"Stack Seq Name: {stackName}, seq: {self.getSequenceNameFromMediaName(stackName)}")
+
                         # get the name of the shot
                         stackNameLower = stackName.lower()
                         seq_pattern = "_seq"
@@ -282,7 +303,8 @@ class MontageOtio(MontageInterface):
                                 else:
                                     newSeq = self.sequencesList[parentSeqInd]
                                 newClip = newSeq.newShot(clip)
-                                newClip.set_name_from_xml_clip_name(xmlClipNames)
+                                newClip.name = stackName
+                                # newClip.set_name_from_xml_clip_name(xmlClipNames)
 
         # for seq in self.sequencesList:
         #     # get the start and end of every seq
@@ -338,6 +360,7 @@ class ShotOtio(ShotInterface):
 
         # new properties:
         self.clip = shot
+        self.soundClips = []
 
         # !!! warning: when clip is of type Stack (and not Clip) then the clip.name is the name of the
         # nested edit, not the name of the clip itself! This is an issue when the nested edit is shared by
@@ -349,17 +372,17 @@ class ShotOtio(ShotInterface):
     def get_name(self):
         return self.name
 
-    def set_name_from_xml_clip_name(self, xmlClipNames):
-        if "Stack" == self.get_type():
-            if hasattr(self.clip, "metadata"):
-                if "fcp_xml" in self.clip.metadata:
-                    if "@id" in self.clip.metadata["fcp_xml"]:
-                        clipId = self.clip.metadata["fcp_xml"]["@id"]
-                        for item in xmlClipNames:
-                            if item[0] == clipId:
-                                self.name = item[1]
-                                break
-        return self.name
+    # def set_name_from_xml_clip_name(self, xmlClipNames):
+    #     if "Stack" == self.get_type():
+    #         if hasattr(self.clip, "metadata"):
+    #             if "fcp_xml" in self.clip.metadata:
+    #                 if "@id" in self.clip.metadata["fcp_xml"]:
+    #                     clipId = self.clip.metadata["fcp_xml"]["@id"]
+    #                     for item in xmlClipNames:
+    #                         if item[0] == clipId:
+    #                             self.name = item[1]
+    #                             break
+    #     return self.name
 
     def get_name_old(self):
         """
@@ -488,3 +511,36 @@ class ShotOtio(ShotInterface):
 
     def get_frame_offset_end(self):
         return ow.get_clip_frame_offset_end(self.clip, self.parent.parent.get_fps())
+
+    def get_media_soundfiles(self):
+        sounds = []
+        sounds.append("c:\\toto.mp3")
+
+        tracks = self.timeline.video_tracks()
+        for i, track in enumerate(tracks):
+            if refVideoTrackInd == i:
+                #     track = self.timeline.video_tracks[0]
+
+                for clip in track:
+                    #    print(f"Clip name 01: {clip.name}, type:{type(clip)}")
+
+                    # if clip is a media
+                    if isinstance(clip, opentimelineio.schema.Clip):
+                        # if True:
+                        #  print(f"  Clip name 02: {clip.name}")
+                        if clip.media_reference.is_missing_reference:
+                            print(f"Missing Media Reference for Clip: {clip.name}")
+                            continue
+                        media_path = Path(utils.file_path_from_url(clip.media_reference.target_url))
+                        # if config.uasDebug:
+                        #     print(f"\n** clip: {clip.name}")
+                        # print(f"** clip.media_reference: {clip.media_reference}")
+                        # print(f"** media_path: {media_path}")
+                        # wkip ici mettre une exception pour attraper les media manquants (._otio.MissingReference)
+
+                        # get media name
+                        filename = os.path.split(media_path)[1]
+                        media_name = os.path.splitext(filename)[0]
+                        media_name_lower = media_name.lower()
+
+        return sounds

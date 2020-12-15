@@ -23,7 +23,25 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
         min=0, default=50,
     )
 
-    take_properties_extended: BoolProperty(default=False,)
+    take_properties_extended: BoolProperty(
+        name="Extend Take Properties", default=False,
+    )
+    take_notes_extended: BoolProperty(
+        name="Extend Take Notes", default=False,
+    )
+
+    shot_properties_extended: BoolProperty(
+        name="Extend Shot Properties", default=True,
+    )
+    shot_notes_extended: BoolProperty(
+        name="Extend Shot Notes", default=False,
+    )
+    shot_cameraBG_extended: BoolProperty(
+        name="Extend Shot Camera BG", default=False,
+    )
+    shot_greasepencil_extended: BoolProperty(
+        name="Extend Shot Grease Pencil", default=False,
+    )
 
     current_shot_changes_current_time: BoolProperty(
         name="Set Current Frame To Shot Start When Current Shot Is Changed", description="", default=True,
@@ -80,12 +98,26 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
         ),
         default="STILL",
     )
+
+    ##################
+    # tools ui     ###
+    ##################
+    toggleShotsEnabledState: BoolProperty(name=" ", default=False)
+
+    ##################
+    # shots features #
+    ##################
+    toggleCamsBG: BoolProperty(name=" ", default=False)
+    toggleCamsSoundBG: BoolProperty(name=" ", default=False)
+    toggleGreasePencil: BoolProperty(name=" ", default=False)
+
     ##################
     # ui helpers   ###
     ##################
 
     # used for example as a placehoder in VSM to have a text field when no strip is selected
     emptyField: StringProperty(name=" ")
+    emptyBool: BoolProperty(name=" ", default=False)
 
     ##################
     # add new shot ###
@@ -129,6 +161,16 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
         name="Add Shot End UI Only", soft_min=0, get=_get_addShot_end, set=_set_addShot_end, default=50,
     )
 
+    ##################
+    # global temps values   ###
+    ##################
+
+    # Playblast
+    ####################
+
+    ##################################################################################
+    # Draw
+    ##################################################################################
     def draw(self, context):
         layout = self.layout
         prefs = context.preferences.addons["shotmanager"].preferences
@@ -150,6 +192,18 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
             col = box.column(align=False)
             col.prop(self, "addShot_start")
             col.prop(self, "addShot_end")
+
+    ##################
+    # markers ###
+    ##################
+
+    mnavbar_use_filter: BoolProperty(
+        name="Filter Markers", default=False,
+    )
+
+    mnavbar_filter_text: StringProperty(
+        name="Filter Text", default="",
+    )
 
 
 _classes = (UAS_ShotManager_AddonPrefs,)

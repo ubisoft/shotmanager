@@ -7,7 +7,7 @@ def export_otio(shot_manager, file_path="", file_name="", add_take_name_to_path=
         If file_name is left to default then the rendered file will be a .xml
     """
     parent_scene = shot_manager.getParentScene()
-    res = exports.exportOtio(
+    res = exports.exportShotManagerEditToOtio(
         parent_scene,
         filePath=file_path,
         fileName=file_name,

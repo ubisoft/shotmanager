@@ -16,10 +16,10 @@ def initGlobalVariables():
     else:
         uasDebug = True
 
-    uasDebug = False
+    uasDebug = True
 
     global uasDebug_keepVSEContent
-    uasDebug_keepVSEContent = True and uasDebug
+    uasDebug_keepVSEContent = False and uasDebug
 
     global uasDebug_ignoreLoggerFormatting
     uasDebug_ignoreLoggerFormatting = True and uasDebug

@@ -357,63 +357,62 @@ def retime_shot(shot, mode, start_frame=0, end_frame=0, remove_gap=True, factor=
         pass
 
 
-def retime_vse ( scene, mode, start_frame, end_frame, remove_gap = True ):
-    def insert_time ( sed, start_frame, end_frame ):
+def retime_vse(scene, mode, start_frame, end_frame, remove_gap=True):
+    def insert_time(sed, start_frame, end_frame):
         # This will be a two pass process since we will use operators to cut the clips.
         offset = end_frame - start_frame
-        sequences = list ( )
+        sequences = list()
         for sequence in sed.sequences:
             sequence.select = False
-            sequences.append ( sequence )
+            sequences.append(sequence)
 
-        sequences.sort ( key = lambda s: s.frame_start, reverse = True )
+        sequences.sort(key=lambda s: s.frame_start, reverse=True)
 
         # First pass is about move start frame of the clip if they are behind the start_frame and cutting the clips which contains start_frame.
         for seq in sequences:
             if seq.frame_final_start < start_frame < seq.frame_final_end:
                 seq.select = True
-                bpy.ops.sequencer.split ( frame = start_frame )
+                bpy.ops.sequencer.split(frame=start_frame)
                 seq.select = False
             elif seq.frame_final_start >= start_frame:
                 seq.frame_start += offset
 
         # Second pass is about offseting clips which just have been cut. They are identified by  seq.frame_start + seq.frame_offset_start == start_frame
-        for seq in list ( sed.sequences ):
+        for seq in list(sed.sequences):
             if seq.frame_final_start == start_frame:
                 seq.frame_start += offset
 
-    def remove_time ( sed, start_frame, end_frame, remove_gap ):
+    def remove_time(sed, start_frame, end_frame, remove_gap):
         for s in sed.sequences:
             s.select = False
 
-        for s in list ( sed.sequences ):
+        for s in list(sed.sequences):
             if s.frame_final_start < start_frame < s.frame_final_end:
                 s.select = True
             if s.frame_final_start < end_frame < s.frame_final_end:
                 s.select = True
 
-        bpy.ops.sequencer.split ( frame = start_frame )
-        bpy.ops.sequencer.split ( frame = end_frame )
+        bpy.ops.sequencer.split(frame=start_frame)
+        bpy.ops.sequencer.split(frame=end_frame)
         for s in sed.sequences:
             s.select = False
 
-        for s in list ( sed.sequences ):
-            if start_frame <=s.frame_final_start <=end_frame and start_frame <=s.frame_final_end <= end_frame:
-                sed.sequences.remove ( s )
+        for s in list(sed.sequences):
+            if start_frame <= s.frame_final_start <= end_frame and start_frame <= s.frame_final_end <= end_frame:
+                sed.sequences.remove(s)
 
         if remove_gap:
-            insert_time ( sed, end_frame, start_frame )
-
+            insert_time(sed, end_frame, start_frame)
 
     sed = scene.sequence_editor
     if sed is None:
         return
 
     if mode == "INSERT":
-        insert_time ( sed, start_frame, end_frame )
+        insert_time(sed, start_frame, end_frame)
 
     elif mode == "DELETE":
-        remove_time ( sed, start_frame, end_frame, remove_gap )
+        remove_time(sed, start_frame, end_frame, remove_gap)
 
 
 # start parameter is replaced here by duration
@@ -430,7 +429,7 @@ def retimeScene(
     apply_on_shape_keys=True,
     apply_on_grease_pencils=True,
     apply_on_shots=True,
-    apply_on_vse=True
+    apply_on_vse=True,
 ):
     retimer(
         scene,
@@ -445,6 +444,7 @@ def retimeScene(
         apply_on_shape_keys=apply_on_shape_keys,
         apply_on_grease_pencils=apply_on_grease_pencils,
         apply_on_shots=apply_on_shots,
+        apply_on_vse=apply_on_vse,
     )
 
 
@@ -461,7 +461,7 @@ def retimer(
     apply_on_shape_keys=True,
     apply_on_grease_pencils=True,
     apply_on_shots=True,
-    apply_on_vse=True
+    apply_on_vse=True,
 ):
 
     print("Retiming scene: , factor: ", mode, factor)
@@ -506,7 +506,7 @@ def retimer(
 
     # VSE
     if apply_on_vse:
-        retime_vse ( scene, mode, start, end )
+        retime_vse(scene, mode, start, end)
 
     # Shots
     if apply_on_shots:

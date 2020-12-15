@@ -16,8 +16,10 @@ class UAS_MT_VideoShotManager_Prefs_MainMenu(Menu):
     def draw(self, context):
         layout = self.layout
 
-        # row = layout.row(align=True)
-        # row.operator("uas_shot_manager.general_prefs", text="Preferences...")
+        row = layout.row(align=True)
+        row.operator("uas_shot_manager.general_prefs", text="Preferences...")
+        row = layout.row(align=True)
+        row.operator("uas_shot_manager.project_settings_prefs", text="Project Settings...")
 
         layout.separator()
         row = layout.row(align=True)

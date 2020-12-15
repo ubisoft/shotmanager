@@ -22,7 +22,8 @@ class UAS_PT_ShotManagerRetimer(Panel):
     @classmethod
     def poll(cls, context):
         props = context.scene.UAS_shot_manager_props
-        return not props.dontRefreshUI()
+        val = props.display_retimer_in_properties and not props.dontRefreshUI()
+        return val
 
     def draw(self, context):
 
@@ -261,11 +262,14 @@ class UAS_PT_ShotManagerRetimer_Settings(Panel):
         col = box.column()
         row = col.row(align=True)
         row.prop(retimerProps, "applyToShots")
+        row.prop(retimerProps, "applyToObjects")
+        row.label(text=" ")
 
         row = col.row(align=True)
-        row.prop(retimerProps, "applyToObjects")
         row.prop(retimerProps, "applyToShapeKeys")
         row.prop(retimerProps, "applytToGreasePencil")
+        row.prop(retimerProps, "applytToVSE")
+        row = col.row(align=True)
 
 
 class UAS_ShotManager_GetTimeRange(Operator):
@@ -321,6 +325,8 @@ class UAS_ShotManager_RetimerApply(Operator):
 
     def execute(self, context):
         retimerProps = context.scene.UAS_shot_manager_props.retimer
+        # wkip wkip wkip temp
+        applToVSE = setattr(retimerProps, "applyToVse", True)
 
         if retimerProps.onlyOnSelection:
             obj_list = context.selected_objects
@@ -348,6 +354,7 @@ class UAS_ShotManager_RetimerApply(Operator):
                 retimerProps.applyToShapeKeys,
                 retimerProps.applytToGreasePencil,
                 retimerProps.applyToShots,
+                retimerProps.applyToVse,
             )
         elif "DELETE" == retimerProps.mode:
             retimer.retimeScene(
@@ -363,6 +370,7 @@ class UAS_ShotManager_RetimerApply(Operator):
                 retimerProps.applyToShapeKeys,
                 retimerProps.applytToGreasePencil,
                 retimerProps.applyToShots,
+                retimerProps.applyToVse,
             )
         elif "RESCALE" == retimerProps.mode:
             retimer.retimeScene(
@@ -378,6 +386,7 @@ class UAS_ShotManager_RetimerApply(Operator):
                 retimerProps.applyToShapeKeys,
                 retimerProps.applytToGreasePencil,
                 retimerProps.applyToShots,
+                retimerProps.applyToVse,
             )
         elif "CLEAR_ANIM" == retimerProps.mode:
             retimer.retimeScene(
@@ -393,6 +402,7 @@ class UAS_ShotManager_RetimerApply(Operator):
                 retimerProps.applyToShapeKeys,
                 retimerProps.applytToGreasePencil,
                 False,
+                retimerProps.applyToVse,
             )
         else:
             retimer.retimer(
@@ -408,6 +418,7 @@ class UAS_ShotManager_RetimerApply(Operator):
                 retimerProps.applyToShapeKeys,
                 retimerProps.applytToGreasePencil,
                 retimerProps.applyToShots,
+                retimerProps.applyToVse,
             )
 
         context.area.tag_redraw()

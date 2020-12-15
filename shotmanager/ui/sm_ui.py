@@ -8,6 +8,8 @@ from shotmanager.utils import utils
 
 from . import sm_shots_ui
 from . import sm_takes_ui
+from . import sm_shot_settings_ui
+from . import sm_shots_global_settings_ui
 
 import logging
 
@@ -67,18 +69,20 @@ class UAS_PT_ShotManager(Panel):
         #   row.operator("render.opengl", text="", icon='RENDER_ANIMATION').animation = True
         #    row.operator("screen.screen_full_area", text ="", icon = 'FULLSCREEN_ENTER').use_hide_panels=False
 
-        row.operator("uas_shot_manager.go_to_video_shot_manager", text="", icon="SEQ_STRIP_DUPLICATE")
+        row.operator(
+            "uas_shot_manager.go_to_video_shot_manager", text="", icon="SEQ_STRIP_DUPLICATE"
+        ).vseSceneName = "RRS_CheckSequence"
 
-        row.separator(factor=1.5)
+        row.separator(factor=0.5)
         icon = config.icons_col["General_Explorer_32"]
         row.operator("uas_shot_manager.open_explorer", text="", icon_value=icon.icon_id).path = bpy.path.abspath(
             bpy.data.filepath
         )
 
-        row.separator(factor=1.5)
+        row.separator(factor=0.5)
         row.menu("UAS_MT_Shot_Manager_prefs_mainmenu", icon="PREFERENCES", text="")
 
-        row.separator(factor=2.5)
+        row.separator(factor=1.0)
 
     def draw(self, context):
         layout = self.layout
@@ -86,6 +90,7 @@ class UAS_PT_ShotManager(Panel):
         props = scene.UAS_shot_manager_props
         prefs = context.preferences.addons["shotmanager"].preferences
         currentTake = props.getCurrentTake()
+        currentTakeInd = props.getCurrentTakeIndex()
 
         # addon warning message - for beta message display
         ###############
@@ -98,7 +103,6 @@ class UAS_PT_ShotManager(Panel):
         # ]
 
         addonWarning = [""]
-        # addonWarning = ["Beta Yannick"]
         if "" != addonWarning[0]:
             row = layout.row()
             row.alignment = "CENTER"
@@ -109,8 +113,12 @@ class UAS_PT_ShotManager(Panel):
         if config.uasDebug:
             row = layout.row()
             row.alignment = "CENTER"
+            strDebug = " *** Debug Mode ***"
+            # if props.useBGSounds:
+            #     strDebug += "  BG Sounds Used"
             row.alert = True
-            row.label(text=" *** Debug Mode ***")
+            row.label(text=strDebug)
+            row.prop(props, "useBGSounds")
             row.alert = False
 
         # if not "UAS_shot_manager_props" in context.scene:
@@ -133,6 +141,14 @@ class UAS_PT_ShotManager(Panel):
                 row.label(text=w)
                 row.alert = False
 
+        if props.use_project_settings and "Scene" in scene.name:
+            c = layout.column()
+            c.alert = True
+            c.alignment = "CENTER"
+            c.label(text=" *************************************** ")
+            c.label(text=" *    SCENE NAME IS INVALID !!!    * ")
+            c.label(text=" *************************************** ")
+
         # play and timeline
         ################
         row = layout.row()
@@ -144,11 +160,20 @@ class UAS_PT_ShotManager(Panel):
             toggle=True,
             icon="ANIM",
         )
-        row.prop(context.window_manager, "UAS_shot_manager_display_timeline", text="", toggle=True, icon="TIME")
-        row.prop(context.window_manager, "UAS_shot_manager_toggle_montage_interaction", text="", toggle=True)
+        subRow = row.row(align=True)
+        subRow.prop(context.window_manager, "UAS_shot_manager_display_timeline", text="", toggle=True, icon="TIME")
+        subSubRow = subRow.row(align=True)
+        subSubRow.enabled = context.window_manager.UAS_shot_manager_display_timeline
+        subSubRow.prop(
+            context.window_manager,
+            "UAS_shot_manager_toggle_montage_interaction",
+            text="",
+            icon="ARROW_LEFTRIGHT",
+            toggle=True,
+        )
 
-        row.emboss = "PULLDOWN_MENU"
-        row.operator("uas_shot_manager.playbar_prefs", text="", icon="SETTINGS")
+        # row.emboss = "PULLDOWN_MENU"
+        row.operator("uas_shot_manager.features", text="", icon="PROPERTIES")
 
         # play bar
         ################
@@ -234,7 +259,9 @@ class UAS_PT_ShotManager(Panel):
         box = layout.box()
         row = box.row(align=False)
         row.prop(prefs, "take_properties_extended", text="", icon=panelIcon, emboss=False)
-        row.label(text="Take:")
+
+        takeStr = "Take:" if not props.display_advanced_infos else f"Take ({currentTakeInd + 1}/{props.getNumTakes()}):"
+        row.label(text=takeStr)
         subrow = row.row(align=True)
         #    row.scale_y = 1.5
         subrow.scale_x = 2.0
@@ -242,23 +269,28 @@ class UAS_PT_ShotManager(Panel):
         subsubrow = subrow.row(align=False)
         subsubrow.scale_x = 0.8
 
+        takeHasNotes = False
         if currentTake is not None:
-            if currentTake.hasNotes():
+            takeHasNotes = currentTake.hasNotes()
+            if takeHasNotes:
                 # if item.hasNotes():
                 notesIcon = "ALIGN_TOP"
                 notesIcon = "ALIGN_JUSTIFY"
                 notesIcon = "WORDWRAP_OFF"
                 # notesIcon = "TEXT"
                 # notesIcon = "OUTLINER_DATA_GP_LAYER"
-                subsubrow.prop(currentTake, "showNotes", text="", icon=notesIcon, emboss=currentTake.showNotes)
+                subsubrow.prop(prefs, "take_notes_extended", text="", icon=notesIcon, emboss=prefs.take_notes_extended)
             else:
-                notesIcon = "WORDWRAP_ON"
-                notesIcon = "MESH_PLANE"
-                subsubrow.prop(currentTake, "showNotes", text="", icon=notesIcon, emboss=currentTake.showNotes)
-                # emptyIcon = config.icons_col["General_Empty_32"]
-                # row.operator(
-                #     "uas_shot_manager.shots_shownotes", text="", icon_value=emptyIcon.icon_id
-                # ).index = index
+                if props.display_notes_in_properties:
+                    notesIcon = "WORDWRAP_ON"
+                    notesIcon = "MESH_PLANE"
+                    subsubrow.prop(
+                        prefs, "take_notes_extended", text="", icon=notesIcon, emboss=prefs.take_notes_extended
+                    )
+                    # emptyIcon = config.icons_col["General_Empty_32"]
+                    # row.operator(
+                    #     "uas_shot_manager.shots_shownotes", text="", icon_value=emptyIcon.icon_id
+                    # ).index = index
 
         subrow.prop(props, "current_take_name", text="")
         #    row.menu(UAS_MT_ShotManager_Takes_ToolsMenu.bl_idname,text="Tools",icon='TOOL_SETTINGS')
@@ -268,39 +300,54 @@ class UAS_PT_ShotManager(Panel):
 
         if prefs.take_properties_extended:
             row = box.row()
-            row.label(text="Take Properties")
-            row = box.row()
-            row.prop(currentTake, "globalEditDirectory", text="Edit Dir")
-            row = box.row()
-            row.prop(currentTake, "globalEditVideo", text="Edit Animatic")
-            row = box.row()
-            row.prop(currentTake, "startInGlobalEdit", text="Start in Global Edit")
+            row.label(text="Take Properties:")
+            subBox = box.box()
+            subRow = subBox.row()
+            subRow.separator()
+            subRow.prop(currentTake, "globalEditDirectory", text="Edit Dir")
+            subRow = subBox.row()
+            subRow.separator()
+            subRow.prop(currentTake, "globalEditVideo", text="Edit Animatic")
+            subRow = subBox.row()
+            subRow.separator()
+            subRow.prop(currentTake, "startInGlobalEdit", text="Start in Global Edit")
 
         # Notes
         ######################
-        if currentTake is not None and currentTake.showNotes:
+        if currentTake is not None and (
+            (props.display_notes_in_properties and prefs.take_properties_extended)
+            or (props.display_notes_in_properties and prefs.take_notes_extended)
+            or (takeHasNotes and prefs.take_notes_extended)
+        ):
+            # or (props.display_notes_in_properties and prefs.take_properties_extended)
+            # ):
+            panelIcon = "TRIA_DOWN" if prefs.take_notes_extended else "TRIA_RIGHT"
+
             box = box.box()
             box.use_property_decorate = False
             row = box.row()
-            row.separator(factor=1.0)
+            row.prop(prefs, "take_notes_extended", text="", icon=panelIcon, emboss=False)
+            # row.separator(factor=1.0)
             c = row.column()
             # grid_flow = c.grid_flow(align=False, columns=3, even_columns=False)
             subrow = c.row()
             subrow.label(text="Take Notes:")
             subrow.separator(factor=0.5)  # prevents strange look when panel is narrow
-            row = box.row()
-            row.separator(factor=1.0)
-            row.prop(currentTake, "note01", text="")
-            row.separator(factor=1.0)
-            row = box.row()
-            row.separator(factor=1.0)
-            row.prop(currentTake, "note02", text="")
-            row.separator(factor=1.0)
-            row = box.row()
-            row.separator(factor=1.0)
-            row.prop(currentTake, "note03", text="")
-            row.separator(factor=1.0)
-            box.separator(factor=0.1)
+
+            if prefs.take_notes_extended:
+                row = box.row()
+                row.separator(factor=1.0)
+                row.prop(currentTake, "note01", text="")
+                row.separator(factor=1.0)
+                row = box.row()
+                row.separator(factor=1.0)
+                row.prop(currentTake, "note02", text="")
+                row.separator(factor=1.0)
+                row = box.row()
+                row.separator(factor=1.0)
+                row.prop(currentTake, "note03", text="")
+                row.separator(factor=1.0)
+                box.separator(factor=0.1)
 
         # shots
         ################
@@ -316,13 +363,17 @@ class UAS_PT_ShotManager(Panel):
             subrow = column_flow.row()
             subrow.alignment = "LEFT"
             subrow.scale_x = 1.0
-            subrow.label(text=f"Shots ({numEnabledShots}/{numShots}):")
+
+            shotsStr = "Shots:" if not props.display_advanced_infos else f"Shots ({numEnabledShots}/{numShots}):"
+            subrow.label(text=shotsStr)
             # subrow.separator()
             #  column_flow.scale_x = 1.0
             subrow = column_flow.row()
             subrow.alignment = "LEFT"
             #   subrow.scale_x = 1.0
-            subrow.operator("uas_shot_manager.enabledisableall", text="", icon="CHECKBOX_HLT")
+            prefs = context.preferences.addons["shotmanager"].preferences
+            iconCheckBoxes = "CHECKBOX_HLT" if not prefs.toggleShotsEnabledState else "CHECKBOX_DEHLT"
+            subrow.operator("uas_shot_manager.enabledisableall", text="", icon=iconCheckBoxes)
 
             # subrow.separator(factor=0.2)
             subrow.prop(
@@ -332,6 +383,10 @@ class UAS_PT_ShotManager(Panel):
             subrow = column_flow.row()
             subrow.scale_x = 0.9
             subrow.alignment = "RIGHT"
+
+            if config.uasDebug:
+                subrow.operator("uas_shot_manager.enabledisablegreasepencil", text="", icon="OUTLINER_OB_GREASEPENCIL")
+            subrow.operator("uas_shot_manager.enabledisablecamsbg", text="", icon="VIEW_CAMERA")
 
             if props.useLockCameraView:
                 subrow.alert = True
@@ -344,8 +399,9 @@ class UAS_PT_ShotManager(Panel):
             #    row.operator("uas_shot_manager.scenerangefromenabledshots", text="", icon="PREVIEW_RANGE")
             subrow.operator("uas_shot_manager.scenerangefrom3dedit", text="", icon="PREVIEW_RANGE")
 
-            row.emboss = "PULLDOWN_MENU"
-            row.operator("uas_shot_manager.shots_prefs", text="", icon="SETTINGS")
+            col = row.column(align=True)
+            col.separator(factor=3.0)
+            # row.operator("uas_shot_manager.shots_prefs", text="", icon="SETTINGS")
 
             row = box.row()
             row.template_list(
@@ -372,12 +428,11 @@ class UAS_PT_ShotManager(Panel):
 
 class UAS_PT_ShotManager_Initialize(Operator):
     bl_idname = "uas_shot_manager.initialize"
-    bl_label = "Initialize"
-    bl_description = "Initialize"
+    bl_label = "Initialize Shot Manager"
+    bl_description = "Initialize Shot Manager"
     bl_options = {"INTERNAL"}
 
     def execute(self, context):
-        print("*** uas_shot_manager.render ***")
         context.scene.UAS_shot_manager_props.initialize_shot_manager()
 
         return {"FINISHED"}
@@ -396,9 +451,13 @@ def register():
 
     sm_takes_ui.register()
     sm_shots_ui.register()
+    sm_shot_settings_ui.register()
+    sm_shots_global_settings_ui.register()
 
 
 def unregister():
+    sm_shots_global_settings_ui.unregister()
+    sm_shot_settings_ui.unregister()
     sm_shots_ui.unregister()
     sm_takes_ui.unregister()
 

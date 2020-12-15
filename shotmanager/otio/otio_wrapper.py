@@ -238,6 +238,7 @@ def get_clip_media_path(clip):
     # media_path = Path(utils.file_path_from_url(clip.media_reference.target_url))
     media_path = None
     if isinstance(clip, opentimelineio.schema.Clip):
+        print(f"clip.media_reference: {clip.media_reference}")
         media_path = utils.file_path_from_url(clip.media_reference.target_url)
     return media_path
 

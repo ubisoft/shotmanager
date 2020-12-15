@@ -9,6 +9,23 @@ from bpy.types import Operator
 from bpy.props import StringProperty
 
 
+###################
+# UI
+###################
+
+# used as UI placeholder
+class UAS_OT_EmptyOperator(Operator):
+    bl_idname = "uas.empty_operator"
+    bl_label = " "
+    # bl_description = "Bla"
+    bl_options = {"INTERNAL"}
+
+    def invoke(self, context, event):
+        pass
+
+        return {"FINISHED"}
+
+
 class UAS_Utils_RunScript(Operator):
     bl_idname = "uas_utils.run_script"
     bl_label = "Run Script"
@@ -49,13 +66,13 @@ class UAS_ShotManager_OpenExplorer(Operator):
         else:
             # wkipwkip
             if Path(absPathToOpen).exists():
-                subprocess.Popen(f'explorer "{absPathToOpen}"')
+                subprocess.Popen(f'explorer "{Path(absPathToOpen)}"')
             elif Path(absPathToOpen).parent.exists():
                 subprocess.Popen(f'explorer "{Path(absPathToOpen).parent}"')
             elif Path(absPathToOpen).parent.parent.exists():
                 subprocess.Popen(f'explorer "{Path(absPathToOpen).parent.parent}"')
             else:
-                print('Open Explorer failed: Path not found: "' + absPathToOpen + '"')
+                print(f"Open Explorer failed: Path not found: {Path(absPathToOpen)}")
                 from ..utils.utils import ShowMessageBox
 
                 ShowMessageBox(f"{absPathToOpen} not found", "Open Explorer - Directory not found", "ERROR")
@@ -96,7 +113,12 @@ class UAS_Utils_GetCurrentFrameForTimeRange(Operator):
         return {"FINISHED"}
 
 
-_classes = (UAS_Utils_RunScript, UAS_ShotManager_OpenExplorer, UAS_Utils_GetCurrentFrameForTimeRange)
+_classes = (
+    UAS_OT_EmptyOperator,
+    UAS_Utils_RunScript,
+    UAS_ShotManager_OpenExplorer,
+    UAS_Utils_GetCurrentFrameForTimeRange,
+)
 
 
 def register():

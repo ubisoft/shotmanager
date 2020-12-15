@@ -1,21 +1,26 @@
 import bpy
 from bpy.types import Operator
-from bpy.props import BoolProperty
+from bpy.props import BoolProperty, StringProperty
 
 from shotmanager.config import config
 from ..utils.utils import getSceneVSE, convertVersionIntToStr
+from ..utils import utils
 
 
 class UAS_ShotManager_OT_GoToVideoShotManager(Operator):
     bl_idname = "uas_shot_manager.go_to_video_shot_manager"
-    bl_label = "Go To Video Shot Manager"
-    bl_description = "Go to Video Shot Manager"
+    bl_label = "Go To Updated Video Shot Manager"
+    bl_description = "Go to Updated Video Shot Manager"
     bl_options = {"INTERNAL"}
+
+    vseSceneName: StringProperty(default="")
 
     def invoke(self, context, event):
 
         vsm_scene = None
-        vsm_scene = getSceneVSE("VideoShotManger", createVseTab=True)
+        if "" == self.vseSceneName:
+            self.vseSceneName = "VideoShotManager"
+        vsm_scene = getSceneVSE(self.vseSceneName, createVseTab=True)
 
         # startup_blend = os.path.join(
         #     bpy.utils.resource_path("LOCAL"),

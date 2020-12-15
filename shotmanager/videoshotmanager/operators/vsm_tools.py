@@ -1,4 +1,6 @@
+import os
 from pathlib import Path
+from stat import S_IMODE, S_IWRITE
 
 import bpy
 from bpy.types import Operator, Menu
@@ -299,15 +301,27 @@ class UAS_VideoShotManager_OT_PrintMontageInfo(Operator):
         return {"FINISHED"}
 
 
-class UAS_VideoShotManager_OT_ExportMarkersEditAsVideos(Operator):
-    bl_idname = "uas_video_shot_manager.export_markers_edit_as_videos"
-    bl_label = "Export Markers Edit as Videos..."
+class UAS_VideoShotManager_OT_ExportContentbetweenMarkers(Operator):
+    bl_idname = "uas_video_shot_manager.export_content_between_markers"
+    bl_label = "Batch Export Content Between Markers..."
     bl_description = "Export all the segments defined by the markers as separated videos"
     bl_options = {"INTERNAL"}
 
-    outputDir: StringProperty(default=r"C:\_UAS_ROOT\RRSpecial\05_Acts\Act01\_Montage\_OutputShots")
+    outputDir: StringProperty(default=r"-- Copy Output Directory Here ---")
+
+    start: IntProperty(name="Start", default=10)
+    end: IntProperty(name="end", default=150)
+
+    exportAsVideoFiles: BoolProperty(name="Export as Video Files", default=True)
+    exportVideosWithSound: BoolProperty(name="With Sound", default=True)
+    exportAsAudioFiles: BoolProperty(name="Export as Audio Files", default=True)
+    exportEditSoundtracks: BoolProperty(name="Export Edit Sound Tracks", default=True)
 
     def invoke(self, context, event):
+
+        self.start = context.scene.frame_start
+        self.end = context.scene.frame_end
+
         wm = context.window_manager
         wm.invoke_props_dialog(self, width=500)
         return {"RUNNING_MODAL"}
@@ -315,6 +329,16 @@ class UAS_VideoShotManager_OT_ExportMarkersEditAsVideos(Operator):
     def draw(self, context):
         layout = self.layout
         layout.prop(self, "outputDir")
+        row = layout.row()
+        row.prop(self, "start")
+        row.prop(self, "end")
+        row = layout.row()
+        row.prop(self, "exportAsVideoFiles")
+        row.prop(self, "exportVideosWithSound")
+        row = layout.row()
+        row.prop(self, "exportAsAudioFiles")
+        row = layout.row()
+        row.prop(self, "exportEditSoundtracks")
 
     def execute(self, context):
         scene = context.scene
@@ -322,23 +346,125 @@ class UAS_VideoShotManager_OT_ExportMarkersEditAsVideos(Operator):
 
         vse_render = bpy.context.window_manager.UAS_vse_render
 
+        if not Path(self.outputDir).exists():
+            print(f" *** Cannot export VSE content, path does not exist: {self.outputDir}")
+            return {"FINISHED"}
+
+        ######
+        # Export videos
+
         scene.render.image_settings.file_format = "FFMPEG"
         scene.render.ffmpeg.format = "MPEG4"
         scene.render.ffmpeg.constant_rate_factor = "PERC_LOSSLESS"  # "PERC_LOSSLESS"
         scene.render.ffmpeg.gopsize = 5  # keyframe interval
-        scene.render.ffmpeg.audio_codec = "AAC"
+        scene.render.ffmpeg.audio_codec = "AAC" if self.exportVideosWithSound else "NONE"
 
         #       scene.render.filepath = output_filepath
         scene.render.use_file_extension = False
 
-        for i, mrk in enumerate(scene.timeline_markers):
-            print(f"{i} Marker name: {mrk.name}")
+        markers = utils.sortMarkers(scene.timeline_markers)
 
-            if i < len(scene.timeline_markers) - 1:
-                scene.frame_start = scene.timeline_markers[i].frame
-                scene.frame_end = scene.timeline_markers[i + 1].frame - 1
-                scene.render.filepath = self.outputDir + "/" + mrk.name + ".mp4"
-                bpy.ops.render.opengl(animation=True, sequencer=True)
+        # print(f"markers: {markers}")
+        if self.exportAsVideoFiles:
+            print(f"\n * Exporting video files:")
+            for i, mrk in enumerate(markers):
+                if self.start <= markers[i].frame <= self.end:
+                    if i < len(markers) - 1:
+                        if self.start <= markers[i + 1].frame <= self.end:
+                            #    print(f"{i} Marker name: {mrk.name}")
+                            scene.frame_start = markers[i].frame
+                            scene.frame_end = markers[i + 1].frame - 1
+                            scene.render.filepath = self.outputDir + "/" + mrk.name + ".mp4"
+                            bpy.ops.render.opengl(animation=True, sequencer=True)
+
+        ######
+        # Export audios
+
+        if self.exportAsAudioFiles:
+            for i, mrk in enumerate(markers):
+                if self.start <= markers[i].frame <= self.end:
+                    #   print(f"{i} if 01 - Marker name: {mrk.name}")
+                    if i < len(markers) - 1:
+                        #       print(f"{i} if 02 - Marker name: {mrk.name}, {self.start}, {markers[i + 1].frame}, {self.end}")
+                        if self.start <= markers[i + 1].frame <= self.end:
+                            #    print(f"{i} Marker name: {mrk.name}")
+                            scene.frame_start = markers[i].frame
+                            scene.frame_end = markers[i + 1].frame - 1
+                            # https://blenderartists.org/t/scripterror-mixdown-operstor/548056/4
+                            # bpy.ops.sound.mixdown(filepath=str(audioFilePath), relative_path=False, container="WAV", codec="PCM", bitrate=192)
+                            audioFilePath = self.outputDir + "/" + mrk.name + ".mp3"
+                            bpy.ops.sound.mixdown(
+                                filepath=audioFilePath, relative_path=False, container="MP3", codec="MP3"
+                            )
+
+        ######
+        # Export Sound Tracks
+
+        if self.exportEditSoundtracks:
+            vsm_props = context.scene.UAS_vsm_props
+            tracks = vsm_props.getTracks()
+            for t in tracks:
+                t.enabled = False
+
+            for t in tracks:
+                if (
+                    t.get_name() == "SFX"
+                    or t.get_name() == "Rabbids"
+                    or t.get_name() == "Humans_Rabbids"
+                    or t.get_name() == "Humans"
+                ):
+                    t.enabled = True
+
+                    # print(f" Len markers: {len(markers)}")
+                    for i, mrk in enumerate(markers):
+                        if self.start <= markers[i].frame <= self.end:
+                            #       print(f"{i} if 01 - Marker name: {mrk.name}")
+                            if i < len(markers) - 1:
+                                # print(
+                                #     f"{i} if 02 - Marker name: {mrk.name}, {self.start}, {markers[i + 1].frame}, {self.end}"
+                                # )
+                                if self.start <= markers[i + 1].frame <= self.end + 1:
+                                    #   print(f"{i} Marker 3 name: {mrk.name}")
+                                    scene.frame_start = markers[i].frame
+                                    scene.frame_end = markers[i + 1].frame - 1
+                                    # https://blenderartists.org/t/scripterror-mixdown-operstor/548056/4
+                                    # bpy.ops.sound.mixdown(filepath=str(audioFilePath), relative_path=False, container="WAV", codec="PCM", bitrate=192)
+                                    seqName = mrk.name[0:13]
+                                    audioFile = f"C:/_UAS_ROOT/RRSpecial/05_Acts/Act01/{seqName}/_Exports/Sound/{mrk.name}_{t.get_name()}.wav"
+
+                                    audioFilePath = Path(audioFile).parent
+                                    if Path(audioFilePath).exists():
+                                        # print(f"Path Ok: {audioFilePath}")
+                                        pass
+                                        if Path(audioFile).exists():
+                                            stat = Path(audioFile).stat()
+                                            #   print(f"Blender file Stats: {stat.st_mode}")
+                                            fileIsReadOnly = S_IMODE(stat.st_mode) & S_IWRITE == 0
+                                            if fileIsReadOnly:
+                                                os.chmod(audioFile, 0o666)
+
+                                    else:
+                                        # print(f"Path not found: {audioFilePath}")
+                                        try:
+                                            os.makedirs(audioFilePath)
+                                        except OSError:
+                                            print("Creation of the directory %s failed" % audioFilePath)
+                                        else:
+                                            # print("Successfully created the directory %s" % audioFilePath)
+                                            pass
+
+                                    print(f"Exporting audioFile: {audioFile}")
+
+                                    bpy.ops.sound.mixdown(
+                                        filepath=audioFile, relative_path=False, container="WAV",
+                                    )
+
+                    print("")
+                    t.enabled = False
+
+        context.scene.frame_start = self.start
+        context.scene.frame_end = self.end
+        print(f"\n * Export content between markers done to {self.outputDir}\n")
 
         return {"FINISHED"}
 
@@ -390,11 +516,14 @@ class UAS_VideoShotManager_OT_ClearAll(Operator):
     bl_description = "Clear all channels"
     bl_options = {"INTERNAL", "UNDO"}
 
-    def execute(self, context):
-
-        bpy.ops.uas_video_shot_manager.clear_markers()
-        bpy.ops.uas_video_shot_manager.clear_clips()
+    def invoke(self, context, event):
+        vsm_props = context.scene.UAS_vsm_props
+        # print("Clear all ici")
         bpy.ops.uas_video_shot_manager.remove_multiple_tracks(action="ALL")
+        bpy.ops.uas_video_shot_manager.clear_clips()
+        bpy.ops.uas_video_shot_manager.clear_markers()
+
+        vsm_props.updateTracksList(context.scene)
 
         return {"FINISHED"}
 
@@ -417,7 +546,7 @@ class UAS_VideoShotManager_OT_ClearMarkers(Operator):
 #     bl_options = {"INTERNAL", "UNDO"}
 
 #     def invoke(self, context, event):
-#         # vsm_sceneName = "VideoShotManger"
+#         # vsm_sceneName = "VideoShotManager"
 #         # vsm_scene = bpy.data.scenes[vsm_sceneName]
 #         vsm_scene = bpy.context.scene
 #         vsm_scene.sequence_editor_clear()
@@ -449,16 +578,36 @@ class UAS_VideoShotManager_OT_ClearClips(Operator):
         return {"FINISHED"}
 
 
+class UAS_VideoShotManager_OT_GoToScene(Operator):
+    bl_idname = "uas_video_shot_manager.go_to_scene"
+    bl_label = "Go To Specified Scene"
+    bl_description = "Go to specified scene"
+    bl_options = {"INTERNAL"}
+
+    sceneName: StringProperty()
+
+    def invoke(self, context, event):
+
+        # print("trackName: ", self.trackName)
+        # Make track scene the current one
+        # bpy.context.window.scene = context.scene.UAS_vsm_props.tracks[self.trackName].shotManagerScene
+        bpy.context.window.scene = bpy.data.scenes[self.sceneName]
+        bpy.context.window.workspace = bpy.data.workspaces["Layout"]
+
+        return {"FINISHED"}
+
+
 _classes = (
     UAS_VideoShotManager_OT_Import_Edit_From_OTIO,
     UAS_VideoShotManager_OT_Parse_Edit_From_OTIO,
     UAS_VideoShotManager_OT_PrintMontageInfo,
-    UAS_VideoShotManager_OT_ExportMarkersEditAsVideos,
+    UAS_VideoShotManager_OT_ExportContentbetweenMarkers,
     UAS_MT_VideoShotManager_Clear_Menu,
     UAS_VideoShotManager_OT_ClearAll,
     UAS_VideoShotManager_OT_ClearMarkers,
     # UAS_VideoShotManager_OT_ClearTracks,
     UAS_VideoShotManager_OT_ClearClips,
+    UAS_VideoShotManager_OT_GoToScene,
 )
 
 

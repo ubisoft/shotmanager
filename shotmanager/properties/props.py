@@ -102,16 +102,21 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         try:
             parentScn = self.parentScene
         except Exception:  # as e
-            print("Error - parentScene property is None is props.getParentScene():", sys.exc_info()[0])
+            print("Error - parentScene property is None in props.getParentScene():", sys.exc_info()[0])
 
         # if parentScn is not None:
         #     return parentScn
         if parentScn is None:
-            print("\n\n WkError: parentScn in None in Props !!! *** ")
+            _logger.error("\n\n WkError: parentScn in None in Props !!! *** ")
+            self.parentScene = self.findParentScene()
+        else:
+            self.parentScene = parentScn
 
+        if self.parentScene is None:
+            print("\n\n Re WkError: self.parentScene in still None in Props !!! *** ")
         # findParentScene is done in initialize function
 
-        return parentScn
+        return self.parentScene
 
     retimer: PointerProperty(type=UAS_Retimer_Properties)
 
@@ -197,8 +202,8 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
     #############
 
     rrs_useRenderRoot: BoolProperty(name="Use Render Root", default=True)
-    rrs_fileListOnly: BoolProperty(name="File List Only", default=False)
     rrs_rerenderExistingShotVideos: BoolProperty(name="Force Re-render", default=True)
+    rrs_fileListOnly: BoolProperty(name="File List Only", default=True)
     rrs_renderAlsoDisabled: BoolProperty(name="Render Also Disabled", default=False)
 
     # project settings
@@ -331,6 +336,11 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
 
     display_enabled_in_shotlist: BoolProperty(name="Display Enabled State in Shot List", default=True, options=set())
 
+    display_cameraBG_in_shotlist: BoolProperty(name="Display Camera BG in Shot List", default=False, options=set())
+    display_greasepencil_in_shotlist: BoolProperty(
+        name="Display Grease Pencil in Shot List", default=False, options=set()
+    )
+
     display_getsetcurrentframe_in_shotlist: BoolProperty(
         name="Display Get/Set current Frame Buttons in Shot List", default=True, options=set()
     )
@@ -368,6 +378,9 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         options=set(),
     )
 
+    # Features
+    #############
+
     display_camerabgtools_in_properties: BoolProperty(
         name="Display Camera Background Image Tools in Shot Properties",
         description="Display the Camera Background Image Tools in the shot properties panels",
@@ -382,7 +395,28 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         options=set(),
     )
 
+    display_greasepencil_in_properties: BoolProperty(
+        name="Display Grease Pencil in Shot Properties",
+        description="Display grease pencil in the shot properties panels",
+        default=False,
+        options=set(),
+    )
+
+    display_retimer_in_properties: BoolProperty(
+        name="Display Retimer sub-Panel",
+        description="Display Retimer sub-panel in the Shot Manager panel",
+        default=True,
+        options=set(),
+    )
+
     display_notes_in_shotlist: BoolProperty(name="Display Color in Shot List", default=True, options=set())
+
+    display_advanced_infos: BoolProperty(
+        name="Display Advanced Infos",
+        description="Display technical information and feedback in the UI",
+        default=False,
+        options=set(),
+    )
 
     def _get_useLockCameraView(self):
         # Can also use area.spaces.active to get the space assoc. with the area
@@ -543,6 +577,9 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
 
     def getTakes(self):
         return self.takes
+
+    def getNumTakes(self):
+        return len(self.takes)
 
     def getTakeByIndex(self, takeIndex):
         """ Return the take corresponding to the specified index
@@ -946,11 +983,12 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
 
         return duration
 
-    def getEditTime(self, referenceShot, frameIndexIn3DTime):
+    def getEditTime(self, referenceShot, frameIndexIn3DTime, referenceLevel="TAKE"):
         """ Return edit current time in frames, -1 if no shots or if current shot is disabled
             Works on the take from which referenceShot is coming from.
             Disabled shots are always ignored and considered as not belonging to the edit.
             wkip negative times issues coming here... :/
+            referenceLevel can be "TAKE" or "GLOBAL_EDIT"
         """
         frameIndInEdit = -1
         if referenceShot is None:
@@ -980,12 +1018,15 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
 
                 frameIndInEdit += frameIndexIn3DTime - referenceShot.start
 
-                # frameIndInEdit += self.editStartFrame       # at project level
-                frameIndInEdit += referenceShot.getParentTake().startInGlobalEdit  # at take level
+                if "GLOBAL_EDIT" == referenceLevel:
+                    frameIndInEdit += referenceShot.getParentTake().startInGlobalEdit
+                else:
+                    # at take level
+                    frameIndInEdit += self.editStartFrame  # at project level
 
         return frameIndInEdit
 
-    def getEditCurrentTime(self, ignoreDisabled=True):
+    def getEditCurrentTime(self, referenceLevel="TAKE", ignoreDisabled=True):
         """ Return edit current time in frames, -1 if no shots or if current shot is disabled
             works only on current take
             wkip negative times issues coming here... :/
@@ -1002,7 +1043,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         #        shotList = self.getShotsList(ignoreDisabled=ignoreDisabled, takeIndex=takeInd)
         shot = self.getCurrentShot()
 
-        return self.getEditTime(shot, bpy.context.scene.frame_current)
+        return self.getEditTime(shot, bpy.context.scene.frame_current, referenceLevel=referenceLevel)
 
         # # works only on current take
         # takeInd = self.getCurrentTakeIndex()
@@ -1036,7 +1077,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
 
         # return editCurrentTime
 
-    def getEditCurrentTimeForSelectedShot(self, ignoreDisabled=True):
+    def getEditCurrentTimeForSelectedShot(self, referenceLevel="TAKE", ignoreDisabled=True):
         """ Return edit current time in frames, -1 if no shots or if current shot is disabled
             works only on current take
             wkip negative times issues coming here... :/
@@ -1052,7 +1093,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         #        shotList = self.getShotsList(ignoreDisabled=ignoreDisabled, takeIndex=takeInd)
         shot = self.getSelectedShot()
 
-        return self.getEditTime(shot, bpy.context.scene.frame_current)
+        return self.getEditTime(shot, bpy.context.scene.frame_current, referenceLevel=referenceLevel)
 
     def getEditShots(self, ignoreDisabled=True):
         return self.getShotsList(ignoreDisabled=ignoreDisabled)
@@ -1512,26 +1553,33 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
 
         if -1 < currentShotIndex and len(shotList) > currentShotIndex:
             prefs = bpy.context.preferences.addons["shotmanager"].preferences
+            currentShot = shotList[currentShotIndex]
 
             if changeTime is None:
                 if prefs.current_shot_changes_current_time:
-                    scene.frame_current = shotList[currentShotIndex].start
+                    scene.frame_current = currentShot.start
             elif changeTime:
-                scene.frame_current = shotList[currentShotIndex].start
+                scene.frame_current = currentShot.start
 
             if prefs.current_shot_changes_time_range and scene.use_preview_range:
                 bpy.ops.uas_shot_manager.scenerangefromshot()
 
-            if shotList[currentShotIndex].camera is not None and bpy.context.screen is not None:
+            if currentShot.camera is not None and bpy.context.screen is not None:
                 # set the current camera in the 3D view: [‘PERSP’, ‘ORTHO’, ‘CAMERA’]
-                scene.camera = shotList[currentShotIndex].camera
+                scene.camera = currentShot.camera
                 utils.setCurrentCameraToViewport(bpy.context, area)
                 # area = next(area for area in bpy.context.screen.areas if area.type == "VIEW_3D")
 
                 # area.spaces[0].use_local_camera = False
                 # area.spaces[0].region_3d.view_perspective = "CAMERA"
 
-            # bpy.context.scene.objects["Camera_Sapin"]
+            # wkip use if
+            # if prefs.toggleCamsSoundBG:
+            # self.enableBGSoundForShot(prefs.toggleCamsSoundBG, currentShot)
+            if self.useBGSounds:
+                self.enableBGSoundForShot(True, currentShot)
+
+        # bpy.context.scene.objects["Camera_Sapin"]
 
     def setCurrentShot(self, currentShot, changeTime=None, area=None):
         shotInd = self.getShotIndex(currentShot)
@@ -1712,6 +1760,60 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
 
         return self.takes[takeInd].getShotsUsingCamera(cam, ignoreDisabled=ignoreDisabled)
 
+    def getShotsSharingCamera(self, cam, ignoreDisabled=False, takeIndex=-1, inAllTakes=True):
+        """ Return a dictionary with all the shots using the specified camera in the specified takes
+            The dictionary is made of "take name" / Shots array
+        """
+        shotsDict = dict()
+
+        if cam is None:
+            return shotsDict
+
+        if not inAllTakes:
+            takeInd = (
+                self.getCurrentTakeIndex()
+                if -1 == takeIndex
+                else (takeIndex if 0 <= takeIndex and takeIndex < len(self.getTakes()) else -1)
+            )
+            if -1 == takeInd:
+                return shotsDict
+
+            shotList = self.takes[takeInd].getShotsUsingCamera(cam, ignoreDisabled=ignoreDisabled)
+            if len(shotList):
+                shotsDict[self.takes[takeInd].getName_PathCompliant()] = shotList
+
+        else:
+            if len(self.takes):
+                for take in self.takes:
+                    shotList = []
+                    shotList = take.getShotsUsingCamera(cam, ignoreDisabled=ignoreDisabled)
+                    if len(shotList):
+                        shotsDict[take.getName_PathCompliant()] = shotList
+
+        return shotsDict
+
+    def getNumSharedCamera(self, cam, ignoreDisabled=False, takeIndex=-1, inAllTakes=True):
+        """ Return the number of times the specified camera is used by the shots of the specified takes
+            0 means the camera is not used at all, -1 that the specified take is not valid
+        """
+        if not inAllTakes:
+            takeInd = (
+                self.getCurrentTakeIndex()
+                if -1 == takeIndex
+                else (takeIndex if 0 <= takeIndex and takeIndex < len(self.getTakes()) else -1)
+            )
+            if -1 == takeInd:
+                return -1
+
+        sharedCams = self.getShotsSharingCamera(
+            cam, ignoreDisabled=ignoreDisabled, takeIndex=takeIndex, inAllTakes=inAllTakes
+        )
+        numSharedCams = 0
+        for k in sharedCams:
+            numSharedCams += len(sharedCams[k])
+
+        return numSharedCams
+
     def deleteShotCamera(self, shot):
         """ Check in all takes if the camera is used by another shot and if not then delete it
         """
@@ -1734,6 +1836,188 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         bpy.ops.object.delete()
 
         return deleteOk
+
+    ###############
+    # sounds BG
+    ###############
+
+    useBGSounds: BoolProperty(default=False)
+    meta_bgSoundsName01: StringProperty(default="")
+
+    def getBGSoundsMetaContainingClip(self, clip):
+        # wkip wkip wkip finir ici pour tester qu'on a le bon meta
+        return self.getBGSoundsMeta()
+
+    def getBGSoundsMeta(self):
+        """ Get the first meta strip dedicated to the bg sounds and with some room in it (ie that has less than 32 tracks occupied)
+            Meta strips for sounds are placed on tracks 30 to 32
+        """
+        scene = self.parentScene
+        bgSoundsMeta = None
+        newMetaTrackInd = 10  # 30
+
+        # a stocker dans une propriété
+        if "" != self.meta_bgSoundsName01:
+            if self.meta_bgSoundsName01 not in scene.sequence_editor.sequences:
+                self.meta_bgSoundsName01 = ""
+            else:
+                # bgSoundsMeta = bpy.context.sequences[self.meta_bgSoundsName01]
+                bgSoundsMeta = bpy.context.scene.sequence_editor.sequences_all[self.meta_bgSoundsName01]
+
+        if bgSoundsMeta is None:
+            # close any meta opened:
+            while len(scene.sequence_editor.meta_stack) > 0:
+                bpy.ops.sequencer.meta_toggle()
+
+            # create meta
+            bpy.ops.sequencer.select_all(action="DESELECT")
+            tmpClip = scene.sequence_editor.sequences.new_effect(
+                "_tmp_clip-to_delete", "COLOR", newMetaTrackInd, frame_start=0, frame_end=45000
+            )
+            # tmpClip is selected so we can call meta_make()
+            bpy.ops.sequencer.meta_make()
+            # bpy.ops.sequencer.meta_toggle()  # close meta
+            bgSoundsMeta = scene.sequence_editor.active_strip
+            bgSoundsMeta.name = "ShotMan--BGSounds"
+
+            # go back inside the meta to delete the temp strip
+            bpy.ops.sequencer.meta_toggle()  # open meta
+            # scene.sequence_editor.sequences_all[tmpClip.name]
+            bpy.ops.sequencer.select_all(action="SELECT")
+            bpy.ops.sequencer.delete()
+
+            bpy.ops.sequencer.meta_toggle()  # close meta
+            # scene.sequence_editor.sequences.remove(tmpClip)
+
+            self.meta_bgSoundsName01 = bgSoundsMeta.name
+
+        return bgSoundsMeta
+
+    def openMetaStrip(self, context, metaClip):
+        self.closeAllMetaStrips(context)
+
+        bpy.ops.sequencer.select_all(action="DESELECT")
+        context.scene.sequence_editor.sequences_all[metaClip.name].select = True
+        bpy.ops.sequencer.meta_toggle()
+
+    def closeAllMetaStrips(self, context):
+        # close meta if one is opened:
+        while len(context.scene.sequence_editor.meta_stack) > 0:
+            bpy.ops.sequencer.meta_toggle()
+
+    def getFirstEmptyTrack(self, context, bgSoundsMeta):
+        """ Return the first empty track index of the specified meta strip
+        """
+        firstEmptyTrackInd = -1
+        self.openMetaStrip(context, bgSoundsMeta)
+        channelsList = list(range(1, 33))
+        for seq in context.sequences:
+            if seq.channel in channelsList:
+                channelsList.remove(seq.channel)
+        # print(f"channelsList: {channelsList}")
+        if len(channelsList):
+            firstEmptyTrackInd = channelsList[0]
+        self.closeAllMetaStrips(context)
+        return firstEmptyTrackInd
+
+    def addBGSoundToShot(self, sound_path, shot):
+        """ Add the sound of the specified media (sound or video) into one of the meta strips of the VSE reserved for shot Manager (from 30 to 32)
+            Return the sound clip
+        """
+        context = bpy.context
+        scene = self.parentScene
+        newSoundClip = None
+
+        bgSoundsMeta = self.getBGSoundsMeta()
+        if bgSoundsMeta is None:
+            print("Pb in addBGSoundToShot: no bgSoundsMeta strip")
+        else:
+            # # close meta if opened:
+            # while len(scene.sequence_editor.meta_stack) > 0:
+            #     bpy.ops.sequencer.meta_toggle()
+
+            # bpy.ops.sequencer.select_all(action="DESELECT")
+            # scene.sequence_editor.sequences_all[bgSoundsMeta.name].select = True
+
+            targetTrackInd = self.getFirstEmptyTrack(bpy.context, bgSoundsMeta)
+
+            if -1 < targetTrackInd:
+                self.openMetaStrip(context, bgSoundsMeta)
+
+                vse_render = context.window_manager.UAS_vse_render
+
+                clipName = "myBGSound"
+                newSoundClip = vse_render.createNewClip(
+                    scene, str(sound_path), targetTrackInd, 0, importVideo=False, importAudio=True, clipName=clipName,
+                )
+
+                shot.bgSoundClipName = newSoundClip.name
+
+        self.closeAllMetaStrips(context)
+
+        return newSoundClip
+
+    #################
+    #################
+    #################
+    #################
+    #################
+    #################
+    #################
+    # to do:
+    # fonction clear orphans in tracks
+    # fonction enable seulement le clip actif
+    # move clip doit bien mettre a jour le son
+    #################
+    #################
+    #################
+    #################
+    #################
+    #################
+    #################
+    #################
+    #################
+
+    def removeBGSoundFromShot(self, shot):
+        context = bpy.context
+        scene = self.parentScene
+        metaSeq = self.getBGSoundsMetaContainingClip(shot.bgSoundClipName)
+        if metaSeq is not None:
+            self.openMetaStrip(context, metaSeq)
+            bpy.ops.sequencer.select_all(action="DESELECT")
+            print(f"removeBGSoundFromShot 01, shot.bgSoundClipName: {shot.bgSoundClipName} ")
+            # for i, c in enumerate(context.scene.sequence_editor.sequences):
+            for i, c in enumerate(context.sequences):
+                print(f"   seq {i + 1}  {c.name}")
+            # if shot.bgSoundClipName in context.scene.sequence_editor.sequences:
+
+            for i in context.sequences:
+                if shot.bgSoundClipName == i.name:
+                    # if shot.bgSoundClipName in context.sequences:  # name and seq, marche pas
+                    print("removeBGSoundFromShot 02")
+                    # context.scene.sequence_editor.sequences[shot.bgSoundClipName].select = True
+                    i.select = True
+                    bpy.ops.sequencer.delete()
+                    break
+                #    self.closeAllMetaStrips(context)
+            shot.bgSoundClipName = ""
+
+    def disableAllShotsBGSounds(self):
+        """ Turn off all the sounds of all the shots of all the takes
+        """
+        for clip in self.parentScene.sequence_editor.sequences:
+            clip.mute = True
+
+    def enableBGSoundForShot(self, useBgSound, shot):
+        """ Turn off all the sounds of all the shots of all the takes and enable only the one of the specified shot
+        """
+        # print("----++++ enableBGSoundForShot")
+        self.disableAllShotsBGSounds()
+
+        if self.useBGSounds and shot is not None:
+            bgSoundClip = shot.getSoundSequence()
+            if bgSoundClip is not None:
+                bgSoundClip.mute = not useBgSound
 
     ###############
     # functions working only on current take !!!
@@ -2005,9 +2289,10 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         shotPrefix = ""
 
         if self.use_project_settings:
-            # wkip to improve with project_shot_format!!!
-            # scene name is used but it may be weak
-            shotPrefix = self.getParentScene().name
+            # wkip wkip wkip to improve with project_shot_format!!!
+            # scene name is used but it may be weak. Replace by take name??
+            # shotPrefix = self.getParentScene().name
+            shotPrefix = self.parentScene.name
         else:
             shotPrefix = self.render_shot_prefix
 
@@ -2022,13 +2307,17 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
                 outputFileFormat = self.project_output_format.lower()
                 if "" == outputFileFormat:
                     print("\n---------------------------")
-                    print("*** Project video output file format not correctly set in the Preferences ***\n")
+                    print(
+                        "*** Shot Manager: Project video output file format not correctly set in the Preferences ***\n"
+                    )
             #   _logger.debug(f"  /// outputFileFormat vid: {outputFileFormat}")
             else:
                 outputFileFormat = self.project_images_output_format.lower()
                 if "" == outputFileFormat:
                     print("\n---------------------------")
-                    print("*** Project image output file format not correctly set in the Preferences ***\n")
+                    print(
+                        "*** Shot Manager: Project image output file format not correctly set in the Preferences ***\n"
+                    )
             #    _logger.debug(f"  /// outputFileFormat: {outputFileFormat}")
         else:
             if isVideo:
@@ -2196,20 +2485,20 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
 
         # path is absolute and ends with a /
         if fullPathOnly:
-            _logger.debug(" ** fullPathOnly")
+            # _logger.debug(" ** fullPathOnly")
             resultStr = filePath
         elif fullPath:
-            _logger.debug(" ** fullpath")
+            #            _logger.debug(" ** fullpath")
             resultStr = filePath + fileFullName
             if not noExtension:
                 resultStr += "." + self.getOutputFileFormat(isVideo=specificFrame is None)
         else:
-            _logger.debug(" ** else")
+            #           _logger.debug(" ** else")
             resultStr = fileFullName
-            _logger.debug(f" ** resultStr 1:  {resultStr}")
+            #          _logger.debug(f" ** resultStr 1:  {resultStr}")
             if not noExtension:
                 resultStr += "." + self.getOutputFileFormat(isVideo=specificFrame is None)
-            _logger.debug(f" ** resultStr 2:  {resultStr}")
+        #         _logger.debug(f" ** resultStr 2:  {resultStr}")
 
         _logger.debug(f" ** resultStr: {resultStr}")
         return resultStr
