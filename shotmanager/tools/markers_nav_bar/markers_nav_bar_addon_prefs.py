@@ -1,6 +1,6 @@
 import bpy
 from bpy.types import AddonPreferences
-from bpy.props import StringProperty, IntProperty, BoolProperty, EnumProperty
+from bpy.props import StringProperty, BoolProperty
 
 
 class UAS_markers_nav_bar_addon_prefs(AddonPreferences):
