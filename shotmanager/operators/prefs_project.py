@@ -57,6 +57,14 @@ class UAS_ShotManager_ProjectSettings_Prefs(Operator):
         if not props.isStampInfoAvailable():
             stampInfoStr += "  (Warning: Currently NOT installed)"
         col.prop(props, "project_use_stampinfo", text=stampInfoStr)
+        row = col.row()
+        row.alignment = "RIGHT"
+        row.enabled = props.project_use_stampinfo
+        row.label(text="Logo")
+        # row.separator(factor=0)
+        subrow = row.row()
+        subrow.scale_x = 1.0
+        subrow.prop(props, "project_logo_path", text="")
 
         ############
         # resolution

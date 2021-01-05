@@ -211,18 +211,14 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
 
     use_project_settings: BoolProperty(name="Use Project Settings", default=False, options=set())
 
-    # settings coming from production
+    # settings coming from production:
+    ############
+
     ############
     # naming
     ############
     project_shot_format: StringProperty(name="Shot Format", default=r"Act{:02}_Seq{:04}_Sh{:04}")
     project_name: StringProperty(name="Project Name", default="My Project")
-
-    project_fps: FloatProperty(name="Project Fps", min=0.5, max=200.0, default=25.0)
-    project_resolution_x: IntProperty(name="Res. X", min=0, default=1280)
-    project_resolution_y: IntProperty(name="Res. Y", min=0, default=720)
-    project_resolution_framed_x: IntProperty(name="Res. Framed X", min=0, default=1280)
-    project_resolution_framed_y: IntProperty(name="Res. Framed Y", min=0, default=720)
 
     project_use_shot_handles: BoolProperty(
         name="Use Handles",
@@ -236,6 +232,24 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         soft_max=50,
         default=10,
     )
+
+    project_logo_path: StringProperty(name="Project Logo", description="If defined uses the project logo otherwise uses the logo specifined in StampInfo addon settings", default="")
+    project_use_stampinfo: BoolProperty(
+        name="Use Stamp Info Add-on",
+        description="Use UAS Stamp Info add-on - if available - to write data on rendered images.\nNote: If Stamp Info is not installed then warnings will be displayed",
+        default=False,
+    )
+
+
+    ############
+    # resolution
+    ############
+    project_fps: FloatProperty(name="Project Fps", min=0.5, max=200.0, default=25.0)
+    project_resolution_x: IntProperty(name="Res. X", min=0, default=1280)
+    project_resolution_y: IntProperty(name="Res. Y", min=0, default=720)
+    project_resolution_framed_x: IntProperty(name="Res. Framed X", min=0, default=1280)
+    project_resolution_framed_y: IntProperty(name="Res. Framed Y", min=0, default=720)
+
 
     ############
     # outputs
@@ -251,11 +265,6 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
     # built-in project settings
     project_images_output_format: StringProperty(name="Image Output Format", default="PNG")
 
-    project_use_stampinfo: BoolProperty(
-        name="Use Stamp Info Add-on",
-        description="Use UAS Stamp Info add-on - if available - to write data on rendered images.\nNote: If Stamp Info is not installed then warnings will be displayed",
-        default=False,
-    )
 
     # built-in settings
     use_handles: BoolProperty(
