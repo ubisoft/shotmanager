@@ -57,7 +57,7 @@ from .utils import utils_handlers
 from .utils import utils_operators
 from .utils import utils_get_set_current_time
 
-from . import videoshotmanager
+# from . import videoshotmanager
 from . import viewport_3d
 
 from .scripts import rrs
@@ -411,7 +411,7 @@ def register():
     utils_render.register()
     general.register()
     viewport_3d.register()
-    videoshotmanager.register()
+    # videoshotmanager.register()
     prefs.register()
     features.register()
     about.register()
@@ -483,7 +483,7 @@ def unregister():
     about.unregister()
     features.unregister()
     prefs.unregister()
-    videoshotmanager.unregister()
+    #  videoshotmanager.unregister()
     viewport_3d.unregister()
     general.unregister()
     utils_render.unregister()
