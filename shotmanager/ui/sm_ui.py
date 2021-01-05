@@ -110,6 +110,12 @@ class UAS_PT_ShotManager(Panel):
             row.label(text=f" ***  {addonWarning[0]}  ***")
             row.alert = False
 
+        row = layout.row()
+        row.label(text="Debug Mode:")
+        subrow = row.row()
+        subrow.operator("uas_shot_manager.enable_debug", text="On").enable_debug = True
+        subrow.operator("uas_shot_manager.enable_debug", text="Off").enable_debug = False
+
         if config.uasDebug:
             row = layout.row()
             row.alignment = "CENTER"

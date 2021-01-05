@@ -212,13 +212,17 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
     use_project_settings: BoolProperty(name="Use Project Settings", default=False, options=set())
 
     # settings coming from production
+    ############
+    # naming
+    ############
+    project_shot_format: StringProperty(name="Shot Format", default=r"Act{:02}_Seq{:04}_Sh{:04}")
     project_name: StringProperty(name="Project Name", default="My Project")
+
     project_fps: FloatProperty(name="Project Fps", min=0.5, max=200.0, default=25.0)
     project_resolution_x: IntProperty(name="Res. X", min=0, default=1280)
     project_resolution_y: IntProperty(name="Res. Y", min=0, default=720)
     project_resolution_framed_x: IntProperty(name="Res. Framed X", min=0, default=1280)
     project_resolution_framed_y: IntProperty(name="Res. Framed Y", min=0, default=720)
-    project_shot_format: StringProperty(name="Shot Format", default=r"Act{:02}_Seq{:04}_Sh{:04}")
 
     project_use_shot_handles: BoolProperty(
         name="Use Handles",
@@ -233,12 +237,19 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         default=10,
     )
 
-    project_output_format: StringProperty(name="Output Format", default="")
+    ############
+    # outputs
+    ############
+
     project_color_space: StringProperty(name="Color Space", default="")
     project_asset_name: StringProperty(name="Asset Name", default="")
 
+    project_output_format: StringProperty(name="Video Output Format", default="")
+
+    project_sounds_output_format: StringProperty(name="Sound Output Format", default="")
+
     # built-in project settings
-    project_images_output_format: StringProperty(name="Images Output Format", default="PNG")
+    project_images_output_format: StringProperty(name="Image Output Format", default="PNG")
 
     project_use_stampinfo: BoolProperty(
         name="Use Stamp Info Add-on",
@@ -405,7 +416,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
     display_retimer_in_properties: BoolProperty(
         name="Display Retimer sub-Panel",
         description="Display Retimer sub-panel in the Shot Manager panel",
-        default=True,
+        default=False,
         options=set(),
     )
 
