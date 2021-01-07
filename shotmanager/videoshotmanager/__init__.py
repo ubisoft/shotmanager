@@ -28,21 +28,17 @@ def register():
     vsm_ui.register()
     vsm_panels_ui.register()
     vsm_time_control_ui.register()
-<<<<<<< HEAD
 
 
-#   sequencer_draw.register ( )
-=======
-    sequencer_draw.register()
->>>>>>> 9e4343492f6dd09de835ef81412be5e0f0030a07
+#    sequencer_draw.register()
 
 
 def unregister():
 
-    try:
-        sequencer_draw.unregister()
-    except Exception as e:
-        print("Error in Unregister sequencer_draw")
+    # try:
+    #     sequencer_draw.unregister()
+    # except Exception as e:
+    #     print("Error in Unregister sequencer_draw")
 
     vsm_time_control_ui.unregister()
     vsm_panels_ui.unregister()
@@ -55,9 +51,7 @@ def unregister():
 
     # rrs specific
     rrs_vsm_tools.unregister()
-<<<<<<< HEAD
+
 
 #  sequencer_draw.unregister ( )
-=======
->>>>>>> 9e4343492f6dd09de835ef81412be5e0f0030a07
 

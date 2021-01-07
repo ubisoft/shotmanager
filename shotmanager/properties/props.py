@@ -107,7 +107,9 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         # if parentScn is not None:
         #     return parentScn
         if parentScn is None:
-            _logger.error("\n\n WkError: parentScn in None in Props !!! *** ")
+            _logger.error(
+                "\n\n WkError: parentScn in None in Props ! *** (This is only a pb if this message appears twice)"
+            )
             self.parentScene = self.findParentScene()
         else:
             self.parentScene = parentScn

@@ -21,6 +21,14 @@ _logger = logging.getLogger(__name__)
 
 
 class UAS_VSM_Props(PropertyGroup):
+
+    # wkip truc degueu pour fin prod
+    actToExport_Predec: EnumProperty(
+        name="Act to Export",
+        items=(("ACT01_PREDEC", "Act 01", ""), ("ACT02_PREDEC", "Act 02", ""), ("Act03_PREDEC", "Act 03", ""),),
+        default="ACT02_PREDEC",
+    )
+
     def initialize_video_shot_manager(self):
         print(f"\nInitializing Video Shot Manager... Scene: {bpy.context.scene.name}")
         # self.parentScene = self.getParentScene()

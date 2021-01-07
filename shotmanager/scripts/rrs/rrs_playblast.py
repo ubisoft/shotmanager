@@ -26,8 +26,9 @@ def importShotMarkersFromMontage(scene, montageOtio, verbose=False):
                 scene.timeline_markers.new("Edit End", frame=sh.get_frame_final_end())
 
 
-def rrs_animatic_to_vsm(editVideoFile=None, otioFile=None, montageOtio=None, importMarkers=True):
-    scene = utils.getSceneVSE("RRS_CheckSequence", createVseTab=True)
+def rrs_animatic_to_vsm(scene=None, editVideoFile=None, otioFile=None, montageOtio=None, importMarkers=True):
+    if scene is None:
+        scene = utils.getSceneVSE("RRS_CheckSequence", createVseTab=True)
     bpy.context.window.workspace = bpy.data.workspaces["Video Editing"]
 
     vse_render = bpy.context.window_manager.UAS_vse_render
@@ -135,6 +136,8 @@ def rrs_animatic_to_vsm(editVideoFile=None, otioFile=None, montageOtio=None, imp
             montageOtio = config.gMontageOtio
 
         importShotMarkersFromMontage(scene, config.gMontageOtio)
+    
+    return editVideoClip
 
 
 def getSoundFilesForEachShot(montageOtio, seqName, otioFile):
