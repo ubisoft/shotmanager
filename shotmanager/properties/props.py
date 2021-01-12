@@ -233,13 +233,19 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         default=10,
     )
 
-    project_logo_path: StringProperty(name="Project Logo", description="If defined uses the project logo otherwise uses the logo specifined in StampInfo addon settings", default="")
+    ############
+    # stamp info
+    ############
     project_use_stampinfo: BoolProperty(
         name="Use Stamp Info Add-on",
         description="Use UAS Stamp Info add-on - if available - to write data on rendered images.\nNote: If Stamp Info is not installed then warnings will be displayed",
         default=False,
     )
-
+    project_logo_path: StringProperty(
+        name="Project Logo",
+        description="If defined uses the project logo otherwise uses the logo specifined in StampInfo addon settings",
+        default="",
+    )
 
     ############
     # resolution
@@ -248,8 +254,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
     project_resolution_x: IntProperty(name="Res. X", min=0, default=1280)
     project_resolution_y: IntProperty(name="Res. Y", min=0, default=720)
     project_resolution_framed_x: IntProperty(name="Res. Framed X", min=0, default=1280)
-    project_resolution_framed_y: IntProperty(name="Res. Framed Y", min=0, default=720)
-
+    project_resolution_framed_y: IntProperty(name="Res. Framed Y", min=0, default=960)
 
     ############
     # outputs
@@ -264,7 +269,6 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
 
     # built-in project settings
     project_images_output_format: StringProperty(name="Image Output Format", default="PNG")
-
 
     # built-in settings
     use_handles: BoolProperty(

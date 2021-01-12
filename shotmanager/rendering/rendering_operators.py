@@ -171,110 +171,113 @@ class UAS_PT_ShotManager_Render(Operator):
         return {"FINISHED"}
 
 
-class UAS_PT_ShotManager_RenderDialog(Operator):
-    bl_idname = "uas_shot_manager.renderdialog"
-    bl_label = "Render"
-    bl_description = "Render"
-    bl_options = {"INTERNAL"}
+###############
+# wkip clean: doesn't seem to be used anymore...
 
-    only_active: BoolProperty(name="Render Only Active", default=False)
+# class UAS_PT_ShotManager_RenderDialog(Operator):
+#     bl_idname = "uas_shot_manager.renderdialog"
+#     bl_label = "Render"
+#     bl_description = "Render"
+#     bl_options = {"INTERNAL"}
 
-    renderer: EnumProperty(
-        items=(("BLENDER_EEVEE", "Eevee", ""), ("CYCLES", "Cycles", ""), ("OPENGL", "OpenGL", "")),
-        default="BLENDER_EEVEE",
-    )
+#     only_active: BoolProperty(name="Render Only Active", default=False)
 
-    def execute(self, context):
+#     renderer: EnumProperty(
+#         items=(("BLENDER_EEVEE", "Eevee", ""), ("CYCLES", "Cycles", ""), ("OPENGL", "OpenGL", "")),
+#         default="BLENDER_EEVEE",
+#     )
 
-        print("*** uas_shot_manager.renderDialog ***")
+#     def execute(self, context):
 
-        scene = context.scene
-        context.space_data.region_3d.view_perspective = "CAMERA"
-        handles = context.scene.UAS_shot_manager_props.handles
-        props = scene.UAS_shot_manager_props
+#         print("*** uas_shot_manager.renderDialog ***")
 
-        with utils.PropertyRestoreCtx(
-            (scene.render, "filepath"),
-            (scene, "frame_start"),
-            (scene, "frame_end"),
-            (scene.render.image_settings, "file_format"),
-            (scene.render.ffmpeg, "format"),
-            (scene.render, "engine"),
-            (scene.render, "resolution_x"),
-            (scene.render, "resolution_y"),
-        ):
+#         scene = context.scene
+#         context.space_data.region_3d.view_perspective = "CAMERA"
+#         handles = context.scene.UAS_shot_manager_props.handles
+#         props = scene.UAS_shot_manager_props
 
-            scene.render.image_settings.file_format = "FFMPEG"
-            scene.render.ffmpeg.format = "MPEG4"
+#         with utils.PropertyRestoreCtx(
+#             (scene.render, "filepath"),
+#             (scene, "frame_start"),
+#             (scene, "frame_end"),
+#             (scene.render.image_settings, "file_format"),
+#             (scene.render.ffmpeg, "format"),
+#             (scene.render, "engine"),
+#             (scene.render, "resolution_x"),
+#             (scene.render, "resolution_y"),
+#         ):
 
-            if self.renderer != "OPENGL":
-                scene.render.engine = self.renderer
+#             scene.render.image_settings.file_format = "FFMPEG"
+#             scene.render.ffmpeg.format = "MPEG4"
 
-            context.window_manager.UAS_shot_manager_shots_play_mode = False
-            context.window_manager.UAS_shot_manager_display_timeline = False
+#             if self.renderer != "OPENGL":
+#                 scene.render.engine = self.renderer
 
-            out_path = scene.render.filepath
-            shots = props.get_shots()
-            take = props.getCurrentTake()
-            if take is None:
-                take_name = ""
-            else:
-                take_name = take.name
+#             context.window_manager.UAS_shot_manager_shots_play_mode = False
+#             context.window_manager.UAS_shot_manager_display_timeline = False
 
-            if self.only_active:
-                shot = scene.UAS_shot_manager_props.getCurrentShot()
-                if shot is None:
-                    return {"CANCELLED"}
-                scene.frame_start = shot.start - handles
-                scene.frame_end = shot.end + handles
-                scene.render.filepath = get_media_path(out_path, take_name, shot.name)
-                print("      scene.render.filepath: ", scene.render.filepath)
+#             out_path = scene.render.filepath
+#             shots = props.get_shots()
+#             take = props.getCurrentTake()
+#             if take is None:
+#                 take_name = ""
+#             else:
+#                 take_name = take.name
 
-                scene.camera = shot.camera
+#             if self.only_active:
+#                 shot = scene.UAS_shot_manager_props.getCurrentShot()
+#                 if shot is None:
+#                     return {"CANCELLED"}
+#                 scene.frame_start = shot.start - handles
+#                 scene.frame_end = shot.end + handles
+#                 scene.render.filepath = get_media_path(out_path, take_name, shot.name)
+#                 print("      scene.render.filepath: ", scene.render.filepath)
 
-                if getattr(scene, "UAS_StampInfo_Settings", None) is not None:
-                    RRS_StampInfo.setRRS_StampInfoSettings(scene)
+#                 scene.camera = shot.camera
 
-                if self.renderer == "OPENGL":
-                    bpy.ops.render.opengl(animation=True)
-                else:
-                    bpy.ops.render.render(animation=True)
+#                 if getattr(scene, "UAS_StampInfo_Settings", None) is not None:
+#                     RRS_StampInfo.setRRS_StampInfoSettings(scene)
 
-                if getattr(scene, "UAS_StampInfo_Settings", None) is not None:
-                    scene.UAS_StampInfo_Settings.stampInfoUsed = False
-            else:
-                for shot in shots:
-                    if shot.enabled:
-                        scene.frame_start = shot.start - handles
-                        scene.frame_end = shot.end + handles
-                        scene.render.filepath = get_media_path(out_path, take_name, shot.name)
-                        scene.camera = shot.camera
-                        if getattr(scene, "UAS_StampInfo_Settings", None) is not None:
-                            scene.UAS_StampInfo_Settings.stampInfoUsed = True
-                            scene.UAS_StampInfo_Settings.shotName = shot.name
+#                 if self.renderer == "OPENGL":
+#                     bpy.ops.render.opengl(animation=True)
+#                 else:
+#                     bpy.ops.render.render(animation=True)
 
-                        if self.renderer == "OPENGL":
-                            bpy.ops.render.opengl(animation=True)
-                        else:
-                            bpy.ops.render.render(animation=True)
+#                 if getattr(scene, "UAS_StampInfo_Settings", None) is not None:
+#                     scene.UAS_StampInfo_Settings.stampInfoUsed = False
+#             else:
+#                 for shot in shots:
+#                     if shot.enabled:
+#                         scene.frame_start = shot.start - handles
+#                         scene.frame_end = shot.end + handles
+#                         scene.render.filepath = get_media_path(out_path, take_name, shot.name)
+#                         scene.camera = shot.camera
+#                         if getattr(scene, "UAS_StampInfo_Settings", None) is not None:
+#                             scene.UAS_StampInfo_Settings.stampInfoUsed = True
+#                             scene.UAS_StampInfo_Settings.shotName = shot.name
 
-                        if getattr(scene, "UAS_StampInfo_Settings", None) is not None:
-                            scene.UAS_StampInfo_Settings.stampInfoUsed = False
+#                         if self.renderer == "OPENGL":
+#                             bpy.ops.render.opengl(animation=True)
+#                         else:
+#                             bpy.ops.render.render(animation=True)
 
-            scene.UAS_StampInfo_Settings.restorePreviousValues(scene)
-            print(" --- RRS Settings Restored ---")
-        # return {"RUNNING_MODAL"}
+#                         if getattr(scene, "UAS_StampInfo_Settings", None) is not None:
+#                             scene.UAS_StampInfo_Settings.stampInfoUsed = False
 
-        return {"FINISHED"}
+#             scene.UAS_StampInfo_Settings.restorePreviousValues(scene)
+#             print(" --- RRS Settings Restored ---")
+#         # return {"RUNNING_MODAL"}
 
-    def draw(self, context):
-        l = self.layout
-        row = l.row()
-        row.prop(self, "renderer")
+#         return {"FINISHED"}
 
-    # def invoke ( self, context, event ):
-    #     wm = context.window_manager
-    #     return wm.invoke_props_dialog ( self )
+#     def draw(self, context):
+#         l = self.layout
+#         row = l.row()
+#         row.prop(self, "renderer")
+
+# def invoke ( self, context, event ):
+#     wm = context.window_manager
+#     return wm.invoke_props_dialog ( self )
 
 
 ###########
@@ -317,9 +320,8 @@ class UAS_ShotManager_Render_ClearLastRenderResults(Operator):
 
 _classes = (
     UAS_PT_ShotManager_Render,
-    UAS_PT_ShotManager_RenderDialog,
+    # UAS_PT_ShotManager_RenderDialog,
     UAS_OT_OpenPathBrowser,
-    #    UAS_ShotManager_Explorer,
     UAS_ShotManager_Render_RestoreProjectSettings,
     UAS_ShotManager_Render_OpenLastRenderResults,
     UAS_ShotManager_Render_ClearLastRenderResults,

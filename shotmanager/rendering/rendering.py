@@ -9,7 +9,7 @@ import bpy
 
 from shotmanager.otio.exports import exportShotManagerEditToOtio
 from shotmanager.config import config
-from shotmanager.scripts.rrs.RRS_StampInfo import setRRS_StampInfoSettings
+from shotmanager.rendering.sm_StampInfo_default_settings import set_StampInfoSettings
 
 from shotmanager.utils import utils
 from shotmanager.utils import utils_store_context as utilsStore
@@ -147,26 +147,26 @@ def launchRenderWithVSEComposite(
         rootPath += "\\"
 
     preset_useStampInfo = False
-    RRS_StampInfo = None
+    stampInfoSettings = None
 
     if not fileListOnly:
         if getattr(scene, "UAS_StampInfo_Settings", None) is not None:
-            RRS_StampInfo = scene.UAS_StampInfo_Settings
+            stampInfoSettings = scene.UAS_StampInfo_Settings
 
             # remove handlers and compo!!!
-            RRS_StampInfo.clearRenderHandlers()
-            #   RRS_StampInfo.clearInfoCompoNodes(scene)
+            stampInfoSettings.clearRenderHandlers()
+            #   stampInfoSettings.clearInfoCompoNodes(scene)
 
             preset_useStampInfo = useStampInfo
             if not useStampInfo:
-                RRS_StampInfo.stampInfoUsed = False
+                stampInfoSettings.stampInfoUsed = False
             else:
-                RRS_StampInfo.renderRootPathUsed = True
-                RRS_StampInfo.renderRootPath = rootPath
-                setRRS_StampInfoSettings(scene)
+                stampInfoSettings.renderRootPathUsed = True
+                stampInfoSettings.renderRootPath = rootPath
+                set_StampInfoSettings(scene)
 
         if preset_useStampInfo:  # framed output resolution is used only when StampInfo is used
-            RRS_StampInfo.clearRenderHandlers()
+            stampInfoSettings.clearRenderHandlers()
 
         context.window_manager.UAS_shot_manager_shots_play_mode = False
         context.window_manager.UAS_shot_manager_display_timeline = False
@@ -264,7 +264,6 @@ def launchRenderWithVSEComposite(
                     space_data.overlay.show_overlays = props.renderContext.useOverlays
 
         else:
-            # wkip hack rrs
             # scene.render.use_compositing = False
             scene.render.use_sequencer = False
 
@@ -468,7 +467,7 @@ def launchRenderWithVSEComposite(
             #######################
             if preset_useStampInfo:
                 renderStampedInfoForShot(
-                    RRS_StampInfo,
+                    stampInfoSettings,
                     props,
                     takeName,
                     shot,
