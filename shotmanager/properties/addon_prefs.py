@@ -86,6 +86,13 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
     ##################
     # rendering ui   ###
     ##################
+
+    separatedRenderPanel: BoolProperty(
+        name="Separated Render Panel",
+        description="If checked, the render panel will be a tab separated from Shot Manager panel",
+        default=True,
+    )
+
     renderMode: EnumProperty(
         name="Display Shot Properties Mode",
         description="Update the content of the Shot Properties panel either on the current shot\nor on the shot seleted in the shots list",
@@ -181,6 +188,12 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
         col.use_property_split = True
         col.prop(prefs, "new_shot_duration", text="Default Shot Length")
         #    col.prop(prefs, "useLockCameraView", text="Use Lock Camera View")
+
+        layout.label(text="Rendering:")
+        box = layout.box()
+        row = box.row()
+        row.separator(factor=1)
+        row.prop(prefs, "separatedRenderPanel")
 
         layout.label(
             text="Temporary preference values (for dialogs for instance) are only visible when global variable uasDebug is True."
