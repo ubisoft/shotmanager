@@ -531,16 +531,16 @@ def launchRenderWithVSEComposite(
                 bpy.ops.sound.mixdown(filepath=str(audioFilePath), relative_path=False, container="WAV", codec="PCM")
                 # bpy.ops.sound.mixdown(filepath=audioFilePath, relative_path=False, container="MP3", codec="MP3")
 
-            overImgSeq = newTempRenderPath + shot.getOutputMediaPath(providePath=False, genericFrame=True)
-            overImgSeq_resolution = renderResolution
+            renderedImgSeq = newTempRenderPath + shot.getOutputMediaPath(providePath=False, genericFrame=True)
+            renderedImgSeq_resolution = renderResolution
 
-            bgImgSeq = None
-            bgImgSeq_resolution = overImgSeq_resolution
+            infoImgSeq = None
+            infoImgSeq_resolution = renderedImgSeq_resolution
             if preset_useStampInfo:
                 frameIndStr = "####" if specificFrame is None else f"{specificFrame:04}"
                 _logger.debug(f"\n - specificFrame: {specificFrame}")
-                bgImgSeq = newTempRenderPath + "_tmp_StampInfo." + frameIndStr + ".png"
-                bgImgSeq_resolution = renderResolutionFramed
+                infoImgSeq = newTempRenderPath + "_tmp_StampInfo." + frameIndStr + ".png"
+                infoImgSeq_resolution = renderResolutionFramed
 
             if generateShotVideos:
 
@@ -561,21 +561,21 @@ def launchRenderWithVSEComposite(
                 # )
                 vse_render.clearMedia()
                 if specificFrame is None:
-                    vse_render.inputOverMediaPath = overImgSeq
+                    vse_render.inputBGMediaPath = renderedImgSeq
                 else:
-                    vse_render.inputOverMediaPath = newTempRenderPath + shot.getOutputMediaPath(
+                    vse_render.inputBGMediaPath = newTempRenderPath + shot.getOutputMediaPath(
                         providePath=False, specificFrame=specificFrame
                     )
 
-                _logger.debug(f"\n - OverMediaPath: {vse_render.inputOverMediaPath}")
-                vse_render.inputOverResolution = overImgSeq_resolution
+                _logger.debug(f"\n - BGMediaPath: {vse_render.inputBGMediaPath}")
+                vse_render.inputBGResolution = renderedImgSeq_resolution
 
                 if preset_useStampInfo:
                     frameIndStr = "####" if specificFrame is None else f"{specificFrame:04}"
                     _logger.debug(f"\n - specificFrame: {specificFrame}")
-                    vse_render.inputBGMediaPath = bgImgSeq
-                    _logger.debug(f"\n - BGMediaPath: {vse_render.inputBGMediaPath}")
-                    vse_render.inputBGResolution = bgImgSeq_resolution
+                    vse_render.inputOverMediaPath = infoImgSeq
+                    _logger.debug(f"\n - OverMediaPath: {vse_render.inputOverMediaPath}")
+                    vse_render.inputOverResolution = infoImgSeq_resolution
 
                 if specificFrame is None and renderSound:
                     vse_render.inputAudioMediaPath = audioFilePath
@@ -586,12 +586,22 @@ def launchRenderWithVSEComposite(
                         video_frame_end += 2 * handles
 
                     vse_render.compositeVideoInVSE(
-                        projectFps, 1, video_frame_end, compositedMediaPath, shot.getName_PathCompliant(),
+                        projectFps,
+                        1,
+                        video_frame_end,
+                        compositedMediaPath,
+                        shot.getName_PathCompliant(),
+                        output_resolution=infoImgSeq_resolution,
                     )
                 else:
-                    print(f"compositedMediaPath: {compositedMediaPath}")
+                    # print(f"compositedMediaPath: {compositedMediaPath}")
                     vse_render.compositeVideoInVSE(
-                        projectFps, 1, 1, compositedMediaPath, shot.getName_PathCompliant(),
+                        projectFps,
+                        1,
+                        1,
+                        compositedMediaPath,
+                        shot.getName_PathCompliant(),
+                        output_resolution=infoImgSeq_resolution,
                     )
 
                 # bpy.ops.render.render("INVOKE_DEFAULT", animation=False, write_still=True)
@@ -608,12 +618,12 @@ def launchRenderWithVSEComposite(
                 #######################
                 videoAndSound = dict()
 
-                videoAndSound["image_sequence"] = overImgSeq
-                videoAndSound["image_sequence_resolution"] = overImgSeq_resolution
+                videoAndSound["image_sequence"] = renderedImgSeq
+                videoAndSound["image_sequence_resolution"] = renderedImgSeq_resolution
 
-                videoAndSound["bg_resolution"] = bgImgSeq_resolution
+                videoAndSound["bg_resolution"] = infoImgSeq_resolution
                 if preset_useStampInfo:
-                    videoAndSound["bg"] = bgImgSeq
+                    videoAndSound["bg"] = infoImgSeq
                 videoAndSound["sound"] = audioFilePath
 
                 renderedShotSequencesArr.append(videoAndSound)

@@ -907,7 +907,12 @@ class UAS_Vse_Render(PropertyGroup):
         # if config.uasDebug:
         #     bpy.context.window.scene = sequenceScene
 
-    def compositeVideoInVSE(self, fps, frame_start, frame_end, output_filepath, postfixSceneName=""):
+    def compositeVideoInVSE(
+        self, fps, frame_start, frame_end, output_filepath, postfixSceneName="", output_resolution=None
+    ):
+        """
+            output_resolution: array [with, height]
+        """
 
         specificFrame = None
         if frame_start == frame_end:
@@ -931,15 +936,21 @@ class UAS_Vse_Render(PropertyGroup):
         # https://docs.blender.org/api/blender_python_api_2_77_0/bpy.types.Sequences.html
         # Path ( renderPath ).parent.mkdir ( parents = True, exist_ok = True )
 
-        # add BG
-        if "" != self.inputBGMediaPath:
-            vse_scene.render.resolution_x = self.inputBGResolution[0]
-            vse_scene.render.resolution_y = self.inputBGResolution[1]
+        # resolution
+        output_res = [vse_scene.render.resolution_x, vse_scene.render.resolution_y]
+        if output_resolution is not None:
+            output_res = output_resolution.copy()
         else:
-            vse_scene.render.resolution_x = self.inputOverResolution[0]
-            vse_scene.render.resolution_y = self.inputOverResolution[1]
+            if "" != self.inputBGMediaPath:
+                output_res = self.inputBGResolution.copy()
+            elif "" != self.inputOverMediaPath:
+                output_res = self.inputOverResolution.copy()
 
-        print(f"  * - * vse_scene.render.resolution_y: {vse_scene.render.resolution_y}")
+        vse_scene.render.resolution_x = output_res[0]
+        vse_scene.render.resolution_y = output_res[1]
+        # print(f"  * - * vse_scene.render.resolution: {vse_scene.render.resolution_x} x {vse_scene.render.resolution_y}")
+
+        # add BG
         vse_scene.frame_start = frame_start
         vse_scene.frame_end = frame_end
 
@@ -961,9 +972,9 @@ class UAS_Vse_Render(PropertyGroup):
         bgClip = None
         if "" != self.inputBGMediaPath:
             try:
-                print(f"self.inputBGMediaPath: {self.inputBGMediaPath}")
+                #    print(f"self.inputBGMediaPath: {self.inputBGMediaPath}")
                 bgClip = self.createNewClip(vse_scene, self.inputBGMediaPath, 1, 1)
-                print("BG Media OK")
+            #    print("BG Media OK")
             except Exception as e:
                 print(f" *** Rendered shot not found: {self.inputBGMediaPath}")
 
@@ -973,13 +984,21 @@ class UAS_Vse_Render(PropertyGroup):
             # else:
             #     print(f" *** Rendered shot not found: {self.inputBGMediaPath}")
 
-        #    print(f"self.inputBGMediaPath: {self.inputOverMediaPath}")
+            #    print(f"self.inputBGMediaPath: {self.inputOverMediaPath}")
+
+            if bgClip is not None:
+                if output_res[0] != self.inputBGResolution[0] or output_res[1] != self.inputBGResolution[1]:
+                    bgClip.use_crop = True
+                    bgClip.crop.min_x = int((self.inputBGResolution[0] - output_res[0]) / 2)
+                    bgClip.crop.max_x = bgClip.crop.min_x
+                    bgClip.crop.min_y = int((self.inputBGResolution[1] - output_res[1]) / 2)
+                    bgClip.crop.max_y = bgClip.crop.min_y
 
         if "" != self.inputOverMediaPath:
             overClip = None
             try:
                 overClip = self.createNewClip(vse_scene, self.inputOverMediaPath, 2, 1)
-                print("Over Media OK")
+            #    print("Over Media OK")
             except Exception as e:
                 print(f" *** Rendered shot not found: {self.inputOverMediaPath}")
             # overClip = None
@@ -988,14 +1007,14 @@ class UAS_Vse_Render(PropertyGroup):
             # else:
             #     print(f" *** Rendered shot not found: {self.inputOverMediaPath}")
 
-            if overClip is not None and "" != self.inputBGMediaPath:
-                overClip.use_crop = True
-                overClip.crop.min_x = -1 * int((self.inputBGResolution[0] - self.inputOverResolution[0]) / 2)
-                overClip.crop.max_x = overClip.crop.min_x
-                overClip.crop.min_y = -1 * int((self.inputBGResolution[1] - self.inputOverResolution[1]) / 2)
-                overClip.crop.max_y = overClip.crop.min_y
-
-                overClip.blend_type = "OVER_DROP"
+            if overClip is not None:
+                if output_res[0] != self.inputOverResolution[0] or output_res[1] != self.inputOverResolution[1]:
+                    overClip.use_crop = True
+                    overClip.crop.min_x = int((self.inputOverResolution[0] - output_res[0]) / 2)
+                    overClip.crop.max_x = overClip.crop.min_x
+                    overClip.crop.min_y = int((self.inputOverResolution[1] - output_res[1]) / 2)
+                    overClip.crop.max_y = overClip.crop.min_y
+                    overClip.blend_type = "OVER_DROP"
 
         if self.inputAudioMediaPath is not None:
             if specificFrame is None:
