@@ -13,26 +13,30 @@ from ..config import config
 
 class UAS_MT_ShotManager_Prefs_MainMenu(Menu):
     bl_idname = "UAS_MT_Shot_Manager_prefs_mainmenu"
-    bl_label = "General Preferences"
-    # bl_description = "General Preferences"
+    bl_label = "Settings for the Shot Manager instanced in this scene"
+    # bl_description = "Display the settings for the Shot Manager instanced in the current scene"
 
     def draw(self, context):
         layout = self.layout
 
         row = layout.row(align=True)
-        row.operator("uas_shot_manager.general_prefs", text="Preferences...")
+        row.operator("preferences.addon_show", text="Add-on Preferences...").module = "shotmanager"
+
+        layout.separator()
         row = layout.row(align=True)
-        row.operator("uas_shot_manager.project_settings_prefs", text="Project Settings...")
+        row.operator("uas_shot_manager.general_prefs")
+        row = layout.row(align=True)
+        row.operator("uas_shot_manager.project_settings_prefs")
 
         if config.uasDebug:
             layout.separator()
             row = layout.row(align=True)
             row.operator_context = "INVOKE_DEFAULT"
-            row.operator("uas_shot_manager.playbar_prefs", text="Playbar Settings...")  # , icon="SETTINGS")
+            row.operator("uas_shot_manager.playbar_prefs")  # , icon="SETTINGS")
 
             row = layout.row(align=True)
             row.operator_context = "INVOKE_DEFAULT"
-            row.operator("uas_shot_manager.shots_prefs", text="Shots Settings...")  # , icon="SETTINGS")
+            row.operator("uas_shot_manager.shots_prefs")  # , icon="SETTINGS")
 
             layout.separator()
             row = layout.row(align=True)
@@ -58,8 +62,8 @@ class UAS_MT_ShotManager_Prefs_MainMenu(Menu):
 
 class UAS_ShotManager_General_Prefs(Operator):
     bl_idname = "uas_shot_manager.general_prefs"
-    bl_label = "General Preferences"
-    bl_description = "Display the General Preferences panel"
+    bl_label = "Settings..."
+    bl_description = "Display the Settings panel\nfor the Shot Manager instanced in this scene"
     bl_options = {"INTERNAL"}
 
     def invoke(self, context, event):
@@ -152,8 +156,10 @@ class UAS_PT_ShotManagerPref_General(Panel):
 
 class UAS_ShotManager_Playbar_Prefs(Operator):
     bl_idname = "uas_shot_manager.playbar_prefs"
-    bl_label = "Playbar, Timeline ad Edit Settings"
-    bl_description = "Display the Playbar, Timeline and Edit Preferences panel"
+    bl_label = "Playbar Settings..."
+    bl_description = (
+        "Display the Playbar, Timeline and Edit Settings panel\nfor the Shot Manager instanced in this scene"
+    )
     bl_options = {"INTERNAL"}
 
     def invoke(self, context, event):
@@ -219,8 +225,8 @@ class UAS_ShotManager_Playbar_Prefs(Operator):
 
 class UAS_ShotManager_Shots_Prefs(Operator):
     bl_idname = "uas_shot_manager.shots_prefs"
-    bl_label = "Shots Settings"
-    bl_description = "Display the Shots Preferences panel"
+    bl_label = "Shots Settings..."
+    bl_description = "Display the Shots Settings panel\nfor the Shot Manager instanced in this scene"
     bl_options = {"INTERNAL"}
 
     def invoke(self, context, event):

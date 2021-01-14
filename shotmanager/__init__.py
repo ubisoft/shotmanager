@@ -31,7 +31,7 @@ from .operators import features
 from .operators import about
 
 from .properties import props
-from .properties import addon_prefs
+from .addon_prefs import addon_prefs
 
 from .retimer import retimer_ui
 from .retimer import retimer_props

@@ -362,7 +362,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
 
     display_cameraBG_in_shotlist: BoolProperty(name="Display Camera BG in Shot List", default=False, options=set())
     display_greasepencil_in_shotlist: BoolProperty(
-        name="Display Grease Pencil in Shot List", default=False, options=set()
+        name="Display Grease Pencil in Shot List", default=True, options=set()
     )
 
     display_getsetcurrentframe_in_shotlist: BoolProperty(
