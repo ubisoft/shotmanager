@@ -85,18 +85,6 @@ from shotmanager.utils import utils
 #         row.operator("uas_utils.run_script").path = "//../api/api_first_steps.py"
 
 
-# class UAS_VSETruc(Operator):
-#     bl_idname = "vse.truc"
-#     bl_label = "fff"
-#     bl_description = ""
-
-#     def execute(self, context):
-#         """UAS_VSETruc"""
-#         print("")
-
-#         return {"FINISHED"}
-
-
 # This operator requires   from bpy_extras.io_utils import ImportHelper
 # See https://sinestesia.co/blog/tutorials/using-blenders-filebrowser-with-python/
 class UAS_VSE_OpenFileBrowser(Operator):  # from bpy_extras.io_utils import ImportHelper
