@@ -28,16 +28,16 @@ class UAS_MT_ShotManager_Prefs_MainMenu(Menu):
         row = layout.row(align=True)
         row.operator("uas_shot_manager.project_settings_prefs")
 
+        layout.separator()
+        row = layout.row(align=True)
+        row.operator_context = "INVOKE_DEFAULT"
+        row.operator("uas_shot_manager.playbar_prefs")  # , icon="SETTINGS")
+
+        row = layout.row(align=True)
+        row.operator_context = "INVOKE_DEFAULT"
+        row.operator("uas_shot_manager.shots_prefs")  # , icon="SETTINGS")
+
         if config.uasDebug:
-            layout.separator()
-            row = layout.row(align=True)
-            row.operator_context = "INVOKE_DEFAULT"
-            row.operator("uas_shot_manager.playbar_prefs")  # , icon="SETTINGS")
-
-            row = layout.row(align=True)
-            row.operator_context = "INVOKE_DEFAULT"
-            row.operator("uas_shot_manager.shots_prefs")  # , icon="SETTINGS")
-
             layout.separator()
             row = layout.row(align=True)
             row.label(text="Tools for Debug:")

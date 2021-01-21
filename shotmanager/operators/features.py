@@ -31,25 +31,27 @@ class UAS_ShotManager_Features(Operator):
         # Notes
         subrow = col.row()
         subrow.scale_x = 1.5
+        icon = config.icons_col["ShotManager_NotesData_32"]
         notesIcon = "TEXT"
         notesIcon = "WORDWRAP_OFF"
-        subrow.prop(props, "display_notes_in_properties", text="", icon=notesIcon)
+        subrow.prop(props, "display_notes_in_properties", text="", icon_value=icon.icon_id)
         subrow.label(text="Takes and Shots Notes")
 
         ################
         # Camera BG
         subrow = col.row()
         subrow.scale_x = 1.5
-        subrow.prop(props, "display_camerabgtools_in_properties", text="", icon="VIEW_CAMERA")
+        icon = config.icons_col["ShotManager_CamBGVisible_32"]
+        subrow.prop(props, "display_camerabgtools_in_properties", text="", icon_value=icon.icon_id)
         subrow.label(text="Camera Backgrounds")
 
         ################
         # Grease Pencil
-        if config.uasDebug:
-            subrow = col.row()
-            subrow.scale_x = 1.5
-            subrow.prop(props, "display_greasepencil_in_properties", text="", icon="OUTLINER_OB_GREASEPENCIL")
-            subrow.label(text="Camera Grease Pencil")
+        subrow = col.row()
+        subrow.scale_x = 1.5
+        icon = config.icons_col["ShotManager_CamGPVisible_32"]
+        subrow.prop(props, "display_greasepencil_in_properties", text="", icon_value=icon.icon_id)
+        subrow.label(text="Camera Grease Pencil")
 
         layout.separator()
         layout.label(text="Display additionnal panels:")

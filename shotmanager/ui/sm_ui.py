@@ -44,7 +44,7 @@ class UAS_PT_ShotManager(Panel):
         # else:
         #     row.alert = False
 
-        icon = config.icons_col["General_Ubisoft_32"]
+        icon = config.icons_col["Ubisoft_32"]
         row.operator("uas_shot_manager.about", text="", icon_value=icon.icon_id)
 
         if props.use_project_settings:
@@ -279,19 +279,13 @@ class UAS_PT_ShotManager(Panel):
         if currentTake is not None:
             takeHasNotes = currentTake.hasNotes()
             if takeHasNotes:
-                # if item.hasNotes():
-                notesIcon = "ALIGN_TOP"
-                notesIcon = "ALIGN_JUSTIFY"
-                notesIcon = "WORDWRAP_OFF"
-                # notesIcon = "TEXT"
-                # notesIcon = "OUTLINER_DATA_GP_LAYER"
-                subsubrow.prop(prefs, "take_notes_extended", text="", icon=notesIcon, emboss=prefs.take_notes_extended)
+                icon = config.icons_col["ShotManager_NotesData_32"]
+                subsubrow.prop(prefs, "take_notes_extended", text="", emboss=prefs.take_notes_extended, icon_value=icon.icon_id)
             else:
                 if props.display_notes_in_properties:
-                    notesIcon = "WORDWRAP_ON"
-                    notesIcon = "MESH_PLANE"
+                    icon = config.icons_col["ShotManager_NotesNoData_32"]
                     subsubrow.prop(
-                        prefs, "take_notes_extended", text="", icon=notesIcon, emboss=prefs.take_notes_extended
+                        prefs, "take_notes_extended", text="", emboss=prefs.take_notes_extended, icon_value=icon.icon_id
                     )
                     # emptyIcon = config.icons_col["General_Empty_32"]
                     # row.operator(
@@ -390,9 +384,11 @@ class UAS_PT_ShotManager(Panel):
             subrow.scale_x = 0.9
             subrow.alignment = "RIGHT"
 
-            if config.uasDebug:
-                subrow.operator("uas_shot_manager.enabledisablegreasepencil", text="", icon="OUTLINER_OB_GREASEPENCIL")
-            subrow.operator("uas_shot_manager.enabledisablecamsbg", text="", icon="VIEW_CAMERA")
+            icon = config.icons_col["ShotManager_CamGPVisible_32"] if not prefs.toggleGreasePencil else config.icons_col["ShotManager_CamGPHidden_32"]
+            subrow.operator("uas_shot_manager.enabledisablegreasepencil", text="", icon_value=icon.icon_id, emboss=False)
+
+            icon = config.icons_col["ShotManager_CamBGVisible_32"] if not prefs.toggleCamsBG else config.icons_col["ShotManager_CamBGHidden_32"]
+            subrow.operator("uas_shot_manager.enabledisablecamsbg", text="", icon_value=icon.icon_id, emboss=False)
 
             if props.useLockCameraView:
                 subrow.alert = True

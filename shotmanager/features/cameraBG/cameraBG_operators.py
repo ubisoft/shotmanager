@@ -153,9 +153,9 @@ class UAS_ShotManager_EnableDisableCamsBG(Operator):
         if "All" == self.mode or "Image" == self.mode:
             bpy.ops.uas_shots_settings.use_background(useBackground=prefs.toggleCamsBG)
             prefs.toggleCamsBG = not prefs.toggleCamsBG
-        if "All" == self.mode or "Sound" == self.mode:
-            bpy.ops.uas_shots_settings.use_background_sound(useBackgroundSound=prefs.toggleCamsSoundBG)
-            prefs.toggleCamsSoundBG = not prefs.toggleCamsSoundBG
+        # if "All" == self.mode or "Sound" == self.mode:
+        #     bpy.ops.uas_shots_settings.use_background_sound(useBackgroundSound=prefs.toggleCamsSoundBG)
+        #     prefs.toggleCamsSoundBG = not prefs.toggleCamsSoundBG
 
         return {"FINISHED"}
 

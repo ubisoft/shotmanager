@@ -62,17 +62,11 @@ class UAS_UL_ShotManager_Items(bpy.types.UIList):
                 row.scale_x = 1.0
 
                 if item.hasNotes():
-                    notesIcon = "ALIGN_TOP"
-                    notesIcon = "ALIGN_JUSTIFY"
-                    notesIcon = "WORDWRAP_OFF"
-                    notesIcon = "WORDWRAP_OFF"
-                    # notesIcon = "TEXT"
-                    # notesIcon = "OUTLINER_DATA_GP_LAYER"
-                    row.operator("uas_shot_manager.shots_shownotes", text="", icon=notesIcon).index = index
+                    icon = config.icons_col["ShotManager_NotesData_32"]
+                    row.operator("uas_shot_manager.shots_shownotes", text="", icon_value=icon.icon_id).index = index
                 else:
-                    notesIcon = "WORDWRAP_ON"
-                    notesIcon = "MESH_PLANE"
-                    row.operator("uas_shot_manager.shots_shownotes", text="", icon=notesIcon).index = index
+                    icon = config.icons_col["ShotManager_NotesNoData_32"]
+                    row.operator("uas_shot_manager.shots_shownotes", text="", icon_value=icon.icon_id).index = index
                     # emptyIcon = config.icons_col["General_Empty_32"]
                     # row.operator(
                     #     "uas_shot_manager.shots_shownotes", text="", icon_value=emptyIcon.icon_id
