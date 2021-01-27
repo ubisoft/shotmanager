@@ -2047,7 +2047,101 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
     # functions working only on current take !!!
     ###############
 
-    # wkip ignoreDisabled pas encore implémenté ici!!!!
+    def goToPreviousStart(self, currentFrame, ignoreDisabled=False):
+        """ 
+            works only on current take
+            behavior of this button:
+            if current shot is enabled:
+            - first click: put current time at the start of the current enabled shot
+            else:
+            - fisrt click: put current time at the end of the previous enabled shot
+        """
+        # print(" ** -- ** goToPreviousShot")
+
+        if not len(self.get_shots()):
+            return ()
+
+        previousShotInd = -1
+        newFrame = currentFrame
+
+        # get current shot in the WHOLE list (= even disabled)
+        currentShotInd = self.getCurrentShotIndex()
+        currentShot = self.getShotByIndex(currentShotInd)
+        print("    current Shot: ", currentShotInd)
+        if not currentShot.enabled:
+            print("    current Shot is disabled")
+            previousShotInd = self.getPreviousEnabledShotIndex(currentShotInd)
+            if -1 < previousShotInd:
+                print("    previous Shot ind is ", previousShotInd)
+                newFrame = self.getShotByIndex(previousShotInd).start
+        else:
+            print("    current Shot is ENabled")
+
+            previousShotInd = self.getPreviousEnabledShotIndex(currentShotInd)
+            if -1 < previousShotInd:
+                print("      previous Shot ind is ", previousShotInd)
+                newFrame = self.getShotByIndex(previousShotInd).start
+            else:  # case of the very first shot
+                previousShotInd = currentShotInd
+                newFrame = currentFrame
+
+        self.setCurrentShotByIndex(previousShotInd)
+        self.setSelectedShotByIndex(previousShotInd)
+        bpy.context.scene.frame_set(newFrame)
+
+        return newFrame
+
+    def goToPreviousEnd(self, currentFrame, ignoreDisabled=False):
+        """ 
+            works only on current take
+            behavior of this button:
+            if current shot is enabled:
+            - first click: put current time at the start of the current enabled shot
+            else:
+            - fisrt click: put current time at the end of the previous enabled shot
+        """
+        # print(" ** -- ** goToPreviousShot")
+
+        if not len(self.get_shots()):
+            return ()
+
+        previousShotInd = -1
+        newFrame = currentFrame
+
+        # get current shot in the WHOLE list (= even disabled)
+        currentShotInd = self.getCurrentShotIndex()
+        currentShot = self.getShotByIndex(currentShotInd)
+        print("    current Shot: ", currentShotInd)
+        if not currentShot.enabled:
+            print("    current Shot is disabled")
+            previousShotInd = self.getPreviousEnabledShotIndex(currentShotInd)
+            if -1 < previousShotInd:
+                print("    previous Shot ind is ", previousShotInd)
+                newFrame = self.getShotByIndex(previousShotInd).end
+        else:
+            print("    current Shot is ENabled")
+            # if currentFrame == currentShot.start:
+            #     print("      current frame is start")
+            previousShotInd = self.getPreviousEnabledShotIndex(currentShotInd)
+            if -1 < previousShotInd:
+                print("      previous Shot ind is ", previousShotInd)
+                newFrame = self.getShotByIndex(previousShotInd).end
+            else:  # case of the very first shot
+                previousShotInd = currentShotInd
+                newFrame = currentFrame
+            #  elif currentFrame == currentShot.end:
+            #      newFrame = currentShot.start
+            # else:
+            #     print("      current frame is middle or end")
+            #     previousShotInd = currentShotInd
+            #     newFrame = currentShot.end
+
+        self.setCurrentShotByIndex(previousShotInd)
+        self.setSelectedShotByIndex(previousShotInd)
+        bpy.context.scene.frame_set(newFrame)
+
+        return newFrame
+
     def goToPreviousShot(self, currentFrame, ignoreDisabled=False):
         """ 
             works only on current take
@@ -2098,6 +2192,82 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
 
         self.setCurrentShotByIndex(previousShotInd)
         self.setSelectedShotByIndex(previousShotInd)
+        bpy.context.scene.frame_set(newFrame)
+
+        return newFrame
+
+    def goToNextStart(self, currentFrame, ignoreDisabled=False):
+        if not len(self.get_shots()):
+            return ()
+
+        nextShotInd = -1
+        newFrame = currentFrame
+
+        # get current shot in the WHOLE list (= even disabled)
+        currentShotInd = self.getCurrentShotIndex()
+        currentShot = self.getShotByIndex(currentShotInd)
+        print("    current Shot: ", currentShotInd)
+        if not currentShot.enabled:
+            print("    current Shot is disabled")
+            nextShotInd = self.getNextEnabledShotIndex(currentShotInd)
+            if -1 < nextShotInd:
+                print("    next Shot ind is ", nextShotInd)
+                newFrame = self.getShotByIndex(nextShotInd).start
+        else:
+            print("    current Shot is ENabled")
+            # if currentFrame == currentShot.end:
+            #    print("      current frame is end")
+            nextShotInd = self.getNextEnabledShotIndex(currentShotInd)
+            if -1 < nextShotInd:
+                print("      next Shot ind is ", nextShotInd)
+                newFrame = self.getShotByIndex(nextShotInd).start
+            else:  # case of the very last shot
+                nextShotInd = currentShotInd
+                newFrame = currentFrame
+
+        self.setCurrentShotByIndex(nextShotInd)
+        self.setSelectedShotByIndex(nextShotInd)
+        bpy.context.scene.frame_set(newFrame)
+
+        return newFrame
+
+    def goToNextEnd(self, currentFrame, ignoreDisabled=False):
+        if not len(self.get_shots()):
+            return ()
+
+        nextShotInd = -1
+        newFrame = currentFrame
+
+        # get current shot in the WHOLE list (= even disabled)
+        currentShotInd = self.getCurrentShotIndex()
+        currentShot = self.getShotByIndex(currentShotInd)
+        print("    current Shot: ", currentShotInd)
+        if not currentShot.enabled:
+            print("    current Shot is disabled")
+            nextShotInd = self.getNextEnabledShotIndex(currentShotInd)
+            if -1 < nextShotInd:
+                print("    next Shot ind is ", nextShotInd)
+                newFrame = self.getShotByIndex(nextShotInd).end
+        else:
+            print("    current Shot is ENabled")
+            if currentFrame == currentShot.end:
+                print("      current frame is end")
+                nextShotInd = self.getNextEnabledShotIndex(currentShotInd)
+                if -1 < nextShotInd:
+                    print("      next Shot ind is ", nextShotInd)
+                    newFrame = self.getShotByIndex(nextShotInd).end
+                else:  # case of the very last shot
+                    nextShotInd = currentShotInd
+                    newFrame = currentFrame
+            #  elif currentFrame == currentShot.end:
+            #      newFrame = currentShot.start
+            else:
+                print("      current frame is middle or start")
+                nextShotInd = currentShotInd
+                newFrame = currentShot.end
+
+        self.setCurrentShotByIndex(nextShotInd)
+        self.setSelectedShotByIndex(nextShotInd)
         bpy.context.scene.frame_set(newFrame)
 
         return newFrame

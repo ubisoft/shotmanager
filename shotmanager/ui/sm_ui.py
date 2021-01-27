@@ -45,6 +45,7 @@ class UAS_PT_ShotManager(Panel):
         #     row.alert = False
 
         icon = config.icons_col["Ubisoft_32"]
+        icon = config.icons_col["ShotManager_32"]
         row.operator("uas_shot_manager.about", text="", icon_value=icon.icon_id)
 
         if props.use_project_settings:
@@ -191,7 +192,8 @@ class UAS_PT_ShotManager(Panel):
         subrow = row.row(align=True)
         subrow.enabled = 0 < len(props.get_shots())
         subrow.operator("uas_shot_manager.playbar_gotofirstshot", text="", icon="REW")
-        subrow.operator("uas_shot_manager.playbar_gotopreviousshot", text="", icon="PREV_KEYFRAME")
+        icon = config.icons_col["ShotManager_Play_GoToPrevEnd_32"]
+        subrow.operator("uas_shot_manager.playbar_gotopreviousshot", text="", icon_value=icon.icon_id)
         subrow.operator("uas_shot_manager.playbar_gotopreviousframe", text="", icon="FRAME_PREV")
 
         split = row.split(align=True)
@@ -211,7 +213,8 @@ class UAS_PT_ShotManager(Panel):
         subrow = row.row(align=True)
         subrow.enabled = 0 < len(props.get_shots())
         subrow.operator("uas_shot_manager.playbar_gotonextframe", text="", icon="FRAME_NEXT")
-        subrow.operator("uas_shot_manager.playbar_gotonextshot", text="", icon="NEXT_KEYFRAME")
+        icon = config.icons_col["ShotManager_Play_GoToNextStart_32"]
+        subrow.operator("uas_shot_manager.playbar_gotonextshot", text="", icon_value=icon.icon_id)
         subrow.operator("uas_shot_manager.playbar_gotolastshot", text="", icon="FF")
 
         # separated frame spinner
@@ -280,7 +283,9 @@ class UAS_PT_ShotManager(Panel):
             takeHasNotes = currentTake.hasNotes()
             if takeHasNotes:
                 icon = config.icons_col["ShotManager_NotesData_32"]
-                subsubrow.prop(prefs, "take_notes_extended", text="", emboss=prefs.take_notes_extended, icon_value=icon.icon_id)
+                subsubrow.prop(
+                    prefs, "take_notes_extended", text="", emboss=prefs.take_notes_extended, icon_value=icon.icon_id
+                )
             else:
                 if props.display_notes_in_properties:
                     icon = config.icons_col["ShotManager_NotesNoData_32"]
@@ -384,10 +389,21 @@ class UAS_PT_ShotManager(Panel):
             subrow.scale_x = 0.9
             subrow.alignment = "RIGHT"
 
-            icon = config.icons_col["ShotManager_CamGPVisible_32"] if not prefs.toggleGreasePencil else config.icons_col["ShotManager_CamGPHidden_32"]
-            subrow.operator("uas_shot_manager.enabledisablegreasepencil", text="", icon_value=icon.icon_id, emboss=False)
+            icon = (
+                config.icons_col["ShotManager_CamGPVisible_32"]
+                if not prefs.toggleGreasePencil
+                else config.icons_col["ShotManager_CamGPHidden_32"]
+            )
+            subrow.operator(
+                "uas_shot_manager.enabledisablegreasepencil", text="", icon_value=icon.icon_id, emboss=False
+            )
 
-            icon = config.icons_col["ShotManager_CamBGVisible_32"] if not prefs.toggleCamsBG else config.icons_col["ShotManager_CamBGHidden_32"]
+            icon = (
+                config.icons_col["ShotManager_CamBGVisible_32"]
+                # config.icons_col["ShotManager_Image_32"]
+                if not prefs.toggleCamsBG
+                else config.icons_col["ShotManager_CamBGHidden_32"]
+            )
             subrow.operator("uas_shot_manager.enabledisablecamsbg", text="", icon_value=icon.icon_id, emboss=False)
 
             if props.useLockCameraView:

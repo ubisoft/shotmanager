@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import bpy
 from bpy.types import Panel, Operator
-from bpy.props import CollectionProperty, StringProperty
+from bpy.props import CollectionProperty, StringProperty, BoolProperty
 
 
 #########
@@ -53,11 +53,33 @@ class UAS_ShotManager_Playbar_GoToPreviousShot(Operator):
     bl_description = "Go to the start of the current shot or the end of the previous enabled one"
     bl_options = {"INTERNAL"}
 
-    def execute(self, context):
-        currentFrameInd = context.scene.frame_current
-        context.scene.UAS_shot_manager_props.goToPreviousShot(currentFrameInd, ignoreDisabled=True)
+    ctrlPressed: BoolProperty(default=False)
+    altPressed: BoolProperty(default=False)
+
+    def invoke(self, context, event):
+        scene = context.scene
+        props = scene.UAS_shot_manager_props
+
+        self.ctrlPressed = not event.shift and event.ctrl and not event.alt
+        self.altPressed = not event.shift and not event.ctrl and event.alt
+        # print(f"Shit pressed: {self.shiftPressed}")
+
+        currentFrameInd = scene.frame_current
+
+        if self.ctrlPressed:
+            props.goToPreviousStart(currentFrameInd, ignoreDisabled=True)
+        elif self.altPressed:
+            props.goToPreviousEnd(currentFrameInd, ignoreDisabled=True)
+        else:
+            props.goToPreviousShot(currentFrameInd, ignoreDisabled=True)
 
         return {"FINISHED"}
+
+    # def execute(self, context):
+    #     currentFrameInd = context.scene.frame_current
+    #     context.scene.UAS_shot_manager_props.goToPreviousShot(currentFrameInd, ignoreDisabled=True)
+
+    #     return {"FINISHED"}
 
 
 class UAS_ShotManager_Playbar_GoToNextShot(Operator):
@@ -66,11 +88,34 @@ class UAS_ShotManager_Playbar_GoToNextShot(Operator):
     bl_description = "Go to the end of the current shot or the start of the previous enabled one"
     bl_options = {"INTERNAL"}
 
-    def execute(self, context):
-        currentFrameInd = context.scene.frame_current
-        context.scene.UAS_shot_manager_props.goToNextShot(currentFrameInd, ignoreDisabled=True)
+    ctrlPressed: BoolProperty(default=False)
+    altPressed: BoolProperty(default=False)
+
+    def invoke(self, context, event):
+        scene = context.scene
+        props = scene.UAS_shot_manager_props
+
+        self.ctrlPressed = not event.shift and event.ctrl and not event.alt
+        self.altPressed = not event.shift and not event.ctrl and event.alt
+        # print(f"Shit pressed: {self.shiftPressed}")
+
+        currentFrameInd = scene.frame_current
+
+        if self.ctrlPressed:
+            props.goToNextStart(currentFrameInd, ignoreDisabled=True)
+        elif self.altPressed:
+            props.goToNextEnd(currentFrameInd, ignoreDisabled=True)
+        else:
+            props.goToNextShot(currentFrameInd, ignoreDisabled=True)
 
         return {"FINISHED"}
+
+    # def execute(self, context):
+    #     print("tititi")
+    #     currentFrameInd = context.scene.frame_current
+    #     context.scene.UAS_shot_manager_props.goToNextShot(currentFrameInd, ignoreDisabled=True)
+
+    # return {"FINISHED"}
 
 
 class UAS_ShotManager_Playbar_GoToPreviousFrame(Operator):
