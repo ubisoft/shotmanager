@@ -38,10 +38,9 @@ class UAS_ShotManager_OT_About(Operator):
         row.label(text="Purpose:")
         row = box.row()
         row.separator()
-        row.label(text="Create a set of camera shots and edit them")
-        row = box.row()
-        row.separator()
-        row.label(text="in the 3D View as you would do with video clips.")
+        col = row.column()
+        col.label(text="Create a set of camera shots and edit them")
+        col.label(text="in the 3D View as you would do with video clips.")
 
         # Dependencies
         ###############
