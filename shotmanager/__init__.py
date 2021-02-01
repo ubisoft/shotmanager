@@ -45,9 +45,6 @@ from .rendering import rendering_ui
 from .scripts import precut_tools
 
 from .tools import vse_render
-from .tools.markers_nav_bar import markers_nav_bar
-
-# from .tools.markers_nav_bar import markers_nav_bar_addon_prefs
 
 from .ui import sm_ui
 
@@ -74,7 +71,7 @@ bl_info = {
     "author": "Julien Blervaque (aka Werwack), Romain Carriquiry Borchiari",
     "description": "Manage a sequence of shots and cameras in the 3D View - Ubisoft Animation Studio",
     "blender": (2, 90, 0),
-    "version": (1, 5, 1),
+    "version": (1, 5, 2),
     "location": "View3D > UAS Shot Manager",
     "wiki_url": "https://gitlab-ncsa.ubisoft.org/animation-studio/blender/shotmanager-addon/-/wikis/home",
     # "warning": "BETA Version",
@@ -388,7 +385,6 @@ def register():
     # markers_nav_bar_addon_prefs.register()
     cameraBG.register()
     greasepencil.register()
-    markers_nav_bar.register()
     utils_get_set_current_time.register()
     rendering.register()
     takes.register()
@@ -507,10 +503,8 @@ def unregister():
     takes.unregister()
     utils_operators.unregister()
     utils_get_set_current_time.unregister()
-    markers_nav_bar.unregister()
     greasepencil.unregister()
     cameraBG.unregister()
-    #   markers_nav_bar_addon_prefs.unregister()
 
     addon_prefs.unregister()
 

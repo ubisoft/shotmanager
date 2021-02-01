@@ -47,8 +47,8 @@ class UAS_ShotManager_Playbar_GoToLastShot(Operator):
         return {"FINISHED"}
 
 
-class UAS_ShotManager_Playbar_GoToPreviousShot(Operator):
-    bl_idname = "uas_shot_manager.playbar_gotopreviousshot"
+class UAS_ShotManager_Playbar_GoToPreviousShotBoundary(Operator):
+    bl_idname = "uas_shot_manager.playbar_gotopreviousshotboundary"
     bl_label = "Previous Shot"
     bl_description = "Go to the start of the current shot or the end of the previous enabled one"
     bl_options = {"INTERNAL"}
@@ -67,23 +67,23 @@ class UAS_ShotManager_Playbar_GoToPreviousShot(Operator):
         currentFrameInd = scene.frame_current
 
         if self.ctrlPressed:
-            props.goToPreviousStart(currentFrameInd, ignoreDisabled=True)
+            props.goToPreviousShotBoundary(currentFrameInd, ignoreDisabled=True, boundaryMode="START")
         elif self.altPressed:
-            props.goToPreviousEnd(currentFrameInd, ignoreDisabled=True)
+            props.goToPreviousShotBoundary(currentFrameInd, ignoreDisabled=True, boundaryMode="END")
         else:
-            props.goToPreviousShot(currentFrameInd, ignoreDisabled=True)
+            props.goToPreviousShotBoundary(currentFrameInd, ignoreDisabled=True, boundaryMode="ANY")
 
         return {"FINISHED"}
 
     # def execute(self, context):
     #     currentFrameInd = context.scene.frame_current
-    #     context.scene.UAS_shot_manager_props.goToPreviousShot(currentFrameInd, ignoreDisabled=True)
+    #     context.scene.UAS_shot_manager_props.goToPreviousShotBoundary(currentFrameInd, ignoreDisabled=True)
 
     #     return {"FINISHED"}
 
 
-class UAS_ShotManager_Playbar_GoToNextShot(Operator):
-    bl_idname = "uas_shot_manager.playbar_gotonextshot"
+class UAS_ShotManager_Playbar_GoToNextShotBoundary(Operator):
+    bl_idname = "uas_shot_manager.playbar_gotonextshotboundary"
     bl_label = "Next Shot"
     bl_description = "Go to the end of the current shot or the start of the previous enabled one"
     bl_options = {"INTERNAL"}
@@ -102,18 +102,18 @@ class UAS_ShotManager_Playbar_GoToNextShot(Operator):
         currentFrameInd = scene.frame_current
 
         if self.ctrlPressed:
-            props.goToNextStart(currentFrameInd, ignoreDisabled=True)
+            props.goToNextShotBoundary(currentFrameInd, ignoreDisabled=True, boundaryMode="START")
         elif self.altPressed:
-            props.goToNextEnd(currentFrameInd, ignoreDisabled=True)
+            props.goToNextShotBoundary(currentFrameInd, ignoreDisabled=True, boundaryMode="END")
         else:
-            props.goToNextShot(currentFrameInd, ignoreDisabled=True)
+            props.goToNextShotBoundary(currentFrameInd, ignoreDisabled=True, boundaryMode="ANY")
 
         return {"FINISHED"}
 
     # def execute(self, context):
     #     print("tititi")
     #     currentFrameInd = context.scene.frame_current
-    #     context.scene.UAS_shot_manager_props.goToNextShot(currentFrameInd, ignoreDisabled=True)
+    #     context.scene.UAS_shot_manager_props.goToNextShotBoundary(currentFrameInd, ignoreDisabled=True)
 
     # return {"FINISHED"}
 
@@ -147,8 +147,8 @@ class UAS_ShotManager_Playbar_GoToNextFrame(Operator):
 _classes = (
     UAS_ShotManager_Playbar_GoToFirstShot,
     UAS_ShotManager_Playbar_GoToLastShot,
-    UAS_ShotManager_Playbar_GoToPreviousShot,
-    UAS_ShotManager_Playbar_GoToNextShot,
+    UAS_ShotManager_Playbar_GoToPreviousShotBoundary,
+    UAS_ShotManager_Playbar_GoToNextShotBoundary,
     UAS_ShotManager_Playbar_GoToPreviousFrame,
     UAS_ShotManager_Playbar_GoToNextFrame,
 )

@@ -159,12 +159,8 @@ class UAS_UL_ShotManager_Items(bpy.types.UIList):
                 toggle=True,
             )
 
-            if (
-                item.start < currentFrame
-                and currentFrame < item.end
-                or (item.start == item.end and currentFrame == item.start)
-            ):
-                if props.highlight_all_shot_frames or current_shot_index == index:
+            if props.highlight_all_shot_frames or current_shot_index == index:
+                if item.start <= currentFrame and currentFrame <= item.end:
                     grid_flow.alert = True
 
             if props.display_duration_in_shotlist:
@@ -222,12 +218,8 @@ class UAS_UL_ShotManager_Items(bpy.types.UIList):
                 toggle=True,
             )
 
-            if (
-                item.start < currentFrame
-                and currentFrame < item.end
-                or (item.start == item.end and currentFrame == item.start)
-            ):
-                if props.highlight_all_shot_frames or current_shot_index == index:
+            if props.highlight_all_shot_frames or current_shot_index == index:
+                if item.start <= currentFrame and currentFrame <= item.end:
                     grid_flow.alert = True
 
             if props.display_duration_in_shotlist:

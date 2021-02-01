@@ -268,7 +268,7 @@ class UAS_ShotManager_Shot(ShotInterface, PropertyGroup):
     # fake property: value never used in itself, its purpose is to update ofher properties
     duration_fp: IntProperty(
         name="Shot Duration",
-        description="Duration is a frame number given by end - start + 1",
+        description="Duration is a frame number given by end - start + 1.\nIf set in the Shots Settings panel, the duration is displayed in red\nwhen the current time is in the shot range",
         min=1,
         get=_get_duration_fp,
         set=_set_duration_fp,

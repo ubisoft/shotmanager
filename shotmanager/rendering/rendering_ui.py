@@ -15,7 +15,12 @@ class UAS_PT_ShotManagerRenderPanelStdalone(Panel):
 
     @classmethod
     def poll(cls, context):
-        return context.preferences.addons["shotmanager"].preferences.separatedRenderPanel
+        props = context.scene.UAS_shot_manager_props
+        displayPanel = context.preferences.addons["shotmanager"].preferences.separatedRenderPanel
+
+        displayPanel = displayPanel and props.getCurrentShot() is not None
+
+        return displayPanel
 
     def draw(self, context):
         draw3DRenderPanel(self, context)

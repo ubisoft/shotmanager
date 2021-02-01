@@ -193,7 +193,7 @@ class UAS_PT_ShotManager(Panel):
         subrow.enabled = 0 < len(props.get_shots())
         subrow.operator("uas_shot_manager.playbar_gotofirstshot", text="", icon="REW")
         icon = config.icons_col["ShotManager_Play_GoToPrevEnd_32"]
-        subrow.operator("uas_shot_manager.playbar_gotopreviousshot", text="", icon_value=icon.icon_id)
+        subrow.operator("uas_shot_manager.playbar_gotopreviousshotboundary", text="", icon_value=icon.icon_id)
         subrow.operator("uas_shot_manager.playbar_gotopreviousframe", text="", icon="FRAME_PREV")
 
         split = row.split(align=True)
@@ -214,7 +214,7 @@ class UAS_PT_ShotManager(Panel):
         subrow.enabled = 0 < len(props.get_shots())
         subrow.operator("uas_shot_manager.playbar_gotonextframe", text="", icon="FRAME_NEXT")
         icon = config.icons_col["ShotManager_Play_GoToNextStart_32"]
-        subrow.operator("uas_shot_manager.playbar_gotonextshot", text="", icon_value=icon.icon_id)
+        subrow.operator("uas_shot_manager.playbar_gotonextshotboundary", text="", icon_value=icon.icon_id)
         subrow.operator("uas_shot_manager.playbar_gotolastshot", text="", icon="FF")
 
         # separated frame spinner

@@ -537,7 +537,7 @@ def launchRenderWithVSEComposite(
             infoImgSeq = None
             infoImgSeq_resolution = renderedImgSeq_resolution
             if preset_useStampInfo:
-                frameIndStr = "####" if specificFrame is None else f"{specificFrame:04}"
+                frameIndStr = "#####" if specificFrame is None else f"{specificFrame:05}"
                 _logger.debug(f"\n - specificFrame: {specificFrame}")
                 infoImgSeq = newTempRenderPath + "_tmp_StampInfo." + frameIndStr + ".png"
                 infoImgSeq_resolution = renderResolutionFramed
@@ -571,7 +571,7 @@ def launchRenderWithVSEComposite(
                 vse_render.inputBGResolution = renderedImgSeq_resolution
 
                 if preset_useStampInfo:
-                    frameIndStr = "####" if specificFrame is None else f"{specificFrame:04}"
+                    frameIndStr = "#####" if specificFrame is None else f"{specificFrame:05}"
                     _logger.debug(f"\n - specificFrame: {specificFrame}")
                     vse_render.inputOverMediaPath = infoImgSeq
                     _logger.debug(f"\n - OverMediaPath: {vse_render.inputOverMediaPath}")
