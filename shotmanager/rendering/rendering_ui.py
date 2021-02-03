@@ -91,28 +91,55 @@ def draw3DRenderPanel(self, context):
     ##############
     # render engine
     ##############
+
     row = layout.row(align=False)
-    # row.label(text="Mode:")
-    row.prop(props.renderContext, "renderComputationMode", text="Mode")
-    row.separator()
-    row.prop(props.renderContext, "renderQuality", text="Quality")
+    subRow = row.row(align=False)
+    subRow.alignment = "LEFT"
+    subRow.prop(props.renderContext, "renderHardwareMode", text="Mode")
+
+    if config.uasDebug:
+        # row.alignment = "LEFT"
+        # row.separator(factor=2)
+        subRow = row.row(align=False)
+        subRow.alignment = "RIGHT"
+        subRow.label(text="Iteration (dev.):")
+        subRow.prop(props.renderContext, "renderFrameIterationMode", text="")
 
     # row.prop(bpy.context.scene.render, "engine", text="Engine")
 
+    # row = layout.row(align=False)
+    # row.separator()
+    # box = row.box()
     box = layout.box()
-    row = box.row(align=False)
-    renderWithOpengl = (
-        "PLAYBLAST_LOOP" == props.renderContext.renderComputationMode
-        or "PLAYBLAST_ANIM" == props.renderContext.renderComputationMode
-    )
-    if renderWithOpengl:
-        row.label(text="Playblast Engine")
-        row.prop(props.renderContext, "renderEngineOpengl", text="")
-        row.separator(factor=1)
+
+    if "OPENGL" == props.renderContext.renderHardwareMode:
+        grid = box.grid_flow(columns=2)
+
+        row = grid.row(align=False)
+        row.alignment = "LEFT"
+        # row.label(text="GPU Engine:")
+        row.prop(props.renderContext, "renderEngineOpengl", text="GPU Engine")
+        # row.separator()
+
+        row = grid.row(align=False)
+        row.alignment = "RIGHT"
+        row.label(text="Quality:")
+        row.prop(props.renderContext, "renderQualityOpengl", text="")
+
+        row = box.row(align=False)
         row.prop(props.renderContext, "useOverlays", text="With Overlays")
     else:
-        row.label(text="Render Engine")
-        row.prop(props.renderContext, "renderEngine", text="")
+        grid = box.grid_flow(columns=2)
+
+        row = grid.row(align=False)
+        row.alignment = "RIGHT"
+        # row.label(text="CPU Engine:")
+        row.prop(props.renderContext, "renderEngine", text="CPU Engine")
+
+        row = grid.row(align=False)
+        row.alignment = "RIGHT"
+        row.label(text="Quality:")
+        row.prop(props.renderContext, "renderQuality", text="")
 
     layout.separator()
 

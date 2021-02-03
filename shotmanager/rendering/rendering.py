@@ -171,14 +171,8 @@ def launchRenderWithVSEComposite(
         context.window_manager.UAS_shot_manager_shots_play_mode = False
         context.window_manager.UAS_shot_manager_display_timeline = False
 
-    renderFrameByFrame = (
-        "PLAYBLAST_LOOP" == props.renderContext.renderComputationMode
-        or "ENGINE_LOOP" == props.renderContext.renderComputationMode
-    )
-    renderWithOpengl = (
-        "PLAYBLAST_LOOP" == props.renderContext.renderComputationMode
-        or "PLAYBLAST_ANIM" == props.renderContext.renderComputationMode
-    )
+    renderFrameByFrame = "LOOP" == props.renderContext.renderFrameIterationMode
+    renderWithOpengl = "OPENGL" == props.renderContext.renderHardwareMode
 
     if "PLAYBLAST" == renderMode:
         renderFrameByFrame = False  # wkip crash a la génération du son si mode framebyframe...
@@ -271,11 +265,14 @@ def launchRenderWithVSEComposite(
                 scene.render.engine = props.renderContext.renderEngine
 
     if "PLAYBLAST" == renderMode:
-        props.renderContext.applyRenderQualitySettings(context, renderQuality="VERY_LOW")
+        props.renderContext.applyRenderQualitySettingsOpengl(context, renderQuality="VERY_LOW")
         if not preset_useStampInfo:
             props.renderContext.applyBurnInfos(context)
     else:
-        props.renderContext.applyRenderQualitySettings(context)
+        if renderWithOpengl:
+            props.renderContext.applyRenderQualitySettingsOpengl(context)
+        else:
+            props.renderContext.applyRenderQualitySettings(context)
 
     # change color tone mode to prevent washout bug
     scene.view_settings.view_transform = "Standard"
@@ -322,27 +319,27 @@ def launchRenderWithVSEComposite(
 
         if not fileListOnly:
             startShotRenderTime = time.monotonic()
-            infoStr = f"\n----------------------------------------------------"
+            infoStr = "\n----------------------------------------------------"
             infoStr += f"\n\n  Rendering Shot: {shot.getName_PathCompliant(withPrefix=True)} - {shot.getDuration()} fr."
-            infoStr += f"\n  ---------------"
-            infoStr += f"\n\nRenderer: "
+            infoStr += "\n  ---------------"
+            infoStr += "\n\nRenderer: "
 
             if "PLAYBLAST" == renderMode:
-                infoStr += f"PLAYBLAST: "
+                infoStr += "PLAYBLAST: "
                 if renderWithOpengl:
-                    infoStr += f"OpenGl - "
+                    infoStr += "OpenGl - "
                 else:
-                    infoStr += f"Engine - "
+                    infoStr += "Engine - "
                 if renderFrameByFrame:
-                    infoStr += f"Frame by Frame Mode"
+                    infoStr += "Frame by Frame Mode"
                 else:
-                    infoStr += f"Loop Mode"
+                    infoStr += "Loop Mode"
             else:
                 if renderWithOpengl:
                     infoStr += f"{props.renderContext.renderEngineOpengl} - "
                 else:
                     infoStr += f"{props.renderContext.renderEngine} - "
-                infoStr += f"{props.renderContext.renderComputationMode}"
+                infoStr += f"{props.renderContext.renderHardwareMode} - {props.renderContext.renderFrameIterationMode}"
 
             print(infoStr)
 
