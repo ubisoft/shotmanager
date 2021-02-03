@@ -1,8 +1,7 @@
 import os
-import json
 
 import bpy
-from bpy.types import Panel, Operator, Menu
+from bpy.types import Operator
 from bpy.props import StringProperty, BoolProperty, IntProperty
 
 from shotmanager.config import config

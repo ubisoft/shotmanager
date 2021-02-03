@@ -530,7 +530,8 @@ class UAS_ShotManager_Shot(ShotInterface, PropertyGroup):
         print("Soundseq")
         if "" != self.bgSoundClipName and self.bgSoundClipName in self.parentScene.sequence_editor.sequences_all:
             soundClip = self.parentScene.sequence_editor.sequences_all[self.bgSoundClipName]
-        print(f"Sounclip: {soundClip.name}")
+        if soundClip is not None:
+            print(f"Sounclip: {soundClip.name}")
 
         return soundClip
 
