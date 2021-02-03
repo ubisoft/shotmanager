@@ -3,6 +3,7 @@ from bpy.types import Operator
 from bpy.props import EnumProperty, BoolProperty, StringProperty
 
 from shotmanager.utils import utils
+from shotmanager.utils import utils_greasepencil
 
 
 def draw_greasepencil_shot_properties(sm_ui, context, shot):
@@ -58,6 +59,19 @@ def draw_greasepencil_shot_properties(sm_ui, context, shot):
         if prefs.shot_greasepencil_extended:
             row = box.row()
             row.prop(gp_child, "location")
+
+        row = box.row()
+        row.label(text="Canvas: ")
+
+        canvasLayer = utils_greasepencil.get_grease_pencil_layer(
+            gp_child, gpencil_layer_name="GP_Canvas", create_layer=False
+        )
+        if canvasLayer is None:
+            # utils_greasepencil.get_grease_pencil_layer
+            row.operator("uas_shot_manager.add_canvas_to_grease_pencil", text="+").gpName = gp_child.name
+        else:
+            row.prop(canvasLayer, "hide", text="")
+            row.prop(canvasLayer, "opacity", text="")
 
         # row = box.row()
         # row.operator("uas_shot_manager.change_grease_pencil_opacity").gpObjectName = gp_child

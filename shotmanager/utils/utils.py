@@ -35,32 +35,37 @@ def addonVersion(addonName):
             - an integer. x.y.z becomes xxyyyzzz (eg: "1.21.3" becomes 1021003)
         Return None if the addon has not been found
     """
-    # import addon_utils
 
     #   print("addonVersion called...")
     versionStr = "-"
     versionInt = -1
     versions = None
 
-    # versionTupple = [
-    #     addon.bl_info.get("version", (-1, -1, -1))
-    #     for addon in addon_utils.modules()
-    #     if addon.bl_info["name"] == addonName
-    # ]
-    # if len(versionTupple):
-    #     versionTupple = versionTupple[0]
-    #     versionStr = str(versionTupple[0]) + "." + str(versionTupple[1]) + "." + str(versionTupple[2])
+    # wkip temp fix to avoid latencies when resizing main add-on panel
+    if "UAS Shot Manager" == addonName:
+        versions = ("1.5.2", 1005002)
+    # else:
+    #     versions = ("1.0.2", 1000002)
+    else:
+        import addon_utils
 
-    #     # versionStr = "131.258.265"
-    #     versionInt = convertVersionStrToInt(versionStr)
+        versionTupple = [
+            addon.bl_info.get("version", (-1, -1, -1))
+            for addon in addon_utils.modules()
+            if addon.bl_info["name"] == addonName
+        ]
+        if len(versionTupple):
+            versionTupple = versionTupple[0]
+            versionStr = str(versionTupple[0]) + "." + str(versionTupple[1]) + "." + str(versionTupple[2])
 
-    #     # print("versionStr: ", versionStr)
-    #     # print("versionInt: ", versionInt)
-    #     # print("convertVersionIntToStr: ", convertVersionIntToStr(versionInt))
+            # versionStr = "131.258.265"
+            versionInt = convertVersionStrToInt(versionStr)
 
-    #    versions = (versionStr, versionInt)
+            # print("versionStr: ", versionStr)
+            # print("versionInt: ", versionInt)
+            # print("convertVersionIntToStr: ", convertVersionIntToStr(versionInt))
 
-    versions = ("1.3.81", 1003081)
+            versions = (versionStr, versionInt)
 
     return versions
 

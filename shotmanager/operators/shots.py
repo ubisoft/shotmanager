@@ -155,15 +155,18 @@ class UAS_ShotManager_ShotTimeInEdit(Operator):
 
 class UAS_ShotManager_ShowNotes(Operator):
     bl_idname = "uas_shot_manager.shots_shownotes"
-    bl_label = "Show Shot notes"
+    bl_label = "Show Shot Notes"
+    bl_description = "Display the notes associated to the shots"
     bl_options = {"INTERNAL"}
 
     index: IntProperty(default=0)
 
     def invoke(self, context, event):
         props = context.scene.UAS_shot_manager_props
+        prefs = context.preferences.addons["shotmanager"].preferences
         shot = props.getShotByIndex(self.index)
         shot.selectShotInUI()
+        prefs.shot_notes_extended = True
         return {"FINISHED"}
 
 

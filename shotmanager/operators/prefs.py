@@ -1,7 +1,10 @@
 import bpy
 from bpy.types import Panel, Operator, Menu
 
+from . import prefs_project
+
 from ..config import config
+
 
 #############
 # Preferences
@@ -10,27 +13,31 @@ from ..config import config
 
 class UAS_MT_ShotManager_Prefs_MainMenu(Menu):
     bl_idname = "UAS_MT_Shot_Manager_prefs_mainmenu"
-    bl_label = "General Preferences"
-    # bl_description = "General Preferences"
+    bl_label = "Settings for the Shot Manager instanced in this scene"
+    # bl_description = "Display the settings for the Shot Manager instanced in the current scene"
 
     def draw(self, context):
         layout = self.layout
 
         row = layout.row(align=True)
-        row.operator("uas_shot_manager.general_prefs", text="Preferences...")
+        row.operator("preferences.addon_show", text="Add-on Preferences...").module = "shotmanager"
+
+        layout.separator()
         row = layout.row(align=True)
-        row.operator("uas_shot_manager.project_settings_prefs", text="Project Settings...")
+        row.operator("uas_shot_manager.general_prefs")
+        row = layout.row(align=True)
+        row.operator("uas_shot_manager.project_settings_prefs")
+
+        layout.separator()
+        row = layout.row(align=True)
+        row.operator_context = "INVOKE_DEFAULT"
+        row.operator("uas_shot_manager.playbar_prefs")  # , icon="SETTINGS")
+
+        row = layout.row(align=True)
+        row.operator_context = "INVOKE_DEFAULT"
+        row.operator("uas_shot_manager.shots_prefs")  # , icon="SETTINGS")
 
         if config.uasDebug:
-            layout.separator()
-            row = layout.row(align=True)
-            row.operator_context = "INVOKE_DEFAULT"
-            row.operator("uas_shot_manager.playbar_prefs", text="Playbar Settings...")  # , icon="SETTINGS")
-
-            row = layout.row(align=True)
-            row.operator_context = "INVOKE_DEFAULT"
-            row.operator("uas_shot_manager.shots_prefs", text="Shots Settings...")  # , icon="SETTINGS")
-
             layout.separator()
             row = layout.row(align=True)
             row.label(text="Tools for Debug:")
@@ -55,8 +62,8 @@ class UAS_MT_ShotManager_Prefs_MainMenu(Menu):
 
 class UAS_ShotManager_General_Prefs(Operator):
     bl_idname = "uas_shot_manager.general_prefs"
-    bl_label = "General Preferences"
-    bl_description = "Display the General Preferences panel"
+    bl_label = "Settings..."
+    bl_description = "Display the Settings panel\nfor the Shot Manager instanced in this scene"
     bl_options = {"INTERNAL"}
 
     def invoke(self, context, event):
@@ -129,93 +136,6 @@ class UAS_ShotManager_General_Prefs(Operator):
         return {"FINISHED"}
 
 
-class UAS_ShotManager_ProjectSettings_Prefs(Operator):
-    bl_idname = "uas_shot_manager.project_settings_prefs"
-    bl_label = "Project Settings"
-    bl_description = "Display the Project Settings panel"
-    bl_options = {"INTERNAL", "UNDO"}
-
-    def invoke(self, context, event):
-        print("Invoke prefs")
-        return context.window_manager.invoke_props_dialog(self, width=450)
-
-    def draw(self, context):
-        layout = self.layout
-        scene = context.scene
-        props = scene.UAS_shot_manager_props
-
-        layout.alert = True
-        layout.label(text="Any change is effective immediately")
-        layout.alert = False
-
-        layout.prop(props, "use_project_settings")
-        box = layout.box()
-        box.use_property_decorate = False
-        box.enabled = props.use_project_settings
-        col = box.column()
-        col.use_property_split = True
-        col.use_property_decorate = False
-        col.separator(factor=1)
-
-        col.prop(props, "project_name")
-        col.prop(props, "project_fps")
-        col.prop(props, "project_resolution_x")
-        col.prop(props, "project_resolution_y")
-        col.prop(props, "project_resolution_framed_x")
-        col.prop(props, "project_resolution_framed_y")
-        col.prop(props, "project_shot_format")
-
-        col.separator(factor=1)
-        row = col.row()
-        row.prop(props, "project_use_shot_handles")
-        subrow = row.row()
-        subrow.enabled = props.project_use_shot_handles
-        subrow.prop(props, "project_shot_handle_duration", text="Handles")
-        col.separator(factor=1)
-
-        col.prop(props, "project_output_format")
-        col.prop(props, "project_color_space")
-        col.prop(props, "project_asset_name")
-
-        # additional settings
-        box.separator()
-        box.label(text="Additional Settings:")
-        col = box.column()
-        col.enabled = props.use_project_settings
-        col.use_property_split = True
-        col.use_property_decorate = False
-        col.separator(factor=1)
-
-        stampInfoStr = "Use Stamp Info Add-on"
-        if not props.isStampInfoAvailable():
-            stampInfoStr += "  (Warning: Currently NOT installed)"
-        col.prop(props, "project_use_stampinfo", text=stampInfoStr)
-
-        col.prop(props, "project_images_output_format")
-
-        col.separator(factor=1)
-
-        # project settings summary display
-        if config.uasDebug:
-            settingsList = props.applyProjectSettings(settingsListOnly=True)
-            box = layout.box()
-            for prop in settingsList:
-                row = box.row(align=True)
-                row.label(text=prop[0] + ":")
-                row.label(text=str(prop[1]))
-
-    def execute(self, context):
-        print("exec proj settings")
-        context.scene.UAS_shot_manager_props.applyProjectSettings()
-        return {"FINISHED"}
-
-    def cancel(self, context):
-        print("cancel proj settings")
-        # since project properties are immediatly applied to Shot Manager properties then we also force the
-        # application of the settings in the scene even if the user is not clicking on OK button
-        context.scene.UAS_shot_manager_props.applyProjectSettings()
-
-
 class UAS_PT_ShotManagerPref_General(Panel):
     bl_label = "General"
     bl_idname = "UAS_PT_Shot_Manager_Pref_General"
@@ -236,8 +156,10 @@ class UAS_PT_ShotManagerPref_General(Panel):
 
 class UAS_ShotManager_Playbar_Prefs(Operator):
     bl_idname = "uas_shot_manager.playbar_prefs"
-    bl_label = "Playbar, Timeline ad Edit Settings"
-    bl_description = "Display the Playbar, Timeline and Edit Preferences panel"
+    bl_label = "Playbar Settings..."
+    bl_description = (
+        "Display the Playbar, Timeline and Edit Settings panel\nfor the Shot Manager instanced in this scene"
+    )
     bl_options = {"INTERNAL"}
 
     def invoke(self, context, event):
@@ -303,8 +225,8 @@ class UAS_ShotManager_Playbar_Prefs(Operator):
 
 class UAS_ShotManager_Shots_Prefs(Operator):
     bl_idname = "uas_shot_manager.shots_prefs"
-    bl_label = "Shots Settings"
-    bl_description = "Display the Shots Preferences panel"
+    bl_label = "Shots Settings..."
+    bl_description = "Display the Shots Settings panel\nfor the Shot Manager instanced in this scene"
     bl_options = {"INTERNAL"}
 
     def invoke(self, context, event):
@@ -445,7 +367,6 @@ class UAS_ShotManager_Shots_Prefs(Operator):
 _classes = (
     UAS_MT_ShotManager_Prefs_MainMenu,
     UAS_ShotManager_General_Prefs,
-    UAS_ShotManager_ProjectSettings_Prefs,
     # UAS_PT_ShotManagerPref_General,
     UAS_ShotManager_Playbar_Prefs,
     UAS_ShotManager_Shots_Prefs,
@@ -454,6 +375,9 @@ _classes = (
 
 
 def register():
+
+    prefs_project.register()
+
     for cls in _classes:
         bpy.utils.register_class(cls)
 
@@ -461,3 +385,5 @@ def register():
 def unregister():
     for cls in reversed(_classes):
         bpy.utils.unregister_class(cls)
+
+    prefs_project.unregister()

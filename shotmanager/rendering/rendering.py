@@ -9,7 +9,7 @@ import bpy
 
 from shotmanager.otio.exports import exportShotManagerEditToOtio
 from shotmanager.config import config
-from shotmanager.scripts.rrs.RRS_StampInfo import setRRS_StampInfoSettings
+from shotmanager.rendering.sm_StampInfo_default_settings import set_StampInfoSettings
 
 from shotmanager.utils import utils
 from shotmanager.utils import utils_store_context as utilsStore
@@ -147,38 +147,32 @@ def launchRenderWithVSEComposite(
         rootPath += "\\"
 
     preset_useStampInfo = False
-    RRS_StampInfo = None
+    stampInfoSettings = None
 
     if not fileListOnly:
         if getattr(scene, "UAS_StampInfo_Settings", None) is not None:
-            RRS_StampInfo = scene.UAS_StampInfo_Settings
+            stampInfoSettings = scene.UAS_StampInfo_Settings
 
             # remove handlers and compo!!!
-            RRS_StampInfo.clearRenderHandlers()
-            #   RRS_StampInfo.clearInfoCompoNodes(scene)
+            stampInfoSettings.clearRenderHandlers()
+            #   stampInfoSettings.clearInfoCompoNodes(scene)
 
             preset_useStampInfo = useStampInfo
             if not useStampInfo:
-                RRS_StampInfo.stampInfoUsed = False
+                stampInfoSettings.stampInfoUsed = False
             else:
-                RRS_StampInfo.renderRootPathUsed = True
-                RRS_StampInfo.renderRootPath = rootPath
-                setRRS_StampInfoSettings(scene)
+                stampInfoSettings.renderRootPathUsed = True
+                stampInfoSettings.renderRootPath = rootPath
+                set_StampInfoSettings(scene)
 
         if preset_useStampInfo:  # framed output resolution is used only when StampInfo is used
-            RRS_StampInfo.clearRenderHandlers()
+            stampInfoSettings.clearRenderHandlers()
 
         context.window_manager.UAS_shot_manager_shots_play_mode = False
         context.window_manager.UAS_shot_manager_display_timeline = False
 
-    renderFrameByFrame = (
-        "PLAYBLAST_LOOP" == props.renderContext.renderComputationMode
-        or "ENGINE_LOOP" == props.renderContext.renderComputationMode
-    )
-    renderWithOpengl = (
-        "PLAYBLAST_LOOP" == props.renderContext.renderComputationMode
-        or "PLAYBLAST_ANIM" == props.renderContext.renderComputationMode
-    )
+    renderFrameByFrame = "LOOP" == props.renderContext.renderFrameIterationMode
+    renderWithOpengl = "OPENGL" == props.renderContext.renderHardwareMode
 
     if "PLAYBLAST" == renderMode:
         renderFrameByFrame = False  # wkip crash a la génération du son si mode framebyframe...
@@ -264,7 +258,6 @@ def launchRenderWithVSEComposite(
                     space_data.overlay.show_overlays = props.renderContext.useOverlays
 
         else:
-            # wkip hack rrs
             # scene.render.use_compositing = False
             scene.render.use_sequencer = False
 
@@ -272,11 +265,14 @@ def launchRenderWithVSEComposite(
                 scene.render.engine = props.renderContext.renderEngine
 
     if "PLAYBLAST" == renderMode:
-        props.renderContext.applyRenderQualitySettings(context, renderQuality="VERY_LOW")
+        props.renderContext.applyRenderQualitySettingsOpengl(context, renderQuality="VERY_LOW")
         if not preset_useStampInfo:
             props.renderContext.applyBurnInfos(context)
     else:
-        props.renderContext.applyRenderQualitySettings(context)
+        if renderWithOpengl:
+            props.renderContext.applyRenderQualitySettingsOpengl(context)
+        else:
+            props.renderContext.applyRenderQualitySettings(context)
 
     # change color tone mode to prevent washout bug
     scene.view_settings.view_transform = "Standard"
@@ -323,27 +319,27 @@ def launchRenderWithVSEComposite(
 
         if not fileListOnly:
             startShotRenderTime = time.monotonic()
-            infoStr = f"\n----------------------------------------------------"
+            infoStr = "\n----------------------------------------------------"
             infoStr += f"\n\n  Rendering Shot: {shot.getName_PathCompliant(withPrefix=True)} - {shot.getDuration()} fr."
-            infoStr += f"\n  ---------------"
-            infoStr += f"\n\nRenderer: "
+            infoStr += "\n  ---------------"
+            infoStr += "\n\nRenderer: "
 
             if "PLAYBLAST" == renderMode:
-                infoStr += f"PLAYBLAST: "
+                infoStr += "PLAYBLAST: "
                 if renderWithOpengl:
-                    infoStr += f"OpenGl - "
+                    infoStr += "OpenGl - "
                 else:
-                    infoStr += f"Engine - "
+                    infoStr += "Engine - "
                 if renderFrameByFrame:
-                    infoStr += f"Frame by Frame Mode"
+                    infoStr += "Frame by Frame Mode"
                 else:
-                    infoStr += f"Loop Mode"
+                    infoStr += "Loop Mode"
             else:
                 if renderWithOpengl:
                     infoStr += f"{props.renderContext.renderEngineOpengl} - "
                 else:
                     infoStr += f"{props.renderContext.renderEngine} - "
-                infoStr += f"{props.renderContext.renderComputationMode}"
+                infoStr += f"{props.renderContext.renderHardwareMode} - {props.renderContext.renderFrameIterationMode}"
 
             print(infoStr)
 
@@ -468,7 +464,7 @@ def launchRenderWithVSEComposite(
             #######################
             if preset_useStampInfo:
                 renderStampedInfoForShot(
-                    RRS_StampInfo,
+                    stampInfoSettings,
                     props,
                     takeName,
                     shot,
@@ -532,16 +528,16 @@ def launchRenderWithVSEComposite(
                 bpy.ops.sound.mixdown(filepath=str(audioFilePath), relative_path=False, container="WAV", codec="PCM")
                 # bpy.ops.sound.mixdown(filepath=audioFilePath, relative_path=False, container="MP3", codec="MP3")
 
-            overImgSeq = newTempRenderPath + shot.getOutputMediaPath(providePath=False, genericFrame=True)
-            overImgSeq_resolution = renderResolution
+            renderedImgSeq = newTempRenderPath + shot.getOutputMediaPath(providePath=False, genericFrame=True)
+            renderedImgSeq_resolution = renderResolution
 
-            bgImgSeq = None
-            bgImgSeq_resolution = overImgSeq_resolution
+            infoImgSeq = None
+            infoImgSeq_resolution = renderedImgSeq_resolution
             if preset_useStampInfo:
-                frameIndStr = "####" if specificFrame is None else f"{specificFrame:04}"
+                frameIndStr = "#####" if specificFrame is None else f"{specificFrame:05}"
                 _logger.debug(f"\n - specificFrame: {specificFrame}")
-                bgImgSeq = newTempRenderPath + "_tmp_StampInfo." + frameIndStr + ".png"
-                bgImgSeq_resolution = renderResolutionFramed
+                infoImgSeq = newTempRenderPath + "_tmp_StampInfo." + frameIndStr + ".png"
+                infoImgSeq_resolution = renderResolutionFramed
 
             if generateShotVideos:
 
@@ -562,21 +558,21 @@ def launchRenderWithVSEComposite(
                 # )
                 vse_render.clearMedia()
                 if specificFrame is None:
-                    vse_render.inputOverMediaPath = overImgSeq
+                    vse_render.inputBGMediaPath = renderedImgSeq
                 else:
-                    vse_render.inputOverMediaPath = newTempRenderPath + shot.getOutputMediaPath(
+                    vse_render.inputBGMediaPath = newTempRenderPath + shot.getOutputMediaPath(
                         providePath=False, specificFrame=specificFrame
                     )
 
-                _logger.debug(f"\n - OverMediaPath: {vse_render.inputOverMediaPath}")
-                vse_render.inputOverResolution = overImgSeq_resolution
+                _logger.debug(f"\n - BGMediaPath: {vse_render.inputBGMediaPath}")
+                vse_render.inputBGResolution = renderedImgSeq_resolution
 
                 if preset_useStampInfo:
-                    frameIndStr = "####" if specificFrame is None else f"{specificFrame:04}"
+                    frameIndStr = "#####" if specificFrame is None else f"{specificFrame:05}"
                     _logger.debug(f"\n - specificFrame: {specificFrame}")
-                    vse_render.inputBGMediaPath = bgImgSeq
-                    _logger.debug(f"\n - BGMediaPath: {vse_render.inputBGMediaPath}")
-                    vse_render.inputBGResolution = bgImgSeq_resolution
+                    vse_render.inputOverMediaPath = infoImgSeq
+                    _logger.debug(f"\n - OverMediaPath: {vse_render.inputOverMediaPath}")
+                    vse_render.inputOverResolution = infoImgSeq_resolution
 
                 if specificFrame is None and renderSound:
                     vse_render.inputAudioMediaPath = audioFilePath
@@ -587,12 +583,22 @@ def launchRenderWithVSEComposite(
                         video_frame_end += 2 * handles
 
                     vse_render.compositeVideoInVSE(
-                        projectFps, 1, video_frame_end, compositedMediaPath, shot.getName_PathCompliant(),
+                        projectFps,
+                        1,
+                        video_frame_end,
+                        compositedMediaPath,
+                        shot.getName_PathCompliant(),
+                        output_resolution=infoImgSeq_resolution,
                     )
                 else:
-                    print(f"compositedMediaPath: {compositedMediaPath}")
+                    # print(f"compositedMediaPath: {compositedMediaPath}")
                     vse_render.compositeVideoInVSE(
-                        projectFps, 1, 1, compositedMediaPath, shot.getName_PathCompliant(),
+                        projectFps,
+                        1,
+                        1,
+                        compositedMediaPath,
+                        shot.getName_PathCompliant(),
+                        output_resolution=infoImgSeq_resolution,
                     )
 
                 # bpy.ops.render.render("INVOKE_DEFAULT", animation=False, write_still=True)
@@ -609,12 +615,12 @@ def launchRenderWithVSEComposite(
                 #######################
                 videoAndSound = dict()
 
-                videoAndSound["image_sequence"] = overImgSeq
-                videoAndSound["image_sequence_resolution"] = overImgSeq_resolution
+                videoAndSound["image_sequence"] = renderedImgSeq
+                videoAndSound["image_sequence_resolution"] = renderedImgSeq_resolution
 
-                videoAndSound["bg_resolution"] = bgImgSeq_resolution
+                videoAndSound["bg_resolution"] = infoImgSeq_resolution
                 if preset_useStampInfo:
-                    videoAndSound["bg"] = bgImgSeq
+                    videoAndSound["bg"] = infoImgSeq
                 videoAndSound["sound"] = audioFilePath
 
                 renderedShotSequencesArr.append(videoAndSound)

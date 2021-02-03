@@ -260,12 +260,12 @@ def go_to_previous_shot(shot_manager, current_frame):
         else:
         - fisrt click: put current time at the end of the previous enabled shot
     """
-    return shot_manager.goToPreviousShot(current_frame)
+    return shot_manager.goToPreviousShotBoundary(current_frame)
 
 
 # works only on current take
 def go_to_next_shot(shot_manager, current_frame):
-    return shot_manager.goToNextShot(current_frame)
+    return shot_manager.goToNextShotBoundary(current_frame)
 
 
 # works only on current take
@@ -283,7 +283,7 @@ def go_to_previous_frame(shot_manager, current_frame):
 
 # works only on current take
 def go_to_next_frame(shot_manager, current_frame):
-    #   print(" ** -- ** goToNextShot")
+    #   print(" ** -- ** goToNextShotBoundary")
     return shot_manager.goToNextFrame(current_frame)
 
 

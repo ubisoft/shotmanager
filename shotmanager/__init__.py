@@ -16,6 +16,7 @@ from .handlers import jump_to_shot
 from . import otio
 
 from .features import cameraBG
+from .features import soundBG
 from .features import greasepencil
 
 from .operators import takes
@@ -31,7 +32,7 @@ from .operators import features
 from .operators import about
 
 from .properties import props
-from .properties import addon_prefs
+from .addon_prefs import addon_prefs
 
 from .retimer import retimer_ui
 from .retimer import retimer_props
@@ -45,9 +46,6 @@ from .rendering import rendering_ui
 from .scripts import precut_tools
 
 from .tools import vse_render
-from .tools.markers_nav_bar import markers_nav_bar
-
-# from .tools.markers_nav_bar import markers_nav_bar_addon_prefs
 
 from .ui import sm_ui
 
@@ -57,7 +55,7 @@ from .utils import utils_handlers
 from .utils import utils_operators
 from .utils import utils_get_set_current_time
 
-from . import videoshotmanager
+# from . import videoshotmanager
 from . import viewport_3d
 
 from .scripts import rrs
@@ -74,10 +72,10 @@ bl_info = {
     "author": "Julien Blervaque (aka Werwack), Romain Carriquiry Borchiari",
     "description": "Manage a sequence of shots and cameras in the 3D View - Ubisoft Animation Studio",
     "blender": (2, 90, 0),
-    "version": (1, 3, 81),
+    "version": (1, 5, 2),
     "location": "View3D > UAS Shot Manager",
     "wiki_url": "https://gitlab-ncsa.ubisoft.org/animation-studio/blender/shotmanager-addon/-/wikis/home",
-    "warning": "BETA Version - Fais gaffe à tes données !!!",
+    # "warning": "BETA Version",
     "category": "UAS",
 }
 
@@ -387,8 +385,8 @@ def register():
     # operators
     # markers_nav_bar_addon_prefs.register()
     cameraBG.register()
+    soundBG.register()
     greasepencil.register()
-    markers_nav_bar.register()
     utils_get_set_current_time.register()
     rendering.register()
     takes.register()
@@ -411,7 +409,7 @@ def register():
     utils_render.register()
     general.register()
     viewport_3d.register()
-    videoshotmanager.register()
+    # videoshotmanager.register()
     prefs.register()
     features.register()
     about.register()
@@ -483,7 +481,7 @@ def unregister():
     about.unregister()
     features.unregister()
     prefs.unregister()
-    videoshotmanager.unregister()
+    #  videoshotmanager.unregister()
     viewport_3d.unregister()
     general.unregister()
     utils_render.unregister()
@@ -507,10 +505,9 @@ def unregister():
     takes.unregister()
     utils_operators.unregister()
     utils_get_set_current_time.unregister()
-    markers_nav_bar.unregister()
     greasepencil.unregister()
+    soundBG.unregister()
     cameraBG.unregister()
-    #   markers_nav_bar_addon_prefs.unregister()
 
     addon_prefs.unregister()
 

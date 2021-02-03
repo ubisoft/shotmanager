@@ -107,9 +107,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         # if parentScn is not None:
         #     return parentScn
         if parentScn is None:
-            _logger.error(
-                "\n\n WkError: parentScn in None in Props ! *** (This is only a pb if this message appears twice)"
-            )
+            _logger.error("\n\n WkError: parentScn in None in Props !!! *** ")
             self.parentScene = self.findParentScene()
         else:
             self.parentScene = parentScn
@@ -213,14 +211,14 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
 
     use_project_settings: BoolProperty(name="Use Project Settings", default=False, options=set())
 
-    # settings coming from production
-    project_name: StringProperty(name="Project Name", default="My Project")
-    project_fps: FloatProperty(name="Project Fps", min=0.5, max=200.0, default=25.0)
-    project_resolution_x: IntProperty(name="Res. X", min=0, default=1280)
-    project_resolution_y: IntProperty(name="Res. Y", min=0, default=720)
-    project_resolution_framed_x: IntProperty(name="Res. Framed X", min=0, default=1280)
-    project_resolution_framed_y: IntProperty(name="Res. Framed Y", min=0, default=720)
+    # settings coming from production:
+    ############
+
+    ############
+    # naming
+    ############
     project_shot_format: StringProperty(name="Shot Format", default=r"Act{:02}_Seq{:04}_Sh{:04}")
+    project_name: StringProperty(name="Project Name", default="My Project")
 
     project_use_shot_handles: BoolProperty(
         name="Use Handles",
@@ -235,18 +233,42 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         default=10,
     )
 
-    project_output_format: StringProperty(name="Output Format", default="")
-    project_color_space: StringProperty(name="Color Space", default="")
-    project_asset_name: StringProperty(name="Asset Name", default="")
-
-    # built-in project settings
-    project_images_output_format: StringProperty(name="Images Output Format", default="PNG")
-
+    ############
+    # stamp info
+    ############
     project_use_stampinfo: BoolProperty(
         name="Use Stamp Info Add-on",
         description="Use UAS Stamp Info add-on - if available - to write data on rendered images.\nNote: If Stamp Info is not installed then warnings will be displayed",
         default=False,
     )
+    project_logo_path: StringProperty(
+        name="Project Logo",
+        description="If defined uses the project logo otherwise uses the logo specifined in StampInfo addon settings",
+        default="",
+    )
+
+    ############
+    # resolution
+    ############
+    project_fps: FloatProperty(name="Project Fps", min=0.5, max=200.0, default=25.0)
+    project_resolution_x: IntProperty(name="Res. X", min=0, default=1280)
+    project_resolution_y: IntProperty(name="Res. Y", min=0, default=720)
+    project_resolution_framed_x: IntProperty(name="Res. Framed X", min=0, default=1280)
+    project_resolution_framed_y: IntProperty(name="Res. Framed Y", min=0, default=960)
+
+    ############
+    # outputs
+    ############
+
+    project_color_space: StringProperty(name="Color Space", default="")
+    project_asset_name: StringProperty(name="Asset Name", default="")
+
+    project_output_format: StringProperty(name="Video Output Format", default="")
+
+    project_sounds_output_format: StringProperty(name="Sound Output Format", default="")
+
+    # built-in project settings
+    project_images_output_format: StringProperty(name="Image Output Format", default="PNG")
 
     # built-in settings
     use_handles: BoolProperty(
@@ -340,7 +362,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
 
     display_cameraBG_in_shotlist: BoolProperty(name="Display Camera BG in Shot List", default=False, options=set())
     display_greasepencil_in_shotlist: BoolProperty(
-        name="Display Grease Pencil in Shot List", default=False, options=set()
+        name="Display Grease Pencil in Shot List", default=True, options=set()
     )
 
     display_getsetcurrentframe_in_shotlist: BoolProperty(
@@ -407,7 +429,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
     display_retimer_in_properties: BoolProperty(
         name="Display Retimer sub-Panel",
         description="Display Retimer sub-panel in the Shot Manager panel",
-        default=True,
+        default=False,
         options=set(),
     )
 
@@ -1274,18 +1296,15 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
 
         # update the current take if needed
         if takeInd == currentTakeInd:
-            print(f"Ici: takeInd == currentTakeInd : {currentTakeInd}, shotInd: {shotInd}")
             currentShotInd = self.current_shot_index
             #   currentShot = shots[currentShotInd]
             selectedShotInd = self.getSelectedShotIndex()
             previousSelectedShotInd = selectedShotInd
             #   selectedShot = shots[selectedShotInd]
 
-            print(f"selectedShotInd 1 : {selectedShotInd}")
             if shotInd != selectedShotInd:
                 self.setSelectedShotByIndex(shotInd)
                 selectedShotInd = self.getSelectedShotIndex()
-            print(f"selectedShotInd 2 : {selectedShotInd}")
 
             # case of the last shot
             if selectedShotInd == len(shots) - 1:
@@ -1316,7 +1335,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
                 else:
                     self.setSelectedShotByIndex(previousSelectedShotInd)
         else:
-            print(f"La: takeInd: {takeInd}, currentTakeInd: {currentTakeInd}, shot Ind: {shotInd}")
+            # print(f"La: takeInd: {takeInd}, currentTakeInd: {currentTakeInd}, shot Ind: {shotInd}")
             shots.remove(shotInd)
 
     def moveShotToIndex(self, shot, newIndex):
@@ -1527,6 +1546,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         return currentShotInd
 
     def getCurrentShot(self, ignoreDisabled=False, takeIndex=-1):
+        currentShot = None
         takeInd = (
             self.getCurrentTakeIndex()
             if -1 == takeIndex
@@ -1534,11 +1554,10 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         )
         currentShotInd = -1
         if -1 == takeInd:
-            return currentShotInd
+            return currentShot
 
         currentShotInd = self.getCurrentShotIndex(ignoreDisabled=ignoreDisabled, takeIndex=takeIndex)
         #   print("getCurrentShot: currentShotInd: ", currentShotInd)
-        currentShot = None
         if -1 != currentShotInd:
             currentShot = self.takes[takeInd].shots[currentShotInd]
 
@@ -2025,8 +2044,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
     # functions working only on current take !!!
     ###############
 
-    # wkip ignoreDisabled pas encore implémenté ici!!!!
-    def goToPreviousShot(self, currentFrame, ignoreDisabled=False):
+    def goToPreviousShotBoundary(self, currentFrame, ignoreDisabled=False, boundaryMode="ANY"):
         """ 
             works only on current take
             behavior of this button:
@@ -2034,8 +2052,10 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
             - first click: put current time at the start of the current enabled shot
             else:
             - fisrt click: put current time at the end of the previous enabled shot
+
+            - boundaryMode: can be "ANY", "START", "END"
         """
-        # print(" ** -- ** goToPreviousShot")
+        # print(" ** -- ** goToPreviousShotBoundary")
 
         if not len(self.get_shots()):
             return ()
@@ -2044,8 +2064,8 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         newFrame = currentFrame
 
         # in shot play mode the current frame is supposed to be in the current shot
-        if True or bpy.context.window_manager.UAS_shot_manager_shots_play_mode:
-
+        # if True or bpy.context.window_manager.UAS_shot_manager_shots_play_mode:
+        if "ANY" == boundaryMode:
             # get current shot in the WHOLE list (= even disabled)
             currentShotInd = self.getCurrentShotIndex()
             currentShot = self.getShotByIndex(currentShotInd)
@@ -2074,6 +2094,57 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
                     previousShotInd = currentShotInd
                     newFrame = currentShot.start
 
+        elif "START" == boundaryMode:
+            # get current shot in the WHOLE list (= even disabled)
+            currentShotInd = self.getCurrentShotIndex()
+            currentShot = self.getShotByIndex(currentShotInd)
+            print("    current Shot: ", currentShotInd)
+            if not currentShot.enabled:
+                print("    current Shot is disabled")
+                previousShotInd = self.getPreviousEnabledShotIndex(currentShotInd)
+                if -1 < previousShotInd:
+                    print("    previous Shot ind is ", previousShotInd)
+                    newFrame = self.getShotByIndex(previousShotInd).start
+            else:
+                print("    current Shot is ENabled")
+
+                previousShotInd = self.getPreviousEnabledShotIndex(currentShotInd)
+                if -1 < previousShotInd:
+                    print("      previous Shot ind is ", previousShotInd)
+                    newFrame = self.getShotByIndex(previousShotInd).start
+                else:  # case of the very first shot
+                    previousShotInd = currentShotInd
+                    newFrame = currentFrame
+
+        elif "END" == boundaryMode:
+            # get current shot in the WHOLE list (= even disabled)
+            currentShotInd = self.getCurrentShotIndex()
+            currentShot = self.getShotByIndex(currentShotInd)
+            print("    current Shot: ", currentShotInd)
+            if not currentShot.enabled:
+                print("    current Shot is disabled")
+                previousShotInd = self.getPreviousEnabledShotIndex(currentShotInd)
+                if -1 < previousShotInd:
+                    print("    previous Shot ind is ", previousShotInd)
+                    newFrame = self.getShotByIndex(previousShotInd).end
+            else:
+                print("    current Shot is ENabled")
+                # if currentFrame == currentShot.start:
+                #     print("      current frame is start")
+                previousShotInd = self.getPreviousEnabledShotIndex(currentShotInd)
+                if -1 < previousShotInd:
+                    print("      previous Shot ind is ", previousShotInd)
+                    newFrame = self.getShotByIndex(previousShotInd).end
+                else:  # case of the very first shot
+                    previousShotInd = currentShotInd
+                    newFrame = currentFrame
+                #  elif currentFrame == currentShot.end:
+                #      newFrame = currentShot.start
+                # else:
+                #     print("      current frame is middle or end")
+                #     previousShotInd = currentShotInd
+                #     newFrame = currentShot.end
+
         self.setCurrentShotByIndex(previousShotInd)
         self.setSelectedShotByIndex(previousShotInd)
         bpy.context.scene.frame_set(newFrame)
@@ -2081,8 +2152,8 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         return newFrame
 
     # works only on current take
-    def goToNextShot(self, currentFrame, ignoreDisabled=False):
-        # print(" ** -- ** goToNextShot")
+    def goToNextShotBoundary(self, currentFrame, ignoreDisabled=False, boundaryMode="ANY"):
+        # print(" ** -- ** goToNextShotBoundary")
         if not len(self.get_shots()):
             return ()
 
@@ -2091,8 +2162,9 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         newFrame = currentFrame
 
         # in shot play mode the current frame is supposed to be in the current shot
-        if True or bpy.context.window_manager.UAS_shot_manager_shots_play_mode:
+        # if True or bpy.context.window_manager.UAS_shot_manager_shots_play_mode:
 
+        if "ANY" == boundaryMode:
             # get current shot in the WHOLE list (= even disabled)
             currentShotInd = self.getCurrentShotIndex()
             currentShot = self.getShotByIndex(currentShotInd)
@@ -2111,6 +2183,58 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
                     if -1 < nextShotInd:
                         print("      next Shot ind is ", nextShotInd)
                         newFrame = self.getShotByIndex(nextShotInd).start
+                    else:  # case of the very last shot
+                        nextShotInd = currentShotInd
+                        newFrame = currentFrame
+                #  elif currentFrame == currentShot.end:
+                #      newFrame = currentShot.start
+                else:
+                    print("      current frame is middle or start")
+                    nextShotInd = currentShotInd
+                    newFrame = currentShot.end
+
+        elif "START" == boundaryMode:
+            # get current shot in the WHOLE list (= even disabled)
+            currentShotInd = self.getCurrentShotIndex()
+            currentShot = self.getShotByIndex(currentShotInd)
+            print("    current Shot: ", currentShotInd)
+            if not currentShot.enabled:
+                print("    current Shot is disabled")
+                nextShotInd = self.getNextEnabledShotIndex(currentShotInd)
+                if -1 < nextShotInd:
+                    print("    next Shot ind is ", nextShotInd)
+                    newFrame = self.getShotByIndex(nextShotInd).start
+            else:
+                print("    current Shot is ENabled")
+                # if currentFrame == currentShot.end:
+                #    print("      current frame is end")
+                nextShotInd = self.getNextEnabledShotIndex(currentShotInd)
+                if -1 < nextShotInd:
+                    print("      next Shot ind is ", nextShotInd)
+                    newFrame = self.getShotByIndex(nextShotInd).start
+                else:  # case of the very last shot
+                    nextShotInd = currentShotInd
+                    newFrame = currentFrame
+
+        elif "END" == boundaryMode:
+            # get current shot in the WHOLE list (= even disabled)
+            currentShotInd = self.getCurrentShotIndex()
+            currentShot = self.getShotByIndex(currentShotInd)
+            print("    current Shot: ", currentShotInd)
+            if not currentShot.enabled:
+                print("    current Shot is disabled")
+                nextShotInd = self.getNextEnabledShotIndex(currentShotInd)
+                if -1 < nextShotInd:
+                    print("    next Shot ind is ", nextShotInd)
+                    newFrame = self.getShotByIndex(nextShotInd).end
+            else:
+                print("    current Shot is ENabled")
+                if currentFrame == currentShot.end:
+                    print("      current frame is end")
+                    nextShotInd = self.getNextEnabledShotIndex(currentShotInd)
+                    if -1 < nextShotInd:
+                        print("      next Shot ind is ", nextShotInd)
+                        newFrame = self.getShotByIndex(nextShotInd).end
                     else:  # case of the very last shot
                         nextShotInd = currentShotInd
                         newFrame = currentFrame
@@ -2188,7 +2312,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
 
     # works only on current take
     def goToNextFrame(self, currentFrame, ignoreDisabled=False):
-        #   print(" ** -- ** goToNextShot")
+        #   print(" ** -- ** goToNextShotBoundary")
         if not len(self.get_shots()):
             return ()
 

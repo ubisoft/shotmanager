@@ -3,6 +3,7 @@ from bpy.types import Operator
 from bpy.props import EnumProperty, BoolProperty, StringProperty, IntProperty
 
 from shotmanager.utils import utils
+from shotmanager.utils import utils_greasepencil
 
 
 class UAS_ShotManager_OT_AddGreasePencil(Operator):
@@ -57,6 +58,27 @@ class UAS_ShotManager_OT_SelectGreasePencil(Operator):
                     bpy.ops.object.select_all(action="DESELECT")
                     bpy.context.view_layer.objects.active = gp_child
                     gp_child.select_set(True)
+
+        return {"FINISHED"}
+
+
+class UAS_ShotManager_OT_AddCanvasToGreasePencil(Operator):
+    bl_idname = "uas_shot_manager.add_canvas_to_grease_pencil"
+    bl_label = "Add Canvas to Grease Pencil"
+    bl_description = "Add a  canvas layer to the grease pencil object"
+    bl_options = {"INTERNAL", "UNDO"}
+
+    gpName: bpy.props.StringProperty(default="")
+
+    # @classmethod
+    # def poll(self, context):
+    #     selectionIsPossible = context.active_object is None or context.active_object.mode == "OBJECT"
+    #     return selectionIsPossible
+
+    def execute(self, context):
+        gpObj = context.scene.objects[self.gpName]
+
+        utils_greasepencil.add_grease_pencil_canvas_layer(gpObj, "GP_Canvas", order="BOTTOM")
 
         return {"FINISHED"}
 
@@ -227,6 +249,7 @@ class UAS_ShotManager_GreasePencilItem(Operator):
 _classes = (
     UAS_ShotManager_OT_AddGreasePencil,
     UAS_ShotManager_OT_SelectGreasePencil,
+    UAS_ShotManager_OT_AddCanvasToGreasePencil,
     UAS_ShotManager_OT_DrawOnGreasePencil,
     UAS_ShotManager_OT_RemoveGreasePencil,
     UAS_ShotManager_OT_EnableDisableGreasePencil,
