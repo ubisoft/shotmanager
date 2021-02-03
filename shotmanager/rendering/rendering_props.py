@@ -3,28 +3,42 @@ from bpy.types import PropertyGroup
 from bpy.props import StringProperty, BoolProperty, EnumProperty, IntProperty
 
 
-# def list_available_render_engines(self, context):
-#     engineList = list()
-
-#     engineList.append(("EEVEE", "Eevee", "", 0))
-#     engineList.append(("WORKBENCH", "Workbench", "", 1))
-#     if "ENGINE_ANIM" == self.renderComputationMode or "ENGINE_LOOP" == self.renderComputationMode:
-#         engineList.append(("CYCLES", "Cycles", "", 2))
-#     return engineList
-
-
 class UAS_ShotManager_RenderGlobalContext(PropertyGroup):
 
-    renderComputationMode: EnumProperty(
+    # # removed
+    # renderComputationMode: EnumProperty(
+    #     name="Render Mode",
+    #     description="Use the specified render engine or the playblast mode",
+    #     items=(
+    #         ("PLAYBLAST_ANIM", "Playblast Anim.", "Use OpenGL render playblast (animation mode)"),
+    #         ("PLAYBLAST_LOOP", "Playblast Loop", "Use OpenGL render playblast, images are computed in a custom loop"),
+    #         ("ENGINE_ANIM", "Engine Anim", "Use specified renderer (animation mode)"),
+    #         ("ENGINE_LOOP", "Engine Loop", "Use specified renderer, images are computed in a custom loop"),
+    #     ),
+    #     default="PLAYBLAST_ANIM",
+    #     options=set(),
+    # )
+
+    renderHardwareMode: EnumProperty(
         name="Render Mode",
-        description="Use the specified render engine or the playblast mode",
+        description="Use the specified render engine or the OpenGL mode",
         items=(
-            ("PLAYBLAST_ANIM", "Playblast Anim.", "Use opengl render playblast (animation mode)"),
-            ("PLAYBLAST_LOOP", "Playblast Loop", "Use opengl render playblast, images are computed in a custom loop"),
-            ("ENGINE_ANIM", "Engine Anim", "Use specified renderer (animation mode)"),
-            ("ENGINE_LOOP", "Engine Loop", "Use specified renderer, images are computed in a custom loop"),
+            ("SOFTWARE", "Software", "Use CPU renderer"),
+            ("OPENGL", "OpenGL", "Use OpenGL hardware accelerated renderer"),
         ),
-        default="PLAYBLAST_ANIM",
+        default="OPENGL",
+        options=set(),
+    )
+
+    # dev only
+    renderFrameIterationMode: EnumProperty(
+        name="Frame Iteration Mode",
+        description="Use animation rendering mode or render each frame independently in a loop (*** Dev. purpose only ***)",
+        items=(
+            ("ANIM", "Anim.", "Images are rendered as a sequence"),
+            ("LOOP", "Loop", "Images are computed independently, in a custom loop"),
+        ),
+        default="ANIM",
         options=set(),
     )
 
@@ -38,7 +52,7 @@ class UAS_ShotManager_RenderGlobalContext(PropertyGroup):
             ("BLENDER_EEVEE", "Eevee", ""),
             ("BLENDER_WORKBENCH", "Workbench", ""),
             ("CYCLES", "Cycles", ""),
-            ("CUSTOM", "Custom", "Use the settings present in the scene. No other settings are applied"),
+            ("CUSTOM", "From Scene", "Use the settings present in the current scene. No other settings are applied"),
         ),
         default="BLENDER_EEVEE",
         update=_update_renderEngine,
@@ -50,7 +64,7 @@ class UAS_ShotManager_RenderGlobalContext(PropertyGroup):
         items=(
             ("BLENDER_EEVEE", "Eevee", ""),
             ("BLENDER_WORKBENCH", "Workbench", ""),
-            ("CUSTOM", "Custom", "Use the settings present in the scene. No other settings are applied"),
+            ("CUSTOM", "From Scene", "Use the settings present in the current scene. No other settings are applied"),
         ),
         default="BLENDER_EEVEE",
         # update=_update_renderEngine,
@@ -74,10 +88,27 @@ class UAS_ShotManager_RenderGlobalContext(PropertyGroup):
             ("LOW", "Low (faster)", ""),
             ("MEDIUM", "Medium", ""),
             ("HIGH", "High (slower)", ""),
-            ("CUSTOM", "Custom", "Use the settings present in the scene. No other settings are applied"),
+            ("CUSTOM", "From Scene", "Use the settings present in the current scene. No other settings are applied"),
         ),
         default="LOW",
         update=_update_renderQuality,
+    )
+
+    def _update_renderQualityOpengl(self, context):
+        self.applyRenderQualitySettingsOpengl(context, renderQuality=self.renderQualityOpengl)
+
+    renderQualityOpengl: EnumProperty(
+        name="Render Quality OpenGL",
+        description="Set the Render Quality settings to use for the rendering.\nSettings are applied immediatly.",
+        items=(
+            # ("VERY_LOW", "Very Low (faster)", ""),
+            ("LOW", "Low (faster)", ""),
+            ("MEDIUM", "Medium", ""),
+            ("HIGH", "High (slower)", ""),
+            ("CUSTOM", "From Scene", "Use the settings present in the current scene. No other settings are applied"),
+        ),
+        default="LOW",
+        update=_update_renderQualityOpengl,
     )
 
     useOverlays: BoolProperty(
@@ -87,9 +118,8 @@ class UAS_ShotManager_RenderGlobalContext(PropertyGroup):
         options=set(),
     )
 
-    def applyRenderQualitySettings(self, context, renderQuality=None, renderWithOpengl=True):
+    def applyRenderQualitySettings(self, context, renderQuality=None):
         # wkip les Quality Settings devraient etre globales au fichier
-        # wkip faire une distinction avec le moteur courant pour l'application des settings
 
         if renderQuality is None:
             renderQuality = self.renderQuality
@@ -100,57 +130,129 @@ class UAS_ShotManager_RenderGlobalContext(PropertyGroup):
         if "VERY_LOW" == renderQuality:
             # eevee
             context.scene.eevee.taa_render_samples = 1
-            context.scene.eevee.taa_samples = 1
+            #    context.scene.eevee.taa_samples = 1
 
             # workbench
             # if "BLENDER_WORKBENCH" == bpy.context.scene.render.engine:
             context.scene.display.render_aa = "OFF"
-            context.scene.display.viewport_aa = "OFF"
+            #    context.scene.display.viewport_aa = "OFF"
 
             # cycles
             context.scene.cycles.samples = 1
-            context.scene.cycles.preview_samples = 1
+        #    context.scene.cycles.preview_samples = 1
 
         elif "LOW" == renderQuality:
             # eevee
             context.scene.eevee.taa_render_samples = 6
-            context.scene.eevee.taa_samples = 2
+            #    context.scene.eevee.taa_samples = 2
 
             # workbench
             # if "BLENDER_WORKBENCH" == bpy.context.scene.render.engine:
             context.scene.display.render_aa = "FXAA"
-            context.scene.display.viewport_aa = "OFF"
+            #    context.scene.display.viewport_aa = "OFF"
 
             # cycles
             context.scene.cycles.samples = 6
-            context.scene.cycles.preview_samples = 2
+        #    context.scene.cycles.preview_samples = 2
 
         elif "MEDIUM" == renderQuality:
             # eevee
             context.scene.eevee.taa_render_samples = 32  # 64
-            context.scene.eevee.taa_samples = 6  # 16
+            #    context.scene.eevee.taa_samples = 6  # 16
 
             # workbench
             # if "BLENDER_WORKBENCH" == bpy.context.scene.render.engine:
             context.scene.display.render_aa = "5"
-            context.scene.display.viewport_aa = "FXAA"
+            #    context.scene.display.viewport_aa = "FXAA"
 
             # cycles
             context.scene.cycles.samples = 64
-            context.scene.cycles.preview_samples = 16
+        #    context.scene.cycles.preview_samples = 16
 
         elif "HIGH" == renderQuality:
             # eevee
             context.scene.eevee.taa_render_samples = 64  # 128
-            context.scene.eevee.taa_samples = 12  # 32
+            #    context.scene.eevee.taa_samples = 12  # 32
 
             # workbench
             #            if "BLENDER_WORKBENCH" == bpy.context.scene.render.engine:
             context.scene.display.render_aa = "16"
-            context.scene.display.viewport_aa = "5"
+            #    context.scene.display.viewport_aa = "5"
 
             # cycles
             context.scene.cycles.samples = 128
+        #    context.scene.cycles.preview_samples = 32
+
+        # CUSTOM
+        else:
+            # we use the scene settings
+            pass
+
+        return
+
+    def applyRenderQualitySettingsOpengl(self, context, renderQuality=None):
+        # wkip les Quality Settings devraient etre globales au fichier
+
+        if renderQuality is None:
+            renderQuality = self.renderQualityOpengl
+
+        props = context.scene.UAS_shot_manager_props
+        #  bpy.context.space_data.overlay.show_overlays = props.useOverlays
+
+        if "VERY_LOW" == renderQuality:
+            # eevee
+            #    context.scene.eevee.taa_render_samples = 1
+            context.scene.eevee.taa_samples = 1
+
+            # workbench
+            # if "BLENDER_WORKBENCH" == bpy.context.scene.render.engine:
+            #    context.scene.display.render_aa = "OFF"
+            context.scene.display.viewport_aa = "OFF"
+
+            # cycles
+            #    context.scene.cycles.samples = 1
+            context.scene.cycles.preview_samples = 1
+
+        elif "LOW" == renderQuality:
+            # eevee
+            #    context.scene.eevee.taa_render_samples = 6
+            context.scene.eevee.taa_samples = 2
+
+            # workbench
+            # if "BLENDER_WORKBENCH" == bpy.context.scene.render.engine:
+            #    context.scene.display.render_aa = "FXAA"
+            context.scene.display.viewport_aa = "OFF"
+
+            # cycles
+            #    context.scene.cycles.samples = 6
+            context.scene.cycles.preview_samples = 2
+
+        elif "MEDIUM" == renderQuality:
+            # eevee
+            #    context.scene.eevee.taa_render_samples = 32  # 64
+            context.scene.eevee.taa_samples = 6  # 16
+
+            # workbench
+            # if "BLENDER_WORKBENCH" == bpy.context.scene.render.engine:
+            #    context.scene.display.render_aa = "5"
+            context.scene.display.viewport_aa = "FXAA"
+
+            # cycles
+            #    context.scene.cycles.samples = 64
+            context.scene.cycles.preview_samples = 16
+
+        elif "HIGH" == renderQuality:
+            # eevee
+            #    context.scene.eevee.taa_render_samples = 64  # 128
+            context.scene.eevee.taa_samples = 12  # 32
+
+            # workbench
+            #            if "BLENDER_WORKBENCH" == bpy.context.scene.render.engine:
+            #    context.scene.display.render_aa = "16"
+            context.scene.display.viewport_aa = "5"
+
+            # cycles
+            #    context.scene.cycles.samples = 128
             context.scene.cycles.preview_samples = 32
 
         # CUSTOM

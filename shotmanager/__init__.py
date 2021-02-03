@@ -16,6 +16,7 @@ from .handlers import jump_to_shot
 from . import otio
 
 from .features import cameraBG
+from .features import soundBG
 from .features import greasepencil
 
 from .operators import takes
@@ -384,6 +385,7 @@ def register():
     # operators
     # markers_nav_bar_addon_prefs.register()
     cameraBG.register()
+    soundBG.register()
     greasepencil.register()
     utils_get_set_current_time.register()
     rendering.register()
@@ -504,6 +506,7 @@ def unregister():
     utils_operators.unregister()
     utils_get_set_current_time.unregister()
     greasepencil.unregister()
+    soundBG.unregister()
     cameraBG.unregister()
 
     addon_prefs.unregister()

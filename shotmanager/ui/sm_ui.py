@@ -406,6 +406,14 @@ class UAS_PT_ShotManager(Panel):
             )
             subrow.operator("uas_shot_manager.enabledisablecamsbg", text="", icon_value=icon.icon_id, emboss=False)
 
+            icon = (
+                config.icons_col["ShotManager_CamSoundVisible_32"]
+                # config.icons_col["ShotManager_Image_32"]
+                if not prefs.toggleCamsSoundBG
+                else config.icons_col["ShotManager_CamSoundHidden_32"]
+            )
+            subrow.operator("uas_shot_manager.enabledisablesoundbg", text="", icon_value=icon.icon_id, emboss=False)
+
             if props.useLockCameraView:
                 subrow.alert = True
             subrow.prop(props, "useLockCameraView", text="", icon="CAMERA_DATA")
