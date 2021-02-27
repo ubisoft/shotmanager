@@ -304,8 +304,8 @@ class UAS_PT_ShotManager(Panel):
         row.menu("UAS_MT_Shot_Manager_takes_toolsmenu", icon="TOOL_SETTINGS", text="")
 
         if prefs.take_properties_extended:
-            row = box.row()
-            row.label(text="Take Properties:")
+          #  row = box.row()
+          #  row.label(text="Take Properties:")
             subBox = box.box()
             subRow = subBox.row()
             subRow.separator()
@@ -316,6 +316,47 @@ class UAS_PT_ShotManager(Panel):
             subRow = subBox.row()
             subRow.separator()
             subRow.prop(currentTake, "startInGlobalEdit", text="Start in Global Edit")
+
+            box.separator(factor=0.2)
+            subRow = box.row()
+            subRow.label(text="Take Render Settings:")
+
+            if props.use_project_settings:
+                subSubRow = subRow.row()
+                subSubRow.alert = "FROM_TAKE" == currentTake.renderMode
+                subSubRow.prop(currentTake, "renderMode", text="")
+
+            if not props.use_project_settings or "FROM_TAKE" == currentTake.renderMode:
+                subBox = box.box()
+                # subRow = subBox.row()
+                # subRow.separator()
+                
+                row = subBox.row(align=False)
+                row.use_property_split = False
+                row.alignment = "RIGHT"
+                row.label(text="Resolution")
+                row.prop(currentTake, "resolution_x", text="Width:")
+                row.prop(currentTake, "resolution_y", text="Height:")
+
+                row = subBox.row(align=False)
+                row.use_property_split = False
+                row.alignment = "RIGHT"
+                row.label(text="Frame Resolution")
+                row.prop(currentTake, "resolution_framed_x", text="Width:")
+                row.prop(currentTake, "resolution_framed_y", text="Height:")
+
+                stampInfoStr = "Use Stamp Info Add-on"
+                if not props.isStampInfoAvailable():
+                    stampInfoStr += "  (Warning: Currently NOT installed)"
+                subBox.prop(currentTake, "useStampInfoDuringRendering", text=stampInfoStr)
+                
+                
+                
+                # subRow.prop(currentTake, "resolution_x")
+                # subRow.prop(currentTake, "resolution_y")
+            
+            box.separator(factor=0.2)
+
 
         # Notes
         ######################

@@ -762,6 +762,18 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
             return resStr
 
         newTake = self.addTake(atIndex=atIndex, name=take.name + "_copy")
+
+        newTake.globalEditDirectory = _copyString(take.globalEditDirectory)
+        newTake.globalEditVideo = _copyString(take.globalEditVideo)
+        newTake.startInGlobalEdit = take.startInGlobalEdit
+
+        newTake.renderMode = take.renderMode
+        newTake.resolution_x = take.resolution_x
+        newTake.resolution_y = take.resolution_y
+        newTake.resolution_framed_x = take.resolution_framed_x
+        newTake.resolution_framed_y = take.resolution_framed_y
+        newTake.useStampInfoDuringRendering = take.useStampInfoDuringRendering
+
         newTake.note01 = _copyString(take.note01)
         newTake.note02 = _copyString(take.note02)
         newTake.note03 = _copyString(take.note03)
@@ -795,13 +807,10 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
 
         return newInd
 
+    #############
     # render
     #############
-
-    # can be overriden by the project settings
-    # use ProjectRenderSettings: BoolProperty(
-    #     name="Use Render Project Settings", description="Use Render Project Settings", default=True,
-    # )
+    # Those properties are overriden by the project settings if use_project_settings is true
 
     def get_useStampInfoDuringRendering(self):
         #  return self.useStampInfoDuringRendering
@@ -817,16 +826,12 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
             # bpy.context.scene.UAS_StampInfo_Settings.activateStampInfo(value)
             bpy.context.scene.UAS_StampInfo_Settings.stampInfoUsed = value
 
-    # def useStampInfoDuringRendering_StateChanged(self, context):
-    #     print("\n*** useStampInfoDuringRendering updated. New state: ", self.useStampInfoDuringRendering)
-
     useStampInfoDuringRendering: BoolProperty(
         name="Stamp Info on Output",
         description="Stamp render information on rendered images thanks to Stamp Info add-on",
         default=True,
         get=get_useStampInfoDuringRendering,  # removed cause the use of Stamp Info in this add-on is independent from the one of Stamp Info add-on itself
         set=set_useStampInfoDuringRendering,
-        # update = useStampInfoDuringRendering_StateChanged,
         options=set(),
     )
 
@@ -1567,6 +1572,8 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         """ Changing the current shot doesn't affect the selected one
         """
         scene = bpy.context.scene
+        props = scene.UAS_shot_manager_props
+
         area = area if area is not None else bpy.context.area
 
         shotList = self.get_shots()
@@ -1584,6 +1591,9 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
 
             if prefs.current_shot_changes_time_range and scene.use_preview_range:
                 bpy.ops.uas_shot_manager.scenerangefromshot()
+
+            # check the current resolution and change it if necessary
+            props.setResolutionToScene()
 
             if currentShot.camera is not None and bpy.context.screen is not None:
                 # set the current camera in the 3D view: [‘PERSP’, ‘ORTHO’, ‘CAMERA’]
@@ -2411,6 +2421,19 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
 
     ##############################
 
+    def setResolutionToScene(self):
+        """
+            Check the current resolution and change it if necessary
+        """
+        currentTake = self.getCurrentTake()
+
+        if currentTake is not None:
+            expectedResX, expectedResY = currentTake.getResolution()
+            if self.parentScene.render.resolution_x != expectedResX:
+                self.parentScene.render.resolution_x = expectedResX
+            if self.parentScene.render.resolution_y != expectedResY:
+                self.parentScene.render.resolution_y = expectedResY
+
     def renderShotPrefix(self):
         shotPrefix = ""
 
@@ -2807,27 +2830,29 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         #################
         # applying project settings to parent scene
 
-        if self.use_project_settings and not settingsListOnly:
+        if not settingsListOnly:
+            if self.use_project_settings:
+                parentScn = self.getParentScene()
+                parentScn.render.fps = self.project_fps
+                parentScn.render.fps_base = 1.0
 
-            parentScn = self.getParentScene()
-            parentScn.render.fps = self.project_fps
-            parentScn.render.fps_base = 1.0
+                # parentScn.render.resolution_x = self.project_resolution_x
+                # parentScn.render.resolution_y = self.project_resolution_y
+                parentScn.render.resolution_percentage = 100.0
 
-            parentScn.render.resolution_x = self.project_resolution_x
-            parentScn.render.resolution_y = self.project_resolution_y
-            parentScn.render.resolution_percentage = 100.0
+                # wkip both should not be there
+                # self.use_handles = self.project_use_shot_handles
+                # self.handles = self.project_shot_handle_duration
 
-            # wkip both should not be there
-            # self.use_handles = self.project_use_shot_handles
-            # self.handles = self.project_shot_handle_duration
+                s = self.project_shot_format.split("_")[2]
+                s = s.format(0)
+                s = s.replace("0", "")
+                self.new_shot_prefix = s
 
-            s = self.project_shot_format.split("_")[2]
-            s = s.format(0)
-            s = s.replace("0", "")
-            self.new_shot_prefix = s
+                # path
+                self.setProjectRenderFilePath()
 
-            # path
-            self.setProjectRenderFilePath()
+            self.setResolutionToScene()
 
         return settingsList
 
