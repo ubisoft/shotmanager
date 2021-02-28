@@ -21,6 +21,9 @@ from shotmanager.rrs_specific.montage.montage_interface import MontageInterface
 
 # from .media import UAS_ShotManager_Media
 from shotmanager.rendering.rendering_props import UAS_ShotManager_RenderSettings, UAS_ShotManager_RenderGlobalContext
+
+from .output_params import UAS_ShotManager_OutputParams_Resolution
+
 from .shot import UAS_ShotManager_Shot
 from .take import UAS_ShotManager_Take
 from ..operators.shots_global_settings import UAS_ShotManager_ShotsGlobalSettings
@@ -572,6 +575,9 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
 
     def _update_current_take_name(self, context):
         # print(f"_update_current_take_name: {self.getCurrentTakeIndex()}, {self.getCurrentTakeName()}")
+        _logger.debug("Change current take")
+
+        self.setResolutionToScene()
         self.setCurrentShotByIndex(0)
         self.setSelectedShotByIndex(0)
 
@@ -661,9 +667,11 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         currentTakeInd = min(currentTakeIndex, len(self.takes) - 1)
         if -1 < currentTakeInd:
             self.current_take_name = self.takes[currentTakeInd].name
-            # already in current_take_name._update
+
+            #   already in current_take_name._update:
             # self.setCurrentShotByIndex(0)
             # self.setSelectedShotByIndex(0)
+            # self.setResolutionToScene()
         else:
             self.current_take_name = ""
 
@@ -707,8 +715,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         defaultTake = None
         if 0 >= len(takes):
             defaultTake = takes.add()
-            defaultTake.getParentScene()
-            defaultTake.name = "Main Take"
+            defaultTake.initialize(self, name="Main Take")
             self.setCurrentTakeByIndex(0)
             # self.setCurrentShotByIndex(-1)
             # self.setSelectedShotByIndex(-1)
@@ -731,8 +738,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
             #######
             # important note: newTake points to the slot in takes array, not to the take itself
             newTake = takes.add()
-            newTake.parentScene = self.getParentScene()
-            newTake.name = "" + newTakeName
+            newTake.initialize(self, name="" + newTakeName)
 
         # self.current_take_name = newTake.name
         # print(f"new added take name: {newTake.name}")
@@ -755,29 +761,9 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
             Return the newly added take
         """
 
-        def _copyString(str1):
-            resStr = ""
-            for c in str1:
-                resStr += c
-            return resStr
-
         newTake = self.addTake(atIndex=atIndex, name=take.name + "_copy")
 
-        newTake.globalEditDirectory = _copyString(take.globalEditDirectory)
-        newTake.globalEditVideo = _copyString(take.globalEditVideo)
-        newTake.startInGlobalEdit = take.startInGlobalEdit
-
-        newTake.renderMode = take.renderMode
-        newTake.resolution_x = take.resolution_x
-        newTake.resolution_y = take.resolution_y
-        newTake.resolution_framed_x = take.resolution_framed_x
-        newTake.resolution_framed_y = take.resolution_framed_y
-        newTake.useStampInfoDuringRendering = take.useStampInfoDuringRendering
-
-        newTake.note01 = _copyString(take.note01)
-        newTake.note02 = _copyString(take.note02)
-        newTake.note03 = _copyString(take.note03)
-        newTake.showNotes = take.showNotes
+        newTake.copyPropertiesFrom(take)
 
         newTakeInd = self.getTakeIndex(newTake)
 
@@ -1591,9 +1577,6 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
 
             if prefs.current_shot_changes_time_range and scene.use_preview_range:
                 bpy.ops.uas_shot_manager.scenerangefromshot()
-
-            # check the current resolution and change it if necessary
-            props.setResolutionToScene()
 
             if currentShot.camera is not None and bpy.context.screen is not None:
                 # set the current camera in the 3D view: [‘PERSP’, ‘ORTHO’, ‘CAMERA’]
@@ -2421,9 +2404,24 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
 
     ##############################
 
+    def getResolution(self):
+        """
+            Get the resolution of the current take.
+            This resolution should be (but it may not always be the case according to the refreshment of the scene)
+            the same as the current scene one.
+            If the project mode is activated then the returned resolution will be the one defined for the project.
+            A take can override a project settings render resolution if it is configured to do so.
+        """
+        currentTake = self.getCurrentTake()
+        if currentTake is not None:
+            return currentTake.getResolution()
+        return None
+
     def setResolutionToScene(self):
         """
-            Check the current resolution and change it if necessary
+            Check the current resolution and change it if necessary to match either the project
+            one or the current take one if project mode is not activated.
+            A take can override a project settings render resolution if it is configured as so.
         """
         currentTake = self.getCurrentTake()
 
@@ -3090,6 +3088,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
 
 _classes = (
     #    UAS_ShotManager_Media,
+    UAS_ShotManager_OutputParams_Resolution,
     UAS_ShotManager_Shot,
     UAS_ShotManager_Take,
     UAS_ShotManager_Props,

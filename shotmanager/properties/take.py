@@ -9,6 +9,12 @@ from .shot import UAS_ShotManager_Shot
 from shotmanager.utils.utils import findFirstUniqueName
 from shotmanager.rrs_specific.montage.montage_interface import SequenceInterface
 
+from shotmanager.properties.output_params import UAS_ShotManager_OutputParams_Resolution
+
+import logging
+
+_logger = logging.getLogger(__name__)
+
 
 class UAS_ShotManager_Take(SequenceInterface, PropertyGroup):
     # def _get_parentScene(self):
@@ -62,6 +68,36 @@ class UAS_ShotManager_Take(SequenceInterface, PropertyGroup):
     #     if parentScene is not None:
     #         parentShotManager = parentScene.UAS_shot_manager_props
     #     return parentShotManager
+
+    def initialize(self, parentProps, name="New Take"):
+        print("Initialising new take...")
+        _logger.debug(f"\n  Initialising new take with the name: {name}")
+
+        self.parentScene = parentProps.parentScene
+
+        # wkip check for unique name
+        self.name = name
+
+        self.outputParams_Resolution.resolution_x = self.parentScene.render.resolution_x
+        self.outputParams_Resolution.resolution_y = self.parentScene.render.resolution_y
+
+    def copyPropertiesFrom(self, source):
+        """
+        Copy properties from the specified source to this one
+        """
+        from shotmanager.utils.utils_python import copyString as _copyString
+
+        self.globalEditDirectory = _copyString(source.globalEditDirectory)
+        self.globalEditVideo = _copyString(source.globalEditVideo)
+        self.startInGlobalEdit = source.startInGlobalEdit
+
+        self.renderMode = source.renderMode
+        self.outputParams_Resolution.copyPropertiesFrom(source.outputParams_Resolution)
+
+        self.note01 = _copyString(source.note01)
+        self.note02 = _copyString(source.note02)
+        self.note03 = _copyString(source.note03)
+        self.showNotes = source.showNotes
 
     def getName_PathCompliant(self):
         takeName = self.name.replace(" ", "_")
@@ -154,16 +190,7 @@ class UAS_ShotManager_Take(SequenceInterface, PropertyGroup):
         default="FROM_TAKE",
     )
 
-    def _update_resolution(self, context):
-        props = self.parentScene.UAS_shot_manager_props
-        if props is not None:
-            if self == props.getCurrentTake():
-                props.setResolutionToScene()
-
-    resolution_x: IntProperty(name="Res. X", min=0, default=1280, update=_update_resolution)
-    resolution_y: IntProperty(name="Res. Y", min=0, default=720, update=_update_resolution)
-    resolution_framed_x: IntProperty(name="Res. Framed X", min=0, default=1280)
-    resolution_framed_y: IntProperty(name="Res. Framed Y", min=0, default=960)
+    outputParams_Resolution: PointerProperty(type=UAS_ShotManager_OutputParams_Resolution)
 
     def getResolution(self):
         """
@@ -174,31 +201,8 @@ class UAS_ShotManager_Take(SequenceInterface, PropertyGroup):
         if props.use_project_settings and "FROM_PROJECT" == self.renderMode:
             res = (props.project_resolution_x, props.project_resolution_y)
         else:
-            res = (self.resolution_x, self.resolution_y)
+            res = (self.outputParams_Resolution.resolution_x, self.outputParams_Resolution.resolution_y)
         return res
-
-    def get_useStampInfoDuringRendering(self):
-        #  return self.useStampInfoDuringRendering
-        val = self.get("useStampInfoDuringRendering", True)
-        # print("*** get_useStampInfoDuringRendering: value: ", val)
-        return val
-
-    def set_useStampInfoDuringRendering(self, value):
-        print("*** set_useStampInfoDuringRendering: value: ", value)
-        self["useStampInfoDuringRendering"] = value
-
-        if getattr(bpy.context.scene, "UAS_StampInfo_Settings", None) is not None:
-            # bpy.context.scene.UAS_StampInfo_Settings.activateStampInfo(value)
-            bpy.context.scene.UAS_StampInfo_Settings.stampInfoUsed = value
-
-    useStampInfoDuringRendering: BoolProperty(
-        name="Stamp Info on Output",
-        description="Stamp render information on rendered images thanks to Stamp Info add-on",
-        default=True,
-        get=get_useStampInfoDuringRendering,  # removed cause the use of Stamp Info in this add-on is independent from the one of Stamp Info add-on itself
-        set=set_useStampInfoDuringRendering,
-        options=set(),
-    )
 
     #############
     # notes #####
@@ -224,6 +228,7 @@ class UAS_ShotManager_Take(SequenceInterface, PropertyGroup):
         super().__init__(parent)
         self.shotsList = self.shots
 
+        print("__Init__ from Take")
         pass
 
     def get_name(self):
