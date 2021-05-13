@@ -15,6 +15,13 @@ are put at the appropriate places in the world and a shot is created for each on
 them in order to record the right segment of time.
 This is very convenient for previz and 3D layout.
 
+<br />
+<img src="docs/img/ShotManager_screen.png" alt="ShotManager Screen" width="70%"/>
+<br /><br />
+
+## Installation
+The addon must be installed in Administrator mode so that the OpenTimelineIO Python library can
+be downloaded and deployed correctly. Also be sure that your firewall doesn't block the download (or use OpenVPN or equivalent).
 
 ## Important points
 
