@@ -908,7 +908,7 @@ def launchRender(context, renderMode, rootPath, area=None):
     renderDisplayInfo = ""
 
     renderDisplayInfo += "\n\n*** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** ***\n"
-    renderDisplayInfo += "\n                                 *** UAS Shot Manager V " + props.version()[0] + " - "
+    renderDisplayInfo += "\n                                 *** Shot Manager V " + props.version()[0] + " - "
 
     preset = None
     if "STILL" == renderMode:

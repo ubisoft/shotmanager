@@ -69,7 +69,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
                 - an integer. x.y.z becomes xxyyyzzz (eg: "1.21.3" becomes 1021003)
             Return None if the addon has not been found
         """
-        return utils.addonVersion("UAS Shot Manager")
+        return utils.addonVersion("Shot Manager")
 
     dataVersion: IntProperty(
         """ Data Version is of the form xxyyyzzz, integer generated from the string version "xx.yyy.zzz"

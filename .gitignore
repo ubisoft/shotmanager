@@ -5,3 +5,18 @@ _PackagesForInstall
 *.history
 *.blend1
 .vscode/settings.json
+
+# Virtual envs
+.venv
+
+# VS Code
+.vscode
+
+.local
+.history
+
+# Docs
+docs/_build
+docs/_html
+docs_dev/_build
+docs_dev/_html

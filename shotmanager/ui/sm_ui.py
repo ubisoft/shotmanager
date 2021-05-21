@@ -42,12 +42,12 @@ _logger = logging.getLogger(__name__)
 
 
 class UAS_PT_ShotManager(Panel):
-    #    bl_label = f"UAS Shot Manager {'.'.join ( str ( v ) for v in bl_info[ 'version'] ) }"
-    bl_label = " UAS Shot Manager   V. " + utils.addonVersion("UAS Shot Manager")[0]
+    #    bl_label = f"Shot Manager {'.'.join ( str ( v ) for v in bl_info[ 'version'] ) }"
+    bl_label = " Shot Manager  V. " + utils.addonVersion("Shot Manager")[0]
     bl_idname = "UAS_PT_Shot_Manager"
     bl_space_type = "VIEW_3D"
     bl_region_type = "UI"
-    bl_category = "UAS Shot Man"
+    bl_category = "Shot Mng"
 
     @classmethod
     def poll(cls, context):
@@ -121,7 +121,7 @@ class UAS_PT_ShotManager(Panel):
         # addonWarning = [
         #     addon.bl_info.get("warning", "")
         #     for addon in addon_utils.modules()
-        #     if addon.bl_info["name"] == "UAS Shot Manager"
+        #     if addon.bl_info["name"] == "Shot Manager"
         # ]
 
         addonWarning = [""]

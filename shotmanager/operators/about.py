@@ -27,8 +27,8 @@ from ..utils import utils
 
 class UAS_ShotManager_OT_About(Operator):
     bl_idname = "uas_shot_manager.about"
-    bl_label = "About UAS Shot Manager..."
-    bl_description = "More information about UAS Shot Manager..."
+    bl_label = "About Shot Manager..."
+    bl_description = "More information about Shot Manager..."
     bl_options = {"INTERNAL"}
 
     def invoke(self, context, event):
@@ -44,7 +44,7 @@ class UAS_ShotManager_OT_About(Operator):
         row = box.row()
         row.separator()
         row.label(
-            text="Version:" + props.version()[0] + "   -    (" + "July 2020" + ")" + "   -    Ubisoft Animation Studio"
+            text="Version: " + props.version()[0] + " - (" + "May 2021" + ")" + " -  Ubisoft"
         )
 
         # Authors
@@ -70,23 +70,28 @@ class UAS_ShotManager_OT_About(Operator):
         row = box.row()
         row.separator()
 
-        row.label(text="- OpenTimelineIO")
+        splitFactor = 0.3
+        split = row.split(factor=splitFactor)
+        split.label(text="- OpenTimelineIO:")
         try:
             import opentimelineio as otio
 
             otioVersion = otio.__version__
-            row.label(text="V." + otioVersion)
+            split.label(text=f"V. {otioVersion}  installed")
         except Exception as e:
-            row.label(text="Module not found")
+            split.label(text="Module not found")
 
         row = box.row()
         row.separator()
-        row.label(text="- UAS Stamp Info")
-        if props.isStampInfoAvailable():
-            versionStr = utils.addonVersion("UAS_StampInfo")
-            row.label(text="V." + versionStr[0])
+        split = row.split(factor=splitFactor)
+        split.label(text="- Stamp Info:")
+        versionStr = utils.addonVersion("StampInfo")
+        if props.isStampInfoAvailable() and versionStr is not None:
+            split.label(text=f"V. {versionStr[0]} installed")
         else:
-            row.label(text="Add-on not found")
+            subRow = split.row()
+            subRow.alert = True
+            subRow.label(text="Add-on not found (not mandatory though)")
 
         box.separator()
 

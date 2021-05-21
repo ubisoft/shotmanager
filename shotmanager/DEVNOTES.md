@@ -1,6 +1,6 @@
 
 
-UAS Shot Manager Dev Notes
+Shot Manager Dev Notes
 -------------------------------------------------------------
 
 # Notes pour doc:

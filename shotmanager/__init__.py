@@ -89,15 +89,15 @@ from .scripts import rrs
 from .debug import sm_debug
 
 bl_info = {
-    "name": "UAS Shot Manager",
+    "name": "Shot Manager",
     "author": "Julien Blervaque (aka Werwack), Romain Carriquiry Borchiari",
     "description": "Manage a sequence of shots and cameras in the 3D View - Ubisoft Animation Studio",
     "blender": (2, 90, 0),
     "version": (1, 5, 3),
-    "location": "View3D > UAS Shot Manager",
+    "location": "View3D > Shot Manager",
     "wiki_url": "https://gitlab-ncsa.ubisoft.org/animation-studio/blender/shotmanager-addon/-/wikis/home",
     # "warning": "BETA Version",
-    "category": "UAS",
+    "category": "Ubisoft",
 }
 
 __version__ = f"v{bl_info['version'][0]}.{bl_info['version'][1]}.{bl_info['version'][2]}"
@@ -317,7 +317,7 @@ def checkDataVersion_post_load_handler(self, context):
 
 def register():
 
-    versionTupple = utils.display_addon_registered_version("UAS Shot Manager")
+    versionTupple = utils.display_addon_registered_version("Shot Manager")
 
     config.initGlobalVariables()
 
@@ -483,7 +483,7 @@ def register():
 
 def unregister():
 
-    print("\n*** --- Unregistering UAS Shot Manager Add-on --- ***\n")
+    print("\n*** --- Unregistering Shot Manager Add-on --- ***\n")
 
     #    bpy.context.scene.UAS_shot_manager_props.display_shotname_in_3dviewport = False
 

@@ -63,7 +63,7 @@ def addonVersion(addonName):
     versions = None
 
     # wkip temp fix to avoid latencies when resizing main add-on panel
-    if "UAS Shot Manager" == addonName:
+    if "Shot Manager" == addonName:
         versions = ("1.5.3", 1005003)
     # else:
     #     versions = ("1.0.2", 1000002)
