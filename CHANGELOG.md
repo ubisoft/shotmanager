@@ -1,9 +1,12 @@
 
+# History
 
+## V 1.5.2X
+
+* V 1.5.1x - 30/01/2021:
+	First version cleaned from production specific code and with major structural fixes.
 
 --------
-
-# History
 
 ## V 1.1.2X
 
