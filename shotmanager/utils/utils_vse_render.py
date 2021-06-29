@@ -32,8 +32,8 @@ from bpy.props import (
     PointerProperty,
 )
 
-from shotmanager.config import config
-from shotmanager.utils import utils
+from ..config import config
+from ..utils import utils
 
 # # ------------------------------------------------------------------------#
 # #                                VSE tool Panel                             #

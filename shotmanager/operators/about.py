@@ -69,8 +69,8 @@ class UAS_ShotManager_OT_About(Operator):
         row.label(text="Dependencies:")
         row = box.row()
         row.separator()
-
         splitFactor = 0.3
+
         split = row.split(factor=splitFactor)
         split.label(text="- OpenTimelineIO:")
         try:
@@ -79,7 +79,9 @@ class UAS_ShotManager_OT_About(Operator):
             otioVersion = otio.__version__
             split.label(text=f"V. {otioVersion}  installed")
         except Exception as e:
-            split.label(text="Module not found")
+            subRow = split.row()
+            subRow.alert = True
+            subRow.label(text="Module not found")
 
         row = box.row()
         row.separator()

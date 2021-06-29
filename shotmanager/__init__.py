@@ -66,12 +66,12 @@ from .rendering import rendering_ui
 
 from .scripts import precut_tools
 
-from .tools import vse_render
 
 from .ui import sm_ui
 
 from .utils import utils
 from .utils import utils_render
+from .utils import utils_vse_render
 from .utils import utils_handlers
 from .utils import utils_operators
 from .utils import utils_get_set_current_time
@@ -426,7 +426,7 @@ def register():
     rendering_ui.register()
 
     otio.register()
-    vse_render.register()
+    utils_vse_render.register()
     utils_render.register()
     general.register()
     viewport_3d.register()
@@ -506,7 +506,7 @@ def unregister():
     viewport_3d.unregister()
     general.unregister()
     utils_render.unregister()
-    vse_render.unregister()
+    utils_vse_render.unregister()
     otio.unregister()
 
     rendering_ui.unregister()
