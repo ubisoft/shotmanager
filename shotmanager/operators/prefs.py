@@ -47,6 +47,8 @@ class UAS_MT_ShotManager_Prefs_MainMenu(Menu):
         row = layout.row(align=True)
         row.operator("uas_shot_manager.general_prefs")
         row = layout.row(align=True)
+        row.operator("uas_shot_manager.features")
+        row = layout.row(align=True)
         row.operator("uas_shot_manager.project_settings_prefs")
 
         layout.separator()

@@ -284,11 +284,17 @@ class UAS_PT_ShotManager(Panel):
         # takes
         ################
         panelIcon = "TRIA_DOWN" if prefs.take_properties_extended else "TRIA_RIGHT"
+        takeHasNotes = False
+        if currentTake is not None:
+            takeHasNotes = currentTake.hasNotes()
 
         layout.separator(factor=0.3)
         box = layout.box()
         row = box.row(align=False)
-        row.prop(prefs, "take_properties_extended", text="", icon=panelIcon, emboss=False)
+
+        #if props.display_globaleditintegr_in_properties or props.display_notes_in_properties or props.display_takerendersettings_in_properties or takeHasNotes:
+        if props.display_globaleditintegr_in_properties or props.display_takerendersettings_in_properties:
+            row.prop(prefs, "take_properties_extended", text="", icon=panelIcon, emboss=False)
 
         takeStr = "Take:" if not props.display_advanced_infos else f"Take ({currentTakeInd + 1}/{props.getNumTakes()}):"
         row.label(text=takeStr)
@@ -299,9 +305,7 @@ class UAS_PT_ShotManager(Panel):
         subsubrow = subrow.row(align=False)
         subsubrow.scale_x = 0.8
 
-        takeHasNotes = False
         if currentTake is not None:
-            takeHasNotes = currentTake.hasNotes()
             if takeHasNotes:
                 icon = config.icons_col["ShotManager_NotesData_32"]
                 subsubrow.prop(
@@ -327,53 +331,57 @@ class UAS_PT_ShotManager(Panel):
         if prefs.take_properties_extended:
             #  row = box.row()
             #  row.label(text="Take Properties:")
-            subBox = box.box()
-            subRow = subBox.row()
-            subRow.separator()
-            subRow.prop(currentTake, "globalEditDirectory", text="Edit Dir")
-            subRow = subBox.row()
-            subRow.separator()
-            subRow.prop(currentTake, "globalEditVideo", text="Edit Animatic")
-            subRow = subBox.row()
-            subRow.separator()
-            subRow.prop(currentTake, "startInGlobalEdit", text="Start in Global Edit")
-
-            box.separator(factor=0.2)
-            subRow = box.row()
-            subRow.label(text="Take Render Settings:")
-
-            if props.use_project_settings:
-                subSubRow = subRow.row()
-                subSubRow.alert = "FROM_TAKE" == currentTake.renderMode
-                subSubRow.prop(currentTake, "renderMode", text="")
-
-            if not props.use_project_settings or "FROM_TAKE" == currentTake.renderMode:
+            if props.display_globaleditintegr_in_properties:
                 subBox = box.box()
-                # subRow = subBox.row()
-                # subRow.separator()
+                subRow = subBox.row()
+                subRow.separator()
+                subRow.prop(currentTake, "globalEditDirectory", text="Edit Dir")
+                subRow = subBox.row()
+                subRow.separator()
+                subRow.prop(currentTake, "globalEditVideo", text="Edit Animatic")
+                subRow = subBox.row()
+                subRow.separator()
+                subRow.prop(currentTake, "startInGlobalEdit", text="Start in Global Edit")
 
-                currentTake.outputParams_Resolution.draw(context, subBox)
-                # row = subBox.row(align=False)
-                # row.use_property_split = False
-                # row.alignment = "RIGHT"
-                # row.label(text="Resolution")
-                # row.prop(currentTake, "resolution_x", text="Width:")
-                # row.prop(currentTake, "resolution_y", text="Height:")
+            if props.display_globaleditintegr_in_properties and props.display_takerendersettings_in_properties:
+                box.separator(factor=0.2)
+            
+            if props.display_takerendersettings_in_properties:
+                subRow = box.row()
+                subRow.label(text="Take Render Settings:")
 
-                # row = subBox.row(align=False)
-                # row.use_property_split = False
-                # row.alignment = "RIGHT"
-                # row.label(text="Frame Resolution")
-                # row.prop(currentTake, "resolution_framed_x", text="Width:")
-                # row.prop(currentTake, "resolution_framed_y", text="Height:")
+                if props.use_project_settings:
+                    subSubRow = subRow.row()
+                    subSubRow.alert = "FROM_TAKE" == currentTake.renderMode
+                    subSubRow.prop(currentTake, "renderMode", text="")
 
-                # stampInfoStr = "Use Stamp Info Add-on"
-                # if not props.isStampInfoAvailable():
-                #     stampInfoStr += "  (Warning: Currently NOT installed)"
-                # subBox.prop(currentTake, "useStampInfoDuringRendering", text=stampInfoStr)
+                if not props.use_project_settings or "FROM_TAKE" == currentTake.renderMode:
+                    subBox = box.box()
+                    # subRow = subBox.row()
+                    # subRow.separator()
 
-                # subRow.prop(currentTake, "resolution_x")
-                # subRow.prop(currentTake, "resolution_y")
+                    currentTake.outputParams_Resolution.draw(context, subBox)
+                    # row = subBox.row(align=False)
+                    # row.use_property_split = False
+                    # row.alignment = "RIGHT"
+                    # row.label(text="Resolution")
+                    # row.prop(currentTake, "resolution_x", text="Width:")
+                    # row.prop(currentTake, "resolution_y", text="Height:")
+
+                    # row = subBox.row(align=False)
+                    # row.use_property_split = False
+                    # row.alignment = "RIGHT"
+                    # row.label(text="Frame Resolution")
+                    # row.prop(currentTake, "resolution_framed_x", text="Width:")
+                    # row.prop(currentTake, "resolution_framed_y", text="Height:")
+
+                    # stampInfoStr = "Use Stamp Info Add-on"
+                    # if not props.isStampInfoAvailable():
+                    #     stampInfoStr += "  (Warning: Currently NOT installed)"
+                    # subBox.prop(currentTake, "useStampInfoDuringRendering", text=stampInfoStr)
+
+                    # subRow.prop(currentTake, "resolution_x")
+                    # subRow.prop(currentTake, "resolution_y")
 
             box.separator(factor=0.2)
 
@@ -383,6 +391,7 @@ class UAS_PT_ShotManager(Panel):
             (props.display_notes_in_properties and prefs.take_properties_extended)
             or (props.display_notes_in_properties and prefs.take_notes_extended)
             or (takeHasNotes and prefs.take_notes_extended)
+            #or (takeHasNotes and prefs.take_properties_extended)
         ):
             # or (props.display_notes_in_properties and prefs.take_properties_extended)
             # ):

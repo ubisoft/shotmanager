@@ -450,6 +450,20 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         options=set(),
     )
 
+    display_globaleditintegr_in_properties: BoolProperty(
+        name="Display Global Edit Integration Tools in Properties panels",
+        description="Display the advanced properties of the takes used to specify their position in a global edit",
+        default=False,
+        options=set(),
+    )
+
+    display_takerendersettings_in_properties: BoolProperty(
+        name="Display Take Render Settings in Take Properties panels",
+        description="Display the take render settings in the Take Properties panel",
+        default=False,
+        options=set(),
+    )
+
     display_retimer_in_properties: BoolProperty(
         name="Display Retimer sub-Panel",
         description="Display Retimer sub-panel in the Shot Manager panel",
