@@ -1,7 +1,14 @@
+![](doc/images/Logo_90_A.png)
+# Shot Manager - Blender Add-on
+Shot Manager is a Blender add-on that introduces a true shot entity in Blender scenes, as well as a wide and powerful set of tools to build and edit sequences in real-time directly in the 3D context.
 
-# Shot Manager
-
-**Disclaimer**: This project is in alpha state and actively developed. Do not use it to edit your production assets without a backup or you might break them.
+**Disclaimer**
+>**This tool is currently supported.**
+>
+>It was initialy developed for an animated TV series production in 2020 on Blender 2.83. It has the features that were needed at the time but it
+may not be considered as feature complete for a more generic purpose. In spite of all our efforts to make it reliable some troubles may occur in use cases we have not faced.
+>
+><br />
 
 Note that development is on Windows 10. Please report issues and submit PRs for other OSs.
 
