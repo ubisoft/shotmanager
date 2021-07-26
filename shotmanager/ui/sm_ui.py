@@ -292,7 +292,7 @@ class UAS_PT_ShotManager(Panel):
         box = layout.box()
         row = box.row(align=False)
 
-        #if props.display_globaleditintegr_in_properties or props.display_notes_in_properties or props.display_takerendersettings_in_properties or takeHasNotes:
+        # if props.display_globaleditintegr_in_properties or props.display_notes_in_properties or props.display_takerendersettings_in_properties or takeHasNotes:
         if props.display_globaleditintegr_in_properties or props.display_takerendersettings_in_properties:
             row.prop(prefs, "take_properties_extended", text="", icon=panelIcon, emboss=False)
 
@@ -345,7 +345,7 @@ class UAS_PT_ShotManager(Panel):
 
             if props.display_globaleditintegr_in_properties and props.display_takerendersettings_in_properties:
                 box.separator(factor=0.2)
-            
+
             if props.display_takerendersettings_in_properties:
                 subRow = box.row()
                 subRow.label(text="Take Render Settings:")
@@ -391,7 +391,7 @@ class UAS_PT_ShotManager(Panel):
             (props.display_notes_in_properties and prefs.take_properties_extended)
             or (props.display_notes_in_properties and prefs.take_notes_extended)
             or (takeHasNotes and prefs.take_notes_extended)
-            #or (takeHasNotes and prefs.take_properties_extended)
+            # or (takeHasNotes and prefs.take_properties_extended)
         ):
             # or (props.display_notes_in_properties and prefs.take_properties_extended)
             # ):
@@ -458,30 +458,32 @@ class UAS_PT_ShotManager(Panel):
             subrow.scale_x = 0.9
             subrow.alignment = "RIGHT"
 
-            icon = (
-                config.icons_col["ShotManager_CamGPVisible_32"]
-                if not prefs.toggleGreasePencil
-                else config.icons_col["ShotManager_CamGPHidden_32"]
-            )
-            subrow.operator(
-                "uas_shot_manager.enabledisablegreasepencil", text="", icon_value=icon.icon_id, emboss=False
-            )
+            if props.display_greasepencil_in_properties:
+                icon = (
+                    config.icons_col["ShotManager_CamGPVisible_32"]
+                    if not prefs.toggleGreasePencil
+                    else config.icons_col["ShotManager_CamGPHidden_32"]
+                )
+                subrow.operator(
+                    "uas_shot_manager.enabledisablegreasepencil", text="", icon_value=icon.icon_id, emboss=False
+                )
 
-            icon = (
-                config.icons_col["ShotManager_CamBGVisible_32"]
-                # config.icons_col["ShotManager_Image_32"]
-                if not prefs.toggleCamsBG
-                else config.icons_col["ShotManager_CamBGHidden_32"]
-            )
-            subrow.operator("uas_shot_manager.enabledisablecamsbg", text="", icon_value=icon.icon_id, emboss=False)
+            if props.display_camerabgtools_in_properties:
+                icon = (
+                    config.icons_col["ShotManager_CamBGVisible_32"]
+                    # config.icons_col["ShotManager_Image_32"]
+                    if not prefs.toggleCamsBG
+                    else config.icons_col["ShotManager_CamBGHidden_32"]
+                )
+                subrow.operator("uas_shot_manager.enabledisablecamsbg", text="", icon_value=icon.icon_id, emboss=False)
 
-            icon = (
-                config.icons_col["ShotManager_CamSoundVisible_32"]
-                # config.icons_col["ShotManager_Image_32"]
-                if not prefs.toggleCamsSoundBG
-                else config.icons_col["ShotManager_CamSoundHidden_32"]
-            )
-            subrow.operator("uas_shot_manager.enabledisablesoundbg", text="", icon_value=icon.icon_id, emboss=False)
+                icon = (
+                    config.icons_col["ShotManager_CamSoundVisible_32"]
+                    # config.icons_col["ShotManager_Image_32"]
+                    if not prefs.toggleCamsSoundBG
+                    else config.icons_col["ShotManager_CamSoundHidden_32"]
+                )
+                subrow.operator("uas_shot_manager.enabledisablesoundbg", text="", icon_value=icon.icon_id, emboss=False)
 
             if props.useLockCameraView:
                 subrow.alert = True
@@ -558,4 +560,3 @@ def unregister():
 
     for cls in reversed(classes):
         bpy.utils.unregister_class(cls)
-

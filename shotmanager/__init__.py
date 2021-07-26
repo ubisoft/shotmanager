@@ -71,7 +71,6 @@ from .ui import sm_ui
 
 from .utils import utils
 from .utils import utils_render
-from .utils import utils_vse_render
 from .utils import utils_handlers
 from .utils import utils_operators
 from .utils import utils_get_set_current_time
@@ -94,7 +93,7 @@ bl_info = {
     "author": "Ubisoft - Julien Blervaque (aka Werwack), Romain Carriquiry Borchiari",
     "description": "Manage a sequence of shots and cameras in the 3D View - Ubisoft Animation Studio",
     "blender": (2, 90, 0),
-    "version": (1, 5, 41),
+    "version": (1, 5, 5),
     "location": "View3D > Shot Manager",
     "wiki_url": "https://ubisoft-shotmanager.readthedocs.io",
     # "warning": "BETA Version",
@@ -115,7 +114,7 @@ _logger = logging.getLogger(__name__)
 _logger.propagate = False
 MODULE_PATH = Path(__file__).parent.parent
 logging.basicConfig(level=logging.INFO)
-_logger.setLevel(logging.INFO)  # CRITICAL ERROR WARNING INFO DEBUG NOTSET
+_logger.setLevel(logging.DEBUG)  # CRITICAL ERROR WARNING INFO DEBUG NOTSET
 
 
 # _logger.info(f"Logger {str(256) + 'mon texte super long et tout'}")
@@ -320,6 +319,8 @@ def checkDataVersion_post_load_handler(self, context):
 
 def register():
 
+    from .utils import utils_vse_render
+
     versionTupple = utils.display_addon_registered_version("Shot Manager")
 
     config.initGlobalVariables()
@@ -490,6 +491,7 @@ def register():
 def unregister():
 
     print("\n*** --- Unregistering Shot Manager Add-on --- ***\n")
+    from .utils import utils_vse_render
 
     #    bpy.context.scene.UAS_shot_manager_props.display_shotname_in_3dviewport = False
 

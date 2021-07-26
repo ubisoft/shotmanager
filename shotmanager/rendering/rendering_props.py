@@ -321,7 +321,9 @@ class UAS_ShotManager_RenderSettings(PropertyGroup):
     renderHandles: BoolProperty(name="Render With Handles", default=False)
 
     renderSound: BoolProperty(
-        name="Render Sound", description="Also generate sound in rendered media", default=True,
+        name="Render Sound",
+        description="Also generate sound in rendered media",
+        default=True,
     )
 
     disableCameraBG: BoolProperty(
@@ -372,7 +374,7 @@ class UAS_ShotManager_RenderSettings(PropertyGroup):
     updatePlayblastInVSM: BoolProperty(
         name="Open in Video Shot Manager",
         description="Open the rendered playblast in the VSE",
-        default=True,
+        default=False,
         options=set(),
     )
 
@@ -396,4 +398,3 @@ class UAS_ShotManager_RenderSettings(PropertyGroup):
     #     default=False,
     #     options=set(),
     # )
-

@@ -389,8 +389,13 @@ def draw3DRenderPanel(self, context):
         # row = box.row()
         # row.separator(factor=1)
         row.label(text="After Rendering:")
-        row.prop(props.renderSettingsPlayblast, "openPlayblastInPlayer")
-        row.prop(props.renderSettingsPlayblast, "updatePlayblastInVSM")
+        row = box.row()
+        row.separator(factor=2)
+        subRow = row.row()
+        subRow.prop(props.renderSettingsPlayblast, "openPlayblastInPlayer")
+        subRow = row.row()
+        subRow.enabled = False
+        subRow.prop(props.renderSettingsPlayblast, "updatePlayblastInVSM", text="Opend in Video Tracks")
 
         # row = box.row()
         # row.prop(props.renderSettingsPlayblast, "renderCameraBG")
