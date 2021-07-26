@@ -90,12 +90,12 @@ from .debug import sm_debug
 
 bl_info = {
     "name": "Shot Manager",
-    "author": "Julien Blervaque (aka Werwack), Romain Carriquiry Borchiari",
+    "author": "Ubisoft - Julien Blervaque (aka Werwack), Romain Carriquiry Borchiari",
     "description": "Manage a sequence of shots and cameras in the 3D View - Ubisoft Animation Studio",
     "blender": (2, 90, 0),
-    "version": (1, 5, 3),
+    "version": (1, 5, 31),
     "location": "View3D > Shot Manager",
-    "wiki_url": "https://gitlab-ncsa.ubisoft.org/animation-studio/blender/shotmanager-addon/-/wikis/home",
+    "wiki_url": "https://ubisoft-shotmanager.readthedocs.io",
     # "warning": "BETA Version",
     "category": "Ubisoft",
 }
