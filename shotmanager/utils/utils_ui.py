@@ -63,7 +63,7 @@ def collapsable_panel(
 
 
 class UAS_ShotManager_OpenExplorer(Operator):
-    bl_idname = "uas_shotmanager.open_explorer"
+    bl_idname = "uas_shot_manager.open_explorer"
     bl_label = "Open Explorer"
     bl_description = "Open an Explorer window located at the render output directory.\nShift + Click: Copy the path into the clipboard"
 

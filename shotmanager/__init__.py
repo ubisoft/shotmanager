@@ -74,7 +74,6 @@ from .utils import utils_render
 from .utils import utils_handlers
 from .utils import utils_operators
 from .utils import utils_get_set_current_time
-from .utils import utils_ui
 
 # from . import videoshotmanager
 from . import viewport_3d
@@ -320,6 +319,8 @@ def checkDataVersion_post_load_handler(self, context):
 def register():
 
     from .utils import utils_vse_render
+    from .utils import utils_ui
+
 
     versionTupple = utils.display_addon_registered_version("Shot Manager")
 
@@ -426,7 +427,6 @@ def register():
     # ui
     utils_ui.register()
     sm_ui.register()
-    utils_ui.register()
     rrs.register()
     retimer_ui.register()
     rendering_ui.register()
@@ -493,6 +493,8 @@ def unregister():
 
     print("\n*** --- Unregistering Shot Manager Add-on --- ***\n")
     from .utils import utils_vse_render
+    from .utils import utils_ui
+
 
     #    bpy.context.scene.UAS_shot_manager_props.display_shotname_in_3dviewport = False
 
@@ -521,7 +523,6 @@ def unregister():
     rendering_ui.unregister()
     retimer_ui.unregister()
     rrs.unregister()
-    utils_ui.unregister()
     sm_ui.unregister()
     utils_ui.unregister()
 
