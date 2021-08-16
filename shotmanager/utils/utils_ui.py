@@ -44,7 +44,11 @@ def collapsable_panel(
 ):
     row = layout.row()
     row.prop(
-        data, property, icon="TRIA_DOWN" if getattr(data, property) else "TRIA_RIGHT", icon_only=True, emboss=False,
+        data,
+        property,
+        icon="TRIA_DOWN" if getattr(data, property) else "TRIA_RIGHT",
+        icon_only=True,
+        emboss=False,
     )
     if alert:
         row.alert = True
@@ -58,7 +62,7 @@ def collapsable_panel(
 ###################
 
 
-class UASSM_StampInfo_OpenExplorer(Operator):
+class UAS_ShotManager_OpenExplorer(Operator):
     bl_idname = "uas_shotmanager.open_explorer"
     bl_label = "Open Explorer"
     bl_description = "Open an Explorer window located at the render output directory.\nShift + Click: Copy the path into the clipboard"
@@ -95,7 +99,7 @@ class UASSM_StampInfo_OpenExplorer(Operator):
         return {"FINISHED"}
 
 
-class UASSM_OT_Open_Documentation_Url(Operator):  # noqa 801
+class UAS_SM_Open_Documentation_Url(Operator):  # noqa 801
     bl_idname = "shotmanager.open_documentation_url"
     bl_label = "Open Documentation Web Page"
     bl_description = "Open web page.\nShift + Click: Copy the URL into the clipboard"
@@ -115,7 +119,7 @@ class UASSM_OT_Open_Documentation_Url(Operator):  # noqa 801
 
 # This operator requires   from bpy_extras.io_utils import ImportHelper
 # See https://sinestesia.co/blog/tutorials/using-blenders-filebrowser-with-python/
-class UASSM_OpenFileBrowser(Operator, ImportHelper):
+class UAS_ShotManager_OpenFileBrowser(Operator, ImportHelper):
     bl_idname = "shotmanager.openfilebrowser"
     bl_label = "Open"
     bl_description = (
@@ -136,7 +140,7 @@ class UASSM_OpenFileBrowser(Operator, ImportHelper):
         return {"FINISHED"}
 
 
-_classes = (UASSM_StampInfo_OpenExplorer, UASSM_OT_Open_Documentation_Url, UASSM_OpenFileBrowser)
+_classes = (UAS_ShotManager_OpenExplorer, UAS_SM_Open_Documentation_Url, UAS_ShotManager_OpenFileBrowser)
 
 
 def register():

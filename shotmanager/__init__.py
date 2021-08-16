@@ -16,7 +16,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 """
-To do: module description here.
+Shot Manager initialization
 """
 
 import logging
@@ -71,7 +71,6 @@ from .ui import sm_ui
 
 from .utils import utils
 from .utils import utils_render
-from .utils import utils_vse_render
 from .utils import utils_handlers
 from .utils import utils_operators
 from .utils import utils_get_set_current_time
@@ -94,14 +93,16 @@ bl_info = {
     "author": "Ubisoft - Julien Blervaque (aka Werwack), Romain Carriquiry Borchiari",
     "description": "Manage a sequence of shots and cameras in the 3D View - Ubisoft Animation Studio",
     "blender": (2, 92, 0),
-    "version": (1, 5, 31),
+    "version": (1, 5, 5),
     "location": "View3D > Shot Manager",
     "wiki_url": "https://ubisoft-shotmanager.readthedocs.io",
     # "warning": "BETA Version",
     "category": "Ubisoft",
 }
 
-__version__ = f"v{bl_info['version'][0]}.{bl_info['version'][1]}.{bl_info['version'][2]}"
+# __version__ = f"v{bl_info['version'][0]}.{bl_info['version'][1]}.{bl_info['version'][2]}"
+__version__ = ".".join(str(i) for i in bl_info["version"])
+display_version = __version__
 
 
 ###########
@@ -113,7 +114,7 @@ _logger = logging.getLogger(__name__)
 _logger.propagate = False
 MODULE_PATH = Path(__file__).parent.parent
 logging.basicConfig(level=logging.INFO)
-_logger.setLevel(logging.INFO)  # CRITICAL ERROR WARNING INFO DEBUG NOTSET
+_logger.setLevel(logging.DEBUG)  # CRITICAL ERROR WARNING INFO DEBUG NOTSET
 
 
 # _logger.info(f"Logger {str(256) + 'mon texte super long et tout'}")
@@ -318,6 +319,8 @@ def checkDataVersion_post_load_handler(self, context):
 
 def register():
 
+    from .utils import utils_vse_render
+
     versionTupple = utils.display_addon_registered_version("Shot Manager")
 
     config.initGlobalVariables()
@@ -421,6 +424,7 @@ def register():
     shots_toolbar.register()
 
     # ui
+    utils_ui.register()
     sm_ui.register()
     utils_ui.register()
     rrs.register()
@@ -464,7 +468,9 @@ def register():
     )
 
     bpy.types.WindowManager.UAS_shot_manager_toggle_montage_interaction = BoolProperty(
-        name="montage_interaction", description="Disable or enable montage like timeline interaction", default=True,
+        name="montage_interaction",
+        description="Disable or enable montage like timeline interaction",
+        default=True,
     )
 
     bpy.types.WindowManager.UAS_shot_manager_progressbar = FloatProperty(
@@ -486,6 +492,7 @@ def register():
 def unregister():
 
     print("\n*** --- Unregistering Shot Manager Add-on --- ***\n")
+    from .utils import utils_vse_render
 
     #    bpy.context.scene.UAS_shot_manager_props.display_shotname_in_3dviewport = False
 
@@ -516,6 +523,7 @@ def unregister():
     rrs.unregister()
     utils_ui.unregister()
     sm_ui.unregister()
+    utils_ui.unregister()
 
     # operators
     rendering.unregister()

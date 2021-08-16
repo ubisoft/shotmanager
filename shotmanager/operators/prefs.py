@@ -78,14 +78,14 @@ class UAS_MT_ShotManager_Prefs_MainMenu(Menu):
         row.operator("uas_shot_manager.file_info", text="File Info...")
 
         layout.separator()
-        
+
         row = layout.row(align=True)
         row.operator(
             "shotmanager.open_documentation_url", text="Documentation"
         ).path = "https://ubisoft-shotmanager.readthedocs.io"
 
         layout.separator()
-        
+
         row = layout.row(align=True)
         row.operator("uas_shot_manager.about", text="About...")
 
@@ -233,7 +233,9 @@ class UAS_ShotManager_Playbar_Prefs(Operator):
         col.use_property_split = True
         # col.use_property_decorate = False
         col.prop(
-            props, "display_disabledshots_in_timeline", text="Display Disabled Shots",
+            props,
+            "display_disabledshots_in_timeline",
+            text="Display Disabled Shots",
         )
 
         # Edit ######
