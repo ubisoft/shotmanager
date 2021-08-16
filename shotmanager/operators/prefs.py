@@ -81,7 +81,7 @@ class UAS_MT_ShotManager_Prefs_MainMenu(Menu):
         
         row = layout.row(align=True)
         row.operator(
-            "stampinfo.open_documentation_url", text="Documentation"
+            "shotmanager.open_documentation_url", text="Documentation"
         ).path = "https://ubisoft-shotmanager.readthedocs.io"
 
         layout.separator()

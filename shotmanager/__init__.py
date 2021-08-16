@@ -75,6 +75,7 @@ from .utils import utils_vse_render
 from .utils import utils_handlers
 from .utils import utils_operators
 from .utils import utils_get_set_current_time
+from .utils import utils_ui
 
 # from . import videoshotmanager
 from . import viewport_3d
@@ -92,7 +93,7 @@ bl_info = {
     "name": "Shot Manager",
     "author": "Ubisoft - Julien Blervaque (aka Werwack), Romain Carriquiry Borchiari",
     "description": "Manage a sequence of shots and cameras in the 3D View - Ubisoft Animation Studio",
-    "blender": (2, 90, 0),
+    "blender": (2, 92, 0),
     "version": (1, 5, 31),
     "location": "View3D > Shot Manager",
     "wiki_url": "https://ubisoft-shotmanager.readthedocs.io",
@@ -421,6 +422,7 @@ def register():
 
     # ui
     sm_ui.register()
+    utils_ui.register()
     rrs.register()
     retimer_ui.register()
     rendering_ui.register()
@@ -512,6 +514,7 @@ def unregister():
     rendering_ui.unregister()
     retimer_ui.unregister()
     rrs.unregister()
+    utils_ui.unregister()
     sm_ui.unregister()
 
     # operators
