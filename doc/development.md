@@ -1,3 +1,6 @@
+- [Features](#features)
+- [Limitations](#limitations)
+
 # Developer environment
 
 ## Python Virtual Environment

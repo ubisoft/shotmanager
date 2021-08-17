@@ -2,14 +2,14 @@ stages:
   - pre_release # a single stage allows test to run even if flake8 fails and makes it possible to get all the errors at once
   - release
 
-flake8:
-  tags:
-    - docker
-  image: python:3
-  stage: pre_release
-  script:
-    - pip install black flake8 flake8-black pep8-naming flake8-bugbear --constraint requirements-dev.txt
-    - flake8 -v shotmanager
+# flake8:
+#   tags:
+#     - docker
+#   image: python:3
+#   stage: pre_release
+#   script:
+#     - pip install black flake8 flake8-black pep8-naming flake8-bugbear --constraint requirements-dev.txt
+#     - flake8 -v shotmanager
 
 doc:
   stage: pre_release
