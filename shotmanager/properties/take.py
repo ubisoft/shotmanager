@@ -23,12 +23,18 @@ import bpy
 
 from bpy.types import Scene
 from bpy.types import PropertyGroup
-from bpy.props import StringProperty, CollectionProperty, PointerProperty, BoolProperty, IntProperty
+from bpy.props import StringProperty, CollectionProperty, PointerProperty, BoolProperty, IntProperty, EnumProperty
 
 from .shot import UAS_ShotManager_Shot
 
 from shotmanager.utils.utils import findFirstUniqueName
 from shotmanager.rrs_specific.montage.montage_interface import SequenceInterface
+
+from shotmanager.properties.output_params import UAS_ShotManager_OutputParams_Resolution
+
+import logging
+
+_logger = logging.getLogger(__name__)
 
 
 class UAS_ShotManager_Take(SequenceInterface, PropertyGroup):
@@ -84,6 +90,36 @@ class UAS_ShotManager_Take(SequenceInterface, PropertyGroup):
     #         parentShotManager = parentScene.UAS_shot_manager_props
     #     return parentShotManager
 
+    def initialize(self, parentProps, name="New Take"):
+        print("Initialising new take...")
+        _logger.debug(f"\n  Initialising new take with the name: {name}")
+
+        self.parentScene = parentProps.parentScene
+
+        # wkip check for unique name
+        self.name = name
+
+        self.outputParams_Resolution.resolution_x = self.parentScene.render.resolution_x
+        self.outputParams_Resolution.resolution_y = self.parentScene.render.resolution_y
+
+    def copyPropertiesFrom(self, source):
+        """
+        Copy properties from the specified source to this one
+        """
+        from shotmanager.utils.utils_python import copyString as _copyString
+
+        self.globalEditDirectory = _copyString(source.globalEditDirectory)
+        self.globalEditVideo = _copyString(source.globalEditVideo)
+        self.startInGlobalEdit = source.startInGlobalEdit
+
+        self.renderMode = source.renderMode
+        self.outputParams_Resolution.copyPropertiesFrom(source.outputParams_Resolution)
+
+        self.note01 = _copyString(source.note01)
+        self.note02 = _copyString(source.note02)
+        self.note03 = _copyString(source.note03)
+        self.showNotes = source.showNotes
+
     def getName_PathCompliant(self):
         takeName = self.name.replace(" ", "_")
         return takeName
@@ -113,6 +149,10 @@ class UAS_ShotManager_Take(SequenceInterface, PropertyGroup):
     """ Take name is always unique in a scene
     """
     name: StringProperty(name="Name", get=_get_name, set=_set_name)
+
+    #############
+    # shots #####
+    #############
 
     shots: CollectionProperty(type=UAS_ShotManager_Shot)
 
@@ -160,6 +200,32 @@ class UAS_ShotManager_Take(SequenceInterface, PropertyGroup):
     startInGlobalEdit: IntProperty(min=0, default=0)
 
     #############
+    # render settings #####
+    # Those properties are overriden by the project settings if use_project_settings is true
+    #############
+
+    renderMode: EnumProperty(
+        name="Take Resolution Mode",
+        description="Use the take resolution or adopt the project resolution\nif the project settings are activated",
+        items=(("FROM_PROJECT", "From Project", ""), ("FROM_TAKE", "Override Project Resolution", ""),),
+        default="FROM_TAKE",
+    )
+
+    outputParams_Resolution: PointerProperty(type=UAS_ShotManager_OutputParams_Resolution)
+
+    def getResolution(self):
+        """
+            Return a tupple with the render resolution of the take. The resolution can be different if project settings are used or not
+        """
+        props = self.parentScene.UAS_shot_manager_props
+        res = None
+        if props.use_project_settings and "FROM_PROJECT" == self.renderMode:
+            res = (props.project_resolution_x, props.project_resolution_y)
+        else:
+            res = (self.outputParams_Resolution.resolution_x, self.outputParams_Resolution.resolution_y)
+        return res
+
+    #############
     # notes #####
     #############
 
@@ -183,6 +249,7 @@ class UAS_ShotManager_Take(SequenceInterface, PropertyGroup):
         super().__init__(parent)
         self.shotsList = self.shots
 
+        print("__Init__ from Take")
         pass
 
     def get_name(self):

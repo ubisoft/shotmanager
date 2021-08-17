@@ -1,7 +1,16 @@
+![](doc/images/Logo_90_A.png)
+# Shot Manager - Blender Add-on
+Shot Manager is a Blender add-on that introduces a true shot entity in Blender scenes, as well as a wide and powerful set of tools to build and edit sequences in real-time directly in the 3D context.
 
-# Shot Manager
-
-**Disclaimer**: This project is in alpha state and actively developed. Do not use it to edit your production assets without a backup or you might break them.
+**Disclaimer**
+>**This tool is currently supported for LTS version of Blender 2.83 and up to Blender 2.92**
+>
+>**At the moment it is NOT compatible with Blender version 2.93 because there is currently no OpenTimelineIO package for Python 3.9**
+>
+>It was initialy developed for an animated TV series production in 2020 on Blender 2.83. It has the features that were needed at the time but it
+may not be considered as feature complete for a more generic purpose. In spite of all our efforts to make it reliable some troubles may occur in use cases we have not faced.
+>
+><br />
 
 Note that development is on Windows 10. Please report issues and submit PRs for other OSs.
 
@@ -19,56 +28,22 @@ This is very convenient for previz and 3D layout.
 <img src="docs/img/ShotManager_screen.png" alt="ShotManager Screen" width="70%"/>
 <br /><br />
 
-## Installation
-The addon must be installed in Administrator mode so that the OpenTimelineIO Python library can
-be downloaded and deployed correctly. Also be sure that your firewall doesn't block the download (or use OpenVPN or equivalent).
+For installation, features, FAQ, user help please check the documentation here: [https://ubisoft-shotmanager.readthedocs.io](https://ubisoft-shotmanager.readthedocs.io)
 
-## Important points
+## Dev notes
 
-### 3D:
-- Camera markers are NOT compatible with Shot Manager. They prevent the shot play to work correctlt.
-Shot Manager will then not allow their use by freezint its user interface.
-
-- Negative frames are not supported. When starting the action prepare a sate time zone between 0 and the
-start of the first shot (including the lenght of the handles).
-
-- The end frame of a shot is included in the shot and rendered.
-The duration of a shot (ie the total number of frames) is then equal to end - start + 1
-
-### 3D Edit:
-- By default first frame of the edit is 0, as most edititng applications, but this is a preference and it can
-be set to 1, or event to an arbitrary (positive) number (so that the sequence and exported xml can be added
-at the end of another one)
-
-### Media:
-- First frame of the exported videos gets the number 0 (and not 1)
-- Hence the last frame of a media is equal to duration - 1
-- Rendered media and exports are done in the specified Root directory. Path relative to the current project are
-supported.
-
-
-### Naming:
-- Shot: Association of a period of time in the 3D scene, given by a start and a end, and a point of view, given
-by the camera held by the shot.
-
-
-- Takes: A take is a given set of shots
-
-
-# Features
-
-## Retime
-
-## Insert Time:
-Insert a range of time between the frame Start and the frame Start + 1.
-- From (or Start): Frame at which the time is inserted. wkip frame inserted there?
-Keyframes at this frame are not affected by the time change
-- To (or End): Defines the frame at which the frame Start + 1 will be after the insertion time.
-Keyframes at thisframe Start + 1 and above will then be added to an offset given by Duration (End - Start).
-Hence End - Start is the duration of the time insered right after the frame Start.
-
-## Remove Time:
-Remove the time included between Start frame and End Frame.
+Various development notes related to the add-on itself, to the Git project or to the installation are available here: [Dev Notes](./doc/devnotes.md)
 
 ## History
 [Change Log](./CHANGELOG.md)
+
+# Support
+
+The active support repository is on the [StampInfo Github repository](https://github.com/ubisoft/shotmanager) which is part of the [Ubisoft open source](https://github.com/ubisoft) projects group.
+
+
+# License and copyright
+
+The original code is Copyright (C) 2021 Ubisoft.
+
+All code of the `shotmanager` package is under the GPLv3 license.

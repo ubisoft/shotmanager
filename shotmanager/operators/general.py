@@ -70,27 +70,76 @@ class UAS_ShotManager_OT_FileInfo(Operator):
         return context.window_manager.invoke_props_dialog(self, width=400)
 
     def draw(self, context):
-        props = context.scene.UAS_shot_manager_props
+        scene = context.scene
+        props = scene.UAS_shot_manager_props
         layout = self.layout
-        box = layout.box()
+        # box = layout.box()
 
         # Scene
         ###############
-        row = box.row()
-        row.separator()
-        row.label(text=f"Current Scene:")
-        row.label(text=f"{context.scene.name}")
+        row = layout.row()
+        row.label(text=f"Current Scene:  {context.scene.name}")
+
+        row = layout.row()
+        box = row.box()
+
+        subRow = box.row()
+        subRow.separator()
+        subRow.label(text="Fps:")
+        subRow.label(text=f"{scene.render.fps}")
+
+        if 1.0 != scene.render.fps_base:
+            subRow = box.row()
+            subRow.alert = True
+            subRow.separator()
+            subRow.label(text="FPS Base:")
+            subRow.label(text=f"{scene.render.fps_base:0.3f}")
+
+        subRow = box.row()
+        subRow.separator()
+        subRow.label(text="Resolution:")
+        subRow.label(text=f"{scene.render.resolution_x} x {scene.render.resolution_y}")
+        if 100 != scene.render.resolution_percentage:
+            subRow = box.row()
+            subRow.alert = True
+            subRow.separator()
+            subRow.label(text="Percentage:")
+            subRow.label(text=f"{scene.render.resolution_percentage} %")
+
+        # Project
+        ###############
+        layout.separator()
+        layout.label(text=f"Project Used: {props.use_project_settings}")
+        if props.use_project_settings:
+            box = layout.box()
+
+            subRow = box.row()
+            subRow.separator()
+            subRow.label(text="Fps:")
+            subRow.label(text=f"{props.project_fps}")
+
+            subRow = box.row()
+            subRow.separator()
+            subRow.label(text="Resolution:")
+            subRow.label(text=f"{props.project_resolution_x} x {props.project_resolution_y}")
+
+            subRow = box.row()
+            subRow.separator()
+            subRow.label(text="Framed Resolution:")
+            subRow.label(text=f"{props.project_resolution_framed_x} x {props.project_resolution_framed_y}")
 
         # Version
         ###############
+        layout.separator()
+        box = layout.box()
         row = box.row()
         row.separator()
-        row.label(text=f"Shot Manager Version: ")
+        row.label(text="Shot Manager Version: ")
         row.label(text=f"{props.version()[0]}")
 
         row = box.row()
         row.separator()
-        row.label(text=f"Shot Manager Data Version: ")
+        row.label(text="Shot Manager Data Version: ")
         row.label(text=f"  {convertVersionIntToStr(props.dataVersion)}")
 
         # # Authors

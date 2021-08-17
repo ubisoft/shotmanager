@@ -38,7 +38,7 @@ class UAS_PT_ShotManager_ShotsGlobalSettings(Panel):
     bl_idname = "UAS_PT_Shot_Manager_Shots_GlobalSettings"
     bl_space_type = "VIEW_3D"
     bl_region_type = "UI"
-    bl_category = "UAS Shot Man"
+    bl_category = "Shot Mng"
     bl_options = {"DEFAULT_CLOSED"}
     bl_parent_id = "UAS_PT_Shot_Manager"
 

@@ -37,7 +37,7 @@ class UAS_PT_ShotManagerRetimer(Panel):
     bl_description = "Manage the global timing of the action in the scene and the shots"
     bl_space_type = "VIEW_3D"
     bl_region_type = "UI"
-    bl_category = "UAS Shot Man"
+    bl_category = "Shot Mng"
     bl_options = {"DEFAULT_CLOSED"}
 
     @classmethod
@@ -267,7 +267,7 @@ class UAS_PT_ShotManagerRetimer_Settings(Panel):
     bl_description = "Manage the global timing of the action in the scene and the shots"
     bl_space_type = "VIEW_3D"
     bl_region_type = "UI"
-    bl_category = "UAS Shot Man"
+    bl_category = "Shot Mng"
     bl_options = {"DEFAULT_CLOSED"}
     bl_parent_id = "UAS_PT_ShotManagerRetimerPanel"
 

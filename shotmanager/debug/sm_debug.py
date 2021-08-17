@@ -32,10 +32,10 @@ from bpy.props import StringProperty
 
 class UAS_PT_Shot_Manager_Debug(Panel):
     bl_idname = "UAS_PT_shot_manager_debug"
-    bl_label = "Shot Manager Debug"
+    bl_label = "Shot Manager - Debug"
     bl_space_type = "VIEW_3D"
     bl_region_type = "UI"
-    bl_category = "SM Debug"
+    bl_category = "Shot Mng - Debug"
     #  bl_options      = {'DEFAULT_CLOSED'}
 
     def __init__(self):

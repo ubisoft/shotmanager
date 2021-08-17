@@ -42,19 +42,25 @@ def set_StampInfoSettings(scene):
             if props.use_project_settings:
                 projProp_resolution_x = props.project_resolution_x
                 projProp_resolution_y = props.project_resolution_y
+                projProp_resolutionFramed = [props.project_resolution_framed_x, props.project_resolution_framed_y]
 
             stampInfoSettings.tmp_usePreviousValues = True
 
             stampInfoSettings.tmp_previousResolution_x = projProp_resolution_x
             stampInfoSettings.tmp_previousResolution_y = projProp_resolution_y
 
-            stampInfoSettings.tmp_stampRenderResYDirToCompo_percentage = (
-                stampInfoSettings.stampRenderResYDirToCompo_percentage
-            )
-            stampInfoSettings.stampRenderResYDirToCompo_percentage = 75.0
+            # stampInfoSettings.tmp_stampRenderResYDirToCompo_percentage = (
+            #     stampInfoSettings.stampRenderResYDirToCompo_percentage
+            # )
 
             stampInfoSettings.tmp_stampInfoRenderMode = stampInfoSettings.stampInfoRenderMode
-            stampInfoSettings.stampInfoRenderMode = "DIRECTTOCOMPOSITE"
+            stampInfoSettings.stampInfoRenderMode = "OUTSIDE"
+            if props.use_project_settings:
+                stampInfoSettings.stampRenderResYOutside_percentage = (
+                    1.0 - projProp_resolutionFramed[1] / projProp_resolution_y
+                )
+            else:
+                stampInfoSettings.stampRenderResYOutside_percentage = 33.34
 
             stampInfoSettings.stampPropertyLabel = False
             stampInfoSettings.stampPropertyValue = True
@@ -130,4 +136,3 @@ def set_StampInfoSettings(scene):
             # stampInfoSettings.shotHandles = props.handles
 
             stampInfoSettings.debug_DrawTextLines = False
-

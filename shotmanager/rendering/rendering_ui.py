@@ -28,11 +28,11 @@ from ..config import config
 
 
 class UAS_PT_ShotManagerRenderPanelStdalone(Panel):
-    bl_label = "Shot Manager Rendering"
+    bl_label = "Shot Manager - Render"
     bl_idname = "UAS_PT_ShotManagerRenderPanelStdalone"
     bl_space_type = "VIEW_3D"
     bl_region_type = "UI"
-    bl_category = "UAS Render"
+    bl_category = "Shot Mng - Render"
 
     @classmethod
     def poll(cls, context):
@@ -52,7 +52,7 @@ class UAS_PT_ShotManagerRenderPanel(Panel):
     bl_idname = "UAS_PT_ShotManagerRenderPanel"
     bl_space_type = "VIEW_3D"
     bl_region_type = "UI"
-    bl_category = "UAS Shot Man"
+    bl_category = "Shot Mng"
     bl_options = {"DEFAULT_CLOSED"}
 
     @classmethod
@@ -389,8 +389,13 @@ def draw3DRenderPanel(self, context):
         # row = box.row()
         # row.separator(factor=1)
         row.label(text="After Rendering:")
-        row.prop(props.renderSettingsPlayblast, "openPlayblastInPlayer")
-        row.prop(props.renderSettingsPlayblast, "updatePlayblastInVSM")
+        row = box.row()
+        row.separator(factor=2)
+        subRow = row.row()
+        subRow.prop(props.renderSettingsPlayblast, "openPlayblastInPlayer")
+        subRow = row.row()
+        subRow.enabled = False
+        subRow.prop(props.renderSettingsPlayblast, "updatePlayblastInVSM", text="Opend in Video Tracks")
 
         # row = box.row()
         # row.prop(props.renderSettingsPlayblast, "renderCameraBG")

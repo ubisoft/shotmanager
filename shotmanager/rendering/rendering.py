@@ -73,10 +73,10 @@ def launchRenderWithVSEComposite(
     area=None,
     override_all_viewports=False,
 ):
-    """ Generate the media for the specified take
-        Return a dictionary with a list of all the created files and a list of failed ones
-        filesDict = {"rendered_files": newMediaFiles, "failed_files": failedFiles}
-        specificFrame: When specified, only this frame is rendered. Handles are ignored and the resulting media in an image, not a video
+    """Generate the media for the specified take
+    Return a dictionary with a list of all the created files and a list of failed ones
+    filesDict = {"rendered_files": newMediaFiles, "failed_files": failedFiles}
+    specificFrame: When specified, only this frame is rendered. Handles are ignored and the resulting media in an image, not a video
     """
 
     def _deleteTempFiles(dirPath):
@@ -174,10 +174,6 @@ def launchRenderWithVSEComposite(
         if getattr(scene, "UAS_StampInfo_Settings", None) is not None:
             stampInfoSettings = scene.UAS_StampInfo_Settings
 
-            # remove handlers and compo!!!
-            stampInfoSettings.clearRenderHandlers()
-            #   stampInfoSettings.clearInfoCompoNodes(scene)
-
             preset_useStampInfo = useStampInfo
             if not useStampInfo:
                 stampInfoSettings.stampInfoUsed = False
@@ -185,9 +181,6 @@ def launchRenderWithVSEComposite(
                 stampInfoSettings.renderRootPathUsed = True
                 stampInfoSettings.renderRootPath = rootPath
                 set_StampInfoSettings(scene)
-
-        if preset_useStampInfo:  # framed output resolution is used only when StampInfo is used
-            stampInfoSettings.clearRenderHandlers()
 
         context.window_manager.UAS_shot_manager_shots_play_mode = False
         context.window_manager.UAS_shot_manager_display_timeline = False
@@ -214,6 +207,10 @@ def launchRenderWithVSEComposite(
     scene.use_preview_range = False
     renderResolution = [scene.render.resolution_x, scene.render.resolution_y]
     renderResolutionFramed = [scene.render.resolution_x, scene.render.resolution_y]
+    if preset_useStampInfo:
+        renderResolutionFramedFull = stampInfoSettings.getRenderResolutionForStampInfo(scene)
+        renderResolutionFramed[0] = int(renderResolutionFramedFull[0] * renderPreset.resolutionPercentage / 100)
+        renderResolutionFramed[1] = int(renderResolutionFramedFull[1] * renderPreset.resolutionPercentage / 100)
 
     # override local variables with project settings
     if props.use_project_settings:
@@ -230,9 +227,9 @@ def launchRenderWithVSEComposite(
         renderResolution[1] = int(renderResolution[1] * renderPreset.resolutionPercentage / 100)
 
         if preset_useStampInfo:
-            # wkip
-            renderResolutionFramed[0] = int(1280 * renderPreset.resolutionPercentage / 100)
-            renderResolutionFramed[1] = int(960 * renderPreset.resolutionPercentage / 100)
+            renderResolutionFramedFull = stampInfoSettings.getRenderResolutionForStampInfo(scene)
+            renderResolutionFramed[0] = int(renderResolutionFramedFull[0] * renderPreset.resolutionPercentage / 100)
+            renderResolutionFramed[1] = int(renderResolutionFramedFull[1] * renderPreset.resolutionPercentage / 100)
         else:
             renderResolutionFramed[0] = int(renderResolutionFramed[0] * renderPreset.resolutionPercentage / 100)
             renderResolutionFramed[1] = int(renderResolutionFramed[1] * renderPreset.resolutionPercentage / 100)
@@ -559,6 +556,7 @@ def launchRenderWithVSEComposite(
                 _logger.debug(f"\n - specificFrame: {specificFrame}")
                 infoImgSeq = newTempRenderPath + "_tmp_StampInfo." + frameIndStr + ".png"
                 infoImgSeq_resolution = renderResolutionFramed
+                # infoImgSeq_resolution = stampInfoSettings.getRenderResolutionForStampInfo(scene)
 
             if generateShotVideos:
 
@@ -782,9 +780,9 @@ def renderStampedInfoForShot(
     _logger.debug("\n - * - *renderStampedInfoForShot *** ")
     props = shotManagerProps
     scene = props.parentScene
-
+    verbose = True
     if stampInfoCustomSettingsDict is not None:
-        # print(f"*** customFileFullPath: {stampInfoCustomSettingsDict['customFileFullPath']}")
+        print(f"*** customFileFullPath: {stampInfoCustomSettingsDict['customFileFullPath']}")
         if "customFileFullPath" in stampInfoCustomSettingsDict:
             stampInfoSettings.customFileFullPath = stampInfoCustomSettingsDict["customFileFullPath"]
 
@@ -829,8 +827,8 @@ def renderStampedInfoForShot(
     scene.frame_start = shot.start - handles
     scene.frame_end = shot.end + handles
 
-    scene.render.resolution_x = 1280
-    scene.render.resolution_y = 960
+    # scene.render.resolution_x = 1280
+    # scene.render.resolution_y = 960
 
     numFramesInShot = scene.frame_end - scene.frame_start + 1
 
@@ -862,11 +860,14 @@ def renderStampedInfoForShot(
         #     rootFilePath=rootPath, fullPath=True, specificFrame=scene.frame_current
         # )
         scene.render.filepath = shot.getOutputMediaPath(rootPath=rootPath, specificFrame=scene.frame_current)
+        shotFilename = shot.getOutputMediaPath(rootPath=rootPath, providePath=False, specificFrame=scene.frame_current)
 
         if verbose:
             print("      ------------------------------------------")
             print(
                 f"      \nStamp Info Frame: {currentFrame}    ( {f + 1} / {numFramesInShot} )    -     Shot: {shot.name}"
+                f"      \nscene.render.filepath: {scene.render.filepath}"
+                f"      \nshotFilename: {shotFilename}"
             )
 
         stampInfoSettings.shotName = f"{props.renderShotPrefix()}_{shot.name}"
@@ -883,7 +884,15 @@ def renderStampedInfoForShot(
         stampInfoSettings.cameraName = shot.camera.name
         stampInfoSettings.edit3DFrame = props.getEditTime(shot, currentFrame, referenceLevel="GLOBAL_EDIT")
         stampInfoSettings.renderRootPath = newTempRenderPath
-        stampInfoSettings.renderTmpImageWithStampedInfo(scene, currentFrame)
+        print(f"stampInfoSettings.renderRootPath: {stampInfoSettings.renderRootPath}")
+        stampInfoSettings.renderTmpImageWithStampedInfo(
+            scene,
+            currentFrame,
+            renderPath=newTempRenderPath,
+            renderFilename=r"_tmp_StampInfo." + "{:05d}".format(currentFrame) + ".png",
+            verbose=False,
+        )
+        # stampInfoSettings.renderTmpImageWithStampedInfo(scene, currentFrame, verbose=True)
 
     ##############
     # restore scene state
@@ -900,7 +909,7 @@ def renderStampedInfoForShot(
 def launchRender(context, renderMode, rootPath, area=None):
     # def launchRender(context, renderMode, rootPath, useStampInfo=True, area = None ):
     """
-        rootPath: directory to render the files
+    rootPath: directory to render the files
     """
     context = bpy.context
     scene = bpy.context.scene
@@ -908,7 +917,7 @@ def launchRender(context, renderMode, rootPath, area=None):
     renderDisplayInfo = ""
 
     renderDisplayInfo += "\n\n*** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** ***\n"
-    renderDisplayInfo += "\n                                 *** UAS Shot Manager V " + props.version()[0] + " - "
+    renderDisplayInfo += "\n                                 *** Shot Manager V " + props.version()[0] + " - "
 
     preset = None
     if "STILL" == renderMode:
@@ -1109,7 +1118,8 @@ def launchRender(context, renderMode, rootPath, area=None):
                     utils.openMedia(renderedFilesDict["sequence_video_file"], inExternalPlayer=True)
 
             # open rendered media in vse
-            if preset.updatePlayblastInVSM:
+            # wkip removed until uas_videotracks works
+            if False and preset.updatePlayblastInVSM:
                 from shotmanager.scripts.rrs.rrs_playblast import rrs_playblast_to_vsm
 
                 rrs_playblast_to_vsm(playblastInfo=renderedFilesDict["playblastInfos"])

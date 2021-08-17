@@ -64,41 +64,6 @@ class UAS_Utils_RunScript(Operator):
         return {"FINISHED"}
 
 
-class UAS_ShotManager_OpenExplorer(Operator):
-    bl_idname = "uas_shot_manager.open_explorer"
-    bl_label = "Open Explorer"
-    bl_description = "Open an Explorer window located at the render output directory.\nShift + Click: Copy the path into the clipboard"
-
-    path: StringProperty()
-
-    def invoke(self, context, event):
-        absPathToOpen = bpy.path.abspath(self.path)
-        head, tail = os.path.split(absPathToOpen)
-        absPathToOpen = head + "\\"
-
-        if event.shift:
-
-            def _copy_to_clipboard(txt):
-                cmd = "echo " + txt.strip() + "|clip"
-                return subprocess.check_call(cmd, shell=True)
-
-            _copy_to_clipboard(absPathToOpen)
-
-        else:
-            # wkipwkip
-            if Path(absPathToOpen).exists():
-                subprocess.Popen(f'explorer "{Path(absPathToOpen)}"')
-            elif Path(absPathToOpen).parent.exists():
-                subprocess.Popen(f'explorer "{Path(absPathToOpen).parent}"')
-            elif Path(absPathToOpen).parent.parent.exists():
-                subprocess.Popen(f'explorer "{Path(absPathToOpen).parent.parent}"')
-            else:
-                print(f"Open Explorer failed: Path not found: {Path(absPathToOpen)}")
-                from ..utils.utils import ShowMessageBox
-
-                ShowMessageBox(f"{absPathToOpen} not found", "Open Explorer - Directory not found", "ERROR")
-
-        return {"FINISHED"}
 
 
 ###################
@@ -137,7 +102,6 @@ class UAS_Utils_GetCurrentFrameForTimeRange(Operator):
 _classes = (
     UAS_OT_EmptyOperator,
     UAS_Utils_RunScript,
-    UAS_ShotManager_OpenExplorer,
     UAS_Utils_GetCurrentFrameForTimeRange,
 )
 

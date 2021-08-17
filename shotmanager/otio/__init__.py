@@ -26,6 +26,9 @@ import platform
 
 import bpy
 
+import logging
+
+_logger = logging.getLogger(__name__)
 
 try:
     import opentimelineio
@@ -44,19 +47,26 @@ try:
         )
         importlib.reload(opentimelineio)  # Need to be tested.
 except ModuleNotFoundError:
+    _logger.error(f"*** Error - OpenTimelineIO import failed - using provided version")
     if platform.system() == platform.system() == "Windows":
-        subprocess.run(
-            [
-                bpy.app.binary_path_python,
-                "-m",
-                "pip",
-                "install",
-                os.path.join(os.path.dirname(__file__), "OpenTimelineIO-0.12.1-cp37-cp37m-win_amd64.whl"),
-            ]
-        )
+        _logger.error(f"Plateform: Windows")
+        try:
+            subprocess.run(
+                [
+                    bpy.app.binary_path_python,
+                    "-m",
+                    "pip",
+                    "install",
+                    os.path.join(os.path.dirname(__file__), "OpenTimelineIO-0.12.1-cp37-cp37m-win_amd64.whl"),
+                ]
+            )
+            import opentimelineio as opentimelineio
+        except ModuleNotFoundError:
+            _logger.error(f"*** Error - OpenTimelineIO instal from provided version failed")
     else:
         subprocess.run([bpy.app.binary_path_python, "-m", "pip", "install", "opentimelineio"])
-    import opentimelineio as opentimelineio
+        import opentimelineio as opentimelineio
+    #import opentimelineio as opentimelineio
 
 from . import operators
 

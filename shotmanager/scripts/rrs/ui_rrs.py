@@ -29,7 +29,7 @@ class UAS_PT_ShotManager_RRS_Debug(Panel):
     bl_idname = "UAS_PT_Shot_Manager_rrs_debug"
     bl_space_type = "VIEW_3D"
     bl_region_type = "UI"
-    bl_category = "UAS Shot Man"
+    bl_category = "Shot Mng"
     bl_options = {"DEFAULT_CLOSED"}
 
     @classmethod

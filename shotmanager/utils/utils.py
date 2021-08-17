@@ -28,16 +28,14 @@ import bpy
 
 
 def convertVersionStrToInt(versionStr):
-    """ Convert a string formated like "1.23.48" to a version integer such as 1023048
-    """
+    """Convert a string formated like "1.23.48" to a version integer such as 1023048"""
     formatedVersion = "{:02}{:03}{:03}"
     versionSplitted = versionStr.split(".")
     return int(formatedVersion.format(int(versionSplitted[0]), int(versionSplitted[1]), int(versionSplitted[2])))
 
 
 def convertVersionIntToStr(versionInt):
-    """ Convert an integer formated like 1023048 to a version string such as "1.23.48"
-    """
+    """Convert an integer formated like 1023048 to a version string such as "1.23.48" """
     versionIntStr = str(versionInt)
     length = len(versionIntStr)
     versionStr = (
@@ -51,42 +49,35 @@ def convertVersionIntToStr(versionInt):
 
 
 def addonVersion(addonName):
-    """ Return the add-on version in the form of a tupple made by: 
-            - a string x.y.z (eg: "1.21.3")
-            - an integer. x.y.z becomes xxyyyzzz (eg: "1.21.3" becomes 1021003)
-        Return None if the addon has not been found
+    """Return the add-on version in the form of a tupple made by:
+        - a string x.y.z (eg: "1.21.3")
+        - an integer. x.y.z becomes xxyyyzzz (eg: "1.21.3" becomes 1021003)
+    Return None if the addon has not been found
     """
+    import addon_utils
 
     #   print("addonVersion called...")
     versionStr = "-"
     versionInt = -1
     versions = None
 
-    # wkip temp fix to avoid latencies when resizing main add-on panel
-    if "UAS Shot Manager" == addonName:
-        versions = ("1.5.2", 1005002)
-    # else:
-    #     versions = ("1.0.2", 1000002)
-    else:
-        import addon_utils
+    versionTupple = [
+        addon.bl_info.get("version", (-1, -1, -1))
+        for addon in addon_utils.modules()
+        if addon.bl_info["name"] == addonName
+    ]
+    if len(versionTupple):
+        versionTupple = versionTupple[0]
+        versionStr = str(versionTupple[0]) + "." + str(versionTupple[1]) + "." + str(versionTupple[2])
 
-        versionTupple = [
-            addon.bl_info.get("version", (-1, -1, -1))
-            for addon in addon_utils.modules()
-            if addon.bl_info["name"] == addonName
-        ]
-        if len(versionTupple):
-            versionTupple = versionTupple[0]
-            versionStr = str(versionTupple[0]) + "." + str(versionTupple[1]) + "." + str(versionTupple[2])
+        # versionStr = "131.258.265"
+        versionInt = convertVersionStrToInt(versionStr)
 
-            # versionStr = "131.258.265"
-            versionInt = convertVersionStrToInt(versionStr)
+        # print("versionStr: ", versionStr)
+        # print("versionInt: ", versionInt)
+        # print("convertVersionIntToStr: ", convertVersionIntToStr(versionInt))
 
-            # print("versionStr: ", versionStr)
-            # print("versionInt: ", versionInt)
-            # print("convertVersionIntToStr: ", convertVersionIntToStr(versionInt))
-
-            versions = (versionStr, versionInt)
+        versions = (versionStr, versionInt)
 
     return versions
 
@@ -151,16 +142,16 @@ class PropertyRestoreCtx:
 
 def ShowMessageBox(message="", title="Message Box", icon="INFO"):
     """
-        # #Shows a message box with a specific message 
-        # ShowMessageBox("This is a message") 
+    # #Shows a message box with a specific message
+    # ShowMessageBox("This is a message")
 
-        # #Shows a message box with a message and custom title
-        # ShowMessageBox("This is a message", "This is a custom title")
+    # #Shows a message box with a message and custom title
+    # ShowMessageBox("This is a message", "This is a custom title")
 
-        # #Shows a message box with a message, custom title, and a specific icon
-        # ShowMessageBox("This is a message", "This is a custom title", 'ERROR')
+    # #Shows a message box with a message, custom title, and a specific icon
+    # ShowMessageBox("This is a message", "This is a custom title", 'ERROR')
 
-        Icon can be "INFO" (default), "WARNING", "ERROR"
+    Icon can be "INFO" (default), "WARNING", "ERROR"
     """
 
     # else use return context.window_manager.invoke_props_dialog(self, width=400) in a invoke function
@@ -228,7 +219,9 @@ def openMedia(media_filepath, inExternalPlayer=False):
 
         # bpy.ops.render.view_show()
         bpy.ops.image.open(
-            filepath=media_filepath, relative_path=False, show_multiview=False,
+            filepath=media_filepath,
+            relative_path=False,
+            show_multiview=False,
         )
 
         # bpy.data.images.[image_name].reload()
@@ -325,8 +318,7 @@ def deleteMarkerAtFrame(scene, frame):
 
 
 def findFirstUniqueName(originalItem, name, itemsArray):
-    """ Return a string that correspont to name.xxx as the first unique name in the array
-    """
+    """Return a string that correspont to name.xxx as the first unique name in the array"""
     itemInd = 0
     numDuplicatesFound = 0
     newIndexStr = ".{:03}"
@@ -342,8 +334,8 @@ def findFirstUniqueName(originalItem, name, itemsArray):
 
 
 def getSceneVSE(vsm_sceneName, createVseTab=False):
-    """ Return the scene that has the name held by vsm_sceneName and adds a VSE in it if there is not already one.
-        Use <returned scene>.sequence_editor to get the vse of the scene
+    """Return the scene that has the name held by vsm_sceneName and adds a VSE in it if there is not already one.
+    Use <returned scene>.sequence_editor to get the vse of the scene
     """
     # vsm_sceneName = "VideoShotManager"
     vsm_scene = None
@@ -381,8 +373,7 @@ def getSceneVSE(vsm_sceneName, createVseTab=False):
 
 
 def duplicateObject(sourceObject, newName=None):
-    """ Duplicate (deepcopy) an object and place it in the same collection
-    """
+    """Duplicate (deepcopy) an object and place it in the same collection"""
     newObject = sourceObject.copy()
     if newObject.animation_data is not None:
         newObject.animation_data.action = sourceObject.animation_data.action.copy()
@@ -478,8 +469,7 @@ def get_greasepencil_child(obj, name_filter=""):
 
 
 def cameras_from_scene(scene):
-    """ Return the list of all the cameras in the scene
-    """
+    """Return the list of all the cameras in the scene"""
     camList = [c for c in scene.objects if c.type == "CAMERA"]
     return camList
 
@@ -590,8 +580,8 @@ def create_new_camera(camera_name, location=[0, 0, 0], locate_on_cursor=False):
 def add_background_video_to_cam(
     camera: bpy.types.Camera, movie_path, frame_start, alpha=-1, proxyRenderSize="PROXY_50", relative_path=False
 ):
-    """ Camera argument: use camera.data, not the camera object
-        proxyRenderSize is PROXY_25, PROXY_50, PROXY_75, PROXY_100, FULL
+    """Camera argument: use camera.data, not the camera object
+    proxyRenderSize is PROXY_25, PROXY_50, PROXY_75, PROXY_100, FULL
     """
     # print("add_background_video_to_cam")
     movie_path = Path(movie_path)
@@ -620,8 +610,7 @@ def add_background_video_to_cam(
 
 
 def remove_background_video_from_cam(camera: bpy.types.Camera):
-    """ Camera argument: use camera.data, not the camera object
-    """
+    """Camera argument: use camera.data, not the camera object"""
     if camera is not None:
         camera.background_images.clear()
         # remove(image)
@@ -655,8 +644,8 @@ def add_to_selection(obj):
 
 def slightlyRandomizeColor(refColor, weight=0.8):
     """
-        refColor is supposed to be linear, returned color is linear too
-        refColor can be RGB or RGBA. Alpha is not modified.
+    refColor is supposed to be linear, returned color is linear too
+    refColor can be RGB or RGBA. Alpha is not modified.
     """
     from random import uniform
 

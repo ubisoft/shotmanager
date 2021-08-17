@@ -1,5 +1,13 @@
 # Developer environment
 
+- [Python Virtual Environment](#python-virtual-environment)
+- [Visual Studio Code](#visual-studio-code)
+- [VSCode configuration](#vscode-configuration)
+- [Running code quality tools manually](#running-code-quality-tools-manually)
+- [CI CD](#ci-cd)
+
+#pythonvenv
+
 ## Python Virtual Environment
 
 After cloning the repository, create a Virtual Environment in the code directory:
@@ -40,7 +48,7 @@ The file `.vscode/settings.shared.json` gives an exemple of settings to fill you
 
 Similarly you can copy `.vscode/launch.shared.json` and `.vscode/tasks.shared.json` for exemples of debug configurations and tasks to run from VSCode.
 
-## VSCode "configuration"
+## VSCode configuration
 
 To prevent VSCode from breaking on generator related exceptions, modify your local installation of `pydevd_frame.py` like stated in https://github.com/fabioz/ptvsd/commit/b297bc027f504cf8679090079aebff6028dfec02.
 
@@ -54,6 +62,6 @@ If you want to check flake warnings, run `flake8` in the terminal. Note that the
 
 You need to have the virtual env activated for these commands to work.
 
-## CI/CD
+## CI CD
 
 The CI/CD script `.gitlab-ci.yml` has a codequality stage that run flake8 on the codebase. Go to the pipeline pages of the project to check if your commits meet the quality check.

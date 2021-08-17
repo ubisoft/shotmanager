@@ -47,6 +47,8 @@ class UAS_MT_ShotManager_Prefs_MainMenu(Menu):
         row = layout.row(align=True)
         row.operator("uas_shot_manager.general_prefs")
         row = layout.row(align=True)
+        row.operator("uas_shot_manager.features")
+        row = layout.row(align=True)
         row.operator("uas_shot_manager.project_settings_prefs")
 
         layout.separator()
@@ -76,8 +78,15 @@ class UAS_MT_ShotManager_Prefs_MainMenu(Menu):
         row.operator("uas_shot_manager.file_info", text="File Info...")
 
         layout.separator()
-        row = layout.row(align=True)
 
+        row = layout.row(align=True)
+        row.operator(
+            "shotmanager.open_documentation_url", text="Documentation"
+        ).path = "https://ubisoft-shotmanager.readthedocs.io"
+
+        layout.separator()
+
+        row = layout.row(align=True)
         row.operator("uas_shot_manager.about", text="About...")
 
 
@@ -162,7 +171,7 @@ class UAS_PT_ShotManagerPref_General(Panel):
     bl_idname = "UAS_PT_Shot_Manager_Pref_General"
     bl_space_type = "VIEW_3D"
     bl_region_type = "UI"
-    bl_category = "UAS Shot Man"
+    bl_category = "Shot Mng"
     bl_options = {"DEFAULT_CLOSED"}
     bl_parent_id = "UAS_PT_Shot_Manager_Pref"
 
@@ -224,7 +233,9 @@ class UAS_ShotManager_Playbar_Prefs(Operator):
         col.use_property_split = True
         # col.use_property_decorate = False
         col.prop(
-            props, "display_disabledshots_in_timeline", text="Display Disabled Shots",
+            props,
+            "display_disabledshots_in_timeline",
+            text="Display Disabled Shots",
         )
 
         # Edit ######
@@ -357,7 +368,7 @@ class UAS_ShotManager_Shots_Prefs(Operator):
 #     bl_idname = "UAS_PT_Shot_Manager_Pref_StampInfoPrefs"
 #     bl_space_type = "VIEW_3D"
 #     bl_region_type = "UI"
-#     bl_category = "UAS Shot Man"
+#     bl_category = "Shot Mng"
 #     bl_options = {"DEFAULT_CLOSED"}
 #     bl_parent_id = "UAS_PT_Shot_Manager_Pref"
 

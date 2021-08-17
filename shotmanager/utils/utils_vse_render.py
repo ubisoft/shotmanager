@@ -32,8 +32,8 @@ from bpy.props import (
     PointerProperty,
 )
 
-from shotmanager.config import config
-from shotmanager.utils import utils
+from ..config import config
+from ..utils import utils
 
 # # ------------------------------------------------------------------------#
 # #                                VSE tool Panel                             #
@@ -202,9 +202,9 @@ class UAS_Vse_Render(PropertyGroup):
         self.inputAudioMediaPath = ""
 
     def getMediaList(self, scene, listVideo=True, listAudio=True):
-        """ Return the list of the media used in the VSE
-            Return a dictionary made of "media_video" and "media_audio", both having an array of media filepaths
-            Movies are not listed in audio media !
+        """Return the list of the media used in the VSE
+        Return a dictionary made of "media_video" and "media_audio", both having an array of media filepaths
+        Movies are not listed in audio media !
         """
         mediaList = {"media_video": None, "media_audio": None}
         audioFiles = []
@@ -245,8 +245,8 @@ class UAS_Vse_Render(PropertyGroup):
         return bpy.path.abspath(mediaPath)
 
     def getMediaType(self, filePath):
-        """ Return the type of media according to the extension of the provided file path
-            Rturned types: 'MOVIE', 'IMAGES_SEQUENCE', 'IMAGE', 'SOUND', 'UNKNOWN'
+        """Return the type of media according to the extension of the provided file path
+        Rturned types: 'MOVIE', 'IMAGES_SEQUENCE', 'IMAGE', 'SOUND', 'UNKNOWN'
         """
         mediaType = "UNKNOWN"
 
@@ -343,19 +343,18 @@ class UAS_Vse_Render(PropertyGroup):
         importAudio=False,
     ):
         """
-            A strip is placed at a specified time in the edit by putting its media start at the place where
-            it will be, in an absolute approach, and then by changing the handles of the clip with offsetStart
-            and offsetEnd. None of these parameters change the position of the media frames in the edit time (it
-            is like changing the position of the sides of a window, but not what the window sees).
-            Both offsetStart and offsetEnd are relative to the start time of the media.
-            audio_volume_keyframes is a list of paired values (Frame, Value)
+        A strip is placed at a specified time in the edit by putting its media start at the place where
+        it will be, in an absolute approach, and then by changing the handles of the clip with offsetStart
+        and offsetEnd. None of these parameters change the position of the media frames in the edit time (it
+        is like changing the position of the sides of a window, but not what the window sees).
+        Both offsetStart and offsetEnd are relative to the start time of the media.
+        audio_volume_keyframes is a list of paired values (Frame, Value)
         """
 
         def _new_camera_sequence(
             scene, name, channelInd, atFrame, offsetStart, offsetEnd, cameraScene, cameraObject, final_duration=-1
         ):
-            """ Create the camera sequence
-            """
+            """Create the camera sequence"""
             # !!! When the 3D scence range is not starting at zero the camera strip is clipped at the begining...
             OriRangeStart = cameraScene.frame_start
             OriRangeEnd = cameraScene.frame_end
@@ -376,8 +375,7 @@ class UAS_Vse_Render(PropertyGroup):
             return camSeq
 
         def _new_images_sequence(scene, clipName, images_path, channelInd, atFrame):
-            """ Find the name template for the specified images sequence in order to create it
-            """
+            """Find the name template for the specified images sequence in order to create it"""
             import re
             from pathlib import Path
 
@@ -510,7 +508,14 @@ class UAS_Vse_Render(PropertyGroup):
         elif "CAMERA" == mediaType:
             newClipName = clipName if "" != clipName else "myCamera"
             newClip = _new_camera_sequence(
-                scene, newClipName, channelInd, atFrame, offsetStart, offsetEnd, cameraScene, cameraObject,
+                scene,
+                newClipName,
+                channelInd,
+                atFrame,
+                offsetStart,
+                offsetEnd,
+                cameraScene,
+                cameraObject,
             )
             newClip.blend_type = "ALPHA_OVER"
 
@@ -570,8 +575,8 @@ class UAS_Vse_Render(PropertyGroup):
 
     # wkip mettre les mute: faut il les selectionner?
     def selectChannelClips(self, scene, channelIndex, mode="CLEARANDSELECT"):
-        """ Modes: "CLEARANDSELECT", "ADD", "REMOVE"
-            Returns the resulting selected clips belonging to the track
+        """Modes: "CLEARANDSELECT", "ADD", "REMOVE"
+        Returns the resulting selected clips belonging to the track
         """
         sequencesList = list()
         for seq in scene.sequence_editor.sequences:
@@ -618,43 +623,42 @@ class UAS_Vse_Render(PropertyGroup):
     def cropClipToCanvas(
         self, canvasWidth, canvasHeight, clip, clipWidth, clipHeight, clipRenderPercentage=100, mode="FIT_ALL"
     ):
-        """Mode can be FIT_ALL, FIT_WIDTH, FIT_HEIGHT, NO_RESIZE
-        """
+        """Mode can be FIT_ALL, FIT_WIDTH, FIT_HEIGHT, NO_RESIZE"""
         clipRatio = clipWidth / clipHeight
         canvasRatio = canvasWidth / canvasHeight
 
         clipRealWidth = int(clipWidth * (clipRenderPercentage / 100))
         clipRealHeight = int(clipHeight * (clipRenderPercentage / 100))
 
-        if "FIT_ALL" == mode or (canvasWidth == clipRealWidth and canvasHeight == clipRealHeight):
-            clip.use_crop = True
-            clip.crop.min_x = clip.crop.max_x = clip.crop.min_y = clip.crop.max_y = 0
-            clip.use_crop = False
+        if hasattr(clip, "use_crop"):
+            if "FIT_ALL" == mode or (canvasWidth == clipRealWidth and canvasHeight == clipRealHeight):
+                clip.use_crop = True
+                clip.crop.min_x = clip.crop.max_x = clip.crop.min_y = clip.crop.max_y = 0
+                clip.use_crop = False
 
-        else:
-            clip.use_crop = True
-            clip.crop.min_x = clip.crop.max_x = 0
-            clip.crop.min_y = clip.crop.max_y = 0
+            else:
+                clip.use_crop = True
+                clip.crop.min_x = clip.crop.max_x = 0
+                clip.crop.min_y = clip.crop.max_y = 0
 
-            if "FIT_WIDTH" == mode:
-                clipNewHeight = canvasWidth / clipRealWidth * clipRealHeight
-                clip.crop.min_y = clip.crop.max_y = -0.5 * (clipRenderPercentage / 100) * (canvasHeight - clipNewHeight)
+                if "FIT_WIDTH" == mode:
+                    clipNewHeight = canvasWidth / clipRealWidth * clipRealHeight
+                    clip.crop.min_y = clip.crop.max_y = -0.5 * (clipRenderPercentage / 100) * (canvasHeight - clipNewHeight)
 
-            if "FIT_HEIGHT" == mode:
-                clipNewWidth = canvasHeight / clipRealHeight * clipRealWidth
-                clip.crop.min_x = clip.crop.max_x = -0.5 * (clipRenderPercentage / 100) * (canvasWidth - clipNewWidth)
+                if "FIT_HEIGHT" == mode:
+                    clipNewWidth = canvasHeight / clipRealHeight * clipRealWidth
+                    clip.crop.min_x = clip.crop.max_x = -0.5 * (clipRenderPercentage / 100) * (canvasWidth - clipNewWidth)
 
-            if "NO_RESIZE" == mode:
-                clip.crop.min_x = clip.crop.max_x = -0.5 * (clipRenderPercentage / 100) * (canvasWidth - clipRealWidth)
-                clip.crop.min_y = clip.crop.max_y = (
-                    -0.5 * (clipRenderPercentage / 100) * (canvasHeight - clipRealHeight)
-                )
-                pass
+                if "NO_RESIZE" == mode:
+                    clip.crop.min_x = clip.crop.max_x = -0.5 * (clipRenderPercentage / 100) * (canvasWidth - clipRealWidth)
+                    clip.crop.min_y = clip.crop.max_y = (
+                        -0.5 * (clipRenderPercentage / 100) * (canvasHeight - clipRealHeight)
+                    )
+                    pass
 
     def get_frame_end_from_content(self, scene):
         # wkipwkipwkip erreur ici, devrait etre exclusive pour extre consistant et ne l'est pas
-        """get_frame_end is exclusive in order to follow the Blender implementation of get_frame_end for its clips
-        """
+        """get_frame_end is exclusive in order to follow the Blender implementation of get_frame_end for its clips"""
         videoChannelClips = self.getChannelClips(scene, 1)
         scene_frame_start = scene.frame_start  # scene.sequence_editor.sequences
 
@@ -845,7 +849,12 @@ class UAS_Vse_Render(PropertyGroup):
                     clip_x = inputOverResolution[0]
                     clip_y = inputOverResolution[1]
                     self.cropClipToCanvas(
-                        res_x, res_y, overClip, clip_x, clip_y, mode="FIT_WIDTH",
+                        res_x,
+                        res_y,
+                        overClip,
+                        clip_x,
+                        clip_y,
+                        mode="FIT_WIDTH",
                     )
                     # overClip.use_crop = True
                     # overClip.crop.min_x = -1 * int((mediaDictArr[0]["bg_resolution"][0] - inputOverResolution[0]) / 2)
@@ -862,7 +871,11 @@ class UAS_Vse_Render(PropertyGroup):
                     audioClip = self.createNewClip(
                         sequenceScene, mediaDict["sound"], 1, atFrame, final_duration=shotDuration
                     )
-                    audioClip = self.createNewClipFromRange(sequenceScene, mediaDict["sound"], 1,)
+                    audioClip = self.createNewClipFromRange(
+                        sequenceScene,
+                        mediaDict["sound"],
+                        1,
+                    )
                 else:
                     print(f" *** Rendered shot not found: {mediaDict['sound']}")
 
@@ -920,7 +933,7 @@ class UAS_Vse_Render(PropertyGroup):
         self, fps, frame_start, frame_end, output_filepath, postfixSceneName="", output_resolution=None
     ):
         """
-            output_resolution: array [with, height]
+        output_resolution: array [with, height]
         """
 
         specificFrame = None
@@ -996,7 +1009,7 @@ class UAS_Vse_Render(PropertyGroup):
             #    print(f"self.inputBGMediaPath: {self.inputOverMediaPath}")
 
             if bgClip is not None:
-                if output_res[0] != self.inputBGResolution[0] or output_res[1] != self.inputBGResolution[1]:
+                if output_res[0] < self.inputBGResolution[0] or output_res[1] < self.inputBGResolution[1]:
                     bgClip.use_crop = True
                     bgClip.crop.min_x = int((self.inputBGResolution[0] - output_res[0]) / 2)
                     bgClip.crop.max_x = bgClip.crop.min_x
@@ -1017,7 +1030,7 @@ class UAS_Vse_Render(PropertyGroup):
             #     print(f" *** Rendered shot not found: {self.inputOverMediaPath}")
 
             if overClip is not None:
-                if output_res[0] != self.inputOverResolution[0] or output_res[1] != self.inputOverResolution[1]:
+                if output_res[0] < self.inputOverResolution[0] or output_res[1] < self.inputOverResolution[1]:
                     overClip.use_crop = True
                     overClip.crop.min_x = int((self.inputOverResolution[0] - output_res[0]) / 2)
                     overClip.crop.max_x = overClip.crop.min_x
@@ -1050,7 +1063,6 @@ class UAS_Vse_Render(PropertyGroup):
 
         bpy.context.window.scene = previousScene
 
-        # bpy.ops.image.open(filepath="//Main_Take0010.png", directory="Z:\\EvalSofts\\Blender\\DevPython_Data\\UAS_ShotManager_Data\\", files=[{"name":"Main_Take0010.png", "name":"Main_Take0010.png"}], relative_path=True, show_multiview=False)
         # bpy.ops.image.open(
         #     filepath="//SceneRace_Sh0020_0079.png",
         #     directory="C:\\tmp02\\Main_Take\\",
@@ -1080,6 +1092,7 @@ def register():
 
 
 def unregister():
+    pass
     for cls in reversed(_classes):
         bpy.utils.unregister_class(cls)
 

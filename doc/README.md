@@ -1,6 +1,6 @@
 # Contributing
 
-Shot Manager is a production tool. At the moment it is notyet opened to external contributions. Any feedback is very welcome though.
+Shot Manager is a production tool. At the moment it is not yet opened to external contributions. Any feedback is very welcome though.
 
 ## Documentation
 

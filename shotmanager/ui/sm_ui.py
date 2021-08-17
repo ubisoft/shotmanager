@@ -42,12 +42,12 @@ _logger = logging.getLogger(__name__)
 
 
 class UAS_PT_ShotManager(Panel):
-    #    bl_label = f"UAS Shot Manager {'.'.join ( str ( v ) for v in bl_info[ 'version'] ) }"
-    bl_label = " UAS Shot Manager   V. " + utils.addonVersion("UAS Shot Manager")[0]
+    #    bl_label = f"Shot Manager {'.'.join ( str ( v ) for v in bl_info[ 'version'] ) }"
+    bl_label = " Shot Manager  V. " + utils.addonVersion("Shot Manager")[0]
     bl_idname = "UAS_PT_Shot_Manager"
     bl_space_type = "VIEW_3D"
     bl_region_type = "UI"
-    bl_category = "UAS Shot Man"
+    bl_category = "Shot Mng"
 
     @classmethod
     def poll(cls, context):
@@ -121,7 +121,7 @@ class UAS_PT_ShotManager(Panel):
         # addonWarning = [
         #     addon.bl_info.get("warning", "")
         #     for addon in addon_utils.modules()
-        #     if addon.bl_info["name"] == "UAS Shot Manager"
+        #     if addon.bl_info["name"] == "Shot Manager"
         # ]
 
         addonWarning = [""]
@@ -284,11 +284,17 @@ class UAS_PT_ShotManager(Panel):
         # takes
         ################
         panelIcon = "TRIA_DOWN" if prefs.take_properties_extended else "TRIA_RIGHT"
+        takeHasNotes = False
+        if currentTake is not None:
+            takeHasNotes = currentTake.hasNotes()
 
         layout.separator(factor=0.3)
         box = layout.box()
         row = box.row(align=False)
-        row.prop(prefs, "take_properties_extended", text="", icon=panelIcon, emboss=False)
+
+        # if props.display_globaleditintegr_in_properties or props.display_notes_in_properties or props.display_takerendersettings_in_properties or takeHasNotes:
+        if props.display_globaleditintegr_in_properties or props.display_takerendersettings_in_properties:
+            row.prop(prefs, "take_properties_extended", text="", icon=panelIcon, emboss=False)
 
         takeStr = "Take:" if not props.display_advanced_infos else f"Take ({currentTakeInd + 1}/{props.getNumTakes()}):"
         row.label(text=takeStr)
@@ -299,9 +305,7 @@ class UAS_PT_ShotManager(Panel):
         subsubrow = subrow.row(align=False)
         subsubrow.scale_x = 0.8
 
-        takeHasNotes = False
         if currentTake is not None:
-            takeHasNotes = currentTake.hasNotes()
             if takeHasNotes:
                 icon = config.icons_col["ShotManager_NotesData_32"]
                 subsubrow.prop(
@@ -325,18 +329,61 @@ class UAS_PT_ShotManager(Panel):
         row.menu("UAS_MT_Shot_Manager_takes_toolsmenu", icon="TOOL_SETTINGS", text="")
 
         if prefs.take_properties_extended:
-            row = box.row()
-            row.label(text="Take Properties:")
-            subBox = box.box()
-            subRow = subBox.row()
-            subRow.separator()
-            subRow.prop(currentTake, "globalEditDirectory", text="Edit Dir")
-            subRow = subBox.row()
-            subRow.separator()
-            subRow.prop(currentTake, "globalEditVideo", text="Edit Animatic")
-            subRow = subBox.row()
-            subRow.separator()
-            subRow.prop(currentTake, "startInGlobalEdit", text="Start in Global Edit")
+            #  row = box.row()
+            #  row.label(text="Take Properties:")
+            if props.display_globaleditintegr_in_properties:
+                subBox = box.box()
+                subRow = subBox.row()
+                subRow.separator()
+                subRow.prop(currentTake, "globalEditDirectory", text="Edit Dir")
+                subRow = subBox.row()
+                subRow.separator()
+                subRow.prop(currentTake, "globalEditVideo", text="Edit Animatic")
+                subRow = subBox.row()
+                subRow.separator()
+                subRow.prop(currentTake, "startInGlobalEdit", text="Start in Global Edit")
+
+            if props.display_globaleditintegr_in_properties and props.display_takerendersettings_in_properties:
+                box.separator(factor=0.2)
+
+            if props.display_takerendersettings_in_properties:
+                subRow = box.row()
+                subRow.label(text="Take Render Settings:")
+
+                if props.use_project_settings:
+                    subSubRow = subRow.row()
+                    subSubRow.alert = "FROM_TAKE" == currentTake.renderMode
+                    subSubRow.prop(currentTake, "renderMode", text="")
+
+                if not props.use_project_settings or "FROM_TAKE" == currentTake.renderMode:
+                    subBox = box.box()
+                    # subRow = subBox.row()
+                    # subRow.separator()
+
+                    currentTake.outputParams_Resolution.draw(context, subBox)
+                    # row = subBox.row(align=False)
+                    # row.use_property_split = False
+                    # row.alignment = "RIGHT"
+                    # row.label(text="Resolution")
+                    # row.prop(currentTake, "resolution_x", text="Width:")
+                    # row.prop(currentTake, "resolution_y", text="Height:")
+
+                    # row = subBox.row(align=False)
+                    # row.use_property_split = False
+                    # row.alignment = "RIGHT"
+                    # row.label(text="Frame Resolution")
+                    # row.prop(currentTake, "resolution_framed_x", text="Width:")
+                    # row.prop(currentTake, "resolution_framed_y", text="Height:")
+
+                    # stampInfoStr = "Use Stamp Info Add-on"
+                    # if not props.isStampInfoAvailable():
+                    #     stampInfoStr += "  (Warning: Currently NOT installed)"
+                    # subBox.prop(currentTake, "useStampInfoDuringRendering", text=stampInfoStr)
+
+                    # subRow.prop(currentTake, "resolution_x")
+                    # subRow.prop(currentTake, "resolution_y")
+
+            box.separator(factor=0.2)
 
         # Notes
         ######################
@@ -344,6 +391,7 @@ class UAS_PT_ShotManager(Panel):
             (props.display_notes_in_properties and prefs.take_properties_extended)
             or (props.display_notes_in_properties and prefs.take_notes_extended)
             or (takeHasNotes and prefs.take_notes_extended)
+            # or (takeHasNotes and prefs.take_properties_extended)
         ):
             # or (props.display_notes_in_properties and prefs.take_properties_extended)
             # ):
@@ -410,30 +458,32 @@ class UAS_PT_ShotManager(Panel):
             subrow.scale_x = 0.9
             subrow.alignment = "RIGHT"
 
-            icon = (
-                config.icons_col["ShotManager_CamGPVisible_32"]
-                if not prefs.toggleGreasePencil
-                else config.icons_col["ShotManager_CamGPHidden_32"]
-            )
-            subrow.operator(
-                "uas_shot_manager.enabledisablegreasepencil", text="", icon_value=icon.icon_id, emboss=False
-            )
+            if props.display_greasepencil_in_properties:
+                icon = (
+                    config.icons_col["ShotManager_CamGPVisible_32"]
+                    if not prefs.toggleGreasePencil
+                    else config.icons_col["ShotManager_CamGPHidden_32"]
+                )
+                subrow.operator(
+                    "uas_shot_manager.enabledisablegreasepencil", text="", icon_value=icon.icon_id, emboss=False
+                )
 
-            icon = (
-                config.icons_col["ShotManager_CamBGVisible_32"]
-                # config.icons_col["ShotManager_Image_32"]
-                if not prefs.toggleCamsBG
-                else config.icons_col["ShotManager_CamBGHidden_32"]
-            )
-            subrow.operator("uas_shot_manager.enabledisablecamsbg", text="", icon_value=icon.icon_id, emboss=False)
+            if props.display_camerabgtools_in_properties:
+                icon = (
+                    config.icons_col["ShotManager_CamBGVisible_32"]
+                    # config.icons_col["ShotManager_Image_32"]
+                    if not prefs.toggleCamsBG
+                    else config.icons_col["ShotManager_CamBGHidden_32"]
+                )
+                subrow.operator("uas_shot_manager.enabledisablecamsbg", text="", icon_value=icon.icon_id, emboss=False)
 
-            icon = (
-                config.icons_col["ShotManager_CamSoundVisible_32"]
-                # config.icons_col["ShotManager_Image_32"]
-                if not prefs.toggleCamsSoundBG
-                else config.icons_col["ShotManager_CamSoundHidden_32"]
-            )
-            subrow.operator("uas_shot_manager.enabledisablesoundbg", text="", icon_value=icon.icon_id, emboss=False)
+                icon = (
+                    config.icons_col["ShotManager_CamSoundVisible_32"]
+                    # config.icons_col["ShotManager_Image_32"]
+                    if not prefs.toggleCamsSoundBG
+                    else config.icons_col["ShotManager_CamSoundHidden_32"]
+                )
+                subrow.operator("uas_shot_manager.enabledisablesoundbg", text="", icon_value=icon.icon_id, emboss=False)
 
             if props.useLockCameraView:
                 subrow.alert = True
@@ -510,4 +560,3 @@ def unregister():
 
     for cls in reversed(classes):
         bpy.utils.unregister_class(cls)
-

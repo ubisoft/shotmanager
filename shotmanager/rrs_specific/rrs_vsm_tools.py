@@ -54,7 +54,7 @@ class UAS_PT_RRSVSMTools(Panel):
     bl_description = "RRS Options"
     bl_space_type = "SEQUENCE_EDITOR"
     bl_region_type = "UI"
-    bl_category = "UAS Video Shot Man"
+    bl_category = "Video Shot Mng"
     #  bl_parent_id = "UAS_PT_Video_Shot_Manager"
     bl_options = {"DEFAULT_CLOSED"}
 

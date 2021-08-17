@@ -175,7 +175,7 @@ def exportShotManagerEditToOtio(
     timeline = opentimelineio.schema.Timeline(
         name=scene.name + "_" + take_name, global_start_time=opentimelineio.opentime.from_frames(startFrame, sceneFps)
     )
-    timeline.metadata["exported_with"] = "UAS Shot Manager V. " + props.version()[0]
+    timeline.metadata["exported_with"] = "Shot Manager V. " + props.version()[0]
     from datetime import datetime
 
     now = datetime.now()

@@ -27,8 +27,8 @@ from ..config import config
 
 class UAS_ShotManager_Features(Operator):
     bl_idname = "uas_shot_manager.features"
-    bl_label = "Features"
-    bl_description = "Controls the features available in the shot Manager panel"
+    bl_label = "Features Display..."
+    bl_description = "Controls the features displayed and available in the Shot Manager panel"
     bl_options = {"INTERNAL"}
 
     def invoke(self, context, event):
@@ -73,6 +73,20 @@ class UAS_ShotManager_Features(Operator):
         icon = config.icons_col["ShotManager_CamGPVisible_32"]
         subrow.prop(props, "display_greasepencil_in_properties", text="", icon_value=icon.icon_id)
         subrow.label(text="Camera Grease Pencil")
+
+        ################
+        # Global Edit Integration
+        subrow = col.row()
+        subrow.scale_x = 1.5
+        subrow.prop(props, "display_takerendersettings_in_properties", text="", icon="OUTPUT")
+        subrow.label(text="Take Render Settings")
+
+        ################
+        # Global Edit Integration
+        subrow = col.row()
+        subrow.scale_x = 1.5
+        subrow.prop(props, "display_globaleditintegr_in_properties", text="", icon="SEQ_SPLITVIEW")
+        subrow.label(text="Global Edit Integration")
 
         layout.separator()
         layout.label(text="Display additionnal panels:")

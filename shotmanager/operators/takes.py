@@ -22,7 +22,7 @@ To do: module description here.
 # -*- coding: utf-8 -*-
 import bpy
 from bpy.types import Panel, Operator
-from bpy.props import CollectionProperty, StringProperty, BoolProperty
+from bpy.props import CollectionProperty, StringProperty, BoolProperty, IntProperty
 
 # import shotmanager.operators.shots as shots
 
@@ -47,6 +47,16 @@ class UAS_ShotManager_TakeAdd(Operator):
 
     name: StringProperty(name="Name")
 
+    resolution_x: IntProperty(name="Res. X", min=0, default=1280)
+    resolution_y: IntProperty(name="Res. Y", min=0, default=720)
+    resolution_framed_x: IntProperty(name="Res. Framed X", min=0, default=1280)
+    resolution_framed_y: IntProperty(name="Res. Framed Y", min=0, default=960)
+    useStampInfoDuringRendering: BoolProperty(
+        name="Stamp Info on Output",
+        description="Stamp render information on rendered images thanks to Stamp Info add-on",
+        default=True,
+    )
+
     # @classmethod
     # def poll ( cls, context ):
     #     props = context.scene.UAS_shot_manager_props
@@ -62,7 +72,7 @@ class UAS_ShotManager_TakeAdd(Operator):
             self.name = "Main Take"
         else:
             self.name = f"Take_{len ( context.scene.UAS_shot_manager_props.getTakes() ) - 1 + 1:02}"
-        return context.window_manager.invoke_props_dialog(self)
+        return context.window_manager.invoke_props_dialog(self, width=400)
 
     def draw(self, context):
         layout = self.layout
@@ -88,6 +98,29 @@ class UAS_ShotManager_TakeAdd(Operator):
             col.prop(self, "name", text="")
 
         layout.separator()
+        col.scale_x = 1.0
+
+        if not props.use_project_settings:
+            subBox = box.box()
+            row = subBox.row(align=False)
+            row.use_property_split = False
+            row.alignment = "RIGHT"
+            row.label(text="Resolution")
+            row.prop(self, "resolution_x", text="Width:")
+            row.prop(self, "resolution_y", text="Height:")
+
+            row = subBox.row(align=False)
+            row.use_property_split = False
+            row.alignment = "RIGHT"
+            row.label(text="Frame Resolution")
+            row.prop(self, "resolution_framed_x", text="Width:")
+            row.prop(self, "resolution_framed_y", text="Height:")
+
+            stampInfoStr = "Use Stamp Info Add-on"
+            if not props.isStampInfoAvailable():
+                stampInfoStr += "  (Warning: Currently NOT installed)"
+            subBox.prop(self, "useStampInfoDuringRendering", text=stampInfoStr)
+
 
     def execute(self, context):
         newTake = context.scene.UAS_shot_manager_props.addTake(name=self.name)
