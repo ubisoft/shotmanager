@@ -4,7 +4,7 @@
 - [Visual Studio Code](#visual-studio-code)
 - [VSCode configuration](#vscode-configuration)
 - [Running code quality tools manually](#running-code-quality-tools-manually)
-- [CI CD](#CI-CD)
+- [CI CD](#ci-cd)
 
 #pythonvenv
 
