@@ -33,11 +33,6 @@ For installation, features, FAQ, user help please check the documentation here: 
 ## Dev notes
 
 Various development notes related to the add-on itself, to the Git project or to the installation are available here: [Dev Notes](./doc/devnotes.md)
-This add-on requires the OpenTimelineIO Python wheel. This library is automaticaly downloaded and deployed on the
-Blender instance when the add-on is installed.
-
->The addon must be installed in Administrator mode so that the OpenTimelineIO Python wheel can
->be downloaded and deployed correctly. Also be sure that your firewall doesn't block the download (or use OpenVPN or equivalent).
 
 ## History
 [Change Log](./CHANGELOG.md)
