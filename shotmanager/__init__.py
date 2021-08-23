@@ -91,7 +91,7 @@ bl_info = {
     "author": "Ubisoft - Julien Blervaque (aka Werwack), Romain Carriquiry Borchiari",
     "description": "Manage a sequence of shots and cameras in the 3D View - Ubisoft Animation Studio",
     "blender": (2, 92, 0),
-    "version": (1, 5, 6),
+    "version": (1, 5, 60),
     "location": "View3D > Shot Manager",
     "wiki_url": "https://ubisoft-shotmanager.readthedocs.io",
     # "warning": "BETA Version",

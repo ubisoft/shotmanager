@@ -62,6 +62,7 @@ class UAS_ShotManager_ProjectSettings_Prefs(Operator):
         ############
         col.separator(factor=1)
         col.prop(props, "project_name")
+        col.prop(props, "project_default_take_name")
         col.prop(props, "project_shot_format")
 
         ############

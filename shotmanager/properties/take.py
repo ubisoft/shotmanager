@@ -99,12 +99,8 @@ class UAS_ShotManager_Take(SequenceInterface, PropertyGroup):
         # wkip check for unique name
         self.name = name
 
-        print(f" ---  scene.render.resolution_y 1 : {bpy.context.scene.render.resolution_y}")
-        print(f" ---  self.parentScene.render.resolution_y: {self.parentScene.render.resolution_y}")
         self.outputParams_Resolution.resolution_x = self.parentScene.render.resolution_x
         self.outputParams_Resolution.resolution_y = self.parentScene.render.resolution_y
-        print(f" ---  scene.render.resolution_y 2 : {bpy.context.scene.render.resolution_y}")
-        print(f" ---  self.parentScene.render.resolution_y: {self.parentScene.render.resolution_y}")
 
     def copyPropertiesFrom(self, source):
         """

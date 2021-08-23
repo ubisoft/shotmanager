@@ -242,6 +242,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
     ############
     project_shot_format: StringProperty(name="Shot Format", default=r"Act{:02}_Seq{:04}_Sh{:04}")
     project_name: StringProperty(name="Project Name", default="My Project")
+    project_default_take_name: StringProperty(name="Default Take Name", default="Main Take")
 
     project_use_shot_handles: BoolProperty(
         name="Use Handles",
@@ -747,8 +748,10 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         defaultTake = None
         if 0 >= len(takes):
             defaultTake = takes.add()
-            print("here default take")
-            defaultTake.initialize(self, name="Main Take")
+            defaultName = "Main Take"
+            if self.use_project_settings:
+                defaultName = self.project_default_take_name
+            defaultTake.initialize(self, name=defaultName)
             self.setCurrentTakeByIndex(0)
             # self.setCurrentShotByIndex(-1)
             # self.setSelectedShotByIndex(-1)
