@@ -747,6 +747,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         defaultTake = None
         if 0 >= len(takes):
             defaultTake = takes.add()
+            print("here default take")
             defaultTake.initialize(self, name="Main Take")
             self.setCurrentTakeByIndex(0)
             # self.setCurrentShotByIndex(-1)

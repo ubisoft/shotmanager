@@ -325,9 +325,7 @@ def register():
 
     config.initGlobalVariables()
 
-    if config.uasDebug:
-        _logger.setLevel(logging.DEBUG)  # CRITICAL ERROR WARNING INFO DEBUG NOTSET
-
+    
     ###################
     # logging
     ###################
@@ -348,6 +346,9 @@ def register():
         # handler = logging.FileHandler(get_log_file())
         # handler.setFormatter(formatter)
         # _logger.addHandler(handler)
+
+    if config.uasDebug:
+        _logger.setLevel(logging.DEBUG)  # CRITICAL ERROR WARNING INFO DEBUG NOTSET
 
     ###################
     # update data

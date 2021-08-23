@@ -44,7 +44,7 @@ class UAS_ShotManager_OT_About(Operator):
         row = box.row()
         row.separator()
         row.label(
-            text="Version: " + props.version()[0] + " - (" + "May 2021" + ")" + " -  Ubisoft"
+            text="Version: " + props.version()[0] + " - (" + "August 2021" + ")" + " -  Ubisoft"
         )
 
         # Authors
