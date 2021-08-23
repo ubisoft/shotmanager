@@ -34,50 +34,106 @@ def set_StampInfoSettings(scene):
 
         if stampInfoSettings.stampInfoUsed:
 
-            projProp_Name = props.project_name
+            #####################
+            # enable or disable stamp info properties
+            #####################
+            if props.use_project_settings:
+                # wkip get stamp info configuration specifed for the project
 
-            projProp_resolution_x = scene.render.resolution_x
-            projProp_resolution_y = scene.render.resolution_y
+                ####################################
+                # top
+                ####################################
+
+                stampInfoSettings.dateUsed = True
+                stampInfoSettings.timeUsed = True
+                stampInfoSettings.userNameUsed = True
+
+                stampInfoSettings.videoFrameUsed = True
+                stampInfoSettings.videoRangeUsed = True
+                stampInfoSettings.videoHandlesUsed = True
+
+                stampInfoSettings.animDurationUsed = True
+
+                # defined per shot?
+                #stampInfoSettings.notesUsed = shot.hasNotes()
+                #stampInfoSettings.cornerNoteUsed = not shot.enabled
+
+
+                ####################################
+                # bottom
+                ####################################
+
+                stampInfoSettings.sceneUsed = True
+                stampInfoSettings.takeUsed = True
+                #  stampInfoSettings.shotName       = shotName
+                stampInfoSettings.shotUsed = True
+                stampInfoSettings.cameraUsed = True
+                stampInfoSettings.cameraLensUsed = True
+
+                stampInfoSettings.edit3DFrameUsed = True
+                stampInfoSettings.edit3DTotalNumberUsed = True
+                stampInfoSettings.framerateUsed = True
+
+                stampInfoSettings.shotDurationUsed = True
+
+                stampInfoSettings.filenameUsed = True
+                stampInfoSettings.filepathUsed = True
+
+                stampInfoSettings.currentFrameUsed = True
+                stampInfoSettings.frameRangeUsed = True
+                stampInfoSettings.frameHandlesUsed = True
+                # stampInfoSettings.shotHandles = props.handles
+
+
+                ####################################
+                # general
+                ####################################
+
+                stampInfoSettings.borderUsed = True
+                stampInfoSettings.stampPropertyLabel = False
+                stampInfoSettings.stampPropertyValue = True
+
+                stampInfoSettings.debug_DrawTextLines = False
+
+            else:
+                # use stamp info settings from scene
+                pass
+
+            #####################
+            # set the value of stamp info global properties (ie not dependent on current time not on scene state),
+            # this independently from their display state set above
+            #####################
 
             if props.use_project_settings:
+                projProp_Name = props.project_name
+
                 projProp_resolution_x = props.project_resolution_x
                 projProp_resolution_y = props.project_resolution_y
                 projProp_resolutionFramed = [props.project_resolution_framed_x, props.project_resolution_framed_y]
 
-            stampInfoSettings.tmp_usePreviousValues = True
-
-            stampInfoSettings.tmp_previousResolution_x = projProp_resolution_x
-            stampInfoSettings.tmp_previousResolution_y = projProp_resolution_y
-
-            # stampInfoSettings.tmp_stampRenderResYDirToCompo_percentage = (
-            #     stampInfoSettings.stampRenderResYDirToCompo_percentage
-            # )
-
-            stampInfoSettings.tmp_stampInfoRenderMode = stampInfoSettings.stampInfoRenderMode
-            stampInfoSettings.stampInfoRenderMode = "OUTSIDE"
-            if props.use_project_settings:
+                stampInfoSettings.tmp_stampInfoRenderMode = stampInfoSettings.stampInfoRenderMode
+                stampInfoSettings.stampInfoRenderMode = "OUTSIDE"
                 stampInfoSettings.stampRenderResYOutside_percentage = (
-                    1.0 - projProp_resolutionFramed[1] / projProp_resolution_y
-                )
-            else:
-                stampInfoSettings.stampRenderResYOutside_percentage = 33.34
+                    float(projProp_resolutionFramed[1]) / projProp_resolution_y
+                ) * 100.0 - 100.0
+                
+                stampInfoSettings.stampInfoRenderMode = "OVER"
+                stampInfoSettings.stampRenderResOver_percentage = 86.0
 
-            stampInfoSettings.stampPropertyLabel = False
-            stampInfoSettings.stampPropertyValue = True
+                stampInfoSettings.automaticTextSize = False
+                stampInfoSettings.extPaddingNorm = 0.020
+                stampInfoSettings.fontScaleHNorm = 0.0168
+                stampInfoSettings.interlineHNorm = 0.0072
 
-            stampInfoSettings.automaticTextSize = False
-            stampInfoSettings.extPaddingNorm = 0.020
-            stampInfoSettings.fontScaleHNorm = 0.0168
-            stampInfoSettings.interlineHNorm = 0.0072
 
-            ####################################
-            # top
-            ####################################
 
-            ############
-            # logo
+                ####################################
+                # top
+                ####################################
 
-            if props.use_project_settings:
+                ############
+                # logo
+
                 if "" == props.project_logo_path:
                     # no logo used at all because none specified
                     stampInfoSettings.logoUsed = False
@@ -85,54 +141,38 @@ def set_StampInfoSettings(scene):
                     stampInfoSettings.logoUsed = True
                     stampInfoSettings.logoMode = "CUSTOM"
                     stampInfoSettings.logoFilepath = props.project_logo_path
+
+                stampInfoSettings.logoScaleH = 0.05
+                stampInfoSettings.logoPosNormX = 0.018
+                stampInfoSettings.logoPosNormY = 0.014
+
+                stampInfoSettings.projectName = projProp_Name
+                stampInfoSettings.projectUsed = True
+
+                # stampInfoSettings.edit3DFrame = props.     # set in the render loop
+                # stampInfoSettings.edit3DTotalNumber = props.getEditDuration()
+
+
+                ####################################
+                # bottom
+                ####################################
+
+
             else:
-                # wkip use the scene stamp info settings ??
-                stampInfoSettings.logoUsed = True
-                stampInfoSettings.logoMode = "BUILTIN"
-                stampInfoSettings.logoBuiltinName = "Blender_Logo.png"
+                pass
 
-            stampInfoSettings.logoScaleH = 0.05
-            stampInfoSettings.logoPosNormX = 0.018
-            stampInfoSettings.logoPosNormY = 0.014
+                projProp_resolution_x = scene.render.resolution_x
+                projProp_resolution_y = scene.render.resolution_y
 
-            stampInfoSettings.projectName = projProp_Name
-            stampInfoSettings.projectUsed = False
 
-            stampInfoSettings.dateUsed = True
-            stampInfoSettings.timeUsed = True
+            stampInfoSettings.tmp_usePreviousValues = False
 
-            stampInfoSettings.videoDurationUsed = True
+            # stampInfoSettings.tmp_previousResolution_x = projProp_resolution_x
+            # stampInfoSettings.tmp_previousResolution_y = projProp_resolution_y
 
-            stampInfoSettings.videoFrameUsed = True
-            stampInfoSettings.videoRangeUsed = True
-            stampInfoSettings.videoHandlesUsed = True
+            # stampInfoSettings.tmp_stampRenderResYDirToCompo_percentage = (
+            #     stampInfoSettings.stampRenderResYDirToCompo_percentage
+            # )
 
-            stampInfoSettings.edit3DFrameUsed = True
-            # stampInfoSettings.edit3DFrame = props.     # set in the render loop
-            stampInfoSettings.edit3DTotalNumberUsed = True
-            # stampInfoSettings.edit3DTotalNumber = props.getEditDuration()
 
-            stampInfoSettings.framerateUsed = True
 
-            ####################################
-            # bottom
-            ####################################
-
-            stampInfoSettings.sceneUsed = True
-            stampInfoSettings.takeUsed = True
-            #  stampInfoSettings.shotName       = shotName
-            stampInfoSettings.shotUsed = True
-            stampInfoSettings.cameraUsed = True
-            stampInfoSettings.cameraLensUsed = True
-
-            stampInfoSettings.shotDurationUsed = False
-
-            stampInfoSettings.filenameUsed = True
-            stampInfoSettings.filepathUsed = True
-
-            stampInfoSettings.currentFrameUsed = True
-            stampInfoSettings.frameRangeUsed = True
-            stampInfoSettings.frameHandlesUsed = True
-            # stampInfoSettings.shotHandles = props.handles
-
-            stampInfoSettings.debug_DrawTextLines = False

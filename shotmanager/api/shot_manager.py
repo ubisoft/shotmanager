@@ -85,7 +85,8 @@ def get_current_take_name(shot_manager):
 
 def add_take(shot_manager, at_index=-1, name="New Take"):
     """ Add a new take after the current take if possible or at the end of the take list otherwise
-        Return the newly added take. If it is the only take of the Shot Manager then its name will be "Main Take"
+        Return the newly added take. If it is the only take of the Shot Manager and the project settings
+        are not used then its name will be "Main Take"
     """
     return shot_manager.addTake(atIndex=at_index, name=name)
 

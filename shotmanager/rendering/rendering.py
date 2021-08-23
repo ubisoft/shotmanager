@@ -180,7 +180,10 @@ def launchRenderWithVSEComposite(
             else:
                 stampInfoSettings.renderRootPathUsed = True
                 stampInfoSettings.renderRootPath = rootPath
-                set_StampInfoSettings(scene)
+
+                stampInfoSettings.stampInfoUsed = props.useStampInfoDuringRendering
+                if stampInfoSettings.stampInfoUsed:
+                    set_StampInfoSettings(scene)
 
         context.window_manager.UAS_shot_manager_shots_play_mode = False
         context.window_manager.UAS_shot_manager_display_timeline = False
@@ -777,6 +780,13 @@ def renderStampedInfoForShot(
     stampInfoCustomSettingsDict=None,
     verbose=False,
 ):
+    """Launch the rendering or the frames of the shot, with Stamp Info
+
+    In this function Stamp Info properties values are updated according to the current time
+    and the state of the scene.
+    The display itself of the properties is NOT modified here, it is supposed to be already
+    set thanks to a call to set_StampInfoSettings
+    """
     _logger.debug("\n - * - *renderStampedInfoForShot *** ")
     props = shotManagerProps
     scene = props.parentScene
@@ -786,14 +796,42 @@ def renderStampedInfoForShot(
         if "customFileFullPath" in stampInfoCustomSettingsDict:
             stampInfoSettings.customFileFullPath = stampInfoCustomSettingsDict["customFileFullPath"]
 
-    stampInfoSettings.takeName = takeName
+    #####################
+    # enable or disable stamp info properties
+    #####################
+    if props.use_project_settings:
+        # wkip get stamp info configuration specifed for the project
 
-    stampInfoSettings.notesUsed = shot.hasNotes()
-    stampInfoSettings.notesLine01 = shot.note01
-    stampInfoSettings.notesLine02 = shot.note02
-    stampInfoSettings.notesLine03 = shot.note03
+        stampInfoSettings.notesUsed = shot.hasNotes()
+        stampInfoSettings.cornerNoteUsed = not shot.enabled
 
-    stampInfoSettings.cornerNoteUsed = not shot.enabled
+    else:
+        # use stamp info settings from scene
+        pass
+    
+    #####################
+    # set properties independently to them being enabled or not
+    #####################
+    if props.use_project_settings:
+        # wkip get stamp info configuration specifed for the project
+
+        stampInfoSettings.takeName = takeName
+
+        stampInfoSettings.notesLine01 = shot.note01
+        stampInfoSettings.notesLine02 = shot.note02
+        stampInfoSettings.notesLine03 = shot.note03
+
+    else:
+        # set stamp info property values according to the scene
+        stampInfoSettings.takeName = takeName
+
+        stampInfoSettings.notesLine01 = shot.note01
+        stampInfoSettings.notesLine02 = shot.note02
+        stampInfoSettings.notesLine03 = shot.note03
+
+
+
+
     if not shot.enabled:
         stampInfoSettings.cornerNote = " *** Shot Muted in the take ***"
     else:

@@ -263,7 +263,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
     project_use_stampinfo: BoolProperty(
         name="Use Stamp Info Add-on",
         description="Use UAS Stamp Info add-on - if available - to write data on rendered images.\nNote: If Stamp Info is not installed then warnings will be displayed",
-        default=False,
+        default=True,
     )
     project_logo_path: StringProperty(
         name="Project Logo",
