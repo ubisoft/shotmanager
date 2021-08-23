@@ -41,24 +41,29 @@ class UAS_MT_ShotManager_Prefs_MainMenu(Menu):
         layout = self.layout
 
         row = layout.row(align=True)
+        row.operator_context = "INVOKE_DEFAULT"
+        row.operator("uas_shot_manager.features", text="Features...")
+
+        layout.separator()
+
+        row = layout.row(align=True)
+        row.operator("uas_shot_manager.general_prefs", text="Scene Settings...")
+        row = layout.row(align=True)
+        row.operator("uas_shot_manager.project_settings_prefs", text="Project Settings...")
+
+        layout.separator()
+
+        row = layout.row(align=True)
+        row.operator_context = "INVOKE_DEFAULT"
+        row.operator("uas_shot_manager.playbar_prefs", text="Playbar Display...")  # , icon="SETTINGS")
+
+        row = layout.row(align=True)
+        row.operator_context = "INVOKE_DEFAULT"
+        row.operator("uas_shot_manager.shots_prefs", text="Shots Display...")  # , icon="SETTINGS")
+
+        layout.separator()
+        row = layout.row(align=True)
         row.operator("preferences.addon_show", text="Add-on Preferences...").module = "shotmanager"
-
-        layout.separator()
-        row = layout.row(align=True)
-        row.operator("uas_shot_manager.general_prefs")
-        row = layout.row(align=True)
-        row.operator("uas_shot_manager.features")
-        row = layout.row(align=True)
-        row.operator("uas_shot_manager.project_settings_prefs")
-
-        layout.separator()
-        row = layout.row(align=True)
-        row.operator_context = "INVOKE_DEFAULT"
-        row.operator("uas_shot_manager.playbar_prefs")  # , icon="SETTINGS")
-
-        row = layout.row(align=True)
-        row.operator_context = "INVOKE_DEFAULT"
-        row.operator("uas_shot_manager.shots_prefs")  # , icon="SETTINGS")
 
         if config.uasDebug:
             layout.separator()
@@ -92,7 +97,7 @@ class UAS_MT_ShotManager_Prefs_MainMenu(Menu):
 
 class UAS_ShotManager_General_Prefs(Operator):
     bl_idname = "uas_shot_manager.general_prefs"
-    bl_label = "Settings..."
+    bl_label = "Scene Settings"
     bl_description = "Display the Settings panel\nfor the Shot Manager instanced in this scene"
     bl_options = {"INTERNAL"}
 
@@ -186,7 +191,7 @@ class UAS_PT_ShotManagerPref_General(Panel):
 
 class UAS_ShotManager_Playbar_Prefs(Operator):
     bl_idname = "uas_shot_manager.playbar_prefs"
-    bl_label = "Playbar Settings..."
+    bl_label = "Playbar Display Settings"
     bl_description = (
         "Display the Playbar, Timeline and Edit Settings panel\nfor the Shot Manager instanced in this scene"
     )
@@ -257,7 +262,7 @@ class UAS_ShotManager_Playbar_Prefs(Operator):
 
 class UAS_ShotManager_Shots_Prefs(Operator):
     bl_idname = "uas_shot_manager.shots_prefs"
-    bl_label = "Shots Settings..."
+    bl_label = "Shots Display Settings"
     bl_description = "Display the Shots Settings panel\nfor the Shot Manager instanced in this scene"
     bl_options = {"INTERNAL"}
 

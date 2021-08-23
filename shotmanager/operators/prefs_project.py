@@ -31,7 +31,7 @@ from ..config import config
 
 class UAS_ShotManager_ProjectSettings_Prefs(Operator):
     bl_idname = "uas_shot_manager.project_settings_prefs"
-    bl_label = "Project Settings..."
+    bl_label = "Project Settings"
     bl_description = "Display the Project Settings panel\nfor the Shot Manager instanced in this scene"
     bl_options = {"INTERNAL", "UNDO"}
 
