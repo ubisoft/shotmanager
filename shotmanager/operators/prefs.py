@@ -292,22 +292,28 @@ class UAS_ShotManager_Shots_Prefs(Operator):
         col = row.column()
 
         col.separator(factor=0.5)
+        col.label(text="Display:")
         col.use_property_split = False
         col.prop(props, "display_selectbut_in_shotlist", text="Display Camera Select Button")
         col.prop(props, "display_enabled_in_shotlist", text="Display Enabled State")
         col.prop(props, "display_getsetcurrentframe_in_shotlist", text="Display Get/Set current Frame Buttons")
         col.prop(props, "display_edit_times_in_shotlist", text="Display Edit Times in Shot List")
 
+        col.prop(props, "display_cameraBG_in_shotlist")
+        col.prop(props, "display_greasepencil_in_shotlist")
+
+
         col.separator(factor=1.7)
         col.prop(props, "highlight_all_shot_frames", text="Highlight Framing Values When Equal to Current Time")
         col.prop(props, "display_duration_after_time_range", text="Display Shot Duration After Time Range")
-
-        col.separator(factor=1.0)
         col.prop(props, "use_camera_color", text="Use Camera Color for Shots ")
 
         col.use_property_split = False
         col.separator(factor=1.7)
-        col.prop(props, "current_shot_properties_mode")
+        row = col.row()
+        row.label(text="Display Shot Properties Mode:")
+        row.prop(props, "current_shot_properties_mode", text="")
+        row.separator()
 
         box.separator(factor=0.5)
 
@@ -316,13 +322,14 @@ class UAS_ShotManager_Shots_Prefs(Operator):
         prefs = bpy.context.preferences.addons["shotmanager"].preferences
 
         # empty spacer column
-        row = box.row()
-        col = row.column()
-        col.scale_x = 0.4
-        col.label(text=" ")
-        col = row.column()
+        # row = box.row()
+        # col = row.column()
+        # col.scale_x = 0.4
+        # col.label(text=" ")
+        # col = row.column()
 
-        col.separator(factor=2.0)
+        col.separator(factor=1.0)
+        col.label(text="Time Change:")
         #  col.label(text="User Preferenes (in Preference Add-on Window):")
         col.prop(
             prefs,
@@ -338,9 +345,16 @@ class UAS_ShotManager_Shots_Prefs(Operator):
         layout.separator(factor=1)
         layout.label(text="Shot Info Displayed in 3D Viewport:")
         box = layout.box()
-        col = box.column()
+        box.use_property_decorate = False
 
-        col.use_property_split = True
+        # empty spacer column
+        row = box.row()
+        col = row.column()
+        col.scale_x = 0.4
+        col.label(text=" ")
+        col = row.column()
+        
+#        col.use_property_split = True
         col.prop(props, "display_shotname_in_3dviewport", text="Display Shot name in 3D Viewport")
         col.prop(props, "display_hud_in_3dviewport", text="Display HUD in 3D Viewport")
 
