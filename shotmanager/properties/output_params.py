@@ -46,11 +46,35 @@ class UAS_ShotManager_OutputParams_Resolution(PropertyGroup):
         if props is not None:
             if self == props.getCurrentTake().outputParams_Resolution:
                 props.setResolutionToScene()
+                
+    def _get_resolution_x(self):
+        val = self.get("resolution_x", -1)
+        if -1 == val:
+            props = bpy.context.scene.UAS_shot_manager_props
+            if props is not None:
+                val = props.parentScene.render.resolution_x
+        return val
 
-    resolution_x: IntProperty(name="Res. X", min=0, default=1280, update=_update_resolution)
-    resolution_y: IntProperty(name="Res. Y", min=0, default=720, update=_update_resolution)
-    resolution_framed_x: IntProperty(name="Res. Framed X", min=0, default=1280)
-    resolution_framed_y: IntProperty(name="Res. Framed Y", min=0, default=960)
+    def _set_resolution_x(self, value):
+        self["resolution_x"] = value
+        
+    resolution_x: IntProperty(name="Res. X", min=0, default=-1, get=_get_resolution_x, set=_set_resolution_x, update=_update_resolution)
+
+    def _get_resolution_y(self):
+        val = self.get("resolution_y", -1)
+        if -1 == val:
+            props = bpy.context.scene.UAS_shot_manager_props
+            if props is not None:
+                val = props.parentScene.render.resolution_y
+        return val
+
+    def _set_resolution_y(self, value):
+        self["resolution_y"] = value
+
+    resolution_y: IntProperty(name="Res. Y", min=0, default=-1, get=_get_resolution_y, set=_set_resolution_y, update=_update_resolution)
+
+    resolution_framed_x: IntProperty(name="Res. Framed X", min=0, default=-1)
+    resolution_framed_y: IntProperty(name="Res. Framed Y", min=0, default=-1)
 
     def get_useStampInfoDuringRendering(self):
         #  return self.useStampInfoDuringRendering

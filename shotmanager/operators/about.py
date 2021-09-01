@@ -44,7 +44,7 @@ class UAS_ShotManager_OT_About(Operator):
         row = box.row()
         row.separator()
         row.label(
-            text="Version: " + props.version()[0] + " - (" + "May 2021" + ")" + " -  Ubisoft"
+            text="Version: " + props.version()[0] + " - (" + "August 2021" + ")" + " -  Ubisoft"
         )
 
         # Authors
@@ -87,7 +87,7 @@ class UAS_ShotManager_OT_About(Operator):
         row.separator()
         split = row.split(factor=splitFactor)
         split.label(text="- Stamp Info:")
-        versionStr = utils.addonVersion("StampInfo")
+        versionStr = utils.addonVersion("Stamp Info")
         if props.isStampInfoAvailable() and versionStr is not None:
             split.label(text=f"V. {versionStr[0]} installed")
         else:

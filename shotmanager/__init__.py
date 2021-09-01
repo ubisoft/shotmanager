@@ -82,8 +82,7 @@ from .scripts import rrs
 
 # from .data_patches.data_patch_to_v1_2_25 import data_patch_to_v1_2_25
 # from .data_patches.data_patch_to_v1_3_16 import data_patch_to_v1_3_16
-
-# # from .data_patches.data_patch_to_v1_3_31 import data_patch_to_v1_3_31
+# from .data_patches.data_patch_to_v1_3_31 import data_patch_to_v1_3_31
 
 from .debug import sm_debug
 
@@ -92,7 +91,7 @@ bl_info = {
     "author": "Ubisoft - Julien Blervaque (aka Werwack), Romain Carriquiry Borchiari",
     "description": "Manage a sequence of shots and cameras in the 3D View - Ubisoft Animation Studio",
     "blender": (2, 92, 0),
-    "version": (1, 5, 5),
+    "version": (1, 5, 60),
     "location": "View3D > Shot Manager",
     "wiki_url": "https://ubisoft-shotmanager.readthedocs.io",
     # "warning": "BETA Version",
@@ -326,9 +325,7 @@ def register():
 
     config.initGlobalVariables()
 
-    if config.uasDebug:
-        _logger.setLevel(logging.DEBUG)  # CRITICAL ERROR WARNING INFO DEBUG NOTSET
-
+    
     ###################
     # logging
     ###################
@@ -349,6 +346,9 @@ def register():
         # handler = logging.FileHandler(get_log_file())
         # handler.setFormatter(formatter)
         # _logger.addHandler(handler)
+
+    if config.uasDebug:
+        _logger.setLevel(logging.DEBUG)  # CRITICAL ERROR WARNING INFO DEBUG NOTSET
 
     ###################
     # update data

@@ -256,7 +256,7 @@ class UAS_ShotManager_OT_EnableDisableGreasePencil(Operator):
 class UAS_ShotManager_GreasePencilItem(Operator):
     bl_idname = "uas_shot_manager.greasepencilitem"
     bl_label = " "
-    bl_description = "Select shot"
+    bl_description = "Select Grease Pencil"
     bl_options = {"INTERNAL"}
 
     index: bpy.props.IntProperty(default=0)

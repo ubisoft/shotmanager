@@ -183,7 +183,7 @@ class UAS_ShotManager_EnableDisableCamsBG(Operator):
 class UAS_ShotManager_CamsBGItem(Operator):
     bl_idname = "uas_shot_manager.cambgitem"
     bl_label = " "
-    bl_description = "Select shot"
+    bl_description = "Select Camera BG"
     bl_options = {"INTERNAL"}
 
     index: bpy.props.IntProperty(default=0)

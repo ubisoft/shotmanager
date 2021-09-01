@@ -27,7 +27,7 @@ from ..config import config
 
 class UAS_ShotManager_Features(Operator):
     bl_idname = "uas_shot_manager.features"
-    bl_label = "Features Display..."
+    bl_label = "Features"
     bl_description = "Controls the features displayed and available in the Shot Manager panel"
     bl_options = {"INTERNAL"}
 
@@ -59,6 +59,13 @@ class UAS_ShotManager_Features(Operator):
         subrow.label(text="Takes and Shots Notes")
 
         ################
+        # Take render settings
+        subrow = col.row()
+        subrow.scale_x = 1.5
+        subrow.prop(props, "display_takerendersettings_in_properties", text="", icon="OUTPUT")
+        subrow.label(text="Takes Render Settings")
+
+        ################
         # Camera BG
         subrow = col.row()
         subrow.scale_x = 1.5
@@ -73,13 +80,6 @@ class UAS_ShotManager_Features(Operator):
         icon = config.icons_col["ShotManager_CamGPVisible_32"]
         subrow.prop(props, "display_greasepencil_in_properties", text="", icon_value=icon.icon_id)
         subrow.label(text="Camera Grease Pencil")
-
-        ################
-        # Global Edit Integration
-        subrow = col.row()
-        subrow.scale_x = 1.5
-        subrow.prop(props, "display_takerendersettings_in_properties", text="", icon="OUTPUT")
-        subrow.label(text="Take Render Settings")
 
         ################
         # Global Edit Integration

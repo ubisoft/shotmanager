@@ -242,6 +242,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
     ############
     project_shot_format: StringProperty(name="Shot Format", default=r"Act{:02}_Seq{:04}_Sh{:04}")
     project_name: StringProperty(name="Project Name", default="My Project")
+    project_default_take_name: StringProperty(name="Default Take Name", default="Main Take")
 
     project_use_shot_handles: BoolProperty(
         name="Use Handles",
@@ -262,7 +263,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
     project_use_stampinfo: BoolProperty(
         name="Use Stamp Info Add-on",
         description="Use UAS Stamp Info add-on - if available - to write data on rendered images.\nNote: If Stamp Info is not installed then warnings will be displayed",
-        default=False,
+        default=True,
     )
     project_logo_path: StringProperty(
         name="Project Logo",
@@ -326,9 +327,19 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         default=True,
     )
 
+    #############
     # general
     #############
 
+    def getRenderResolution(self):
+        """Return the resolution specified by:
+            - the current take resolution if it overrides the scene or project render settings,
+            - the project, if project settings are used,
+            - or by the current scene if none of the specifications above
+        """
+        #TODO
+        pass
+    
     def areShotHandlesUsed(self):
         """
         Returns the right handles use, either local or from the project.
@@ -383,9 +394,10 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
 
     display_enabled_in_shotlist: BoolProperty(name="Display Enabled State in Shot List", default=True, options=set())
 
-    display_cameraBG_in_shotlist: BoolProperty(name="Display Camera BG in Shot List", default=False, options=set())
+    # ** Experimental **
+    display_cameraBG_in_shotlist: BoolProperty(name="** Experimental ** Display Camera BG in Shot List", default=False, options=set())
     display_greasepencil_in_shotlist: BoolProperty(
-        name="Display Grease Pencil in Shot List", default=True, options=set()
+        name="** Experimental ** Display Grease Pencil in Shot List", default=False, options=set()
     )
 
     display_getsetcurrentframe_in_shotlist: BoolProperty(
@@ -747,7 +759,10 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         defaultTake = None
         if 0 >= len(takes):
             defaultTake = takes.add()
-            defaultTake.initialize(self, name="Main Take")
+            defaultName = "Main Take"
+            if self.use_project_settings:
+                defaultName = self.project_default_take_name
+            defaultTake.initialize(self, name=defaultName)
             self.setCurrentTakeByIndex(0)
             # self.setCurrentShotByIndex(-1)
             # self.setSelectedShotByIndex(-1)

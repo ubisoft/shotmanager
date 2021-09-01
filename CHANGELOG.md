@@ -3,6 +3,14 @@
 
 ## V 1.5.3X
 
+* V 1.5.60 - 23/08/2021:
+	# Features:
+		- Added a project settings for the default take name
+
+	# Fix:
+		- Default resolution for new takes is now the same as the scene resolution
+
+
 * V 1.5.31 - 16/05/2021:
 	- Updated documentation
 

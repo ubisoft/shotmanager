@@ -140,9 +140,13 @@ class UAS_ShotManager_TakeDuplicate(Operator):
     duplicateCam: BoolProperty(name="Duplicate Cameras", default=False)
 
     def invoke(self, context, event):
-        takes = context.scene.UAS_shot_manager_props.getTakes()
+        props = context.scene.UAS_shot_manager_props
+        takes = props.getTakes()
         if len(takes) <= 0:
-            self.newTakeName = "Main Take"
+            if props.use_project_settings:
+                self.newTakeName = props.project_default_take_name
+            else:
+                self.newTakeName = "Main Take"
         else:
             currentTake = context.scene.UAS_shot_manager_props.getCurrentTake()
             # name based on number of takes
@@ -342,7 +346,10 @@ class UAS_ShotManager_TakeAsMain(Operator):
             previousMainTake = props.getTakeByIndex(1)
             previousMainTake.name = "Ex - " + previousMainTake.name
             newMainTake = props.getTakeByIndex(0)
-            newMainTake.name = "Main Take"
+            if props.use_project_settings:
+                newMainTake.name = props.project_default_take_name
+            else:
+                newMainTake.name = "Main Take"
 
         return {"FINISHED"}
 
