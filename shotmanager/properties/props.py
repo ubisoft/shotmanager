@@ -327,9 +327,19 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         default=True,
     )
 
+    #############
     # general
     #############
 
+    def getRenderResolution(self):
+        """Return the resolution specified by:
+            - the current take resolution if it overrides the scene or project render settings,
+            - the project, if project settings are used,
+            - or by the current scene if none of the specifications above
+        """
+        #TODO
+        pass
+    
     def areShotHandlesUsed(self):
         """
         Returns the right handles use, either local or from the project.
