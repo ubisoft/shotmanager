@@ -302,10 +302,32 @@ class UAS_PT_ShotManager(Panel):
         #    row.scale_y = 1.5
         subrow.scale_x = 2.0
 
-        subsubrow = subrow.row(align=False)
+        subsubrow = subrow.row(align=True)
         subsubrow.scale_x = 0.8
+        # subsubrow.use_property_split = True
 
         if currentTake is not None:
+
+            # reduce space between buttons:
+            # if currentTake.overrideRenderSettings or takeHasNotes or props.display_notes_in_properties:
+
+            if currentTake.overrideRenderSettings:
+                # overrideRow = subsubrow.row()
+                # overrideRow.alert = True
+                # overrideRow.scale_x = 0.4
+                # overrideRow.label(text="Ov.")
+
+                # overrideRow.alert = True
+                overIcon = "DECORATE_OVERRIDE"
+                subsubrow.prop(
+                    prefs,
+                    "take_renderSettings_extended",
+                    text="",
+                    emboss=prefs.take_renderSettings_extended,
+                    # emboss=True,
+                    icon=overIcon,
+                )
+
             if takeHasNotes:
                 icon = config.icons_col["ShotManager_NotesData_32"]
                 subsubrow.prop(
@@ -331,6 +353,9 @@ class UAS_PT_ShotManager(Panel):
         if prefs.take_properties_extended:
             #  row = box.row()
             #  row.label(text="Take Properties:")
+
+            # Global edit
+            ######################
             if props.display_globaleditintegr_in_properties:
                 subBox = box.box()
                 subRow = subBox.row()
@@ -343,47 +368,42 @@ class UAS_PT_ShotManager(Panel):
                 subRow.separator()
                 subRow.prop(currentTake, "startInGlobalEdit", text="Start in Global Edit")
 
-            if props.display_globaleditintegr_in_properties and props.display_takerendersettings_in_properties:
+            if props.display_globaleditintegr_in_properties:
                 box.separator(factor=0.2)
 
-            if props.display_takerendersettings_in_properties:
-                subRow = box.row()
-                subRow.label(text="Take Render Settings:")
+        # Render settings properties
+        ######################
+        # if props.display_takerendersettings_in_properties:
+        if currentTake is not None and (
+            (props.display_takerendersettings_in_properties and prefs.take_properties_extended)
+            or (props.display_takerendersettings_in_properties and prefs.take_renderSettings_extended)
+            or (currentTake.overrideRenderSettings and prefs.take_renderSettings_extended)
+            # or (takeHasNotes and prefs.take_properties_extended)
+        ):
+            panelIcon = "TRIA_DOWN" if prefs.take_renderSettings_extended else "TRIA_RIGHT"
 
-                if props.use_project_settings:
-                    subSubRow = subRow.row()
-                    subSubRow.alert = "FROM_TAKE" == currentTake.renderMode
-                    subSubRow.prop(currentTake, "renderMode", text="")
+            subBox = box.box()
+            subBox.use_property_decorate = False
+            titleRow = subBox.row()
+            titleRow.prop(prefs, "take_renderSettings_extended", text="", icon=panelIcon, emboss=False)
+            titleRow.label(text="Take Render Settings:")
 
-                if not props.use_project_settings or "FROM_TAKE" == currentTake.renderMode:
-                    subBox = box.box()
-                    # subRow = subBox.row()
-                    # subRow.separator()
+            # overSubRow = subRow.split(factor=0.05)
+            overSubRow = titleRow.row(align=True)
+            if currentTake.overrideRenderSettings:
+                overSubRow.alert = True
+            overSubRow.prop(currentTake, "overrideRenderSettings", text="")
+            overSubRow.label(
+                text="Override " + ("Project" if props.use_project_settings else "Scene") + " Render Settings"
+            )
 
-                    currentTake.outputParams_Resolution.draw(context, subBox)
-                    # row = subBox.row(align=False)
-                    # row.use_property_split = False
-                    # row.alignment = "RIGHT"
-                    # row.label(text="Resolution")
-                    # row.prop(currentTake, "resolution_x", text="Width:")
-                    # row.prop(currentTake, "resolution_y", text="Height:")
-
-                    # row = subBox.row(align=False)
-                    # row.use_property_split = False
-                    # row.alignment = "RIGHT"
-                    # row.label(text="Frame Resolution")
-                    # row.prop(currentTake, "resolution_framed_x", text="Width:")
-                    # row.prop(currentTake, "resolution_framed_y", text="Height:")
-
-                    # stampInfoStr = "Use Stamp Info Add-on"
-                    # if not props.isStampInfoAvailable():
-                    #     stampInfoStr += "  (Warning: Currently NOT installed)"
-                    # subBox.prop(currentTake, "useStampInfoDuringRendering", text=stampInfoStr)
-
-                    # subRow.prop(currentTake, "resolution_x")
-                    # subRow.prop(currentTake, "resolution_y")
-
-            box.separator(factor=0.2)
+            # if not props.use_project_settings or "FROM_TAKE" == currentTake.renderMode:
+            if prefs.take_renderSettings_extended:
+                subSubBoxRow = subBox.row()
+                subSubBoxRow.separator(factor=1)
+                subSubBox = subSubBoxRow.column()
+                # subSubBox.separator(factor=2)
+                currentTake.outputParams_Resolution.draw(context, subSubBox, enabled=currentTake.overrideRenderSettings)
 
         # Notes
         ######################
@@ -397,27 +417,27 @@ class UAS_PT_ShotManager(Panel):
             # ):
             panelIcon = "TRIA_DOWN" if prefs.take_notes_extended else "TRIA_RIGHT"
 
-            box = box.box()
-            box.use_property_decorate = False
-            row = box.row()
-            row.prop(prefs, "take_notes_extended", text="", icon=panelIcon, emboss=False)
+            subBox = box.box()
+            subBox.use_property_decorate = False
+            titleRow = subBox.row()
+            titleRow.prop(prefs, "take_notes_extended", text="", icon=panelIcon, emboss=False)
             # row.separator(factor=1.0)
-            c = row.column()
+            c = titleRow.column()
             # grid_flow = c.grid_flow(align=False, columns=3, even_columns=False)
             subrow = c.row()
             subrow.label(text="Take Notes:")
             subrow.separator(factor=0.5)  # prevents strange look when panel is narrow
 
             if prefs.take_notes_extended:
-                row = box.row()
+                row = subBox.row()
                 row.separator(factor=1.0)
                 row.prop(currentTake, "note01", text="")
                 row.separator(factor=1.0)
-                row = box.row()
+                row = subBox.row()
                 row.separator(factor=1.0)
                 row.prop(currentTake, "note02", text="")
                 row.separator(factor=1.0)
-                row = box.row()
+                row = subBox.row()
                 row.separator(factor=1.0)
                 row.prop(currentTake, "note03", text="")
                 row.separator(factor=1.0)

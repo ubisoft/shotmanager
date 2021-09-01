@@ -211,6 +211,13 @@ class UAS_ShotManager_Take(SequenceInterface, PropertyGroup):
         default="FROM_TAKE",
     )
 
+    overrideRenderSettings: BoolProperty(
+        name="Override Render Settings",
+        description="When checked, the take gets its own local render settings,\n"
+        " overriding the render settings provided either by the project settings or the scene",
+        default=False,
+    )
+
     outputParams_Resolution: PointerProperty(type=UAS_ShotManager_OutputParams_Resolution)
 
     def getResolution(self):

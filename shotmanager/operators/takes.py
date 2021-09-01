@@ -47,8 +47,8 @@ class UAS_ShotManager_TakeAdd(Operator):
 
     name: StringProperty(name="Name")
 
-    resolution_x: IntProperty(name="Res. X", min=0, default=1280)
-    resolution_y: IntProperty(name="Res. Y", min=0, default=720)
+    resolution_x: IntProperty(name="Res. X", min=0, default=-1)
+    resolution_y: IntProperty(name="Res. Y", min=0, default=-1)
     resolution_framed_x: IntProperty(name="Res. Framed X", min=0, default=1280)
     resolution_framed_y: IntProperty(name="Res. Framed Y", min=0, default=960)
     useStampInfoDuringRendering: BoolProperty(

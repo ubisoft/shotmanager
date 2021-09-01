@@ -287,7 +287,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
     project_color_space: StringProperty(name="Color Space", default="")
     project_asset_name: StringProperty(name="Asset Name", default="")
 
-    project_output_format: StringProperty(name="Video Output Format", default="")
+    project_output_format: StringProperty(name="Video Output Format", default="mp4")
 
     project_sounds_output_format: StringProperty(name="Sound Output Format", default="")
 

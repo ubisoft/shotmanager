@@ -53,23 +53,26 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
     # ------------------------------
 
     take_properties_extended: BoolProperty(
-        name="Extend Take Properties", default=False,
+        name="Expand Take Properties", default=False,
+    )
+    take_renderSettings_extended: BoolProperty(
+        name="Expand Take Render Settings", description="*** This take has its own render settings ***", default=False,
     )
     take_notes_extended: BoolProperty(
-        name="Extend Take Notes", default=False,
+        name="Expand Take Notes", default=False,
     )
 
     shot_properties_extended: BoolProperty(
-        name="Extend Shot Properties", default=True,
+        name="Expand Shot Properties", default=True,
     )
     shot_notes_extended: BoolProperty(
-        name="Extend Shot Notes", default=False,
+        name="Expand Shot Notes", default=False,
     )
     shot_cameraBG_extended: BoolProperty(
-        name="Extend Shot Camera BG", default=False,
+        name="Expand Shot Camera BG", default=False,
     )
     shot_greasepencil_extended: BoolProperty(
-        name="Extend Shot Grease Pencil", default=False,
+        name="Expand Shot Grease Pencil", default=False,
     )
 
     current_shot_changes_current_time: BoolProperty(
