@@ -52,9 +52,26 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
     # ****** hidden settings:
     # ------------------------------
 
+    def _get_take_properties_extended(self):
+        val = self.get("take_properties_extended", False)
+        return val
+
+    def _set_take_properties_extended(self, value):
+        print(f"*** _set_take_properties_extended: {self.take_properties_extended}, value: {value}")
+        # close other panels
+        if self.take_properties_extended != value and not value:
+            prefs = bpy.context.preferences.addons["shotmanager"].preferences
+            prefs.take_renderSettings_extended = False
+            prefs.take_notes_extended = False
+        self["take_properties_extended"] = value
+
     take_properties_extended: BoolProperty(
-        name="Expand Take Properties", default=False,
+        name="Expand Take Properties",
+        get=_get_take_properties_extended,
+        set=_set_take_properties_extended,
+        default=False,
     )
+
     take_renderSettings_extended: BoolProperty(
         name="Expand Take Render Settings", description="*** This take has its own render settings ***", default=False,
     )

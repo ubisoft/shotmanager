@@ -3,7 +3,7 @@ __pycache__
 _PackagesForInstall
 *.history
 *.blend1
-#.vscode/settings.json
+.vscode/settings.json
 
 # Virtual envs
 .venv

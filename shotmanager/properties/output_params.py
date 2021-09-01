@@ -96,7 +96,7 @@ class UAS_ShotManager_OutputParams_Resolution(PropertyGroup):
 
     useStampInfoDuringRendering: BoolProperty(
         name="Stamp Info on Output",
-        description="Stamp render information on rendered images thanks to Stamp Info add-on",
+        description="Stamp render information on rendered images thanks to Ubisoft Stamp Info add-on",
         default=True,
         get=get_useStampInfoDuringRendering,  # removed cause the use of Stamp Info in this add-on is independent from the one of Stamp Info add-on itself
         set=set_useStampInfoDuringRendering,
@@ -104,6 +104,8 @@ class UAS_ShotManager_OutputParams_Resolution(PropertyGroup):
     )
 
     def draw(self, context, ui_component, enabled=True):
+        props = context.scene.UAS_shot_manager_props
+
         ui_component.enabled = enabled
 
         split = ui_component.split(factor=0.3, align=False)
@@ -116,10 +118,15 @@ class UAS_ShotManager_OutputParams_Resolution(PropertyGroup):
 
         col = ui_component.column(align=False)
         col.separator(factor=0.5)
-        stampInfoStr = " Use Stamp Info Add-on"
-        # if not props.isStampInfoAvailable():
-        #     stampInfoStr += "  (Warning: Currently NOT installed)"
-        col.prop(self, "useStampInfoDuringRendering", text=stampInfoStr)
+        colRow = col.split(factor=0.4)
+        stampInfoStr = " Use Stamp Info"
+        colRow.prop(self, "useStampInfoDuringRendering", text=stampInfoStr)
+        if props is not None and not props.isStampInfoAvailable():
+            subColRow = colRow.row()
+            col.enabled = False
+            subColRow.alert = True
+            subColRow.alignment = "RIGHT"
+            subColRow.label(text="*** Add-on not found ***")
 
         colRow = col.row()
         colRow.enabled = self.useStampInfoDuringRendering
