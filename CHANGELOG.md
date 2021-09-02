@@ -12,16 +12,16 @@
 
 **Code:**<br />
 	- Renamed the debug var from UASdebug to DevDebug<br />
-
 <br />
+
 ## V 1.5.60 - 23/08/2021:
 **Features:**<br />
 	- Added a project settings for the default take name
 
 **Fix:**<br />
 	- Default resolution for new takes is now the same as the scene resolution
-
 <br />
+
 ## V 1.5.31 - 16/05/2021:
 **Documentation:**<br />
 	- Updated documentation
