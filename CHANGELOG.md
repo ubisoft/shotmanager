@@ -3,6 +3,20 @@
 
 ## V 1.5.3X
 
+* V 1.5.62 - 02/09/2021:
+	# UI:
+		- Added a warning section at the top of the panel to display issues from the scene
+		- Placed the debug mode toggle in the addon preferences
+
+	# Fix:
+		- Debug mode is set to off by default
+		- Take resolution override has been refactored and fixed
+		- Scene resolution is now updated correctly from Shot Manager settings
+
+	# Code:
+		- Renamed the debug var from UASdebug to DevDebug
+
+
 * V 1.5.60 - 23/08/2021:
 	# Features:
 		- Added a project settings for the default take name
