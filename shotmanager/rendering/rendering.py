@@ -81,7 +81,7 @@ def launchRenderWithVSEComposite(
 
     def _deleteTempFiles(dirPath):
         # delete unsused rendered frames
-        if config.uasDebug:
+        if config.devDebug:
             print(f"Cleaning shot temp dir: {dirPath}")
 
         if os.path.exists(dirPath):
@@ -100,7 +100,7 @@ def launchRenderWithVSEComposite(
             except Exception:
                 print("Cannot delete Dir: ", dirPath)
 
-        if config.uasDebug:
+        if config.devDebug:
             print(f"Cleaning temp scenes")
 
         scenesToDelete = [
@@ -627,7 +627,7 @@ def launchRenderWithVSEComposite(
                 # bpy.ops.render.render('INVOKE_DEFAULT', animation = True)
                 # bpy.ops.render.opengl ( animation = True )
 
-                deleteTempFiles = not config.uasDebug_keepVSEContent
+                deleteTempFiles = not config.devDebug_keepVSEContent
                 if deleteTempFiles:
                     _deleteTempFiles(newTempRenderPath)
 
@@ -706,7 +706,7 @@ def launchRenderWithVSEComposite(
                     renderedShotSequencesArr, sequenceOutputFullPath, handles, projectFps
                 )
 
-            deleteTempFiles = not config.uasDebug_keepVSEContent
+            deleteTempFiles = not config.devDebug_keepVSEContent
             if deleteTempFiles:
                 for i in range(len(renderedShotSequencesArr)):
                     _deleteTempFiles(str(Path(renderedShotSequencesArr[i]["image_sequence"]).parent))
@@ -746,7 +746,7 @@ def launchRenderWithVSEComposite(
     print(f"      \nFull Sequence render time: {deltaTime:0.2f} sec.")
     allRenderTimes["SequenceAndShots"] = deltaTime
 
-    printAllRenderTimes = True  # config.uasDebug
+    printAllRenderTimes = True  # config.devDebug
     if printAllRenderTimes:
         print("\nRender times:")
         for key, value in allRenderTimes.items():
@@ -808,7 +808,7 @@ def renderStampedInfoForShot(
     else:
         # use stamp info settings from scene
         pass
-    
+
     #####################
     # set properties independently to them being enabled or not
     #####################
@@ -828,9 +828,6 @@ def renderStampedInfoForShot(
         stampInfoSettings.notesLine01 = shot.note01
         stampInfoSettings.notesLine02 = shot.note02
         stampInfoSettings.notesLine03 = shot.note03
-
-
-
 
     if not shot.enabled:
         stampInfoSettings.cornerNote = " *** Shot Muted in the take ***"
@@ -1011,8 +1008,8 @@ def launchRender(context, renderMode, rootPath, area=None):
     renderDisplayInfo += f"{'   - File: ': <20}{bpy.data.filepath}\n"
     renderDisplayInfo += f"{'   - Scene: ': <20}{scene.name}\n"
     renderDisplayInfo += f"{'   - RootPath: ': <20}{rootPath}\n"
-    if config.uasDebug:
-        renderDisplayInfo += f"{'   - Debug Mode: ': <20}{config.uasDebug}\n"
+    if config.devDebug:
+        renderDisplayInfo += f"{'   - Debug Mode: ': <20}{config.devDebug}\n"
 
     renderDisplayInfo += f"\n"
     print(renderDisplayInfo)

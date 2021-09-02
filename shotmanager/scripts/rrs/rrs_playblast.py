@@ -62,7 +62,7 @@ def rrs_animatic_to_vsm(editVideoFile=None, otioFile=None, montageOtio=None, imp
         otioFile = r"C:\_UAS_ROOT\RRSpecial\05_Acts\Act01\_Montage\Act01_Edit_Previz.xml"
     importMarkers = importMarkers
 
-    # if config.uasDebug:
+    # if config.devDebug:
     #        importMarkers = False
 
     vsm_props.updateTracksList(scene)

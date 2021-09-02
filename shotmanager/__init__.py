@@ -75,7 +75,6 @@ from .utils import utils_handlers
 from .utils import utils_operators
 from .utils import utils_get_set_current_time
 
-# from . import videoshotmanager
 from . import viewport_3d
 
 from .scripts import rrs
@@ -91,7 +90,7 @@ bl_info = {
     "author": "Ubisoft - Julien Blervaque (aka Werwack), Romain Carriquiry Borchiari",
     "description": "Manage a sequence of shots and cameras in the 3D View - Ubisoft Animation Studio",
     "blender": (2, 92, 0),
-    "version": (1, 5, 61),
+    "version": (1, 5, 62),
     "location": "View3D > Shot Manager",
     "wiki_url": "https://ubisoft-shotmanager.readthedocs.io",
     # "warning": "BETA Version",
@@ -332,7 +331,7 @@ def register():
         _logger.setLevel(logging.WARNING)
         formatter = None
 
-        if config.uasDebug_ignoreLoggerFormatting:
+        if config.devDebug_ignoreLoggerFormatting:
             ch = "~"  # "\u02EB"
             formatter = Formatter(ch + " {message:<140}", style="{")
         else:
@@ -345,7 +344,7 @@ def register():
         # handler.setFormatter(formatter)
         # _logger.addHandler(handler)
 
-    if config.uasDebug:
+    if config.devDebug:
         _logger.setLevel(logging.DEBUG)  # CRITICAL ERROR WARNING INFO DEBUG NOTSET
 
     ###################
@@ -361,7 +360,7 @@ def register():
     ##################
     # print("       * Post Load handler added\n")
 
-    # if config.uasDebug:
+    # if config.devDebug:
     #     utils_handlers.displayHandlers(handlerCategName="load_post")
 
     utils_handlers.removeAllHandlerOccurences(
@@ -369,19 +368,19 @@ def register():
     )
     bpy.app.handlers.load_post.append(checkDataVersion_post_load_handler)
 
-    if config.uasDebug:
+    if config.devDebug:
         utils_handlers.displayHandlers(handlerCategName="load_post")
 
     # handler to write the data version at save
     ##################
     # print("       - Pre Save handler added")
-    # if config.uasDebug:
+    # if config.devDebug:
     #     utils_handlers.displayHandlers(handlerCategName="save_pre")
 
     # utils_handlers.removeAllHandlerOccurences(checkDataVersion_save_pre_handler, handlerCateg=bpy.app.handlers.save_pre)
     # bpy.app.handlers.save_pre.append(checkDataVersion_save_pre_handler)
 
-    # if config.uasDebug:
+    # if config.devDebug:
     #     utils_handlers.displayHandlers(handlerCategName="save_pre")
 
     # initialization
@@ -434,7 +433,6 @@ def register():
     utils_render.register()
     general.register()
     viewport_3d.register()
-    # videoshotmanager.register()
     prefs.register()
     features.register()
     about.register()
@@ -443,7 +441,7 @@ def register():
     # rrs_vsm_tools.register()
 
     # debug tools
-    if config.uasDebug:
+    if config.devDebug:
         sm_debug.register()
 
     # declaration of properties that will not be saved in the scene:
@@ -480,8 +478,8 @@ def register():
         options=set(),
     )
 
-    if config.uasDebug:
-        print(f"\n ------ UAS debug: {config.uasDebug} ------- ")
+    if config.devDebug:
+        print(f"\n ------ UAS debug: {config.devDebug} ------- ")
         print(f" ------ _Logger Level: {logging.getLevelName(_logger.level)} ------- \n")
 
 
@@ -498,7 +496,7 @@ def unregister():
     )
 
     # debug tools
-    if config.uasDebug:
+    if config.devDebug:
         sm_debug.unregister()
 
     # rrs specific
@@ -508,7 +506,6 @@ def unregister():
     about.unregister()
     features.unregister()
     prefs.unregister()
-    #  videoshotmanager.unregister()
     viewport_3d.unregister()
     general.unregister()
     utils_render.unregister()

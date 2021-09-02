@@ -45,13 +45,35 @@ def draw_shotmanager_addon_prefs(self, context):
     row.prop(prefs, "separatedRenderPanel")
 
     layout.label(
-        text="Temporary preference values (for dialogs for instance) are only visible when global variable uasDebug is True."
+        text="Temporary preference values (for dialogs for instance) are only visible when global variable devDebug is True."
     )
 
-    if config.uasDebug:
-        layout.label(text="Add New Shot Dialog:")
-        box = layout.box()
-        col = box.column(align=False)
+    layout.label(text="Development and Debug:")
+    box = layout.box()
+
+    row = box.row()
+    row.separator(factor=1)
+    row.label(text="Debug Mode:")
+    subrow = row.row()
+    subrow.operator("uas_shot_manager.enable_debug", text="On").enable_debug = True
+    subrow.operator("uas_shot_manager.enable_debug", text="Off").enable_debug = False
+
+    if config.devDebug:
+        subrow = box.row()
+        strDebug = " *** Debug Mode is On ***"
+        subrow.alert = True
+        subrow.label(text=strDebug)
+
+    box = layout.box()
+    row = box.row()
+    row.label(text="Debug Infos:")
+
+    if config.devDebug:
+        row = box.row()
+        row.separator(factor=1)
+        row.label(text="Add New Shot Dialog:")
+        row = box.row()
+        subbox = row.box()
+        col = subbox.column(align=False)
         col.prop(self, "addShot_start")
         col.prop(self, "addShot_end")
-

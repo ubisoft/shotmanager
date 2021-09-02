@@ -232,7 +232,7 @@ class UAS_VideoShotManager_OT_RRS_ExportShotsFromEdit(Operator):
                 row.label(text=f"!! Scene has a different framerate: {scene.render.fps} fps !!")
                 row.alert = False
 
-        #     # if config.uasDebug:
+        #     # if config.devDebug:
         #     #     row.operator("uas_shot_manager.montage_sequences_to_json")  # uses config.gMontageOtio
 
         #     subRow = box.row()
@@ -387,7 +387,7 @@ class UAS_VideoShotManager_OT_RRS_CheckSequence(Operator):
                 row.label(text=f"!! Scene has a different framerate: {scene.render.fps} fps !!")
                 row.alert = False
 
-        #     # if config.uasDebug:
+        #     # if config.devDebug:
         #     #     row.operator("uas_shot_manager.montage_sequences_to_json")  # uses config.gMontageOtio
 
         #     subRow = box.row()

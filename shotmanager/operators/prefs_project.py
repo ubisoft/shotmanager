@@ -112,7 +112,7 @@ class UAS_ShotManager_ProjectSettings_Prefs(Operator):
         ############
         # color space
         ############
-        if config.uasDebug:
+        if config.devDebug:
             col.separator(factor=0.5)
             col.prop(props, "project_color_space")
 
@@ -129,7 +129,7 @@ class UAS_ShotManager_ProjectSettings_Prefs(Operator):
         col.separator(factor=1)
         col.prop(props, "project_sounds_output_format", text="Sound Output Format")
 
-        if config.uasDebug:
+        if config.devDebug:
             # additional settings
             box.separator()
             box.label(text="Additional Settings:")
@@ -142,7 +142,7 @@ class UAS_ShotManager_ProjectSettings_Prefs(Operator):
         col.separator(factor=1)
 
         # project settings summary display
-        if config.uasDebug:
+        if config.devDebug:
             settingsList = props.applyProjectSettings(settingsListOnly=True)
             box = layout.box()
             for prop in settingsList:

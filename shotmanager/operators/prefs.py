@@ -65,7 +65,7 @@ class UAS_MT_ShotManager_Prefs_MainMenu(Menu):
         row = layout.row(align=True)
         row.operator("preferences.addon_show", text="Add-on Preferences...").module = "shotmanager"
 
-        if config.uasDebug:
+        if config.devDebug:
             layout.separator()
             row = layout.row(align=True)
             row.label(text="Tools for Debug:")
@@ -238,9 +238,7 @@ class UAS_ShotManager_Playbar_Prefs(Operator):
         col.use_property_split = True
         # col.use_property_decorate = False
         col.prop(
-            props,
-            "display_disabledshots_in_timeline",
-            text="Display Disabled Shots",
+            props, "display_disabledshots_in_timeline", text="Display Disabled Shots",
         )
 
         # Edit ######
@@ -302,7 +300,6 @@ class UAS_ShotManager_Shots_Prefs(Operator):
         col.prop(props, "display_cameraBG_in_shotlist")
         col.prop(props, "display_greasepencil_in_shotlist")
 
-
         col.separator(factor=1.7)
         col.prop(props, "highlight_all_shot_frames", text="Highlight Framing Values When Equal to Current Time")
         col.prop(props, "display_duration_after_time_range", text="Display Shot Duration After Time Range")
@@ -353,8 +350,8 @@ class UAS_ShotManager_Shots_Prefs(Operator):
         col.scale_x = 0.4
         col.label(text=" ")
         col = row.column()
-        
-#        col.use_property_split = True
+
+        #        col.use_property_split = True
         col.prop(props, "display_shotname_in_3dviewport", text="Display Shot name in 3D Viewport")
         col.prop(props, "display_hud_in_3dviewport", text="Display HUD in 3D Viewport")
 

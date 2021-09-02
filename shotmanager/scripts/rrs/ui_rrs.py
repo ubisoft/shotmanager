@@ -35,7 +35,7 @@ class UAS_PT_ShotManager_RRS_Debug(Panel):
     @classmethod
     def poll(cls, context):
         props = context.scene.UAS_shot_manager_props
-        displayPanel = not props.dontRefreshUI() and config.uasDebug
+        displayPanel = not props.dontRefreshUI() and config.devDebug
         return displayPanel
 
     def draw(self, context):
@@ -58,7 +58,7 @@ class UAS_PT_ShotManager_RRS_Debug(Panel):
         )
         row.alert = False
 
-        # if config.uasDebug:
+        # if config.devDebug:
         #     row = layout.row(align=False)
         #     # row.enabled = False
         #     row.prop(context.window_manager, "UAS_shot_manager_progressbar", text="Rendering...")

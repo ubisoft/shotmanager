@@ -118,7 +118,7 @@ def draw3DRenderPanel(self, context):
     subRow.alignment = "LEFT"
     subRow.prop(props.renderContext, "renderHardwareMode", text="Mode")
 
-    if config.uasDebug:
+    if config.devDebug:
         # row.alignment = "LEFT"
         # row.separator(factor=2)
         subRow = row.row(align=False)
@@ -200,7 +200,7 @@ def draw3DRenderPanel(self, context):
 
     layout.separator(factor=1)
 
-    # if config.uasDebug:
+    # if config.devDebug:
     #     row = layout.row()
     #     row.label(text="Last Render Results:")
     #     subRow = row.row()
@@ -383,7 +383,7 @@ def draw3DRenderPanel(self, context):
         # row.use_property_split = False
 
         row = box.row()
-        # # if config.uasDebug:
+        # # if config.devDebug:
         # row.label(text="After Rendering:")
 
         # row = box.row()
@@ -414,7 +414,7 @@ def draw3DRenderPanel(self, context):
     # elif "" == props.getRenderFileName():
     #     renderWarnings = "*** Invalid Output File Name ***"
 
-    # if "" != renderWarnings or config.uasDebug:
+    # if "" != renderWarnings or config.devDebug:
     #     box = self.layout.box()
     #     # box.use_property_split = True
 
@@ -436,7 +436,7 @@ def draw3DRenderPanel(self, context):
     # row.separator()
     # row.operator("uas_shot_manager.open_explorer", emboss=True, icon='FILEBROWSER', text="")
 
-    if config.uasDebug:
+    if config.devDebug:
         debugCol = layout.column()
         debugCol.alert = True
         debugCol.label(text="Debug Infos:")

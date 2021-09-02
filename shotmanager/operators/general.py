@@ -201,7 +201,7 @@ class UAS_ShotManager_OT_EnableDebug(Operator):
     enable_debug: BoolProperty(name="Enable Debug Mode", description="Enable or disable debug mode", default=False)
 
     def execute(self, context):
-        config.uasDebug = self.enable_debug
+        config.devDebug = self.enable_debug
         return {"FINISHED"}
 
 
