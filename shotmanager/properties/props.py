@@ -145,7 +145,9 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
     retimer: PointerProperty(type=UAS_Retimer_Properties)
 
     def getWarnings(self, scene):
-        """Return an array with all the warnings"""
+        """Return an array with all the warnings
+        A warning message can be on several lines when the separator \n is used.
+        """
         warningList = []
 
         # check if the current file is saved and not read only
@@ -170,11 +172,21 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         shotList = self.get_shots()
         hasNegativeFrame = False
         shotInd = 0
+        handlesDuration = self.getHandlesDuration()
         while shotInd < len(shotList) and not hasNegativeFrame:
-            hasNegativeFrame = shotList[shotInd].start - self.handles < 0
+            hasNegativeFrame = shotList[shotInd].start - handlesDuration < 0
             shotInd += 1
         if hasNegativeFrame:
-            warningList.append("Index of the output frame of a shot minus handle is negative !!")
+            if self.areShotHandlesUsed():
+                warningList.append(
+                    "Index of the output frame of a shot minus handle is negative !!\n"
+                    "Negative time indicies are not supported by Shot Manager renderer."
+                )
+            else:
+                warningList.append(
+                    "At least one shot starts at a negative frame !!\n"
+                    "Negative time indicies are not supported by Shot Manager renderer."
+                )
 
         # check is the data version is compatible with the current version
         # wkip obsolete code due to post register data version check
@@ -188,6 +200,12 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
             warningList.append("Data version is lower than SM version !!")
 
         # wkip to do: check if some camera markers are used in the scene
+
+        # if self.use_project_settings and "Scene" in scene.name:
+        #     warningList.append("Scene Name is Invalid !!!")
+        # c.label(text=" *************************************** ")
+        # c.label(text=" *    SCENE NAME IS INVALID !!!    * ")
+        # c.label(text=" *************************************** ")
 
         return warningList
 
@@ -329,27 +347,31 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
 
     #############
     # general
+    # Functions to call whenever you need a property value that can be overriden by the projects settings
     #############
 
     def getRenderResolution(self):
-        """Return the resolution specified by:
+        """Return the resolution used by Shot Manager in the current context. This resolution is specified by:
             - the current take resolution if it overrides the scene or project render settings,
             - the project, if project settings are used,
             - or by the current scene if none of the specifications above
         """
-        #TODO
+        # TODO
         pass
-    
+
     def areShotHandlesUsed(self):
-        """
-        Returns the right handles use, either local or from the project.
+        """Return true if the shot handles are used by Shot Manager in the current context. This value is specified by:
+            - the project, if project settings are used,
+            - the settings of the current instance of Shot Manager otherwise
         """
         return self.project_use_shot_handles if self.use_project_settings else self.use_handles
 
     def getHandlesDuration(self):
-        """
-        Returns the right handles duration, either local or from the project.
-        Before calling this function check if the instance of Shto MAnager uses handles by calling
+        """Return the duration of the handles if handles are used by Shot Manager in the current context. This duration is specified by:
+            - the project, if project settings are used and handles are also used there,
+            - the settings of the current instance of Shot Manager otherwise
+        Before calling this function check if the instance of Shot Manager uses handles by calling areShotHandlesUsed()
+        Return 0 if the handles are not used.
         """
         handles = 0
         if self.areShotHandlesUsed():
@@ -395,7 +417,9 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
     display_enabled_in_shotlist: BoolProperty(name="Display Enabled State in Shot List", default=True, options=set())
 
     # ** Experimental **
-    display_cameraBG_in_shotlist: BoolProperty(name="** Experimental ** Display Camera BG in Shot List", default=False, options=set())
+    display_cameraBG_in_shotlist: BoolProperty(
+        name="** Experimental ** Display Camera BG in Shot List", default=False, options=set()
+    )
     display_greasepencil_in_shotlist: BoolProperty(
         name="** Experimental ** Display Grease Pencil in Shot List", default=False, options=set()
     )
@@ -628,10 +652,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         self.setSelectedShotByIndex(0)
 
     current_take_name: EnumProperty(
-        name="Takes",
-        description="Select a take",
-        items=_list_takes,
-        update=_update_current_take_name,
+        name="Takes", description="Select a take", items=_list_takes, update=_update_current_take_name,
     )
 
     takes: CollectionProperty(type=UAS_ShotManager_Take)
@@ -1998,13 +2019,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
 
                 clipName = "myBGSound"
                 newSoundClip = vse_render.createNewClip(
-                    scene,
-                    str(sound_path),
-                    targetTrackInd,
-                    0,
-                    importVideo=False,
-                    importAudio=True,
-                    clipName=clipName,
+                    scene, str(sound_path), targetTrackInd, 0, importVideo=False, importAudio=True, clipName=clipName,
                 )
 
                 shot.bgSoundClipName = newSoundClip.name

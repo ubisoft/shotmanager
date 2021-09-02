@@ -41,13 +41,13 @@ def draw_greasepencil_shot_properties(sm_ui, context, shot):
         else:
             gp_child = utils.get_greasepencil_child(shot.camera)
 
-    panelIcon = "TRIA_DOWN" if prefs.shot_greasepencil_extended and gp_child is not None else "TRIA_RIGHT"
+    panelIcon = "TRIA_DOWN" if prefs.shot_greasepencil_expanded and gp_child is not None else "TRIA_RIGHT"
 
     box = layout.box()
     box.use_property_decorate = False
     row = box.row()
     extendSubRow = row.row(align=True)
-    extendSubRow.prop(prefs, "shot_greasepencil_extended", text="", icon=panelIcon, emboss=False)
+    extendSubRow.prop(prefs, "shot_greasepencil_expanded", text="", icon=panelIcon, emboss=False)
     # row.separator(factor=1.0)
 
     subRow = row.row(align=False)
@@ -77,7 +77,7 @@ def draw_greasepencil_shot_properties(sm_ui, context, shot):
         subRow.separator()
         subRow.prop(props, "display_greasepencil_in_shotlist", text="")
 
-        if prefs.shot_greasepencil_extended:
+        if prefs.shot_greasepencil_expanded:
             row = box.row()
             row.prop(gp_child, "location")
 

@@ -286,12 +286,12 @@ class UAS_PT_ShotManager_ShotProperties(Panel):
             # Notes
             ######################
             if props.display_notes_in_properties:
-                panelIcon = "TRIA_DOWN" if prefs.shot_notes_extended else "TRIA_RIGHT"
+                panelIcon = "TRIA_DOWN" if prefs.shot_notes_expanded else "TRIA_RIGHT"
 
                 box = layout.box()
                 box.use_property_decorate = False
                 row = box.row()
-                row.prop(prefs, "shot_notes_extended", text="", icon=panelIcon, emboss=False)
+                row.prop(prefs, "shot_notes_expanded", text="", icon=panelIcon, emboss=False)
                 # row.separator(factor=1.0)
                 c = row.column()
                 # grid_flow = c.grid_flow(align=False, columns=3, even_columns=False)
@@ -300,7 +300,7 @@ class UAS_PT_ShotManager_ShotProperties(Panel):
                 subrow.prop(props, "display_notes_in_shotlist", text="")
                 #    subrow.separator(factor=0.5)
 
-                if prefs.shot_notes_extended:
+                if prefs.shot_notes_expanded:
                     row = box.row()
                     row.separator(factor=1.0)
                     row.prop(shot, "note01", text="")

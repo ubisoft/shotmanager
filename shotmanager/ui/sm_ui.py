@@ -161,22 +161,9 @@ class UAS_PT_ShotManager(Panel):
         # scene warnings
         ################
         warningsList = props.getWarnings(scene)
-        if len(warningsList):
-            for w in warningsList:
-                row = layout.row()
-                row.separator()
-                row.alert = True
-                row.label(text=w)
-                row.alert = False
+        self.drawWarnings(context, layout, warningsList)
 
-        if props.use_project_settings and "Scene" in scene.name:
-            c = layout.column()
-            c.alert = True
-            c.alignment = "CENTER"
-            c.label(text=" *************************************** ")
-            c.label(text=" *    SCENE NAME IS INVALID !!!    * ")
-            c.label(text=" *************************************** ")
-
+        
         # play and timeline
         ################
         row = layout.row()
@@ -283,7 +270,7 @@ class UAS_PT_ShotManager(Panel):
 
         # takes
         ################
-        panelIcon = "TRIA_DOWN" if prefs.take_properties_extended else "TRIA_RIGHT"
+        panelIcon = "TRIA_DOWN" if prefs.take_properties_expanded else "TRIA_RIGHT"
         takeHasNotes = False
         if currentTake is not None:
             takeHasNotes = currentTake.hasNotes()
@@ -294,7 +281,7 @@ class UAS_PT_ShotManager(Panel):
 
         # if props.display_globaleditintegr_in_properties or props.display_notes_in_properties or props.display_takerendersettings_in_properties or takeHasNotes:
         if props.display_globaleditintegr_in_properties or props.display_takerendersettings_in_properties:
-            row.prop(prefs, "take_properties_extended", text="", icon=panelIcon, emboss=False)
+            row.prop(prefs, "take_properties_expanded", text="", icon=panelIcon, emboss=False)
 
         takeStr = "Take:" if not props.display_advanced_infos else f"Take ({currentTakeInd + 1}/{props.getNumTakes()}):"
         row.label(text=takeStr)
@@ -321,9 +308,9 @@ class UAS_PT_ShotManager(Panel):
                 overIcon = "DECORATE_OVERRIDE"
                 subsubrow.prop(
                     prefs,
-                    "take_renderSettings_extended",
+                    "take_renderSettings_expanded",
                     text="",
-                    emboss=prefs.take_renderSettings_extended,
+                    emboss=prefs.take_renderSettings_expanded,
                     # emboss=True,
                     icon=overIcon,
                 )
@@ -331,13 +318,13 @@ class UAS_PT_ShotManager(Panel):
             if takeHasNotes:
                 icon = config.icons_col["ShotManager_NotesData_32"]
                 subsubrow.prop(
-                    prefs, "take_notes_extended", text="", emboss=prefs.take_notes_extended, icon_value=icon.icon_id
+                    prefs, "take_notes_expanded", text="", emboss=prefs.take_notes_expanded, icon_value=icon.icon_id
                 )
             else:
                 if props.display_notes_in_properties:
                     icon = config.icons_col["ShotManager_NotesNoData_32"]
                     subsubrow.prop(
-                        prefs, "take_notes_extended", text="", emboss=prefs.take_notes_extended, icon_value=icon.icon_id
+                        prefs, "take_notes_expanded", text="", emboss=prefs.take_notes_expanded, icon_value=icon.icon_id
                     )
                     # emptyIcon = config.icons_col["General_Empty_32"]
                     # row.operator(
@@ -350,7 +337,7 @@ class UAS_PT_ShotManager(Panel):
         # row = row.row(align=False)
         row.menu("UAS_MT_Shot_Manager_takes_toolsmenu", icon="TOOL_SETTINGS", text="")
 
-        if prefs.take_properties_extended:
+        if prefs.take_properties_expanded:
             #  row = box.row()
             #  row.label(text="Take Properties:")
 
@@ -375,17 +362,17 @@ class UAS_PT_ShotManager(Panel):
         ######################
         # if props.display_takerendersettings_in_properties:
         if currentTake is not None and (
-            (props.display_takerendersettings_in_properties and prefs.take_properties_extended)
-            or (props.display_takerendersettings_in_properties and prefs.take_renderSettings_extended)
-            or (currentTake.overrideRenderSettings and prefs.take_renderSettings_extended)
-            # or (takeHasNotes and prefs.take_properties_extended)
+            (props.display_takerendersettings_in_properties and prefs.take_properties_expanded)
+            or (props.display_takerendersettings_in_properties and prefs.take_renderSettings_expanded)
+            or (currentTake.overrideRenderSettings and prefs.take_renderSettings_expanded)
+            # or (takeHasNotes and prefs.take_properties_expanded)
         ):
-            panelIcon = "TRIA_DOWN" if prefs.take_renderSettings_extended else "TRIA_RIGHT"
+            panelIcon = "TRIA_DOWN" if prefs.take_renderSettings_expanded else "TRIA_RIGHT"
 
             subBox = box.box()
             subBox.use_property_decorate = False
             titleRow = subBox.row()
-            titleRow.prop(prefs, "take_renderSettings_extended", text="", icon=panelIcon, emboss=False)
+            titleRow.prop(prefs, "take_renderSettings_expanded", text="", icon=panelIcon, emboss=False)
             titleRow.label(text="Take Render Settings:")
 
             # overSubRow = subRow.split(factor=0.05)
@@ -398,7 +385,7 @@ class UAS_PT_ShotManager(Panel):
             )
 
             # if not props.use_project_settings or "FROM_TAKE" == currentTake.renderMode:
-            if prefs.take_renderSettings_extended:
+            if prefs.take_renderSettings_expanded:
                 subSubBoxRow = subBox.row()
                 subSubBoxRow.separator(factor=1)
                 subSubBox = subSubBoxRow.column()
@@ -408,19 +395,19 @@ class UAS_PT_ShotManager(Panel):
         # Notes
         ######################
         if currentTake is not None and (
-            (props.display_notes_in_properties and prefs.take_properties_extended)
-            or (props.display_notes_in_properties and prefs.take_notes_extended)
-            or (takeHasNotes and prefs.take_notes_extended)
-            # or (takeHasNotes and prefs.take_properties_extended)
+            (props.display_notes_in_properties and prefs.take_properties_expanded)
+            or (props.display_notes_in_properties and prefs.take_notes_expanded)
+            or (takeHasNotes and prefs.take_notes_expanded)
+            # or (takeHasNotes and prefs.take_properties_expanded)
         ):
-            # or (props.display_notes_in_properties and prefs.take_properties_extended)
+            # or (props.display_notes_in_properties and prefs.take_properties_expanded)
             # ):
-            panelIcon = "TRIA_DOWN" if prefs.take_notes_extended else "TRIA_RIGHT"
+            panelIcon = "TRIA_DOWN" if prefs.take_notes_expanded else "TRIA_RIGHT"
 
             subBox = box.box()
             subBox.use_property_decorate = False
             titleRow = subBox.row()
-            titleRow.prop(prefs, "take_notes_extended", text="", icon=panelIcon, emboss=False)
+            titleRow.prop(prefs, "take_notes_expanded", text="", icon=panelIcon, emboss=False)
             # row.separator(factor=1.0)
             c = titleRow.column()
             # grid_flow = c.grid_flow(align=False, columns=3, even_columns=False)
@@ -428,7 +415,7 @@ class UAS_PT_ShotManager(Panel):
             subrow.label(text="Take Notes:")
             subrow.separator(factor=0.5)  # prevents strange look when panel is narrow
 
-            if prefs.take_notes_extended:
+            if prefs.take_notes_expanded:
                 row = subBox.row()
                 row.separator(factor=1.0)
                 row.prop(currentTake, "note01", text="")
@@ -536,6 +523,37 @@ class UAS_PT_ShotManager(Panel):
             col.menu("UAS_MT_Shot_Manager_shots_toolsmenu", icon="TOOL_SETTINGS", text="")
 
             # layout.separator ( factor = 1 )
+
+    def drawWarnings(self, context, ui_component, warningsList):
+        if len(warningsList):
+            prefs = context.preferences.addons["shotmanager"].preferences
+            panelIcon = "TRIA_DOWN" if prefs.general_warning_expanded else "TRIA_RIGHT"
+
+            box = ui_component.box()
+            panelRow = box.row()
+            panelRow.prop(prefs, "general_warning_expanded", text="", icon=panelIcon, emboss=False)
+            titleRow = panelRow.row()
+            titleRow.alert = True
+            warningStr = f"Warnings: {len(warningsList)}"
+            titleRow.label(text=warningStr)
+
+            if prefs.general_warning_expanded:
+                mainRow = box.row()
+                mainRow.separator(factor=2.0)
+                warningsRow = mainRow.column(align=False)
+                for w in warningsList:
+                    messages = w.split("\n")
+
+                    row = warningsRow.row()
+                    row.alert = True
+                    warningCol = row.column(align=False)
+                    warningCol.scale_y = 0.5
+                    for i, mess in enumerate(messages):
+                        if 0 == i:
+                            warningCol.label(text="- " + mess)
+                        else:
+                            warningCol.label(text="  " + mess)
+                    warningCol.separator(factor=1.0)
 
 
 #########

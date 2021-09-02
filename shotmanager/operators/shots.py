@@ -187,7 +187,7 @@ class UAS_ShotManager_ShowNotes(Operator):
         prefs = context.preferences.addons["shotmanager"].preferences
         shot = props.getShotByIndex(self.index)
         shot.selectShotInUI()
-        prefs.shot_notes_extended = True
+        prefs.shot_notes_expanded = True
         return {"FINISHED"}
 
 
