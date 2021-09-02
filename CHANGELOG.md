@@ -2,8 +2,8 @@
 
 ## V 1.5.62 - 02/09/2021:
 **UI:**<br />
--\ Added a warning section at the top of the panel to display issues from the scene
--\ Placed the debug mode toggle in the addon preferences
+	- Added a warning section at the top of the panel to display issues from the scene
+- Placed the debug mode toggle in the addon preferences
 
 **Fix:**
 
