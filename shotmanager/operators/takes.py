@@ -16,13 +16,13 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 """
-To do: module description here.
+Take operators
 """
 
 # -*- coding: utf-8 -*-
 import bpy
-from bpy.types import Panel, Operator
-from bpy.props import CollectionProperty, StringProperty, BoolProperty, IntProperty
+from bpy.types import Operator
+from bpy.props import StringProperty, BoolProperty, IntProperty
 
 # import shotmanager.operators.shots as shots
 
@@ -47,8 +47,8 @@ class UAS_ShotManager_TakeAdd(Operator):
 
     name: StringProperty(name="Name")
 
-    resolution_x: IntProperty(name="Res. X", min=0, default=1280)
-    resolution_y: IntProperty(name="Res. Y", min=0, default=720)
+    resolution_x: IntProperty(name="Res. X", min=0, default=-1)
+    resolution_y: IntProperty(name="Res. Y", min=0, default=-1)
     resolution_framed_x: IntProperty(name="Res. Framed X", min=0, default=1280)
     resolution_framed_y: IntProperty(name="Res. Framed Y", min=0, default=960)
     useStampInfoDuringRendering: BoolProperty(
@@ -100,27 +100,26 @@ class UAS_ShotManager_TakeAdd(Operator):
         layout.separator()
         col.scale_x = 1.0
 
-        if not props.use_project_settings:
-            subBox = box.box()
-            row = subBox.row(align=False)
-            row.use_property_split = False
-            row.alignment = "RIGHT"
-            row.label(text="Resolution")
-            row.prop(self, "resolution_x", text="Width:")
-            row.prop(self, "resolution_y", text="Height:")
+        # if not props.use_project_settings:
+        #     subBox = box.box()
+        #     row = subBox.row(align=False)
+        #     row.use_property_split = False
+        #     row.alignment = "RIGHT"
+        #     row.label(text="Resolution")
+        #     row.prop(self, "resolution_x", text="Width:")
+        #     row.prop(self, "resolution_y", text="Height:")
 
-            row = subBox.row(align=False)
-            row.use_property_split = False
-            row.alignment = "RIGHT"
-            row.label(text="Frame Resolution")
-            row.prop(self, "resolution_framed_x", text="Width:")
-            row.prop(self, "resolution_framed_y", text="Height:")
+        #     row = subBox.row(align=False)
+        #     row.use_property_split = False
+        #     row.alignment = "RIGHT"
+        #     row.label(text="Frame Resolution")
+        #     row.prop(self, "resolution_framed_x", text="Width:")
+        #     row.prop(self, "resolution_framed_y", text="Height:")
 
-            stampInfoStr = "Use Stamp Info Add-on"
-            if not props.isStampInfoAvailable():
-                stampInfoStr += "  (Warning: Currently NOT installed)"
-            subBox.prop(self, "useStampInfoDuringRendering", text=stampInfoStr)
-
+        #     stampInfoStr = "Use Stamp Info Add-on"
+        #     if not props.isStampInfoAvailable():
+        #         stampInfoStr += "  (Warning: Currently NOT installed)"
+        #     subBox.prop(self, "useStampInfoDuringRendering", text=stampInfoStr)
 
     def execute(self, context):
         newTake = context.scene.UAS_shot_manager_props.addTake(name=self.name)
@@ -335,11 +334,9 @@ class UAS_ShotManager_TakeAsMain(Operator):
 
     def invoke(self, context, event):
         props = context.scene.UAS_shot_manager_props
-        currentTakeInd = props.getCurrentTakeIndex()
-
-        currentShotIndex = props.getCurrentShotIndex()
-        currentTake = props.getCurrentTake()
-        currentTakeInd = props.getCurrentTakeIndex()
+        # currentTakeInd = props.getCurrentTakeIndex()
+        # currentShotIndex = props.getCurrentShotIndex()
+        # currentTake = props.getCurrentTake()
 
         newInd = props.moveTakeToIndex(props.getCurrentTake(), 0, setAsMainTake=True)
         if 0 == newInd:

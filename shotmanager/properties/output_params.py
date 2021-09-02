@@ -22,7 +22,7 @@ To do: module description here.
 import bpy
 
 from bpy.types import PropertyGroup
-from bpy.props import StringProperty, IntProperty, BoolProperty, PointerProperty, FloatVectorProperty
+from bpy.props import IntProperty, BoolProperty
 
 import logging
 
@@ -46,7 +46,7 @@ class UAS_ShotManager_OutputParams_Resolution(PropertyGroup):
         if props is not None:
             if self == props.getCurrentTake().outputParams_Resolution:
                 props.setResolutionToScene()
-                
+
     def _get_resolution_x(self):
         val = self.get("resolution_x", -1)
         if -1 == val:
@@ -57,8 +57,10 @@ class UAS_ShotManager_OutputParams_Resolution(PropertyGroup):
 
     def _set_resolution_x(self, value):
         self["resolution_x"] = value
-        
-    resolution_x: IntProperty(name="Res. X", min=0, default=-1, get=_get_resolution_x, set=_set_resolution_x, update=_update_resolution)
+
+    resolution_x: IntProperty(
+        name="Res. X", min=0, default=-1, get=_get_resolution_x, set=_set_resolution_x, update=_update_resolution
+    )
 
     def _get_resolution_y(self):
         val = self.get("resolution_y", -1)
@@ -71,7 +73,9 @@ class UAS_ShotManager_OutputParams_Resolution(PropertyGroup):
     def _set_resolution_y(self, value):
         self["resolution_y"] = value
 
-    resolution_y: IntProperty(name="Res. Y", min=0, default=-1, get=_get_resolution_y, set=_set_resolution_y, update=_update_resolution)
+    resolution_y: IntProperty(
+        name="Res. Y", min=0, default=-1, get=_get_resolution_y, set=_set_resolution_y, update=_update_resolution
+    )
 
     resolution_framed_x: IntProperty(name="Res. Framed X", min=0, default=-1)
     resolution_framed_y: IntProperty(name="Res. Framed Y", min=0, default=-1)
@@ -92,29 +96,46 @@ class UAS_ShotManager_OutputParams_Resolution(PropertyGroup):
 
     useStampInfoDuringRendering: BoolProperty(
         name="Stamp Info on Output",
-        description="Stamp render information on rendered images thanks to Stamp Info add-on",
+        description="Stamp render information on rendered images thanks to Ubisoft Stamp Info add-on",
         default=True,
         get=get_useStampInfoDuringRendering,  # removed cause the use of Stamp Info in this add-on is independent from the one of Stamp Info add-on itself
         set=set_useStampInfoDuringRendering,
         options=set(),
     )
 
-    def draw(self, context, ui_component):
-        row = ui_component.row(align=False)
+    def draw(self, context, ui_component, enabled=True):
+        props = context.scene.UAS_shot_manager_props
+
+        ui_component.enabled = enabled
+
+        split = ui_component.split(factor=0.3, align=False)
+        split.label(text="Resolution")
+        row = split.row(align=False)
         row.use_property_split = False
         row.alignment = "RIGHT"
-        row.label(text="Resolution")
         row.prop(self, "resolution_x", text="Width:")
         row.prop(self, "resolution_y", text="Height:")
 
-        row = ui_component.row(align=False)
+        col = ui_component.column(align=False)
+        col.separator(factor=0.5)
+        colRow = col.split(factor=0.4)
+        stampInfoStr = " Use Stamp Info"
+        colRow.prop(self, "useStampInfoDuringRendering", text=stampInfoStr)
+        if props is not None and not props.isStampInfoAvailable():
+            subColRow = colRow.row()
+            col.enabled = False
+            subColRow.alert = True
+            subColRow.alignment = "RIGHT"
+            subColRow.label(text="*** Add-on not found ***")
+
+        colRow = col.row()
+        colRow.enabled = self.useStampInfoDuringRendering
+        split = colRow.split(factor=0.3, align=False)
+        row = split.row(align=False)
+        row.separator(factor=1.8)
+        row.label(text="Frame Resolution")
+        row = split.row(align=False)
         row.use_property_split = False
         row.alignment = "RIGHT"
-        row.label(text="Frame Resolution")
         row.prop(self, "resolution_framed_x", text="Width:")
         row.prop(self, "resolution_framed_y", text="Height:")
-
-        stampInfoStr = "Use Stamp Info Add-on"
-        # if not props.isStampInfoAvailable():
-        #     stampInfoStr += "  (Warning: Currently NOT installed)"
-        ui_component.prop(self, "useStampInfoDuringRendering", text=stampInfoStr)

@@ -91,7 +91,7 @@ bl_info = {
     "author": "Ubisoft - Julien Blervaque (aka Werwack), Romain Carriquiry Borchiari",
     "description": "Manage a sequence of shots and cameras in the 3D View - Ubisoft Animation Studio",
     "blender": (2, 92, 0),
-    "version": (1, 5, 60),
+    "version": (1, 5, 61),
     "location": "View3D > Shot Manager",
     "wiki_url": "https://ubisoft-shotmanager.readthedocs.io",
     # "warning": "BETA Version",
@@ -179,8 +179,13 @@ def timeline_valueChanged(self, context):
 
 
 def install_shot_handler(self, context):
+    """Called as the update function of WindowManager.UAS_shot_manager_shots_play_mode
+    """
+    scene = context.scene
+
+    scene.UAS_shot_manager_props.setResolutionToScene()
+
     if self.UAS_shot_manager_shots_play_mode and jump_to_shot not in bpy.app.handlers.frame_change_pre:
-        scene = context.scene
         shots = scene.UAS_shot_manager_props.get_shots()
         for i, shot in enumerate(shots):
             if shot.start <= scene.frame_current <= shot.end:
@@ -251,7 +256,7 @@ def checkDataVersion_post_load_handler(self, context):
 
         if numScenesToUpgrade:
             print(
-                f"Shot Manager Data Version is lower than the current Shot Manager version - Upgrading data with patches..."
+                "Shot Manager Data Version is lower than the current Shot Manager version - Upgrading data with patches..."
             )
             # apply patch and apply new data version
             # wkip patch strategy to re-think. Collect the data versions and apply the respective patches?
@@ -289,13 +294,13 @@ def checkDataVersion_post_load_handler(self, context):
         if props.display_shotname_in_3dviewport:
             try:
                 bpy.ops.uas_shot_manager.draw_cameras_ui("INVOKE_DEFAULT")
-            except Exception as e:
+            except Exception:
                 print("Paf in draw cameras ui  *")
 
         if props.display_hud_in_3dviewport:
             try:
                 bpy.ops.uas_shot_manager.draw_hud("INVOKE_DEFAULT")
-            except Exception as e:
+            except Exception:
                 print("Paf in draw hud  *")
 
 
@@ -310,22 +315,15 @@ def checkDataVersion_post_load_handler(self, context):
 #             print("   props.dataVersion: ", props.dataVersion)
 
 
-# classes = (
-#
-# )
-
-
 def register():
 
     from .utils import utils_vse_render
     from .utils import utils_ui
 
-
     versionTupple = utils.display_addon_registered_version("Shot Manager")
 
     config.initGlobalVariables()
 
-    
     ###################
     # logging
     ###################
@@ -468,9 +466,7 @@ def register():
     )
 
     bpy.types.WindowManager.UAS_shot_manager_toggle_montage_interaction = BoolProperty(
-        name="montage_interaction",
-        description="Disable or enable montage like timeline interaction",
-        default=True,
+        name="montage_interaction", description="Disable or enable montage like timeline interaction", default=True,
     )
 
     bpy.types.WindowManager.UAS_shot_manager_progressbar = FloatProperty(
@@ -494,7 +490,6 @@ def unregister():
     print("\n*** --- Unregistering Shot Manager Add-on --- ***\n")
     from .utils import utils_vse_render
     from .utils import utils_ui
-
 
     #    bpy.context.scene.UAS_shot_manager_props.display_shotname_in_3dviewport = False
 

@@ -145,7 +145,9 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
     retimer: PointerProperty(type=UAS_Retimer_Properties)
 
     def getWarnings(self, scene):
-        """Return an array with all the warnings"""
+        """Return an array with all the warnings
+        A warning message can be on several lines when the separator \n is used.
+        """
         warningList = []
 
         # check if the current file is saved and not read only
@@ -170,11 +172,26 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         shotList = self.get_shots()
         hasNegativeFrame = False
         shotInd = 0
+        handlesDuration = self.getHandlesDuration()
         while shotInd < len(shotList) and not hasNegativeFrame:
-            hasNegativeFrame = shotList[shotInd].start - self.handles < 0
+            hasNegativeFrame = shotList[shotInd].start - handlesDuration < 0
             shotInd += 1
         if hasNegativeFrame:
-            warningList.append("Index of the output frame of a shot minus handle is negative !!")
+            if self.areShotHandlesUsed():
+                warningList.append(
+                    "Index of the output frame of a shot minus handle is negative !!"
+                    "\nNegative time indicies are not supported by Shot Manager renderer."
+                )
+            else:
+                warningList.append(
+                    "At least one shot starts at a negative frame !!"
+                    "\nNegative time indicies are not supported by Shot Manager renderer."
+                )
+
+        # check if the resolution render percentage is at 100%
+        ###########
+        if 100 != scene.render.resolution_percentage:
+            warningList.append("Render Resolution Percentage is not at 100%")
 
         # check is the data version is compatible with the current version
         # wkip obsolete code due to post register data version check
@@ -188,6 +205,12 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
             warningList.append("Data version is lower than SM version !!")
 
         # wkip to do: check if some camera markers are used in the scene
+
+        # if self.use_project_settings and "Scene" in scene.name:
+        #     warningList.append("Scene Name is Invalid !!!")
+        # c.label(text=" *************************************** ")
+        # c.label(text=" *    SCENE NAME IS INVALID !!!    * ")
+        # c.label(text=" *************************************** ")
 
         return warningList
 
@@ -287,7 +310,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
     project_color_space: StringProperty(name="Color Space", default="")
     project_asset_name: StringProperty(name="Asset Name", default="")
 
-    project_output_format: StringProperty(name="Video Output Format", default="")
+    project_output_format: StringProperty(name="Video Output Format", default="mp4")
 
     project_sounds_output_format: StringProperty(name="Sound Output Format", default="")
 
@@ -329,27 +352,81 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
 
     #############
     # general
+    # Functions to call whenever you need a property value that can be overriden by the projects settings
     #############
 
     def getRenderResolution(self):
-        """Return the resolution specified by:
+        """Return the resolution used by Shot Manager in the current context.
+        It is the resolution of the images resulting from the scene rendering, not the one resulting
+        from these renderings composited with the Stamp Info frames, which can be bigger.
+        Use getStampInfoResolution() for the final composited images resolution.
+
+        This resolution is specified by:
             - the current take resolution if it overrides the scene or project render settings,
             - the project, if project settings are used,
             - or by the current scene if none of the specifications above
+
+        This resolution should be (but it may not always be the case according to the refreshment of the scene)
+        the same as the current scene one.
+
+        Returns:
+            tupple with the render resolution x and y of the take
         """
-        #TODO
+        res = None
+        currentTake = self.getCurrentTake()
+        if currentTake is not None:
+            res = currentTake.getRenderResolution()
+        else:
+            if self.use_project_settings:
+                res = (self.project_resolution_x, self.project_resolution_y)
+            else:
+                res = (self.parentScene.render.resolution_x, self.parentScene.render.resolution_y)
+        return res
+
+    def setResolutionToScene(self):
+        """
+        Check the current resolution and change it if necessary to match either the project
+        one or the current take one if project mode is not activated.
+        A take can override a project settings render resolution if it is configured as so.
+        """
+        res = self.getRenderResolution()
+
+        if res is not None:
+            if self.parentScene.render.resolution_x != res[0]:
+                self.parentScene.render.resolution_x = res[0]
+            if self.parentScene.render.resolution_y != res[1]:
+                self.parentScene.render.resolution_y = res[1]
+
+    def getStampInfoResolution(self):
+        """Return the resolution of the images resulting from the compositing of the rendered images and
+        the frames from Stamp Info.
+        If Stamp Info is not used then the returned resolution is the one of the rendered images, which
+        can also be obtained by calling getRenderResolution().
+
+        This resolution is specified by:
+            - the current take resolution if it overrides the scene or project render settings,
+            - the project, if project settings are used,
+            - or by the current scene if none of the specifications above
+
+        Returns:
+            tupple with the render resolution x and y of the take
+        """
+        # TODO
         pass
-    
+
     def areShotHandlesUsed(self):
-        """
-        Returns the right handles use, either local or from the project.
+        """Return true if the shot handles are used by Shot Manager in the current context. This value is specified by:
+            - the project, if project settings are used,
+            - the settings of the current instance of Shot Manager otherwise
         """
         return self.project_use_shot_handles if self.use_project_settings else self.use_handles
 
     def getHandlesDuration(self):
-        """
-        Returns the right handles duration, either local or from the project.
-        Before calling this function check if the instance of Shto MAnager uses handles by calling
+        """Return the duration of the handles if handles are used by Shot Manager in the current context. This duration is specified by:
+            - the project, if project settings are used and handles are also used there,
+            - the settings of the current instance of Shot Manager otherwise
+        Before calling this function check if the instance of Shot Manager uses handles by calling areShotHandlesUsed()
+        Return 0 if the handles are not used.
         """
         handles = 0
         if self.areShotHandlesUsed():
@@ -395,7 +472,9 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
     display_enabled_in_shotlist: BoolProperty(name="Display Enabled State in Shot List", default=True, options=set())
 
     # ** Experimental **
-    display_cameraBG_in_shotlist: BoolProperty(name="** Experimental ** Display Camera BG in Shot List", default=False, options=set())
+    display_cameraBG_in_shotlist: BoolProperty(
+        name="** Experimental ** Display Camera BG in Shot List", default=False, options=set()
+    )
     display_greasepencil_in_shotlist: BoolProperty(
         name="** Experimental ** Display Grease Pencil in Shot List", default=False, options=set()
     )
@@ -628,10 +707,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         self.setSelectedShotByIndex(0)
 
     current_take_name: EnumProperty(
-        name="Takes",
-        description="Select a take",
-        items=_list_takes,
-        update=_update_current_take_name,
+        name="Takes", description="Select a take", items=_list_takes, update=_update_current_take_name,
     )
 
     takes: CollectionProperty(type=UAS_ShotManager_Take)
@@ -1998,13 +2074,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
 
                 clipName = "myBGSound"
                 newSoundClip = vse_render.createNewClip(
-                    scene,
-                    str(sound_path),
-                    targetTrackInd,
-                    0,
-                    importVideo=False,
-                    importAudio=True,
-                    clipName=clipName,
+                    scene, str(sound_path), targetTrackInd, 0, importVideo=False, importAudio=True, clipName=clipName,
                 )
 
                 shot.bgSoundClipName = newSoundClip.name
@@ -2442,34 +2512,6 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         return firstShotInd
 
     ##############################
-
-    def getResolution(self):
-        """
-        Get the resolution of the current take.
-        This resolution should be (but it may not always be the case according to the refreshment of the scene)
-        the same as the current scene one.
-        If the project mode is activated then the returned resolution will be the one defined for the project.
-        A take can override a project settings render resolution if it is configured to do so.
-        """
-        currentTake = self.getCurrentTake()
-        if currentTake is not None:
-            return currentTake.getResolution()
-        return None
-
-    def setResolutionToScene(self):
-        """
-        Check the current resolution and change it if necessary to match either the project
-        one or the current take one if project mode is not activated.
-        A take can override a project settings render resolution if it is configured as so.
-        """
-        currentTake = self.getCurrentTake()
-
-        if currentTake is not None:
-            expectedResX, expectedResY = currentTake.getResolution()
-            if self.parentScene.render.resolution_x != expectedResX:
-                self.parentScene.render.resolution_x = expectedResX
-            if self.parentScene.render.resolution_y != expectedResY:
-                self.parentScene.render.resolution_y = expectedResY
 
     def renderShotPrefix(self):
         shotPrefix = ""

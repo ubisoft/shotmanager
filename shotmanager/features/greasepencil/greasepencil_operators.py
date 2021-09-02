@@ -21,7 +21,7 @@ To do: module description here.
 
 import bpy
 from bpy.types import Operator
-from bpy.props import EnumProperty, BoolProperty, StringProperty, IntProperty
+from bpy.props import StringProperty, IntProperty
 
 from shotmanager.utils import utils
 from shotmanager.utils import utils_greasepencil
@@ -37,7 +37,6 @@ class UAS_ShotManager_OT_AddGreasePencil(Operator):
 
     def execute(self, context):
         scene = context.scene
-        props = scene.UAS_shot_manager_props
 
         if self.cameraGpName not in scene.objects or scene.objects[self.cameraGpName] is None:
             print("Camera is invalid for grease pencil parenting - Cancelling...")

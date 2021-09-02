@@ -16,7 +16,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 """
-To do: module description here.
+Camera backgrounds
 """
 
 import os
@@ -25,8 +25,6 @@ import bpy
 from bpy.types import Operator
 from bpy.props import StringProperty, BoolProperty, IntProperty
 
-from shotmanager.config import config
-from shotmanager.utils import utils
 
 import logging
 
@@ -47,16 +45,12 @@ class UAS_ShotManager_OpenDialogForCamBG(Operator):
 
     def invoke(self, context, event):  # See comments at end  [1]
         wm = context.window_manager
-        scene = context.scene
-        props = scene.UAS_shot_manager_props
 
         wm.invoke_props_dialog(self, width=500)
 
         return {"RUNNING_MODAL"}
 
     def draw(self, context):
-        scene = context.scene
-        props = scene.UAS_shot_manager_props
         layout = self.layout
         box = layout.box()
 
@@ -211,4 +205,3 @@ def register():
 def unregister():
     for cls in reversed(classes):
         bpy.utils.unregister_class(cls)
-

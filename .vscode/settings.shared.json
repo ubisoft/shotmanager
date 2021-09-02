@@ -20,4 +20,5 @@
     "python.linting.enabled": true,
     "gitlab.instanceUrl": "https://gitlab-ncsa.ubisoft.org/",
     "blender.addon.sourceDirectory": "./shotmanager",
+    "restructuredtext.confPath": "${​​​​​​​​workspaceFolder}​​​​​​​​\\docs"
 }

@@ -23,7 +23,7 @@ import bpy
 from bpy.types import AddonPreferences
 from bpy.props import StringProperty, IntProperty, BoolProperty, EnumProperty
 
-from ..config import config
+# from ..config import config
 
 from .addon_prefs_ui import draw_shotmanager_addon_prefs
 
@@ -52,24 +52,48 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
     # ****** hidden settings:
     # ------------------------------
 
-    take_properties_extended: BoolProperty(
-        name="Extend Take Properties", default=False,
-    )
-    take_notes_extended: BoolProperty(
-        name="Extend Take Notes", default=False,
+    general_warning_expanded: BoolProperty(
+        name="Expand Warnings", default=False,
     )
 
-    shot_properties_extended: BoolProperty(
-        name="Extend Shot Properties", default=True,
+    def _get_take_properties_expanded(self):
+        val = self.get("take_properties_expanded", False)
+        return val
+
+    def _set_take_properties_expanded(self, value):
+        print(f"*** _set_take_properties_expanded: {self.take_properties_expanded}, value: {value}")
+        # close other panels
+        if self.take_properties_expanded != value and not value:
+            prefs = bpy.context.preferences.addons["shotmanager"].preferences
+            prefs.take_renderSettings_expanded = False
+            prefs.take_notes_expanded = False
+        self["take_properties_expanded"] = value
+
+    take_properties_expanded: BoolProperty(
+        name="Expand Take Properties",
+        get=_get_take_properties_expanded,
+        set=_set_take_properties_expanded,
+        default=False,
     )
-    shot_notes_extended: BoolProperty(
-        name="Extend Shot Notes", default=False,
+
+    take_renderSettings_expanded: BoolProperty(
+        name="Expand Take Render Settings", description="*** This take has its own render settings ***", default=False,
     )
-    shot_cameraBG_extended: BoolProperty(
-        name="Extend Shot Camera BG", default=False,
+    take_notes_expanded: BoolProperty(
+        name="Expand Take Notes", default=False,
     )
-    shot_greasepencil_extended: BoolProperty(
-        name="Extend Shot Grease Pencil", default=False,
+
+    shot_properties_expanded: BoolProperty(
+        name="Expand Shot Properties", default=True,
+    )
+    shot_notes_expanded: BoolProperty(
+        name="Expand Shot Notes", default=False,
+    )
+    shot_cameraBG_expanded: BoolProperty(
+        name="Expand Shot Camera BG", default=False,
+    )
+    shot_greasepencil_expanded: BoolProperty(
+        name="Expand Shot Grease Pencil", default=False,
     )
 
     current_shot_changes_current_time: BoolProperty(

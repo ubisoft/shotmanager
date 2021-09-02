@@ -16,14 +16,14 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 """
-To do: module description here.
+Definition of a take
 """
 
 import bpy
 
 from bpy.types import Scene
 from bpy.types import PropertyGroup
-from bpy.props import StringProperty, CollectionProperty, PointerProperty, BoolProperty, IntProperty, EnumProperty
+from bpy.props import StringProperty, CollectionProperty, PointerProperty, BoolProperty, IntProperty
 
 from .shot import UAS_ShotManager_Shot
 
@@ -112,7 +112,7 @@ class UAS_ShotManager_Take(SequenceInterface, PropertyGroup):
         self.globalEditVideo = _copyString(source.globalEditVideo)
         self.startInGlobalEdit = source.startInGlobalEdit
 
-        self.renderMode = source.renderMode
+        self.overrideRenderSettings = source.overrideRenderSettings
         self.outputParams_Resolution.copyPropertiesFrom(source.outputParams_Resolution)
 
         self.note01 = _copyString(source.note01)
@@ -204,25 +204,43 @@ class UAS_ShotManager_Take(SequenceInterface, PropertyGroup):
     # Those properties are overriden by the project settings if use_project_settings is true
     #############
 
-    renderMode: EnumProperty(
-        name="Take Resolution Mode",
-        description="Use the take resolution or adopt the project resolution\nif the project settings are activated",
-        items=(("FROM_PROJECT", "From Project", ""), ("FROM_TAKE", "Override Project Resolution", ""),),
-        default="FROM_TAKE",
+    def _update_overrideRenderSettings(self, context):
+        self.parentScene.UAS_shot_manager_props.setResolutionToScene()
+
+    overrideRenderSettings: BoolProperty(
+        name="Override Render Settings",
+        description="When checked, the take gets its own local render settings,\n"
+        " overriding the render settings provided either by the project settings or the scene",
+        update=_update_overrideRenderSettings,
+        default=False,
     )
 
     outputParams_Resolution: PointerProperty(type=UAS_ShotManager_OutputParams_Resolution)
 
-    def getResolution(self):
-        """
-            Return a tupple with the render resolution of the take. The resolution can be different if project settings are used or not
+    def getRenderResolution(self):
+        """Return the resolution used by Shot Manager in the current context.
+        It is the resolution of the images resulting from the scene rendering, not the one resulting
+        from these renderings composited with the Stamp Info frames, which can be bigger.
+
+        This resolution is specified by:
+            - the current take resolution if it overrides the scene or project render settings,
+            - the project, if project settings are used,
+            - or by the current scene if none of the specifications above
+
+        The resolution can then be different if project settings are used or not.
+
+        Returns:
+            tupple with the render resolution x and y of the take
         """
         props = self.parentScene.UAS_shot_manager_props
         res = None
-        if props.use_project_settings and "FROM_PROJECT" == self.renderMode:
-            res = (props.project_resolution_x, props.project_resolution_y)
-        else:
+        if self.overrideRenderSettings:
             res = (self.outputParams_Resolution.resolution_x, self.outputParams_Resolution.resolution_y)
+        else:
+            if props.use_project_settings:
+                res = (props.project_resolution_x, props.project_resolution_y)
+            else:
+                res = (props.parentScene.render.resolution_x, props.parentScene.render.resolution_y)
         return res
 
     #############
@@ -282,8 +300,9 @@ class UAS_ShotManager_Take(SequenceInterface, PropertyGroup):
         return dictSeq
 
     def newShot(self, shot):
+        # TODO
         print("*** Take.newShot: To implement !! ***")
-        return newShot
+        return None
 
     def get_frame_start(self):
         return self.parentScene.UAS_shot_manager_props.editStartFrame
@@ -300,4 +319,3 @@ class UAS_ShotManager_Take(SequenceInterface, PropertyGroup):
         """ Same as self.getEditDuration()
         """
         return self.get_frame_end() - self.get_frame_start()
-

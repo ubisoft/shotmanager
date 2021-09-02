@@ -161,21 +161,7 @@ class UAS_PT_ShotManager(Panel):
         # scene warnings
         ################
         warningsList = props.getWarnings(scene)
-        if len(warningsList):
-            for w in warningsList:
-                row = layout.row()
-                row.separator()
-                row.alert = True
-                row.label(text=w)
-                row.alert = False
-
-        if props.use_project_settings and "Scene" in scene.name:
-            c = layout.column()
-            c.alert = True
-            c.alignment = "CENTER"
-            c.label(text=" *************************************** ")
-            c.label(text=" *    SCENE NAME IS INVALID !!!    * ")
-            c.label(text=" *************************************** ")
+        self.drawWarnings(context, layout, warningsList)
 
         # play and timeline
         ################
@@ -283,7 +269,7 @@ class UAS_PT_ShotManager(Panel):
 
         # takes
         ################
-        panelIcon = "TRIA_DOWN" if prefs.take_properties_extended else "TRIA_RIGHT"
+        panelIcon = "TRIA_DOWN" if prefs.take_properties_expanded else "TRIA_RIGHT"
         takeHasNotes = False
         if currentTake is not None:
             takeHasNotes = currentTake.hasNotes()
@@ -294,7 +280,7 @@ class UAS_PT_ShotManager(Panel):
 
         # if props.display_globaleditintegr_in_properties or props.display_notes_in_properties or props.display_takerendersettings_in_properties or takeHasNotes:
         if props.display_globaleditintegr_in_properties or props.display_takerendersettings_in_properties:
-            row.prop(prefs, "take_properties_extended", text="", icon=panelIcon, emboss=False)
+            row.prop(prefs, "take_properties_expanded", text="", icon=panelIcon, emboss=False)
 
         takeStr = "Take:" if not props.display_advanced_infos else f"Take ({currentTakeInd + 1}/{props.getNumTakes()}):"
         row.label(text=takeStr)
@@ -302,20 +288,42 @@ class UAS_PT_ShotManager(Panel):
         #    row.scale_y = 1.5
         subrow.scale_x = 2.0
 
-        subsubrow = subrow.row(align=False)
+        subsubrow = subrow.row(align=True)
         subsubrow.scale_x = 0.8
+        # subsubrow.use_property_split = True
 
         if currentTake is not None:
+
+            # reduce space between buttons:
+            # if currentTake.overrideRenderSettings or takeHasNotes or props.display_notes_in_properties:
+
+            if currentTake.overrideRenderSettings:
+                # overrideRow = subsubrow.row()
+                # overrideRow.alert = True
+                # overrideRow.scale_x = 0.4
+                # overrideRow.label(text="Ov.")
+
+                # overrideRow.alert = True
+                overIcon = "DECORATE_OVERRIDE"
+                subsubrow.prop(
+                    prefs,
+                    "take_renderSettings_expanded",
+                    text="",
+                    emboss=prefs.take_renderSettings_expanded,
+                    # emboss=True,
+                    icon=overIcon,
+                )
+
             if takeHasNotes:
                 icon = config.icons_col["ShotManager_NotesData_32"]
                 subsubrow.prop(
-                    prefs, "take_notes_extended", text="", emboss=prefs.take_notes_extended, icon_value=icon.icon_id
+                    prefs, "take_notes_expanded", text="", emboss=prefs.take_notes_expanded, icon_value=icon.icon_id
                 )
             else:
                 if props.display_notes_in_properties:
                     icon = config.icons_col["ShotManager_NotesNoData_32"]
                     subsubrow.prop(
-                        prefs, "take_notes_extended", text="", emboss=prefs.take_notes_extended, icon_value=icon.icon_id
+                        prefs, "take_notes_expanded", text="", emboss=prefs.take_notes_expanded, icon_value=icon.icon_id
                     )
                     # emptyIcon = config.icons_col["General_Empty_32"]
                     # row.operator(
@@ -328,9 +336,12 @@ class UAS_PT_ShotManager(Panel):
         # row = row.row(align=False)
         row.menu("UAS_MT_Shot_Manager_takes_toolsmenu", icon="TOOL_SETTINGS", text="")
 
-        if prefs.take_properties_extended:
+        if prefs.take_properties_expanded:
             #  row = box.row()
             #  row.label(text="Take Properties:")
+
+            # Global edit
+            ######################
             if props.display_globaleditintegr_in_properties:
                 subBox = box.box()
                 subRow = subBox.row()
@@ -343,81 +354,75 @@ class UAS_PT_ShotManager(Panel):
                 subRow.separator()
                 subRow.prop(currentTake, "startInGlobalEdit", text="Start in Global Edit")
 
-            if props.display_globaleditintegr_in_properties and props.display_takerendersettings_in_properties:
+            if props.display_globaleditintegr_in_properties:
                 box.separator(factor=0.2)
 
-            if props.display_takerendersettings_in_properties:
-                subRow = box.row()
-                subRow.label(text="Take Render Settings:")
+        # Render settings properties
+        ######################
+        # if props.display_takerendersettings_in_properties:
+        if currentTake is not None and (
+            (props.display_takerendersettings_in_properties and prefs.take_properties_expanded)
+            or (props.display_takerendersettings_in_properties and prefs.take_renderSettings_expanded)
+            or (currentTake.overrideRenderSettings and prefs.take_renderSettings_expanded)
+            # or (takeHasNotes and prefs.take_properties_expanded)
+        ):
+            panelIcon = "TRIA_DOWN" if prefs.take_renderSettings_expanded else "TRIA_RIGHT"
 
-                if props.use_project_settings:
-                    subSubRow = subRow.row()
-                    subSubRow.alert = "FROM_TAKE" == currentTake.renderMode
-                    subSubRow.prop(currentTake, "renderMode", text="")
+            subBox = box.box()
+            subBox.use_property_decorate = False
+            titleRow = subBox.row()
+            titleRow.prop(prefs, "take_renderSettings_expanded", text="", icon=panelIcon, emboss=False)
+            titleRow.label(text="Take Render Settings:")
 
-                if not props.use_project_settings or "FROM_TAKE" == currentTake.renderMode:
-                    subBox = box.box()
-                    # subRow = subBox.row()
-                    # subRow.separator()
+            # overSubRow = subRow.split(factor=0.05)
+            overSubRow = titleRow.row(align=True)
+            if currentTake.overrideRenderSettings:
+                overSubRow.alert = True
+            overSubRow.prop(currentTake, "overrideRenderSettings", text="")
+            overSubRow.label(
+                text="Override " + ("Project" if props.use_project_settings else "Scene") + " Render Settings"
+            )
 
-                    currentTake.outputParams_Resolution.draw(context, subBox)
-                    # row = subBox.row(align=False)
-                    # row.use_property_split = False
-                    # row.alignment = "RIGHT"
-                    # row.label(text="Resolution")
-                    # row.prop(currentTake, "resolution_x", text="Width:")
-                    # row.prop(currentTake, "resolution_y", text="Height:")
-
-                    # row = subBox.row(align=False)
-                    # row.use_property_split = False
-                    # row.alignment = "RIGHT"
-                    # row.label(text="Frame Resolution")
-                    # row.prop(currentTake, "resolution_framed_x", text="Width:")
-                    # row.prop(currentTake, "resolution_framed_y", text="Height:")
-
-                    # stampInfoStr = "Use Stamp Info Add-on"
-                    # if not props.isStampInfoAvailable():
-                    #     stampInfoStr += "  (Warning: Currently NOT installed)"
-                    # subBox.prop(currentTake, "useStampInfoDuringRendering", text=stampInfoStr)
-
-                    # subRow.prop(currentTake, "resolution_x")
-                    # subRow.prop(currentTake, "resolution_y")
-
-            box.separator(factor=0.2)
+            if prefs.take_renderSettings_expanded:
+                subSubBoxRow = subBox.row()
+                subSubBoxRow.separator(factor=1)
+                subSubBox = subSubBoxRow.column()
+                # subSubBox.separator(factor=2)
+                currentTake.outputParams_Resolution.draw(context, subSubBox, enabled=currentTake.overrideRenderSettings)
 
         # Notes
         ######################
         if currentTake is not None and (
-            (props.display_notes_in_properties and prefs.take_properties_extended)
-            or (props.display_notes_in_properties and prefs.take_notes_extended)
-            or (takeHasNotes and prefs.take_notes_extended)
-            # or (takeHasNotes and prefs.take_properties_extended)
+            (props.display_notes_in_properties and prefs.take_properties_expanded)
+            or (props.display_notes_in_properties and prefs.take_notes_expanded)
+            or (takeHasNotes and prefs.take_notes_expanded)
+            # or (takeHasNotes and prefs.take_properties_expanded)
         ):
-            # or (props.display_notes_in_properties and prefs.take_properties_extended)
+            # or (props.display_notes_in_properties and prefs.take_properties_expanded)
             # ):
-            panelIcon = "TRIA_DOWN" if prefs.take_notes_extended else "TRIA_RIGHT"
+            panelIcon = "TRIA_DOWN" if prefs.take_notes_expanded else "TRIA_RIGHT"
 
-            box = box.box()
-            box.use_property_decorate = False
-            row = box.row()
-            row.prop(prefs, "take_notes_extended", text="", icon=panelIcon, emboss=False)
+            subBox = box.box()
+            subBox.use_property_decorate = False
+            titleRow = subBox.row()
+            titleRow.prop(prefs, "take_notes_expanded", text="", icon=panelIcon, emboss=False)
             # row.separator(factor=1.0)
-            c = row.column()
+            c = titleRow.column()
             # grid_flow = c.grid_flow(align=False, columns=3, even_columns=False)
             subrow = c.row()
             subrow.label(text="Take Notes:")
             subrow.separator(factor=0.5)  # prevents strange look when panel is narrow
 
-            if prefs.take_notes_extended:
-                row = box.row()
+            if prefs.take_notes_expanded:
+                row = subBox.row()
                 row.separator(factor=1.0)
                 row.prop(currentTake, "note01", text="")
                 row.separator(factor=1.0)
-                row = box.row()
+                row = subBox.row()
                 row.separator(factor=1.0)
                 row.prop(currentTake, "note02", text="")
                 row.separator(factor=1.0)
-                row = box.row()
+                row = subBox.row()
                 row.separator(factor=1.0)
                 row.prop(currentTake, "note03", text="")
                 row.separator(factor=1.0)
@@ -516,6 +521,37 @@ class UAS_PT_ShotManager(Panel):
             col.menu("UAS_MT_Shot_Manager_shots_toolsmenu", icon="TOOL_SETTINGS", text="")
 
             # layout.separator ( factor = 1 )
+
+    def drawWarnings(self, context, ui_component, warningsList):
+        if len(warningsList):
+            prefs = context.preferences.addons["shotmanager"].preferences
+            panelIcon = "TRIA_DOWN" if prefs.general_warning_expanded else "TRIA_RIGHT"
+
+            box = ui_component.box()
+            panelRow = box.row()
+            panelRow.prop(prefs, "general_warning_expanded", text="", icon=panelIcon, emboss=False)
+            titleRow = panelRow.row()
+            titleRow.alert = True
+            warningStr = f"Warnings: {len(warningsList)}"
+            titleRow.label(text=warningStr)
+
+            if prefs.general_warning_expanded:
+                mainRow = box.row()
+                mainRow.separator(factor=2.0)
+                warningsRow = mainRow.column(align=False)
+                for w in warningsList:
+                    messages = w.split("\n")
+
+                    row = warningsRow.row()
+                    row.alert = True
+                    warningCol = row.column(align=False)
+                    warningCol.scale_y = 0.5
+                    for i, mess in enumerate(messages):
+                        if 0 == i:
+                            warningCol.label(text="- " + mess)
+                        else:
+                            warningCol.label(text="  " + mess)
+                    warningCol.separator(factor=1.0)
 
 
 #########

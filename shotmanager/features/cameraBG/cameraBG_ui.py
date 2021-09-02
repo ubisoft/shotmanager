@@ -34,13 +34,13 @@ def draw_cameraBG_shot_properties(sm_ui, context, shot):
     scene = context.scene
 
     shotHasCamBG = len(shot.camera.data.background_images) and shot.camera.data.background_images[0].clip is not None
-    panelIcon = "TRIA_DOWN" if prefs.shot_cameraBG_extended and shotHasCamBG else "TRIA_RIGHT"
+    panelIcon = "TRIA_DOWN" if prefs.shot_cameraBG_expanded and shotHasCamBG else "TRIA_RIGHT"
 
     box = layout.box()
     box.use_property_decorate = False
     row = box.row()
     extendSubRow = row.row(align=True)
-    extendSubRow.prop(prefs, "shot_cameraBG_extended", text="", icon=panelIcon, emboss=False)
+    extendSubRow.prop(prefs, "shot_cameraBG_expanded", text="", icon=panelIcon, emboss=False)
     # row.separator(factor=1.0)
 
     subRow = row.row(align=True)
@@ -62,7 +62,7 @@ def draw_cameraBG_shot_properties(sm_ui, context, shot):
         subRow.separator()
         subRow.prop(props, "display_cameraBG_in_shotlist", text="")
 
-        if prefs.shot_cameraBG_extended:
+        if prefs.shot_cameraBG_expanded:
             if len(shot.camera.data.background_images):
                 row = box.row()
                 #    row.enabled = False

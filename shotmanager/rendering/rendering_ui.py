@@ -436,6 +436,14 @@ def draw3DRenderPanel(self, context):
     # row.separator()
     # row.operator("uas_shot_manager.open_explorer", emboss=True, icon='FILEBROWSER', text="")
 
+    if config.uasDebug:
+        debugCol = layout.column()
+        debugCol.alert = True
+        debugCol.label(text="Debug Infos:")
+
+        currentRenderResStr = f"SM Render Res: {props.getRenderResolution()}"
+        debugCol.label(text="  " + currentRenderResStr)
+
     self.layout.separator(factor=1)
 
 
