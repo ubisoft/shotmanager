@@ -94,7 +94,7 @@ class UAS_PT_ShotManager_ShotProperties(Panel):
             row.alert = True
             row.label(text="*** Warning: Camera not in scene !***")
 
-        if config.uasDebug and props.display_greasepencil_in_properties:
+        if config.devDebug and props.display_greasepencil_in_properties:
             shot = None
             if not ("SELECTED" == props.current_shot_properties_mode):
                 shot = props.getCurrentShot()
@@ -143,7 +143,7 @@ class UAS_PT_ShotManager_ShotProperties(Panel):
             box.use_property_decorate = False
 
             currentTakeInd = props.getCurrentTakeIndex()
-            if config.uasDebug:
+            if config.devDebug:
                 row = box.row()
                 row.label(
                     text=(

@@ -265,7 +265,7 @@ class MontageOtio(MontageInterface):
                             print(f"Missing Media Reference for Clip: {clip.name}")
                             continue
                         media_path = Path(utils.file_path_from_url(clip.media_reference.target_url))
-                        # if config.uasDebug:
+                        # if config.devDebug:
                         #     print(f"\n** clip: {clip.name}")
                         # print(f"** clip.media_reference: {clip.media_reference}")
                         # print(f"** media_path: {media_path}")
@@ -301,7 +301,7 @@ class MontageOtio(MontageInterface):
                     else:
                         # stackName = clip.name
                         stackName = _get_name_from_xml_clip_name(clip, xmlClipNames)
-                        #  if config.uasDebug:
+                        #  if config.devDebug:
                         # print(f"\n** clip: {clip.name}")
                         # print(f"Stack Seq Name: {stackName}, seq: {self.getSequenceNameFromMediaName(stackName)}")
 
@@ -553,7 +553,7 @@ class ShotOtio(ShotInterface):
                             print(f"Missing Media Reference for Clip: {clip.name}")
                             continue
                         media_path = Path(utils.file_path_from_url(clip.media_reference.target_url))
-                        # if config.uasDebug:
+                        # if config.devDebug:
                         #     print(f"\n** clip: {clip.name}")
                         # print(f"** clip.media_reference: {clip.media_reference}")
                         # print(f"** media_path: {media_path}")

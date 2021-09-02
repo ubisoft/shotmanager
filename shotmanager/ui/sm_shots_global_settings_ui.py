@@ -83,7 +83,7 @@ class UAS_PT_ShotManager_ShotsGlobalSettings(Panel):
             c.operator("uas_shot_manager.remove_bg_images", text="", icon="PANEL_CLOSE")
             #  row.separator(factor=0.5)  # prevents stange look when panel is narrow
 
-            if config.uasDebug:
+            if config.devDebug:
                 row = subBox.row()
                 row.separator(factor=1.0)
                 c = row.column()

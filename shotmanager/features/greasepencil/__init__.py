@@ -35,7 +35,7 @@ _logger = logging.getLogger(__name__)
 
 
 def register():
-    if config.uasDebug:
+    if config.devDebug:
         print("       - Registering Grease Pencil Package")
 
     # for cls in _classes:

@@ -132,13 +132,14 @@ class UAS_PT_ShotManager(Panel):
             row.label(text=f" ***  {addonWarning[0]}  ***")
             row.alert = False
 
-        row = layout.row()
-        row.label(text="Debug Mode:")
-        subrow = row.row()
-        subrow.operator("uas_shot_manager.enable_debug", text="On").enable_debug = True
-        subrow.operator("uas_shot_manager.enable_debug", text="Off").enable_debug = False
+        if config.devDebug:
+            row = layout.row()
+            row.label(text="Debug Mode:")
+            subrow = row.row()
+            # subrow.operator("uas_shot_manager.enable_debug", text="On").enable_debug = True
+            subrow.operator("uas_shot_manager.enable_debug", text="Off").enable_debug = False
 
-        if config.uasDebug:
+        if config.devDebug:
             row = layout.row()
             row.alignment = "CENTER"
             strDebug = " *** Debug Mode ***"
@@ -149,7 +150,6 @@ class UAS_PT_ShotManager(Panel):
             row.prop(props, "useBGSounds")
             row.alert = False
 
-        # if not "UAS_shot_manager_props" in context.scene:
         if not props.isInitialized:
             layout.separator()
             row = layout.row()

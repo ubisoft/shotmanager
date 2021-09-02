@@ -508,14 +508,7 @@ class UAS_Vse_Render(PropertyGroup):
         elif "CAMERA" == mediaType:
             newClipName = clipName if "" != clipName else "myCamera"
             newClip = _new_camera_sequence(
-                scene,
-                newClipName,
-                channelInd,
-                atFrame,
-                offsetStart,
-                offsetEnd,
-                cameraScene,
-                cameraObject,
+                scene, newClipName, channelInd, atFrame, offsetStart, offsetEnd, cameraScene, cameraObject,
             )
             newClip.blend_type = "ALPHA_OVER"
 
@@ -643,14 +636,20 @@ class UAS_Vse_Render(PropertyGroup):
 
                 if "FIT_WIDTH" == mode:
                     clipNewHeight = canvasWidth / clipRealWidth * clipRealHeight
-                    clip.crop.min_y = clip.crop.max_y = -0.5 * (clipRenderPercentage / 100) * (canvasHeight - clipNewHeight)
+                    clip.crop.min_y = clip.crop.max_y = (
+                        -0.5 * (clipRenderPercentage / 100) * (canvasHeight - clipNewHeight)
+                    )
 
                 if "FIT_HEIGHT" == mode:
                     clipNewWidth = canvasHeight / clipRealHeight * clipRealWidth
-                    clip.crop.min_x = clip.crop.max_x = -0.5 * (clipRenderPercentage / 100) * (canvasWidth - clipNewWidth)
+                    clip.crop.min_x = clip.crop.max_x = (
+                        -0.5 * (clipRenderPercentage / 100) * (canvasWidth - clipNewWidth)
+                    )
 
                 if "NO_RESIZE" == mode:
-                    clip.crop.min_x = clip.crop.max_x = -0.5 * (clipRenderPercentage / 100) * (canvasWidth - clipRealWidth)
+                    clip.crop.min_x = clip.crop.max_x = (
+                        -0.5 * (clipRenderPercentage / 100) * (canvasWidth - clipRealWidth)
+                    )
                     clip.crop.min_y = clip.crop.max_y = (
                         -0.5 * (clipRenderPercentage / 100) * (canvasHeight - clipRealHeight)
                     )
@@ -707,7 +706,7 @@ class UAS_Vse_Render(PropertyGroup):
             bpy.data.scenes.remove(sequenceScene, do_unlink=True)
         sequenceScene = bpy.data.scenes.new(name="VSE_SequenceRenderScene")
 
-        sequenceScene = utils.getSceneVSE(sequenceScene.name, createVseTab=False)  # config.uasDebug)
+        sequenceScene = utils.getSceneVSE(sequenceScene.name, createVseTab=False)  # config.devDebug)
 
         bpy.context.window.scene = sequenceScene
 
@@ -760,7 +759,7 @@ class UAS_Vse_Render(PropertyGroup):
         bpy.ops.render.opengl(animation=True, sequencer=True, write_still=False)
 
         # cleaning current file from temp scenes
-        if not config.uasDebug_keepVSEContent:
+        if not config.devDebug_keepVSEContent:
             # current scene is sequenceScene
             bpy.ops.scene.delete()
             pass
@@ -776,8 +775,8 @@ class UAS_Vse_Render(PropertyGroup):
             bpy.data.scenes.remove(sequenceScene, do_unlink=True)
         sequenceScene = bpy.data.scenes.new(name="VSE_SequenceRenderScene")
 
-        createVseTab = False  # config.uasDebug
-        sequenceScene = utils.getSceneVSE(sequenceScene.name, createVseTab=createVseTab)  # config.uasDebug)
+        createVseTab = False  # config.devDebug
+        sequenceScene = utils.getSceneVSE(sequenceScene.name, createVseTab=createVseTab)  # config.devDebug)
         bpy.context.window.scene = sequenceScene
 
         if createVseTab:
@@ -849,12 +848,7 @@ class UAS_Vse_Render(PropertyGroup):
                     clip_x = inputOverResolution[0]
                     clip_y = inputOverResolution[1]
                     self.cropClipToCanvas(
-                        res_x,
-                        res_y,
-                        overClip,
-                        clip_x,
-                        clip_y,
-                        mode="FIT_WIDTH",
+                        res_x, res_y, overClip, clip_x, clip_y, mode="FIT_WIDTH",
                     )
                     # overClip.use_crop = True
                     # overClip.crop.min_x = -1 * int((mediaDictArr[0]["bg_resolution"][0] - inputOverResolution[0]) / 2)
@@ -871,11 +865,7 @@ class UAS_Vse_Render(PropertyGroup):
                     audioClip = self.createNewClip(
                         sequenceScene, mediaDict["sound"], 1, atFrame, final_duration=shotDuration
                     )
-                    audioClip = self.createNewClipFromRange(
-                        sequenceScene,
-                        mediaDict["sound"],
-                        1,
-                    )
+                    audioClip = self.createNewClipFromRange(sequenceScene, mediaDict["sound"], 1,)
                 else:
                     print(f" *** Rendered shot not found: {mediaDict['sound']}")
 
@@ -918,15 +908,15 @@ class UAS_Vse_Render(PropertyGroup):
         bpy.ops.render.opengl(animation=True, sequencer=True, write_still=False)
 
         # cleaning current file from temp scenes
-        if not config.uasDebug_keepVSEContent:
+        if not config.devDebug_keepVSEContent:
             # current scene is sequenceScene
             bpy.ops.scene.delete()
             pass
 
         # wkip changer ca fait que le time range n'est pas pris en compte...
-        # if not config.uasDebug:
+        # if not config.devDebug:
         bpy.context.window.scene = previousScene
-        # if config.uasDebug:
+        # if config.devDebug:
         #     bpy.context.window.scene = sequenceScene
 
     def compositeVideoInVSE(
@@ -951,7 +941,7 @@ class UAS_Vse_Render(PropertyGroup):
         # Make "My New Scene" the active one
         #    bpy.context.window.scene = vse_scene
 
-        #    vse_scene = utils.getSceneVSE(vse_scene.name, createVseTab=config.uasDebug)
+        #    vse_scene = utils.getSceneVSE(vse_scene.name, createVseTab=config.devDebug)
         # if not vse_scene.sequence_editor:
         #     vse_scene.sequence_editor_create()
 
@@ -1058,7 +1048,7 @@ class UAS_Vse_Render(PropertyGroup):
             vse_scene.frame_set(1)
             bpy.ops.render.render(write_still=True)
 
-        if not config.uasDebug_keepVSEContent:
+        if not config.devDebug_keepVSEContent:
             bpy.ops.scene.delete()
 
         bpy.context.window.scene = previousScene

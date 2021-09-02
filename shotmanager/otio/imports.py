@@ -847,8 +847,8 @@ def conformToRefMontage(
 
             confoDisplayInfo += f"{'   - File: ': <20}{bpy.data.filepath}\n"
             confoDisplayInfo += f"{'   - Scene: ': <20}{scene.name}\n"
-            if config.uasDebug:
-                confoDisplayInfo += f"{'   - Debug Mode: ': <20}{config.uasDebug}\n"
+            if config.devDebug:
+                confoDisplayInfo += f"{'   - Debug Mode: ': <20}{config.devDebug}\n"
 
             print(f"{confoDisplayInfo}", file=text_file)
 
