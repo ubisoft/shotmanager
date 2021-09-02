@@ -23,7 +23,7 @@ import bpy
 from bpy.types import AddonPreferences
 from bpy.props import StringProperty, IntProperty, BoolProperty, EnumProperty
 
-from ..config import config
+# from ..config import config
 
 from .addon_prefs_ui import draw_shotmanager_addon_prefs
 

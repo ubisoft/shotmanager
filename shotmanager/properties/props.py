@@ -179,14 +179,19 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         if hasNegativeFrame:
             if self.areShotHandlesUsed():
                 warningList.append(
-                    "Index of the output frame of a shot minus handle is negative !!\n"
-                    "Negative time indicies are not supported by Shot Manager renderer."
+                    "Index of the output frame of a shot minus handle is negative !!"
+                    "\nNegative time indicies are not supported by Shot Manager renderer."
                 )
             else:
                 warningList.append(
-                    "At least one shot starts at a negative frame !!\n"
-                    "Negative time indicies are not supported by Shot Manager renderer."
+                    "At least one shot starts at a negative frame !!"
+                    "\nNegative time indicies are not supported by Shot Manager renderer."
                 )
+
+        # check if the resolution render percentage is at 100%
+        ###########
+        if 100 != scene.render.resolution_percentage:
+            warningList.append("Render Resolution Percentage is not at 100%")
 
         # check is the data version is compatible with the current version
         # wkip obsolete code due to post register data version check
@@ -351,10 +356,60 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
     #############
 
     def getRenderResolution(self):
-        """Return the resolution used by Shot Manager in the current context. This resolution is specified by:
+        """Return the resolution used by Shot Manager in the current context.
+        It is the resolution of the images resulting from the scene rendering, not the one resulting
+        from these renderings composited with the Stamp Info frames, which can be bigger.
+        Use getStampInfoResolution() for the final composited images resolution.
+
+        This resolution is specified by:
             - the current take resolution if it overrides the scene or project render settings,
             - the project, if project settings are used,
             - or by the current scene if none of the specifications above
+
+        This resolution should be (but it may not always be the case according to the refreshment of the scene)
+        the same as the current scene one.
+
+        Returns:
+            tupple with the render resolution x and y of the take
+        """
+        res = None
+        currentTake = self.getCurrentTake()
+        if currentTake is not None:
+            res = currentTake.getRenderResolution()
+        else:
+            if self.use_project_settings:
+                res = (self.project_resolution_x, self.project_resolution_y)
+            else:
+                res = (self.parentScene.render.resolution_x, self.parentScene.render.resolution_y)
+        return res
+
+    def setResolutionToScene(self):
+        """
+        Check the current resolution and change it if necessary to match either the project
+        one or the current take one if project mode is not activated.
+        A take can override a project settings render resolution if it is configured as so.
+        """
+        res = self.getRenderResolution()
+
+        if res is not None:
+            if self.parentScene.render.resolution_x != res[0]:
+                self.parentScene.render.resolution_x = res[0]
+            if self.parentScene.render.resolution_y != res[1]:
+                self.parentScene.render.resolution_y = res[1]
+
+    def getStampInfoResolution(self):
+        """Return the resolution of the images resulting from the compositing of the rendered images and
+        the frames from Stamp Info.
+        If Stamp Info is not used then the returned resolution is the one of the rendered images, which
+        can also be obtained by calling getRenderResolution().
+
+        This resolution is specified by:
+            - the current take resolution if it overrides the scene or project render settings,
+            - the project, if project settings are used,
+            - or by the current scene if none of the specifications above
+
+        Returns:
+            tupple with the render resolution x and y of the take
         """
         # TODO
         pass
@@ -2457,34 +2512,6 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         return firstShotInd
 
     ##############################
-
-    def getResolution(self):
-        """
-        Get the resolution of the current take.
-        This resolution should be (but it may not always be the case according to the refreshment of the scene)
-        the same as the current scene one.
-        If the project mode is activated then the returned resolution will be the one defined for the project.
-        A take can override a project settings render resolution if it is configured to do so.
-        """
-        currentTake = self.getCurrentTake()
-        if currentTake is not None:
-            return currentTake.getResolution()
-        return None
-
-    def setResolutionToScene(self):
-        """
-        Check the current resolution and change it if necessary to match either the project
-        one or the current take one if project mode is not activated.
-        A take can override a project settings render resolution if it is configured as so.
-        """
-        currentTake = self.getCurrentTake()
-
-        if currentTake is not None:
-            expectedResX, expectedResY = currentTake.getResolution()
-            if self.parentScene.render.resolution_x != expectedResX:
-                self.parentScene.render.resolution_x = expectedResX
-            if self.parentScene.render.resolution_y != expectedResY:
-                self.parentScene.render.resolution_y = expectedResY
 
     def renderShotPrefix(self):
         shotPrefix = ""

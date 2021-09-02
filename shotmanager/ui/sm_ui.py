@@ -163,7 +163,6 @@ class UAS_PT_ShotManager(Panel):
         warningsList = props.getWarnings(scene)
         self.drawWarnings(context, layout, warningsList)
 
-        
         # play and timeline
         ################
         row = layout.row()
@@ -384,7 +383,6 @@ class UAS_PT_ShotManager(Panel):
                 text="Override " + ("Project" if props.use_project_settings else "Scene") + " Render Settings"
             )
 
-            # if not props.use_project_settings or "FROM_TAKE" == currentTake.renderMode:
             if prefs.take_renderSettings_expanded:
                 subSubBoxRow = subBox.row()
                 subSubBoxRow.separator(factor=1)

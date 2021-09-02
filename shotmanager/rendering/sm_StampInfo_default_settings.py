@@ -55,9 +55,8 @@ def set_StampInfoSettings(scene):
                 stampInfoSettings.animDurationUsed = True
 
                 # defined per shot?
-                #stampInfoSettings.notesUsed = shot.hasNotes()
-                #stampInfoSettings.cornerNoteUsed = not shot.enabled
-
+                # stampInfoSettings.notesUsed = shot.hasNotes()
+                # stampInfoSettings.cornerNoteUsed = not shot.enabled
 
                 ####################################
                 # bottom
@@ -83,7 +82,6 @@ def set_StampInfoSettings(scene):
                 stampInfoSettings.frameRangeUsed = True
                 stampInfoSettings.frameHandlesUsed = True
                 # stampInfoSettings.shotHandles = props.handles
-
 
                 ####################################
                 # general
@@ -116,7 +114,7 @@ def set_StampInfoSettings(scene):
                 stampInfoSettings.stampRenderResYOutside_percentage = (
                     float(projProp_resolutionFramed[1]) / projProp_resolution_y
                 ) * 100.0 - 100.0
-                
+
                 stampInfoSettings.stampInfoRenderMode = "OVER"
                 stampInfoSettings.stampRenderResOver_percentage = 86.0
 
@@ -124,8 +122,6 @@ def set_StampInfoSettings(scene):
                 stampInfoSettings.extPaddingNorm = 0.020
                 stampInfoSettings.fontScaleHNorm = 0.0168
                 stampInfoSettings.interlineHNorm = 0.0072
-
-
 
                 ####################################
                 # top
@@ -152,18 +148,15 @@ def set_StampInfoSettings(scene):
                 # stampInfoSettings.edit3DFrame = props.     # set in the render loop
                 # stampInfoSettings.edit3DTotalNumber = props.getEditDuration()
 
-
                 ####################################
                 # bottom
                 ####################################
-
 
             else:
                 pass
 
                 projProp_resolution_x = scene.render.resolution_x
                 projProp_resolution_y = scene.render.resolution_y
-
 
             stampInfoSettings.tmp_usePreviousValues = False
 
@@ -173,6 +166,3 @@ def set_StampInfoSettings(scene):
             # stampInfoSettings.tmp_stampRenderResYDirToCompo_percentage = (
             #     stampInfoSettings.stampRenderResYDirToCompo_percentage
             # )
-
-
-

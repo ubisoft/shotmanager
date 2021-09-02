@@ -22,7 +22,7 @@ To do: module description here.
 import bpy
 
 from bpy.types import PropertyGroup
-from bpy.props import StringProperty, IntProperty, BoolProperty, PointerProperty, FloatVectorProperty
+from bpy.props import IntProperty, BoolProperty
 
 import logging
 
@@ -139,4 +139,3 @@ class UAS_ShotManager_OutputParams_Resolution(PropertyGroup):
         row.alignment = "RIGHT"
         row.prop(self, "resolution_framed_x", text="Width:")
         row.prop(self, "resolution_framed_y", text="Height:")
-
