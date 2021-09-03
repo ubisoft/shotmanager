@@ -39,5 +39,5 @@ sphinxcontrib-serializinghtml==1.1.4
 toml==0.10.1
 typed-ast==1.4.1
 typing==3.7.4.1
-urllib3==1.26.4
+urllib3==1.26.6
 zipp==3.1.0
