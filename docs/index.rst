@@ -23,7 +23,7 @@ Getting started
 
 * :ref:`Download <download>` the Shot Manager zip file,
 * :ref:`Install <installing>` Shot Manager as a Blender addon,
-* Mind the :ref:`features<features>` and the :ref:`vocabulary <glossary>`,
+* Mind the :ref:`features <key-features>` and the :ref:`vocabulary <glossary>`,
 * Then :ref:`try out <first-steps>` your installation !
 
 
@@ -34,8 +34,26 @@ Getting started
 
    /getting-started/install
    /getting-started/first-steps
-   /getting-started/features
    /getting-started/glossary
+
+   
+.. toctree::
+   :maxdepth: 3
+   :hidden:
+   :caption: Features
+
+   /features/features
+   /features/advanced-features
+   
+
+.. toctree::
+   :maxdepth: 2
+   :hidden:
+   :caption: How to...
+
+   /how-to/how-to
+   /how-to/how-to-advanced
+   /how-to/use-in-production
 
 
 Support and FAQ

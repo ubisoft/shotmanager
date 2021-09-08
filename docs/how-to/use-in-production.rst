@@ -1,4 +1,4 @@
-.. _useinproduction:
+.. _use-in-production:
 
 Use in production
 =================
