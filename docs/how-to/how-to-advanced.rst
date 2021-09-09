@@ -1,25 +1,10 @@
 .. _howto-advanced:
 
-How to - Advanced
-=================
+How to get into advanced features
+=================================
 
-
-
-Retime something in the scene
------------------------------
-
-- :ref:`How to retime the edit or the action <how-to-retimetheeditortheaction>`
-
-.. toctree::
-    :maxdepth: 3
-    :hidden:
-    
-    features/how-to-retimetheeditortheaction
-
-      
-
-Cameras
--------
+Manage cameras
+--------------
 
 - :ref:`How to use camera backgrounds <camera-backgrounds>`
 
@@ -30,11 +15,23 @@ Cameras
     features/how-to-usecamerabackgrounds
 
 
-
-Shots and takes
----------------
+Manage shots and takes
+----------------------
 
 - :ref:`Shot and take notes <shot-and-take-notes>`
 
+
+Retime the scene content
+------------------------
+
+- :ref:`How to retime the edit or the action <how-to-retimetheeditortheaction>`
+
+.. toctree::
+    :maxdepth: 3
+    :hidden:
+    
+    features/how-to-retimetheeditortheaction
+
+      
 
   

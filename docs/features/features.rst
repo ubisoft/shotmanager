@@ -1,7 +1,7 @@
-.. _key-features:
+.. _features-and-limitations:
 
-Key Features
-============
+Features and limitations
+========================
 
 
 Overview
@@ -17,4 +17,17 @@ Overview
 - Grease pencil sketching per shot (experimental)
 - Edit forth and back with VSE (experimental)
 - ...
+
+
+Limitations
+-----------
+
+.. warning::
+    - Shot Manager is currently not working on Blender 2.93 because no OpenTimelineIO package is available at the moment for Python 3.9.
+      This will be fixed as soon as possible
+
+    - Shot Manager is not compatible with camera binding. Indeed the *Shot Play Mode* overrides the standant play mode and has its own
+      way of changing the viewport camera. Good news is this mode is far more powerfull than the camera binding approach :)
+
+    - Actions are not supported by the Retimer tool.
 

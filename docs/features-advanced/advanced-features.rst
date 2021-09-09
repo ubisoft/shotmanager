@@ -1,6 +1,6 @@
 .. _advanced-features:
 
-Advanced Features
+Advanced features
 =================
 
 Advanced features are a set of modules that can be triggered in order to extend the capabilities of Shot Manager.
@@ -20,7 +20,7 @@ There are 2 ways to open the Features dialog box:
 
 - Click on the panel Settings button to open the Settings menu and choose *Features*:
 
-..  image:: /img/features/SM_Features_OpenFromSettings.png
+..  image:: /img/features-advanced/SM_Features_OpenFromSettings.png
     :align: center
     :scale: 80%
 
@@ -29,13 +29,13 @@ There are 2 ways to open the Features dialog box:
     This button offers a quick access to the Features dialog box, which you may find convenient when you often toggle some features in order
     to keep the UI light.
 
-..  image:: /img/features/SM_Features_OpenFromButton.png
+..  image:: /img/features-advanced/SM_Features_OpenFromButton.png
     :align: center
     :scale: 80%
 
 The Features dialog box gets opened. It allows the listed featuers to be toggled by a simple click on they associated button.
 
-..  image:: /img/features/SM_Features_DialogBox.png
+..  image:: /img/features-advanced/SM_Features_DialogBox.png
     :align: center
     :scale: 80%
 
@@ -52,7 +52,7 @@ The following features add their UI control components into the Take and the Sho
 
 Retimer is a tool on its own. When turned on a new panel named *Retimer* will appear below the Shots panel.
 
-- :ref:`Retime <retimer>`: Insert, delete or scale time globally or on selected entities of the scene.
+- :ref:`Retimer <retimer>`: Insert, delete or scale time globally or on selected entities of the scene.
 
 
 
@@ -61,16 +61,9 @@ Retimer is a tool on its own. When turned on a new panel named *Retimer* will ap
     :hidden:
     :caption: Advanced Features
  
-    advanced-features-retimer
-    advanced-features-notes
-    advanced-features-camerabg
-    
-.. raw:: Tests
+    camerabg
+    notes
+    retimer
 
-Tests
------
 
-Tessst tsssst txt
-
- 
  

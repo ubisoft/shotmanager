@@ -8,8 +8,9 @@ Shot Manager is developed and actively tested on Windows 10. Community users rep
 
 The currently supported Blender version is 2.92.0. Shot Manager also loads successfully and should work on 2.83 LTS, 2.91.2.
 
-**Shot Manager is currently not working on Blender 2.93 because no OpenTimelineIO package is available at the moment for Python 3.9.
-This will be fixed as soon as possible**
+.. warning::
+    Shot Manager is currently not working on Blender 2.93 because no OpenTimelineIO package is available at the moment for Python 3.9.
+    This will be fixed as soon as possible
 
 .. _download:
 

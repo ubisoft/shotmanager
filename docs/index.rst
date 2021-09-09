@@ -17,13 +17,17 @@ Be aware that neither Ubisoft nor Ubisoft employees can be taken as responsible 
 **This said, we will do our best to listen to your feedback and improve this add-on accordingly in order to provide a robust and flexible production tool.
 Have fun !**
 
+.. warning::
+   Shot Manager is currently not working on Blender 2.93 because no OpenTimelineIO package is available at the moment for Python 3.9.
+   This will be fixed as soon as possible.
 
+   
 Getting started
 ---------------
 
 * :ref:`Download <download>` the Shot Manager zip file,
 * :ref:`Install <installing>` Shot Manager as a Blender addon,
-* Mind the :ref:`features <key-features>` and the :ref:`vocabulary <glossary>`,
+* Mind the :ref:`features <features-and-limitations>` and the :ref:`vocabulary <glossary>`,
 * Then :ref:`try out <first-steps>` your installation !
 
 
@@ -43,7 +47,7 @@ Getting started
    :caption: Features
 
    /features/features
-   /features/advanced-features
+   /features-advanced/advanced-features
    
 
 .. toctree::
@@ -56,9 +60,6 @@ Getting started
    /how-to/use-in-production
 
 
-Support and FAQ
----------------
-
 .. toctree::
    :maxdepth: 2
    :hidden:
@@ -67,3 +68,10 @@ Support and FAQ
    /troubleshoot/faq
    /troubleshoot/issue
 
+
+.. toctree::
+   :maxdepth: 2
+   :hidden:
+   :caption: I want more
+
+   /more/more-addons
