@@ -16,7 +16,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 """
-To do: module description here.
+add-on global preferences
 """
 
 import bpy
@@ -37,6 +37,10 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
     # this must match the add-on name, use '__package__'
     # when defining this in a submodule of a python package
     bl_idname = "shotmanager"
+
+    install_failed: BoolProperty(
+        name="Install failed", default=False,
+    )
 
     ########################################################################
     # general ###
@@ -263,5 +267,6 @@ def register():
 
 
 def unregister():
+    print("       - Unregistering Add-on Preferences")
     for cls in reversed(_classes):
         bpy.utils.unregister_class(cls)
