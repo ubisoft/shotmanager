@@ -25,13 +25,14 @@ from bpy.props import BoolProperty, StringProperty
 
 from shotmanager.config import config
 from ..utils.utils import getSceneVSE, convertVersionIntToStr
-from ..utils import utils
 
 
 class UAS_ShotManager_OT_GoToVideoShotManager(Operator):
-    bl_idname = "uas_shot_manager.go_to_video_shot_manager"
-    bl_label = "Go To Updated Video Shot Manager"
-    bl_description = "Go to Updated Video Shot Manager"
+    bl_idname = "uas_shot_manager.go_to_video_tracks"
+    bl_label = "Go to the VSE Edit"
+    bl_description = (
+        "Update the edit in the VSE and switch to this layout.\n !! Add-on Video Tracks has to be installed !!"
+    )
     bl_options = {"INTERNAL"}
 
     vseSceneName: StringProperty(default="")

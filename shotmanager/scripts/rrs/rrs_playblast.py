@@ -48,7 +48,7 @@ def importShotMarkersFromMontage(scene, montageOtio, verbose=False):
 
 
 def rrs_animatic_to_vsm(editVideoFile=None, otioFile=None, montageOtio=None, importMarkers=True):
-    scene = utils.getSceneVSE("RRS_CheckSequence", createVseTab=True)
+    scene = utils.getSceneVSE("SM_CheckSequence", createVseTab=True)
     bpy.context.window.workspace = bpy.data.workspaces["Video Editing"]
 
     vse_render = bpy.context.window_manager.UAS_vse_render
@@ -315,7 +315,7 @@ def rrs_playblast_to_vsm(playblastInfo=None, editVideoFile=None, otioFile=None, 
         for k, v in playblastInfo.items():
             print(f"  {k}: {v}")
 
-    scene = utils.getSceneVSE("RRS_CheckSequence", createVseTab=True)
+    scene = utils.getSceneVSE("SM_CheckSequence", createVseTab=True)
     bpy.context.window.workspace = bpy.data.workspaces["Video Editing"]
 
     vse_render = bpy.context.window_manager.UAS_vse_render

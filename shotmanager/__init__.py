@@ -316,7 +316,7 @@ def install_dependencies():
     """
     error_messages = []
 
-    error_messages.append("No Internet connection")
+    # error_messages.append("No Internet connection")
 
     # return []
     return error_messages
