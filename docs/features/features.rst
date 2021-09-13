@@ -9,7 +9,7 @@ Overview
 
 - Creation of shots from scene cameras and of sequences from those shots
 - Non-linear real-time play of the sequences
-- Action and edit global retime
+- :ref:`Action and edit global retime <how-to-retimetheeditortheaction>`
 - Global control on camera video backgrounds
 - Global control on camera sound backgrounds
 - Sequence batch rendering, with Eevee, Cycle and custom playblast

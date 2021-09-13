@@ -41,8 +41,8 @@ The Features dialog box gets opened. It allows the listed featuers to be toggled
 
 
 
-Available Modules
------------------
+Available features
+------------------
 
 The following features add their UI control components into the Take and the Shots panels:
 

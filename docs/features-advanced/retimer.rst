@@ -79,6 +79,7 @@ Limitations
 -----------
 
 .. warning::
-    - **Actions are not supported:** Changing time in the scene will not affect actions, if the scene contains some.
-    This is because retiming actions (as well as VSE clips by the way) is a difficult paradygm. It raises a lot of questions
+    - **Actions are not supported:** Changing time in the scene will not affect the Blender animation clips named "actions", if the scene contains some.
+    This is because retiming these entities (as well as VSE clips by the way) is a difficult paradygm. It raises a lot of questions
     that we haven't tackled.
+

@@ -2,7 +2,7 @@
 
 
 
-Shot and Take Notes
+Shot and take notes
 -------------------
 
 To come also
