@@ -1,6 +1,12 @@
 ![](doc/images/Logo_90_A.png)
 # Shot Manager - Blender Add-on
-Shot Manager is a Blender add-on that introduces a true shot entity in Blender scenes, as well as a wide and powerful set of tools to build and edit sequences in real-time directly in the 3D context.
+
+**Shot Manager is a Blender add-on that introduces a true shot entity in Blender scenes, as well as a wide and powerful set of tools to build and edit sequences in real-time directly in the 3D context.**
+
+
+**User documentation:** [ubisoft-shotmanager.readthedocs.io](https://ubisoft-shotmanager.readthedocs.io)
+**Latest <u>GitHub</u> release:** [github.com/ubisoft/shotmanager/releases/latest](https://github.com/ubisoft/shotmanager/releases/latest)
+
 
 **Disclaimer**
 >**This tool is currently supported for LTS version of Blender 2.83 and up to Blender 2.92**
@@ -9,8 +15,8 @@ Shot Manager is a Blender add-on that introduces a true shot entity in Blender s
 >
 >It was initialy developed for an animated TV series production in 2020 on Blender 2.83. It has the features that were needed at the time but it
 may not be considered as feature complete for a more generic purpose. In spite of all our efforts to make it reliable some troubles may occur in use cases we have not faced.
->
-><br />
+
+<br />
 
 Note that development is on Windows 10. Please report issues and submit PRs for other OSs.
 
@@ -31,6 +37,8 @@ This is very convenient for previz and 3D layout.
 For installation, features, FAQ, user help please check the documentation here: [https://ubisoft-shotmanager.readthedocs.io](https://ubisoft-shotmanager.readthedocs.io)
 
 ## Dev notes
+
+Follow the development and the date of the upcoming releases on [the wiki](https://github.com/ubisoft/shotmanager/wiki).
 
 Various development notes related to the add-on itself, to the Git project or to the installation are available here: [Dev Notes](./doc/devnotes.md)
 

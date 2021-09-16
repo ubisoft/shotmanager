@@ -27,7 +27,7 @@ author = "Ubisoft Animation Studio"
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
-extensions = ["sphinx.ext.napoleon"]
+extensions = ["sphinx.ext.napoleon", "sphinx.ext.autosectionlabel"]
 
 # using autodoc will require :
 # autodoc_mock_imports = ["bpy", "mathutils"]
