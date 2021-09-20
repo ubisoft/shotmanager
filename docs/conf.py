@@ -17,7 +17,7 @@
 
 # -- Project information -----------------------------------------------------
 
-project = "Shot Manager"
+project = "Ubisoft Shot Manager"
 copyright = "2021, Ubisoft Animation Studio"
 author = "Ubisoft Animation Studio"
 

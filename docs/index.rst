@@ -2,9 +2,11 @@
 
   <br/>
 
+..  image:: /img/ubisoft_logo.png
+    :align: center
 
-Shot Manager: Creative narration and editing with Blender
-=========================================================
+Ubisoft Shot Manager: Creative narration and editing with Blender
+=================================================================
 
 **Manage the cameras and the editing of your scenes inside Blender in real time and with great simplicity.**
 
