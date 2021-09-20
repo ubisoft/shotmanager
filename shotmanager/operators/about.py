@@ -23,12 +23,13 @@ import bpy
 from bpy.types import Operator
 
 from ..ui.sm_dependencies_ui import drawDependencies
+from ..utils.utils import addonCategory
 
 
 class UAS_ShotManager_OT_About(Operator):
     bl_idname = "uas_shot_manager.about"
-    bl_label = "About Shot Manager..."
-    bl_description = "More information about Shot Manager..."
+    bl_label = "About Ubisoft Shot Manager..."
+    bl_description = "More information about Ubisoft Shot Manager..."
     bl_options = {"INTERNAL"}
 
     def invoke(self, context, event):
@@ -38,16 +39,24 @@ class UAS_ShotManager_OT_About(Operator):
         props = context.scene.UAS_shot_manager_props
         layout = self.layout
         box = layout.box()
+        col = box.column()
+        col.scale_y = 0.9
 
         # Version
         ###############
-        row = box.row()
+        row = col.row()
         row.separator()
         row.label(text="Version: " + props.version()[0] + " - (" + "Sept. 18th 2021" + ")" + " -  Ubisoft")
 
+        # Category
+        ###############
+        row = col.row()
+        row.separator()
+        row.label(text=f"Add-on Category: {addonCategory('Shot Manager')}")
+
         # Authors
         ###############
-        row = box.row()
+        row = col.row()
         row.separator()
         row.label(text="Written by Julien Blervaque (aka Werwack), Romain Carriquiry Borchiari")
 
@@ -55,11 +64,14 @@ class UAS_ShotManager_OT_About(Operator):
         ###############
         row = box.row()
         row.label(text="Purpose:")
-        row = box.row()
+        col = box.column()
+        col.scale_y = 0.9
+        row = col.row()
         row.separator()
-        col = row.column()
-        col.label(text="Create a set of camera shots and edit them")
-        col.label(text="in the 3D View as you would do with video clips.")
+        row.label(text="Create a set of camera shots and edit them in the 3D View")
+        row = col.row()
+        row.separator()
+        row.label(text=" as you would do with video clips.")
 
         # Documentation
         ###############

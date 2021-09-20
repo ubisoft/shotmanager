@@ -34,8 +34,6 @@ from .config import config
 
 from .handlers import jump_to_shot
 
-from . import otio
-
 from .features import cameraBG
 from .features import soundBG
 from .features import greasepencil
@@ -61,8 +59,6 @@ from .retimer import retimer_props
 from . import rendering
 from .rendering import rendering_ui
 
-# from .rrs_specific import rrs_vsm_tools
-
 from .scripts import precut_tools
 
 
@@ -73,6 +69,7 @@ from .utils import utils_render
 from .utils import utils_handlers
 from .utils import utils_operators
 from .utils import utils_get_set_current_time
+from .utils.utils_os import module_can_be_imported
 
 from .scripts import rrs
 
@@ -88,7 +85,7 @@ bl_info = {
     "author": "Ubisoft - Julien Blervaque (aka Werwack), Romain Carriquiry Borchiari",
     "description": "Manage a sequence of shots and cameras in the 3D View - Ubisoft Animation Studio",
     "blender": (2, 92, 0),
-    "version": (1, 5, 64),
+    "version": (1, 5, 65),
     "location": "View3D > Shot Manager",
     "wiki_url": "https://ubisoft-shotmanager.readthedocs.io",
     # "warning": "BETA Version",
@@ -346,9 +343,9 @@ def register():
     if config.devDebug:
         _logger.setLevel(logging.DEBUG)  # CRITICAL ERROR WARNING INFO DEBUG NOTSET
 
-    config.installation_errors = []
-
+    # try to install dependencies and collect the errors in case of troubles
     config.installation_errors = install_dependencies()
+    # config.installation_errors = []
 
     if 0 < len(config.installation_errors):
         from .addon_prefs import addon_error_prefs
@@ -446,7 +443,21 @@ def register():
         retimer_ui.register()
         rendering_ui.register()
 
-        otio.register()
+        # otio
+        try:
+            from . import otio
+
+            otio.register()
+
+            # from shotmanager.otio import importOpenTimelineIOLib
+
+            # if importOpenTimelineIOLib():
+            #     otio.register()
+            # else:
+            #     print("       *** OTIO Package import failed ***")
+        except ModuleNotFoundError:
+            print("       *** OTIO Package import failed ****")
+
         utils_vse_render.register()
         utils_render.register()
         general.register()
@@ -543,7 +554,13 @@ def unregister():
         general.unregister()
         utils_render.unregister()
         utils_vse_render.unregister()
-        otio.unregister()
+
+        if module_can_be_imported("shotmanager.otio"):
+            from . import otio
+
+            otio.unregister()
+        else:
+            print("       *** No Otio found for unregister ***")
 
         rendering_ui.unregister()
         retimer_ui.unregister()

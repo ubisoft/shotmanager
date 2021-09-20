@@ -28,12 +28,12 @@ import time
 
 import bpy
 
-from shotmanager.otio.exports import exportShotManagerEditToOtio
 from shotmanager.config import config
 from shotmanager.rendering.sm_StampInfo_default_settings import set_StampInfoSettings
 
 from shotmanager.utils import utils
 from shotmanager.utils import utils_store_context as utilsStore
+from shotmanager.utils.utils_os import module_can_be_imported
 
 
 import logging
@@ -1113,14 +1113,21 @@ def launchRender(context, renderMode, rootPath, area=None):
 
                 if preset.renderOtioFile:
                     bpy.context.window.scene = scene
-                    renderedOtioFile = exportShotManagerEditToOtio(
-                        scene,
-                        takeIndex=takeInd,
-                        filePath=props.renderRootPath,
-                        fileListOnly=False,
-                        #  montageCharacteristics=props.get_montage_characteristics(),
-                    )
-                    # renderedFilesDict["edl_files"] = [renderedOtioFile]
+
+                    if module_can_be_imported("shotmanager.otio"):
+                        # from shotmanager.otio.exports import exportShotManagerEditToOtio
+                        from shotmanager.otio.exports import exportShotManagerEditToOtio
+
+                        renderedOtioFile = exportShotManagerEditToOtio(
+                            scene,
+                            takeIndex=takeInd,
+                            filePath=props.renderRootPath,
+                            fileListOnly=False,
+                            #  montageCharacteristics=props.get_montage_characteristics(),
+                        )
+                        # renderedFilesDict["edl_files"] = [renderedOtioFile]
+                    else:
+                        _logger.info("Otio module not available - Export failed")
             print(json.dumps(renderedFilesDict, indent=4))
 
         elif "PLAYBLAST" == preset.renderMode:

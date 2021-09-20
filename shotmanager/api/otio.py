@@ -19,7 +19,11 @@
 To do: module description here.
 """
 
-from shotmanager.otio import exports
+from shotmanager.utils.utils_os import module_can_be_imported
+
+import logging
+
+_logger = logging.getLogger(__name__)
 
 
 def export_otio(shot_manager, file_path="", file_name="", add_take_name_to_path=False, take_index=-1, fps=-1):
@@ -27,15 +31,21 @@ def export_otio(shot_manager, file_path="", file_name="", add_take_name_to_path=
         Return the file path of the created file
         If file_name is left to default then the rendered file will be a .xml
     """
-    parent_scene = shot_manager.getParentScene()
-    res = exports.exportShotManagerEditToOtio(
-        parent_scene,
-        filePath=file_path,
-        fileName=file_name,
-        addTakeNameToPath=add_take_name_to_path,
-        takeIndex=take_index,
-        fps=fps,
-    )
+    if module_can_be_imported("shotmanager.otio"):
+        from shotmanager.otio import exports
+
+        parent_scene = shot_manager.getParentScene()
+        res = exports.exportShotManagerEditToOtio(
+            parent_scene,
+            filePath=file_path,
+            fileName=file_name,
+            addTakeNameToPath=add_take_name_to_path,
+            takeIndex=take_index,
+            fps=fps,
+        )
+    else:
+        _logger.error("Otio module not available (no OpenTimelineIO)")
+        res = None
     return res
 
 

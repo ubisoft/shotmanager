@@ -36,7 +36,7 @@ import opentimelineio
 from .exports import exportShotManagerEditToOtio
 
 # from shotmanager.otio import imports
-from .imports import createShotsFromOtio, importOtioToVSE
+from .imports import createShotsFromOtio
 from .imports import getSequenceListFromOtioTimeline
 from .imports import createShotsFromOtioTimelineClass, conformToRefMontage
 
@@ -450,15 +450,11 @@ class UAS_ShotManager_OT_Create_Shots_From_OTIO_RRS(Operator):
         #  self.sequenceList.items = list_sequences_from_edl(context, seqList)
 
         wm.invoke_props_dialog(self, width=500)
-        #    res = bpy.ops.uasotio.openfilebrowser("INVOKE_DEFAULT")
-
-        # print("Res: ", res)
-        # return wm.invoke_props_dialog(self, width=500)
         return {"RUNNING_MODAL"}
 
     def draw(self, context):
         scene = context.scene
-        props = scene.UAS_shot_manager_props
+        # props = scene.UAS_shot_manager_props
 
         #########################
         #########################
@@ -868,14 +864,8 @@ class UAS_ShotManager_OT_Create_Shots_From_OTIO(Operator):
 
     def invoke(self, context, event):
         wm = context.window_manager
-
-        from ..otio.imports import getSequenceListFromOtio
-
         wm.invoke_props_dialog(self, width=500)
-        #    res = bpy.ops.uasotio.openfilebrowser("INVOKE_DEFAULT")
 
-        # print("Res: ", res)
-        # return wm.invoke_props_dialog(self, width=500)
         return {"RUNNING_MODAL"}
 
     def draw(self, context):

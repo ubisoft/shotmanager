@@ -25,9 +25,14 @@ import bpy
 
 from shotmanager.utils import utils
 from shotmanager.utils import utils_vse
+from shotmanager.utils.utils_os import module_can_be_imported
 from shotmanager.config import config
 
-from shotmanager.rrs_specific.montage.montage_otio import MontageOtio
+# from shotmanager.rrs_specific.montage.montage_otio import MontageOtio
+
+import logging
+
+_logger = logging.getLogger(__name__)
 
 
 def importShotMarkersFromMontage(scene, montageOtio, verbose=False):
@@ -140,34 +145,45 @@ def rrs_animatic_to_vsm(editVideoFile=None, otioFile=None, montageOtio=None, imp
     if importMarkers:
 
         if montageOtio is None:
-            # config.gMontageOtio
-            config.gMontageOtio = None
-            if importMarkers and "" != otioFile and Path(otioFile).exists():
-                config.gMontageOtio = MontageOtio()
-                config.gMontageOtio.fillMontageInfoFromOtioFile(
-                    otioFile=otioFile, refVideoTrackInd=0, verboseInfo=False
-                )
+            if not module_can_be_imported("shotmanager.otio"):
+                _logger.error("Otio module not available (no OpenTimelineIO): Cannot import markers")
+            else:
+                from shotmanager.rrs_specific.montage.montage_otio import MontageOtio
 
-                config.gSeqEnumList = list()
-                print(f"config.gMontageOtio name: {config.gMontageOtio.get_name()}")
-                for i, seq in enumerate(config.gMontageOtio.sequencesList):
-                    #    print(f"- seqList: i:{i}, seq: {seq.get_name()}")
-                    config.gSeqEnumList.append((str(i), seq.get_name(), f"Import sequence {seq.get_name()}", i + 1))
-            montageOtio = config.gMontageOtio
+                # config.gMontageOtio
+                config.gMontageOtio = None
+                if importMarkers and "" != otioFile and Path(otioFile).exists():
+                    config.gMontageOtio = MontageOtio()
+                    config.gMontageOtio.fillMontageInfoFromOtioFile(
+                        otioFile=otioFile, refVideoTrackInd=0, verboseInfo=False
+                    )
+
+                    config.gSeqEnumList = list()
+                    print(f"config.gMontageOtio name: {config.gMontageOtio.get_name()}")
+                    for i, seq in enumerate(config.gMontageOtio.sequencesList):
+                        #    print(f"- seqList: i:{i}, seq: {seq.get_name()}")
+                        config.gSeqEnumList.append((str(i), seq.get_name(), f"Import sequence {seq.get_name()}", i + 1))
+                montageOtio = config.gMontageOtio
 
         importShotMarkersFromMontage(scene, config.gMontageOtio)
 
 
 def getSoundFilesForEachShot(montageOtio, seqName, otioFile):
-    if montageOtio is None:
-        config.gMontageOtio = MontageOtio()
-        config.gMontageOtio.fillMontageInfoFromOtioFile(otioFile=otioFile, refVideoTrackInd=0, verboseInfo=False)
-    seq = config.gMontageOtio.get_sequence_by_name(seqName)
-    print(f" here seq sound name avant")
     soundsDict = dict()
+    if montageOtio is None:
+
+        if not module_can_be_imported("shotmanager.otio"):
+            _logger.error("Otio module not available (no OpenTimelineIO)")
+            return soundsDict
+        else:
+            from shotmanager.rrs_specific.montage.montage_otio import MontageOtio
+
+            config.gMontageOtio = MontageOtio()
+            config.gMontageOtio.fillMontageInfoFromOtioFile(otioFile=otioFile, refVideoTrackInd=0, verboseInfo=False)
+
+    seq = config.gMontageOtio.get_sequence_by_name(seqName)
     if seq is not None:
         print(f" here seq sound name: {seq.get_name()}")
-        seqSoundsListArr = []
         shotSounds = dict()
         for s in seq.getEditShots():
 

@@ -42,7 +42,10 @@ def drawDependencies(context, layout: bpy.types.UILayout, **kwargs):
     except Exception:
         subRow = split.row()
         subRow.alert = True
-        subRow.label(text="Module not found")
+        if (2, 93, 0) < bpy.app.version:
+            subRow.label(text="Module not yet available on Blender 2.93 and 3.x")
+        else:
+            subRow.label(text="Module not found  - Related features disabled")
 
     row = box.row()
     row.separator()
@@ -57,7 +60,7 @@ def drawDependencies(context, layout: bpy.types.UILayout, **kwargs):
         subRow.label(text=f"V. {stampInfo_versionStr[0]} installed")
     else:
         subRow.alert = True
-        subRow.label(text="Add-on not found (not mandatory though)")
+        subRow.label(text="Add-on not found  - Related features disabled")
 
     subRow2 = rightRow.row()
     subRow2.alignment = "RIGHT"

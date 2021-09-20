@@ -59,7 +59,11 @@ def initGlobalVariables():
 
     icons_col = pcoll
 
-    # import otio ############
+    # otio ############
+
+    global gImportOpenTimelineIO
+    gImportOpenTimelineIO = True
+
     global gMontageOtio
     gMontageOtio = None
 

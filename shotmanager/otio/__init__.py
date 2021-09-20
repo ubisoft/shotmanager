@@ -26,31 +26,31 @@ import platform
 
 import bpy
 
+# from . import otio_wrapper
+# from shotmanager.config import config
+
+
 import logging
 
 _logger = logging.getLogger(__name__)
 
-try:
-    import opentimelineio
 
-    # wkip type de comparaison qui ne marche pas tout le temps!!! ex: "2.12.1"<"11.12.1"  is False !!!
-    if opentimelineio.__version__ < "0.12.1" and platform.system() == "Windows":
-        print("Upgrading OpentimelineIO to 0.12.1")
-        subprocess.run(
-            [
-                bpy.app.binary_path_python,
-                "-m",
-                "pip",
-                "install",
-                os.path.join(os.path.dirname(__file__), "OpenTimelineIO-0.12.1-cp37-cp37m-win_amd64.whl"),
-            ]
-        )
-        importlib.reload(opentimelineio)  # Need to be tested.
-except ModuleNotFoundError:
-    _logger.error(f"*** Error - OpenTimelineIO import failed - using provided version")
-    if platform.system() == platform.system() == "Windows":
-        _logger.error(f"Plateform: Windows")
-        try:
+# def importOpenTimelineIOLib():
+# if (2, 93, 0) < bpy.app.version:
+#     return False
+
+if (2, 93, 0) < bpy.app.version:
+    # forces an exception so that this package (otio) cannot be imported and then the function
+    # used everywhere in ShotManager to see if the atio package is available fails
+    # (namely module_can_be_imported("shotmanager.otio"))
+    import opentimelineio
+else:
+    try:
+        import opentimelineio
+
+        # wkip type de comparaison qui ne marche pas tout le temps!!! ex: "2.12.1"<"11.12.1"  is False !!!
+        if opentimelineio.__version__ < "0.12.1" and platform.system() == "Windows":
+            print("Upgrading OpentimelineIO to 0.12.1")
             subprocess.run(
                 [
                     bpy.app.binary_path_python,
@@ -60,37 +60,47 @@ except ModuleNotFoundError:
                     os.path.join(os.path.dirname(__file__), "OpenTimelineIO-0.12.1-cp37-cp37m-win_amd64.whl"),
                 ]
             )
+            importlib.reload(opentimelineio)  # Need to be tested.
+    except ModuleNotFoundError:
+        _logger.error("*** Error - OpenTimelineIO import failed - using provided version")
+        if platform.system() == platform.system() == "Windows":
+            _logger.error("Plateform: Windows")
+            try:
+                subprocess.run(
+                    [
+                        bpy.app.binary_path_python,
+                        "-m",
+                        "pip",
+                        "install",
+                        os.path.join(os.path.dirname(__file__), "OpenTimelineIO-0.12.1-cp37-cp37m-win_amd64.whl"),
+                    ]
+                )
+                import opentimelineio as opentimelineio
+            except ModuleNotFoundError:
+                _logger.error("*** Error - OpenTimelineIO instal from provided version failed")
+        else:
+            subprocess.run([bpy.app.binary_path_python, "-m", "pip", "install", "opentimelineio"])
             import opentimelineio as opentimelineio
-        except ModuleNotFoundError:
-            _logger.error(f"*** Error - OpenTimelineIO instal from provided version failed")
-    else:
-        subprocess.run([bpy.app.binary_path_python, "-m", "pip", "install", "opentimelineio"])
-        import opentimelineio as opentimelineio
-    #import opentimelineio as opentimelineio
+        # import opentimelineio as opentimelineio
 
-from . import operators
+# try:
+#     import opentimelineio as opentimelineio
 
-from . import otio_wrapper
-
-from pathlib import Path
-
-
-# classes = (
-#     ,
-# )
+#     res = True
+# except Exception:
+#     res = False
+# return res
 
 
 def register():
-    print("       - Registering OTIO Package")
-    # for cls in classes:
-    #     bpy.utils.register_class(cls)
+    from . import operators
 
+    print("       - Registering OTIO Package")
     operators.register()
 
 
 def unregister():
+    from . import operators
+
+    print("       - Unregistering OTIO Package")
     operators.unregister()
-
-    # for cls in reversed(classes):
-    #     bpy.utils.unregister_class(cls)
-

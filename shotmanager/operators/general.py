@@ -143,48 +143,6 @@ class UAS_ShotManager_OT_FileInfo(Operator):
         row.label(text="Shot Manager Data Version: ")
         row.label(text=f"  {convertVersionIntToStr(props.dataVersion)}")
 
-        # # Authors
-        # ###############
-        # row = box.row()
-        # row.separator()
-        # row.label(text="Written by Julien Blervaque (aka Werwack), Romain Carriquiry Borchiari")
-
-        # # Purpose
-        # ###############
-        # row = box.row()
-        # row.label(text="Purpose:")
-        # row = box.row()
-        # row.separator()
-        # row.label(text="Create a set of camera shots and edit them")
-        # row = box.row()
-        # row.separator()
-        # row.label(text="in the 3D View as you would do with video clips.")
-
-        # # Dependencies
-        # ###############
-        # row = box.row()
-        # row.label(text="Dependencies:")
-        # row = box.row()
-        # row.separator()
-
-        # row.label(text="- OpenTimelineIO")
-        # try:
-        #     import opentimelineio as otio
-
-        #     otioVersion = otio.__version__
-        #     row.label(text="V." + otioVersion)
-        # except Exception as e:
-        #     row.label(text="Module not found")
-
-        # row = box.row()
-        # row.separator()
-        # row.label(text="- UAS Stamp Info")
-        # if props.isStampInfoAvailable():
-        #     versionStr = utils.addonVersion("UAS_StampInfo")
-        #     row.label(text="V." + versionStr[0])
-        # else:
-        #     row.label(text="Add-on not found")
-
         row.separator()
 
         layout.separator(factor=1)

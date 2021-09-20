@@ -19,13 +19,11 @@
 To do: module description here.
 """
 
-import json
-
 import bpy
 from bpy.types import Menu
 
 from shotmanager.config import config
-from shotmanager.utils import utils
+from shotmanager.utils.utils_os import module_can_be_imported
 
 import logging
 
@@ -293,7 +291,7 @@ class UAS_MT_ShotManager_Shots_ToolsMenu(Menu):
     bl_description = "Shots Tools"
 
     def draw(self, context):
-        props = context.scene.UAS_shot_manager_props
+        # props = context.scene.UAS_shot_manager_props
 
         # Copy menu entries[ ---
         layout = self.layout
@@ -338,18 +336,18 @@ class UAS_MT_ShotManager_Shots_ToolsMenu(Menu):
         #############
         # import EDL
         #############
-        layout.separator()
-        row = layout.row(align=True)
-        row.label(text="EDL / XML / OTIO:")
+        if module_can_be_imported("shotmanager.otio"):
+            layout.separator()
+            row = layout.row(align=True)
+            row.label(text="EDL / XML / OTIO:")
 
-        row = layout.row(align=True)
-        row.operator_context = "INVOKE_DEFAULT"
-        row.operator("uasotio.openfilebrowser", text="   Create Shots From EDL...").importMode = "CREATE_SHOTS"
+            row = layout.row(align=True)
+            row.operator_context = "INVOKE_DEFAULT"
+            row.operator("uasotio.openfilebrowser", text="   Create Shots From EDL...").importMode = "CREATE_SHOTS"
 
-        row = layout.row(align=True)
-        #    row.operator_context = "INVOKE_DEFAULT"
-
+        #############
         # tools for precut ###
+        #############
         layout.separator()
         row = layout.row(align=True)
         row.label(text="Tools for Precut:")

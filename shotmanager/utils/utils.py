@@ -48,6 +48,16 @@ def convertVersionIntToStr(versionInt):
     return versionStr
 
 
+def addonCategory(addonName):
+    import addon_utils
+
+    categ = ""
+    for addon in addon_utils.modules():
+        if addon.bl_info["name"] == addonName:
+            categ = addon.bl_info["category"]
+    return categ
+
+
 def addonVersion(addonName):
     """Return the add-on version in the form of a tupple made by:
         - a string x.y.z (eg: "1.21.3")
@@ -202,7 +212,9 @@ def openMedia(media_filepath, inExternalPlayer=False):
         #  p = subprocess.Popen(["display", media_filepath])
         # subprocess.run(["open", media_filepath], check=True)
 
-        import subprocess, os, platform
+        import subprocess
+        import os
+        import platform
 
         if platform.system() == "Darwin":  # macOS
             subprocess.call(("open", media_filepath))
@@ -219,9 +231,7 @@ def openMedia(media_filepath, inExternalPlayer=False):
 
         # bpy.ops.render.view_show()
         bpy.ops.image.open(
-            filepath=media_filepath,
-            relative_path=False,
-            show_multiview=False,
+            filepath=media_filepath, relative_path=False, show_multiview=False,
         )
 
         # bpy.data.images.[image_name].reload()
