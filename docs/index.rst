@@ -15,7 +15,7 @@ Ubisoft Shot Manager: Creative narration and editing with Blender
     :width: 80%
 
 
-See how this tool was used in production: `User Stories - Blender and the Rabbids <https://www.blender.org/user-stories/blender-and-the-rabbids/?utm_source=www-homepage>`__.
+|br|See how this tool was used in production: `User Stories - Blender and the Rabbids <https://www.blender.org/user-stories/blender-and-the-rabbids/?utm_source=www-homepage>`__.
 
 
 Disclaimer
@@ -32,7 +32,8 @@ Be aware that neither Ubisoft nor Ubisoft employees can be taken as responsible 
 Have fun !**
 
 .. warning::
-   Shot Manager is currently not working on Blender 2.93 because no OpenTimelineIO package is available at the moment for Python 3.9.
+   !! Blender 2.93: Some features (EDL imports and exports) are NOT YET SUPPORTED ONT THIS VERSION because there is currently no OpenTimelineIO package for Python 3.9 !!
+   
    This will be fixed as soon as possible.
 
    
