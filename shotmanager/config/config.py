@@ -28,6 +28,10 @@ import bpy.utils.previews
 
 def initGlobalVariables():
 
+    # isntallation ############
+    global installation_errors
+    installation_errors = []
+
     # debug ############
     global devDebug
 

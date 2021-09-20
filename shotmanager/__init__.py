@@ -81,6 +81,7 @@ from .scripts import rrs
 # from .data_patches.data_patch_to_v1_3_31 import data_patch_to_v1_3_31
 
 from .debug import sm_debug
+from .install_dependencies import install_dependencies
 
 bl_info = {
     "name": "Shot Manager",
@@ -311,17 +312,6 @@ def checkDataVersion_post_load_handler(self, context):
 #             print("   props.dataVersion: ", props.dataVersion)
 
 
-def install_dependencies():
-    """Install external libraries: OpenTimelineIO
-    """
-    error_messages = []
-
-    # error_messages.append("No Internet connection")
-
-    # return []
-    return error_messages
-
-
 def register():
 
     from .utils import utils_ui
@@ -356,11 +346,11 @@ def register():
     if config.devDebug:
         _logger.setLevel(logging.DEBUG)  # CRITICAL ERROR WARNING INFO DEBUG NOTSET
 
-    installation_errors = []
+    config.installation_errors = []
 
-    installation_errors = install_dependencies()
+    config.installation_errors = install_dependencies()
 
-    if 0 < len(installation_errors):
+    if 0 < len(config.installation_errors):
         from .addon_prefs import addon_error_prefs
 
         print(
@@ -469,8 +459,7 @@ def register():
         # rrs_vsm_tools.register()
 
     # debug tools
-    if config.devDebug:
-        sm_debug.register()
+    sm_debug.register()
 
     # declaration of properties that will not be saved in the scene:
     ####################
@@ -545,9 +534,6 @@ def unregister():
         utils_handlers.removeAllHandlerOccurences(
             checkDataVersion_post_load_handler, handlerCateg=bpy.app.handlers.load_post
         )
-
-        # rrs specific
-        #    rrs_vsm_tools.unregister()
 
         # ui
         about.unregister()

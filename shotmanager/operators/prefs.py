@@ -85,9 +85,9 @@ class UAS_MT_ShotManager_Prefs_MainMenu(Menu):
         layout.separator()
 
         row = layout.row(align=True)
-        row.operator(
-            "shotmanager.open_documentation_url", text="Documentation"
-        ).path = "https://ubisoft-shotmanager.readthedocs.io"
+        doc_op = row.operator("shotmanager.open_documentation_url", text="Documentation")
+        doc_op.path = "https://ubisoft-shotmanager.readthedocs.io"
+        doc_op.tooltip = "Open online documentation: " + doc_op.path
 
         layout.separator()
 

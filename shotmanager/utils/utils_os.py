@@ -54,3 +54,15 @@ def delete_folder(dir_path):
         except Exception:
             print("Cannot delete Dir: ", dir_path)
 
+
+def internet_on():
+    import urllib.request
+    import urllib.error
+
+    for timeout in [1, 5, 10, 15]:
+        try:
+            urllib.request.urlopen("https://google.com", timeout=timeout)
+            return True
+        except urllib.error.URLError:
+            pass
+    return False

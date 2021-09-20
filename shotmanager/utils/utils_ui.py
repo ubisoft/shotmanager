@@ -44,11 +44,7 @@ def collapsable_panel(
 ):
     row = layout.row()
     row.prop(
-        data,
-        property,
-        icon="TRIA_DOWN" if getattr(data, property) else "TRIA_RIGHT",
-        icon_only=True,
-        emboss=False,
+        data, property, icon="TRIA_DOWN" if getattr(data, property) else "TRIA_RIGHT", icon_only=True, emboss=False,
     )
     if alert:
         row.alert = True
@@ -101,10 +97,17 @@ class UAS_ShotManager_OpenExplorer(Operator):
 
 class UAS_SM_Open_Documentation_Url(Operator):  # noqa 801
     bl_idname = "shotmanager.open_documentation_url"
-    bl_label = "Open Documentation Web Page"
+    bl_label = ""
     bl_description = "Open web page.\nShift + Click: Copy the URL into the clipboard"
 
+    tooltip: StringProperty(default="")
     path: StringProperty()
+
+    @classmethod
+    def description(self, context, properties):
+        descr = properties.tooltip if "" != properties.tooltip else "Open web page."
+        descr += "\nShift + Click: Copy the URL into the clipboard"
+        return descr
 
     def invoke(self, context, event):
         if event.shift:

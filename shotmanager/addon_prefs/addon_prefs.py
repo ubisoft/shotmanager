@@ -50,7 +50,23 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
     # ------------------------------
 
     new_shot_duration: IntProperty(
-        min=0, default=50,
+        name="Default Shot Duration",
+        description="Default duration for new shots, in frames",
+        min=0,
+        subtype="TIME",
+        default=50,
+    )
+
+    display_frame_range_tool: BoolProperty(
+        name="Frame Time Range",
+        description="Easily get and set the time range from the Timeline editor.\nA tool from Ubisoft Shot Manager",
+        default=True,
+    )
+
+    displaySMDebugPanel: BoolProperty(
+        name="Display Debug Panel",
+        description="Display the debug panel and debug tools of Shot Manager.\nIt will be as a tab in the viewport N-Panel",
+        default=False,
     )
 
     # ****** hidden settings:

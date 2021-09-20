@@ -23,7 +23,9 @@ import bpy
 from bpy.types import AddonPreferences
 from bpy.props import BoolProperty
 
-# from ..config import config
+from ..ui.sm_dependencies_ui import drawDependencies
+
+from ..config import config
 
 
 class UAS_ShotManager_AddonErrorPrefs(AddonPreferences):
@@ -57,13 +59,56 @@ class UAS_ShotManager_AddonErrorPrefs(AddonPreferences):
         layout = self.layout
         # prefs = context.preferences.addons["shotmanager"].preferences
 
-        layout.label(text="Install failed")
-        layout.label(text="See Installation Troubles FAQ in the online documentation:")
+        box = layout.box()
+        box.alert = True
+        titleRow = box.row()
+        titleRow.alignment = "CENTER"
+        titleRow.label(text="   ••• Ubisoft Shot Manager installation failed •••", icon="ERROR")
+        titleRow.label(text="", icon="ERROR")
 
-        row = layout.row(align=True)
-        row.operator(
-            "shotmanager.open_documentation_url", text="Documentation"
-        ).path = "https://ubisoft-shotmanager.readthedocs.io/en/latest/troubleshoot/faq.html#installation"
+        box.separator(factor=0.3)
+        row = box.row()
+        split = row.split(factor=0.3)
+        rowLeft = split.row()
+        rowLeft.separator(factor=3)
+        rowLeft.label(text="Returned Error(s):")
+
+        # row = box.row()
+        # row.separator(factor=4)
+        col = split.column()
+        for message in config.installation_errors:
+            col.label(text=f"- {message}")
+        # row.separator()
+
+        box.separator(factor=0.3)
+        row = box.row()
+        row.separator(factor=3)
+        row.label(text="Mone information in the Blender System Console")
+
+        # box.separator(factor=0.3)
+        tipsRow = box.row()
+        tipsRow.separator(factor=2)
+        tipsBox = tipsRow.box()
+        tipsBox.label(text="To fix the issue: remove the add-on, check the points below and restart the install.")
+        # tipsBox.separator(factor=4)
+        col = tipsBox.column()
+        col.label(text="      • Launch Blender in Admin mode")
+        col.label(text="      • Be sure your computer is connected to internet")
+        col.label(text="      • Be sure a firewall is not blocking information (or use OpenVPN or equivalent)")
+        tipsRow.separator(factor=2)
+        box.separator(factor=0.3)
+
+        row = box.row(align=True)
+        row.label(text="If the issus persists check the Installation Troubles FAQ:")
+        rowRight = row.row()
+        rowRight.alignment = "RIGHT"
+        rowRight.scale_x = 1.0
+        doc_op = rowRight.operator("shotmanager.open_documentation_url", text="Shot Manager FAQ")
+        doc_op.path = "https://ubisoft-shotmanager.readthedocs.io/en/latest/troubleshoot/faq.html#installation"
+        doc_op.tooltip = "Open online FAQ: " + doc_op.path
+        box.separator(factor=0.3)
+
+        drawDependencies(context, layout)
 
 
 _classes = (UAS_ShotManager_AddonErrorPrefs,)
