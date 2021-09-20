@@ -23,8 +23,7 @@ Limitations
 -----------
 
 .. warning::
-    - Shot Manager is currently not working on Blender 2.93 because no OpenTimelineIO package is available at the moment for Python 3.9.
-      This will be fixed as soon as possible
+    - Blender 2.93: Some features (EDL imports and exports) are NOT YET SUPPORTED ONT THIS VERSION because there is currently no OpenTimelineIO package for Python 3.9
 
     - Shot Manager is not compatible with camera binding. Indeed the *Shot Play Mode* overrides the standant play mode and has its own
       way of changing the viewport camera. Good news is this mode is far more powerfull than the camera binding approach :)
