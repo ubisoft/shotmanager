@@ -116,9 +116,12 @@ class UAS_PT_ShotManager_ShotProperties(Panel):
                     #         "uas_shot_manager.add_grease_pencil", text="", icon="OUTLINER_OB_GREASEPENCIL"
                     #     ).cameraGpName = shot.camera.name
 
-        layout.operator(
-            "uas_shot_manager.go_to_video_shot_manager", text="", icon="SEQ_STRIP_DUPLICATE"
-        ).vseSceneName = "RRS_CheckSequence"
+        versionStr = utils.addonVersion("Video Tracks")
+        row = layout.row()
+        row.enabled = versionStr is not None
+        row.operator(
+            "uas_shot_manager.go_to_video_tracks", text="", icon="SEQ_STRIP_DUPLICATE"
+        ).vseSceneName = "SM_CheckSequence"
 
     def draw(self, context):
         scene = context.scene

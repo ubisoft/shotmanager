@@ -91,9 +91,12 @@ class UAS_PT_ShotManager(Panel):
         #   row.operator("render.opengl", text="", icon='RENDER_ANIMATION').animation = True
         #    row.operator("screen.screen_full_area", text ="", icon = 'FULLSCREEN_ENTER').use_hide_panels=False
 
-        row.operator(
-            "uas_shot_manager.go_to_video_shot_manager", text="", icon="SEQ_STRIP_DUPLICATE"
-        ).vseSceneName = "RRS_CheckSequence"
+        versionStr = utils.addonVersion("Video Tracks")
+        subRow = row.row()
+        subRow.enabled = versionStr is not None
+        subRow.operator(
+            "uas_shot_manager.go_to_video_tracks", text="", icon="SEQ_STRIP_DUPLICATE"
+        ).vseSceneName = "SM_CheckSequence"
 
         row.separator(factor=0.5)
         icon = config.icons_col["General_Explorer_32"]

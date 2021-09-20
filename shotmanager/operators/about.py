@@ -16,19 +16,20 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 """
-To do: module description here.
+About dialog box
 """
 
 import bpy
 from bpy.types import Operator
 
-from ..utils import utils
+from ..ui.sm_dependencies_ui import drawDependencies
+from ..utils.utils import addonCategory
 
 
 class UAS_ShotManager_OT_About(Operator):
     bl_idname = "uas_shot_manager.about"
-    bl_label = "About Shot Manager..."
-    bl_description = "More information about Shot Manager..."
+    bl_label = "About Ubisoft Shot Manager..."
+    bl_description = "More information about Ubisoft Shot Manager..."
     bl_options = {"INTERNAL"}
 
     def invoke(self, context, event):
@@ -38,18 +39,24 @@ class UAS_ShotManager_OT_About(Operator):
         props = context.scene.UAS_shot_manager_props
         layout = self.layout
         box = layout.box()
+        col = box.column()
+        col.scale_y = 0.9
 
         # Version
         ###############
-        row = box.row()
+        row = col.row()
         row.separator()
-        row.label(
-            text="Version: " + props.version()[0] + " - (" + "August 2021" + ")" + " -  Ubisoft"
-        )
+        row.label(text="Version: " + props.version()[0] + " - (" + "Sept. 18th 2021" + ")" + " -  Ubisoft")
+
+        # Category
+        ###############
+        row = col.row()
+        row.separator()
+        row.label(text=f"Add-on Category: {addonCategory('Shot Manager')}")
 
         # Authors
         ###############
-        row = box.row()
+        row = col.row()
         row.separator()
         row.label(text="Written by Julien Blervaque (aka Werwack), Romain Carriquiry Borchiari")
 
@@ -57,45 +64,38 @@ class UAS_ShotManager_OT_About(Operator):
         ###############
         row = box.row()
         row.label(text="Purpose:")
+        col = box.column()
+        col.scale_y = 0.9
+        row = col.row()
+        row.separator()
+        row.label(text="Create a set of camera shots and edit them in the 3D View")
+        row = col.row()
+        row.separator()
+        row.label(text=" as you would do with video clips.")
+
+        # Documentation
+        ###############
+        row = box.row()
+        row.label(text="Documentation:")
         row = box.row()
         row.separator()
-        col = row.column()
-        col.label(text="Create a set of camera shots and edit them")
-        col.label(text="in the 3D View as you would do with video clips.")
+        doc_op = row.operator("shotmanager.open_documentation_url", text="Online Doc")
+        doc_op.path = "https://ubisoft-shotmanager.readthedocs.io"
+        doc_op.tooltip = "Open online documentation: " + doc_op.path
+
+        doc_op = row.operator("shotmanager.open_documentation_url", text="Source Code")
+        doc_op.path = "https://github.com/ubisoft/shotmanager"
+        doc_op.tooltip = "Open GitHub project: " + doc_op.path
+
+        doc_op = row.operator("shotmanager.open_documentation_url", text="Video Tutorials")
+        doc_op.path = "https://www.youtube.com/channel/UCF6RsOpvCUGQozRlOO_-dDQ"
+        doc_op.tooltip = "Watch video tutorials on Youtube: " + doc_op.path
+
+        box.separator(factor=0.5)
 
         # Dependencies
         ###############
-        row = box.row()
-        row.label(text="Dependencies:")
-        row = box.row()
-        row.separator()
-        splitFactor = 0.3
-
-        split = row.split(factor=splitFactor)
-        split.label(text="- OpenTimelineIO:")
-        try:
-            import opentimelineio as otio
-
-            otioVersion = otio.__version__
-            split.label(text=f"V. {otioVersion}  installed")
-        except Exception as e:
-            subRow = split.row()
-            subRow.alert = True
-            subRow.label(text="Module not found")
-
-        row = box.row()
-        row.separator()
-        split = row.split(factor=splitFactor)
-        split.label(text="- Stamp Info:")
-        versionStr = utils.addonVersion("Stamp Info")
-        if props.isStampInfoAvailable() and versionStr is not None:
-            split.label(text=f"V. {versionStr[0]} installed")
-        else:
-            subRow = split.row()
-            subRow.alert = True
-            subRow.label(text="Add-on not found (not mandatory though)")
-
-        box.separator()
+        drawDependencies(context, layout)
 
         layout.separator(factor=1)
 

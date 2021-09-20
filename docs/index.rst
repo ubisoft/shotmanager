@@ -1,3 +1,8 @@
+.. |br| raw:: html
+
+  <br/>
+
+
 Shot Manager: Creative narration and editing with Blender
 =========================================================
 
@@ -7,8 +12,8 @@ Shot Manager: Creative narration and editing with Blender
     :align: center
     :width: 80%
 
+
 See how this tool was used in production: `User Stories - Blender and the Rabbids <https://www.blender.org/user-stories/blender-and-the-rabbids/?utm_source=www-homepage>`__.
-    
 
 
 Disclaimer

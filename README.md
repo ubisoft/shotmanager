@@ -5,6 +5,7 @@
 
 
 **User documentation:** [ubisoft-shotmanager.readthedocs.io](https://ubisoft-shotmanager.readthedocs.io)
+
 **Latest <u>GitHub</u> release:** [github.com/ubisoft/shotmanager/releases/latest](https://github.com/ubisoft/shotmanager/releases/latest)
 
 

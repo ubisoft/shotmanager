@@ -99,7 +99,7 @@ class UAS_PT_RRSVSMTools(Panel):
                     or bpy.data.scenes[0].name.startswith("Act02_Seq")
                     or bpy.data.scenes[0].name.startswith("Act03_Seq")
                 )
-                or "RRS_CheckSequence" == scene.name
+                or "SM_CheckSequence" == scene.name
             ):
                 box.separator(factor=0.1)
                 row = box.row()
@@ -288,7 +288,7 @@ class UAS_VideoShotManager_OT_RRS_ExportShotsFromEdit(Operator):
         return {"FINISHED"}
 
 
-class UAS_VideoShotManager_OT_RRS_CheckSequence(Operator):
+class UAS_VideoShotManager_OT_SM_CheckSequence(Operator):
     bl_idname = "uas_video_shot_manager.rrs_check_sequence"
     bl_label = "Check Sequence..."
     bl_description = "Import the animatic of the scpecified act into the VSE"
@@ -575,7 +575,7 @@ class UAS_VideoShotManager_ImportPublishedSequence(Operator):
 
 _classes = (
     UAS_VideoShotManager_OT_RRS_ExportShotsFromEdit,
-    UAS_VideoShotManager_OT_RRS_CheckSequence,
+    UAS_VideoShotManager_OT_SM_CheckSequence,
     UAS_VideoShotManager_GoToSequenceScene,
     UAS_VideoShotManager_ImportPublishedSequence,
     UAS_PT_RRSVSMTools,

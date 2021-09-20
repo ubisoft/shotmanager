@@ -262,7 +262,7 @@ class UAS_PT_ShotManagerRetimer(Panel):
 
 
 class UAS_PT_ShotManagerRetimer_Settings(Panel):
-    bl_label = "Apply to"
+    bl_label = "Apply to..."
     bl_idname = "UAS_PT_ShotManagerRetimer_SettingsPanel"
     bl_description = "Manage the global timing of the action in the scene and the shots"
     bl_space_type = "VIEW_3D"

@@ -27,8 +27,8 @@ from ..config import config
 
 class UAS_ShotManager_Features(Operator):
     bl_idname = "uas_shot_manager.features"
-    bl_label = "Features"
-    bl_description = "Controls the features displayed and available in the Shot Manager panel"
+    bl_label = "Advanced Features"
+    bl_description = "Controls the additional features displayed and available in the Shot Manager panel"
     bl_options = {"INTERNAL"}
 
     def invoke(self, context, event):

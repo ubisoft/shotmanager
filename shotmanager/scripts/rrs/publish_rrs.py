@@ -24,7 +24,6 @@ import json
 from pathlib import Path
 
 import bpy
-from shotmanager.otio.exports import exportShotManagerEditToOtio
 from shotmanager.rendering import rendering
 
 import logging
@@ -226,9 +225,12 @@ def publishRRS(
     # wkip beurk pour récuperer le bon contexte de scene
     bpy.context.window.scene = scene
     print("publish RRS")
-    renderedOtioFile = exportShotManagerEditToOtio(
-        scene, takeIndex=takeInd, filePath=renderDir, fileListOnly=fileListOnly
-    )
+    # wkip removed while opentimelineio is not supported on 2.98
+    # from shotmanager.otio.exports import exportShotManagerEditToOtio
+
+    # renderedOtioFile = exportShotManagerEditToOtio(
+    #     scene, takeIndex=takeInd, filePath=renderDir, fileListOnly=fileListOnly
+    # )
     renderedFilesDict["edl_files"] = [renderedOtioFile]
 
     # if verbose:

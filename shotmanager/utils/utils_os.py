@@ -54,3 +54,27 @@ def delete_folder(dir_path):
         except Exception:
             print("Cannot delete Dir: ", dir_path)
 
+
+def internet_on():
+    import urllib.request
+    import urllib.error
+
+    for timeout in [1, 5, 10, 15]:
+        try:
+            urllib.request.urlopen("https://google.com", timeout=timeout)
+            return True
+        except urllib.error.URLError:
+            pass
+    return False
+
+
+def module_can_be_imported(name):
+    """Check if the specified module already exists in the current Python environment
+    To get a submodule: eg: module_can_be_imported("shotmanager.otio")
+    """
+    modules_list = []
+    try:
+        __import__(name, fromlist=modules_list)
+        return True
+    except ModuleNotFoundError:
+        return False
