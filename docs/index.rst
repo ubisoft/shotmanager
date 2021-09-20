@@ -1,5 +1,12 @@
-Shot Manager: Creative narration and editing with Blender
-=========================================================
+.. |br| raw:: html
+
+  <br/>
+
+..  image:: /img/ubisoft_logo.png
+    :align: center
+
+Ubisoft Shot Manager: Creative narration and editing with Blender
+=================================================================
 
 **Manage the cameras and the editing of your scenes inside Blender in real time and with great simplicity.**
 
@@ -7,8 +14,8 @@ Shot Manager: Creative narration and editing with Blender
     :align: center
     :width: 80%
 
+
 See how this tool was used in production: `User Stories - Blender and the Rabbids <https://www.blender.org/user-stories/blender-and-the-rabbids/?utm_source=www-homepage>`__.
-    
 
 
 Disclaimer
