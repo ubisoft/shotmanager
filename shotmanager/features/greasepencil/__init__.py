@@ -19,8 +19,6 @@
 To do: module description here.
 """
 
-import bpy
-
 from shotmanager.config import config
 
 # from .greasepencil_props import UAS_ShotManager_RenderGlobalContext, UAS_ShotManager_RenderSettings

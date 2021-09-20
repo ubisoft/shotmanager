@@ -25,6 +25,7 @@ import bpy
 from bpy.types import Panel
 
 from ..config import config
+from ..utils import utils
 
 
 class UAS_PT_ShotManagerRenderPanelStdalone(Panel):
@@ -345,15 +346,20 @@ def draw3DRenderPanel(self, context):
     elif props.displayPlayblastProps:
         row = layout.row()
         row.label(text="Playblast:")
+
+        # video tracks available?
+        versionStr = utils.addonVersion("Video Tracks")
+        # if props.isStampInfoAvailable() and versionStr is not None:
         subRow = row.row()
+        subRow.enabled = versionStr is not None
         subRow.operator(
-            "uas_shot_manager.go_to_video_shot_manager", text="", icon="SEQ_STRIP_DUPLICATE"
-        ).vseSceneName = "RRS_CheckSequence"
+            "uas_shot_manager.go_to_video_tracks", text="", icon="SEQ_STRIP_DUPLICATE"
+        ).vseSceneName = "SM_CheckSequence"
         subRow.separator(factor=0.2)
 
         box = layout.box()
 
-        prefs = context.preferences.addons["shotmanager"].preferences
+        # prefs = context.preferences.addons["shotmanager"].preferences
         #   filePath = props.renderRootPath + "\\" + prefs.playblastFileName
         filePath = props.renderRootPath
         if not filePath.endswith("\\") and not filePath.endswith("/"):

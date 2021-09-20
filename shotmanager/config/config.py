@@ -28,6 +28,10 @@ import bpy.utils.previews
 
 def initGlobalVariables():
 
+    # isntallation ############
+    global installation_errors
+    installation_errors = []
+
     # debug ############
     global devDebug
 
@@ -55,7 +59,11 @@ def initGlobalVariables():
 
     icons_col = pcoll
 
-    # import otio ############
+    # otio ############
+
+    global gImportOpenTimelineIO
+    gImportOpenTimelineIO = True
+
     global gMontageOtio
     gMontageOtio = None
 

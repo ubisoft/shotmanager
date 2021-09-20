@@ -154,7 +154,9 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         ###########
         currentFilePath = bpy.path.abspath(bpy.data.filepath)
         if "" == currentFilePath:
-            warningList.append("Current file has to be saved")
+            # warningList.append("Current file has to be saved")
+            # wkip to remove ones warning mecanics are integrated in the settings
+            pass
         else:
             stat = Path(currentFilePath).stat()
             # print(f"Blender file Stats: {stat.st_mode}")

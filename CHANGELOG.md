@@ -1,8 +1,17 @@
 # 1.1.0 (WIP)
 
+
+# 1.5.65 (2021-09-20)
+
+**Shot Manager now works on Blender 2.93!! (with OpenTimelineIO features turn off though :S )**
+
+## UI and Installation
+
+- Better user feedback in case of installation errors
+
 ## Documentation
 
-- done
+- Improved online documentation
 
 
 <br><br>

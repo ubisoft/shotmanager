@@ -34,8 +34,6 @@ from .config import config
 
 from .handlers import jump_to_shot
 
-from . import otio
-
 from .features import cameraBG
 from .features import soundBG
 from .features import greasepencil
@@ -53,7 +51,6 @@ from .operators import features
 from .operators import about
 
 from .properties import props
-from .addon_prefs import addon_prefs
 
 from .retimer import retimer_ui
 from .retimer import retimer_props
@@ -61,8 +58,6 @@ from .retimer import retimer_props
 
 from . import rendering
 from .rendering import rendering_ui
-
-# from .rrs_specific import rrs_vsm_tools
 
 from .scripts import precut_tools
 
@@ -74,8 +69,7 @@ from .utils import utils_render
 from .utils import utils_handlers
 from .utils import utils_operators
 from .utils import utils_get_set_current_time
-
-from . import viewport_3d
+from .utils.utils_os import module_can_be_imported
 
 from .scripts import rrs
 
@@ -84,13 +78,14 @@ from .scripts import rrs
 # from .data_patches.data_patch_to_v1_3_31 import data_patch_to_v1_3_31
 
 from .debug import sm_debug
+from .install_dependencies import install_dependencies
 
 bl_info = {
     "name": "Shot Manager",
     "author": "Ubisoft - Julien Blervaque (aka Werwack), Romain Carriquiry Borchiari",
     "description": "Manage a sequence of shots and cameras in the 3D View - Ubisoft Animation Studio",
     "blender": (2, 92, 0),
-    "version": (1, 5, 62),
+    "version": (1, 5, 65),
     "location": "View3D > Shot Manager",
     "wiki_url": "https://ubisoft-shotmanager.readthedocs.io",
     # "warning": "BETA Version",
@@ -316,8 +311,9 @@ def checkDataVersion_post_load_handler(self, context):
 
 def register():
 
-    from .utils import utils_vse_render
     from .utils import utils_ui
+
+    utils_ui.register()
 
     versionTupple = utils.display_addon_registered_version("Shot Manager")
 
@@ -347,102 +343,134 @@ def register():
     if config.devDebug:
         _logger.setLevel(logging.DEBUG)  # CRITICAL ERROR WARNING INFO DEBUG NOTSET
 
-    ###################
-    # update data
-    ###################
+    # try to install dependencies and collect the errors in case of troubles
+    config.installation_errors = install_dependencies()
+    # config.installation_errors = []
 
-    # bpy.context.window_manager.UAS_shot_manager_version
-    bpy.types.WindowManager.UAS_shot_manager_version = IntProperty(
-        name="Add-on Version Int", description="Add-on version as integer", default=versionTupple[1]
-    )
+    if 0 < len(config.installation_errors):
+        from .addon_prefs import addon_error_prefs
 
-    # handler to check the data version at load
-    ##################
-    # print("       * Post Load handler added\n")
+        print(
+            "\n   !!! Something went wrong during the installation of the add-on - Check the Shot Manager add-on Preferences panel !!!"
+        )
 
-    # if config.devDebug:
-    #     utils_handlers.displayHandlers(handlerCategName="load_post")
+        utils_handlers.removeAllHandlerOccurences(jump_to_shot, handlerCateg=bpy.app.handlers.frame_change_pre)
 
-    utils_handlers.removeAllHandlerOccurences(
-        checkDataVersion_post_load_handler, handlerCateg=bpy.app.handlers.load_post
-    )
-    bpy.app.handlers.load_post.append(checkDataVersion_post_load_handler)
+        addon_error_prefs.register()
 
-    if config.devDebug:
-        utils_handlers.displayHandlers(handlerCategName="load_post")
+    else:
+        from .addon_prefs import addon_prefs
+        from .utils import utils_vse_render
+        from . import viewport_3d
 
-    # handler to write the data version at save
-    ##################
-    # print("       - Pre Save handler added")
-    # if config.devDebug:
-    #     utils_handlers.displayHandlers(handlerCategName="save_pre")
+        ###################
+        # update data
+        ###################
 
-    # utils_handlers.removeAllHandlerOccurences(checkDataVersion_save_pre_handler, handlerCateg=bpy.app.handlers.save_pre)
-    # bpy.app.handlers.save_pre.append(checkDataVersion_save_pre_handler)
+        # bpy.context.window_manager.UAS_shot_manager_version
+        bpy.types.WindowManager.UAS_shot_manager_version = IntProperty(
+            name="Add-on Version Int", description="Add-on version as integer", default=versionTupple[1]
+        )
 
-    # if config.devDebug:
-    #     utils_handlers.displayHandlers(handlerCategName="save_pre")
+        # handler to check the data version at load
+        ##################
+        # print("       * Post Load handler added\n")
 
-    # initialization
-    ##################
+        # if config.devDebug:
+        #     utils_handlers.displayHandlers(handlerCategName="load_post")
 
-    # data version is written in the initialize function
-    # bpy.types.WindowManager.UAS_shot_manager_isInitialized = BoolProperty(
-    #     name="Shot Manager is initialized", description="", default=False
-    # )
+        utils_handlers.removeAllHandlerOccurences(
+            checkDataVersion_post_load_handler, handlerCateg=bpy.app.handlers.load_post
+        )
+        bpy.app.handlers.load_post.append(checkDataVersion_post_load_handler)
 
-    # utils_handlers.displayHandlers()
-    utils_handlers.removeAllHandlerOccurences(jump_to_shot, handlerCateg=bpy.app.handlers.frame_change_pre)
-    # utils_handlers.removeAllHandlerOccurences(
-    #     jump_to_shot__frame_change_post, handlerCateg=bpy.app.handlers.frame_change_post
-    # )
-    # utils_handlers.displayHandlers()
+        if config.devDebug:
+            utils_handlers.displayHandlers(handlerCategName="load_post")
 
-    # for cls in classes:
-    #     bpy.utils.register_class(cls)
+        # handler to write the data version at save
+        ##################
+        # print("       - Pre Save handler added")
+        # if config.devDebug:
+        #     utils_handlers.displayHandlers(handlerCategName="save_pre")
 
-    addon_prefs.register()
+        # utils_handlers.removeAllHandlerOccurences(checkDataVersion_save_pre_handler, handlerCateg=bpy.app.handlers.save_pre)
+        # bpy.app.handlers.save_pre.append(checkDataVersion_save_pre_handler)
 
-    utils_operators.register()
+        # if config.devDebug:
+        #     utils_handlers.displayHandlers(handlerCategName="save_pre")
 
-    # operators
-    # markers_nav_bar_addon_prefs.register()
-    cameraBG.register()
-    soundBG.register()
-    greasepencil.register()
-    utils_get_set_current_time.register()
-    rendering.register()
-    takes.register()
-    shots.register()
-    shots_global_settings.register()
-    precut_tools.register()
-    playbar.register()
-    retimer_props.register()
-    props.register()
-    shots_toolbar.register()
+        # initialization
+        ##################
 
-    # ui
-    utils_ui.register()
-    sm_ui.register()
-    rrs.register()
-    retimer_ui.register()
-    rendering_ui.register()
+        # data version is written in the initialize function
+        # bpy.types.WindowManager.UAS_shot_manager_isInitialized = BoolProperty(
+        #     name="Shot Manager is initialized", description="", default=False
+        # )
 
-    otio.register()
-    utils_vse_render.register()
-    utils_render.register()
-    general.register()
-    viewport_3d.register()
-    prefs.register()
-    features.register()
-    about.register()
+        # utils_handlers.displayHandlers()
+        utils_handlers.removeAllHandlerOccurences(jump_to_shot, handlerCateg=bpy.app.handlers.frame_change_pre)
+        # utils_handlers.removeAllHandlerOccurences(
+        #     jump_to_shot__frame_change_post, handlerCateg=bpy.app.handlers.frame_change_post
+        # )
+        # utils_handlers.displayHandlers()
 
-    # rrs specific
-    # rrs_vsm_tools.register()
+        # for cls in classes:
+        #     bpy.utils.register_class(cls)
+
+        addon_prefs.register()
+
+        utils_operators.register()
+
+        # operators
+        # markers_nav_bar_addon_prefs.register()
+        cameraBG.register()
+        soundBG.register()
+        greasepencil.register()
+        utils_get_set_current_time.register()
+        rendering.register()
+        takes.register()
+        shots.register()
+        shots_global_settings.register()
+        precut_tools.register()
+        playbar.register()
+        retimer_props.register()
+        props.register()
+        shots_toolbar.register()
+
+        # ui
+        sm_ui.register()
+        rrs.register()
+        retimer_ui.register()
+        rendering_ui.register()
+
+        # otio
+        try:
+            from . import otio
+
+            otio.register()
+
+            # from shotmanager.otio import importOpenTimelineIOLib
+
+            # if importOpenTimelineIOLib():
+            #     otio.register()
+            # else:
+            #     print("       *** OTIO Package import failed ***")
+        except ModuleNotFoundError:
+            print("       *** OTIO Package import failed ****")
+
+        utils_vse_render.register()
+        utils_render.register()
+        general.register()
+        viewport_3d.register()
+        prefs.register()
+        features.register()
+        about.register()
+
+        # rrs specific
+        # rrs_vsm_tools.register()
 
     # debug tools
-    if config.devDebug:
-        sm_debug.register()
+    sm_debug.register()
 
     # declaration of properties that will not be saved in the scene:
     ####################
@@ -482,70 +510,94 @@ def register():
         print(f"\n ------ UAS debug: {config.devDebug} ------- ")
         print(f" ------ _Logger Level: {logging.getLevelName(_logger.level)} ------- \n")
 
+    print("")
+
 
 def unregister():
 
-    print("\n*** --- Unregistering Shot Manager Add-on --- ***\n")
-    from .utils import utils_vse_render
-    from .utils import utils_ui
+    print("\n*** --- Unregistering Shot Manager Add-on --- ***")
+
+    from . import viewport_3d
 
     #    bpy.context.scene.UAS_shot_manager_props.display_shotname_in_3dviewport = False
-
-    utils_handlers.removeAllHandlerOccurences(
-        checkDataVersion_post_load_handler, handlerCateg=bpy.app.handlers.load_post
-    )
 
     # debug tools
     if config.devDebug:
         sm_debug.unregister()
 
-    # rrs specific
-    #    rrs_vsm_tools.unregister()
+    # unregistering add-on in the case it has been registered with install errors
+    prefs_addon = bpy.context.preferences.addons["shotmanager"].preferences
+    if prefs_addon.install_failed:
+        from .addon_prefs import addon_error_prefs
 
-    # ui
-    about.unregister()
-    features.unregister()
-    prefs.unregister()
-    viewport_3d.unregister()
-    general.unregister()
-    utils_render.unregister()
-    utils_vse_render.unregister()
-    otio.unregister()
+        print("      **************** Uninstall failed addon ***************")
+        # viewport_3d.unregister()
+        addon_error_prefs.unregister()
 
-    rendering_ui.unregister()
-    retimer_ui.unregister()
-    rrs.unregister()
-    sm_ui.unregister()
-    utils_ui.unregister()
+        # return ()
 
-    # operators
-    rendering.unregister()
-    shots_toolbar.unregister()
-    props.unregister()
-    retimer_props.unregister()
-    playbar.unregister()
-    precut_tools.unregister()
-    shots_global_settings.unregister()
-    shots.unregister()
-    takes.unregister()
-    utils_operators.unregister()
-    utils_get_set_current_time.unregister()
-    greasepencil.unregister()
-    soundBG.unregister()
-    cameraBG.unregister()
+    else:
+        from .addon_prefs import addon_prefs
+        from .utils import utils_vse_render
+        from .utils import utils_ui
 
-    addon_prefs.unregister()
+        # if True:
+        utils_handlers.removeAllHandlerOccurences(
+            checkDataVersion_post_load_handler, handlerCateg=bpy.app.handlers.load_post
+        )
 
-    # for cls in reversed(classes):
-    #     bpy.utils.unregister_class(cls)
+        # ui
+        about.unregister()
+        features.unregister()
+        prefs.unregister()
+        viewport_3d.unregister()
+        general.unregister()
+        utils_render.unregister()
+        utils_vse_render.unregister()
 
-    if jump_to_shot in bpy.app.handlers.frame_change_pre:
-        bpy.app.handlers.frame_change_pre.remove(jump_to_shot)
+        if module_can_be_imported("shotmanager.otio"):
+            from . import otio
 
-    del bpy.types.WindowManager.UAS_shot_manager_shots_play_mode
-    del bpy.types.WindowManager.UAS_shot_manager_display_timeline
+            otio.unregister()
+        else:
+            print("       *** No Otio found for unregister ***")
 
-    #   del bpy.types.WindowManager.UAS_shot_manager_isInitialized
-    del bpy.types.WindowManager.UAS_shot_manager_version
+        rendering_ui.unregister()
+        retimer_ui.unregister()
+        rrs.unregister()
+        sm_ui.unregister()
+        utils_ui.unregister()
+
+        # operators
+        rendering.unregister()
+        shots_toolbar.unregister()
+        props.unregister()
+        retimer_props.unregister()
+        playbar.unregister()
+        precut_tools.unregister()
+        shots_global_settings.unregister()
+        shots.unregister()
+        takes.unregister()
+        utils_operators.unregister()
+        utils_get_set_current_time.unregister()
+        greasepencil.unregister()
+        soundBG.unregister()
+        cameraBG.unregister()
+
+        addon_prefs.unregister()
+
+        # for cls in reversed(classes):
+        #     bpy.utils.unregister_class(cls)
+
+        if jump_to_shot in bpy.app.handlers.frame_change_pre:
+            bpy.app.handlers.frame_change_pre.remove(jump_to_shot)
+
+        del bpy.types.WindowManager.UAS_shot_manager_shots_play_mode
+        del bpy.types.WindowManager.UAS_shot_manager_display_timeline
+
+        #   del bpy.types.WindowManager.UAS_shot_manager_isInitialized
+        del bpy.types.WindowManager.UAS_shot_manager_version
 
     config.releaseGlobalVariables()
+
+    print("")

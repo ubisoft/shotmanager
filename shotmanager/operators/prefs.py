@@ -42,7 +42,7 @@ class UAS_MT_ShotManager_Prefs_MainMenu(Menu):
 
         row = layout.row(align=True)
         row.operator_context = "INVOKE_DEFAULT"
-        row.operator("uas_shot_manager.features", text="Features...")
+        row.operator("uas_shot_manager.features", text="Advanced Features...")
 
         layout.separator()
 
@@ -85,9 +85,9 @@ class UAS_MT_ShotManager_Prefs_MainMenu(Menu):
         layout.separator()
 
         row = layout.row(align=True)
-        row.operator(
-            "shotmanager.open_documentation_url", text="Documentation"
-        ).path = "https://ubisoft-shotmanager.readthedocs.io"
+        doc_op = row.operator("shotmanager.open_documentation_url", text="Documentation")
+        doc_op.path = "https://ubisoft-shotmanager.readthedocs.io"
+        doc_op.tooltip = "Open online documentation: " + doc_op.path
 
         layout.separator()
 

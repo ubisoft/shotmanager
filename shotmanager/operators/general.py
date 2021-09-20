@@ -25,13 +25,14 @@ from bpy.props import BoolProperty, StringProperty
 
 from shotmanager.config import config
 from ..utils.utils import getSceneVSE, convertVersionIntToStr
-from ..utils import utils
 
 
 class UAS_ShotManager_OT_GoToVideoShotManager(Operator):
-    bl_idname = "uas_shot_manager.go_to_video_shot_manager"
-    bl_label = "Go To Updated Video Shot Manager"
-    bl_description = "Go to Updated Video Shot Manager"
+    bl_idname = "uas_shot_manager.go_to_video_tracks"
+    bl_label = "Go to the VSE Edit"
+    bl_description = (
+        "Update the edit in the VSE and switch to this layout.\n !! Add-on Video Tracks has to be installed !!"
+    )
     bl_options = {"INTERNAL"}
 
     vseSceneName: StringProperty(default="")
@@ -141,48 +142,6 @@ class UAS_ShotManager_OT_FileInfo(Operator):
         row.separator()
         row.label(text="Shot Manager Data Version: ")
         row.label(text=f"  {convertVersionIntToStr(props.dataVersion)}")
-
-        # # Authors
-        # ###############
-        # row = box.row()
-        # row.separator()
-        # row.label(text="Written by Julien Blervaque (aka Werwack), Romain Carriquiry Borchiari")
-
-        # # Purpose
-        # ###############
-        # row = box.row()
-        # row.label(text="Purpose:")
-        # row = box.row()
-        # row.separator()
-        # row.label(text="Create a set of camera shots and edit them")
-        # row = box.row()
-        # row.separator()
-        # row.label(text="in the 3D View as you would do with video clips.")
-
-        # # Dependencies
-        # ###############
-        # row = box.row()
-        # row.label(text="Dependencies:")
-        # row = box.row()
-        # row.separator()
-
-        # row.label(text="- OpenTimelineIO")
-        # try:
-        #     import opentimelineio as otio
-
-        #     otioVersion = otio.__version__
-        #     row.label(text="V." + otioVersion)
-        # except Exception as e:
-        #     row.label(text="Module not found")
-
-        # row = box.row()
-        # row.separator()
-        # row.label(text="- UAS Stamp Info")
-        # if props.isStampInfoAvailable():
-        #     versionStr = utils.addonVersion("UAS_StampInfo")
-        #     row.label(text="V." + versionStr[0])
-        # else:
-        #     row.label(text="Add-on not found")
 
         row.separator()
 

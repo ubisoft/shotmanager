@@ -23,6 +23,7 @@ import bpy
 
 from bpy.types import Panel, Operator
 from bpy.props import StringProperty
+from ..config import config
 
 
 # ------------------------------------------------------------------------#
@@ -40,6 +41,11 @@ class UAS_PT_Shot_Manager_Debug(Panel):
 
     def __init__(self):
         pass
+
+    @classmethod
+    def poll(self, context):
+        prefs = context.preferences.addons["shotmanager"].preferences
+        return config.devDebug and prefs.displaySMDebugPanel
 
     def draw(self, context):
         layout = self.layout
@@ -226,7 +232,17 @@ def register():
         bpy.utils.register_class(cls)
 
 
+__classes = (
+    UAS_PT_Shot_Manager_Debug,
+    UAS_MotionTrackingTab,
+    UAS_Debug_RunFunction,
+)
+
+
 def unregister():
-    for cls in reversed(_classes):
+    from shotmanager.config import config
+
+    config.devDebug = False
+    for cls in reversed(__classes):
         bpy.utils.unregister_class(cls)
 

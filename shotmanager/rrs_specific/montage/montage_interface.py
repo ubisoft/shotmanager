@@ -29,7 +29,6 @@ import logging
 _logger = logging.getLogger(__name__)
 
 
-# was OtioTimeline
 class MontageInterface(object):
     """ 
     """
@@ -157,7 +156,7 @@ class MontageInterface(object):
         textSelf = ""
         textRef = ""
 
-        infoStr = f"\n\n ------ ------ ------ ------ ------ ------ ------ ------ ------ "
+        infoStr = "\n\n ------ ------ ------ ------ ------ ------ ------ ------ ------ "
         infoStr += f"\n\n {utils.bcolors.WARNING}Comparing montages (in Montage_interface.py):{utils.bcolors.ENDC}\n"
         print(infoStr)
 
@@ -408,4 +407,3 @@ class ShotInterface(object):
 
     def get_frame_offset_end(self):
         return -1
-
