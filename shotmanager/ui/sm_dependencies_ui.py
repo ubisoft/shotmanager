@@ -32,6 +32,8 @@ def drawDependencies(context, layout: bpy.types.UILayout, **kwargs):
     row.separator()
     splitFactor = 0.3
 
+    # OpenTimelineIO
+    ####################
     split = row.split(factor=splitFactor)
     split.label(text="- OpenTimelineIO:")
     try:
@@ -47,6 +49,8 @@ def drawDependencies(context, layout: bpy.types.UILayout, **kwargs):
         else:
             subRow.label(text="Module not found  - Related features disabled")
 
+    # Ubisoft Stamp Info
+    ####################
     row = box.row()
     row.separator()
     split = row.split(factor=splitFactor)

@@ -56,6 +56,16 @@ def delete_folder(dir_path):
 
 
 def internet_on():
+    """Check if a web url can be reached.
+    Return True if the url is found, False otherwise.
+    *** Warning: On Mac OS False is always returned if the certifi Python lib is not installed.
+    The returned value has then be forced to True. ***
+    See: https://stackoverflow.com/questions/27835619/urllib-and-ssl-certificate-verify-failed-error
+    """
+    # Mac specific:
+    if sys.platform == "darwin":
+        return True
+
     import urllib.request
     import urllib.error
 

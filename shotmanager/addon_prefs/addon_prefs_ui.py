@@ -28,7 +28,7 @@ from ..ui.sm_dependencies_ui import drawDependencies
 ##################################################################################
 def draw_shotmanager_addon_prefs(self, context):
     layout = self.layout
-    prefs = context.preferences.addons["shotmanager"].preferences
+    # prefs = context.preferences.addons["shotmanager"].preferences
     splitFactor = 0.3
 
     # Settings

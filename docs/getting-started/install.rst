@@ -6,7 +6,7 @@ Supported versions
 
 Shot Manager is developed and actively tested on Windows 10. Community users reported successful usage on Linux platform. 
 
-The currently supported Blender version is 2.92.0. Shot Manager also loads successfully and should work on 2.83 LTS, 2.91.2.
+The currently supported Blender version is 2.93. Shot Manager also loads successfully and should work on 2.83 LTS.
 
 .. warning::
     Shot Manager is currently not working on Blender 2.93 because no OpenTimelineIO package is available at the moment for Python 3.9.
@@ -51,5 +51,5 @@ Shot Manager can work as is. Nevertheless we've developed 2 additional add-ons t
 expanding the features and capabilitie of this tool. It is strongly advised to install them too
 to get the full experience.
 
-    - Download Ubisoft Stamp Info here: `Stamp Info latest release <https://github.com/ubisoft/stampInfo/releases/latest>`_
+    - Download Ubisoft Stamp Info here: `Stamp Info latest release <https://github.com/ubisoft/stampinfo/releases/latest>`_
     - Download Ubisoft Video Tracks here: `Video Tracks latest release <https://github.com/ubisoft/videotracks/releases/latest>`_
