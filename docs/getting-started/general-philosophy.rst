@@ -55,7 +55,7 @@ With camera binding the time is played linearly, so the point of view simply cha
 camera to another.
 
 **This new play mode goes far beyond that since it allows time jumps (called ellipses) and jumps back into
-time, to play the scene action again from another camera. And that's the essence of Shot Managaer!**
+time, to play the scene action again from another camera. And that's the essence of Shot Manager!**
 
 
 .. UX phitlosophy: simple, consistent, predictible
