@@ -85,14 +85,13 @@ bl_info = {
     "author": "Ubisoft - Julien Blervaque (aka Werwack), Romain Carriquiry Borchiari",
     "description": "Manage a sequence of shots and cameras in the 3D View - Ubisoft Animation Studio",
     "blender": (2, 92, 0),
-    "version": (1, 5, 65),
+    "version": (1, 5, 66),
     "location": "View3D > Shot Manager",
     "wiki_url": "https://ubisoft-shotmanager.readthedocs.io",
     # "warning": "BETA Version",
     "category": "Ubisoft",
 }
 
-# __version__ = f"v{bl_info['version'][0]}.{bl_info['version'][1]}.{bl_info['version'][2]}"
 __version__ = ".".join(str(i) for i in bl_info["version"])
 display_version = __version__
 
@@ -343,7 +342,14 @@ def register():
     if config.devDebug:
         _logger.setLevel(logging.DEBUG)  # CRITICAL ERROR WARNING INFO DEBUG NOTSET
 
+    # debug tools
+    sm_debug.register()
+
+    # Install dependencies and required Python libraries
+    ####################################################
     # try to install dependencies and collect the errors in case of troubles
+    # If some mandatory libraries cannot be loaded then an alternative Add-on Preferences panel
+    # is used and provide some visibility to the user to solve the issue
     config.installation_errors = install_dependencies()
     # config.installation_errors = []
 
@@ -469,9 +475,6 @@ def register():
         # rrs specific
         # rrs_vsm_tools.register()
 
-    # debug tools
-    sm_debug.register()
-
     # declaration of properties that will not be saved in the scene:
     ####################
 
@@ -517,13 +520,10 @@ def unregister():
 
     print("\n*** --- Unregistering Shot Manager Add-on --- ***")
 
+    from .utils import utils_ui
     from . import viewport_3d
 
     #    bpy.context.scene.UAS_shot_manager_props.display_shotname_in_3dviewport = False
-
-    # debug tools
-    if config.devDebug:
-        sm_debug.unregister()
 
     # unregistering add-on in the case it has been registered with install errors
     prefs_addon = bpy.context.preferences.addons["shotmanager"].preferences
@@ -539,7 +539,6 @@ def unregister():
     else:
         from .addon_prefs import addon_prefs
         from .utils import utils_vse_render
-        from .utils import utils_ui
 
         # if True:
         utils_handlers.removeAllHandlerOccurences(
@@ -566,7 +565,6 @@ def unregister():
         retimer_ui.unregister()
         rrs.unregister()
         sm_ui.unregister()
-        utils_ui.unregister()
 
         # operators
         rendering.unregister()
@@ -598,6 +596,10 @@ def unregister():
         #   del bpy.types.WindowManager.UAS_shot_manager_isInitialized
         del bpy.types.WindowManager.UAS_shot_manager_version
 
+    # debug tools
+    if config.devDebug:
+        sm_debug.unregister()
+    utils_ui.unregister()
     config.releaseGlobalVariables()
 
     print("")

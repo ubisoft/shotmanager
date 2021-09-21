@@ -48,16 +48,6 @@ def convertVersionIntToStr(versionInt):
     return versionStr
 
 
-def addonCategory(addonName):
-    import addon_utils
-
-    categ = ""
-    for addon in addon_utils.modules():
-        if addon.bl_info["name"] == addonName:
-            categ = addon.bl_info["category"]
-    return categ
-
-
 def addonVersion(addonName):
     """Return the add-on version in the form of a tupple made by:
         - a string x.y.z (eg: "1.21.3")
@@ -107,6 +97,16 @@ def display_addon_registered_version(addon_name):
     else:
         print('\n *** Cannot find registered version for add-on "' + addon_name + '" ***\n')
     return versionTupple
+
+
+def addonCategory(addonName):
+    import addon_utils
+
+    categ = ""
+    for addon in addon_utils.modules():
+        if addon.bl_info["name"] == addonName:
+            categ = addon.bl_info["category"]
+    return categ
 
 
 # https://stackoverflow.com/questions/287871/how-to-print-colored-text-in-python

@@ -19,10 +19,11 @@
 Dependencies installation
 """
 
-import os
-import importlib
 import subprocess
-import platform
+
+# import os
+# import importlib
+# import platform
 
 import bpy
 from .utils.utils_os import internet_on, module_can_be_imported
@@ -37,6 +38,7 @@ def install_dependencies():
     """
     error_messages = []
 
+    # warning: on Mac OS this test failed and internet is considered to be accessible
     if not internet_on():
         error_messages.append("No Internet connection")
         return error_messages
