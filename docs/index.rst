@@ -15,7 +15,8 @@ Ubisoft Shot Manager: Creative narration and editing with Blender
     :width: 80%
 
 
-|br|See how this tool was used in production: `User Stories - Blender and the Rabbids <https://www.blender.org/user-stories/blender-and-the-rabbids/?utm_source=www-homepage>`__.
+|br|
+See how this tool was used in production: `User Stories - Blender and the Rabbids <https://www.blender.org/user-stories/blender-and-the-rabbids/?utm_source=www-homepage>`__.
 
 
 Disclaimer
