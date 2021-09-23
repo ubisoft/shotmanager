@@ -22,7 +22,7 @@ About dialog box
 import bpy
 from bpy.types import Operator
 
-from ..ui.sm_dependencies_ui import drawDependencies
+from ..ui.dependencies_ui import drawDependencies
 from ..utils.utils import addonCategory
 
 

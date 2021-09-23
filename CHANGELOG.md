@@ -1,5 +1,17 @@
-# 1.1.0 (WIP)
+# 1.5.67 (2021-09---) (WIP)
 
+
+<br><br>
+
+# 1.5.66 (2021-09-23) (WIP)
+
+## UI and Installation
+
+- Cleaned user feedback at install time in case of errors
+- Added a warning when scene contains camera binding and a Clear operator
+
+
+<br><br>
 
 # 1.5.65 (2021-09-20)
 

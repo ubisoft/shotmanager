@@ -250,6 +250,18 @@ def openMedia(media_filepath, inExternalPlayer=False):
 ###################
 
 
+def sceneContainsCameraBinding(scene):
+    for m in scene.timeline_markers:
+        if m.camera is not None:
+            return True
+    return False
+
+
+def clearMarkersFromCameraBinding(scene):
+    for m in scene.timeline_markers:
+        m.camera = None
+        
+
 def getMarkerbyName(scene, markerName, filter=""):
     for m in scene.timeline_markers:
         if filter in m.name and markerName == m.name:

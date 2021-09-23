@@ -19,8 +19,6 @@
 To do: module description here.
 """
 
-# -*- coding: utf-8 -*-
-import logging
 import time
 from collections import defaultdict
 
@@ -32,7 +30,10 @@ from gpu_extras.batch import batch_for_shader
 from mathutils import Vector
 
 from .ogl_ui import clamp, get_region_at_xy, gamma_color
-from .. import properties
+
+import logging
+
+_logger = logging.getLogger(__name__)
 
 UNIFORM_SHADER_2D = gpu.shader.from_builtin("2D_UNIFORM_COLOR")
 
@@ -196,7 +197,8 @@ class ShotClip:
 class UAS_ShotManager_DrawMontageTimeline(bpy.types.Operator):
     bl_idname = "uas_shot_manager.draw_montage_timeline"
     bl_label = "Draw Montage in timeline"
-    bl_options = { "REGISTER", "INTERNAL" }
+    bl_options = {"REGISTER", "INTERNAL"}
+
     def __init__(self):
         self.asset_browser = None
         self.compact_display = False
@@ -320,12 +322,16 @@ class UAS_ShotManager_DrawMontageTimeline(bpy.types.Operator):
                 self.clips.append(ShotClip(self.context, shot, i, self.sm_props))
 
     def draw(self, context):
-        for clip in self.clips:
-            try:
+        try:
+            for clip in self.clips:
                 clip.draw(context)
-            except Exception as e:
-                # wkip wkip
-                pass
+                # try:
+                #     clip.draw(context)
+                # except Exception as e:
+                #     # wkip wkip
+                #     pass
+        except Exception as ex:
+            _logger.error(f"*** Crash in ogl context - Draw clips loop ***")
 
         if self.frame_under_mouse is not None:
             blf.color(0, 0.99, 0.99, 0.99, 1)

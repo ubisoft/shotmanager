@@ -19,7 +19,6 @@
 To do: module description here.
 """
 
-import os
 import bpy
 
 

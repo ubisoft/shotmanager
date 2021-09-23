@@ -24,7 +24,20 @@ from bpy.types import Operator
 from bpy.props import BoolProperty, StringProperty
 
 from shotmanager.config import config
-from ..utils.utils import getSceneVSE, convertVersionIntToStr
+from ..utils.utils import getSceneVSE, convertVersionIntToStr, clearMarkersFromCameraBinding
+
+
+class UAS_ShotManager_OT_ClearMarkersFromCameraBinding(Operator):
+    bl_idname = "uas_shot_manager.clear_markers_from_camera_binding"
+    bl_label = "Clear Camera Binding"
+    bl_description = "Clear markers from camera binding"
+    bl_options = {"INTERNAL"}
+
+    def invoke(self, context, event):
+
+        clearMarkersFromCameraBinding(context.scene)
+
+        return {"FINISHED"}
 
 
 class UAS_ShotManager_OT_GoToVideoShotManager(Operator):
@@ -165,6 +178,7 @@ class UAS_ShotManager_OT_EnableDebug(Operator):
 
 
 _classes = (
+    UAS_ShotManager_OT_ClearMarkersFromCameraBinding,
     UAS_ShotManager_OT_GoToVideoShotManager,
     UAS_ShotManager_OT_FileInfo,
     UAS_ShotManager_OT_EnableDebug,
