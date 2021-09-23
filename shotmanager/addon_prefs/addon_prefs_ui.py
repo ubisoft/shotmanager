@@ -20,7 +20,7 @@ To do: module description here.
 """
 
 from ..config import config
-from ..ui.sm_dependencies_ui import drawDependencies
+from ..ui.dependencies_ui import drawDependencies
 
 
 ##################################################################################

@@ -25,11 +25,6 @@ Draw a timeline in viewport
 !!! Very Dirty code.
 """
 
-import logging
-
-_logger = logging.getLogger(__name__)
-
-
 from collections import defaultdict
 from statistics import mean
 
@@ -37,8 +32,13 @@ import gpu
 import bgl, blf
 import bpy
 from gpu_extras.batch import batch_for_shader
-import bpy_extras.view3d_utils as view3d_utils
-import mathutils
+
+# import mathutils
+
+import logging
+
+_logger = logging.getLogger(__name__)
+
 
 font_info = {"font_id": 0, "handler": None}
 

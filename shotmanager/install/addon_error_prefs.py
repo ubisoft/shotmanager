@@ -21,11 +21,11 @@ add-on global preferences
 
 import bpy
 from bpy.types import AddonPreferences
-from bpy.props import BoolProperty
+from bpy.props import BoolProperty, StringProperty
 
-from ..ui.sm_dependencies_ui import drawDependencies
+from ..ui.dependencies_ui import drawDependencies
 
-from ..config import config
+import sys
 
 
 class UAS_ShotManager_AddonErrorPrefs(AddonPreferences):
@@ -49,7 +49,13 @@ class UAS_ShotManager_AddonErrorPrefs(AddonPreferences):
     # ------------------------------
 
     install_failed: BoolProperty(
-        name="Install failed", default=True,
+        name="Install Failed", default=True,
+    )
+    error_message: StringProperty(
+        name="Error Message", default="",
+    )
+    verbose: BoolProperty(
+        name="Verbose", default=False,
     )
 
     ##################################################################################
@@ -57,53 +63,60 @@ class UAS_ShotManager_AddonErrorPrefs(AddonPreferences):
     ##################################################################################
     def draw(self, context):
         layout = self.layout
-        # prefs = context.preferences.addons["shotmanager"].preferences
+        prefs_addon = context.preferences.addons["shotmanager"].preferences
 
         box = layout.box()
         box.alert = True
-        titleRow = box.row()
+        mainCol = box.column()
+        mainCol.scale_y = 1.2
+        titleRow = mainCol.row()
         titleRow.alignment = "CENTER"
         titleRow.label(text="   ••• Ubisoft Shot Manager installation failed •••", icon="ERROR")
         titleRow.label(text="", icon="ERROR")
 
-        box.separator(factor=0.3)
-        row = box.row()
-        split = row.split(factor=0.3)
+        row = mainCol.row()
+        split = row.split(factor=0.25)
         rowLeft = split.row()
-        rowLeft.separator(factor=3)
+        rowLeft.separator(factor=1.9)
         rowLeft.label(text="Returned Error(s):")
 
-        # row = box.row()
-        # row.separator(factor=4)
         col = split.column()
-        for message in config.installation_errors:
-            col.label(text=f"- {message}")
-        # row.separator()
+        # for message in config.installation_errors:
+        #     col.label(text=f"- {message[0]}")
+        col.label(text=f"- {prefs_addon.error_message}")
 
-        box.separator(factor=0.3)
-        row = box.row()
-        row.separator(factor=3)
-        row.label(text="Mone information in the Blender System Console")
+        row = mainCol.row()
+        row.separator(factor=2)
+        row.label(text="More information in the Blender System Console")
+        if sys.platform == "win32":
+            rowRight = row.row()
+            rowRight.alignment = "RIGHT"
+            rowRight.scale_y = 0.9
+            rowRight.operator("wm.console_toggle", text="Console")
+            rowRight.separator(factor=2)
 
-        # box.separator(factor=0.3)
-        tipsRow = box.row()
-        tipsRow.separator(factor=2)
+        tipsRow = mainCol.row()
+        tipsRow.separator(factor=1.5)
         tipsBox = tipsRow.box()
-        tipsBox.label(text="To fix the issue: remove the add-on, check the points below and restart the install.")
-        # tipsBox.separator(factor=4)
         col = tipsBox.column()
+        col.label(text="To fix the issue:")
+        col.separator(factor=0.7)
+        col.scale_y = 0.6
+        col.label(text="      • Remove the add-on")
+        col.label(text="      • Close Blender")
+        col.label(text="      • Be sure your computer is connected to the internet")
+        col.label(text="      • Be sure no firewall is blocking the connection (or use OpenVPN or equivalent)")
         col.label(text="      • Launch Blender in Admin mode")
-        col.label(text="      • Be sure your computer is connected to internet")
-        col.label(text="      • Be sure a firewall is not blocking information (or use OpenVPN or equivalent)")
+        col.label(text="      • Restart the install")
         tipsRow.separator(factor=2)
-        box.separator(factor=0.3)
 
+        box.separator(factor=0.1)
         row = box.row(align=True)
-        row.label(text="If the issus persists check the Installation Troubles FAQ:")
+        row.label(text="If the issue persists check the Installation Troubles FAQ:")
         rowRight = row.row()
         rowRight.alignment = "RIGHT"
         rowRight.scale_x = 1.0
-        doc_op = rowRight.operator("shotmanager.open_documentation_url", text="Shot Manager FAQ")
+        doc_op = rowRight.operator("shotmanager.open_documentation_url", text="Stamp Info FAQ")
         doc_op.path = "https://ubisoft-shotmanager.readthedocs.io/en/latest/troubleshoot/faq.html#installation"
         doc_op.tooltip = "Open online FAQ: " + doc_op.path
         box.separator(factor=0.3)
@@ -115,12 +128,17 @@ _classes = (UAS_ShotManager_AddonErrorPrefs,)
 
 
 def register():
-    print("       - Registering Add-on Installation Error Preferences")
     for cls in _classes:
         bpy.utils.register_class(cls)
 
+    prefs_addon = bpy.context.preferences.addons["shotmanager"].preferences
+    if prefs_addon.verbose:
+        print("       - Registering Add-on Installation Error Preferences\n")
+
 
 def unregister():
-    print("       - Unregistering Add-on Installation Error Preferences")
+    prefs_addon = bpy.context.preferences.addons["shotmanager"].preferences
+    if prefs_addon.verbose:
+        print("       - Unregistering Add-on Installation Error Preferences")
     for cls in reversed(_classes):
         bpy.utils.unregister_class(cls)

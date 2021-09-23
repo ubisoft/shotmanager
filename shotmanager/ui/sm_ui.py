@@ -168,9 +168,12 @@ class UAS_PT_ShotManager(Panel):
 
         # play and timeline
         ################
+        playEnabled = not utils.sceneContainsCameraBinding(scene)
         row = layout.row()
         row.scale_y = 1.2
-        row.prop(
+        rowPlayButton = row.row()
+        rowPlayButton.enabled = playEnabled
+        rowPlayButton.prop(
             context.window_manager,
             "UAS_shot_manager_shots_play_mode",
             text="Shots Play Mode" if context.window_manager.UAS_shot_manager_shots_play_mode else "Standard Play Mode",
@@ -196,6 +199,7 @@ class UAS_PT_ShotManager(Panel):
         ################
         row = layout.row(align=True)
 
+        row.enabled = playEnabled
         split = row.split(align=True)
         split.separator()
         row.alignment = "CENTER"
@@ -537,6 +541,11 @@ class UAS_PT_ShotManager(Panel):
             titleRow.alert = True
             warningStr = f"Warnings: {len(warningsList)}"
             titleRow.label(text=warningStr)
+            titleRowRight = panelRow.row()
+            titleRowRight.alignment = "RIGHT"
+            titleRowRight.alert = True
+            # titleRowRight.label(text="test")
+            titleRowRight.operator("uas_shot_manager.clear_markers_from_camera_binding", text="Clear Binding")
 
             if prefs.general_warning_expanded:
                 mainRow = box.row()

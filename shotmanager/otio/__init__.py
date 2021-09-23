@@ -45,6 +45,12 @@ if (2, 93, 0) < bpy.app.version:
     # (namely module_can_be_imported("shotmanager.otio"))
     import opentimelineio
 else:
+    import sys
+    from pathlib import Path
+
+    pyExeFile = sys.executable
+    localPyDir = str(Path(pyExeFile).parent) + "\\lib\\site-packages\\"
+
     try:
         import opentimelineio
 
@@ -53,7 +59,7 @@ else:
             print("Upgrading OpentimelineIO to 0.12.1")
             subprocess.run(
                 [
-                    bpy.app.binary_path_python,
+                    pyExeFile,
                     "-m",
                     "pip",
                     "install",
@@ -68,7 +74,7 @@ else:
             try:
                 subprocess.run(
                     [
-                        bpy.app.binary_path_python,
+                        pyExeFile,
                         "-m",
                         "pip",
                         "install",
@@ -79,7 +85,7 @@ else:
             except ModuleNotFoundError:
                 _logger.error("*** Error - OpenTimelineIO instal from provided version failed")
         else:
-            subprocess.run([bpy.app.binary_path_python, "-m", "pip", "install", "opentimelineio"])
+            subprocess.run([pyExeFile, "-m", "pip", "install", "opentimelineio"])
             import opentimelineio as opentimelineio
         # import opentimelineio as opentimelineio
 

@@ -206,7 +206,13 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
 
             warningList.append("Data version is lower than SM version !!")
 
-        # wkip to do: check if some camera markers are used in the scene
+        # check if some camera markers are used in the scene
+        ###########
+        if utils.sceneContainsCameraBinding(scene):
+            warningList.append(
+                "Scene contains markers binded to cameras"
+                "\n*** Shot Manager is NOT compatible with camera binding ***"
+            )
 
         # if self.use_project_settings and "Scene" in scene.name:
         #     warningList.append("Scene Name is Invalid !!!")

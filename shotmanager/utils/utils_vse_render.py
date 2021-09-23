@@ -356,8 +356,8 @@ class UAS_Vse_Render(PropertyGroup):
         ):
             """Create the camera sequence"""
             # !!! When the 3D scence range is not starting at zero the camera strip is clipped at the begining...
-            OriRangeStart = cameraScene.frame_start
-            OriRangeEnd = cameraScene.frame_end
+            # OriRangeStart = cameraScene.frame_start
+            # OriRangeEnd = cameraScene.frame_end
             cameraScene.frame_start = 0
             cameraScene.frame_end = offsetEnd
 
@@ -617,8 +617,8 @@ class UAS_Vse_Render(PropertyGroup):
         self, canvasWidth, canvasHeight, clip, clipWidth, clipHeight, clipRenderPercentage=100, mode="FIT_ALL"
     ):
         """Mode can be FIT_ALL, FIT_WIDTH, FIT_HEIGHT, NO_RESIZE"""
-        clipRatio = clipWidth / clipHeight
-        canvasRatio = canvasWidth / canvasHeight
+        # clipRatio = clipWidth / clipHeight
+        # canvasRatio = canvasWidth / canvasHeight
 
         clipRealWidth = int(clipWidth * (clipRenderPercentage / 100))
         clipRealHeight = int(clipHeight * (clipRenderPercentage / 100))
@@ -817,7 +817,7 @@ class UAS_Vse_Render(PropertyGroup):
                     print(f"self.inputBGMediaPath: {mediaDict['bg']}")
                     bgClip = self.createNewClip(sequenceScene, mediaDict["bg"], 2, atFrame)
                     print("BG Media OK")
-                except Exception as e:
+                except Exception:
                     print(f" *** Rendered shot not found: {mediaDict['bg']}")
 
                 # bgClip = None
@@ -834,7 +834,7 @@ class UAS_Vse_Render(PropertyGroup):
                 try:
                     overClip = self.createNewClip(sequenceScene, mediaDict["image_sequence"], 3, atFrame)
                     print("Over Media OK")
-                except Exception as e:
+                except Exception:
                     print(f" *** Rendered shot not found: {mediaDict['image_sequence']}")
                 # overClip = None
                 # if os.path.exists(self.inputOverMediaPath):
