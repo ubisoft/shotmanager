@@ -525,6 +525,13 @@ def retimer(
                 for layer in obj.data.layers:
                     retime_frames(GPFCurve(layer), *retime_args)
 
+        # Force an update on the actions (cause bug. Other approach would be to save the file and reload it)
+        if obj.animation_data is not None:
+            if obj.animation_data.action is not None:
+                tmp_action = obj.animation_data.action
+                obj.animation_data.action = None
+                obj.animation_data.action = tmp_action
+
     # VSE
     if apply_on_vse:
         retime_vse(scene, mode, start, end)

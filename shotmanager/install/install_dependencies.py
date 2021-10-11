@@ -58,20 +58,64 @@ def install_library(lib_names, pip_retries=2, pip_timeout=-100):
         from pathlib import Path
 
         pyExeFile = sys.executable
-        localPyDir = str(Path(pyExeFile).parent) + "\\lib\\site-packages\\"
+        # we have to go above \bin dir
+        localPyDir = str((Path(pyExeFile).parent).parent) + "\\lib\\site-packages\\"
+        tmp_file = localPyDir + "StampInfo_Tmp.txt"
+
+        # print(f"localPyDir: {localPyDir}")
 
         if not is_admin():
+            from os.path import isfile
+
+            if isfile(tmp_file):
+                try:
+                    os.remove(tmp_file)
+                except Exception:
+                    errorInd = 21
+                    errorMess = f"Err.{errorInd}: Cannot modify to Blender Python folder. Need Admin rights?"
+                    print(outputMess + errorMess)
+                    error_messages.append((errorMess, errorInd))
+                    return error_messages
+
             if not os.access(localPyDir, os.W_OK):
-                errorInd = 2
-                errorMess = f"Err.{errorInd}: Cannot write to Blender Python folder. Need Admin rights?"
-                print(outputMess + errorMess)
-                error_messages.append((errorMess, errorInd))
-                return error_messages
+                print(f"No access to: {localPyDir}")
+                # we try to create a file to see if we can write into the folder
+                # this allows the unzipped versions of blender to receive the installation
+
+                try:
+                    f = open(tmp_file, "w")
+                    f.write("Temp file for Ubisoft Stamp Info")
+                    f.close()
+                except Exception as e:
+                    print(f"e: {e}")
+                    errorInd = 22
+                    errorMess = f"Err.{errorInd}: Cannot write to Blender Python folder. Need Admin rights?"
+                    print(outputMess + errorMess)
+                    error_messages.append((errorMess, errorInd))
+                    return error_messages
+            else:
+                print(f"Not in Admin mode but Has access to: {localPyDir}")
+
+                try:
+                    f = open(tmp_file, "w")
+                    f.write("Temp file for Ubisoft Stamp Info")
+                    f.close()
+                except Exception as e:
+                    print(f"e: {e}")
+                    errorInd = 23
+                    errorMess = (
+                        f"Err.{errorInd}: Has access but cannot write to Blender Python folder. Need Admin rights?"
+                    )
+                    print(outputMess + errorMess)
+                    error_messages.append((errorMess, errorInd))
+                    return error_messages
 
         try:
             # NOTE: to prevent a strange situation where pip finds and/or installs the library in the OS Python directory
             # we force the installation in the current Blender Python \lib\site-packages with the use of "--ignore-installed"
             # "--default-timeout" has been replaced by "--timeout" (tbc)
+            if 0 >= pip_timeout:
+                pip_timeout = 100
             subError = subprocess.run(
                 [
                     pyExeFile,
@@ -83,6 +127,8 @@ def install_library(lib_names, pip_retries=2, pip_timeout=-100):
                     str(pip_retries),
                     "install",
                     lib_names[1],
+                    #"git+https://github.com/PixarAnimationStudios/OpenTimelineIO.git",
+                    #"opentimelineio==0.11.0",
                     "--ignore-installed",
                 ]
             )
