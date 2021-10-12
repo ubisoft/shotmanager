@@ -84,7 +84,7 @@ bl_info = {
     "author": "Ubisoft - Julien Blervaque (aka Werwack), Romain Carriquiry Borchiari",
     "description": "Manage a sequence of shots and cameras in the 3D View - Ubisoft Animation Studio",
     "blender": (2, 92, 0),
-    "version": (1, 5, 66),
+    "version": (1, 5, 67),
     "location": "View3D > Shot Manager",
     "wiki_url": "https://ubisoft-shotmanager.readthedocs.io",
     # "warning": "BETA Version",
@@ -341,26 +341,48 @@ def register():
     if config.devDebug:
         _logger.setLevel(logging.DEBUG)  # CRITICAL ERROR WARNING INFO DEBUG NOTSET
 
-    # debug tools
-    sm_debug.register()
-
     # install dependencies and required Python libraries
     ###################
     # try to install dependencies and collect the errors in case of troubles
     # If some mandatory libraries cannot be loaded then an alternative Add-on Preferences panel
     # is used and provide some visibility to the user to solve the issue
     # Pillow lib is installed there
-    # from .install.install_dependencies import install_dependencies
 
-    # installErrorCode = install_dependencies([("PIL", "pillow")], retries=1, timeout=5)
-    installErrorCode = 0
-    if 0 != installErrorCode:
-        utils_handlers.removeAllHandlerOccurences(jump_to_shot, handlerCateg=bpy.app.handlers.frame_change_pre)
-        return installErrorCode
-    # print("  Pillow Imaging Library (PIL) correctly installed for Ubisoft Stamp Info")
+    if (2, 93, 0) > bpy.app.version:
+        from .install.install_dependencies import install_dependencies
+
+        installErrorCode = install_dependencies([("opentimelineio", "opentimelineio")], retries=1, timeout=20)
+        #installErrorCode = 0
+        if 0 != installErrorCode:
+            #utils_handlers.removeAllHandlerOccurences(jump_to_shot, handlerCateg=bpy.app.handlers.frame_change_pre)
+            #return installErrorCode
+            print("  *** OpenTimelineIO install failed for Ubisoft Shot Manager ***")
+            pass
+        else:
+            print("  OpenTimelineIO correctly installed for Ubisoft Shot Manager")
+        
+            # otio
+            try:
+                from . import otio
+
+                otio.register()
+
+                # from shotmanager.otio import importOpenTimelineIOLib
+
+                # if importOpenTimelineIOLib():
+                #     otio.register()
+                # else:
+                #     print("       *** OTIO Package import failed ***")
+            except ModuleNotFoundError:
+                print("       *** OTIO Package import failed ****")
+        
 
     # if install went right then register other packages
     ###################
+
+    # debug tools
+    sm_debug.register()
+
     from .addon_prefs import addon_prefs
     from .utils import utils_vse_render
     from . import viewport_3d
@@ -445,20 +467,20 @@ def register():
     retimer_ui.register()
     rendering_ui.register()
 
-    # otio
-    try:
-        from . import otio
+    # # otio
+    # try:
+    #     from . import otio
 
-        otio.register()
+    #     otio.register()
 
-        # from shotmanager.otio import importOpenTimelineIOLib
+    #     # from shotmanager.otio import importOpenTimelineIOLib
 
-        # if importOpenTimelineIOLib():
-        #     otio.register()
-        # else:
-        #     print("       *** OTIO Package import failed ***")
-    except ModuleNotFoundError:
-        print("       *** OTIO Package import failed ****")
+    #     # if importOpenTimelineIOLib():
+    #     #     otio.register()
+    #     # else:
+    #     #     print("       *** OTIO Package import failed ***")
+    # except ModuleNotFoundError:
+    #     print("       *** OTIO Package import failed ****")
 
     utils_vse_render.register()
     utils_render.register()
@@ -521,12 +543,12 @@ def unregister():
 
     # Unregister packages that may have been registered if the install had errors
     ###################
-    # from .install.install_dependencies import unregister_from_failed_install
+    from .install.install_dependencies import unregister_from_failed_install
 
-    # if unregister_from_failed_install():
-    #     utils_ui.unregister()
-    #     config.releaseGlobalVariables()
-    #     return ()
+    if unregister_from_failed_install():
+        utils_ui.unregister()
+        config.releaseGlobalVariables()
+        return ()
 
     # Unregister packages that were registered if the install went right
     ###################
@@ -548,7 +570,8 @@ def unregister():
     utils_render.unregister()
     utils_vse_render.unregister()
 
-    if module_can_be_imported("shotmanager.otio"):
+    #if module_can_be_imported("shotmanager.otio"):
+    if module_can_be_imported("opentimelineio"):
         from . import otio
 
         otio.unregister()
@@ -591,8 +614,11 @@ def unregister():
     del bpy.types.WindowManager.UAS_shot_manager_version
 
     # debug tools
-    if config.devDebug:
+    # if config.devDebug:
+    try:
         sm_debug.unregister()
+    except Exception as e: 
+        print(f"Trying to unregister sm-debug: {e}")
     utils_ui.unregister()
     config.releaseGlobalVariables()
 
