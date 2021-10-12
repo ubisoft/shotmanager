@@ -1,6 +1,8 @@
-# 1.5.67 (2021-09---) (WIP)
+# 1.5.68 (2021-09---) (WIP)
 
-Voir actions: https://blender.stackexchange.com/questions/117660/how-to-find-out-if-an-object-has-an-action-with-python
+## Tools
+
+- Bug fix: Grease Pencil wasn't updated after a time change
 
 <br><br>
 

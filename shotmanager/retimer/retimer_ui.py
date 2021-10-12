@@ -47,11 +47,14 @@ class UAS_PT_ShotManagerRetimer(Panel):
         return val
 
     def draw(self, context):
-
         retimerProps = context.scene.UAS_shot_manager_props.retimer
-
         layout = self.layout
-        layout.prop(retimerProps, "mode")
+
+        row = layout.row(align=False)
+        row.prop(retimerProps, "mode")
+        doc_op = row.operator("shotmanager.open_documentation_url", text="", icon="HELP")
+        doc_op.path = "https://ubisoft-shotmanager.readthedocs.io/en/latest/features-advanced/retimer.html"
+        doc_op.tooltip = "Open Shot Manager Retimer online documentation: " + doc_op.path
 
         box = layout.box()
 
