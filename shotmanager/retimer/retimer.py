@@ -16,7 +16,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 """
-To do: module description here.
+Retimer functions
 """
 
 import bpy
@@ -126,7 +126,8 @@ def _stretch_frames(fcurve: FCurve, start_frame, end_frame, factor, pivot_value,
 
 
 def _remove_frames(fcurve: FCurve, start_frame, end_frame, remove_gap):
-    fcurve.remove_frames(start_frame - 1, end_frame)
+    #fcurve.remove_frames(start_frame - 1, end_frame)
+    fcurve.remove_frames(start_frame, end_frame - 1)
     if remove_gap:
         _offset_frames(fcurve, end_frame, start_frame - end_frame)
         pass

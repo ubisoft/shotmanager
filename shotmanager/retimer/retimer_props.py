@@ -30,13 +30,23 @@ class UAS_Retimer_Properties(PropertyGroup):
         name="Time Mode",
         items=(
             (
-                "INSERT",
-                "Insert Time",
-                "Insert the given time, in number of frames, after the specified frame.\nKeyframes after the range are just offset.",
+                "GLOBAL_OFFSET",
+                "Global Offset Time",
+                "Offset all the animation by the specified number of frames.",
             ),
             (
-                "DELETE",
-                "Delete Time",
+                "INSERT_BEFORE",
+                "Insert Time Before...",
+                "Insert the given time, in number of frames, BEFORE the specified frame.\nKeyframes starting at the specified time are offset.",
+            ),
+            (
+                "INSERT_AFTER",
+                "Insert Time After...",
+                "Insert the given time, in number of frames, AFTER the specified frame.\nKeyframes after the range are just offset.",
+            ),
+            (
+                "DELETE_RANGE",
+                "Delete Time Range",
                 "Remove the frames after the start one up to the one specified for the end (included).\nKeyframes after the range are just offset.",
             ),
             (
@@ -55,8 +65,40 @@ class UAS_Retimer_Properties(PropertyGroup):
             #     "Clear the animation on the specified time range.\nNo keyframes are offset.",
             # ),
         ),
+        default="GLOBAL_OFFSET",
         options=set(),
     )
+
+
+    def getQuickHelp(self, topic):
+        docPath = "https://ubisoft-shotmanager.readthedocs.io/en/latest/features-advanced/retimer.html"
+
+        if "GLOBAL_OFFSET" == topic:
+            title = "Global Offset Time"
+            text = "text"
+            #TODO wkip
+            docPath += ""
+        elif "INSERT_BEFORE" == topic:
+            title = "Insert Time Before..."
+            text = "text"
+        elif "INSERT_AFTER" == topic:
+            title = "Insert Time After..."
+            text = "text"
+        elif "DELETE_RANGE" == topic:
+            title = "Delete Time Range"
+            text = "text\nneem flor  qdlifu ql fdqsilfu sdqoifwxciofuvwiofvwxui   csuv cusv cwxiv wuiv wxcvu wxc "
+        elif "RESCALE" == topic:
+            title = "Rescale Time"
+            text = "text"
+        elif "CLEAR_ANIM" == topic:
+            title = "Clear Animation"
+            text = "text"
+        else:
+            title = "description"
+            text = "text"
+
+        tooltip = "Quick tips about " + title
+        return (tooltip, title, text, docPath)
 
     def _get_start_frame(self):
         val = self.get("start_frame", True)
@@ -73,7 +115,8 @@ class UAS_Retimer_Properties(PropertyGroup):
 
     start_frame: IntProperty(
         name="Start Frame",
-        description="Start frame for the time operation",
+        description="The time operation will occur right AFTER this frame."
+        "\nThis frame is then NOT MODIFIED",
         get=_get_start_frame,
         set=_set_start_frame,
         # update=_update_start_frame,
@@ -96,7 +139,8 @@ class UAS_Retimer_Properties(PropertyGroup):
 
     end_frame: IntProperty(
         name="End Frame",
-        description="End frame for the time operation",
+        description="The time operation will occur right BEFORE this frame."
+        "\nThis frame will then be modified",
         get=_get_end_frame,
         set=_set_end_frame,
         # update=_update_end_frame,
@@ -106,6 +150,15 @@ class UAS_Retimer_Properties(PropertyGroup):
 
     move_current_frame: BoolProperty(
         "Move Current Frame", default=False, options=set(),
+    )
+
+    # Offset specific
+    offset_duration: IntProperty(
+        name="Offset Duration",
+        description="Number of frames used to offset all the animation."
+        "\nUse a negative value to make the animation start earlier in time",
+        default=100,
+        options=set(),
     )
 
     # Insert specific
@@ -165,11 +218,8 @@ def register():
     for cls in _classes:
         bpy.utils.register_class(cls)
 
-    # bpy.types.WindowManager.UAS_Retimer = PointerProperty(type=UAS_Retimer_Properties)
-
 
 def unregister():
     for cls in reversed(_classes):
         bpy.utils.unregister_class(cls)
 
-    # del bpy.types.WindowManager.UAS_Retimer

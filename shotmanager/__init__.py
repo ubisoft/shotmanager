@@ -52,8 +52,8 @@ from .operators import about
 
 from .properties import props
 
+from . import retimer
 from .retimer import retimer_ui
-from .retimer import retimer_props
 
 
 from . import rendering
@@ -457,7 +457,7 @@ def register():
     shots_global_settings.register()
     precut_tools.register()
     playbar.register()
-    retimer_props.register()
+    retimer.register()
     props.register()
     shots_toolbar.register()
 
@@ -587,7 +587,7 @@ def unregister():
     rendering.unregister()
     shots_toolbar.unregister()
     props.unregister()
-    retimer_props.unregister()
+    retimer.unregister()
     playbar.unregister()
     precut_tools.unregister()
     shots_global_settings.unregister()
