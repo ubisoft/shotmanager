@@ -236,6 +236,7 @@ class UAS_PT_ShotManagerRetimer(Panel):
             applyText="Move"
 
         else:
+            applyText="tototext"
             pass
 
         row.separator(factor=1)

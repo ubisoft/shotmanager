@@ -142,6 +142,33 @@ def _offset_frames(fcurve: FCurve, reference_frame, offset):
             left_handle[0] += offset
             right_handle[0] += offset
 
+def retime_GPframes(layer, mode, start_frame=0, end_frame=0, remove_gap=True, factor=1.0, pivot=""):
+    if mode == "INSERT":
+        #print(f"layer:{layer.info}")
+        for f in layer.frames:
+            if start_frame <= f.frame_number:
+                f.frame_number += end_frame - start_frame
+    elif mode == "DELETE" or "CLEAR_ANIM":
+        # delete frames
+        if 0 < len(layer.frames):
+            f_ind = 0
+            while f_ind < len(layer.frames):
+                if start_frame <= layer.frames[f_ind].frame_number <= end_frame:
+                    # we suppose frames are sorted according to increasing time
+                    layer.frames.remove(layer.frames[f_ind])
+                else:
+                    f_ind += 1
+        
+        # remove empty gap
+        if mode == "DELETE":
+            if 0 < len(layer.frames):
+                for f in layer.frames:
+                    if end_frame < f.frame_number:
+                        f.frame_number -= end_frame - start_frame
+
+    elif mode == "RESCALE":
+        pass
+
 
 def retime_frames(fcurve: FCurve, mode, start_frame=0, end_frame=0, remove_gap=True, factor=1.0, pivot=""):
 
@@ -215,7 +242,7 @@ def retime_shot(shot, mode, start_frame=0, end_frame=0, remove_gap=True, factor=
 
         # else:
 
-        print(" DELETE: start_frame, end: ", start_frame, end_frame)
+        #print(" DELETE: start_frame, end: ", start_frame, end_frame)
         offset = end_frame - start_frame
 
         if shot.durationLocked:
@@ -490,20 +517,24 @@ def retimer(
     retime_args = (mode, start, end, join_gap, factor, pivot)
     print("retime_args: ", retime_args)
 
-    actions_done = set()  # Actions can be linked so we must make sure to only retime them once.
+    actions_done = set()  # Actions can be linked so we must make sure to only retime them once
+    action_tmp = bpy.data.actions.new("Retimer_TmpAction")
+
     for obj in objects:
-        # Standard object keyframes.
+        print(f"Retiming object named: {obj.name}")
+        print(f"Retiming object named: {obj.name} 55")
+        
+        # Standard object keyframes
         if apply_on_objects:
-            if obj.animation_data is not None:
-                action = obj.animation_data.action
-                if action is None or action in actions_done:
-                    continue
+            if obj.type != "GPENCIL":
+                if obj.animation_data is not None:
+                    action = obj.animation_data.action
+                    if action is not None and action not in actions_done:
+                        for fcurve in action.fcurves:
+                            retime_frames(FCurve(fcurve), *retime_args)
+                        actions_done.add(action)
 
-                for fcurve in action.fcurves:
-                    retime_frames(FCurve(fcurve), *retime_args)
-
-                actions_done.add(action)
-
+        print(f"Retiming object named: {obj.name} 02")
         # Shape keys
         if apply_on_shape_keys:
             if (
@@ -523,15 +554,35 @@ def retimer(
         # Grease pencil
         if apply_on_grease_pencils:
             if obj.type == "GPENCIL":
+
+                action_tmp_added = False
+                if obj.animation_data is not None:
+                    # when a stroke has no transform animation it has no action and because of a bug
+                    # the stroke frames are not updated. As a turnaround we force an action and
+                    # remove it afterward
+                    if obj.animation_data.action is None:
+                        obj.animation_data.action = action_tmp
+                        action_tmp_added = True
+
+                    action = obj.animation_data.action
+                    if action is not None and action not in actions_done:
+                        for fcurve in action.fcurves:
+                            retime_frames(FCurve(fcurve), *retime_args)
+                        actions_done.add(action)
+
                 for layer in obj.data.layers:
-                    retime_frames(GPFCurve(layer), *retime_args)
+                    #retime_frames(GPFCurve(layer), *retime_args)
+                    retime_GPframes(layer, *retime_args)
+
+                if action_tmp_added:
+                    obj.animation_data.action = None
 
         # Force an update on the actions (cause bug. Other approach would be to save the file and reload it)
         if obj.animation_data is not None:
             if obj.animation_data.action is not None:
-                tmp_action = obj.animation_data.action
+                action_backup = obj.animation_data.action
                 obj.animation_data.action = None
-                obj.animation_data.action = tmp_action
+                obj.animation_data.action = action_backup
 
     # VSE
     if apply_on_vse:
@@ -553,3 +604,7 @@ def retimer(
 
         for shot in shotList:
             retime_shot(shot, *retime_args)
+
+    bpy.data.actions.remove(action_tmp)
+
+    return()

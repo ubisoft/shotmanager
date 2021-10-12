@@ -23,76 +23,87 @@ import bpy
 from bpy.types import Operator, PropertyGroup
 from bpy.props import IntProperty, EnumProperty, BoolProperty, FloatProperty
 
+# a function is used here so that the returned items tupple can also be called by the quick help components
+def list_retime_modes(self, context):
+    items=(
+        (
+            "GLOBAL_OFFSET",
+            "Global Offset Time",
+            "Offset all the animation by the specified number of frames.",
+            0,
+        ),
+        (
+            "INSERT_BEFORE",
+            "Insert Time Before...",
+            "Insert the given time, in number of frames, BEFORE the specified frame.\nKeyframes starting at the specified time are offset.",
+            1,
+        ),
+        (
+            "INSERT_AFTER",
+            "Insert Time After...",
+            "Insert the given time, in number of frames, AFTER the specified frame.\nKeyframes after the range are just offset.",
+            2,
+        ),
+        (
+            "DELETE_RANGE",
+            "Delete in Between Time",
+            "Remove the time located AFTER the start frame and BEFORE the end frame.\nStart and end frames are NOT removed."
+            "\nKeyframes after the range are just offset.",
+            3,
+        ),
+        (
+            "RESCALE",
+            "Rescale Time",
+            "Change the scale of the specified time range, starting at the specified start frame.\nKeyframes after the end of the range are just offset.",
+            4,
+        ),
+        (
+            "CLEAR_ANIM",
+            "Clear Animation",
+            "Clear the animation on the specified time range.\nNo keyframes are offset.",
+            5,
+        ),
+        # (
+        #     "FREEZE",
+        #     "Clear Animation",
+        #     "Clear the animation on the specified time range.\nNo keyframes are offset.",
+        # ),
+    )
+
+    return items
 
 class UAS_Retimer_Properties(PropertyGroup):
 
     mode: EnumProperty(
         name="Time Mode",
-        items=(
-            (
-                "GLOBAL_OFFSET",
-                "Global Offset Time",
-                "Offset all the animation by the specified number of frames.",
-            ),
-            (
-                "INSERT_BEFORE",
-                "Insert Time Before...",
-                "Insert the given time, in number of frames, BEFORE the specified frame.\nKeyframes starting at the specified time are offset.",
-            ),
-            (
-                "INSERT_AFTER",
-                "Insert Time After...",
-                "Insert the given time, in number of frames, AFTER the specified frame.\nKeyframes after the range are just offset.",
-            ),
-            (
-                "DELETE_RANGE",
-                "Delete Time Range",
-                "Remove the frames after the start one up to the one specified for the end (included).\nKeyframes after the range are just offset.",
-            ),
-            (
-                "RESCALE",
-                "Rescale Time",
-                "Change the scale of the specified time range, starting at the specified start frame.\nKeyframes after the end of the range are just offset.",
-            ),
-            (
-                "CLEAR_ANIM",
-                "Clear Animation",
-                "Clear the animation on the specified time range.\nNo keyframes are offset.",
-            ),
-            # (
-            #     "FREEZE",
-            #     "Clear Animation",
-            #     "Clear the animation on the specified time range.\nNo keyframes are offset.",
-            # ),
-        ),
-        default="GLOBAL_OFFSET",
-        options=set(),
+        items = list_retime_modes,
+        #default="GLOBAL_OFFSET",
     )
 
 
     def getQuickHelp(self, topic):
+        items = list_retime_modes(self, bpy.context)
+        modeItem = ([s for s in items if topic == s[0]])[0]
+        #print(f"modeItem: {modeItem[1]}")
+
         docPath = "https://ubisoft-shotmanager.readthedocs.io/en/latest/features-advanced/retimer.html"
+        title = modeItem[1]
+        text = modeItem[2]
 
         if "GLOBAL_OFFSET" == topic:
-            title = "Global Offset Time"
-            text = "text"
-            #TODO wkip
+            text += ""
+            #TODO wkip add doc anchor to each path
             docPath += ""
         elif "INSERT_BEFORE" == topic:
-            title = "Insert Time Before..."
-            text = "text"
+            text += ""
         elif "INSERT_AFTER" == topic:
-            title = "Insert Time After..."
-            text = "text"
+            text += ""
         elif "DELETE_RANGE" == topic:
-            title = "Delete Time Range"
-            text = "text\nneem flor  qdlifu ql fdqsilfu sdqoifwxciofuvwiofvwxui   csuv cusv cwxiv wuiv wxcvu wxc "
+            text += ""
         elif "RESCALE" == topic:
-            title = "Rescale Time"
-            text = "text"
+            text += ""
         elif "CLEAR_ANIM" == topic:
-            title = "Clear Animation"
-            text = "text"
+            text += ""
         else:
             title = "description"
             text = "text"
