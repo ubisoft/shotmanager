@@ -352,15 +352,15 @@ def register():
         from .install.install_dependencies import install_dependencies
 
         installErrorCode = install_dependencies([("opentimelineio", "opentimelineio")], retries=1, timeout=20)
-        #installErrorCode = 0
+        # installErrorCode = 0
         if 0 != installErrorCode:
-            #utils_handlers.removeAllHandlerOccurences(jump_to_shot, handlerCateg=bpy.app.handlers.frame_change_pre)
-            #return installErrorCode
+            # utils_handlers.removeAllHandlerOccurences(jump_to_shot, handlerCateg=bpy.app.handlers.frame_change_pre)
+            # return installErrorCode
             print("  *** OpenTimelineIO install failed for Ubisoft Shot Manager ***")
             pass
         else:
             print("  OpenTimelineIO correctly installed for Ubisoft Shot Manager")
-        
+
             # otio
             try:
                 from . import otio
@@ -375,7 +375,6 @@ def register():
                 #     print("       *** OTIO Package import failed ***")
             except ModuleNotFoundError:
                 print("       *** OTIO Package import failed ****")
-        
 
     # if install went right then register other packages
     ###################
@@ -570,13 +569,13 @@ def unregister():
     utils_render.unregister()
     utils_vse_render.unregister()
 
-    #if module_can_be_imported("shotmanager.otio"):
+    # if module_can_be_imported("shotmanager.otio"):
     if module_can_be_imported("opentimelineio"):
         from . import otio
 
         otio.unregister()
     else:
-        print("       *** No Otio found for unregister ***")
+        print("       *** No Otio found to unregister ***")
 
     rendering_ui.unregister()
     retimer_ui.unregister()
@@ -617,7 +616,7 @@ def unregister():
     # if config.devDebug:
     try:
         sm_debug.unregister()
-    except Exception as e: 
+    except Exception as e:
         print(f"Trying to unregister sm-debug: {e}")
     utils_ui.unregister()
     config.releaseGlobalVariables()

@@ -203,39 +203,28 @@ class UAS_PT_ShotManagerRetimer(Panel):
             simuRow = col.row(align=True)
             newStart = retimerProps.start_frame
             newStartStr = f"Start: {retimerProps.start_frame} \u2192 {newStart}"
-            newEnd = round(
-                (retimerProps.end_frame - retimerProps.start_frame) * retimerProps.factor + retimerProps.start_frame
-            )
+
+            # *** Warning: due to the nature of the time operation the duration is not computed as for Delete Time ***
+            duration = retimerProps.end_frame - retimerProps.start_frame
+            newDuration = round(duration * retimerProps.factor)
+
+            # newEnd is excluded
+            newEnd = retimerProps.start_frame + newDuration
             newEndStr = f"End: {retimerProps.end_frame} \u2192 {newEnd}"
-            newRangeStr = f"Duration: {retimerProps.end_frame - retimerProps.start_frame} fr. \u2192 {newEnd - retimerProps.start_frame} fr."
+            newRangeStr = f"Duration: {duration} fr. \u2192 {newDuration} fr."
             simuRow.separator(factor=1)
             simuRow.label(text=f"{newStartStr},      {newEndStr},      {newRangeStr}")
             simuRow.separator(factor=1)
 
             simuRow = col.row(align=True)
             simuRow.separator(factor=1)
-            simuRow.label(text=f"To do frames:  {_get_retime_frames_as_range(newStart + 1, newEnd - 1)}")
+            simuRow.label(
+                text=f"Rescale frames:  {_get_retime_frames_as_range(newStart, retimerProps.end_frame - 1)} \u2192 {_get_retime_frames_as_range(newStart, newEnd - 1)}"
+            )
             simuRow.separator(factor=1)
             # row.prop(retimerProps, "pivot")
 
             applyText = "Rescale Time"
-
-        # elif retimerProps.mode == "RESCALE":
-        #     row = box.row()
-        #     row.separator(factor=1)
-        #     row.prop(retimerProps, "start_frame", text="From")
-        #     row.prop(retimerProps, "end_frame", text="To")
-
-        #     row.operator("uas_shot_manager.gettimerange", text="", icon="SEQ_STRIP_META")
-        #     row.separator(factor=1)
-
-        #     row = box.row()
-        #     row.use_property_split = True
-
-        #     row.prop(retimerProps, "factor")
-        #     row.prop(retimerProps, "pivot")
-
-        #     applyText="Rescale"
 
         elif retimerProps.mode == "CLEAR_ANIM":
             row.separator(factor=1)
@@ -245,20 +234,17 @@ class UAS_PT_ShotManagerRetimer(Panel):
             ).propertyToUpdate = "start_frame"
             row.separator()
 
-            row.prop(retimerProps, "end_frame", text="Up To (incl.)")
+            row.prop(retimerProps, "end_frame", text="Up To (excluded)")
             row.operator(
                 "uas_shot_manager.getcurrentframefor", text="", icon="TRIA_UP_BAR"
             ).propertyToUpdate = "end_frame"
 
+            # wkip animation inside a single frame should be clearable
             simuRow = box.row(align=True)
-            newStart = retimerProps.start_frame
-            newStartStr = f"Start: {retimerProps.start_frame} \u2192 {newStart}"
-            newEnd = retimerProps.end_frame
-            newEndStr = f"End: {retimerProps.end_frame} \u2192 {newEnd}"
-            newRangeStr = f"Duration: {retimerProps.end_frame - retimerProps.start_frame} fr.,"
+            newRangeStr = f"Duration: {retimerProps.end_frame - retimerProps.start_frame - 1} fr."
             simuRow.separator(factor=1)
             simuRow.label(
-                text=f"Animation in range  [ {newStart + 1} .. {newEnd} ]  will be cleared,      {newRangeStr}"
+                text=f"Cleared frames:  {_get_retime_frames_as_range(retimerProps.start_frame + 1, retimerProps.end_frame - 1)},       {newRangeStr}"
             )
             simuRow.separator(factor=1)
 
@@ -333,7 +319,7 @@ class UAS_PT_ShotManagerRetimer_Settings(Panel):
 
         row = col.row(align=True)
         row.prop(retimerProps, "applyToShots")
-        row.prop(retimerProps, "applytToVSE")
+        row.prop(retimerProps, "applyToVSE")
         row.label(text="")
 
         box = layout.box()

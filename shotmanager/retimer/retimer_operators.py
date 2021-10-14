@@ -84,17 +84,25 @@ class UAS_ShotManager_RetimerApply(Operator):
 
     def execute(self, context):
         retimerProps = context.scene.UAS_shot_manager_props.retimer
-        # TOFIX wkip wkip wkip temp
-        applToVSE = setattr(retimerProps, "applyToVse", True)
 
         if retimerProps.onlyOnSelection:
             obj_list = context.selected_objects
         else:
             obj_list = context.scene.objects
 
-        startFrame = retimerProps.start_frame
-        endFrame = retimerProps.end_frame
+        # startFrame = retimerProps.start_frame
+        # endFrame = retimerProps.end_frame
 
+        ################################
+        # For the following lines keep in mind that:
+        #    - retimerProps.insert_duration is inclusive
+        #    - retimerProps.start_frame is EXCLUSIVE   (in other words it is NOT modified)
+        #    - retimerProps.end_frame is EXCLUSIVE     (in other words is the first frame to be offset)
+        #
+        # But retimeScene() requires INCLUSIVE range of time for the modifications (= all the frames
+        # created or deleted, not the moved ones).
+        # We then have to adapt the start and end values we get from retimerProps for the function.
+        ################################
         if "GLOBAL_OFFSET" == retimerProps.mode:
             if 0 == retimerProps.offset_duration:
                 return {"FINISHED"}
@@ -119,10 +127,14 @@ class UAS_ShotManager_RetimerApply(Operator):
                 1.0,
                 retimerProps.pivot,
             )
+
         elif -1 < retimerProps.mode.find("INSERT"):
-            start = startFrame + 1 if "INSERT_AFTER" == retimerProps.mode else endFrame
+            start_excl = retimerProps.start_frame if "INSERT_AFTER" == retimerProps.mode else retimerProps.end_frame - 1
+            end_excl = start_excl + retimerProps.insert_duration + 1
+            # start = startFrame + 1 if "INSERT_AFTER" == retimerProps.mode else endFrame
             print(
-                f"Retimer - Inserting time: new time range: [{start} .. {start + retimerProps.insert_duration - 1}], duration:{retimerProps.insert_duration}"
+                # f"Retimer - Inserting time: new time range: [{start} .. {start + retimerProps.insert_duration - 1}], duration:{retimerProps.insert_duration}"
+                f"\nRetimer - Inserting time: new created frames: [{start_excl + 1} .. {end_excl - 1}], duration: {retimerProps.insert_duration}"
             )
             retimer.retimeScene(
                 context,
@@ -130,15 +142,19 @@ class UAS_ShotManager_RetimerApply(Operator):
                 # retimerProps.mode,
                 "INSERT",
                 obj_list,
-                start,
+                start_excl + 1,
                 retimerProps.insert_duration,
                 retimerProps.gap,
                 1.0,
                 retimerProps.pivot,
             )
+
         elif -1 < retimerProps.mode.find("DELETE"):
+            start_excl = retimerProps.start_frame
+            end_excl = retimerProps.end_frame
+            duration_incl = end_excl - start_excl - 1
             print(
-                f"Retimer - Deleting time: deleted range: [{startFrame + 1} .. {endFrame - 1}], duration:{endFrame - startFrame - 1}"
+                f"\nRetimer - Deleting time: deleted frames: [{start_excl + 1} .. {end_excl - 1}], duration: {duration_incl}"
             )
             retimer.retimeScene(
                 context,
@@ -146,32 +162,46 @@ class UAS_ShotManager_RetimerApply(Operator):
                 # retimerProps.mode,
                 "DELETE",
                 obj_list,
-                startFrame + 1,
-                endFrame - startFrame - 1,
+                start_excl + 1,
+                duration_incl,
                 True,
                 1.0,
                 retimerProps.pivot,
             )
         elif "RESCALE" == retimerProps.mode:
+            # *** Warning: due to the nature of the time operation the duration is not computed as for Delete Time ***
+            start_excl = retimerProps.start_frame
+            end_excl = retimerProps.end_frame
+            duration_incl = end_excl - start_excl
+            print(
+                f"\nRetimer - Rescaling time: modified frames: [{start_excl} .. {end_excl - 1}], duration: {duration_incl}"
+            )
             retimer.retimeScene(
                 context,
                 retimerProps,
                 retimerProps.mode,
                 obj_list,
-                startFrame,
-                endFrame - startFrame,
+                start_excl,
+                duration_incl,
                 True,
                 retimerProps.factor,
-                startFrame,
+                start_excl,
             )
+
         elif "CLEAR_ANIM" == retimerProps.mode:
+            start_excl = retimerProps.start_frame
+            end_excl = retimerProps.end_frame
+            duration_incl = end_excl - start_excl - 1
+            print(
+                f"\nRetimer - Deleting animation: cleared frames: [{start_excl + 1} .. {end_excl - 1}], duration:{duration_incl}"
+            )
             retimer.retimeScene(
                 context,
                 retimerProps,
                 retimerProps.mode,
                 obj_list,
-                startFrame + 1,
-                endFrame - startFrame,
+                start_excl + 1,
+                duration_incl,
                 False,
                 retimerProps.factor,
                 retimerProps.pivot,

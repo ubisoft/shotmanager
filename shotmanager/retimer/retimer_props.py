@@ -26,36 +26,79 @@ from bpy.props import IntProperty, EnumProperty, BoolProperty, FloatProperty
 # a function is used here so that the returned items tupple can also be called by the quick help components
 def list_retime_modes(self, context):
     items = (
-        ("GLOBAL_OFFSET", "Global Offset Time", "Offset all the animation by the specified number of frames.", 0,),
+        (
+            "GLOBAL_OFFSET",
+            "Global Offset Time",
+            "Offset all the animation by the specified number of frames."
+            "\n\nUse tip: The 'Ref. Frame' spinner is just there to have a more contextual anticipation"
+            "\nof what will happen, as written in the line below the spinners."
+            "\nJust enter an offet value, positive or negative, in the right spinner to specify the offset"
+            "\nthat will be applied to all the animated content of the scene."
+            "\nThen press 'Offset Time'.",
+            0,
+        ),
         (
             "INSERT_BEFORE",
             "Insert Time Before...",
-            "Insert the given time, in number of frames, BEFORE the specified frame.\nKeyframes starting at the specified time are offset.",
+            "Insert the given time, in number of frames, BEFORE the specified frame."
+            "\nKeyframes starting at the specified time are offset."
+            "\n\nUse tip: To define the range of time to insert place the time cursor on the FIRST KEPT FRAME"
+            "\nof the right part of the animation then press the Get button of the 'Insert Before' spinner."
+            "\nThen specify the number of frames to add in the 'Duration' spinner."
+            "\nThen press 'Insert Time'.",
             1,
         ),
         (
             "INSERT_AFTER",
             "Insert Time After...",
-            "Insert the given time, in number of frames, AFTER the specified frame.\nKeyframes after the range are just offset.",
+            "Insert the given time, in number of frames, AFTER the specified frame."
+            "\nKeyframes after the range are just offset."
+            "\n\nUse tip: To define the range of time to insert place the time cursor on the LAST KEPT FRAME"
+            "\nof the first part of the animation then press the Get button of the 'Insert After' spinner."
+            "\nThen specify the number of frames to add in the 'Duration' spinner."
+            "\nThen press 'Insert Time'.",
             2,
         ),
         (
             "DELETE_RANGE",
             "Delete in Between Time",
-            "Remove the time located AFTER the start frame and BEFORE the end frame.\nStart and end frames are NOT removed."
-            "\nKeyframes after the range are just offset.",
+            "Remove the time located AFTER the start frame and BEFORE the end frame."
+            "\nStart and end frames are NOT removed."
+            "\nKeyframes after the range are just offset."
+            "\n\nUse tip: To define the range to delete first place the time cursor on the LAST KEPT FRAME"
+            "\nof the first part of the animation then press the Get button of the 'Delete After' spinner."
+            "\nThen move the time cursor to the FIRST KEPT FRAME of the second part of the animation"
+            "\nand press the Get button of the 'Up To (excluded)' spinner."
+            "\nThen press 'Delete Time'.",
             3,
         ),
         (
             "RESCALE",
             "Rescale Time",
-            "Change the scale of the specified time range, starting at the specified start frame.\nKeyframes after the end of the range are just offset.",
+            "Change the scale of the specified time range, starting at the specified start frame."
+            "\nKeyframes after the end of the range are just offset."
+            "\nStart and end frames are NOT removed."
+            "\nKeyframes after the range are just offset."
+            "\n\nUse tip: To define the range to rescale first place the time cursor on the LAST KEPT FRAME"
+            "\nof the first part of the animation then press the Get button of the 'Rescale After' spinner."
+            "\nThen move the time cursor to the FIRST KEPT FRAME of the second part of the animation"
+            "\nand press the Get button of the 'Up To (excluded)' spinner."
+            "\nSet the scale factor: values under 1 are speeding the animation, above 1 are making it slower."
+            "\nScale factor can only be positive."
+            "\nThe start frame is used as origin of the rescale and frames after are either pull or pushed."
+            "\nFrames before are not modified."
+            "\nThen press 'Rescale Time'.",
             4,
         ),
         (
             "CLEAR_ANIM",
             "Clear Animation",
-            "Clear the animation on the specified time range.\nNo keyframes are offset.",
+            "Clear the animation on the specified time range. No keyframes are offset."
+            "\n\nUse tip: To define the range to clear first place the time cursor on the LAST KEPT FRAME"
+            "\nof the first part of the animation then press the Get button of the 'Clear After' spinner."
+            "\nThen move the time cursor to the FIRST KEPT FRAME of the second part of the animation"
+            "\nand press the Get button of the 'Up To (excluded)' spinner."
+            "\nThen press 'Clear Animation'.",
             5,
         ),
         # (
@@ -120,6 +163,8 @@ class UAS_Retimer_Properties(PropertyGroup):
     #     if self.start_frame >= self.end_frame:
     #         self.end_frame = self.start_frame + 1
 
+    """Start of modified range (= created or deleted frames). Excluded from this range
+    """
     start_frame: IntProperty(
         name="Start Frame",
         description="The time operation will occur right AFTER this frame." "\nThis frame is then NOT MODIFIED",
@@ -143,9 +188,12 @@ class UAS_Retimer_Properties(PropertyGroup):
     #     if self.start_frame >= self.end_frame:
     #         self.start_frame = self.end_frame - 1
 
+    """End of modified range (= created or deleted frames). Excluded from this range
+    """
     end_frame: IntProperty(
         name="End Frame",
-        description="The time operation will occur right BEFORE this frame." "\nThis frame will then be modified",
+        description="The time operation will occur right BEFORE this frame."
+        "\nThis frame will then be the first one to be offset",
         get=_get_end_frame,
         set=_set_end_frame,
         # update=_update_end_frame,
@@ -167,6 +215,11 @@ class UAS_Retimer_Properties(PropertyGroup):
     )
 
     # Insert specific
+    """Inclusive duration
+    Duration of MODIFIED range (= created or deleted frames).
+    It is then the duration of ] self.start_frame .. self.end_frame [
+    Its value is: insert_duration = self.end_frame - self.start_frame - 1
+    """
     insert_duration: IntProperty(
         name="Insert Duration",
         description="Number of frames to insert after the specified one",
@@ -222,7 +275,7 @@ class UAS_Retimer_Properties(PropertyGroup):
     applyToShots: BoolProperty(
         name="Shots", description="Apply time change to the shot ranges", default=True, options=set(),
     )
-    applytToVSE: BoolProperty(
+    applyToVSE: BoolProperty(
         name="VSE", description="Apply time change to the content of the VSE", default=True, options=set(),
     )
 
