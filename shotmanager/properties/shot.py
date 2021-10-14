@@ -359,6 +359,13 @@ class UAS_ShotManager_Shot(ShotInterface, PropertyGroup):
 
     def _get_color(self):
         defaultVal = [1.0, 1.0, 1.0, 1.0]
+        print
+        try:
+            props = self.parentScene.UAS_shot_manager_props
+        except Exception as ex:
+            print(f"_get_color: self: {self}, self.parentScene:{self.parentScene}")
+            if self.parentScene is None:
+                self.parentScene = self.getParentScene()
         props = self.parentScene.UAS_shot_manager_props
 
         if props.use_camera_color:

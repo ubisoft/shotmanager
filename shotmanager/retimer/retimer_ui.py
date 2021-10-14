@@ -25,6 +25,7 @@ from bpy.props import IntProperty, EnumProperty, BoolProperty, FloatProperty, St
 
 from . import retimer
 
+
 class UAS_PT_ShotManagerRetimer(Panel):
     bl_idname = "UAS_PT_ShotManagerRetimerPanel"
     bl_label = "Retimer"
@@ -37,10 +38,16 @@ class UAS_PT_ShotManagerRetimer(Panel):
     @classmethod
     def poll(cls, context):
         props = context.scene.UAS_shot_manager_props
-        val = props.display_retimer_in_properties and not props.dontRefreshUI()
+        prefs = context.preferences.addons["shotmanager"].preferences
+        val = prefs.display_retimer_in_properties and not props.dontRefreshUI()
         return val
 
     def draw(self, context):
+        def _get_retime_frames_as_range(start, end):
+            if end < start:
+                return "[ - ]"
+            return f"[ {start} ]" if start == end else f"[ {start}  ..  {end} ]"
+
         retimerProps = context.scene.UAS_shot_manager_props.retimer
         layout = self.layout
 
@@ -63,7 +70,7 @@ class UAS_PT_ShotManagerRetimer(Panel):
             rightRow.alignment = "RIGHT"
             rightRow.label(text="by ")
             rightRow.prop(retimerProps, "offset_duration", text="")
-            
+
             simuRow = box.row(align=True)
             originStr = f"Origin: {0} \u2192 {0 + retimerProps.offset_duration}"
             newStart = retimerProps.start_frame + retimerProps.offset_duration
@@ -71,7 +78,7 @@ class UAS_PT_ShotManagerRetimer(Panel):
             newEnd = retimerProps.start_frame + 1 + retimerProps.insert_duration
             newEndStr = f"Offset: {retimerProps.offset_duration}"
             simuRow.separator(factor=1)
-            simuRow.label(text=originStr + ",      " + newStartStr + ",      " + newEndStr)
+            simuRow.label(text=f"{originStr},      {newStartStr},      {newEndStr}")
             simuRow.separator(factor=1)
 
             applyText = "Offset Time"
@@ -85,16 +92,23 @@ class UAS_PT_ShotManagerRetimer(Panel):
             row.separator()
             row.prop(retimerProps, "insert_duration", text="Duration")
 
-            simuRow = box.row(align=True)
+            col = box.column()
+            col.scale_y = 0.8
+            simuRow = col.row(align=True)
             newStart = retimerProps.end_frame - 1
             newStartStr = f"Start: {newStart} \u2192 {newStart}"
             newEnd = retimerProps.end_frame + retimerProps.insert_duration
             newEndStr = f"End: {retimerProps.end_frame} \u2192 {newEnd}"
             newRangeStr = f"Duration: {0} fr \u2192 {retimerProps.insert_duration} fr"
             simuRow.separator(factor=1)
-            simuRow.label(text=newStartStr + ",      " + newEndStr + ",      " + newRangeStr)
+            simuRow.label(text=f"{newStartStr},      {newEndStr},      {newRangeStr}")
 
-            applyText="Insert Time"
+            simuRow = col.row(align=True)
+            simuRow.separator(factor=1)
+            simuRow.label(text=f"New frames:  {_get_retime_frames_as_range(newStart + 1, newEnd - 1)}")
+            simuRow.separator(factor=1)
+
+            applyText = "Insert Time"
 
         elif retimerProps.mode == "INSERT_AFTER":
             row.separator(factor=1)
@@ -105,18 +119,25 @@ class UAS_PT_ShotManagerRetimer(Panel):
             row.separator()
             row.prop(retimerProps, "insert_duration", text="Duration")
 
-            simuRow = box.row(align=True)
+            col = box.column()
+            col.scale_y = 0.8
+            simuRow = col.row(align=True)
             newStart = retimerProps.start_frame
             newStartStr = f"Start: {retimerProps.start_frame} \u2192 {newStart}"
             newEnd = retimerProps.start_frame + 1 + retimerProps.insert_duration
             newEndStr = f"End: {retimerProps.start_frame + 1} \u2192 {newEnd}"
             newRangeStr = f"Duration: {0} fr \u2192 {retimerProps.insert_duration} fr"
             simuRow.separator(factor=1)
-            simuRow.label(text=newStartStr + ",      " + newEndStr + ",      " + newRangeStr)
+            simuRow.label(text=f"{newStartStr},      {newEndStr},      {newRangeStr}")
             simuRow.separator(factor=1)
 
-            applyText="Insert Time"
-            
+            simuRow = col.row(align=True)
+            simuRow.separator(factor=1)
+            simuRow.label(text=f"New frames:  {_get_retime_frames_as_range(newStart + 1, newEnd - 1)}")
+            simuRow.separator(factor=1)
+
+            applyText = "Insert Time"
+
         elif retimerProps.mode == "DELETE_RANGE":
             row.separator(factor=1)
             row.prop(retimerProps, "start_frame", text="Delete After")
@@ -124,7 +145,7 @@ class UAS_PT_ShotManagerRetimer(Panel):
                 "uas_shot_manager.getcurrentframefor", text="", icon="TRIA_UP_BAR"
             ).propertyToUpdate = "start_frame"
             row.separator()
-            row.prop(retimerProps, "end_frame", text="Up To (excl.)")
+            row.prop(retimerProps, "end_frame", text="Up To (excluded)")
             row.operator(
                 "uas_shot_manager.getcurrentframefor", text="", icon="TRIA_UP_BAR"
             ).propertyToUpdate = "end_frame"
@@ -136,17 +157,26 @@ class UAS_PT_ShotManagerRetimer(Panel):
             # quickH.title = quickHelpInfo[1]
             # quickH.text = quickHelpInfo[2]
 
-            simuRow = box.row(align=True)
+            col = box.column()
+            col.scale_y = 0.8
+            simuRow = col.row(align=True)
             newStart = retimerProps.start_frame
             newStartStr = f"Start: {retimerProps.start_frame} \u2192 {newStart}"
             newEnd = retimerProps.start_frame + 1
             newEndStr = f"End: {retimerProps.end_frame} \u2192 {newEnd}"
             newRangeStr = f"Duration: {retimerProps.end_frame - retimerProps.start_frame - 1} fr. \u2192 {newEnd - retimerProps.start_frame - 1} fr."
             simuRow.separator(factor=1)
-            simuRow.label(text=newStartStr + ",      " + newEndStr + ",      " + newRangeStr)
+            simuRow.label(text=f"{newStartStr},      {newEndStr},      {newRangeStr}")
+
+            simuRow = col.row(align=True)
             simuRow.separator(factor=1)
 
-            applyText="Delete Time"
+            simuRow.label(
+                text=f"Deleted frames:  {_get_retime_frames_as_range(newStart + 1, retimerProps.end_frame - 1)}"
+            )
+            simuRow.separator(factor=1)
+
+            applyText = "Delete Time"
 
         elif retimerProps.mode == "RESCALE":
             row.separator(factor=1)
@@ -155,7 +185,7 @@ class UAS_PT_ShotManagerRetimer(Panel):
                 "uas_shot_manager.getcurrentframefor", text="", icon="TRIA_UP_BAR"
             ).propertyToUpdate = "start_frame"
             row.separator()
-            row.prop(retimerProps, "end_frame", text="Up To (excl.)")
+            row.prop(retimerProps, "end_frame", text="Up To (excluded)")
             row.operator(
                 "uas_shot_manager.getcurrentframefor", text="", icon="TRIA_UP_BAR"
             ).propertyToUpdate = "end_frame"
@@ -168,7 +198,9 @@ class UAS_PT_ShotManagerRetimer(Panel):
             row2.prop(retimerProps, "factor", text="Scale Factor")
             row2.separator(factor=3)
 
-            simuRow = box.row(align=True)
+            col = box.column()
+            col.scale_y = 0.8
+            simuRow = col.row(align=True)
             newStart = retimerProps.start_frame
             newStartStr = f"Start: {retimerProps.start_frame} \u2192 {newStart}"
             newEnd = round(
@@ -177,11 +209,16 @@ class UAS_PT_ShotManagerRetimer(Panel):
             newEndStr = f"End: {retimerProps.end_frame} \u2192 {newEnd}"
             newRangeStr = f"Duration: {retimerProps.end_frame - retimerProps.start_frame} fr. \u2192 {newEnd - retimerProps.start_frame} fr."
             simuRow.separator(factor=1)
-            simuRow.label(text=newStartStr + ",      " + newEndStr + ",      " + newRangeStr)
+            simuRow.label(text=f"{newStartStr},      {newEndStr},      {newRangeStr}")
+            simuRow.separator(factor=1)
+
+            simuRow = col.row(align=True)
+            simuRow.separator(factor=1)
+            simuRow.label(text=f"To do frames:  {_get_retime_frames_as_range(newStart + 1, newEnd - 1)}")
             simuRow.separator(factor=1)
             # row.prop(retimerProps, "pivot")
 
-            applyText="Rescale Time"
+            applyText = "Rescale Time"
 
         # elif retimerProps.mode == "RESCALE":
         #     row = box.row()
@@ -220,10 +257,12 @@ class UAS_PT_ShotManagerRetimer(Panel):
             newEndStr = f"End: {retimerProps.end_frame} \u2192 {newEnd}"
             newRangeStr = f"Duration: {retimerProps.end_frame - retimerProps.start_frame} fr.,"
             simuRow.separator(factor=1)
-            simuRow.label(text=f"Animation in range  [ {newStart + 1},  {newEnd} ]  will be cleared,      {newRangeStr}")
+            simuRow.label(
+                text=f"Animation in range  [ {newStart + 1} .. {newEnd} ]  will be cleared,      {newRangeStr}"
+            )
             simuRow.separator(factor=1)
 
-            applyText="Clear Animation"
+            applyText = "Clear Animation"
 
         elif retimerProps.mode == "MOVE":
             row.separator(factor=1)
@@ -233,10 +272,10 @@ class UAS_PT_ShotManagerRetimer(Panel):
             row.operator("uas_shot_manager.gettimerange", text="", icon="SEQ_STRIP_META")
             row.separator(factor=1)
 
-            applyText="Move"
+            applyText = "Move"
 
         else:
-            applyText="tototext"
+            applyText = "tototext"
             pass
 
         row.separator(factor=1)
@@ -270,25 +309,40 @@ class UAS_PT_ShotManagerRetimer_Settings(Panel):
 
     def draw(self, context):
         retimerProps = context.scene.UAS_shot_manager_props.retimer
+        prefs = context.preferences.addons["shotmanager"].preferences
 
         layout = self.layout
 
-        row = layout.row()
+        split = layout.split(factor=0.326)
+        row = split.row(align=True)
+        row.separator(factor=0.7)
         row.prop(retimerProps, "onlyOnSelection", text="Selection Only")
+        row = split.row(align=True)
+        row.prop(retimerProps, "includeLockAnim", text="Include Locked Anim")
 
         box = layout.box()
         col = box.column()
-        row = col.row(align=True)
-        row.prop(retimerProps, "applyToShots")
-        row.prop(retimerProps, "applyToObjects")
-        row.label(text=" ")
 
         row = col.row(align=True)
+        row.prop(retimerProps, "applyToObjects")
         row.prop(retimerProps, "applyToShapeKeys")
         row.prop(retimerProps, "applytToGreasePencil")
-        row.prop(retimerProps, "applytToVSE")
-        row = col.row(align=True)
 
+        row = col.row(align=True)
+        row.scale_y = 0.3
+
+        row = col.row(align=True)
+        row.prop(retimerProps, "applyToShots")
+        row.prop(retimerProps, "applytToVSE")
+        row.label(text="")
+
+        box = layout.box()
+        col = box.column()
+
+        row = col.row(align=True)
+        row.prop(prefs, "applyToTimeCursor", text="Time Cursor")
+        row.prop(prefs, "applyToSceneRange", text="Scene Range")
+        # row.label(text="")
 
 
 _classes = (

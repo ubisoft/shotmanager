@@ -22,6 +22,10 @@ Retimer functions
 import bpy
 
 
+# FCurve
+################################################
+
+
 class FCurve:
     def __init__(self, fcurve):
         self.fcurve = fcurve
@@ -56,6 +60,10 @@ class FCurve:
         return len(self.fcurve.keyframe_points)
 
 
+# GPFCurve
+################################################
+
+
 class GPFCurve(FCurve):
     def get_key_coordinates(self, index):
         return self.fcurve.frames[index].frame_number, 0
@@ -86,11 +94,16 @@ class GPFCurve(FCurve):
         return len(self.fcurve.frames)
 
 
-def _stretch_frames(fcurve: FCurve, start_frame, end_frame, factor, pivot_value, clamp):
-    def compute_offset(frame, pivot, factor):
-        pivot_space_frame = frame - pivot
-        return round(pivot_space_frame * factor - pivot_space_frame)
+# Functions
+################################################
 
+
+def compute_offset(frame, pivot, factor):
+    pivot_space_frame = frame - pivot
+    return round(pivot_space_frame * factor - pivot_space_frame)
+
+
+def _stretch_frames(fcurve: FCurve, start_frame, end_frame, factor, pivot_value, clamp):
     # First pass.
     if clamp:
         remove_pre_start = list()
@@ -126,7 +139,7 @@ def _stretch_frames(fcurve: FCurve, start_frame, end_frame, factor, pivot_value,
 
 
 def _remove_frames(fcurve: FCurve, start_frame, end_frame, remove_gap):
-    #fcurve.remove_frames(start_frame - 1, end_frame)
+    # fcurve.remove_frames(start_frame - 1, end_frame)
     fcurve.remove_frames(start_frame, end_frame - 1)
     if remove_gap:
         _offset_frames(fcurve, end_frame, start_frame - end_frame)
@@ -142,12 +155,22 @@ def _offset_frames(fcurve: FCurve, reference_frame, offset):
             left_handle[0] += offset
             right_handle[0] += offset
 
-def retime_GPframes(layer, mode, start_frame=0, end_frame=0, remove_gap=True, factor=1.0, pivot=""):
+
+def _offset_GPframes(layer, reference_frame, offset):
+    """Move the layer frames that are AT THE SAME TIME or later than the reference frame
+    """
+    # print(f"layer:{layer.info}")
+    for f in layer.frames:
+        if reference_frame <= f.frame_number:
+            f.frame_number += offset
+
+
+def retime_GPframes(layer, mode, start_frame=0, end_frame=0, remove_gap=True, factor=1.0, pivot=0):
+    """Retime "frames" (= each drawing of a Grease Pencil object)
+    """
+    offset = end_frame - start_frame
     if mode == "INSERT":
-        #print(f"layer:{layer.info}")
-        for f in layer.frames:
-            if start_frame <= f.frame_number:
-                f.frame_number += end_frame - start_frame
+        _offset_GPframes(layer, start_frame, offset)
     elif mode == "DELETE" or "CLEAR_ANIM":
         # delete frames
         if 0 < len(layer.frames):
@@ -158,19 +181,35 @@ def retime_GPframes(layer, mode, start_frame=0, end_frame=0, remove_gap=True, fa
                     layer.frames.remove(layer.frames[f_ind])
                 else:
                     f_ind += 1
-        
+
         # remove empty gap
         if mode == "DELETE":
-            if 0 < len(layer.frames):
-                for f in layer.frames:
-                    if end_frame < f.frame_number:
-                        f.frame_number -= end_frame - start_frame
+            _offset_GPframes(layer, end_frame, -offset)
+            # if 0 < len(layer.frames):
+            #     for f in layer.frames:
+            #         if end_frame < f.frame_number:
+            #             f.frame_number -= end_frame - start_frame
 
     elif mode == "RESCALE":
-        pass
+        # push out of range frames later in time
+        if factor > 1.0:
+            # wkip sur du +1 on end frame????
+            _offset_GPframes(layer, end_frame, compute_offset(end_frame, pivot, factor))
+
+        # scale range
+        for f in layer.frames:
+            if start_frame < f.frame_number < end_frame:
+                offset = compute_offset(f.frame_number, pivot, factor)
+                f.frame_number += offset
+
+        # pull out of range frames sooner in time
+        if factor < 1.0:
+            _offset_GPframes(layer, end_frame, compute_offset(end_frame, pivot, factor))
+
+    return ()
 
 
-def retime_frames(fcurve: FCurve, mode, start_frame=0, end_frame=0, remove_gap=True, factor=1.0, pivot=""):
+def retime_frames(fcurve: FCurve, mode, start_frame=0, end_frame=0, remove_gap=True, factor=1.0, pivot=0):
 
     if mode == "INSERT":
         _offset_frames(fcurve, start_frame, end_frame - start_frame)
@@ -242,7 +281,7 @@ def retime_shot(shot, mode, start_frame=0, end_frame=0, remove_gap=True, factor=
 
         # else:
 
-        #print(" DELETE: start_frame, end: ", start_frame, end_frame)
+        # print(" DELETE: start_frame, end: ", start_frame, end_frame)
         offset = end_frame - start_frame
 
         if shot.durationLocked:
@@ -464,79 +503,39 @@ def retime_vse(scene, mode, start_frame, end_frame, remove_gap=True):
         remove_time(sed, start_frame, end_frame, remove_gap)
 
 
-# start parameter is replaced here by duration
 def retimeScene(
-    scene,
-    mode: str,
-    objects,
-    start: float,
-    duration: float,
-    join_gap=True,
-    factor=1.0,
-    pivot=0,
-    apply_on_objects=True,
-    apply_on_shape_keys=True,
-    apply_on_grease_pencils=True,
-    apply_on_shots=True,
-    apply_on_vse=True,
+    context, retimerProps, mode: str, objects, start: int, duration: float, join_gap=True, factor=1.0, pivot=0,
 ):
-    retimer(
-        scene,
-        mode,
-        objects,
-        start,
-        start + duration,
-        join_gap=join_gap,
-        factor=factor,
-        pivot=pivot,
-        apply_on_objects=apply_on_objects,
-        apply_on_shape_keys=apply_on_shape_keys,
-        apply_on_grease_pencils=apply_on_grease_pencils,
-        apply_on_shots=apply_on_shots,
-        apply_on_vse=apply_on_vse,
-    )
+    prefs = context.preferences.addons["shotmanager"].preferences
+    scene = context.scene
+    end = start + duration  ##### - 1  wkip end frame is included
 
+    print(f" - retimeScene start:{start}, end:{end}, duration:{duration}")
 
-def retimer(
-    scene,
-    mode: str,
-    objects,
-    start: int,
-    end: int,
-    join_gap=True,
-    factor=1.0,
-    pivot=0,
-    apply_on_objects=True,
-    apply_on_shape_keys=True,
-    apply_on_grease_pencils=True,
-    apply_on_shots=True,
-    apply_on_vse=True,
-):
-
-    print("Retiming scene: , factor: ", mode, factor)
+    #    print("Retiming scene: , factor: ", mode, factor)
     retime_args = (mode, start, end, join_gap, factor, pivot)
-    print("retime_args: ", retime_args)
+    #    print("retime_args: ", retime_args)
 
     actions_done = set()  # Actions can be linked so we must make sure to only retime them once
     action_tmp = bpy.data.actions.new("Retimer_TmpAction")
 
     for obj in objects:
-        print(f"Retiming object named: {obj.name}")
-        print(f"Retiming object named: {obj.name} 55")
-        
+        #        print(f"Retiming object named: {obj.name}")
+
         # Standard object keyframes
-        if apply_on_objects:
+        if retimerProps.applyToObjects:
             if obj.type != "GPENCIL":
                 if obj.animation_data is not None:
                     action = obj.animation_data.action
                     if action is not None and action not in actions_done:
+                        # wkip can we have animated properties that are not actions?
                         for fcurve in action.fcurves:
-                            retime_frames(FCurve(fcurve), *retime_args)
+                            if not fcurve.lock or retimerProps.includeLockAnim:
+                                retime_frames(FCurve(fcurve), *retime_args)
                         actions_done.add(action)
 
-        print(f"Retiming object named: {obj.name} 02")
         # Shape keys
-        if apply_on_shape_keys:
+        if retimerProps.applyToShapeKeys:
             if (
                 obj.type == "MESH"
                 and obj.data.shape_keys is not None
@@ -552,27 +551,34 @@ def retimer(
                 actions_done.add(action)
 
         # Grease pencil
-        if apply_on_grease_pencils:
+        if retimerProps.applytToGreasePencil:
             if obj.type == "GPENCIL":
-
                 action_tmp_added = False
+
+                if obj.animation_data is None:
+                    obj.animation_data_create()
+
                 if obj.animation_data is not None:
                     # when a stroke has no transform animation it has no action and because of a bug
                     # the stroke frames are not updated. As a turnaround we force an action and
                     # remove it afterward
                     if obj.animation_data.action is None:
+
                         obj.animation_data.action = action_tmp
                         action_tmp_added = True
 
                     action = obj.animation_data.action
                     if action is not None and action not in actions_done:
                         for fcurve in action.fcurves:
-                            retime_frames(FCurve(fcurve), *retime_args)
-                        actions_done.add(action)
+                            if not fcurve.lock or retimerProps.includeLockAnim:
+                                retime_frames(FCurve(fcurve), *retime_args)
+                        if not action_tmp_added:
+                            actions_done.add(action)
 
                 for layer in obj.data.layers:
-                    #retime_frames(GPFCurve(layer), *retime_args)
-                    retime_GPframes(layer, *retime_args)
+                    #  print(f"{obj.name} layer: {layer}")
+                    if not layer.lock or retimerProps.includeLockAnim:
+                        retime_GPframes(layer, *retime_args)
 
                 if action_tmp_added:
                     obj.animation_data.action = None
@@ -585,11 +591,11 @@ def retimer(
                 obj.animation_data.action = action_backup
 
     # VSE
-    if apply_on_vse:
+    if retimerProps.applyToVse:
         retime_vse(scene, mode, start, end)
 
     # Shots
-    if apply_on_shots:
+    if retimerProps.applyToShots:
         props = scene.UAS_shot_manager_props
         shotList = props.getShotsList(ignoreDisabled=False)
 
@@ -600,11 +606,67 @@ def retimer(
         #  retime_args = (mode, start, end, join_gap, factor, pivot)
         elif "RESCALE" == mode:
             retime_args = (mode, start - 1, end - 1, join_gap, factor, pivot)
-            pass
+
+        # no operation for CLEAR_ANIM
 
         for shot in shotList:
             retime_shot(shot, *retime_args)
 
+    def compute_retimed_frame(frame_value, mode, start, end, duration, pivot, factor):
+        new_frame_value = frame_value
+
+        if "INSERT" == mode:
+            if start < frame_value:
+                new_frame_value = frame_value + duration
+        elif "DELETE" == mode:
+            if start < frame_value:
+                if end < frame_value:
+                    new_frame_value = frame_value - duration
+                else:
+                    new_frame_value = start
+        elif "RESCALE" == mode:
+            if start < frame_value:
+                if end < frame_value:
+                    new_frame_value = compute_offset(end, pivot, factor) + end
+                else:
+                    new_frame_value = compute_offset(frame_value, pivot, factor)
+
+        # no operation for CLEAR_ANIM
+
+        return new_frame_value
+
+    # anim range
+    if prefs.applyToSceneRange:
+        new_start = compute_retimed_frame(scene.frame_start, mode, start, end, duration, pivot, factor)
+
+        if "INSERT" == mode and scene.frame_end == start:
+            # extension of the animation range is wanted inthis case
+            new_end = end
+        # if "INSERT_BEFORE" == retimerProps.mode and scene.frame_end == start:
+        #     new_end = end
+        # elif "INSERT_AFTER" == retimerProps.mode and scene.frame_end == start:
+        #     new_end = end
+        else:
+            new_end = compute_retimed_frame(scene.frame_end, mode, start, end, duration, pivot, factor)
+
+        # print(f"\n scene range: new start: {new_start}, new end: {new_end}")
+        scene.frame_start = max(new_start, 0)
+        scene.frame_end = max(new_end, 0)
+        scene.frame_preview_start = compute_retimed_frame(
+            scene.frame_preview_start, mode, start, end, duration, pivot, factor
+        )
+        scene.frame_preview_end = compute_retimed_frame(
+            scene.frame_preview_end, mode, start, end, duration, pivot, factor
+        )
+
+    # time cursor
+    if prefs.applyToTimeCursor:
+        new_current_frame = max(
+            compute_retimed_frame(scene.frame_current, mode, start, end, duration, pivot, factor), 0
+        )
+        scene.frame_set(new_current_frame)
+
     bpy.data.actions.remove(action_tmp)
 
-    return()
+    return ()
+

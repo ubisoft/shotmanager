@@ -30,6 +30,7 @@ from . import retimer
 # Retimer
 ##########
 
+
 class UAS_ShotManager_GetTimeRange(Operator):
     bl_idname = "uas_shot_manager.gettimerange"
     bl_label = "Get Time Range"
@@ -83,7 +84,7 @@ class UAS_ShotManager_RetimerApply(Operator):
 
     def execute(self, context):
         retimerProps = context.scene.UAS_shot_manager_props.retimer
-        #TOFIX wkip wkip wkip temp
+        # TOFIX wkip wkip wkip temp
         applToVSE = setattr(retimerProps, "applyToVse", True)
 
         if retimerProps.onlyOnSelection:
@@ -100,15 +101,16 @@ class UAS_ShotManager_RetimerApply(Operator):
 
             # if offset_duration > 0 we insert time from a point far in negative time
             # if offset_duration < 0 we delete time from a point very far in negative time
-            farRefPoint = -5000
-            
+            farRefPoint = -10000
+
             if 0 < retimerProps.offset_duration:
                 offsetMode = "INSERT"
             else:
                 offsetMode = "DELETE"
 
             retimer.retimeScene(
-                context.scene,
+                context,
+                retimerProps,
                 offsetMode,
                 obj_list,
                 farRefPoint + 1,
@@ -116,34 +118,32 @@ class UAS_ShotManager_RetimerApply(Operator):
                 retimerProps.gap,
                 1.0,
                 retimerProps.pivot,
-                retimerProps.applyToObjects,
-                retimerProps.applyToShapeKeys,
-                retimerProps.applytToGreasePencil,
-                retimerProps.applyToShots,
-                retimerProps.applyToVse,
             )
         elif -1 < retimerProps.mode.find("INSERT"):
+            start = startFrame + 1 if "INSERT_AFTER" == retimerProps.mode else endFrame
+            print(
+                f"Retimer - Inserting time: new time range: [{start} .. {start + retimerProps.insert_duration - 1}], duration:{retimerProps.insert_duration}"
+            )
             retimer.retimeScene(
-                context.scene,
-                #retimerProps.mode,
+                context,
+                retimerProps,
+                # retimerProps.mode,
                 "INSERT",
                 obj_list,
-                startFrame + 1 if "INSERT_AFTER" == retimerProps.mode else endFrame,
+                start,
                 retimerProps.insert_duration,
                 retimerProps.gap,
                 1.0,
                 retimerProps.pivot,
-                retimerProps.applyToObjects,
-                retimerProps.applyToShapeKeys,
-                retimerProps.applytToGreasePencil,
-                retimerProps.applyToShots,
-                retimerProps.applyToVse,
             )
         elif -1 < retimerProps.mode.find("DELETE"):
-            print(f"start of deleted range: {startFrame + 1}, end:{endFrame}, duration:{endFrame - startFrame - 1}")
+            print(
+                f"Retimer - Deleting time: deleted range: [{startFrame + 1} .. {endFrame - 1}], duration:{endFrame - startFrame - 1}"
+            )
             retimer.retimeScene(
-                context.scene,
-                #retimerProps.mode,
+                context,
+                retimerProps,
+                # retimerProps.mode,
                 "DELETE",
                 obj_list,
                 startFrame + 1,
@@ -151,15 +151,11 @@ class UAS_ShotManager_RetimerApply(Operator):
                 True,
                 1.0,
                 retimerProps.pivot,
-                retimerProps.applyToObjects,
-                retimerProps.applyToShapeKeys,
-                retimerProps.applytToGreasePencil,
-                retimerProps.applyToShots,
-                retimerProps.applyToVse,
             )
         elif "RESCALE" == retimerProps.mode:
             retimer.retimeScene(
-                context.scene,
+                context,
+                retimerProps,
                 retimerProps.mode,
                 obj_list,
                 startFrame,
@@ -167,15 +163,11 @@ class UAS_ShotManager_RetimerApply(Operator):
                 True,
                 retimerProps.factor,
                 startFrame,
-                retimerProps.applyToObjects,
-                retimerProps.applyToShapeKeys,
-                retimerProps.applytToGreasePencil,
-                retimerProps.applyToShots,
-                retimerProps.applyToVse,
             )
         elif "CLEAR_ANIM" == retimerProps.mode:
             retimer.retimeScene(
-                context.scene,
+                context,
+                retimerProps,
                 retimerProps.mode,
                 obj_list,
                 startFrame + 1,
@@ -183,35 +175,16 @@ class UAS_ShotManager_RetimerApply(Operator):
                 False,
                 retimerProps.factor,
                 retimerProps.pivot,
-                retimerProps.applyToObjects,
-                retimerProps.applyToShapeKeys,
-                retimerProps.applytToGreasePencil,
-                False,
-                retimerProps.applyToVse,
             )
         else:
-            retimer.retimer(
-                context.scene,
-                retimerProps.mode,
-                obj_list,
-                startFrame,
-                endFrame,
-                retimerProps.gap,
-                retimerProps.factor,
-                retimerProps.pivot,
-                retimerProps.applyToObjects,
-                retimerProps.applyToShapeKeys,
-                retimerProps.applytToGreasePencil,
-                retimerProps.applyToShots,
-                retimerProps.applyToVse,
-            )
+            print(f"*** Retimer failed: No Retimer mode named {retimerProps.mode} ***")
 
         context.area.tag_redraw()
         # context.region.tag_redraw()
         bpy.ops.wm.redraw_timer(type="DRAW_WIN_SWAP", iterations=1)
 
         if retimerProps.move_current_frame:
-            #if retimerProps.mode == "INSERT":
+            # if retimerProps.mode == "INSERT":
             if -1 < retimerProps.mode.find("INSERT"):
                 context.scene.frame_current = context.scene.frame_current + (
                     retimerProps.end_frame - retimerProps.start_frame

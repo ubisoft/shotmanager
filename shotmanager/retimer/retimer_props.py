@@ -25,13 +25,8 @@ from bpy.props import IntProperty, EnumProperty, BoolProperty, FloatProperty
 
 # a function is used here so that the returned items tupple can also be called by the quick help components
 def list_retime_modes(self, context):
-    items=(
-        (
-            "GLOBAL_OFFSET",
-            "Global Offset Time",
-            "Offset all the animation by the specified number of frames.",
-            0,
-        ),
+    items = (
+        ("GLOBAL_OFFSET", "Global Offset Time", "Offset all the animation by the specified number of frames.", 0,),
         (
             "INSERT_BEFORE",
             "Insert Time Before...",
@@ -72,19 +67,20 @@ def list_retime_modes(self, context):
 
     return items
 
+
 class UAS_Retimer_Properties(PropertyGroup):
 
     mode: EnumProperty(
         name="Time Mode",
-        items = list_retime_modes,
-        #default="GLOBAL_OFFSET",
+        items=list_retime_modes,
+        # default="GLOBAL_OFFSET",
+        options=set(),
     )
-
 
     def getQuickHelp(self, topic):
         items = list_retime_modes(self, bpy.context)
         modeItem = ([s for s in items if topic == s[0]])[0]
-        #print(f"modeItem: {modeItem[1]}")
+        # print(f"modeItem: {modeItem[1]}")
 
         docPath = "https://ubisoft-shotmanager.readthedocs.io/en/latest/features-advanced/retimer.html"
         title = modeItem[1]
@@ -92,7 +88,7 @@ class UAS_Retimer_Properties(PropertyGroup):
 
         if "GLOBAL_OFFSET" == topic:
             text += ""
-            #TODO wkip add doc anchor to each path
+            # TODO wkip add doc anchor to each path
             docPath += ""
         elif "INSERT_BEFORE" == topic:
             text += ""
@@ -126,8 +122,7 @@ class UAS_Retimer_Properties(PropertyGroup):
 
     start_frame: IntProperty(
         name="Start Frame",
-        description="The time operation will occur right AFTER this frame."
-        "\nThis frame is then NOT MODIFIED",
+        description="The time operation will occur right AFTER this frame." "\nThis frame is then NOT MODIFIED",
         get=_get_start_frame,
         set=_set_start_frame,
         # update=_update_start_frame,
@@ -150,8 +145,7 @@ class UAS_Retimer_Properties(PropertyGroup):
 
     end_frame: IntProperty(
         name="End Frame",
-        description="The time operation will occur right BEFORE this frame."
-        "\nThis frame will then be modified",
+        description="The time operation will occur right BEFORE this frame." "\nThis frame will then be modified",
         get=_get_end_frame,
         set=_set_end_frame,
         # update=_update_end_frame,
@@ -178,6 +172,7 @@ class UAS_Retimer_Properties(PropertyGroup):
         description="Number of frames to insert after the specified one",
         default=10,
         soft_min=1,
+        min=1,
         options=set(),
     )
 
@@ -189,37 +184,57 @@ class UAS_Retimer_Properties(PropertyGroup):
     # Rescale specific
     factor: FloatProperty(
         name="Factor",
-        description="Scale factore used to change the duration of the specified time range",
+        description="Scale factor used to change the duration of the specified time range",
         default=1,
         min=0.01,
         max=10,
         options=set(),
     )
 
-    pivot: IntProperty(
-        name="Pivot", options=set(),
-    )
+    pivot: IntProperty(name="Pivot",)
 
     onlyOnSelection: BoolProperty(
-        name="Apply on Selection", default=False, options=set(),
+        name="Apply Only on Selection",
+        description="Apply time change only to objects selected in the scene",
+        default=False,
+        options=set(),
     )
-
-    applyToShots: BoolProperty(
-        name="Shots", default=True, options=set(),
+    includeLockAnim: BoolProperty(
+        name="Apply Also on Locked Anim",
+        description="Apply time change even if animation curves or action are locked",
+        default=True,
+        options=set(),
     )
 
     applyToObjects: BoolProperty(
-        name="Objects", default=True, options=set(),
+        name="Objects",
+        description="Apply time change to objects in the scene.\nGrease Pencil objects are ignored",
+        default=True,
+        options=set(),
     )
     applyToShapeKeys: BoolProperty(
-        name="Shape Keys", default=True, options=set(),
+        name="Shape Keys", description="Apply time change to objects with shape keys", default=True, options=set(),
     )
     applytToGreasePencil: BoolProperty(
-        name="Grease Pencil", default=True, options=set(),
+        name="Grease Pencil", description="Apply time change to Grease Pencil objects", default=True, options=set(),
+    )
+
+    applyToShots: BoolProperty(
+        name="Shots", description="Apply time change to the shot ranges", default=True, options=set(),
     )
     applytToVSE: BoolProperty(
-        name="VSE", default=True, options=set(),
+        name="VSE", description="Apply time change to the content of the VSE", default=True, options=set(),
     )
+
+    # moved to add-on preferences
+    # applyToTimeCursor: BoolProperty(
+    #     name="Apply to Time Cursor", description="Apply retime operation to the time cursor", default=True,
+    # )
+    # applyToSceneRange: BoolProperty(
+    #     name="Apply to Scene Range",
+    #     description="Apply retime operation to the animation start and end of the scene",
+    #     default=True,
+    # )
 
 
 _classes = (UAS_Retimer_Properties,)
