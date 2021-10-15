@@ -279,7 +279,7 @@ def retime_GPframes(layer, mode, start_incl=0, end_incl=0, remove_gap=True, fact
 
         # remove empty gap
         if mode == "DELETE":
-            _offset_GPframes(layer, end_incl, -offset - 1)
+            _offset_GPframes(layer, end_incl, -offset)
             pass
             # if 0 < len(layer.frames):
             #     for f in layer.frames:
@@ -370,48 +370,49 @@ def retime_shot(shot, mode, start_incl=0, end_incl=0, remove_gap=True, factor=1.
 
         # # the removal lets a 1 frame space, not an overlap of start by end!!
         # # if start and end are in the range then we create a 1 frame shot
-        # if start_frame <= shot.start and shot.end <= end_frame:
-        #     shot.start = start_frame
+        # if start_incl - 1 <= shot.start and shot.end <= end_frame:
+        #     shot.start = start_incl - 1
         #     shot.end = end_frame
 
         # # shot is before, nothing happens
-        # elif shot.start < start_frame and shot.end < start_frame:
+        # elif shot.start < start_incl - 1 and shot.end < start_incl - 1:
         #     pass
 
         # # shot is after, we offset
         # elif end_frame <= shot.start and shot.end <= end_frame:
-        #     offset = end_frame - start_frame
+        #     offset = end_frame - start_incl - 1
         #     shot.start -= offset
         #     shot.end -= offset
 
         # else:
 
-        # print(" DELETE: start_frame, end: ", start_frame, end_frame)
-        offset = end_frame - start_frame
+        # offset = end_frame - start_incl - 1
+        offset = end_incl - start_incl + 1
+        #  print(f" In retime_shot() Delete mode: offset: {offset}")
 
         if shot.durationLocked:
-            if shot.start <= start_frame:
-                if shot.end <= start_frame:
+            if shot.start <= start_incl - 1:
+                if shot.end <= start_incl - 1:
                     pass
                 elif shot.end <= end_frame:
                     shot.durationLocked = False
-                    shot.end = start_frame  # goes to a non deleted part
+                    shot.end = start_incl - 1  # goes to a non deleted part
                     shot.durationLocked = True
                 else:
                     shot.durationLocked = False
                     shot.end -= offset
                     shot.durationLocked = True
 
-            elif start_frame < shot.start and shot.start < end_frame:
+            elif start_incl - 1 < shot.start and shot.start < end_frame:
                 if shot.end <= end_frame:
                     shot.durationLocked = False
-                    shot.start = start_frame
-                    shot.end = start_frame
+                    shot.start = start_incl - 1
+                    shot.end = start_incl - 1
                     shot.durationLocked = True
                     shot.enabled = False
                 else:
                     shot.durationLocked = False
-                    shot.start = start_frame
+                    shot.start = start_incl - 1
                     shot.end -= offset
                     shot.durationLocked = True
 
@@ -419,19 +420,19 @@ def retime_shot(shot, mode, start_incl=0, end_incl=0, remove_gap=True, factor=1.
                 shot.start -= offset
 
         else:
-            if shot.start <= start_frame:
-                if shot.end <= start_frame:
+            if shot.start <= start_incl - 1:
+                if shot.end <= start_incl - 1:
                     pass
                 elif shot.end <= end_frame:
-                    shot.end = start_frame  # goes to a non deleted part
+                    shot.end = start_incl - 1  # goes to a non deleted part
                 else:
                     shot.end -= offset
 
-            elif start_frame < shot.start and shot.start < end_frame:
-                shot.start = start_frame
+            elif start_incl - 1 < shot.start and shot.start < end_frame:
+                shot.start = start_incl - 1
 
                 if shot.end <= end_frame:
-                    shot.end = start_frame
+                    shot.end = start_incl - 1
                     shot.enabled = False
                 else:
                     shot.end -= offset
@@ -441,7 +442,121 @@ def retime_shot(shot, mode, start_incl=0, end_incl=0, remove_gap=True, factor=1.
                 shot.end -= offset
 
     elif mode == "RESCALE":
-        offset = (end_frame - start_frame) * (factor - 1)
+        offset = (end_frame - start_frame) * factor - end_frame + start_frame
+        print(f" In retime_shot() Rescale mode: offset: {offset}")
+
+        if shot.durationLocked:
+            if offset > 0:
+                # important to offset END first!!
+                # shot.end = rescale_frame(shot.end + 1, start_incl, end_incl, pivot, factor) - 1
+                # shot.start = rescale_frame(shot.start, start_incl, end_incl, pivot, factor)
+                if end_frame < shot.end:
+                    if end_frame < shot.start:
+                        # shot.start += offset
+                        shot.start = rescale_frame(shot.start, start_incl, end_incl, pivot, factor)
+                    elif start_frame < shot.start and shot.start <= end_frame:
+                        shot.durationLocked = False
+                        # shot.end += offset
+                        shot.end = rescale_frame(shot.end + 1, start_incl, end_incl, pivot, factor) - 1
+                        # shot.start = (shot.start - pivot) * factor + pivot
+                        shot.start = rescale_frame(shot.start, start_incl, end_incl, pivot, factor)
+                        shot.durationLocked = True
+                    else:
+                        shot.durationLocked = False
+                        # shot.end += offset
+                        shot.end = rescale_frame(shot.end + 1, start_incl, end_incl, pivot, factor) - 1
+                        shot.durationLocked = True
+
+                elif start_frame < shot.end and shot.end <= end_frame:
+                    if start_frame < shot.start and shot.start <= end_frame:
+                        shot.durationLocked = False
+                        # shot.end = (shot.end - pivot) * factor + pivot
+                        shot.end = rescale_frame(shot.end + 1, start_incl, end_incl, pivot, factor) - 1
+                        # shot.start = (shot.start - pivot) * factor + pivot
+                        shot.start = rescale_frame(shot.start, start_incl, end_incl, pivot, factor)
+                        shot.durationLocked = True
+                    else:
+                        shot.durationLocked = False
+                        # shot.end = (shot.end - pivot) * factor + pivot
+                        shot.end = rescale_frame(shot.end + 1, start_incl, end_incl, pivot, factor) - 1
+                        shot.durationLocked = True
+
+            else:
+                # important to offset START first!!
+                if end_frame < shot.start:
+                    # shot.start += offset
+                    shot.start = rescale_frame(shot.start, start_incl, end_incl, pivot, factor)
+                elif start_frame < shot.start and shot.start <= end_frame:
+                    if end_frame < shot.end:
+                        shot.durationLocked = False
+                        # shot.start = (
+                        #     (shot.start - pivot) * factor + pivot + 0.005
+                        # )  # approximation to make sure the rounded value is done to the upper value
+                        shot.start = rescale_frame(shot.start, start_incl, end_incl, pivot, factor)
+                        # shot.end += offset
+                        shot.end = rescale_frame(shot.end + 1, start_incl, end_incl, pivot, factor) - 1
+                        shot.durationLocked = True
+                    else:
+                        shot.durationLocked = False
+                        # shot.start = (
+                        #     (shot.start - pivot) * factor + pivot + 0.005
+                        # )  # approximation to make sure the rounded value is done to the upper value
+                        shot.start = rescale_frame(shot.start, start_incl, end_incl, pivot, factor)
+                        # shot.end = (
+                        #     (shot.end - pivot) * factor + pivot + 0.005
+                        # )  # approximation to make sure the rounded value is done to the upper value
+                        shot.end = rescale_frame(shot.end + 1, start_incl, end_incl, pivot, factor) - 1
+                        shot.durationLocked = True
+
+                else:
+                    if end_frame < shot.end:
+                        shot.durationLocked = False
+                        # shot.end += offset
+                        shot.end = rescale_frame(shot.end + 1, start_incl, end_incl, pivot, factor) - 1
+                        shot.durationLocked = True
+                    elif start_frame < shot.end and shot.end <= end_frame:
+                        shot.durationLocked = False
+                        # shot.end = (
+                        #     (shot.end - pivot) * factor + pivot + 0.005
+                        # )  # approximation to make sure the rounded value is done to the upper value
+                        shot.end = rescale_frame(shot.end + 1, start_incl, end_incl, pivot, factor) - 1
+                        shot.durationLocked = True
+
+        else:
+            if offset > 0:
+                # important to offset END first!!
+                print(
+                    f" In retime_shot() Rescale mode: offset > 0: {offset}, shot: {shot.name}, s:{shot.start}, e:{shot.end}"
+                )
+                shot.end = rescale_frame(shot.end + 1, start_incl, end_incl, pivot, factor) - 1
+                shot.start = rescale_frame(shot.start, start_incl, end_incl, pivot, factor)
+                print(
+                    f" In retime_shot() Rescale mode: offset > 0: {offset}, shot: {shot.name}, ns:{shot.start}, ne:{shot.end}\n"
+                )
+
+            else:
+                shot.start = rescale_frame(shot.start, start_incl, end_incl, pivot, factor)
+                shot.end = rescale_frame(shot.end + 1, start_incl, end_incl, pivot, factor) - 1
+                # # important to offset START first!!
+                # if end_frame < shot.start:
+                #     shot.start += offset
+                # elif start_frame < shot.start and shot.start <= end_frame:
+                #     shot.start = (
+                #         (shot.start - pivot) * factor + pivot + 0.005
+                #     )  # approximation to make sure the rounded value is done to the upper value
+
+                # if end_frame < shot.end:
+                #     shot.end += offset
+                # elif start_frame < shot.end and shot.end <= end_frame:
+                #     shot.end = (
+                #         (shot.end - pivot) * factor + pivot + 0.005
+                #     )  # approximation to make sure the rounded value is done to the upper value
+
+    elif mode == "RESCALE_OLD":
+        # offset = (end_frame - start_frame) * (factor - 1)
+        offset = (end_frame - start_frame) * factor - end_frame + start_frame
+
+        print(f" In retime_shot() Rescale mode: offset: {offset}")
 
         if shot.durationLocked:
             if offset > 0:
@@ -515,7 +630,7 @@ def retime_shot(shot, mode, start_incl=0, end_incl=0, remove_gap=True, factor=1.
                 if end_frame < shot.end:
                     shot.end += offset
                 elif start_frame < shot.end and shot.end <= end_frame:
-                    shot.end = (shot.end - pivot) * factor + pivot
+                    shot.end = (shot.end + 1 - pivot) * factor + pivot - 1
                 else:
                     pass
 
