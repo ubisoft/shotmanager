@@ -185,6 +185,23 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
         default="STILL",
     )
 
+    ### Retimer
+    display_retimer_in_properties: BoolProperty(
+        name="Display Retimer",
+        description="Display the Retimer sub-panel in the Shot Manager panel.\n(saved in the add-on preferences)",
+        default=True,
+    )
+    applyToTimeCursor: BoolProperty(
+        name="Apply to Time Cursor",
+        description="Apply retime operation to the time cursor.\n(saved in the add-on preferences)",
+        default=True,
+    )
+    applyToSceneRange: BoolProperty(
+        name="Apply to Scene Range",
+        description="Apply retime operation to the animation start and end of the scene.\n(saved in the add-on preferences)",
+        default=True,
+    )
+
     ########################################################################
     # tools ui   ###
     ########################################################################

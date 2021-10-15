@@ -36,6 +36,7 @@ class UAS_ShotManager_Features(Operator):
 
     def draw(self, context):
         props = context.scene.UAS_shot_manager_props
+        prefs = context.preferences.addons["shotmanager"].preferences
         layout = self.layout
 
         layout.label(text="Display Takes and Shots additionnal features:")
@@ -103,7 +104,7 @@ class UAS_ShotManager_Features(Operator):
         # Retimer
         subrow = col.row()
         subrow.scale_x = 1.5
-        subrow.prop(props, "display_retimer_in_properties", text="", icon="TIME")
+        subrow.prop(prefs, "display_retimer_in_properties", text="", icon="TIME")
         subrow.label(text="Retimer")
 
         layout.separator()

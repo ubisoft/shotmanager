@@ -1,6 +1,23 @@
-# 1.5.67 (2021-09---) (WIP)
+# 1.5.70 (2021-09---) (WIP)
 
-Voir actions: https://blender.stackexchange.com/questions/117660/how-to-find-out-if-an-object-has-an-action-with-python
+# 1.5.69 (2021-10-15)
+
+## Retimer Tool
+
+Mainy improvements / bug fixes / code cleaning on the Retimer:
+
+- Bug fix: Grease Pencil wasn't updated after a time change
+
+New features:
+- Introduction of an Offset Time mode
+- checkbox to force time change on locked animation channels
+- doc (in the tooltips)
+- time cursor and time range are also affected by retiming (with an option to avoid it)
+- display of the retimer is a user pref, not a scene pref anymore
+- more stability when the shots are displayed in the timeline
+
+Code:
+- deep code refactoring and cleaning
 
 <br><br>
 

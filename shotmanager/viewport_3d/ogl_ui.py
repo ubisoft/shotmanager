@@ -644,8 +644,9 @@ class BL_UI_Timeline:
         self.frame_cursor.draw()
 
     def handle_event(self, event):
-        if not bpy.context.space_data.overlay.show_overlays:
-            return
+        if hasattr(bpy.context.space_data, "overlay"):
+            if not bpy.context.space_data.overlay.show_overlays:
+                return
 
         if self.frame_cursor.handle_event(event):
             return True
@@ -809,5 +810,8 @@ class UAS_ShotManager_DrawTimeline(bpy.types.Operator):
             for widget in self.widgets:
                 widget.draw()
         except Exception as e:
-            _logger.error(f"*** Crash in ogl context ***")
+            _logger.error(f"*** Crash in ogl context (draw_callback_px) - {e} ***")
+            context.window_manager.UAS_shot_manager_display_timeline = False
+            bpy.types.SpaceView3D.draw_handler_remove(self.draw_handle, "WINDOW")
+            self.draw_handle = None
 

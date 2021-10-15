@@ -142,9 +142,11 @@ class ShotClip:
 
         current_shot = self.sm_props.getCurrentShot()
 
+        # print("here 01")
         if current_shot != -1 and self.shot.name == current_shot.name:
             UNIFORM_SHADER_2D.uniform_float("color", (0.6, 0.6, 0.9, 0.9))
             self.contour_mesh.draw(UNIFORM_SHADER_2D, context.region, "LINES")
+        #  print("here 02")
 
         bgl.glDisable(bgl.GL_BLEND)
 
@@ -152,6 +154,8 @@ class ShotClip:
         blf.size(0, 11, 72)
         blf.position(0, *context.region.view2d.view_to_region(self.origin.x + 1.01, self.origin.y + 4), 0)
         blf.draw(0, self.shot.name)
+
+    #   print("here 03")
 
     def get_region(self, x, y):
         """
@@ -330,14 +334,16 @@ class UAS_ShotManager_DrawMontageTimeline(bpy.types.Operator):
                 # except Exception as e:
                 #     # wkip wkip
                 #     pass
-        except Exception as ex:
-            _logger.error(f"*** Crash in ogl context - Draw clips loop ***")
+            if self.frame_under_mouse is not None:
+                blf.color(0, 0.99, 0.99, 0.99, 1)
+                blf.size(0, 11, 72)
+                blf.position(0, self.prev_mouse_x + 4, self.prev_mouse_y + 10, 0)
+                blf.draw(0, str(self.frame_under_mouse))
 
-        if self.frame_under_mouse is not None:
-            blf.color(0, 0.99, 0.99, 0.99, 1)
-            blf.size(0, 11, 72)
-            blf.position(0, self.prev_mouse_x + 4, self.prev_mouse_y + 10, 0)
-            blf.draw(0, str(self.frame_under_mouse))
+        except Exception as ex:
+            _logger.error(f"*** Crash in ogl context - Draw clips loop {ex} ***")
+            context.window_manager.UAS_shot_manager_display_timeline = False
+            #context.window_manager.UAS_shot_manager_display_timeline = True
 
 
 _classes = (UAS_ShotManager_DrawMontageTimeline,)

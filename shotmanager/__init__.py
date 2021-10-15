@@ -52,8 +52,8 @@ from .operators import about
 
 from .properties import props
 
+from . import retimer
 from .retimer import retimer_ui
-from .retimer import retimer_props
 
 
 from . import rendering
@@ -84,7 +84,7 @@ bl_info = {
     "author": "Ubisoft - Julien Blervaque (aka Werwack), Romain Carriquiry Borchiari",
     "description": "Manage a sequence of shots and cameras in the 3D View - Ubisoft Animation Studio",
     "blender": (2, 92, 0),
-    "version": (1, 5, 67),
+    "version": (1, 5, 69),
     "location": "View3D > Shot Manager",
     "wiki_url": "https://ubisoft-shotmanager.readthedocs.io",
     # "warning": "BETA Version",
@@ -352,15 +352,15 @@ def register():
         from .install.install_dependencies import install_dependencies
 
         installErrorCode = install_dependencies([("opentimelineio", "opentimelineio")], retries=1, timeout=20)
-        #installErrorCode = 0
+        # installErrorCode = 0
         if 0 != installErrorCode:
-            #utils_handlers.removeAllHandlerOccurences(jump_to_shot, handlerCateg=bpy.app.handlers.frame_change_pre)
-            #return installErrorCode
+            # utils_handlers.removeAllHandlerOccurences(jump_to_shot, handlerCateg=bpy.app.handlers.frame_change_pre)
+            # return installErrorCode
             print("  *** OpenTimelineIO install failed for Ubisoft Shot Manager ***")
             pass
         else:
             print("  OpenTimelineIO correctly installed for Ubisoft Shot Manager")
-        
+
             # otio
             try:
                 from . import otio
@@ -375,7 +375,6 @@ def register():
                 #     print("       *** OTIO Package import failed ***")
             except ModuleNotFoundError:
                 print("       *** OTIO Package import failed ****")
-        
 
     # if install went right then register other packages
     ###################
@@ -457,7 +456,7 @@ def register():
     shots_global_settings.register()
     precut_tools.register()
     playbar.register()
-    retimer_props.register()
+    retimer.register()
     props.register()
     shots_toolbar.register()
 
@@ -570,13 +569,13 @@ def unregister():
     utils_render.unregister()
     utils_vse_render.unregister()
 
-    #if module_can_be_imported("shotmanager.otio"):
+    # if module_can_be_imported("shotmanager.otio"):
     if module_can_be_imported("opentimelineio"):
         from . import otio
 
         otio.unregister()
     else:
-        print("       *** No Otio found for unregister ***")
+        print("       *** No Otio found to unregister ***")
 
     rendering_ui.unregister()
     retimer_ui.unregister()
@@ -587,7 +586,7 @@ def unregister():
     rendering.unregister()
     shots_toolbar.unregister()
     props.unregister()
-    retimer_props.unregister()
+    retimer.unregister()
     playbar.unregister()
     precut_tools.unregister()
     shots_global_settings.unregister()
@@ -617,7 +616,7 @@ def unregister():
     # if config.devDebug:
     try:
         sm_debug.unregister()
-    except Exception as e: 
+    except Exception as e:
         print(f"Trying to unregister sm-debug: {e}")
     utils_ui.unregister()
     config.releaseGlobalVariables()

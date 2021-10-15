@@ -78,6 +78,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         name="Data Version",
         description="Version of Shot Manager used to generate the data of the current scene.",
         default=-1,
+        options=set(),
     )
 
     def initialize_shot_manager(self):
@@ -107,9 +108,13 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         #  print(" set_isInitialized: value: ", value)
         self["isInitialized"] = value
 
-    isInitialized: BoolProperty(get=get_isInitialized, set=set_isInitialized, default=False)
+    isInitialized: BoolProperty(
+        get=get_isInitialized, set=set_isInitialized, default=False, options=set(),
+    )
 
-    parentScene: PointerProperty(type=Scene)
+    parentScene: PointerProperty(
+        type=Scene, options=set(),
+    )
 
     def findParentScene(self):
         for scn in bpy.data.scenes:
@@ -142,7 +147,9 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
 
         return self.parentScene
 
-    retimer: PointerProperty(type=UAS_Retimer_Properties)
+    retimer: PointerProperty(
+        type=UAS_Retimer_Properties, options=set(),
+    )
 
     def getWarnings(self, scene):
         """Return an array with all the warnings
@@ -255,10 +262,18 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
     # wkip rrs specific
     #############
 
-    rrs_useRenderRoot: BoolProperty(name="Use Render Root", default=True)
-    rrs_rerenderExistingShotVideos: BoolProperty(name="Force Re-render", default=True)
-    rrs_fileListOnly: BoolProperty(name="File List Only", default=True)
-    rrs_renderAlsoDisabled: BoolProperty(name="Render Also Disabled", default=False)
+    rrs_useRenderRoot: BoolProperty(
+        name="Use Render Root", default=True, options=set(),
+    )
+    rrs_rerenderExistingShotVideos: BoolProperty(
+        name="Force Re-render", default=True, options=set(),
+    )
+    rrs_fileListOnly: BoolProperty(
+        name="File List Only", default=True, options=set(),
+    )
+    rrs_renderAlsoDisabled: BoolProperty(
+        name="Render Also Disabled", default=False, options=set(),
+    )
 
     # project settings
     #############
@@ -271,14 +286,21 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
     ############
     # naming
     ############
-    project_shot_format: StringProperty(name="Shot Format", default=r"Act{:02}_Seq{:04}_Sh{:04}")
-    project_name: StringProperty(name="Project Name", default="My Project")
-    project_default_take_name: StringProperty(name="Default Take Name", default="Main Take")
+    project_shot_format: StringProperty(
+        name="Shot Format", default=r"Act{:02}_Seq{:04}_Sh{:04}", options=set(),
+    )
+    project_name: StringProperty(
+        name="Project Name", default="My Project", options=set(),
+    )
+    project_default_take_name: StringProperty(
+        name="Default Take Name", default="Main Take", options=set(),
+    )
 
     project_use_shot_handles: BoolProperty(
         name="Use Handles",
         description="Use or not shot handles for the project.\nWhen not used, not reference to the handles will appear in Shot Manager user interface",
         default=True,
+        options=set(),
     )
     project_shot_handle_duration: IntProperty(
         name="Project Handles Duration",
@@ -286,6 +308,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         min=0,
         soft_max=50,
         default=10,
+        options=set(),
     )
 
     ############
@@ -295,41 +318,64 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         name="Use Stamp Info Add-on",
         description="Use UAS Stamp Info add-on - if available - to write data on rendered images.\nNote: If Stamp Info is not installed then warnings will be displayed",
         default=True,
+        options=set(),
     )
     project_logo_path: StringProperty(
         name="Project Logo",
         description="If defined uses the project logo otherwise uses the logo specifined in StampInfo addon settings",
         default="",
+        options=set(),
     )
 
     ############
     # resolution
     ############
-    project_fps: FloatProperty(name="Project Fps", min=0.5, max=200.0, default=25.0)
-    project_resolution_x: IntProperty(name="Res. X", min=0, default=1280)
-    project_resolution_y: IntProperty(name="Res. Y", min=0, default=720)
-    project_resolution_framed_x: IntProperty(name="Res. Framed X", min=0, default=1280)
-    project_resolution_framed_y: IntProperty(name="Res. Framed Y", min=0, default=960)
+    project_fps: FloatProperty(
+        name="Project Fps", min=0.5, max=200.0, default=25.0, options=set(),
+    )
+    project_resolution_x: IntProperty(
+        name="Res. X", min=0, default=1280, options=set(),
+    )
+    project_resolution_y: IntProperty(
+        name="Res. Y", min=0, default=720, options=set(),
+    )
+    project_resolution_framed_x: IntProperty(
+        name="Res. Framed X", min=0, default=1280, options=set(),
+    )
+    project_resolution_framed_y: IntProperty(
+        name="Res. Framed Y", min=0, default=960, options=set(),
+    )
 
     ############
     # outputs
     ############
 
-    project_color_space: StringProperty(name="Color Space", default="")
-    project_asset_name: StringProperty(name="Asset Name", default="")
+    project_color_space: StringProperty(
+        name="Color Space", default="", options=set(),
+    )
+    project_asset_name: StringProperty(
+        name="Asset Name", default="", options=set(),
+    )
 
-    project_output_format: StringProperty(name="Video Output Format", default="mp4")
+    project_output_format: StringProperty(
+        name="Video Output Format", default="mp4", options=set(),
+    )
 
-    project_sounds_output_format: StringProperty(name="Sound Output Format", default="")
+    project_sounds_output_format: StringProperty(
+        name="Sound Output Format", default="", options=set(),
+    )
 
     # built-in project settings
-    project_images_output_format: StringProperty(name="Image Output Format", default="PNG")
+    project_images_output_format: StringProperty(
+        name="Image Output Format", default="PNG", options=set(),
+    )
 
     # built-in settings
     use_handles: BoolProperty(
         name="Use Handles",
         description="Use or not shot handles.\nWhen not used, not reference to the handles will appear in Shot Manager user interface",
         default=False,
+        options=set(),
     )
     handles: IntProperty(
         name="Handles Duration",
@@ -339,23 +385,30 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         options=set(),
     )
 
-    new_shot_prefix: StringProperty(default="Sh")
+    new_shot_prefix: StringProperty(
+        default="Sh", options=set(),
+    )
 
     renderSingleFrameShotAsImage: BoolProperty(
         name="Render Single Frame Shot as Image",
         description="Render single frame shot as an image, not as a video",
         default=True,
+        options=set(),
     )
 
     # overriden by project settings
     render_shot_prefix: StringProperty(
-        name="Render Shot Prefix", description="Prefix added to the shot names at render time", default=""
+        name="Render Shot Prefix",
+        description="Prefix added to the shot names at render time",
+        default="",
+        options=set(),
     )
 
     project_renderSingleFrameShotAsImage: BoolProperty(
         name="Project Render Single Frame Shot as Image",
         description="Render single frame shot as an image, not as a video",
         default=True,
+        options=set(),
     )
 
     #############
@@ -528,46 +581,46 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
     #############
 
     display_camerabgtools_in_properties: BoolProperty(
-        name="Display Camera Background Image Tools in Shot Properties",
-        description="Display the Camera Background Image Tools in the shot properties panels",
+        #name="Display Camera Background Image Tools in Shot Properties",
+        description="Display the Camera Background Image Tools in the Shot Properties panel",
         default=False,
         options=set(),
     )
 
     display_notes_in_properties: BoolProperty(
-        name="Display Shot Notes in Shot Properties",
-        description="Display shot notes in the shot properties panels",
+        #name="Display Shot Notes in Shot Properties",
+        description="Display shot notes in the Shot Properties panels",
         default=False,
         options=set(),
     )
 
     display_greasepencil_in_properties: BoolProperty(
-        name="Display Grease Pencil in Shot Properties",
-        description="Display grease pencil in the shot properties panels",
+        #name="Display Grease Pencil in Shot Properties",
+        description="Display Grease Pencil in the Shot Properties panels",
         default=False,
         options=set(),
     )
 
     display_globaleditintegr_in_properties: BoolProperty(
-        name="Display Global Edit Integration Tools in Properties panels",
+        name="Display Global Edit Integration Tools",
         description="Display the advanced properties of the takes used to specify their position in a global edit",
         default=False,
         options=set(),
     )
 
     display_takerendersettings_in_properties: BoolProperty(
-        name="Display Take Render Settings in Take Properties panels",
+        #name="Display Take Render Settings in Take Properties panels",
         description="Display the take render settings in the Take Properties panel",
         default=False,
         options=set(),
     )
 
-    display_retimer_in_properties: BoolProperty(
-        name="Display Retimer sub-Panel",
-        description="Display Retimer sub-panel in the Shot Manager panel",
-        default=False,
-        options=set(),
-    )
+    # display_retimer_in_properties: BoolProperty(
+    #     name="Display Retimer sub-Panel",
+    #     description="Display Retimer sub-panel in the Shot Manager panel",
+    #     default=False,
+    #     options=set(),
+    # )
 
     display_notes_in_shotlist: BoolProperty(name="Display Color in Shot List", default=True, options=set())
 

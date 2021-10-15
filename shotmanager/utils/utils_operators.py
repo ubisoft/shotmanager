@@ -63,8 +63,53 @@ class UAS_Utils_RunScript(Operator):
         bpy.ops.script.python_file_run(filepath=myPath)
         return {"FINISHED"}
 
+class UAS_Utils_QuickHelp(Operator):
+    bl_idname = "uas_utils.quickhelp"
+    bl_label = "Quick Help"
+    bl_description = "Quick info and tips"
+    bl_options = {"INTERNAL"}
 
+    descriptionText: StringProperty(default="Tooltip")
+    title: StringProperty(default="Info")
+    text: StringProperty(default="My text\non 2 lines")
+    icon: StringProperty(default="INFO")
 
+    @classmethod
+    def description(self, context, properties):
+        return properties.descriptionText
+
+    def invoke(self, context, event):
+        #return context.window_manager.invoke_props_dialog(self, width=400)
+        return self.execute(context)
+
+    # def draw(self, context):
+    #     layout = self.layout
+    #     layout.separator(factor=0.2)
+    #     row = layout.row()
+    #     row.separator(factor=2)
+    #     col = row.column(align=False)
+    #     col.scale_y = 0.7
+    #     messages = self.text.split("\n")
+    #     for s in messages:
+    #         col.label(text=s)
+    #     layout.separator(factor=0.6)
+
+    def execute(self, context):
+        me = self
+        def drawDialog(self, context):
+            layout = self.layout
+            layout.separator(factor=0.2)
+            row = layout.row()
+            row.separator(factor=2)
+            col = row.column(align=False)
+            col.scale_y = 0.7
+            messages = me.text.split("\n")
+            for s in messages:
+                col.label(text=s)
+            layout.separator(factor=0.6)
+
+        bpy.context.window_manager.popup_menu(drawDialog, title=self.title, icon=self.icon)
+        return {"FINISHED"}
 
 ###################
 # Scene control
@@ -102,6 +147,7 @@ class UAS_Utils_GetCurrentFrameForTimeRange(Operator):
 _classes = (
     UAS_OT_EmptyOperator,
     UAS_Utils_RunScript,
+    UAS_Utils_QuickHelp,
     UAS_Utils_GetCurrentFrameForTimeRange,
 )
 

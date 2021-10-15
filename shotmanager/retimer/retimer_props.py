@@ -23,40 +23,132 @@ import bpy
 from bpy.types import Operator, PropertyGroup
 from bpy.props import IntProperty, EnumProperty, BoolProperty, FloatProperty
 
+# a function is used here so that the returned items tupple can also be called by the quick help components
+def list_retime_modes(self, context):
+    items = (
+        (
+            "GLOBAL_OFFSET",
+            "Global Offset Time",
+            "Offset all the animation by the specified number of frames."
+            "\n\nUse tip: The 'Ref. Frame' spinner is just there to have a more contextual anticipation"
+            "\nof what will happen, as written in the line below the spinners."
+            "\nJust enter an offet value, positive or negative, in the right spinner to specify the offset"
+            "\nthat will be applied to all the animated content of the scene."
+            "\nThen press 'Offset Time'.",
+            0,
+        ),
+        (
+            "INSERT_BEFORE",
+            "Insert Time Before...",
+            "Insert the given time, in number of frames, BEFORE the specified frame."
+            "\nKeyframes starting at the specified time are offset."
+            "\n\nUse tip: To define the range of time to insert place the time cursor on the FIRST KEPT FRAME"
+            "\nof the right part of the animation then press the Get button of the 'Insert Before' spinner."
+            "\nThen specify the number of frames to add in the 'Duration' spinner."
+            "\nThen press 'Insert Time'.",
+            1,
+        ),
+        (
+            "INSERT_AFTER",
+            "Insert Time After...",
+            "Insert the given time, in number of frames, AFTER the specified frame."
+            "\nKeyframes after the range are just offset."
+            "\n\nUse tip: To define the range of time to insert place the time cursor on the LAST KEPT FRAME"
+            "\nof the first part of the animation then press the Get button of the 'Insert After' spinner."
+            "\nThen specify the number of frames to add in the 'Duration' spinner."
+            "\nThen press 'Insert Time'.",
+            2,
+        ),
+        (
+            "DELETE_RANGE",
+            "Delete in Between Time",
+            "Remove the time located AFTER the start frame and BEFORE the end frame."
+            "\nStart and end frames are NOT removed."
+            "\nKeyframes after the range are just offset."
+            "\n\nUse tip: To define the range to delete first place the time cursor on the LAST KEPT FRAME"
+            "\nof the first part of the animation then press the Get button of the 'Delete After' spinner."
+            "\nThen move the time cursor to the FIRST KEPT FRAME of the second part of the animation"
+            "\nand press the Get button of the 'Up To (excluded)' spinner."
+            "\nThen press 'Delete Time'.",
+            3,
+        ),
+        (
+            "RESCALE",
+            "Rescale Time",
+            "Change the scale of the specified time range, starting at the specified start frame."
+            "\nKeyframes after the end of the range are just offset."
+            "\nStart and end frames are NOT removed."
+            "\nKeyframes after the range are just offset."
+            "\n\nUse tip: To define the range to rescale first place the time cursor on the LAST KEPT FRAME"
+            "\nof the first part of the animation then press the Get button of the 'Rescale After' spinner."
+            "\nThen move the time cursor to the FIRST KEPT FRAME of the second part of the animation"
+            "\nand press the Get button of the 'Up To (excluded)' spinner."
+            "\nSet the scale factor: values under 1 are speeding the animation, above 1 are making it slower."
+            "\nScale factor can only be positive."
+            "\nThe start frame is used as origin of the rescale and frames after are either pull or pushed."
+            "\nFrames before are not modified."
+            "\nThen press 'Rescale Time'.",
+            4,
+        ),
+        (
+            "CLEAR_ANIM",
+            "Clear Animation",
+            "Clear the animation on the specified time range. No keyframes are offset."
+            "\n\nUse tip: To define the range to clear first place the time cursor on the LAST KEPT FRAME"
+            "\nof the first part of the animation then press the Get button of the 'Clear After' spinner."
+            "\nThen move the time cursor to the FIRST KEPT FRAME of the second part of the animation"
+            "\nand press the Get button of the 'Up To (excluded)' spinner."
+            "\nThen press 'Clear Animation'.",
+            5,
+        ),
+        # (
+        #     "FREEZE",
+        #     "Clear Animation",
+        #     "Clear the animation on the specified time range.\nNo keyframes are offset.",
+        # ),
+    )
+
+    return items
+
 
 class UAS_Retimer_Properties(PropertyGroup):
 
     mode: EnumProperty(
         name="Time Mode",
-        items=(
-            (
-                "INSERT",
-                "Insert Time",
-                "Insert the given time, in number of frames, after the specified frame.\nKeyframes after the range are just offset.",
-            ),
-            (
-                "DELETE",
-                "Delete Time",
-                "Remove the frames after the start one up to the one specified for the end (included).\nKeyframes after the range are just offset.",
-            ),
-            (
-                "RESCALE",
-                "Rescale Time",
-                "Change the scale of the specified time range, starting at the specified start frame.\nKeyframes after the end of the range are just offset.",
-            ),
-            (
-                "CLEAR_ANIM",
-                "Clear Animation",
-                "Clear the animation on the specified time range.\nNo keyframes are offset.",
-            ),
-            # (
-            #     "FREEZE",
-            #     "Clear Animation",
-            #     "Clear the animation on the specified time range.\nNo keyframes are offset.",
-            # ),
-        ),
+        items=list_retime_modes,
+        # default="GLOBAL_OFFSET",
         options=set(),
     )
+
+    def getQuickHelp(self, topic):
+        items = list_retime_modes(self, bpy.context)
+        modeItem = ([s for s in items if topic == s[0]])[0]
+        # print(f"modeItem: {modeItem[1]}")
+
+        docPath = "https://ubisoft-shotmanager.readthedocs.io/en/latest/features-advanced/retimer.html"
+        title = modeItem[1]
+        text = modeItem[2]
+
+        if "GLOBAL_OFFSET" == topic:
+            text += ""
+            # TODO wkip add doc anchor to each path
+            docPath += ""
+        elif "INSERT_BEFORE" == topic:
+            text += ""
+        elif "INSERT_AFTER" == topic:
+            text += ""
+        elif "DELETE_RANGE" == topic:
+            text += ""
+        elif "RESCALE" == topic:
+            text += ""
+        elif "CLEAR_ANIM" == topic:
+            text += ""
+        else:
+            title = "description"
+            text = "text"
+
+        tooltip = "Quick tips about " + title
+        return (tooltip, title, text, docPath)
 
     def _get_start_frame(self):
         val = self.get("start_frame", True)
@@ -71,9 +163,11 @@ class UAS_Retimer_Properties(PropertyGroup):
     #     if self.start_frame >= self.end_frame:
     #         self.end_frame = self.start_frame + 1
 
+    """Start of modified range (= created or deleted frames). Excluded from this range
+    """
     start_frame: IntProperty(
         name="Start Frame",
-        description="Start frame for the time operation",
+        description="The time operation will occur right AFTER this frame." "\nThis frame is then NOT MODIFIED (except during a Time Rescale)",
         get=_get_start_frame,
         set=_set_start_frame,
         # update=_update_start_frame,
@@ -94,9 +188,12 @@ class UAS_Retimer_Properties(PropertyGroup):
     #     if self.start_frame >= self.end_frame:
     #         self.start_frame = self.end_frame - 1
 
+    """End of modified range (= created or deleted frames). Excluded from this range
+    """
     end_frame: IntProperty(
         name="End Frame",
-        description="End frame for the time operation",
+        description="The time operation will occur right BEFORE this frame."
+        "\nThis frame will then be the first one to be offset",
         get=_get_end_frame,
         set=_set_end_frame,
         # update=_update_end_frame,
@@ -108,12 +205,27 @@ class UAS_Retimer_Properties(PropertyGroup):
         "Move Current Frame", default=False, options=set(),
     )
 
+    # Offset specific
+    offset_duration: IntProperty(
+        name="Offset Duration",
+        description="Number of frames used to offset all the animation."
+        "\nUse a negative value to make the animation start earlier in time",
+        default=100,
+        options=set(),
+    )
+
     # Insert specific
+    """Inclusive duration
+    Duration of MODIFIED range (= created or deleted frames).
+    It is then the duration of ] self.start_frame .. self.end_frame [
+    Its value is: insert_duration = self.end_frame - self.start_frame - 1
+    """
     insert_duration: IntProperty(
         name="Insert Duration",
         description="Number of frames to insert after the specified one",
         default=10,
         soft_min=1,
+        min=1,
         options=set(),
     )
 
@@ -125,37 +237,57 @@ class UAS_Retimer_Properties(PropertyGroup):
     # Rescale specific
     factor: FloatProperty(
         name="Factor",
-        description="Scale factore used to change the duration of the specified time range",
+        description="Scale factor used to change the duration of the specified time range",
         default=1,
         min=0.01,
         max=10,
         options=set(),
     )
 
-    pivot: IntProperty(
-        name="Pivot", options=set(),
-    )
+    pivot: IntProperty(name="Pivot",)
 
     onlyOnSelection: BoolProperty(
-        name="Apply on Selection", default=False, options=set(),
+        name="Apply Only on Selection",
+        description="Apply time change only to objects selected in the scene",
+        default=False,
+        options=set(),
     )
-
-    applyToShots: BoolProperty(
-        name="Shots", default=True, options=set(),
+    includeLockAnim: BoolProperty(
+        name="Apply Also on Locked Anim",
+        description="Apply time change even if animation curves or action are locked",
+        default=True,
+        options=set(),
     )
 
     applyToObjects: BoolProperty(
-        name="Objects", default=True, options=set(),
+        name="Objects",
+        description="Apply time change to objects in the scene.\nGrease Pencil objects are ignored",
+        default=True,
+        options=set(),
     )
     applyToShapeKeys: BoolProperty(
-        name="Shape Keys", default=True, options=set(),
+        name="Shape Keys", description="Apply time change to objects with shape keys", default=True, options=set(),
     )
     applytToGreasePencil: BoolProperty(
-        name="Grease Pencil", default=True, options=set(),
+        name="Grease Pencil", description="Apply time change to Grease Pencil objects", default=True, options=set(),
     )
-    applytToVSE: BoolProperty(
-        name="VSE", default=True, options=set(),
+
+    applyToShots: BoolProperty(
+        name="Shots", description="Apply time change to the shot ranges", default=True, options=set(),
     )
+    applyToVSE: BoolProperty(
+        name="VSE", description="Apply time change to the content of the VSE", default=True, options=set(),
+    )
+
+    # moved to add-on preferences
+    # applyToTimeCursor: BoolProperty(
+    #     name="Apply to Time Cursor", description="Apply retime operation to the time cursor", default=True,
+    # )
+    # applyToSceneRange: BoolProperty(
+    #     name="Apply to Scene Range",
+    #     description="Apply retime operation to the animation start and end of the scene",
+    #     default=True,
+    # )
 
 
 _classes = (UAS_Retimer_Properties,)
@@ -165,11 +297,8 @@ def register():
     for cls in _classes:
         bpy.utils.register_class(cls)
 
-    # bpy.types.WindowManager.UAS_Retimer = PointerProperty(type=UAS_Retimer_Properties)
-
 
 def unregister():
     for cls in reversed(_classes):
         bpy.utils.unregister_class(cls)
 
-    # del bpy.types.WindowManager.UAS_Retimer
