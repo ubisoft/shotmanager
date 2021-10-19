@@ -345,6 +345,20 @@ class UAS_MT_ShotManager_Shots_ToolsMenu(Menu):
             row.operator_context = "INVOKE_DEFAULT"
             row.operator("uasotio.openfilebrowser", text="   Create Shots From EDL...").importMode = "CREATE_SHOTS"
 
+        layout.separator()
+
+        # tools for cameras ###
+        row = layout.row(align=True)
+        row.label(text="Tools for Cameras:")
+
+        row = layout.row(align=True)
+        row.operator_context = "INVOKE_DEFAULT"
+        row.operator("uas_utils.create_camera_from_view", text="   New Camera from View")
+
+        row = layout.row(align=True)
+        row.operator_context = "INVOKE_DEFAULT"
+        row.operator("uas_utils.selected_camera_to_view", text="   Selected Camera to View")
+
         #############
         # tools for precut ###
         #############

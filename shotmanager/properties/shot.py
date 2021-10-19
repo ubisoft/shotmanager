@@ -203,8 +203,8 @@ class UAS_ShotManager_Shot(ShotInterface, PropertyGroup):
         self.updateClipLinkToShotStart()
 
     start: IntProperty(
-        name="Start",
-        description="Index of the first included frame of the shot.\nNote that start frame cannot exceed end frame",
+        name="Shot Start",
+        description="Value of the first included frame of the shot.\nNote that start frame cannot exceed end frame",
         get=_get_start,
         set=_set_start,
         update=_update_start,
@@ -237,8 +237,8 @@ class UAS_ShotManager_Shot(ShotInterface, PropertyGroup):
         self.selectShotInUI()
 
     end: IntProperty(
-        name="End",
-        description="Index of the last included frame of the shot.\nNote that end frame cannot be lower than start frame",
+        name="Shot End",
+        description="Value of the last included frame of the shot.\nNote that end frame cannot be lower than start frame",
         get=_get_end,
         set=_set_end,
         update=_update_end,

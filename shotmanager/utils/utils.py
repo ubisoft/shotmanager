@@ -27,6 +27,16 @@ from urllib.parse import unquote_plus, urlparse
 import bpy
 
 
+def unique_object_name(obj_name):
+    # TODO write new names as .00i rather than _i_i
+    i = 1
+    objects = bpy.data.objects
+    while obj_name in objects:
+        obj_name = f"{obj_name}_{i}"
+        i += 1
+    return obj_name
+
+
 def convertVersionStrToInt(versionStr):
     """Convert a string formated like "1.23.48" to a version integer such as 1023048"""
     formatedVersion = "{:02}{:03}{:03}"
@@ -260,7 +270,7 @@ def sceneContainsCameraBinding(scene):
 def clearMarkersFromCameraBinding(scene):
     for m in scene.timeline_markers:
         m.camera = None
-        
+
 
 def getMarkerbyName(scene, markerName, filter=""):
     for m in scene.timeline_markers:
@@ -496,12 +506,108 @@ def cameras_from_scene(scene):
     return camList
 
 
-def setCurrentCameraToViewport2(area):
+def getViewportAreaView(context):
+    for screen_area in context.screen.areas:
+        if screen_area.type == "VIEW_3D":
+            v3d = screen_area.spaces[0]
+            rv3d = v3d.region_3d
+            return rv3d
+
+    return None
+
+
+def getCameraCurrentlyInViewport(context, area=None):
+    """Return the camera currently used by the view, None if
+    no camera is used or if the 3D view is not found.
+    Requires a valid area VIEW_3D"""
+    area3D = area
+    #   print(f"Cam in area3D 01: {area3D}")
+    if area is None:
+        for screen_area in context.screen.areas:
+            if screen_area.type == "VIEW_3D":
+                area3D = screen_area
+                break
+
+    #    print(f"Cam in area3D 02: {area3D}")
+
+    if area3D is not None:
+        for space_data in area3D.spaces:
+            if space_data.type == "VIEW_3D":
+                #    print(f"Cam in area3D 03: {area3D}")
+                if space_data.region_3d.view_perspective == "CAMERA":
+                    #        print(f"Cam in area3D 04: {area3D}")
+                    if not space_data.use_local_camera:
+                        print(f" 05 Cam in viewport is: {context.scene.camera.name}")
+                        return context.scene.camera
+
+    return None
+
+
+def makeCameraMatchViewport(context, cam, putCamInViewport=True):
+    """Move, orient and change the lens of the specified camera to match the current viewport framing.
+    If the viewport already contains a camera then the settings of this camera will be copied to the specifed one.
+    If the viewport is not a 3D view nothing happends.
+    If putCamInViewport is True then the camera is also set as the current one in the scene and used
+    in the Viewport.
+    """
+    # Refs: https://blender.stackexchange.com/questions/46391/how-to-convert-spaceview3d-lens-to-field-of-view
+
+    scene = context.scene
+    #  print(f" makeCameraMatchViewport")
+
+    camInViewport = getCameraCurrentlyInViewport(context)
+    camOk = False
+
+    if camInViewport is None:
+        # we get the viewport cam settings
+        areaView = getViewportAreaView(context)
+        if areaView is not None:
+            import math
+
+            areaView.view_camera_zoom = 0.0
+            cam.matrix_world = areaView.view_matrix.inverted()
+            vmat_inv = areaView.view_matrix.inverted()
+            pmat = areaView.perspective_matrix @ vmat_inv
+            fov = 2.0 * abs(1.0 * math.atan(1.0 / pmat[1][1]))
+            #    print(f"Cam fov: {fov}  {fov * 180.0 / math.pi}, zoom: {areaView.view_camera_zoom}")
+            # cam.data.sensor_width = 72
+            #    cam.data.lens_unit = "FOV"
+            # cam.data.angle = fov - areaView.view_camera_zoom * math.pi / 180
+            cam.data.angle = fov
+            # cam.data.lens -= areaView.view_camera_zoom
+            #  areaView.view_camera_zoom = 0.0
+            camOk = True
+    else:
+        if cam != camInViewport:
+            cam.location = camInViewport.location
+            cam.rotation_euler = camInViewport.rotation_euler
+            cam.data.lens = camInViewport.data.lens
+            camOk = True
+
+    if putCamInViewport and camOk:
+        # align camera to view
+        scene.camera = cam
+        setCurrentCameraToViewport(context)
+
+
+def setCurrentCameraToViewport2(context, area=None):
     """Requires a valid area VIEW_3D"""
-    for space_data in area.spaces:
-        if space_data.type == "VIEW_3D":
-            space_data.use_local_camera = False
-            space_data.region_3d.view_perspective = "CAMERA"
+    area3D = area
+    #   print(f"Cam in area3D 01: {area3D}")
+    if area is None:
+        for screen_area in context.screen.areas:
+            if screen_area.type == "VIEW_3D":
+                area3D = screen_area
+                break
+
+    #    print(f"Cam in area3D 02: {area3D}")
+
+    if area3D is not None:
+        for space_data in area.spaces:
+            if space_data.type == "VIEW_3D":
+                space_data.use_local_camera = False
+                space_data.region_3d.view_perspective = "CAMERA"
+                break
 
 
 def setCurrentCameraToViewport(context, area=None):
@@ -553,6 +659,8 @@ def setCurrentCameraToViewport(context, area=None):
 
 
 def create_new_camera(camera_name, location=[0, 0, 0], locate_on_cursor=False):
+    """A unique name will be automatically given to the new camera
+    """
     cam = bpy.data.cameras.new(camera_name)
     cam_ob = bpy.data.objects.new(cam.name, cam)
     cam_ob.name = cam.name
