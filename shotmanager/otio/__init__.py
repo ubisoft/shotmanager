@@ -29,6 +29,8 @@ import bpy
 # from . import otio_wrapper
 # from shotmanager.config import config
 
+import sys
+from pathlib import Path
 
 import logging
 
@@ -39,15 +41,39 @@ _logger = logging.getLogger(__name__)
 # if (2, 93, 0) < bpy.app.version:
 #     return False
 
-if (2, 93, 0) < bpy.app.version:
+# for versions of Blender after 2.93:
+if (2, 93, 0) <= bpy.app.version:
     # forces an exception so that this package (otio) cannot be imported and then the function
     # used everywhere in ShotManager to see if the atio package is available fails
     # (namely module_can_be_imported("shotmanager.otio"))
-    import opentimelineio
-else:
-    import sys
-    from pathlib import Path
+    #
+    # import opentimelineio
 
+    if not platform.system() == "Windows":
+        import opentimelineio
+    else:
+
+        # we use the provided wheel
+        pyExeFile = sys.executable
+        localPyDir = str(Path(pyExeFile).parent) + "\\lib\\site-packages\\"
+
+        try:
+            subprocess.run(
+                [
+                    pyExeFile,
+                    "-m",
+                    "pip",
+                    "install",
+                    os.path.join(os.path.dirname(__file__), "OpenTimelineIO-0.13.0_Ubi0.2-py3-none-any.whl"),
+                ]
+            )
+            import opentimelineio as opentimelineio
+        except ModuleNotFoundError:
+            _logger.error("*** Error - OpenTimelineIO instal from provided version 0.013 failed")
+
+
+# for versions of Blender before 2.93:
+else:
     pyExeFile = sys.executable
     localPyDir = str(Path(pyExeFile).parent) + "\\lib\\site-packages\\"
 
@@ -69,7 +95,7 @@ else:
             importlib.reload(opentimelineio)  # Need to be tested.
     except ModuleNotFoundError:
         _logger.error("*** Error - OpenTimelineIO import failed - using provided version")
-        if platform.system() == platform.system() == "Windows":
+        if platform.system() == "Windows":
             _logger.error("Plateform: Windows")
             try:
                 subprocess.run(
