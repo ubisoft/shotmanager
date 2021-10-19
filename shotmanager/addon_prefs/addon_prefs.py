@@ -243,7 +243,12 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
             self["addShot_start"] = self.addShot_end
 
     addShot_start: IntProperty(
-        name="Add Shot Start UI Only", soft_min=0, get=_get_addShot_start, set=_set_addShot_start, default=25,
+        name="New Shot Start",
+        description="Value of the first included frame of the shot",
+        soft_min=0,
+        get=_get_addShot_start,
+        set=_set_addShot_start,
+        default=25,
     )
 
     def _get_addShot_end(self):
@@ -262,9 +267,15 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
             self["addShot_end"] = self.addShot_start
 
     addShot_end: IntProperty(
-        name="Add Shot End UI Only", soft_min=0, get=_get_addShot_end, set=_set_addShot_end, default=50,
+        name="New Shot End",
+        description="Value of the last included frame of the shot",
+        soft_min=0,
+        get=_get_addShot_end,
+        set=_set_addShot_end,
+        default=50,
     )
 
+    
     ##################
     # global temps values   ###
     ##################

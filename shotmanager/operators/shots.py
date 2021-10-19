@@ -254,7 +254,7 @@ class UAS_ShotManager_MakeShotCameraUnique(Operator):
 
 def list_cameras_for_new_shot(self, context):
     res = list()
-    res.append(("NEW_CAMERA", "New Camera", "Create new camera", 0))
+    res.append(("NEW_CAMERA", "Create New Camera", "Create new camera", 0))
     for i, cam in enumerate([c for c in context.scene.objects if c.type == "CAMERA"]):
         res.append(
             (cam.name, cam.name, 'Use the exising scene camera named "' + cam.name + '"\nfor the new shot', i + 1)
@@ -290,7 +290,7 @@ class UAS_ShotManager_ShotAdd_GetCurrentFrameFor(Operator):
 
 class UAS_ShotManager_ShotAdd(Operator):
     bl_idname = "uas_shot_manager.shot_add"
-    bl_label = "Add New Shot"
+    bl_label = "Add New Shot..."
     bl_description = (
         "Add a new shot starting at the current frame and using the selected camera"
         "\nThe new shot is put after the selected shot"
@@ -301,8 +301,8 @@ class UAS_ShotManager_ShotAdd(Operator):
     cameraName: EnumProperty(items=list_cameras_for_new_shot, name="Camera", description="New Shot Camera")
 
     color: FloatVectorProperty(
-        name="Shot Color",
-        description="According to your preferences it can be a unique shot color\nor the color of the camera object (default)",
+        name="Camera Color / Shot Color",
+        description="Color of the chosen camera or color of the shot, according to the Shot Display settings",
         subtype="COLOR",
         size=3,
         min=0.0,
@@ -312,7 +312,7 @@ class UAS_ShotManager_ShotAdd(Operator):
         default=(1.0, 1.0, 1.0),
     )
     colorFromExistingCam: FloatVectorProperty(
-        name="Shot Color",
+        name="Camera Color",
         description="Color of the chosen camera",
         subtype="COLOR",
         size=3,
@@ -321,6 +321,8 @@ class UAS_ShotManager_ShotAdd(Operator):
         precision=2,
         default=(1.0, 1.0, 1.0),
     )
+
+    alignCamToView: BoolProperty(name="Align New Camera to Current View", default=True)
 
     def invoke(self, context, event):
         wm = context.window_manager
@@ -363,63 +365,145 @@ class UAS_ShotManager_ShotAdd(Operator):
         #     elif 0 < len(cameras):
         #         self.cameraName = cameras[0].name
 
-        return wm.invoke_props_dialog(self)
+        return wm.invoke_props_dialog(self, width=300)
 
     def draw(self, context):
         # scene = context.scene
-        # props = scene.UAS_shot_manager_props
+        props = context.scene.UAS_shot_manager_props
         prefs = context.preferences.addons["shotmanager"].preferences
-
+        splitFactor = 0.3
         layout = self.layout
 
-        box = layout.box()
-        row = box.row(align=True)
-        grid_flow = row.grid_flow(align=True, row_major=True, columns=2, even_columns=False)
+        col = layout.box()
+        # col = box.column(align=False)
 
-        col = grid_flow.column(align=False)
-        col.scale_x = 0.6
-        col.label(text="New Shot Name:")
-        col = grid_flow.column(align=False)
-        col.prop(self, "name", text="")
+        # row name #########################
+        row = col.row()
+        split = row.split(factor=splitFactor)
+        subrow = split.row()
+        subrow.alignment = "RIGHT"
+        subrow.label(text="New Shot Name:")
+        split.prop(self, "name", text="")
 
-        col.separator(factor=1)
-        col = grid_flow.column(align=False)
-        col.label(text="Start:")
-        col = grid_flow.column(align=False)
-        row = col.row(align=True)
+        # doubleRow is used to reduce the size between rows #########
+        col.separator(factor=0.1)
+        doubleRow = col.column()
+        # doubleRow.scale_y = 0.7
+
+        # row start and end #########################
+        row = doubleRow.row(align=True)
+        mainRowSplit = row.split(factor=0.5)
+        subSplitLeft = mainRowSplit.split(factor=0.26)
+        subrow = subSplitLeft.row()
+        # subrow.alignment = "RIGHT"
+        subrow.label(text="Start:")
+        row = subSplitLeft.row(align=True)
         row.prop(prefs, "addShot_start", text="")
         row.operator(
             "uas_shot_manager.shotadd_getcurrentframefor", text="", icon="TRIA_UP_BAR"
         ).propertyToUpdate = "addShot_start"
 
-        col.separator(factor=1)
-        col = grid_flow.column(align=False)
-        col.label(text="End:")
-        col = grid_flow.column(align=False)
-        row = col.row(align=True)
+        subSplitRight = mainRowSplit.split(factor=0.26)
+        subrow = subSplitRight.row()
+        #  subrow.alignment = "RIGHT"
+        subrow.separator(factor=0.5)
+        subrow.label(text="End:")
+        row = subSplitRight.row(align=True)
         row.prop(prefs, "addShot_end", text="")
         row.operator(
             "uas_shot_manager.shotadd_getcurrentframefor", text="", icon="TRIA_UP_BAR"
         ).propertyToUpdate = "addShot_end"
 
-        col.separator()
-        col = grid_flow.column(align=False)
-        col.label(text="Camera:")
-        col = grid_flow.column(align=False)
-        col.prop(self, "cameraName", text="")
+        # row duration #########################
+        row = doubleRow.row(align=False)
+        mainRowSplit = row.split(factor=0.5)
 
-        row = box.row(align=True)
-        grid_flow = row.grid_flow(align=True, row_major=True, columns=2, even_columns=False)
+        subSplitLeft = mainRowSplit.split(factor=0.4)
+        subrow = subSplitLeft.row()
+        # subrow.alignment = "RIGHT"
+        subrow.label(text="Duration:")
+        subrow = subSplitLeft.row()
+        subrow.alignment = "RIGHT"
+        duration = prefs.addShot_end - prefs.addShot_start + 1
+        subrow.label(text=f"{duration} frames")
 
-        grid_flow.enabled = not context.scene.UAS_shot_manager_props.use_camera_color or "NEW_CAMERA" == self.cameraName
-        col = grid_flow.column(align=False)
-        col.label(text="Color:")
-        col = grid_flow.column(align=True)
+        # row shot color #########################
+        if not props.use_camera_color:
+            subrow = mainRowSplit.row()
+            subrow.separator(factor=0.5)
+            subrow.label(text="Shot Color:")
+            subrow.prop(self, "color", text="")
+
+        # doubleRow is used to reduce the size between rows #########
+        col.separator(factor=0.1)
+        doubleRow = col.column()
+        # doubleRow.scale_y = 0.7
+
+        # row camera #########################
+        row = doubleRow.row(align=True)
+        mainRowSplit = row.split(factor=splitFactor)
+        subrow = mainRowSplit.row()
+        subrow.alignment = "RIGHT"
+        subrow.label(text="Camera:")
+        mainRowSplit.prop(self, "cameraName", text="")
+
+        # row camera color #########################
+        if props.use_camera_color:
+            if "NEW_CAMERA" == self.cameraName:
+                row = doubleRow.row(align=False)
+                mainRowSplit = row.split(factor=splitFactor)
+                subrow = mainRowSplit.row()
+                subrow.alignment = "RIGHT"
+                subrow.label(text=" ")
+                subrow = mainRowSplit.row()
+                subrow.label(text="Camera Color:")
+                subrow.prop(self, "color", text="")
+            else:
+                # row num shots using selected camera ###############
+                cam = context.scene.objects[self.cameraName]
+                row = doubleRow.row(align=False)
+                mainRowSplit = row.split(factor=splitFactor)
+                subrow = mainRowSplit.row()
+                subrow.alignment = "RIGHT"
+                subrow.label(text=" ")
+                subrow = mainRowSplit.row()
+                sharedCamsTupple = props.getShotsSharingCameraCount(cam, ignoreDisabled=False)
+                if 0 < sharedCamsTupple[0]:
+                    usedStr = f"Also used by {sharedCamsTupple[0]} other shot"
+                    if 1 < sharedCamsTupple[0]:
+                        usedStr += "s"
+                    usedStr += f"  in {sharedCamsTupple[1]} take"
+                    if 1 < sharedCamsTupple[1]:
+                        usedStr += "s"
+                else:
+                    usedStr = "Not yet used by any shot"
+                subrow.label(text=usedStr)
+
+                # row camera color ###############
+                row = doubleRow.row(align=False)
+                mainRowSplit = row.split(factor=splitFactor)
+                subrow = mainRowSplit.row()
+                subrow.enabled = False  # 0 == sharedCamsTupple[0]
+                subrow.alignment = "RIGHT"
+                subrow.label(text="Color:")
+                # idea was to prevent the modification of a camera color only for the used camera
+                # seems difficult to achieve so color change is not available
+                # self.colorFromExistingCam = bpy.context.scene.objects[self.cameraName].color[0:3] + (128, 128, 128)
+                # print(f" colc :{cam.color[0]}")
+                # lighten = 0.5
+                # disabledColor = (cam.color[0] + lighten, cam.color[1] + lighten, cam.color[2] + lighten)
+                # self.colorFromExistingCam = disabledColor
+                self.colorFromExistingCam = cam.color[0:3]
+                mainRowSplit.prop(self, "colorFromExistingCam", text="")
+
+        # row camera position #########################
         if "NEW_CAMERA" == self.cameraName:
-            col.prop(self, "color", text="")
-        else:
-            self.colorFromExistingCam = bpy.context.scene.objects[self.cameraName].color[0:3]
-            col.prop(self, "colorFromExistingCam", text="")
+            row = doubleRow.row(align=False)
+            mainRowSplit = row.split(factor=splitFactor)
+            subrow = mainRowSplit.row()
+            subrow.alignment = "RIGHT"
+            subrow.label(text=" ")
+            mainRowSplit.prop(self, "alignCamToView", text="Align New Camera to View")
 
         layout.separator()
 
@@ -435,6 +519,8 @@ class UAS_ShotManager_ShotAdd(Operator):
 
         if "NEW_CAMERA" == self.cameraName:
             cam = utils.create_new_camera("Cam_" + self.name)
+            if self.alignCamToView:
+                utils.makeCameraMatchViewport(context, cam)
         else:
             cam = bpy.context.scene.objects[self.cameraName]
             if cam is None or "" == self.cameraName:
@@ -479,13 +565,14 @@ class UAS_ShotManager_ShotAdd(Operator):
 
 class UAS_ShotManager_ShotDuplicate(Operator):
     bl_idname = "uas_shot_manager.shot_duplicate"
-    bl_label = "Duplicate Selected Shot"
-    bl_description = "Duplicate the shot selected in the shot list." "\nThe new shot is put after the selected shot"
+    bl_label = "Duplicate Selected Shot..."
+    bl_description = "Duplicate the shot selected in the shot list."
+    "\nThe new shot is put after the selected shot"
     bl_options = {"INTERNAL", "UNDO"}
 
     name: StringProperty(name="Name")
-    startAtCurrentTime: BoolProperty(name="Start At Current Frame", default=True)
-    addToEndOfList: BoolProperty(name="Add At The End Of The List")
+    startAtCurrentTime: BoolProperty(name="Start at Current Frame", default=True)
+    addToEndOfList: BoolProperty(name="Add at the End of the List")
     duplicateCam: BoolProperty(name="Duplicate Camera")
     camName: StringProperty(name="Camera Name")
 
@@ -1133,12 +1220,7 @@ class UAS_ShotManager_UniqueCameras(Operator):
 
     @staticmethod
     def unique_cam_name(cam_name):
-        i = 1
-        objects = bpy.data.objects
-        while cam_name in objects:
-            cam_name = f"{cam_name}_{i}"
-            i += 1
-        return cam_name
+        return utils.unique_object_name()
 
     def execute(self, context):
         scene = context.scene

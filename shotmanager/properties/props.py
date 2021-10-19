@@ -1981,6 +1981,17 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
 
         return shotsDict
 
+    def getShotsSharingCameraCount(self, cam, ignoreDisabled=False):
+        """Return a tupple made by the number of shots, in all takes, using the camera and the number
+        of takes that have at least one shot using this camera
+        """
+        sharedCams = self.getShotsSharingCamera(cam, ignoreDisabled=ignoreDisabled, inAllTakes=True)
+        numSharedCams = 0
+        for k in sharedCams:
+            numSharedCams += len(sharedCams[k])
+        
+        return (numSharedCams,len(sharedCams))
+
     def getNumSharedCamera(self, cam, ignoreDisabled=False, takeIndex=-1, inAllTakes=True):
         """Return the number of times the specified camera is used by the shots of the specified takes
         0 means the camera is not used at all, -1 that the specified take is not valid

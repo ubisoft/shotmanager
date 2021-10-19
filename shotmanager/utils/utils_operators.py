@@ -29,6 +29,8 @@ import bpy
 from bpy.types import Operator
 from bpy.props import StringProperty
 
+from . import utils
+
 
 ###################
 # UI
@@ -63,6 +65,7 @@ class UAS_Utils_RunScript(Operator):
         bpy.ops.script.python_file_run(filepath=myPath)
         return {"FINISHED"}
 
+
 class UAS_Utils_QuickHelp(Operator):
     bl_idname = "uas_utils.quickhelp"
     bl_label = "Quick Help"
@@ -79,7 +82,7 @@ class UAS_Utils_QuickHelp(Operator):
         return properties.descriptionText
 
     def invoke(self, context, event):
-        #return context.window_manager.invoke_props_dialog(self, width=400)
+        # return context.window_manager.invoke_props_dialog(self, width=400)
         return self.execute(context)
 
     # def draw(self, context):
@@ -96,6 +99,7 @@ class UAS_Utils_QuickHelp(Operator):
 
     def execute(self, context):
         me = self
+
         def drawDialog(self, context):
             layout = self.layout
             layout.separator(factor=0.2)
@@ -110,6 +114,58 @@ class UAS_Utils_QuickHelp(Operator):
 
         bpy.context.window_manager.popup_menu(drawDialog, title=self.title, icon=self.icon)
         return {"FINISHED"}
+
+
+###################
+# Cameras
+###################
+
+"""Create a camera from the current view (duplicate the current camera if needed) and set it
+in the viewport.
+"""
+
+
+class UAS_Utils_CreateCameraFromView(Operator):
+    bl_idname = "uas_utils.create_camera_from_view"
+    bl_label = "Cam From View"
+    bl_description = (
+        "Create a new camera from the current 3D view and put it in the viewport."
+        "\nIf the view already contains a camera then its location and fov are used."
+        "\nIf the viewport is not found then the new camera will be at the origin or at the cursor"
+    )
+    bl_options = {"INTERNAL", "UNDO"}
+
+    def execute(self, context):
+        scene = context.scene
+        print(f" Creating new camera from view")
+
+        # create new camera
+        newCam = utils.create_new_camera("New_Camera")
+        utils.makeCameraMatchViewport(context, newCam)
+
+        return {"FINISHED"}
+
+
+class UAS_Utils_SelectedCameraToView(Operator):
+    bl_idname = "uas_utils.selected_camera_to_view"
+    bl_label = "Sel Cam to View"
+    bl_description = (
+        "Make the selected camera match the the current 3D view."
+        "\nIts position, rotation and lens will then be modified."
+        "\nIf the view already contains a camera then its location and fov are used"
+    )
+    bl_options = {"INTERNAL", "UNDO"}
+
+    def execute(self, context):
+        scene = context.scene
+        print(f" Moving selected camera to view")
+
+        if 0 < len(context.selected_objects) and "CAMERA" == context.selected_objects[0].type:
+            sel_cam = context.selected_objects[0]
+            utils.makeCameraMatchViewport(context, sel_cam)
+
+        return {"FINISHED"}
+
 
 ###################
 # Scene control
@@ -148,6 +204,8 @@ _classes = (
     UAS_OT_EmptyOperator,
     UAS_Utils_RunScript,
     UAS_Utils_QuickHelp,
+    UAS_Utils_CreateCameraFromView,
+    UAS_Utils_SelectedCameraToView,
     UAS_Utils_GetCurrentFrameForTimeRange,
 )
 
