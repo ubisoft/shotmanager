@@ -1,4 +1,17 @@
-# 1.5.70 (2021-09---) (WIP)
+# 1.5.71 (2021-09---) (WIP)
+
+# 1.5.70 (2021-10-19)
+
+## Features
+
+Added 2 new tools for cameras in the Shots Tools panel:
+- New Camera from View: Create a new camera from the current 3D view and put it in the viewport
+- Selected Camera to View: Make the selected camera match the the current 3D view
+
+New Shot dialog box:
+- Added an option to make the new camera match the current viewport
+- Improved the UI
+- Added a label to indicate the number of shots using the selected camera
 
 # 1.5.69 (2021-10-15)
 
