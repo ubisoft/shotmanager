@@ -57,6 +57,7 @@ def storeUserRenderSettings(context, userRenderSettings):
     # cycles
     ##############
     #  if "CYCLES" == bpy.scene.render.engine:
+    # if hasattr(scene, "cycles"):
     userRenderSettings["cycles_samples"] = scene.cycles.samples
     userRenderSettings["cycles_preview_samples"] = scene.cycles.preview_samples
 
@@ -133,6 +134,7 @@ def restoreUserRenderSettings(context, userRenderSettings):
     # cycles
     ##############
     #        if "CYCLES" == bpy.scene.render.engine:
+    # if hasattr(scene, "cycles"):
     scene.cycles.samples = userRenderSettings["cycles_samples"]
     scene.cycles.preview_samples = userRenderSettings["cycles_preview_samples"]
 

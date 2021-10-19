@@ -12,7 +12,7 @@
 **Disclaimer**
 >**This tool is currently supported for LTS version of Blender 2.83 and up to Blender 2.93**
 >
->**!! Blender 2.93: Some features (EDL imports and exports) are NOT YET SUPPORTED ONT THIS VERSION because there is currently no OpenTimelineIO package for Python 3.9 !!**
+>**!! Blender 2.93: Some features (EDL imports and exports) are NOT YET SUPPORTED ON Mac and Linux because there is currently no OpenTimelineIO package for Python 3.9 for these plateforms !!**
 >
 >It was initialy developed for an animated TV series production in 2020 on Blender 2.83. It has the features that were needed at the time but it
 may not be considered as feature complete for a more generic purpose. In spite of all our efforts to make it reliable some troubles may occur in use cases we have not faced.

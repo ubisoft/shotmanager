@@ -53,23 +53,30 @@ if (2, 93, 0) <= bpy.app.version:
         import opentimelineio
     else:
 
-        # we use the provided wheel
-        pyExeFile = sys.executable
-        localPyDir = str(Path(pyExeFile).parent) + "\\lib\\site-packages\\"
-
         try:
-            subprocess.run(
-                [
-                    pyExeFile,
-                    "-m",
-                    "pip",
-                    "install",
-                    os.path.join(os.path.dirname(__file__), "OpenTimelineIO-0.13.0_Ubi0.2-py3-none-any.whl"),
-                ]
-            )
-            import opentimelineio as opentimelineio
+            import opentimelineio
+
         except ModuleNotFoundError:
-            _logger.error("*** Error - OpenTimelineIO instal from provided version 0.013 failed")
+            _logger.error("*** Error - OpenTimelineIO import failed - Installing provided version")
+
+            # we use the provided wheel
+            pyExeFile = sys.executable
+            localPyDir = str(Path(pyExeFile).parent) + "\\lib\\site-packages\\"
+
+            try:
+                print("  installing OpenTimelineIO 0.13 for Python 3.9 for Ubisoft Shot Manager...")
+                subprocess.run(
+                    [
+                        pyExeFile,
+                        "-m",
+                        "pip",
+                        "install",
+                        os.path.join(os.path.dirname(__file__), "OpenTimelineIO-0.13.0_Ubi0.2-py3-none-any.whl"),
+                    ]
+                )
+                import opentimelineio as opentimelineio
+            except ModuleNotFoundError:
+                _logger.error("*** Error - OpenTimelineIO instal from provided version 0.013 failed")
 
 
 # for versions of Blender before 2.93:

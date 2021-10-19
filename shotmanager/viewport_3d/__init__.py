@@ -33,5 +33,9 @@ def register():
 def unregister():
     print("       - Unregistering Viewport 3D Package")
 
-    viewport_hud.unregister()
+    try:
+        viewport_hud.unregister()
+    except Exception:
+        print("Paf in viewport_3d.py in Unregister viewport_hud")
+
     timeline_draw.unregister()

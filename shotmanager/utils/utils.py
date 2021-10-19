@@ -71,6 +71,9 @@ def addonVersion(addonName):
     versionInt = -1
     versions = None
 
+    # if "Video Tracks" == addonName:
+    #     return None
+
     versionTupple = [
         addon.bl_info.get("version", (-1, -1, -1))
         for addon in addon_utils.modules()

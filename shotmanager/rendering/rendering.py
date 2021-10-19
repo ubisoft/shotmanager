@@ -393,9 +393,9 @@ def launchRenderWithVSEComposite(
             print("Scene.camera:", scene.camera.name)
             if override_all_viewports:
                 for area in context.screen.areas:
-                    utils.setCurrentCameraToViewport2(area)
+                    utils.setCurrentCameraToViewport2(context, area)
             else:
-                utils.setCurrentCameraToViewport2(viewportArea)
+                utils.setCurrentCameraToViewport2(context, viewportArea)
             # props.setCurrentShot(shot)
             numFramesInShot = scene.frame_end - scene.frame_start + 1
             previousFrameRenderTime = time.monotonic()

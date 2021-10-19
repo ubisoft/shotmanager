@@ -1,8 +1,9 @@
-# 1.5.72 (2021-09---) (WIP)
+# 1.5.74 (2021-09---) (WIP)
 
-# 1.5.71 (2021-09-19)
+# 1.5.73 (2021-09-19)
 
 - Integrated OpenTimelineIO for Blender 2.93 and higher (Windows only)
+- Small integration fixes
 
 
 # 1.5.70 (2021-10-19)

@@ -33,7 +33,7 @@ class UAS_ShotManager_OT_About(Operator):
     bl_options = {"INTERNAL"}
 
     def invoke(self, context, event):
-        return context.window_manager.invoke_props_dialog(self, width=400)
+        return context.window_manager.invoke_props_dialog(self, width=420)
 
     def draw(self, context):
         props = context.scene.UAS_shot_manager_props

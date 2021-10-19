@@ -84,7 +84,7 @@ bl_info = {
     "author": "Ubisoft - Julien Blervaque (aka Werwack), Romain Carriquiry Borchiari",
     "description": "Manage a sequence of shots and cameras in the 3D View - Ubisoft Animation Studio",
     "blender": (2, 92, 0),
-    "version": (1, 5, 71),
+    "version": (1, 5, 73),
     "location": "View3D > Shot Manager",
     "wiki_url": "https://ubisoft-shotmanager.readthedocs.io",
     # "warning": "BETA Version",
@@ -349,7 +349,7 @@ def register():
     # Pillow lib is installed there
 
     if (2, 93, 0) <= bpy.app.version:
-        print("  installing OpenTimelineIO 0.13 for Python 3.9 for Ubisoft Shot Manager...")
+        # print("  installing OpenTimelineIO 0.13 for Python 3.9 for Ubisoft Shot Manager...")
         try:
             from . import otio
 
@@ -496,7 +496,11 @@ def register():
     # except ModuleNotFoundError:
     #     print("       *** OTIO Package import failed ****")
 
-    utils_vse_render.register()
+    try:
+        utils_vse_render.register()
+    except Exception:
+        print("*** Paf for utils_vse_render.register")
+
     utils_render.register()
     general.register()
     viewport_3d.register()
@@ -576,23 +580,27 @@ def unregister():
     )
 
     # ui
+    print("--about.unregister")
     about.unregister()
+    print("--features.unregister")
     features.unregister()
+    print("--prefs.unregister")
     prefs.unregister()
+    print("--viewport_3d.unregister")
     viewport_3d.unregister()
+    print("--general.unregister")
     general.unregister()
+    print("--utils_render.unregister")
     utils_render.unregister()
-    utils_vse_render.unregister()
+    print("--utils_vse_render.unregister")
+    try:
+        utils_vse_render.unregister()
+    except Exception:
+        print("*** Paf for utils_vse_render.unregister")
 
-    # if module_can_be_imported("shotmanager.otio"):
-    if module_can_be_imported("opentimelineio"):
-        from . import otio
-
-        otio.unregister()
-    else:
-        print("       *** No Otio found to unregister ***")
-
+    print("--rendering_ui.unregister")
     rendering_ui.unregister()
+    print("--retimer_ui.unregister")
     retimer_ui.unregister()
     rrs.unregister()
     sm_ui.unregister()
@@ -605,6 +613,7 @@ def unregister():
     playbar.unregister()
     precut_tools.unregister()
     shots_global_settings.unregister()
+    print("--shots.unregister")
     shots.unregister()
     takes.unregister()
     utils_operators.unregister()
@@ -633,6 +642,15 @@ def unregister():
         sm_debug.unregister()
     except Exception as e:
         print(f"Trying to unregister sm-debug: {e}")
+
+    # if module_can_be_imported("shotmanager.otio"):
+    if module_can_be_imported("opentimelineio"):
+        from . import otio
+
+        otio.unregister()
+    else:
+        print("       *** No Otio found to unregister ***")
+
     utils_ui.unregister()
     config.releaseGlobalVariables()
 
