@@ -9,7 +9,8 @@ assignees: ''
 
 **Infos on the context**
 - Add-on version: 
-- Blender version: 
+- Blender version, from installer or from zip: 
+- Blender was launched in Admin mode?
 - OS: 
 
 **Describe the bug**
