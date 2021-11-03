@@ -12,6 +12,7 @@ assignees: ''
 - Blender version, from installer or from zip: 
 - Blender was launched in Admin mode?
 - OS: 
+- Bug was also on previous versions (I don't know / No / Yes, seen on version x.x):
 
 **Describe the bug**
 A clear and concise description of what the bug is.
