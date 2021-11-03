@@ -163,7 +163,7 @@ class UAS_compositeVideoInVSE(Operator):
         return {"FINISHED"}
 
 
-class UAS_Vse_Render(PropertyGroup):
+class UAS_Vse_Render_PropsGpr(PropertyGroup):
     def get_inputOverMediaPath(self):
         val = self.get("inputOverMediaPath", "")
         return val
@@ -1068,17 +1068,19 @@ class UAS_Vse_Render(PropertyGroup):
 
 _classes = (
     # UAS_PT_VSERender,
-    UAS_Vse_Render,
+    UAS_Vse_Render_PropsGpr,
     UAS_compositeVideoInVSE,
     UAS_VSE_OpenFileBrowser,
 )
 
 
 def register():
+    print("       - Registering utils_vse_render Package")
+
     for cls in _classes:
         bpy.utils.register_class(cls)
 
-    bpy.types.WindowManager.UAS_vse_render = PointerProperty(type=UAS_Vse_Render)
+    bpy.types.WindowManager.UAS_vse_render = PointerProperty(type=UAS_Vse_Render_PropsGpr)
 
 
 def unregister():

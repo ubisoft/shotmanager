@@ -400,6 +400,7 @@ def register():
     from .addon_prefs import addon_prefs
     from .utils import utils_vse_render
     from . import viewport_3d
+    from .tools import viewport_timeline
 
     ###################
     # update data
@@ -504,6 +505,7 @@ def register():
     utils_render.register()
     general.register()
     viewport_3d.register()
+    viewport_timeline.register()
     prefs.register()
     features.register()
     about.register()
@@ -556,6 +558,7 @@ def unregister():
     print("\n*** --- Unregistering Shot Manager Add-on --- ***")
     from .utils import utils_ui
     from . import viewport_3d
+    from .tools import viewport_timeline
 
     #    bpy.context.scene.UAS_shot_manager_props.display_shotname_in_3dviewport = False
 
@@ -586,6 +589,8 @@ def unregister():
     features.unregister()
     print("--prefs.unregister")
     prefs.unregister()
+    print("--viewport_timeline.unregister")
+    viewport_timeline.unregister()
     print("--viewport_3d.unregister")
     viewport_3d.unregister()
     print("--general.unregister")

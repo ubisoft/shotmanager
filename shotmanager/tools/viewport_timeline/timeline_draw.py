@@ -29,7 +29,8 @@ import gpu
 from gpu_extras.batch import batch_for_shader
 from mathutils import Vector
 
-from .ogl_ui import clamp, get_region_at_xy, gamma_color
+from shotmanager.utils.utils import clamp, gamma_color
+from shotmanager.utils.utils_ogl import get_region_at_xy
 
 import logging
 
@@ -343,7 +344,7 @@ class UAS_ShotManager_DrawMontageTimeline(bpy.types.Operator):
         except Exception as ex:
             _logger.error(f"*** Crash in ogl context - Draw clips loop {ex} ***")
             context.window_manager.UAS_shot_manager_display_timeline = False
-            #context.window_manager.UAS_shot_manager_display_timeline = True
+            # context.window_manager.UAS_shot_manager_display_timeline = True
 
 
 _classes = (UAS_ShotManager_DrawMontageTimeline,)

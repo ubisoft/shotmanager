@@ -28,7 +28,8 @@ from bpy.types import Panel, Operator, Menu
 from bpy.props import StringProperty
 
 from shotmanager.config import config
-from shotmanager.viewport_3d.ogl_ui import UAS_ShotManager_DrawTimeline
+
+# from shotmanager.viewport_3d.ogl_ui import UAS_ShotManager_DrawTimeline
 
 from shotmanager.utils import utils
 

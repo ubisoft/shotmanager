@@ -19,6 +19,7 @@
 To do: module description here.
 """
 
+
 def copyString(str1):
     resStr = ""
     for c in str1:

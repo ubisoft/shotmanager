@@ -16,10 +16,6 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 """
-To do: module description here.
-"""
-
-"""
 Draw a timeline in viewport
 
 !!! Very Dirty code.
@@ -32,6 +28,9 @@ import gpu
 import bgl, blf
 import bpy
 from gpu_extras.batch import batch_for_shader
+
+from ..utils.utils import clamp, gamma_color, darken_color
+from ..utils.utils_ogl import get_region_at_xy
 
 # import mathutils
 
@@ -53,22 +52,6 @@ def remap(value, old_min, old_max, new_min, new_max):
         new_value = (((value - old_min) * new_range) / old_range) + new_min
 
     return new_value
-
-
-def clamp(value, minimum, maximum):
-    return min(max(value, minimum), maximum)
-
-
-def darken_color(color):
-    factor = 0.6
-    d_color = (color[0] * factor, color[1] * factor, color[2] * factor, color[3] * 1.0)
-    return d_color
-
-
-def gamma_color(color):
-    gamma = 0.45
-    d_color = (pow(color[0], gamma), pow(color[1], gamma), pow(color[2], gamma), color[3] * 1.0)
-    return d_color
 
 
 #
@@ -145,33 +128,6 @@ class Square:
 
     def bbox(self):
         return (-self._sx + self._x, -self.sy + self._y), (self._sx + self._x, self._sy + self._y)
-
-
-#
-# Blender windows system utils
-#
-def get_region_at_xy(context, x, y, area_type="VIEW_3D"):
-    """
-    Does not support quadview right now
-
-    :param context:
-    :param x:
-    :param y:
-    :return: the region and the area containing this region
-    """
-    for area in context.screen.areas:
-        if area.type != area_type:
-            continue
-        # is_quadview = len ( area.spaces.active.region_quadviews ) == 0
-        i = -1
-        for region in area.regions:
-            if region.type == "WINDOW":
-                i += 1
-                if region.x <= x < region.width + region.x and region.y <= y < region.height + region.y:
-
-                    return region, area
-
-    return None, None
 
 
 class BL_UI_Cursor:
@@ -807,11 +763,48 @@ class UAS_ShotManager_DrawTimeline(bpy.types.Operator):
     # Draw handler to paint onto the screen
     def draw_callback_px(self, op, context):
         try:
+            self
+        except Exception as e:
+            # except NameError as e:
+            # self = None  # or some other default value.
+            _logger.error(f"*** Crash 1 in ogl context (draw_callback_px) - {e} ***")
+            return
+
+        try:
+            if self is None or self.widgets is None:
+                return
+        except Exception as e:
+            # except NameError as e:
+            # self = None  # or some other default value.
+            _logger.error(f"*** Crash 11 in ogl context (draw_callback_px) - {e} ***")
+
+            context.window_manager.UAS_shot_manager_display_timeline = False
+            bpy.types.SpaceView3D.draw_handler_remove(self.draw_handle, "WINDOW")
+            self.draw_handle = None
+            return
+
+        try:
             for widget in self.widgets:
                 widget.draw()
         except Exception as e:
-            _logger.error(f"*** Crash in ogl context (draw_callback_px) - {e} ***")
+            _logger.error(f"*** Crash 2 in ogl context (draw_callback_px) - {e} ***")
             context.window_manager.UAS_shot_manager_display_timeline = False
             bpy.types.SpaceView3D.draw_handler_remove(self.draw_handle, "WINDOW")
             self.draw_handle = None
 
+
+_classes = (UAS_ShotManager_DrawTimeline,)
+
+
+def register():
+    print("       - Registering Viewport 3D Package")
+
+    for cls in _classes:
+        bpy.utils.register_class(cls)
+
+
+def unregister():
+    print("       - Unregistering Viewport 3D Package")
+
+    for cls in reversed(_classes):
+        bpy.utils.unregister_class(cls)

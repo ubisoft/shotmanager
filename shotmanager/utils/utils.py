@@ -810,8 +810,14 @@ def sRGBColor(color):
     return d_color
 
 
+def gamma_color(color):
+    gamma = 0.45
+    d_color = (pow(color[0], gamma), pow(color[1], gamma), pow(color[2], gamma), color[3] * 1.0)
+    return d_color
+
+
 ###################
-# Various
+# Dev
 ###################
 
 
@@ -823,3 +829,8 @@ def segment_is_in_range(segment_start, segment_end, range_start, range_end, part
             return segment_start <= range_end  # < ?
     else:
         return segment_start >= range_start and segment_end <= range_end
+
+
+def clamp(value, minimum, maximum):
+    return min(max(value, minimum), maximum)
+

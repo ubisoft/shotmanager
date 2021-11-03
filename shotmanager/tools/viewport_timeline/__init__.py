@@ -16,26 +16,23 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 """
-Display opengl hud in the viewports
+Draw an interactive timeline in the 3D viewport
 """
 
-from . import viewport_hud
-from . import ogl_ui
+from . import timeline_draw
 
 
 def register():
-    print("       - Registering Viewport 3D Package")
+    print("       - Registering Viewport Timeline Package")
 
-    viewport_hud.register()
-    ogl_ui.register()
+    timeline_draw.register()
 
 
 def unregister():
-    print("       - Unregistering Viewport 3D Package")
-
-    ogl_ui.unregister()
+    print("       - Unregistering Viewport Timeline Package")
 
     try:
-        viewport_hud.unregister()
+        timeline_draw.unregister()
     except Exception:
-        print("Paf in viewport_3d.py in Unregister viewport_hud")
+        print("       - Paf in Unregistering Viewport Timeline Package")
+
