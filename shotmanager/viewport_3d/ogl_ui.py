@@ -734,20 +734,47 @@ class UAS_ShotManager_DrawTimeline(bpy.types.Operator):
         self.draw_event = None
 
     def handle_widget_events(self, event):
+        prefs = bpy.context.preferences.addons["shotmanager"].preferences
         result = False
-        for widget in self.widgets:
-            if widget.handle_event(event):
-                result = True
+
+        # if not bpy.context.screen.is_animation_playing or bpy.context.screen.is_scrubbing:
+        if (
+            bpy.context.screen.is_animation_playing
+            and not bpy.context.screen.is_scrubbing
+            and prefs.best_play_perfs_turnOff_sequenceTimeline
+            and bpy.context.window_manager.UAS_shot_manager_use_best_perfs
+        ):
+            pass
+        else:
+            # print("handle_widget_events")
+            for widget in self.widgets:
+                if widget.handle_event(event):
+                    result = True
+
         return result
 
     def modal(self, context, event):
+        prefs = bpy.context.preferences.addons["shotmanager"].preferences
+
+        # print(f"playint: {bpy.context.screen.is_animation_playing}, scrubbing: {bpy.context.screen.is_scrubbing}")
         if context.area:
-            # context.area.tag_redraw ( )
-            for area in context.screen.areas:
-                if area.type == "VIEW_3D":
-                    area.tag_redraw()
-            if self.handle_widget_events(event):
-                return {"RUNNING_MODAL"}
+            # print(f"playint: {bpy.context.screen.is_animation_playing}, scrubbing: {bpy.context.screen.is_scrubbing}")
+            # if not bpy.context.screen.is_animation_playing or bpy.context.screen.is_scrubbing:
+            if (
+                bpy.context.screen.is_animation_playing
+                and not bpy.context.screen.is_scrubbing
+                and prefs.best_play_perfs_turnOff_sequenceTimeline
+                and bpy.context.window_manager.UAS_shot_manager_use_best_perfs
+            ):
+                pass
+            else:
+                print("modal") icicicicicicicicicicicicicicicicicicicicicicicicicicicici
+                # context.area.tag_redraw ( )
+                for area in context.screen.areas:
+                    if area.type == "VIEW_3D":
+                        area.tag_redraw()
+                if self.handle_widget_events(event):
+                    return {"RUNNING_MODAL"}
 
         #   if not context.window_manager.UAS_shot_manager_shots_play_mode:
         #  if not context.scene.UAS_shot_manager_props.display_timeline:
@@ -762,6 +789,24 @@ class UAS_ShotManager_DrawTimeline(bpy.types.Operator):
 
     # Draw handler to paint onto the screen
     def draw_callback_px(self, op, context):
+        prefs = bpy.context.preferences.addons["shotmanager"].preferences
+        # print(
+        #     f"*** context.window_manager.UAS_shot_manager_display_timeline: {context.window_manager.UAS_shot_manager_display_timeline}"
+        # )
+        if not context.window_manager.UAS_shot_manager_display_timeline:
+            return
+
+        # if context.screen.is_animation_playing and not bpy.context.screen.is_scrubbing:
+        if (
+            bpy.context.screen.is_animation_playing
+            and not bpy.context.screen.is_scrubbing
+            and prefs.best_play_perfs_turnOff_sequenceTimeline
+            and bpy.context.window_manager.UAS_shot_manager_use_best_perfs
+        ):
+            return
+        # if context.screen.is_animation_playing:
+        #     return
+
         try:
             self
         except Exception as e:
@@ -770,8 +815,15 @@ class UAS_ShotManager_DrawTimeline(bpy.types.Operator):
             _logger.error(f"*** Crash 1 in ogl context (draw_callback_px) - {e} ***")
             return
 
+        #   from _bpy import types as bpy_types
+
+        #   StructRNA = bpy_types.bpy_struct
+        #   properties = StructRNA.path_resolve(self, "properties")
+        #   _logger.error(f"*** Crash 15 in ogl context (draw_callback_px) - {properties} ***")
+
         try:
-            if self is None or self.widgets is None:
+            if self is None or self.draw_handle is None:
+                print("*** draw_handled 11 in ogl context (draw_callback_px)")
                 return
         except Exception as e:
             # except NameError as e:
@@ -805,6 +857,10 @@ def register():
 
 def unregister():
     print("       - Unregistering Viewport 3D Package")
+
+    # context.window_manager.UAS_shot_manager_display_timeline = False
+    # bpy.types.SpaceView3D.draw_handler_remove(self.draw_handle, "WINDOW")
+    # self.draw_handle = None
 
     for cls in reversed(_classes):
         bpy.utils.unregister_class(cls)

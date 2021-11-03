@@ -192,6 +192,9 @@ class UAS_PT_ShotManager(Panel):
             icon="ARROW_LEFTRIGHT",
             toggle=True,
         )
+        subSubRow.prop(
+            context.window_manager, "UAS_shot_manager_use_best_perfs", text="", icon="INDIRECT_ONLY_ON", toggle=True,
+        )
 
         # row.emboss = "PULLDOWN_MENU"
         row.operator("uas_shot_manager.features", text="", icon="PROPERTIES")
