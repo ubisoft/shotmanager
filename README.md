@@ -8,15 +8,15 @@
 
 <p align="center">
   <a href="https://ubisoft-shotmanager.readthedocs.io" title="Online documentation">
-  <img src="doc/images/Documentation.png" width="100" />
+  <img src="doc/images/Documentation.png" width="160" />
   </a>
   &nbsp;&nbsp;&nbsp;
   <a href="https://github.com/ubisoft/shotmanager/releases/latest" title="Download latest version">
-  <img src="doc/images/Download.png" width="100" />
+  <img src="doc/images/Download.png" width="160" />
   </a>
   &nbsp;&nbsp;&nbsp;
   <a href="https://github.com/ubisoft/shotmanager/issues" title="Report and follow issues">
-  <img src="doc/images/Issues.png" width="100" />
+  <img src="doc/images/Issues.png" width="160" />
   </a>
 </p>
 
