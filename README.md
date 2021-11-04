@@ -12,7 +12,7 @@
 
 <p align="center">
   <a href="https://www.youtube.com/youtube-id" title="The World's Largest Search Engine!">
-  <img src="doc/images/Documentation.png" width="200" />
+  <img src="doc/images/Documentation.png" width="80%" />
   </a>
   &nbsp;&nbsp;&nbsp;
   <a href="https://www.youtube.com/youtube-id" title="The World's Largest Search Engine!">
