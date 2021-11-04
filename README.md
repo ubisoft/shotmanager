@@ -1,6 +1,6 @@
 <img align="left" width="auto" height="auto" src="doc/images/Logo_90_A.png">
 
-# Shot Manager - Blender Add-on
+# Ubisoft Shot Manager - Blender Add-on
 
 </br>
 
