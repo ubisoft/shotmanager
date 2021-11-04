@@ -11,11 +11,17 @@
 </p>
 
 <p align="center">
-  <img src="doc/images/Documentation.png" />
-  &nbsp;
-  <img src="doc/images/Download.png" /> 
+  <a href="https://www.youtube.com/youtube-id">
+  <img src="doc/images/Documentation.png" width="200" />
+  </a>
   &nbsp;&nbsp;&nbsp;
-  <img src="doc/images/Issues.png" />
+  <a href="https://www.youtube.com/youtube-id">
+  <img src="doc/images/Download.png" width="200" />
+  </a>
+  &nbsp;&nbsp;&nbsp;
+  <a href="https://www.youtube.com/youtube-id">
+  <img src="doc/images/Issues.png" width="200" />
+  </a>
 </p>
 
 
