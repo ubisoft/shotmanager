@@ -16,7 +16,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 """
-To do: module description here.
+UI for the Interactive Shots Stack overlay tool
 """
 
 import time
@@ -29,6 +29,7 @@ import gpu
 from gpu_extras.batch import batch_for_shader
 from mathutils import Vector
 
+from shotmanager.config import config
 from shotmanager.utils.utils import clamp, gamma_color
 from shotmanager.utils.utils_ogl import get_region_at_xy
 
@@ -224,7 +225,32 @@ class UAS_ShotManager_DrawMontageTimeline(bpy.types.Operator):
 
         self.frame_under_mouse = None
 
+    def invoke(self, context, event):
+        self.draw_handle = bpy.types.SpaceDopeSheetEditor.draw_handler_add(
+            self.draw, (context,), "WINDOW", "POST_PIXEL"
+        )
+        self.draw_event = context.window_manager.event_timer_add(0.1, window=context.window)
+        context.window_manager.modal_handler_add(self)
+        self.context = context
+        self.sm_props = context.scene.UAS_shot_manager_props
+        self.build_clips()
+        return {"RUNNING_MODAL"}
+
     def modal(self, context, event):
+        prefs = bpy.context.preferences.addons["shotmanager"].preferences
+
+        if (
+            bpy.context.screen.is_animation_playing
+            and not bpy.context.screen.is_scrubbing
+            and bpy.context.window_manager.UAS_shot_manager_use_best_perfs
+            and prefs.best_play_perfs_turnOff_interactiveShotsStack
+        ):
+            return {"PASS_THROUGH"}
+
+        if config.devDebug:
+            print("wkip modal redrawing of the Interactive Shots Stack")
+        # TODO: wkip here investigate for optimization cause this forced refresh is really greedy !!!
+
         for area in context.screen.areas:
             if area.type == "DOPESHEET_EDITOR":
                 area.tag_redraw()
@@ -291,17 +317,6 @@ class UAS_ShotManager_DrawMontageTimeline(bpy.types.Operator):
 
         return {"PASS_THROUGH"}
 
-    def invoke(self, context, event):
-        self.draw_handle = bpy.types.SpaceDopeSheetEditor.draw_handler_add(
-            self.draw, (context,), "WINDOW", "POST_PIXEL"
-        )
-        self.draw_event = context.window_manager.event_timer_add(0.1, window=context.window)
-        context.window_manager.modal_handler_add(self)
-        self.context = context
-        self.sm_props = context.scene.UAS_shot_manager_props
-        self.build_clips()
-        return {"RUNNING_MODAL"}
-
     def build_clips(self):
         self.clips.clear()
         if self.compact_display:
@@ -327,6 +342,14 @@ class UAS_ShotManager_DrawMontageTimeline(bpy.types.Operator):
                 self.clips.append(ShotClip(self.context, shot, i, self.sm_props))
 
     def draw(self, context):
+        if (
+            bpy.context.screen.is_animation_playing
+            and not bpy.context.screen.is_scrubbing
+            and bpy.context.window_manager.UAS_shot_manager_use_best_perfs
+            and prefs.best_play_perfs_turnOff_interactiveShotsStack
+        ):
+            return
+
         try:
             for clip in self.clips:
                 clip.draw(context)

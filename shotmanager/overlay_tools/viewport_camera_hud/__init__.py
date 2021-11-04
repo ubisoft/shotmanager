@@ -16,26 +16,22 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 """
-Display opengl hud in the viewports
+Display camera opengl hud in the viewports
 """
 
-from . import viewport_hud
-from . import ogl_ui
+from . import cameras_hud
 
 
 def register():
-    print("       - Registering Viewport 3D Package")
+    print("       - Registering Viewport Camera HUD Package")
 
-    viewport_hud.register()
-    ogl_ui.register()
+    cameras_hud.register()
 
 
 def unregister():
-    print("       - Unregistering Viewport 3D Package")
-
-    ogl_ui.unregister()
+    print("       - Unregistering Viewport Camera HUD Package")
 
     try:
-        viewport_hud.unregister()
+        cameras_hud.unregister()
     except Exception:
-        print("Paf in viewport_3d.py in Unregister viewport_hud")
+        print("Paf in Unregister viewport_camera_hud")

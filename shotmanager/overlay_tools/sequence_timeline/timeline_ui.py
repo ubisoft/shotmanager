@@ -16,9 +16,9 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 """
-Draw a timeline in viewport
+Draw an interactive stack of shots in the Timeline editor
 
-!!! Very Dirty code.
+#TODO: clean code
 """
 
 from collections import defaultdict
@@ -29,105 +29,15 @@ import bgl, blf
 import bpy
 from gpu_extras.batch import batch_for_shader
 
-from ..utils.utils import clamp, gamma_color, darken_color
-from ..utils.utils_ogl import get_region_at_xy
+from shotmanager.config import config
+from shotmanager.utils.utils import clamp, gamma_color, darken_color, remap
+from shotmanager.utils.utils_ogl import get_region_at_xy, Square
 
 # import mathutils
 
 import logging
 
 _logger = logging.getLogger(__name__)
-
-
-font_info = {"font_id": 0, "handler": None}
-
-
-def remap(value, old_min, old_max, new_min, new_max):
-    value = clamp(value, old_min, old_max)
-    old_range = old_max - old_min
-    if old_range == 0:
-        new_value = new_min
-    else:
-        new_range = new_max - new_min
-        new_value = (((value - old_min) * new_range) / old_range) + new_min
-
-    return new_value
-
-
-#
-# Geometry utils functions
-#
-class Square:
-    UNIFORM_SHADER_2D = gpu.shader.from_builtin("2D_UNIFORM_COLOR")
-
-    def __init__(self, x, y, sx, sy, color=(1.0, 1.0, 1.0, 1.0)):
-        self._x = x
-        self._y = y
-        self._sx = sx
-        self._sy = sy
-        self._color = color
-
-    @property
-    def x(self):
-        return self._x
-
-    @x.setter
-    def x(self, value):
-        self._x = value
-
-    @property
-    def y(self):
-        return self._y
-
-    @y.setter
-    def y(self, value):
-        self._y = value
-
-    @property
-    def sx(self):
-        return self._sx
-
-    @sx.setter
-    def sx(self, value):
-        self._sx = value
-
-    @property
-    def sy(self):
-        return self._sy
-
-    @sy.setter
-    def sy(self, value):
-        self.sy = value
-
-    @property
-    def color(self):
-        return self._color
-
-    @color.setter
-    def color(self, value):
-        self._color = value
-
-    def copy(self):
-        return Square(self.x, self.y, self.sx, self.sy, self.color)
-
-    def draw(self):
-        vertices = (
-            (-self._sx + self._x, self._sy + self._y),
-            (self._sx + self._x, self._sy + self._y),
-            (-self._sx + self._x, -self._sy + self._y),
-            (self._sx + self._x, -self._sy + self._y),
-        )
-        # vertices += [ pos_2d.x, pos_2d.y ]
-        indices = ((0, 1, 2), (2, 1, 3))
-
-        batch = batch_for_shader(self.UNIFORM_SHADER_2D, "TRIS", {"pos": vertices}, indices=indices)
-
-        self.UNIFORM_SHADER_2D.bind()
-        self.UNIFORM_SHADER_2D.uniform_float("color", self._color)
-        batch.draw(self.UNIFORM_SHADER_2D)
-
-    def bbox(self):
-        return (-self._sx + self._x, -self.sy + self._y), (self._sx + self._x, self._sy + self._y)
 
 
 class BL_UI_Cursor:
@@ -741,8 +651,8 @@ class UAS_ShotManager_DrawTimeline(bpy.types.Operator):
         if (
             bpy.context.screen.is_animation_playing
             and not bpy.context.screen.is_scrubbing
-            and prefs.best_play_perfs_turnOff_sequenceTimeline
             and bpy.context.window_manager.UAS_shot_manager_use_best_perfs
+            and prefs.best_play_perfs_turnOff_sequenceTimeline
         ):
             pass
         else:
@@ -763,12 +673,14 @@ class UAS_ShotManager_DrawTimeline(bpy.types.Operator):
             if (
                 bpy.context.screen.is_animation_playing
                 and not bpy.context.screen.is_scrubbing
-                and prefs.best_play_perfs_turnOff_sequenceTimeline
                 and bpy.context.window_manager.UAS_shot_manager_use_best_perfs
+                and prefs.best_play_perfs_turnOff_sequenceTimeline
             ):
                 pass
             else:
-                print("modal") icicicicicicicicicicicicicicicicicicicicicicicicicicicici
+                if config.devDebug:
+                    print("wkip modal redrawing of the Sequence Timeline")
+                # TODO: wkip here investigate for optimization cause this forced refresh is really greedy !!!
                 # context.area.tag_redraw ( )
                 for area in context.screen.areas:
                     if area.type == "VIEW_3D":
@@ -800,8 +712,8 @@ class UAS_ShotManager_DrawTimeline(bpy.types.Operator):
         if (
             bpy.context.screen.is_animation_playing
             and not bpy.context.screen.is_scrubbing
-            and prefs.best_play_perfs_turnOff_sequenceTimeline
             and bpy.context.window_manager.UAS_shot_manager_use_best_perfs
+            and prefs.best_play_perfs_turnOff_sequenceTimeline
         ):
             return
         # if context.screen.is_animation_playing:

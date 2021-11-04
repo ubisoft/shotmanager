@@ -19,8 +19,13 @@
 Utility functions for opengl overlay
 """
 
-import bpy
+from collections import defaultdict
+from statistics import mean
 
+import gpu
+import bgl, blf
+import bpy
+from gpu_extras.batch import batch_for_shader
 
 #
 # Blender windows system utils
@@ -47,3 +52,80 @@ def get_region_at_xy(context, x, y, area_type="VIEW_3D"):
                     return region, area
 
     return None, None
+
+
+#
+# Geometry utils functions
+#
+class Square:
+    UNIFORM_SHADER_2D = gpu.shader.from_builtin("2D_UNIFORM_COLOR")
+
+    def __init__(self, x, y, sx, sy, color=(1.0, 1.0, 1.0, 1.0)):
+        self._x = x
+        self._y = y
+        self._sx = sx
+        self._sy = sy
+        self._color = color
+
+    @property
+    def x(self):
+        return self._x
+
+    @x.setter
+    def x(self, value):
+        self._x = value
+
+    @property
+    def y(self):
+        return self._y
+
+    @y.setter
+    def y(self, value):
+        self._y = value
+
+    @property
+    def sx(self):
+        return self._sx
+
+    @sx.setter
+    def sx(self, value):
+        self._sx = value
+
+    @property
+    def sy(self):
+        return self._sy
+
+    @sy.setter
+    def sy(self, value):
+        self.sy = value
+
+    @property
+    def color(self):
+        return self._color
+
+    @color.setter
+    def color(self, value):
+        self._color = value
+
+    def copy(self):
+        return Square(self.x, self.y, self.sx, self.sy, self.color)
+
+    def draw(self):
+        vertices = (
+            (-self._sx + self._x, self._sy + self._y),
+            (self._sx + self._x, self._sy + self._y),
+            (-self._sx + self._x, -self._sy + self._y),
+            (self._sx + self._x, -self._sy + self._y),
+        )
+        # vertices += [ pos_2d.x, pos_2d.y ]
+        indices = ((0, 1, 2), (2, 1, 3))
+
+        batch = batch_for_shader(self.UNIFORM_SHADER_2D, "TRIS", {"pos": vertices}, indices=indices)
+
+        self.UNIFORM_SHADER_2D.bind()
+        self.UNIFORM_SHADER_2D.uniform_float("color", self._color)
+        batch.draw(self.UNIFORM_SHADER_2D)
+
+    def bbox(self):
+        return (-self._sx + self._x, -self.sy + self._y), (self._sx + self._x, self._sy + self._y)
+

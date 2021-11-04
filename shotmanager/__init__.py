@@ -84,7 +84,7 @@ bl_info = {
     "author": "Ubisoft - Julien Blervaque (aka Werwack), Romain Carriquiry Borchiari",
     "description": "Manage a sequence of shots and cameras in the 3D View - Ubisoft Animation Studio",
     "blender": (2, 92, 0),
-    "version": (1, 5, 73),
+    "version": (1, 5, 74),
     "location": "View3D > Shot Manager",
     "wiki_url": "https://ubisoft-shotmanager.readthedocs.io",
     # "warning": "BETA Version",
@@ -410,8 +410,9 @@ def register():
 
     from .addon_prefs import addon_prefs
     from .utils import utils_vse_render
-    from . import viewport_3d
-    from .tools import viewport_timeline
+    from .overlay_tools import sequence_timeline
+    from .overlay_tools import interact_shots_stack
+    from .overlay_tools import viewport_camera_hud
 
     ###################
     # update data
@@ -515,8 +516,9 @@ def register():
 
     utils_render.register()
     general.register()
-    viewport_3d.register()
-    viewport_timeline.register()
+    interact_shots_stack.register()
+    sequence_timeline.register()
+    viewport_camera_hud.register()
     prefs.register()
     features.register()
     about.register()
@@ -556,7 +558,7 @@ def register():
         name="Enable Shots Manipulation",
         description="Enable the interactions with the shots in the Interactive Shots Stack,"
         "\nin the Timeline editor."
-        "\nNote: When the manipulation mode is enabled it may become difficult to select the keyframes",
+        "\nNote: When the manipulation mode is enabled it may become difficult to select underlying keyframes",
         default=True,
     )
 
@@ -564,7 +566,7 @@ def register():
         name="Best Play Performance",
         description="Turn off overlay tools such as the viewport Sequence Timeline"
         "\nor the Interactive Shots Stack during animation play to improve performances."
-        "\nConfigure the disabled tools in the Overlay Tools Display Settings panel",
+        "\nConfigure the disabled tools in the Overlay Tools Settings panel",
         default=True,
     )
 
@@ -589,8 +591,9 @@ def register():
 def unregister():
     print("\n*** --- Unregistering Shot Manager Add-on --- ***")
     from .utils import utils_ui
-    from . import viewport_3d
-    from .tools import viewport_timeline
+    from .overlay_tools import sequence_timeline
+    from .overlay_tools import interact_shots_stack
+    from .overlay_tools import viewport_camera_hud
 
     #    bpy.context.scene.UAS_shot_manager_props.display_shotname_in_3dviewport = False
     # if True:
@@ -628,10 +631,12 @@ def unregister():
     features.unregister()
     print("--prefs.unregister")
     prefs.unregister()
-    print("--viewport_timeline.unregister")
-    viewport_timeline.unregister()
-    print("--viewport_3d.unregister")
-    viewport_3d.unregister()
+    print("--viewport_camera_hud.unregister")
+    viewport_camera_hud.unregister()
+    print("--sequence_timeline.unregister")
+    sequence_timeline.unregister()
+    print("--interact_shots_stack.unregister")
+    interact_shots_stack.unregister()
     print("--general.unregister")
     general.unregister()
     print("--utils_render.unregister")

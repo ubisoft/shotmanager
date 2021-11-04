@@ -91,9 +91,9 @@ def draw_shotmanager_addon_prefs(self, context):
     rowRight = split.row()
     if config.devDebug:
         rowRight.alert = True
-        rowRight.operator("uas_shot_manager.enable_debug", text="Turn Off").enable_debug = False
+        rowRight.operator("uas_shot_manager.enable_debug", text="On").enable_debug = False
     else:
-        rowRight.operator("uas_shot_manager.enable_debug", text="Turn On").enable_debug = True
+        rowRight.operator("uas_shot_manager.enable_debug", text="Off").enable_debug = True
 
     if config.devDebug:
         box.separator(factor=0.2)

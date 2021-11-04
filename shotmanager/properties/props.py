@@ -249,12 +249,21 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         return True
 
     def dontRefreshUI(self):
-        res = not self.refreshUIDuringPlay and bpy.context.screen.is_animation_playing
+        prefs = bpy.context.preferences.addons["shotmanager"].preferences
+        res = False
+        if (
+            bpy.context.screen.is_animation_playing
+            and not bpy.context.screen.is_scrubbing
+            and bpy.context.window_manager.UAS_shot_manager_use_best_perfs
+            and self.preventRefreshUIDuringPlay
+        ):
+            res = True
         return res
 
-    refreshUIDuringPlay: BoolProperty(
-        name="Keep Refreshing UI During Play (Slower)",
-        description="Refresh the information displayed in the Shot Manager UI during Shot Mode Play (slower)",
+    preventRefreshUIDuringPlay: BoolProperty(
+        name="Prevent Refreshing UI During Play",
+        description="Stop refresh the information displayed in the Shot Manager UI during"
+        "\nthe play with the Shots Play Mode on, this in order to improve play performances",
         default=True,
         options=set(),
     )
@@ -581,21 +590,21 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
     #############
 
     display_camerabgtools_in_properties: BoolProperty(
-        #name="Display Camera Background Image Tools in Shot Properties",
+        # name="Display Camera Background Image Tools in Shot Properties",
         description="Display the Camera Background Image Tools in the Shot Properties panel",
         default=False,
         options=set(),
     )
 
     display_notes_in_properties: BoolProperty(
-        #name="Display Shot Notes in Shot Properties",
+        # name="Display Shot Notes in Shot Properties",
         description="Display shot notes in the Shot Properties panels",
         default=False,
         options=set(),
     )
 
     display_greasepencil_in_properties: BoolProperty(
-        #name="Display Grease Pencil in Shot Properties",
+        # name="Display Grease Pencil in Shot Properties",
         description="Display Grease Pencil in the Shot Properties panels",
         default=False,
         options=set(),
@@ -609,7 +618,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
     )
 
     display_takerendersettings_in_properties: BoolProperty(
-        #name="Display Take Render Settings in Take Properties panels",
+        # name="Display Take Render Settings in Take Properties panels",
         description="Display the take render settings in the Take Properties panel",
         default=False,
         options=set(),
@@ -1989,8 +1998,8 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         numSharedCams = 0
         for k in sharedCams:
             numSharedCams += len(sharedCams[k])
-        
-        return (numSharedCams,len(sharedCams))
+
+        return (numSharedCams, len(sharedCams))
 
     def getNumSharedCamera(self, cam, ignoreDisabled=False, takeIndex=-1, inAllTakes=True):
         """Return the number of times the specified camera is used by the shots of the specified takes

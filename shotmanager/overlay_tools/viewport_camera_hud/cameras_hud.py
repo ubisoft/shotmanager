@@ -28,9 +28,9 @@ from gpu_extras.batch import batch_for_shader
 import bpy_extras.view3d_utils as view3d_utils
 import mathutils
 
-from .ogl_ui import Square
+from shotmanager.utils.utils_ogl import get_region_at_xy, Square
 
-font_info = {"font_id": 0, "handler": None}
+# font_info = {"font_id": 0, "handler": None}
 
 
 class UAS_ShotManager_DrawCameras_UI(bpy.types.Operator):

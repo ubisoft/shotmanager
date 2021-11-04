@@ -140,8 +140,9 @@ class UAS_PT_ShotManager(Panel):
             row = layout.row()
             row.label(text="Debug Mode:")
             subrow = row.row()
-            # subrow.operator("uas_shot_manager.enable_debug", text="On").enable_debug = True
-            subrow.operator("uas_shot_manager.enable_debug", text="Off").enable_debug = False
+            # subrow.operator("uas_shot_manager.enable_debug", text="Off").enable_debug = True
+            subrow.alert = config.devDebug
+            subrow.operator("uas_shot_manager.enable_debug", text="On").enable_debug = False
 
         if config.devDebug:
             row = layout.row()

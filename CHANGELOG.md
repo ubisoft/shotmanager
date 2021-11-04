@@ -1,4 +1,20 @@
-# 1.5.74 (2021-09---) (WIP)
+# 1.5.74 (2021-11-04) (WIP)
+
+Due to heavy framerate drops when playing the animation with the timelines visible
+this version received a deep refactor on the opengl tools:
+
+- Code refactor and cleaning of the opengl features, leading to a new tools category
+named Overlay Tools with the followings features:
+
+   - the Sequence Timeline in the 3D viewport
+   - the Cameras HUD in the 3D viewport
+   - the Interactive Shots Stack in the Timeline editor
+   - the start of an opengl graphics components library in utils_ogl.py
+
+- Added a Best Play Performance toggle button near the Display Overlay Tools
+to prevent these tools to be drawn at play time in order to increase performances
+- Added settings to control which overlay tools should be disabled at play time
+
 
 # 1.5.73 (2021-09-19)
 

@@ -19,20 +19,20 @@
 Draw an interactive timeline in the 3D viewport
 """
 
-from . import timeline_draw
+from . import timeline_ui
 
 
 def register():
     print("       - Registering Viewport Timeline Package")
 
-    timeline_draw.register()
+    timeline_ui.register()
 
 
 def unregister():
     print("       - Unregistering Viewport Timeline Package")
 
     try:
-        timeline_draw.unregister()
+        timeline_ui.unregister()
     except Exception:
         print("       - Paf in Unregistering Viewport Timeline Package")
 

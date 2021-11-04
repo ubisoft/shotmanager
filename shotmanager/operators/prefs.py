@@ -47,21 +47,24 @@ class UAS_MT_ShotManager_Prefs_MainMenu(Menu):
         layout.separator()
 
         row = layout.row(align=True)
-        row.operator("uas_shot_manager.general_prefs", text="Scene Settings...")
-        row = layout.row(align=True)
         row.operator("uas_shot_manager.project_settings_prefs", text="Project Settings...")
+        row = layout.row(align=True)
+        row.operator("uas_shot_manager.general_prefs", text="Scene Settings...")
 
         layout.separator()
-
-        row = layout.row(align=True)
-        row.operator_context = "INVOKE_DEFAULT"
-        row.operator("uas_shot_manager.overlay_tools_prefs", text="Overlay Tools Display...")  # , icon="SETTINGS")
 
         row = layout.row(align=True)
         row.operator_context = "INVOKE_DEFAULT"
         row.operator("uas_shot_manager.shots_prefs", text="Shots Display...")  # , icon="SETTINGS")
 
         layout.separator()
+
+        row = layout.row(align=True)
+        row.operator_context = "INVOKE_DEFAULT"
+        row.operator("uas_shot_manager.overlay_tools_prefs", text="Overlay Tools Settings...")
+
+        layout.separator()
+
         row = layout.row(align=True)
         row.operator("preferences.addon_show", text="Add-on Preferences...").module = "shotmanager"
 
@@ -191,7 +194,7 @@ class UAS_PT_ShotManagerPref_General(Panel):
 
 class UAS_ShotManager_OverlayTools_Prefs(Operator):
     bl_idname = "uas_shot_manager.overlay_tools_prefs"
-    bl_label = "Overlay Tools Display Settings"
+    bl_label = "Overlay Tools Settings"
     bl_description = (
         "Display the Sequence Timeline, Interactive Shots Stack and Edit Settings panel"
         "\nfor the Shot Manager instanced in this scene"
@@ -210,16 +213,6 @@ class UAS_ShotManager_OverlayTools_Prefs(Operator):
         layout.label(text="Any change is effective immediately")
         layout.alert = False
 
-        # Playbar ######
-        # layout.label(text="Playbar:")
-        # box = layout.box()
-        # col = box.column()
-
-        # col.use_property_split = True
-        # col.separator(factor=1.7)
-        # col.prop(props, "current_shot_properties_mode")
-        # box.separator(factor=0.5)
-
         # Best play perfs ######
         layout.label(text="Best Play Performance:")
         box = layout.box()
@@ -229,7 +222,7 @@ class UAS_ShotManager_OverlayTools_Prefs(Operator):
         maincol = box.column()
         row = maincol.row()
         row.separator(factor=2)
-        row.label(text="Check the tools that will be disabled when animation is played:")
+        row.label(text="Check the tools and features that will be disabled when animation is playing:")
 
         # empty spacer column
         row = maincol.row()
@@ -245,25 +238,22 @@ class UAS_ShotManager_OverlayTools_Prefs(Operator):
         col.prop(
             prefs, "best_play_perfs_turnOff_interactiveShotsStack", text="Interactive Shots Stack",
         )
+        col.prop(props, "preventRefreshUIDuringPlay", text="Main Panel UI")
 
-        # Play ######
+        # Sequence timeline ######
         # layout.separator(factor=1)
-        layout.label(text="Shot Play Mode:")
+        layout.label(text="Sequence Timeline:")
         box = layout.box()
         box.use_property_decorate = False
-        col = box.column()
 
-        col.use_property_split = True
-        col.prop(props, "refreshUIDuringPlay")
+        # empty spacer column
+        row = box.row()
+        col = row.column()
+        col.scale_x = 0.3
+        col.label(text=" ")
+        col = row.column()
 
-        # Timeline ######
-        # layout.separator(factor=1)
-        layout.label(text="Timeline:")
-        box = layout.box()
-        box.use_property_decorate = False
-        col = box.column()
-
-        col.use_property_split = True
+        col.use_property_split = False
         # col.use_property_decorate = False
         col.prop(
             props, "display_disabledshots_in_timeline", text="Display Disabled Shots",
