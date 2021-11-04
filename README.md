@@ -7,7 +7,7 @@
 **Shot Manager is a Blender add-on that introduces a true shot entity in Blender scenes, as well as a wide and powerful set of tools to build and edit sequences in real-time directly in the 3D context.**
 
 <p align="center">
-  <a href="https://ubisoft-shotmanager.readthedocs.io" title="Online documentation">
+  <a href="https://ubisoft-shotmanager.readthedocs.io" title="Consult the online documentation">
   <img src="doc/images/Documentation.png" width="160" />
   </a>
   &nbsp;&nbsp;&nbsp;
