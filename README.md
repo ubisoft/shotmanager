@@ -7,27 +7,18 @@
 **Shot Manager is a Blender add-on that introduces a true shot entity in Blender scenes, as well as a wide and powerful set of tools to build and edit sequences in real-time directly in the 3D context.**
 
 <p align="center">
-[![name](doc/images/Documentation.png)](https://github.com/ubisoft/shotmanager/releases) &nbsp; [![name](doc/images/Download.png)](https://github.com/ubisoft/shotmanager/releases) [![name](doc/images/Issues.png)](https://github.com/ubisoft/shotmanager/releases)
-</p>
-
-<p align="center">
-  <a href="https://www.youtube.com/youtube-id" title="The World's Largest Search Engine!">
-  <img src="doc/images/Documentation.png" width="50" />
+  <a href="https://ubisoft-shotmanager.readthedocs.io" title="Online documentation">
+  <img src="doc/images/Documentation.png" width="100" />
   </a>
   &nbsp;&nbsp;&nbsp;
-  <a href="https://www.youtube.com/youtube-id" title="The World's Largest Search Engine!">
-  <img src="doc/images/Download.png" width="200" />
+  <a href="https://github.com/ubisoft/shotmanager/releases/latest" title="Download latest version">
+  <img src="doc/images/Download.png" width="100" />
   </a>
   &nbsp;&nbsp;&nbsp;
-  <a href="https://www.youtube.com/youtube-id">
-  <img src="doc/images/Issues.png" width="200" />
+  <a href="https://github.com/ubisoft/shotmanager/issues" title="Report and follow issues">
+  <img src="doc/images/Issues.png" width="100" />
   </a>
 </p>
-
-
-**User documentation:** [ubisoft-shotmanager.readthedocs.io](https://ubisoft-shotmanager.readthedocs.io)
-
-**Latest <u>GitHub</u> release:** [github.com/ubisoft/shotmanager/releases/latest](https://github.com/ubisoft/shotmanager/releases/latest)
 
 
 **Disclaimer**
