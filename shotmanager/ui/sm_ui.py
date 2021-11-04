@@ -23,7 +23,8 @@ import bpy
 from bpy.types import Panel, Operator
 
 from shotmanager.config import config
-from shotmanager.viewport_3d.ogl_ui import UAS_ShotManager_DrawTimeline
+
+# from shotmanager.viewport_3d.ogl_ui import UAS_ShotManager_DrawTimeline
 
 from shotmanager.utils import utils
 
@@ -139,8 +140,9 @@ class UAS_PT_ShotManager(Panel):
             row = layout.row()
             row.label(text="Debug Mode:")
             subrow = row.row()
-            # subrow.operator("uas_shot_manager.enable_debug", text="On").enable_debug = True
-            subrow.operator("uas_shot_manager.enable_debug", text="Off").enable_debug = False
+            # subrow.operator("uas_shot_manager.enable_debug", text="Off").enable_debug = True
+            subrow.alert = config.devDebug
+            subrow.operator("uas_shot_manager.enable_debug", text="On").enable_debug = False
 
         if config.devDebug:
             row = layout.row()
@@ -190,6 +192,9 @@ class UAS_PT_ShotManager(Panel):
             text="",
             icon="ARROW_LEFTRIGHT",
             toggle=True,
+        )
+        subSubRow.prop(
+            context.window_manager, "UAS_shot_manager_use_best_perfs", text="", icon="INDIRECT_ONLY_ON", toggle=True,
         )
 
         # row.emboss = "PULLDOWN_MENU"
@@ -585,7 +590,7 @@ class UAS_PT_ShotManager_Initialize(Operator):
 
 classes = (
     UAS_PT_ShotManager,
-    UAS_ShotManager_DrawTimeline,
+    #  UAS_ShotManager_DrawTimeline,
     UAS_PT_ShotManager_Initialize,
 )
 

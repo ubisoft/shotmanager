@@ -47,21 +47,24 @@ class UAS_MT_ShotManager_Prefs_MainMenu(Menu):
         layout.separator()
 
         row = layout.row(align=True)
-        row.operator("uas_shot_manager.general_prefs", text="Scene Settings...")
-        row = layout.row(align=True)
         row.operator("uas_shot_manager.project_settings_prefs", text="Project Settings...")
+        row = layout.row(align=True)
+        row.operator("uas_shot_manager.general_prefs", text="Scene Settings...")
 
         layout.separator()
-
-        row = layout.row(align=True)
-        row.operator_context = "INVOKE_DEFAULT"
-        row.operator("uas_shot_manager.playbar_prefs", text="Playbar Display...")  # , icon="SETTINGS")
 
         row = layout.row(align=True)
         row.operator_context = "INVOKE_DEFAULT"
         row.operator("uas_shot_manager.shots_prefs", text="Shots Display...")  # , icon="SETTINGS")
 
         layout.separator()
+
+        row = layout.row(align=True)
+        row.operator_context = "INVOKE_DEFAULT"
+        row.operator("uas_shot_manager.overlay_tools_prefs", text="Overlay Tools Settings...")
+
+        layout.separator()
+
         row = layout.row(align=True)
         row.operator("preferences.addon_show", text="Add-on Preferences...").module = "shotmanager"
 
@@ -189,53 +192,68 @@ class UAS_PT_ShotManagerPref_General(Panel):
         col.label(text="PlaceHolder")
 
 
-class UAS_ShotManager_Playbar_Prefs(Operator):
-    bl_idname = "uas_shot_manager.playbar_prefs"
-    bl_label = "Playbar Display Settings"
+class UAS_ShotManager_OverlayTools_Prefs(Operator):
+    bl_idname = "uas_shot_manager.overlay_tools_prefs"
+    bl_label = "Overlay Tools Settings"
     bl_description = (
-        "Display the Playbar, Timeline and Edit Settings panel\nfor the Shot Manager instanced in this scene"
+        "Display the Sequence Timeline, Interactive Shots Stack and Edit Settings panel"
+        "\nfor the Shot Manager instanced in this scene"
     )
     bl_options = {"INTERNAL"}
 
     def invoke(self, context, event):
-        return context.window_manager.invoke_props_dialog(self, width=500)
+        return context.window_manager.invoke_props_dialog(self, width=480)
 
     def draw(self, context):
         props = context.scene.UAS_shot_manager_props
+        prefs = bpy.context.preferences.addons["shotmanager"].preferences
 
         layout = self.layout
         layout.alert = True
         layout.label(text="Any change is effective immediately")
         layout.alert = False
 
-        # Playbar ######
-        # layout.label(text="Playbar:")
-        # box = layout.box()
-        # col = box.column()
-
-        # col.use_property_split = True
-        # col.separator(factor=1.7)
-        # col.prop(props, "current_shot_properties_mode")
-        # box.separator(factor=0.5)
-
-        # Play ######
-        # layout.separator(factor=1)
-        layout.label(text="Shot Play Mode:")
+        # Best play perfs ######
+        layout.label(text="Best Play Performance:")
         box = layout.box()
         box.use_property_decorate = False
-        col = box.column()
 
-        col.use_property_split = True
-        col.prop(props, "refreshUIDuringPlay")
+        # main column, to allow title offset
+        maincol = box.column()
+        row = maincol.row()
+        row.separator(factor=2)
+        row.label(text="Check the tools and features that will be disabled when animation is playing:")
 
-        # Timeline ######
+        # empty spacer column
+        row = maincol.row()
+        col = row.column()
+        col.scale_x = 0.3
+        col.label(text=" ")
+        col = row.column()
+
+        col.use_property_split = False
+        col.prop(
+            prefs, "best_play_perfs_turnOff_sequenceTimeline", text="Sequence Timeline",
+        )
+        col.prop(
+            prefs, "best_play_perfs_turnOff_interactiveShotsStack", text="Interactive Shots Stack",
+        )
+        col.prop(props, "preventRefreshUIDuringPlay", text="Main Panel UI")
+
+        # Sequence timeline ######
         # layout.separator(factor=1)
-        layout.label(text="Timeline:")
+        layout.label(text="Sequence Timeline:")
         box = layout.box()
         box.use_property_decorate = False
-        col = box.column()
 
-        col.use_property_split = True
+        # empty spacer column
+        row = box.row()
+        col = row.column()
+        col.scale_x = 0.3
+        col.label(text=" ")
+        col = row.column()
+
+        col.use_property_split = False
         # col.use_property_decorate = False
         col.prop(
             props, "display_disabledshots_in_timeline", text="Display Disabled Shots",
@@ -269,6 +287,7 @@ class UAS_ShotManager_Shots_Prefs(Operator):
 
     def draw(self, context):
         props = context.scene.UAS_shot_manager_props
+        prefs = bpy.context.preferences.addons["shotmanager"].preferences
 
         layout = self.layout
 
@@ -282,15 +301,20 @@ class UAS_ShotManager_Shots_Prefs(Operator):
         box = layout.box()
         box.use_property_decorate = False
 
+        # main column, to allow title offset
+        maincol = box.column()
+        row = maincol.row()
+        row.separator(factor=2)
+        row.label(text="Display:")
+
         # empty spacer column
-        row = box.row()
+        row = maincol.row()
         col = row.column()
         col.scale_x = 0.4
         col.label(text=" ")
         col = row.column()
 
         col.separator(factor=0.5)
-        col.label(text="Display:")
         col.use_property_split = False
         col.prop(props, "display_selectbut_in_shotlist", text="Display Camera Select Button")
         col.prop(props, "display_enabled_in_shotlist", text="Display Enabled State")
@@ -312,22 +336,29 @@ class UAS_ShotManager_Shots_Prefs(Operator):
         row.prop(props, "current_shot_properties_mode", text="")
         row.separator()
 
-        box.separator(factor=0.5)
+        # box.separator(factor=0.5)
 
         # User Prefs at addon level
         ###############
-        prefs = bpy.context.preferences.addons["shotmanager"].preferences
+
+        # main column, to allow title offset
+        maincol = box.column()
+        row = maincol.row()
+        row.separator(factor=2)
+        row.label(text="Time Change:")
 
         # empty spacer column
-        # row = box.row()
-        # col = row.column()
-        # col.scale_x = 0.4
-        # col.label(text=" ")
-        # col = row.column()
+        row = maincol.row()
+        col = row.column()
+        col.scale_x = 0.28
+        col.label(text=" ")
+        col = row.column()
 
-        col.separator(factor=1.0)
-        col.label(text="Time Change:")
+        # col.separator(factor=1.0)
+        # col.label(text="Time Change:")
         #  col.label(text="User Preferenes (in Preference Add-on Window):")
+        col.separator(factor=0.5)
+        col.use_property_split = False
         col.prop(
             prefs,
             "current_shot_changes_current_time",
@@ -336,6 +367,8 @@ class UAS_ShotManager_Shots_Prefs(Operator):
         col.prop(
             prefs, "current_shot_changes_time_range", text="Set Time Range To Shot Range When Current Shot Is Changed"
         )
+
+        box.separator(factor=0.3)
 
         # Shot infos displayed in viewport
         ###############
@@ -416,7 +449,7 @@ _classes = (
     UAS_MT_ShotManager_Prefs_MainMenu,
     UAS_ShotManager_General_Prefs,
     # UAS_PT_ShotManagerPref_General,
-    UAS_ShotManager_Playbar_Prefs,
+    UAS_ShotManager_OverlayTools_Prefs,
     UAS_ShotManager_Shots_Prefs,
     # UAS_PT_ShotManager_Render_StampInfoProperties,
 )

@@ -16,12 +16,23 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 """
-To do: module description here.
+Draw an interactive timeline in the 3D viewport
 """
 
+from . import timeline_ui
 
-def copyString(str1):
-    resStr = ""
-    for c in str1:
-        resStr += c
-    return resStr
+
+def register():
+    print("       - Registering Viewport Timeline Package")
+
+    timeline_ui.register()
+
+
+def unregister():
+    print("       - Unregistering Viewport Timeline Package")
+
+    try:
+        timeline_ui.unregister()
+    except Exception:
+        print("       - Paf in Unregistering Viewport Timeline Package")
+

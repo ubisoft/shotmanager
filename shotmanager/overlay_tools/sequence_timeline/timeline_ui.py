@@ -16,13 +16,9 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 """
-To do: module description here.
-"""
+Draw an interactive stack of shots in the Timeline editor
 
-"""
-Draw a timeline in viewport
-
-!!! Very Dirty code.
+#TODO: clean code
 """
 
 from collections import defaultdict
@@ -33,145 +29,15 @@ import bgl, blf
 import bpy
 from gpu_extras.batch import batch_for_shader
 
+from shotmanager.config import config
+from shotmanager.utils.utils import clamp, gamma_color, darken_color, remap
+from shotmanager.utils.utils_ogl import get_region_at_xy, Square
+
 # import mathutils
 
 import logging
 
 _logger = logging.getLogger(__name__)
-
-
-font_info = {"font_id": 0, "handler": None}
-
-
-def remap(value, old_min, old_max, new_min, new_max):
-    value = clamp(value, old_min, old_max)
-    old_range = old_max - old_min
-    if old_range == 0:
-        new_value = new_min
-    else:
-        new_range = new_max - new_min
-        new_value = (((value - old_min) * new_range) / old_range) + new_min
-
-    return new_value
-
-
-def clamp(value, minimum, maximum):
-    return min(max(value, minimum), maximum)
-
-
-def darken_color(color):
-    factor = 0.6
-    d_color = (color[0] * factor, color[1] * factor, color[2] * factor, color[3] * 1.0)
-    return d_color
-
-
-def gamma_color(color):
-    gamma = 0.45
-    d_color = (pow(color[0], gamma), pow(color[1], gamma), pow(color[2], gamma), color[3] * 1.0)
-    return d_color
-
-
-#
-# Geometry utils functions
-#
-class Square:
-    UNIFORM_SHADER_2D = gpu.shader.from_builtin("2D_UNIFORM_COLOR")
-
-    def __init__(self, x, y, sx, sy, color=(1.0, 1.0, 1.0, 1.0)):
-        self._x = x
-        self._y = y
-        self._sx = sx
-        self._sy = sy
-        self._color = color
-
-    @property
-    def x(self):
-        return self._x
-
-    @x.setter
-    def x(self, value):
-        self._x = value
-
-    @property
-    def y(self):
-        return self._y
-
-    @y.setter
-    def y(self, value):
-        self._y = value
-
-    @property
-    def sx(self):
-        return self._sx
-
-    @sx.setter
-    def sx(self, value):
-        self._sx = value
-
-    @property
-    def sy(self):
-        return self._sy
-
-    @sy.setter
-    def sy(self, value):
-        self.sy = value
-
-    @property
-    def color(self):
-        return self._color
-
-    @color.setter
-    def color(self, value):
-        self._color = value
-
-    def copy(self):
-        return Square(self.x, self.y, self.sx, self.sy, self.color)
-
-    def draw(self):
-        vertices = (
-            (-self._sx + self._x, self._sy + self._y),
-            (self._sx + self._x, self._sy + self._y),
-            (-self._sx + self._x, -self._sy + self._y),
-            (self._sx + self._x, -self._sy + self._y),
-        )
-        # vertices += [ pos_2d.x, pos_2d.y ]
-        indices = ((0, 1, 2), (2, 1, 3))
-
-        batch = batch_for_shader(self.UNIFORM_SHADER_2D, "TRIS", {"pos": vertices}, indices=indices)
-
-        self.UNIFORM_SHADER_2D.bind()
-        self.UNIFORM_SHADER_2D.uniform_float("color", self._color)
-        batch.draw(self.UNIFORM_SHADER_2D)
-
-    def bbox(self):
-        return (-self._sx + self._x, -self.sy + self._y), (self._sx + self._x, self._sy + self._y)
-
-
-#
-# Blender windows system utils
-#
-def get_region_at_xy(context, x, y, area_type="VIEW_3D"):
-    """
-    Does not support quadview right now
-
-    :param context:
-    :param x:
-    :param y:
-    :return: the region and the area containing this region
-    """
-    for area in context.screen.areas:
-        if area.type != area_type:
-            continue
-        # is_quadview = len ( area.spaces.active.region_quadviews ) == 0
-        i = -1
-        for region in area.regions:
-            if region.type == "WINDOW":
-                i += 1
-                if region.x <= x < region.width + region.x and region.y <= y < region.height + region.y:
-
-                    return region, area
-
-    return None, None
 
 
 class BL_UI_Cursor:
@@ -778,20 +644,49 @@ class UAS_ShotManager_DrawTimeline(bpy.types.Operator):
         self.draw_event = None
 
     def handle_widget_events(self, event):
+        prefs = bpy.context.preferences.addons["shotmanager"].preferences
         result = False
-        for widget in self.widgets:
-            if widget.handle_event(event):
-                result = True
+
+        # if not bpy.context.screen.is_animation_playing or bpy.context.screen.is_scrubbing:
+        if (
+            bpy.context.screen.is_animation_playing
+            and not bpy.context.screen.is_scrubbing
+            and bpy.context.window_manager.UAS_shot_manager_use_best_perfs
+            and prefs.best_play_perfs_turnOff_sequenceTimeline
+        ):
+            pass
+        else:
+            # print("handle_widget_events")
+            for widget in self.widgets:
+                if widget.handle_event(event):
+                    result = True
+
         return result
 
     def modal(self, context, event):
+        prefs = bpy.context.preferences.addons["shotmanager"].preferences
+
+        # print(f"playint: {bpy.context.screen.is_animation_playing}, scrubbing: {bpy.context.screen.is_scrubbing}")
         if context.area:
-            # context.area.tag_redraw ( )
-            for area in context.screen.areas:
-                if area.type == "VIEW_3D":
-                    area.tag_redraw()
-            if self.handle_widget_events(event):
-                return {"RUNNING_MODAL"}
+            # print(f"playint: {bpy.context.screen.is_animation_playing}, scrubbing: {bpy.context.screen.is_scrubbing}")
+            # if not bpy.context.screen.is_animation_playing or bpy.context.screen.is_scrubbing:
+            if (
+                bpy.context.screen.is_animation_playing
+                and not bpy.context.screen.is_scrubbing
+                and bpy.context.window_manager.UAS_shot_manager_use_best_perfs
+                and prefs.best_play_perfs_turnOff_sequenceTimeline
+            ):
+                pass
+            else:
+                if config.devDebug:
+                    print("wkip modal redrawing of the Sequence Timeline")
+                # TODO: wkip here investigate for optimization cause this forced refresh is really greedy !!!
+                # context.area.tag_redraw ( )
+                for area in context.screen.areas:
+                    if area.type == "VIEW_3D":
+                        area.tag_redraw()
+                if self.handle_widget_events(event):
+                    return {"RUNNING_MODAL"}
 
         #   if not context.window_manager.UAS_shot_manager_shots_play_mode:
         #  if not context.scene.UAS_shot_manager_props.display_timeline:
@@ -806,12 +701,78 @@ class UAS_ShotManager_DrawTimeline(bpy.types.Operator):
 
     # Draw handler to paint onto the screen
     def draw_callback_px(self, op, context):
+        prefs = bpy.context.preferences.addons["shotmanager"].preferences
+        # print(
+        #     f"*** context.window_manager.UAS_shot_manager_display_timeline: {context.window_manager.UAS_shot_manager_display_timeline}"
+        # )
+        if not context.window_manager.UAS_shot_manager_display_timeline:
+            return
+
+        # if context.screen.is_animation_playing and not bpy.context.screen.is_scrubbing:
+        if (
+            bpy.context.screen.is_animation_playing
+            and not bpy.context.screen.is_scrubbing
+            and bpy.context.window_manager.UAS_shot_manager_use_best_perfs
+            and prefs.best_play_perfs_turnOff_sequenceTimeline
+        ):
+            return
+        # if context.screen.is_animation_playing:
+        #     return
+
+        try:
+            self
+        except Exception as e:
+            # except NameError as e:
+            # self = None  # or some other default value.
+            _logger.error(f"*** Crash 1 in ogl context (draw_callback_px) - {e} ***")
+            return
+
+        #   from _bpy import types as bpy_types
+
+        #   StructRNA = bpy_types.bpy_struct
+        #   properties = StructRNA.path_resolve(self, "properties")
+        #   _logger.error(f"*** Crash 15 in ogl context (draw_callback_px) - {properties} ***")
+
+        try:
+            if self is None or self.draw_handle is None:
+                print("*** draw_handled 11 in ogl context (draw_callback_px)")
+                return
+        except Exception as e:
+            # except NameError as e:
+            # self = None  # or some other default value.
+            _logger.error(f"*** Crash 11 in ogl context (draw_callback_px) - {e} ***")
+
+            context.window_manager.UAS_shot_manager_display_timeline = False
+            bpy.types.SpaceView3D.draw_handler_remove(self.draw_handle, "WINDOW")
+            self.draw_handle = None
+            return
+
         try:
             for widget in self.widgets:
                 widget.draw()
         except Exception as e:
-            _logger.error(f"*** Crash in ogl context (draw_callback_px) - {e} ***")
+            _logger.error(f"*** Crash 2 in ogl context (draw_callback_px) - {e} ***")
             context.window_manager.UAS_shot_manager_display_timeline = False
             bpy.types.SpaceView3D.draw_handler_remove(self.draw_handle, "WINDOW")
             self.draw_handle = None
 
+
+_classes = (UAS_ShotManager_DrawTimeline,)
+
+
+def register():
+    print("       - Registering Viewport 3D Package")
+
+    for cls in _classes:
+        bpy.utils.register_class(cls)
+
+
+def unregister():
+    print("       - Unregistering Viewport 3D Package")
+
+    # context.window_manager.UAS_shot_manager_display_timeline = False
+    # bpy.types.SpaceView3D.draw_handler_remove(self.draw_handle, "WINDOW")
+    # self.draw_handle = None
+
+    for cls in reversed(_classes):
+        bpy.utils.unregister_class(cls)

@@ -16,12 +16,20 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 """
-To do: module description here.
+Interactive Shots Stack overlay tool
 """
 
+from . import shots_stack_ui
 
-def copyString(str1):
-    resStr = ""
-    for c in str1:
-        resStr += c
-    return resStr
+
+def register():
+    print("       - Registering Interactive Shots Stack Package")
+
+    shots_stack_ui.register()
+
+
+def unregister():
+    print("       - Unregistering Interactive Shots Stack Package")
+
+    shots_stack_ui.unregister()
+

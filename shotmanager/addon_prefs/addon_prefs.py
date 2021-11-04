@@ -185,6 +185,21 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
         default="STILL",
     )
 
+    ### Overlay tools
+
+    # tools disabled during play
+    best_play_perfs_turnOff_sequenceTimeline: BoolProperty(
+        name="Turn Off Sequence Timeline",
+        description="Disable Sequence Timeline display in the 3d viewport when animation is playing",
+        default=True,
+    )
+
+    best_play_perfs_turnOff_interactiveShotsStack: BoolProperty(
+        name="Turn Off Interactive Shots Stack",
+        description="Disable Interactive Shots Stack display in the Timeline editor when animation is playing",
+        default=True,
+    )
+
     ### Retimer
     display_retimer_in_properties: BoolProperty(
         name="Display Retimer",
@@ -275,7 +290,6 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
         default=50,
     )
 
-    
     ##################
     # global temps values   ###
     ##################

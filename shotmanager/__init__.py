@@ -84,7 +84,7 @@ bl_info = {
     "author": "Ubisoft - Julien Blervaque (aka Werwack), Romain Carriquiry Borchiari",
     "description": "Manage a sequence of shots and cameras in the 3D View - Ubisoft Animation Studio",
     "blender": (2, 92, 0),
-    "version": (1, 5, 73),
+    "version": (1, 5, 74),
     "location": "View3D > Shot Manager",
     "wiki_url": "https://ubisoft-shotmanager.readthedocs.io",
     # "warning": "BETA Version",
@@ -165,9 +165,20 @@ class Formatter(logging.Formatter):
 def timeline_valueChanged(self, context):
     # print("  timeline_valueChanged:  self.UAS_shot_manager_display_timeline: ", self.UAS_shot_manager_display_timeline)
     if self.UAS_shot_manager_display_timeline:
-        bpy.ops.uas_shot_manager.draw_timeline("INVOKE_DEFAULT")
+        a = bpy.ops.uas_shot_manager.draw_timeline("INVOKE_DEFAULT")
+        # print(f"a: {a}")
         bpy.ops.uas_shot_manager.draw_montage_timeline("INVOKE_DEFAULT")
+        pass
         # bpy.ops.uas_shot_manager.draw_cameras_ui("INVOKE_DEFAULT")
+    else:
+        print(f"a operator timeline not updated")
+
+        # bpy.ops.uas_shot_manager.draw_timeline.cancel(context)
+        # print(f"a b operator timeline not updated")
+    # pistes pour killer un operateur:
+    #   - mettre un Poll
+    #   - faire un return Cancel dans le contenu
+    #   - killer, d'une maniere ou d'une autre
 
 
 def install_shot_handler(self, context):
@@ -399,7 +410,9 @@ def register():
 
     from .addon_prefs import addon_prefs
     from .utils import utils_vse_render
-    from . import viewport_3d
+    from .overlay_tools import sequence_timeline
+    from .overlay_tools import interact_shots_stack
+    from .overlay_tools import viewport_camera_hud
 
     ###################
     # update data
@@ -503,7 +516,9 @@ def register():
 
     utils_render.register()
     general.register()
-    viewport_3d.register()
+    interact_shots_stack.register()
+    sequence_timeline.register()
+    viewport_camera_hud.register()
     prefs.register()
     features.register()
     about.register()
@@ -517,25 +532,46 @@ def register():
     # call in the code by context.window_manager.UAS_shot_manager_shots_play_mode etc
 
     bpy.types.WindowManager.UAS_shot_manager_shots_play_mode = BoolProperty(
-        name="frame_handler",
-        description="Override the standard animation Play mode to play the enabled shots\nin the specified order",
+        name="Enable Shot Play Mode",
+        description="Override the standard animation Play mode to play the enabled shots" "\nin the specified order",
         default=False,
         update=install_shot_handler,
     )
 
+    # bpy.types.WindowManager.UAS_shot_manager_display_timeline = BoolProperty(
+    #     name="Display Sequence Timeline",
+    #     description="Display the edit of the current sequence as an interactive timeline"
+    #     "\nin the 3D Viewport, with the shots in the specified order",
+    #     default=False,
+    #     update=timeline_valueChanged,
+    # )
     bpy.types.WindowManager.UAS_shot_manager_display_timeline = BoolProperty(
-        name="display_timeline",
-        description="Display a timeline in the 3D Viewport with the shots in the specified order",
+        name="Display Overlay Tools",
+        description="Toggle the display of the overlay tools in the opened editors:"
+        "\n  - Sequence Timeline in the 3D viewport"
+        "\n  - Interactive Shots Stack in the Timeline editor",
         default=False,
         update=timeline_valueChanged,
     )
 
     bpy.types.WindowManager.UAS_shot_manager_toggle_montage_interaction = BoolProperty(
-        name="montage_interaction", description="Disable or enable montage like timeline interaction", default=True,
+        name="Enable Shots Manipulation",
+        description="Enable the interactions with the shots in the Interactive Shots Stack,"
+        "\nin the Timeline editor."
+        "\nNote: When the manipulation mode is enabled it may become difficult to select underlying keyframes",
+        default=True,
+    )
+
+    bpy.types.WindowManager.UAS_shot_manager_use_best_perfs = BoolProperty(
+        name="Best Play Performance",
+        description="Turn off overlay tools such as the viewport Sequence Timeline"
+        "\nor the Interactive Shots Stack during animation play to improve performances."
+        "\nConfigure the disabled tools in the Overlay Tools Settings panel",
+        default=True,
     )
 
     bpy.types.WindowManager.UAS_shot_manager_progressbar = FloatProperty(
-        name="progressbar",
+        name="Progress Bbar",
         description="Value of the progress bar",
         subtype="PERCENTAGE",
         min=0,
@@ -555,13 +591,27 @@ def register():
 def unregister():
     print("\n*** --- Unregistering Shot Manager Add-on --- ***")
     from .utils import utils_ui
-    from . import viewport_3d
+    from .overlay_tools import sequence_timeline
+    from .overlay_tools import interact_shots_stack
+    from .overlay_tools import viewport_camera_hud
 
     #    bpy.context.scene.UAS_shot_manager_props.display_shotname_in_3dviewport = False
+    # if True:
+    utils_handlers.removeAllHandlerOccurences(
+        checkDataVersion_post_load_handler, handlerCateg=bpy.app.handlers.load_post
+    )
 
     # Unregister packages that may have been registered if the install had errors
     ###################
     from .install.install_dependencies import unregister_from_failed_install
+
+    bpy.context.window_manager.UAS_shot_manager_display_timeline = False
+
+    # bpy.utils.unregister_class(cls)
+    #    bpy.ops.uas_shot_manager.draw_timeline.cancel(bpy.context)
+
+    #  bpy.context.window_manager.event_timer_remove(bpy.ops.uas_shot_manager.draw_timeline.draw_event)
+    # bpy.types.SpaceView3D.draw_handler_remove(bpy.ops.uas_shot_manager.draw_timeline.draw_handle, "WINDOW")
 
     if unregister_from_failed_install():
         utils_ui.unregister()
@@ -574,11 +624,6 @@ def unregister():
     from .addon_prefs import addon_prefs
     from .utils import utils_vse_render
 
-    # if True:
-    utils_handlers.removeAllHandlerOccurences(
-        checkDataVersion_post_load_handler, handlerCateg=bpy.app.handlers.load_post
-    )
-
     # ui
     print("--about.unregister")
     about.unregister()
@@ -586,8 +631,12 @@ def unregister():
     features.unregister()
     print("--prefs.unregister")
     prefs.unregister()
-    print("--viewport_3d.unregister")
-    viewport_3d.unregister()
+    print("--viewport_camera_hud.unregister")
+    viewport_camera_hud.unregister()
+    print("--sequence_timeline.unregister")
+    sequence_timeline.unregister()
+    print("--interact_shots_stack.unregister")
+    interact_shots_stack.unregister()
     print("--general.unregister")
     general.unregister()
     print("--utils_render.unregister")
