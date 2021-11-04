@@ -11,11 +11,11 @@
 </p>
 
 <p align="center">
-  <a href="https://www.youtube.com/youtube-id">
+  <a href="https://www.youtube.com/youtube-id" title="The World's Largest Search Engine!">
   <img src="doc/images/Documentation.png" width="200" />
   </a>
   &nbsp;&nbsp;&nbsp;
-  <a href="https://www.youtube.com/youtube-id">
+  <a href="https://www.youtube.com/youtube-id" title="The World's Largest Search Engine!">
   <img src="doc/images/Download.png" width="200" />
   </a>
   &nbsp;&nbsp;&nbsp;
