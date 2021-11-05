@@ -1747,7 +1747,15 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         return currentShot
 
     def setCurrentShotByIndex(self, currentShotIndex, changeTime=None, area=None):
-        """Changing the current shot doesn't affect the selected one"""
+        """Changing the current shot:
+          - doesn't affect the selected one
+          - change the current time
+        Args:
+            changeTime:
+                - None(default): depends on the state of prefs.current_shot_changes_current_time
+                - True: set current time to the start of the new shot
+                - False: current time is not changed
+        """
         scene = bpy.context.scene
         props = scene.UAS_shot_manager_props
 
@@ -1872,7 +1880,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
             return lastShotInd
 
         shotList = self.getShotsList(ignoreDisabled=ignoreDisabled, takeIndex=takeIndex)
-        #print(" getLastShotIndex: shotList: ", shotList)
+        # print(" getLastShotIndex: shotList: ", shotList)
 
         if 0 < len(shotList):
             lastShotInd = len(shotList) - 1
@@ -1949,6 +1957,79 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
             nextShotInd = -1
 
         return nextShotInd
+
+    # works only on current take
+    # TODO make this function work for any take
+    def getFirstShotIndexContainingFrame(self, frameIndex, ignoreDisabled=False):
+        """Return the first shot containing the specifed frame, -1 if not found"""
+        firstShotInd = -1
+
+        shotList = self.get_shots()
+        shotFound = False
+
+        if len(shotList):
+            firstShotInd = 0
+            while firstShotInd < len(shotList) and not shotFound:
+                if not ignoreDisabled or shotList[firstShotInd].enabled:
+                    shotFound = shotList[firstShotInd].start <= frameIndex and frameIndex <= shotList[firstShotInd].end
+                firstShotInd += 1
+
+        if shotFound:
+            firstShotInd = firstShotInd - 1
+        else:
+            firstShotInd = -1
+
+        return firstShotInd
+
+    # works only on current take
+    # TODO make this function work for any take
+    def getFirstShotIndexBeforeFrame(self, frameIndex, ignoreDisabled=False):
+        """Return the first shot before the specifed frame (supposing thanks to getFirstShotIndexContainingFrame than
+        frameIndex is not in a shot), -1 if not found
+        """
+        firstShotInd = -1
+
+        shotList = self.get_shots()
+        shotFound = False
+
+        if len(shotList):
+            firstShotInd = len(shotList) - 1
+            while 0 <= firstShotInd and not shotFound:
+                if not ignoreDisabled or shotList[firstShotInd].enabled:
+                    shotFound = shotList[firstShotInd].end < frameIndex
+                firstShotInd -= 1
+
+        if shotFound:
+            firstShotInd = firstShotInd + 1
+        else:
+            firstShotInd = -1
+
+        return firstShotInd
+
+    # works only on current take
+    # TODO make this function work for any take
+    def getFirstShotIndexAfterFrame(self, frameIndex, ignoreDisabled=False):
+        """Return the first shot after the specifed frame (supposing thanks to getFirstShotIndexContainingFrame than
+        frameIndex is not in a shot), -1 if not found
+        """
+        firstShotInd = -1
+
+        shotList = self.get_shots()
+        shotFound = False
+
+        if len(shotList):
+            firstShotInd = 0
+            while firstShotInd < len(shotList) and not shotFound:
+                if not ignoreDisabled or shotList[firstShotInd].enabled:
+                    shotFound = frameIndex < shotList[firstShotInd].start
+                firstShotInd += 1
+
+        if shotFound:
+            firstShotInd = firstShotInd - 1
+        else:
+            firstShotInd = -1
+
+        return firstShotInd
 
     def getShotsUsingCamera(self, cam, ignoreDisabled=False, takeIndex=-1):
         """Return the list of all the shots used by the specified camera in the specified take"""
@@ -2550,52 +2631,6 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
             bpy.context.scene.frame_set(newFrame)
 
         return newFrame
-
-    # works only on current take
-    def getFirstShotIndexContainingFrame(self, frameIndex, ignoreDisabled=False):
-        """Return the first shot containing the specifed frame, -1 if not found"""
-        firstShotInd = -1
-
-        shotList = self.get_shots()
-        shotFound = False
-
-        if len(shotList):
-            firstShotInd = 0
-            while firstShotInd < len(shotList) and not shotFound:
-                if not ignoreDisabled or shotList[firstShotInd].enabled:
-                    shotFound = shotList[firstShotInd].start <= frameIndex and frameIndex <= shotList[firstShotInd].end
-                firstShotInd += 1
-
-        if shotFound:
-            firstShotInd = firstShotInd - 1
-        else:
-            firstShotInd = -1
-
-        return firstShotInd
-
-    # works only on current take
-    def getFirstShotIndexAfterFrame(self, frameIndex, ignoreDisabled=False):
-        """Return the first shot after the specifed frame (supposing thanks to getFirstShotIndexContainingFrame than
-        frameIndex is not in a shot), -1 if not found
-        """
-        firstShotInd = -1
-
-        shotList = self.get_shots()
-        shotFound = False
-
-        if len(shotList):
-            firstShotInd = 0
-            while firstShotInd < len(shotList) and not shotFound:
-                if not ignoreDisabled or shotList[firstShotInd].enabled:
-                    shotFound = frameIndex < shotList[firstShotInd].start
-                firstShotInd += 1
-
-        if shotFound:
-            firstShotInd = firstShotInd - 1
-        else:
-            firstShotInd = -1
-
-        return firstShotInd
 
     ##############################
 

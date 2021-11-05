@@ -1,4 +1,12 @@
-# 1.5.74 (2021-11-04) (WIP)
+# 1.5.75 (2021-11-05)
+
+- Improved warnings display
+- Add a button tp convert camera bound markesr to shots
+- Fixed bugs in the Best Play Performance mode
+- Fixed a bug in the play of the sequence timeline
+
+
+# 1.5.74 (2021-11-04)
 
 Due to heavy framerate drops when playing the animation with the timelines visible
 this version received a deep refactor on the opengl tools:
