@@ -86,7 +86,7 @@ class UAS_ShotManager_Features(Operator):
         # Global Edit Integration
         subrow = col.row()
         subrow.scale_x = 1.5
-        subrow.prop(props, "display_globaleditintegr_in_properties", text="", icon="SEQ_SPLITVIEW")
+        subrow.prop(props, "display_globaleditintegr_in_properties", text="", icon="SEQ_STRIP_META")
         subrow.label(text="Global Edit Integration")
 
         layout.separator()

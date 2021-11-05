@@ -180,10 +180,12 @@ class UAS_PT_ShotManager(Panel):
             "UAS_shot_manager_shots_play_mode",
             text="Shots Play Mode" if context.window_manager.UAS_shot_manager_shots_play_mode else "Standard Play Mode",
             toggle=True,
-            icon="ANIM",
+            icon="ANIM" if context.window_manager.UAS_shot_manager_shots_play_mode else "FORWARD",
         )
         subRow = row.row(align=True)
-        subRow.prop(context.window_manager, "UAS_shot_manager_display_overlay_tools", text="", toggle=True, icon="TIME")
+        subRow.prop(
+            context.window_manager, "UAS_shot_manager_display_overlay_tools", text="", toggle=True, icon="NLA_PUSHDOWN"
+        )
         subSubRow = subRow.row(align=True)
         subSubRow.enabled = context.window_manager.UAS_shot_manager_display_overlay_tools
         subSubRow.prop(

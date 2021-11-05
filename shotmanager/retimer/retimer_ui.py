@@ -42,6 +42,13 @@ class UAS_PT_ShotManagerRetimer(Panel):
         val = prefs.display_retimer_in_properties and not props.dontRefreshUI()
         return val
 
+    def draw_header(self, context):
+        layout = self.layout
+        layout.emboss = "NONE"
+
+        row = layout.row(align=True)
+        row.label(icon="TIME")
+
     def draw(self, context):
         def _get_retime_frames_as_range(start, end):
             if end < start:

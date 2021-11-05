@@ -1,3 +1,8 @@
+# 1.5.76 (2021-11-05)
+
+- Changed some UI icons
+
+
 # 1.5.75 (2021-11-05)
 
 - Improved warnings display
