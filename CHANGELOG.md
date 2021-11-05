@@ -1,6 +1,8 @@
-# 1.5.76 (2021-11-05)
+# 1.5.77 (2021-11-05)
 
 - Changed some UI icons
+- Removed Camera tools (Create Camera From Viewport and Move Selected Camera to Viewport)
+and introduced a button in the Shots section instead
 
 
 # 1.5.75 (2021-11-05)

@@ -347,17 +347,17 @@ class UAS_MT_ShotManager_Shots_ToolsMenu(Menu):
 
         layout.separator()
 
-        # tools for cameras ###
-        row = layout.row(align=True)
-        row.label(text="Tools for Cameras:")
+        # # tools for cameras ###
+        # row = layout.row(align=True)
+        # row.label(text="Tools for Cameras:")
 
-        row = layout.row(align=True)
-        row.operator_context = "INVOKE_DEFAULT"
-        row.operator("uas_utils.create_camera_from_view", text="   New Camera from View")
+        # row = layout.row(align=True)
+        # row.operator_context = "INVOKE_DEFAULT"
+        # row.operator("uas_utils.create_camera_from_view", text="   New Camera from View")
 
-        row = layout.row(align=True)
-        row.operator_context = "INVOKE_DEFAULT"
-        row.operator("uas_utils.selected_camera_to_view", text="   Selected Camera to View")
+        # row = layout.row(align=True)
+        # row.operator_context = "INVOKE_DEFAULT"
+        # row.operator("uas_utils.camera_to_view", text="   Selected Camera to View")
 
         #############
         # tools for precut ###

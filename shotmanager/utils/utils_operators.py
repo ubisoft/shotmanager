@@ -124,7 +124,7 @@ class UAS_Utils_QuickHelp(Operator):
 in the viewport.
 """
 
-
+# not used anymore since integrated in UAS_Utils_CameraToView
 class UAS_Utils_CreateCameraFromView(Operator):
     bl_idname = "uas_utils.create_camera_from_view"
     bl_label = "Cam From View"
@@ -146,24 +146,28 @@ class UAS_Utils_CreateCameraFromView(Operator):
         return {"FINISHED"}
 
 
-class UAS_Utils_SelectedCameraToView(Operator):
-    bl_idname = "uas_utils.selected_camera_to_view"
-    bl_label = "Sel Cam to View"
+class UAS_Utils_CameraToView(Operator):
+    bl_idname = "uas_utils.camera_to_view"
+    bl_label = "Camera to View"
     bl_description = (
         "Make the selected camera match the the current 3D view."
         "\nIts position, rotation and lens will then be modified."
-        "\nIf the view already contains a camera then its location and fov are used"
+        "\nIf the view already contains a camera then its location and fov are used."
+        "\nShift + Click: Create a new camera from the 3D view and put it in the viewport."
     )
     bl_options = {"INTERNAL", "UNDO"}
 
-    def execute(self, context):
+    def invoke(self, context, event):
         scene = context.scene
-        print(f" Moving selected camera to view")
 
-        if 0 < len(context.selected_objects) and "CAMERA" == context.selected_objects[0].type:
-            sel_cam = context.selected_objects[0]
-            utils.makeCameraMatchViewport(context, sel_cam)
-
+        # create a new camera
+        if event.shift:
+            newCam = utils.create_new_camera("New_Camera")
+            utils.makeCameraMatchViewport(context, newCam)
+        else:
+            if 0 < len(context.selected_objects) and "CAMERA" == context.selected_objects[0].type:
+                sel_cam = context.selected_objects[0]
+                utils.makeCameraMatchViewport(context, sel_cam)
         return {"FINISHED"}
 
 
@@ -205,7 +209,7 @@ _classes = (
     UAS_Utils_RunScript,
     UAS_Utils_QuickHelp,
     UAS_Utils_CreateCameraFromView,
-    UAS_Utils_SelectedCameraToView,
+    UAS_Utils_CameraToView,
     UAS_Utils_GetCurrentFrameForTimeRange,
 )
 

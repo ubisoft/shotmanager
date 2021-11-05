@@ -668,7 +668,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
 
     # fake property: value never used in itself, its purpose is to update ofher properties
     useLockCameraView: BoolProperty(
-        name="Lock Cameras to View",
+        name="Lock Camera to View",
         description="Enable view navigation within the camera view",
         get=_get_useLockCameraView,
         set=_set_useLockCameraView,

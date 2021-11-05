@@ -200,8 +200,8 @@ class UAS_PT_ShotManager(Panel):
             context.window_manager, "UAS_shot_manager_use_best_perfs", text="", icon="INDIRECT_ONLY_ON", toggle=True,
         )
 
-        # row.emboss = "PULLDOWN_MENU"
-        row.operator("uas_shot_manager.features", text="", icon="PROPERTIES")
+        # row.prop(scene, "use_audio", text="", icon="PLAY_SOUND")      # works inverted :S
+        row.operator("uas_shot_manager.use_audio", text="", icon="PLAY_SOUND", depress=not scene.use_audio)
 
         # play bar
         ################
@@ -243,15 +243,15 @@ class UAS_PT_ShotManager(Panel):
         row.separator(factor=2.0)
         split = row.split(align=True)
         split.separator()
-        row.prop(scene, "frame_current", text="")  # directly binded to the scene property
+        row.prop(scene, "frame_current", text="")
         split = row.split(align=True)
         row.separator(factor=3.0)
         # split.separator ( )
         # wkip mettre une propriété
-        # row.prop(scene.render, "fps_base", text="")  # directly binded to the scene property
+        # row.prop(scene.render, "fps_base", text="")
         if props.playSpeedGlobal != 100:
             row.alert = True
-        row.prop(props, "playSpeedGlobal", text="")  # directly binded to the scene property
+        row.prop(props, "playSpeedGlobal", text="")
         row.alert = False
 
         layout.separator(factor=0.5)
@@ -446,79 +446,148 @@ class UAS_PT_ShotManager(Panel):
         # shots
         ################
         if len(props.takes):
-            box = layout.box()
-            row = box.row()
             # numShots = len(props.getShotsList(ignoreDisabled=False))
             # numEnabledShots = len(props.getShotsList(ignoreDisabled=True))
             numShots = props.getNumShots()
             numEnabledShots = props.getNumShots(ignoreDisabled=True)
+            display_adv_features = props.display_greasepencil_in_properties or props.display_camerabgtools_in_properties
 
-            column_flow = row.column_flow(columns=3)
-            subrow = column_flow.row()
-            subrow.alignment = "LEFT"
-            subrow.scale_x = 1.0
+            box = layout.box()
+            shotsrow = box.row()
+
+            # leftmainsplit = shotsrow.split(factor=0.3, align=False)
+
+            # column_flow = row.column_flow(columns=3)
+            # subrow = column_flow.row()
+            # subrow.alignment = "LEFT"
+            # subrow.scale_x = 1.0
 
             shotsStr = "Shots:" if not props.display_advanced_infos else f"Shots ({numEnabledShots}/{numShots}):"
-            subrow.label(text=shotsStr)
+            shotsrowleft = shotsrow.row(align=True)
+            shotsrowlefttxt = shotsrowleft.row(align=True)
+            shotsrowlefttxt.alignment = "EXPAND"
+            shotsrowlefttxt.label(text=shotsStr)
+
             # subrow.separator()
             #  column_flow.scale_x = 1.0
-            subrow = column_flow.row()
-            subrow.alignment = "LEFT"
+            # subrow = column_flow.row()
+            # subrow.alignment = "LEFT"
             #   subrow.scale_x = 1.0
-            prefs = context.preferences.addons["shotmanager"].preferences
-            iconCheckBoxes = "CHECKBOX_HLT" if not prefs.toggleShotsEnabledState else "CHECKBOX_DEHLT"
-            subrow.operator("uas_shot_manager.enabledisableall", text="", icon=iconCheckBoxes)
 
+            # rightmainsplit = shotsrow.split()
+            # rightmainsplit.alert = True
+
+            #  shotsrowright = shotsrow.row(align=True)
+
+            # spacer
+            spacerrow = shotsrowleft.row(align=False)
+            spacerrow.alignment = "LEFT"
+            # spacerrow.scale_x = 0.5
+            spacerrow.label(text="")
+            # spacerrow.separator(factor=1)
+
+            # edit ############
+            ###########################
+            #  shotsrow.alignment = "EXPAND"
+
+            subrowedit = shotsrowleft.row(align=True)
+            subrowedit.alignment = "RIGHT"
+            iconCheckBoxes = "CHECKBOX_HLT" if not prefs.toggleShotsEnabledState else "CHECKBOX_DEHLT"
+            subrowedit.operator("uas_shot_manager.enabledisableall", text="", icon=iconCheckBoxes)
             # subrow.separator(factor=0.2)
-            subrow.prop(
-                props, "display_edit_times_in_shotlist", text="Edit Times", toggle=True, icon="SEQ_STRIP_DUPLICATE"
+            subrowedit.prop(
+                props,
+                "display_edit_times_in_shotlist",
+                text="" if display_adv_features else "Edit Times",
+                toggle=True,
+                icon="SEQ_STRIP_DUPLICATE",
             )
 
-            subrow = column_flow.row()
-            subrow.scale_x = 0.9
-            subrow.alignment = "RIGHT"
+            if not display_adv_features:
+                spacerrow = shotsrowleft.row(align=False)
+                spacerrow.alignment = "EXPAND"
+                #   spacerrow.scale_x = 0.5
+                spacerrow.label(text="")
+                # spacerrow.separator(factor=1)
 
-            if props.display_greasepencil_in_properties:
-                icon = (
-                    config.icons_col["ShotManager_CamGPVisible_32"]
-                    if not prefs.toggleGreasePencil
-                    else config.icons_col["ShotManager_CamGPHidden_32"]
-                )
-                subrow.operator(
-                    "uas_shot_manager.enabledisablegreasepencil", text="", icon_value=icon.icon_id, emboss=False
-                )
+            # tools ############
+            ###########################
 
-            if props.display_camerabgtools_in_properties:
-                icon = (
-                    config.icons_col["ShotManager_CamBGVisible_32"]
-                    # config.icons_col["ShotManager_Image_32"]
-                    if not prefs.toggleCamsBG
-                    else config.icons_col["ShotManager_CamBGHidden_32"]
-                )
-                subrow.operator("uas_shot_manager.enabledisablecamsbg", text="", icon_value=icon.icon_id, emboss=False)
+            # !!! keep align at False to preserve constant size for right buttons
+            shotsrowright = shotsrow.row(align=False)
+            shotsrowright.alignment = "RIGHT"
 
-                icon = (
-                    config.icons_col["ShotManager_CamSoundVisible_32"]
-                    # config.icons_col["ShotManager_Image_32"]
-                    if not prefs.toggleCamsSoundBG
-                    else config.icons_col["ShotManager_CamSoundHidden_32"]
-                )
-                subrow.operator("uas_shot_manager.enabledisablesoundbg", text="", icon_value=icon.icon_id, emboss=False)
+            shotsrow = shotsrowright
 
-            if props.useLockCameraView:
-                subrow.alert = True
-            subrow.prop(props, "useLockCameraView", text="", icon="CAMERA_DATA")
-            if props.useLockCameraView:
-                subrow.alert = False
+            if display_adv_features:
+                subrowtools = shotsrow.row(align=True)
+                #    subrowtools.separator(factor=0.5)
+                # subrow.scale_x = 0.9
+                # subrow.alignment = "RIGHT"
+                # subrowtools.scale_x = 0.9
 
-            subrow.separator()
-            subrow.operator("uas_shot_manager.scenerangefromshot", text="", icon="PREVIEW_RANGE")
+                if props.display_greasepencil_in_properties:
+                    icon = (
+                        config.icons_col["ShotManager_CamGPVisible_32"]
+                        if not prefs.toggleGreasePencil
+                        else config.icons_col["ShotManager_CamGPHidden_32"]
+                    )
+                    subrowtools.operator(
+                        "uas_shot_manager.enabledisablegreasepencil", text="", icon_value=icon.icon_id, emboss=False
+                    )
+
+                if props.display_camerabgtools_in_properties:
+                    icon = (
+                        config.icons_col["ShotManager_CamBGVisible_32"]
+                        # config.icons_col["ShotManager_Image_32"]
+                        if not prefs.toggleCamsBG
+                        else config.icons_col["ShotManager_CamBGHidden_32"]
+                    )
+                    subrowtools.operator(
+                        "uas_shot_manager.enabledisablecamsbg", text="", icon_value=icon.icon_id, emboss=False
+                    )
+
+                    icon = (
+                        config.icons_col["ShotManager_CamSoundVisible_32"]
+                        # config.icons_col["ShotManager_Image_32"]
+                        if not prefs.toggleCamsSoundBG
+                        else config.icons_col["ShotManager_CamSoundHidden_32"]
+                    )
+                    subrowtools.operator(
+                        "uas_shot_manager.enabledisablesoundbg", text="", icon_value=icon.icon_id, emboss=False
+                    )
+
+            # camera tools ############
+            ###########################
+
+            #  subrow.scale_x = 1.0
+            camrow = shotsrow.row(align=True)
+            camrow.alignment = "RIGHT"
+            #  lockviewrow = camrow.row(align=True)
+            camrow.alert = props.useLockCameraView
+            camrow.prop(props, "useLockCameraView", text="", icon="CAMERA_DATA")
+            camrow.alert = False
+
+            camrow.operator_context = "INVOKE_DEFAULT"
+            camrow.operator("uas_utils.camera_to_view", text="", icon="TRANSFORM_ORIGINS")
+
+            # time tools ############
+            ###########################
+
+            timerow = shotsrow.row(align=True)
+            timerow.alignment = "RIGHT"
+            # subrow.separator()
+            timerow.operator("uas_shot_manager.scenerangefromshot", text="", icon="PREVIEW_RANGE")
             #    row.operator("uas_shot_manager.scenerangefromenabledshots", text="", icon="PREVIEW_RANGE")
-            subrow.operator("uas_shot_manager.scenerangefrom3dedit", text="", icon="PREVIEW_RANGE")
+            timerow.operator("uas_shot_manager.scenerangefrom3dedit", text="", icon="PREVIEW_RANGE")
 
-            col = row.column(align=True)
-            col.separator(factor=3.0)
+            # col = row.column(align=True)
+            # col.separator(factor=3.0)
             # row.operator("uas_shot_manager.shots_prefs", text="", icon="SETTINGS")
+            shotsrow.operator("uas_shot_manager.features", text="", icon="PROPERTIES")
+
+            ##################################################
+            ##################################################
 
             row = box.row()
             row.template_list(
