@@ -729,6 +729,48 @@ class UAS_ShotManager_ShotMove(Operator):
 ########################
 
 
+def convertMarkersFromCameraBindingToShots(scene):
+    """Convert camera bindings to shots.
+    New shots are added at the end of the shots list of the current take
+    """
+    props = scene.UAS_shot_manager_props
+    prefs = bpy.context.preferences.addons["shotmanager"].preferences
+    lastShotInd = props.getLastShotIndex()
+
+    if len(scene.timeline_markers) <= 0:
+        return
+
+    # get the list of markers bound to cameras and sort them by time
+    boundMarkers = []
+    for m in scene.timeline_markers:
+        if m.camera is not None:
+            boundMarkers.append(m)
+    boundMarkers = utils.sortMarkers(boundMarkers)
+
+    # create shot for each marker, even is some markers have the same camera
+    for i, m in enumerate(boundMarkers):
+        if i + 1 == len(boundMarkers):
+            duration = prefs.new_shot_duration
+        else:
+            duration = boundMarkers[i + 1].frame - boundMarkers[i].frame
+
+            # shotName = props.new_shot_prefix + f"{(i + 1):02d}" + "0"
+            shotName = m.camera.name
+            props.addShot(
+                atIndex=lastShotInd + i + 1,
+                camera=m.camera,
+                name=shotName,
+                start=boundMarkers[i].frame,
+                end=boundMarkers[i].frame + duration - 1,
+                color=(uniform(0, 1), uniform(0, 1), uniform(0, 1), 1),
+            )
+
+    currentShotInd = props.getCurrentShotIndex()
+    if -1 == currentShotInd:
+        props.setCurrentShotByIndex(0)
+        props.setSelectedShotByIndex(0)
+
+
 class UAS_ShotManager_CreateShotsFromEachCamera(Operator):
     bl_idname = "uas_shot_manager.create_shots_from_each_camera"
     bl_label = "Create Shots From Existing Cameras"

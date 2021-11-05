@@ -309,7 +309,7 @@ class UAS_ShotManager_DrawMontageTimeline(bpy.types.Operator):
         if event_handled:
             return {"RUNNING_MODAL"}
 
-        if not context.window_manager.UAS_shot_manager_display_timeline:
+        if not context.window_manager.UAS_shot_manager_display_overlay_tools:
             context.window_manager.event_timer_remove(self.draw_event)
             bpy.types.SpaceDopeSheetEditor.draw_handler_remove(self.draw_handle, "WINDOW")
 
@@ -342,6 +342,8 @@ class UAS_ShotManager_DrawMontageTimeline(bpy.types.Operator):
                 self.clips.append(ShotClip(self.context, shot, i, self.sm_props))
 
     def draw(self, context):
+        prefs = bpy.context.preferences.addons["shotmanager"].preferences
+
         if (
             bpy.context.screen.is_animation_playing
             and not bpy.context.screen.is_scrubbing
@@ -366,8 +368,8 @@ class UAS_ShotManager_DrawMontageTimeline(bpy.types.Operator):
 
         except Exception as ex:
             _logger.error(f"*** Crash in ogl context - Draw clips loop {ex} ***")
-            context.window_manager.UAS_shot_manager_display_timeline = False
-            # context.window_manager.UAS_shot_manager_display_timeline = True
+            context.window_manager.UAS_shot_manager_display_overlay_tools = False
+            # context.window_manager.UAS_shot_manager_display_overlay_tools = True
 
 
 _classes = (UAS_ShotManager_DrawMontageTimeline,)

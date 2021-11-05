@@ -24,19 +24,32 @@ from bpy.types import Operator
 from bpy.props import BoolProperty, StringProperty
 
 from shotmanager.config import config
-from ..utils.utils import getSceneVSE, convertVersionIntToStr, clearMarkersFromCameraBinding
+from shotmanager.operators.shots import convertMarkersFromCameraBindingToShots
+from shotmanager.utils.utils import getSceneVSE, convertVersionIntToStr, clearMarkersFromCameraBinding
 
 
 class UAS_ShotManager_OT_ClearMarkersFromCameraBinding(Operator):
     bl_idname = "uas_shot_manager.clear_markers_from_camera_binding"
     bl_label = "Clear Camera Binding"
-    bl_description = "Clear markers from camera binding"
-    bl_options = {"INTERNAL"}
+    bl_description = "Remove the camera binding from the markers used in the timeline.\nMarkers are not deleted"
+    bl_options = {"INTERNAL", "UNDO"}
 
     def invoke(self, context, event):
-
         clearMarkersFromCameraBinding(context.scene)
+        return {"FINISHED"}
 
+
+class UAS_ShotManager_OT_ConvertMarkersFromCameraBindingToShots(Operator):
+    bl_idname = "uas_shot_manager.convert_markers_from_camera_binding_to_shots"
+    bl_label = "Convert Camera Binding to Shots"
+    bl_description = (
+        "Convert the camera binding used by markers to shots and remove their binding.\nMarkers are not deleted"
+    )
+    bl_options = {"INTERNAL", "UNDO"}
+
+    def invoke(self, context, event):
+        convertMarkersFromCameraBindingToShots(context.scene)
+        clearMarkersFromCameraBinding(context.scene)
         return {"FINISHED"}
 
 
@@ -179,6 +192,7 @@ class UAS_ShotManager_OT_EnableDebug(Operator):
 
 _classes = (
     UAS_ShotManager_OT_ClearMarkersFromCameraBinding,
+    UAS_ShotManager_OT_ConvertMarkersFromCameraBindingToShots,
     UAS_ShotManager_OT_GoToVideoShotManager,
     UAS_ShotManager_OT_FileInfo,
     UAS_ShotManager_OT_EnableDebug,

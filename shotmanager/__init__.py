@@ -163,15 +163,16 @@ class Formatter(logging.Formatter):
 
 
 def timeline_valueChanged(self, context):
-    # print("  timeline_valueChanged:  self.UAS_shot_manager_display_timeline: ", self.UAS_shot_manager_display_timeline)
-    if self.UAS_shot_manager_display_timeline:
+    # print("  timeline_valueChanged:  self.UAS_shot_manager_display_overlay_tools: ", self.UAS_shot_manager_display_overlay_tools)
+    if self.UAS_shot_manager_display_overlay_tools:
         a = bpy.ops.uas_shot_manager.draw_timeline("INVOKE_DEFAULT")
         # print(f"a: {a}")
         bpy.ops.uas_shot_manager.draw_montage_timeline("INVOKE_DEFAULT")
         pass
         # bpy.ops.uas_shot_manager.draw_cameras_ui("INVOKE_DEFAULT")
     else:
-        print(f"a operator timeline not updated")
+        pass
+        # print(f"a operator timeline not updated")
 
         # bpy.ops.uas_shot_manager.draw_timeline.cancel(context)
         # print(f"a b operator timeline not updated")
@@ -538,14 +539,7 @@ def register():
         update=install_shot_handler,
     )
 
-    # bpy.types.WindowManager.UAS_shot_manager_display_timeline = BoolProperty(
-    #     name="Display Sequence Timeline",
-    #     description="Display the edit of the current sequence as an interactive timeline"
-    #     "\nin the 3D Viewport, with the shots in the specified order",
-    #     default=False,
-    #     update=timeline_valueChanged,
-    # )
-    bpy.types.WindowManager.UAS_shot_manager_display_timeline = BoolProperty(
+    bpy.types.WindowManager.UAS_shot_manager_display_overlay_tools = BoolProperty(
         name="Display Overlay Tools",
         description="Toggle the display of the overlay tools in the opened editors:"
         "\n  - Sequence Timeline in the 3D viewport"
@@ -605,7 +599,7 @@ def unregister():
     ###################
     from .install.install_dependencies import unregister_from_failed_install
 
-    bpy.context.window_manager.UAS_shot_manager_display_timeline = False
+    bpy.context.window_manager.UAS_shot_manager_display_overlay_tools = False
 
     # bpy.utils.unregister_class(cls)
     #    bpy.ops.uas_shot_manager.draw_timeline.cancel(bpy.context)
@@ -680,7 +674,7 @@ def unregister():
         bpy.app.handlers.frame_change_pre.remove(jump_to_shot)
 
     del bpy.types.WindowManager.UAS_shot_manager_shots_play_mode
-    del bpy.types.WindowManager.UAS_shot_manager_display_timeline
+    del bpy.types.WindowManager.UAS_shot_manager_display_overlay_tools
 
     #   del bpy.types.WindowManager.UAS_shot_manager_isInitialized
     del bpy.types.WindowManager.UAS_shot_manager_version

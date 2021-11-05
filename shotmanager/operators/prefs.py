@@ -238,7 +238,7 @@ class UAS_ShotManager_OverlayTools_Prefs(Operator):
         col.prop(
             prefs, "best_play_perfs_turnOff_interactiveShotsStack", text="Interactive Shots Stack",
         )
-        col.prop(props, "preventRefreshUIDuringPlay", text="Main Panel UI")
+        col.prop(props, "best_play_perfs_turnOff_mainUI", text="Main Panel UI")
 
         # Sequence timeline ######
         # layout.separator(factor=1)

@@ -39,7 +39,7 @@ _logger = logging.getLogger(__name__)
 class UAS_MT_ShotManager_Takes_ToolsMenu(Menu):
     bl_idname = "UAS_MT_Shot_Manager_takes_toolsmenu"
     bl_label = "Take Tools"
-    bl_description = "Take Tools"
+    # bl_description = "Take Tools"
 
     def draw(self, context):
 

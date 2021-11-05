@@ -116,5 +116,10 @@ def jump_to_shot(scene):
                 if shot.start <= current_frame <= shot.end:
                     candidates.append((i, shot))
 
+            # case were the new current time is out of every shots
+            # we then get the first shot after current time, or the very first shot if there is no shots after
+            # wkip wkip wkip
+            # if len(candidates) <= 0:
+
             props.setCurrentShot(candidates[0][1])
             scene.frame_current = current_frame

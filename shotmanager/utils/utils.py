@@ -272,7 +272,9 @@ def sceneContainsCameraBinding(scene):
 
 def clearMarkersFromCameraBinding(scene):
     for m in scene.timeline_markers:
-        m.camera = None
+        if m.camera is not None:
+            m.name = m.camera.name
+            m.camera = None
 
 
 def getMarkerbyName(scene, markerName, filter=""):

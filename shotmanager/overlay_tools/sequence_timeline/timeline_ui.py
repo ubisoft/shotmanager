@@ -690,7 +690,7 @@ class UAS_ShotManager_DrawTimeline(bpy.types.Operator):
 
         #   if not context.window_manager.UAS_shot_manager_shots_play_mode:
         #  if not context.scene.UAS_shot_manager_props.display_timeline:
-        if not context.window_manager.UAS_shot_manager_display_timeline:
+        if not context.window_manager.UAS_shot_manager_display_overlay_tools:
             self.unregister_handlers(context)
             return {"CANCELLED"}
 
@@ -703,9 +703,9 @@ class UAS_ShotManager_DrawTimeline(bpy.types.Operator):
     def draw_callback_px(self, op, context):
         prefs = bpy.context.preferences.addons["shotmanager"].preferences
         # print(
-        #     f"*** context.window_manager.UAS_shot_manager_display_timeline: {context.window_manager.UAS_shot_manager_display_timeline}"
+        #     f"*** context.window_manager.UAS_shot_manager_display_overlay_tools: {context.window_manager.UAS_shot_manager_display_overlay_tools}"
         # )
-        if not context.window_manager.UAS_shot_manager_display_timeline:
+        if not context.window_manager.UAS_shot_manager_display_overlay_tools:
             return
 
         # if context.screen.is_animation_playing and not bpy.context.screen.is_scrubbing:
@@ -742,7 +742,7 @@ class UAS_ShotManager_DrawTimeline(bpy.types.Operator):
             # self = None  # or some other default value.
             _logger.error(f"*** Crash 11 in ogl context (draw_callback_px) - {e} ***")
 
-            context.window_manager.UAS_shot_manager_display_timeline = False
+            context.window_manager.UAS_shot_manager_display_overlay_tools = False
             bpy.types.SpaceView3D.draw_handler_remove(self.draw_handle, "WINDOW")
             self.draw_handle = None
             return
@@ -752,7 +752,7 @@ class UAS_ShotManager_DrawTimeline(bpy.types.Operator):
                 widget.draw()
         except Exception as e:
             _logger.error(f"*** Crash 2 in ogl context (draw_callback_px) - {e} ***")
-            context.window_manager.UAS_shot_manager_display_timeline = False
+            context.window_manager.UAS_shot_manager_display_overlay_tools = False
             bpy.types.SpaceView3D.draw_handler_remove(self.draw_handle, "WINDOW")
             self.draw_handle = None
 
@@ -770,7 +770,7 @@ def register():
 def unregister():
     print("       - Unregistering Viewport 3D Package")
 
-    # context.window_manager.UAS_shot_manager_display_timeline = False
+    # context.window_manager.UAS_shot_manager_display_overlay_tools = False
     # bpy.types.SpaceView3D.draw_handler_remove(self.draw_handle, "WINDOW")
     # self.draw_handle = None
 

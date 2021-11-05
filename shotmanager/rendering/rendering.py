@@ -186,7 +186,7 @@ def launchRenderWithVSEComposite(
                     set_StampInfoSettings(scene)
 
         context.window_manager.UAS_shot_manager_shots_play_mode = False
-        context.window_manager.UAS_shot_manager_display_timeline = False
+        context.window_manager.UAS_shot_manager_display_overlay_tools = False
 
     renderFrameByFrame = "LOOP" == props.renderContext.renderFrameIterationMode
     renderWithOpengl = "OPENGL" == props.renderContext.renderHardwareMode
@@ -1026,7 +1026,7 @@ def launchRender(context, renderMode, rootPath, area=None):
             return False
 
         context.window_manager.UAS_shot_manager_shots_play_mode = False
-        context.window_manager.UAS_shot_manager_display_timeline = False
+        context.window_manager.UAS_shot_manager_display_overlay_tools = False
 
         # if props.use_project_settings:
         #     props.applyProjectSettings()

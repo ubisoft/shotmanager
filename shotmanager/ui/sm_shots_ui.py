@@ -288,7 +288,7 @@ class UAS_UL_ShotManager_Items(bpy.types.UIList):
 class UAS_MT_ShotManager_Shots_ToolsMenu(Menu):
     bl_idname = "UAS_MT_Shot_Manager_shots_toolsmenu"
     bl_label = "Shots Tools"
-    bl_description = "Shots Tools"
+    # bl_description = "Shots Tools"
 
     def draw(self, context):
         # props = context.scene.UAS_shot_manager_props

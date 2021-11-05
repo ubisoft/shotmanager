@@ -235,7 +235,7 @@ class UAS_PT_ShotManager_Render(Operator):
 #                 scene.render.engine = self.renderer
 
 #             context.window_manager.UAS_shot_manager_shots_play_mode = False
-#             context.window_manager.UAS_shot_manager_display_timeline = False
+#             context.window_manager.UAS_shot_manager_display_overlay_tools = False
 
 #             out_path = scene.render.filepath
 #             shots = props.get_shots()

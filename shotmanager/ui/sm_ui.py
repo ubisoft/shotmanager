@@ -183,9 +183,9 @@ class UAS_PT_ShotManager(Panel):
             icon="ANIM",
         )
         subRow = row.row(align=True)
-        subRow.prop(context.window_manager, "UAS_shot_manager_display_timeline", text="", toggle=True, icon="TIME")
+        subRow.prop(context.window_manager, "UAS_shot_manager_display_overlay_tools", text="", toggle=True, icon="TIME")
         subSubRow = subRow.row(align=True)
-        subSubRow.enabled = context.window_manager.UAS_shot_manager_display_timeline
+        subSubRow.enabled = context.window_manager.UAS_shot_manager_display_overlay_tools
         subSubRow.prop(
             context.window_manager,
             "UAS_shot_manager_toggle_montage_interaction",
@@ -193,6 +193,7 @@ class UAS_PT_ShotManager(Panel):
             icon="ARROW_LEFTRIGHT",
             toggle=True,
         )
+        subSubRow = subRow.row(align=True)
         subSubRow.prop(
             context.window_manager, "UAS_shot_manager_use_best_perfs", text="", icon="INDIRECT_ONLY_ON", toggle=True,
         )
@@ -546,18 +547,19 @@ class UAS_PT_ShotManager(Panel):
             titleRow.alert = True
             warningStr = f"Warnings: {len(warningsList)}"
             titleRow.label(text=warningStr)
-            titleRowRight = panelRow.row()
-            titleRowRight.alignment = "RIGHT"
-            titleRowRight.alert = True
+
+            # display text near warnings ############
+            # titleRowRight = panelRow.row()
+            # titleRowRight.alignment = "RIGHT"
+            # titleRowRight.alert = True
             # titleRowRight.label(text="test")
-            titleRowRight.operator("uas_shot_manager.clear_markers_from_camera_binding", text="Clear Binding")
 
             if prefs.general_warning_expanded:
                 mainRow = box.row()
                 mainRow.separator(factor=2.0)
                 warningsRow = mainRow.column(align=False)
                 for w in warningsList:
-                    messages = w.split("\n")
+                    messages = w[0].split("\n")
 
                     row = warningsRow.row()
                     row.alert = True
@@ -565,9 +567,20 @@ class UAS_PT_ShotManager(Panel):
                     warningCol.scale_y = 0.5
                     for i, mess in enumerate(messages):
                         if 0 == i:
-                            warningCol.label(text="- " + mess)
+                            warningCol.label(text="-  " + mess)
                         else:
-                            warningCol.label(text="  " + mess)
+                            warningCol.label(text="    " + mess)
+
+                    if 60 == w[1]:
+                        warningCol.scale_y = 1.0
+                        butsrow = warningCol.row()
+                        butsrow.separator(factor=0.5)
+                        butsrow.operator("uas_shot_manager.clear_markers_from_camera_binding", text="Clear Binding")
+                        butsrow.operator(
+                            "uas_shot_manager.convert_markers_from_camera_binding_to_shots", text="Convert Binding"
+                        )
+                        butsrow.separator(factor=0.5)
+
                     warningCol.separator(factor=1.0)
 
 
