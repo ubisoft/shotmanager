@@ -35,7 +35,12 @@ def get_parent_scene(shot_manager):
 
 
 def get_warnings(shot_manager):
-    """ Return an array with all the warnings
+    """Check if some warnings are to be mentioned to the user/
+    A warning message can be on several lines when the separator \n is used.
+
+    Return:
+        An array of tupples made of the warning message and the warning index
+        eg: [("Current file in Read-Only", 1), ("Current scene fps and project fps are different !!", 2)]
     """
     if shot_manager is not None:
         return shot_manager.getWarnings(shot_manager.getParentScene())

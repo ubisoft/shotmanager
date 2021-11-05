@@ -200,6 +200,14 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
         default=True,
     )
 
+    best_play_perfs_turnOff_mainUI: BoolProperty(
+        name="Prevent Refreshing UI During Play",
+        description="Stop refresh the information displayed in the Shot Manager UI during"
+        "\nthe play with the Shots Play Mode on, this in order to improve play performances",
+        default=True,
+        options=set(),
+    )
+
     ### Retimer
     display_retimer_in_properties: BoolProperty(
         name="Display Retimer",

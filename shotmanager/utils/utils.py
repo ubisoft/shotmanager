@@ -16,7 +16,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 """
-To do: module description here.
+Various general purpose functions, either to manipulate scene content or code
 """
 
 import os
@@ -259,6 +259,25 @@ def openMedia(media_filepath, inExternalPlayer=False):
 
 
 ###################
+# Time
+###################
+
+def getFrameInAnimRange(scene, frame):
+    """Check if the specified frame is in the current animation range of the scene
+    (considering that the Preview Range can also be activated) and return a
+    valid value for the frame, either the same value if in the range or one of the
+    boundaries.
+    """
+    newFrame = frame
+    if scene.use_preview_range:
+        newFrame = max(newFrame, scene.frame_preview_start)
+        newFrame = min(newFrame, scene.frame_preview_end)
+    else:
+        newFrame = max(newFrame, scene.frame_start)
+        newFrame = min(newFrame, scene.frame_end)
+    return newFrame
+
+###################
 # Markers
 ###################
 
@@ -272,7 +291,9 @@ def sceneContainsCameraBinding(scene):
 
 def clearMarkersFromCameraBinding(scene):
     for m in scene.timeline_markers:
-        m.camera = None
+        if m.camera is not None:
+            m.name = m.camera.name
+            m.camera = None
 
 
 def getMarkerbyName(scene, markerName, filter=""):

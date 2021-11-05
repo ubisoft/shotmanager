@@ -152,8 +152,12 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
     )
 
     def getWarnings(self, scene):
-        """Return an array with all the warnings
+        """Check if some warnings are to be mentioned to the user/
         A warning message can be on several lines when the separator \n is used.
+
+        Return:
+            An array of tupples made of the warning message and the warning index
+            eg: [("Current file in Read-Only", 1), ("Current scene fps and project fps are different !!", 2)]
         """
         warningList = []
 
@@ -168,13 +172,13 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
             stat = Path(currentFilePath).stat()
             # print(f"Blender file Stats: {stat.st_mode}")
             if S_IMODE(stat.st_mode) & S_IWRITE == 0:
-                warningList.append("Current file in Read-Only")
+                warningList.append(("Current file in Read-Only", 10))
 
         # check if the current framerate is valid according to the project settings (wkip)
         ###########
         if self.use_project_settings:
             if scene.render.fps != self.project_fps:
-                warningList.append("Current scene fps and project fps are different !!")
+                warningList.append(("Current scene fps and project fps are different !!", 20))
 
         # check if a negative render frame may be rendered
         ###########
@@ -188,19 +192,25 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         if hasNegativeFrame:
             if self.areShotHandlesUsed():
                 warningList.append(
-                    "Index of the output frame of a shot minus handle is negative !!"
-                    "\nNegative time indicies are not supported by Shot Manager renderer."
+                    (
+                        "Index of the output frame of a shot minus handle is negative !!"
+                        "\nNegative time indicies are not supported by Shot Manager renderer.",
+                        30,
+                    )
                 )
             else:
                 warningList.append(
-                    "At least one shot starts at a negative frame !!"
-                    "\nNegative time indicies are not supported by Shot Manager renderer."
+                    (
+                        "At least one shot starts at a negative frame !!"
+                        "\nNegative time indicies are not supported by Shot Manager renderer.",
+                        31,
+                    )
                 )
 
         # check if the resolution render percentage is at 100%
         ###########
         if 100 != scene.render.resolution_percentage:
-            warningList.append("Render Resolution Percentage is not at 100%")
+            warningList.append(("Render Resolution Percentage is not at 100%", 40))
 
         # check is the data version is compatible with the current version
         # wkip obsolete code due to post register data version check
@@ -211,14 +221,17 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
             #     bpy.context.window_manager.UAS_shot_manager_version,
             # )
 
-            warningList.append("Data version is lower than SM version !!")
+            warningList.append(("Data version is lower than SM version !!", 50))
 
-        # check if some camera markers are used in the scene
+        # check if some camera markers bound to cameras are used in the scene
         ###########
         if utils.sceneContainsCameraBinding(scene):
             warningList.append(
-                "Scene contains markers binded to cameras"
-                "\n*** Shot Manager is NOT compatible with camera binding ***"
+                (
+                    "Scene contains markers binded to cameras"
+                    "\n*** Shot Manager is NOT compatible with camera binding ***",
+                    60,
+                )
             )
 
         # if self.use_project_settings and "Scene" in scene.name:
@@ -255,18 +268,10 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
             bpy.context.screen.is_animation_playing
             and not bpy.context.screen.is_scrubbing
             and bpy.context.window_manager.UAS_shot_manager_use_best_perfs
-            and self.preventRefreshUIDuringPlay
+            and prefs.best_play_perfs_turnOff_mainUI
         ):
             res = True
         return res
-
-    preventRefreshUIDuringPlay: BoolProperty(
-        name="Prevent Refreshing UI During Play",
-        description="Stop refresh the information displayed in the Shot Manager UI during"
-        "\nthe play with the Shots Play Mode on, this in order to improve play performances",
-        default=True,
-        options=set(),
-    )
 
     # wkip rrs specific
     #############
@@ -1742,7 +1747,15 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         return currentShot
 
     def setCurrentShotByIndex(self, currentShotIndex, changeTime=None, area=None):
-        """Changing the current shot doesn't affect the selected one"""
+        """Changing the current shot:
+          - doesn't affect the selected one
+          - change the current time
+        Args:
+            changeTime:
+                - None(default): depends on the state of prefs.current_shot_changes_current_time
+                - True: set current time to the start of the new shot
+                - False: current time is not changed
+        """
         scene = bpy.context.scene
         props = scene.UAS_shot_manager_props
 
@@ -1867,7 +1880,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
             return lastShotInd
 
         shotList = self.getShotsList(ignoreDisabled=ignoreDisabled, takeIndex=takeIndex)
-        print(" getLastShotIndex: shotList: ", shotList)
+        # print(" getLastShotIndex: shotList: ", shotList)
 
         if 0 < len(shotList):
             lastShotInd = len(shotList) - 1
@@ -1944,6 +1957,79 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
             nextShotInd = -1
 
         return nextShotInd
+
+    # works only on current take
+    # TODO make this function work for any take
+    def getFirstShotIndexContainingFrame(self, frameIndex, ignoreDisabled=False):
+        """Return the first shot containing the specifed frame, -1 if not found"""
+        firstShotInd = -1
+
+        shotList = self.get_shots()
+        shotFound = False
+
+        if len(shotList):
+            firstShotInd = 0
+            while firstShotInd < len(shotList) and not shotFound:
+                if not ignoreDisabled or shotList[firstShotInd].enabled:
+                    shotFound = shotList[firstShotInd].start <= frameIndex and frameIndex <= shotList[firstShotInd].end
+                firstShotInd += 1
+
+        if shotFound:
+            firstShotInd = firstShotInd - 1
+        else:
+            firstShotInd = -1
+
+        return firstShotInd
+
+    # works only on current take
+    # TODO make this function work for any take
+    def getFirstShotIndexBeforeFrame(self, frameIndex, ignoreDisabled=False):
+        """Return the first shot before the specifed frame (supposing thanks to getFirstShotIndexContainingFrame than
+        frameIndex is not in a shot), -1 if not found
+        """
+        firstShotInd = -1
+
+        shotList = self.get_shots()
+        shotFound = False
+
+        if len(shotList):
+            firstShotInd = len(shotList) - 1
+            while 0 <= firstShotInd and not shotFound:
+                if not ignoreDisabled or shotList[firstShotInd].enabled:
+                    shotFound = shotList[firstShotInd].end < frameIndex
+                firstShotInd -= 1
+
+        if shotFound:
+            firstShotInd = firstShotInd + 1
+        else:
+            firstShotInd = -1
+
+        return firstShotInd
+
+    # works only on current take
+    # TODO make this function work for any take
+    def getFirstShotIndexAfterFrame(self, frameIndex, ignoreDisabled=False):
+        """Return the first shot after the specifed frame (supposing thanks to getFirstShotIndexContainingFrame than
+        frameIndex is not in a shot), -1 if not found
+        """
+        firstShotInd = -1
+
+        shotList = self.get_shots()
+        shotFound = False
+
+        if len(shotList):
+            firstShotInd = 0
+            while firstShotInd < len(shotList) and not shotFound:
+                if not ignoreDisabled or shotList[firstShotInd].enabled:
+                    shotFound = frameIndex < shotList[firstShotInd].start
+                firstShotInd += 1
+
+        if shotFound:
+            firstShotInd = firstShotInd - 1
+        else:
+            firstShotInd = -1
+
+        return firstShotInd
 
     def getShotsUsingCamera(self, cam, ignoreDisabled=False, takeIndex=-1):
         """Return the list of all the shots used by the specified camera in the specified take"""
@@ -2545,52 +2631,6 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
             bpy.context.scene.frame_set(newFrame)
 
         return newFrame
-
-    # works only on current take
-    def getFirstShotIndexContainingFrame(self, frameIndex, ignoreDisabled=False):
-        """Return the first shot containing the specifed frame, -1 if not found"""
-        firstShotInd = -1
-
-        shotList = self.get_shots()
-        shotFound = False
-
-        if len(shotList):
-            firstShotInd = 0
-            while firstShotInd < len(shotList) and not shotFound:
-                if not ignoreDisabled or shotList[firstShotInd].enabled:
-                    shotFound = shotList[firstShotInd].start <= frameIndex and frameIndex <= shotList[firstShotInd].end
-                firstShotInd += 1
-
-        if shotFound:
-            firstShotInd = firstShotInd - 1
-        else:
-            firstShotInd = -1
-
-        return firstShotInd
-
-    # works only on current take
-    def getFirstShotIndexAfterFrame(self, frameIndex, ignoreDisabled=False):
-        """Return the first shot after the specifed frame (supposing thanks to getFirstShotIndexContainingFrame than
-        frameIndex is not in a shot), -1 if not found
-        """
-        firstShotInd = -1
-
-        shotList = self.get_shots()
-        shotFound = False
-
-        if len(shotList):
-            firstShotInd = 0
-            while firstShotInd < len(shotList) and not shotFound:
-                if not ignoreDisabled or shotList[firstShotInd].enabled:
-                    shotFound = frameIndex < shotList[firstShotInd].start
-                firstShotInd += 1
-
-        if shotFound:
-            firstShotInd = firstShotInd - 1
-        else:
-            firstShotInd = -1
-
-        return firstShotInd
 
     ##############################
 

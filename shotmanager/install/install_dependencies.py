@@ -33,6 +33,9 @@ def install_library(lib_names, pip_retries=2, pip_timeout=-100):
     Args:
         lib_names (tupple): the current name of the library and its package name
         eg: ("PIL", "pillow")
+    Return:
+        A tupple made of the error message and the error index
+        eg: ("Err.1: Cannot connect to Internet. Blocked by firewall?", 1)
     """
     error_messages = []
     # return ["Debug message"]

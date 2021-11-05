@@ -20,6 +20,7 @@ Handlers
 """
 
 import bpy
+from shotmanager.utils import utils
 
 
 def jump_to_shot(scene):
@@ -116,5 +117,25 @@ def jump_to_shot(scene):
                 if shot.start <= current_frame <= shot.end:
                     candidates.append((i, shot))
 
-            props.setCurrentShot(candidates[0][1])
-            scene.frame_current = current_frame
+            if 0 < len(candidates):
+                props.setCurrentShot(candidates[0][1], changeTime=False)
+                scene.frame_current = current_frame
+            else:
+                # case were the new current time is out of every shots
+                # we then get the first shot after current time, or the very first shot if there is no shots after
+                nextShotInd = props.getFirstShotIndexAfterFrame(current_frame, ignoreDisabled=True)
+                if -1 != nextShotInd:
+                    props.setCurrentShot(shotList[nextShotInd], changeTime=False)
+                    # don't change current time in order to let the user see changes in the scene
+                    # scene.frame_current = shotList[nextShotInd].start
+                else:
+                    prevShotInd = props.getFirstShotIndexBeforeFrame(current_frame, ignoreDisabled=True)
+                    if -1 != prevShotInd:
+                        props.setCurrentShot(shotList[prevShotInd], changeTime=False)
+                        # don't change current time in order to let the user see changes in the scene
+                        # scene.frame_current = shotList[prevShotInd].start
+                    else:
+                        # paf what to do?
+                        # props.setCurrentShot(candidates[0][1])
+                        print("SM: Paf in jump_to_shot: No valid shot found")
+

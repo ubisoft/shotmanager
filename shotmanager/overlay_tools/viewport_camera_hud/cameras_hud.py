@@ -65,7 +65,7 @@ class UAS_ShotManager_DrawCameras_UI(bpy.types.Operator):
 
     def modal(self, context, event):
         if not context.scene.UAS_shot_manager_props.display_shotname_in_3dviewport:
-            # if not context.window_manager.UAS_shot_manager_display_timeline:
+            # if not context.window_manager.UAS_shot_manager_display_overlay_tools:
             self.unregister_handlers(context)
             return {"CANCELLED"}
 
@@ -239,7 +239,7 @@ class UAS_ShotManager_DrawHUD(bpy.types.Operator):
 
     def modal(self, context, event):
         if not context.scene.UAS_shot_manager_props.display_hud_in_3dviewport:
-            # if not context.window_manager.UAS_shot_manager_display_timeline:
+            # if not context.window_manager.UAS_shot_manager_display_overlay_tools:
             self.unregister_handlers(context)
             return {"CANCELLED"}
 
