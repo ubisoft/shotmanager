@@ -92,21 +92,47 @@ class UAS_ShotManager_EnableDisableAll(Operator):
         return {"FINISHED"}
 
 
-class UAS_ShotManager_SceneRangeFromShot(Operator):
-    bl_idname = "uas_shot_manager.scenerangefromshot"
+class UAS_ShotManager_SceneRangeFromShots(Operator):
+    bl_idname = "uas_shot_manager.scenerangefromshots"
     bl_label = "Scene Range From Shot"
-    bl_description = "Set scene time range with CURRENT shot range"
+    bl_description = (
+        "Set scene time range with take range"
+        #    "\nShift + Click: Create a new camera from the 3D view and put it in the viewport."
+        "\nCtrl + Click: Set scene time range with current shot range"
+        "\nUse Alt for the Preview time range"
+    )
     bl_options = {"INTERNAL"}
 
-    def execute(self, context):
+    def invoke(self, context, event):
         scene = context.scene
         props = scene.UAS_shot_manager_props
 
-        currentShot = props.getCurrentShot()
-        scene.use_preview_range = True
+        if event.shift:
+            pass
+        elif event.ctrl:
+            currentShot = props.getCurrentShot()
+            if event.alt:
+                scene.use_preview_range = True
+                scene.frame_preview_start = currentShot.start
+                scene.frame_preview_end = currentShot.end
+            else:
+                scene.use_preview_range = False
+                scene.frame_start = currentShot.start
+                scene.frame_end = currentShot.end
 
-        scene.frame_preview_start = currentShot.start
-        scene.frame_preview_end = currentShot.end
+        elif not event.ctrl:
+            shotList = props.getShotsList(ignoreDisabled=True)
+            if 0 < len(shotList):
+                if event.alt:
+                    scene.use_preview_range = True
+                    scene.frame_preview_start = shotList[0].start
+                    scene.frame_preview_end = shotList[len(shotList) - 1].end
+                else:
+                    scene.use_preview_range = False
+                    scene.frame_start = shotList[0].start
+                    scene.frame_end = shotList[len(shotList) - 1].end
+        else:
+            pass
 
         return {"FINISHED"}
 
@@ -133,33 +159,11 @@ class UAS_ShotManager_SceneRangeFromShot(Operator):
 #         return {"FINISHED"}
 
 
-# operator here must be a duplicate of UAS_ShotManager_SceneRangeFromShot is order to use a different description
-class UAS_ShotManager_SceneRangeFrom3DEdit(Operator):
-    bl_idname = "uas_shot_manager.scenerangefrom3dedit"
-    bl_label = "Scene Range From 3D Edit"
-    bl_description = "Set scene time range with the the 3D edit range"
-    bl_options = {"INTERNAL"}
-
-    def execute(self, context):
-        scene = context.scene
-        props = scene.UAS_shot_manager_props
-
-        shotList = props.getShotsList(ignoreDisabled=True)
-
-        if 0 < len(shotList):
-            scene.use_preview_range = True
-            scene.frame_preview_start = shotList[0].start
-            scene.frame_preview_end = shotList[len(shotList) - 1].end
-
-        return {"FINISHED"}
-
-
 _classes = (
     UAS_ShotManager_EnableDisableAll,
     #   UAS_ShotManager_LockCamToView,
-    UAS_ShotManager_SceneRangeFromShot,
+    UAS_ShotManager_SceneRangeFromShots,
     #    UAS_ShotManager_SceneRangeFromEnabledShots,
-    UAS_ShotManager_SceneRangeFrom3DEdit,
 )
 
 

@@ -610,24 +610,21 @@ class UAS_PT_ShotManager(Panel):
             #  subrow.scale_x = 1.0
             camrow = shotsrow.row(align=True)
             camrow.alignment = "RIGHT"
-            #  lockviewrow = camrow.row(align=True)
-            camrow.alert = props.useLockCameraView
-            camrow.prop(props, "useLockCameraView", text="", icon="CAMERA_DATA")
-            camrow.alert = False
 
             camrow.operator_context = "INVOKE_DEFAULT"
             camrow.operator("uas_utils.camera_to_view", text="", icon="TRANSFORM_ORIGINS")
+
+            camrow.alert = props.useLockCameraView
+            camrow.prop(props, "useLockCameraView", text="", icon="CAMERA_DATA")
+            camrow.alert = False
 
             # time tools ############
             ###########################
 
             timerow = shotsrow.row(align=True)
             timerow.alignment = "RIGHT"
-            # subrow.separator()
-            timerow.operator("uas_shot_manager.scenerangefromshot", text="", icon="PREVIEW_RANGE")
-            #    row.operator("uas_shot_manager.scenerangefromenabledshots", text="", icon="PREVIEW_RANGE")
-            timerow.operator("uas_shot_manager.scenerangefrom3dedit", text="", icon="PREVIEW_RANGE")
-
+            timerow.operator("uas_shot_manager.scenerangefromshots", text="", icon="PREVIEW_RANGE")
+            
             # col = row.column(align=True)
             # shotsrow.separator(factor=3.2)
             # row.operator("uas_shot_manager.shots_prefs", text="", icon="SETTINGS")

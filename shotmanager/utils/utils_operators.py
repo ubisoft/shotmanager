@@ -150,24 +150,33 @@ class UAS_Utils_CameraToView(Operator):
     bl_idname = "uas_utils.camera_to_view"
     bl_label = "Camera to View"
     bl_description = (
-        "Make the selected camera match the the current 3D view."
-        "\nIts position, rotation and lens will then be modified."
-        "\nIf the view already contains a camera then its location and fov are used."
-        "\nShift + Click: Create a new camera from the 3D view and put it in the viewport."
+        "Make selected camera match the position and orientation of the 3D view"
+        "\nor the current camera."
+        "\nShift + Click: Create a new camera matching the 3D view."
+        "\nCtrl + Click: Make selected camera match the 3D view, LENS INCLUDED"
     )
     bl_options = {"INTERNAL", "UNDO"}
 
     def invoke(self, context, event):
         scene = context.scene
 
-        # create a new camera
-        if event.shift:
+        if event.shift and not event.ctrl:
+            # create a new camera
             newCam = utils.create_new_camera("New_Camera")
             utils.makeCameraMatchViewport(context, newCam)
-        else:
+        elif event.ctrl and not event.shift:
+            # align camera and change lens
             if 0 < len(context.selected_objects) and "CAMERA" == context.selected_objects[0].type:
                 sel_cam = context.selected_objects[0]
-                utils.makeCameraMatchViewport(context, sel_cam)
+                utils.makeCameraMatchViewport(context, sel_cam, matchLens=True)
+        elif not event.ctrl and not event.shift:
+            # align camera but do not change lens
+            if 0 < len(context.selected_objects) and "CAMERA" == context.selected_objects[0].type:
+                sel_cam = context.selected_objects[0]
+                utils.makeCameraMatchViewport(context, sel_cam, matchLens=False)
+        else:
+            pass
+
         return {"FINISHED"}
 
 

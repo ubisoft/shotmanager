@@ -262,6 +262,7 @@ def openMedia(media_filepath, inExternalPlayer=False):
 # Time
 ###################
 
+
 def getFrameInAnimRange(scene, frame):
     """Check if the specified frame is in the current animation range of the scene
     (considering that the Preview Range can also be activated) and return a
@@ -276,6 +277,7 @@ def getFrameInAnimRange(scene, frame):
         newFrame = max(newFrame, scene.frame_start)
         newFrame = min(newFrame, scene.frame_end)
     return newFrame
+
 
 ###################
 # Markers
@@ -567,14 +569,17 @@ def getCameraCurrentlyInViewport(context, area=None):
     return None
 
 
-def makeCameraMatchViewport(context, cam, putCamInViewport=True):
+def makeCameraMatchViewport(context, cam, matchLens=False, putCamInViewport=True):
     """Move, orient and change the lens of the specified camera to match the current viewport framing.
     If the viewport already contains a camera then the settings of this camera will be copied to the specifed one.
     If the viewport is not a 3D view nothing happends.
-    If putCamInViewport is True then the camera is also set as the current one in the scene and used
-    in the Viewport.
+    Args:
+        matchLens: if True then the camera lens will match the viewport camera lens
+        putCamInViewport: if True then the camera is also set as the current one in the scene and used
+        in the Viewport.
     """
     # Refs: https://blender.stackexchange.com/questions/46391/how-to-convert-spaceview3d-lens-to-field-of-view
+    # There is also an operator to do part of the code below: bpy.ops.view3d.camera_to_view()
 
     scene = context.scene
     #  print(f" makeCameraMatchViewport")
@@ -590,22 +595,24 @@ def makeCameraMatchViewport(context, cam, putCamInViewport=True):
 
             areaView.view_camera_zoom = 0.0
             cam.matrix_world = areaView.view_matrix.inverted()
-            vmat_inv = areaView.view_matrix.inverted()
-            pmat = areaView.perspective_matrix @ vmat_inv
-            fov = 2.0 * abs(1.0 * math.atan(1.0 / pmat[1][1]))
-            #    print(f"Cam fov: {fov}  {fov * 180.0 / math.pi}, zoom: {areaView.view_camera_zoom}")
-            # cam.data.sensor_width = 72
-            #    cam.data.lens_unit = "FOV"
-            # cam.data.angle = fov - areaView.view_camera_zoom * math.pi / 180
-            cam.data.angle = fov
-            # cam.data.lens -= areaView.view_camera_zoom
-            #  areaView.view_camera_zoom = 0.0
+            if matchLens:
+                vmat_inv = areaView.view_matrix.inverted()
+                pmat = areaView.perspective_matrix @ vmat_inv
+                fov = 2.0 * abs(1.0 * math.atan(1.0 / pmat[1][1]))
+                #    print(f"Cam fov: {fov}  {fov * 180.0 / math.pi}, zoom: {areaView.view_camera_zoom}")
+                # cam.data.sensor_width = 72
+                #    cam.data.lens_unit = "FOV"
+                # cam.data.angle = fov - areaView.view_camera_zoom * math.pi / 180
+                cam.data.angle = fov
+                # cam.data.lens -= areaView.view_camera_zoom
+                #  areaView.view_camera_zoom = 0.0
             camOk = True
     else:
         if cam != camInViewport:
             cam.location = camInViewport.location
             cam.rotation_euler = camInViewport.rotation_euler
-            cam.data.lens = camInViewport.data.lens
+            if matchLens:
+                cam.data.lens = camInViewport.data.lens
             camOk = True
 
     if putCamInViewport and camOk:

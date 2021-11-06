@@ -48,7 +48,12 @@ class UAS_ShotManager_SetCurrentShot(Operator):
 
     bl_idname = "uas_shot_manager.set_current_shot"
     bl_label = "Set current Shot"
-    bl_description = "Click: Set the shot as the current one.\nShift + Click: Toggle shot Disabled state.\nCtrl + Click: Select Shot Camera.\nAlt + Click: Set the shot as current one but do not change time"
+    bl_description = (
+        "Click: Set the shot as the current one."
+        "\nShift + Click: Toggle shot Disabled state."
+        "\nCtrl + Click: Select Shot Camera."
+        "\nAlt + Click: Set the shot as current one but do not change time"
+    )
     bl_options = {"INTERNAL", "UNDO"}
 
     index: bpy.props.IntProperty()
@@ -78,9 +83,11 @@ class UAS_ShotManager_SetCurrentShot(Operator):
         elif event.alt and not event.shift and not event.ctrl:
             props.setCurrentShotByIndex(self.index, changeTime=False, area=context.area)
             props.setSelectedShotByIndex(self.index)
-        else:
+        elif not event.alt and not event.shift and not event.ctrl:
             props.setCurrentShotByIndex(self.index, area=context.area)
             props.setSelectedShotByIndex(self.index)
+        else:
+            pass
 
         return {"FINISHED"}
 
