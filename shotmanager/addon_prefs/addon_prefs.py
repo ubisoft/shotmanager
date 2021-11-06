@@ -81,7 +81,7 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
         return val
 
     def _set_take_properties_expanded(self, value):
-        print(f"*** _set_take_properties_expanded: {self.take_properties_expanded}, value: {value}")
+        # print(f"*** _set_take_properties_expanded: {self.take_properties_expanded}, value: {value}")
         # close other panels
         if self.take_properties_expanded != value and not value:
             prefs = bpy.context.preferences.addons["shotmanager"].preferences

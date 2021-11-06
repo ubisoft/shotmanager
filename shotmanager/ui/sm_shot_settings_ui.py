@@ -233,8 +233,12 @@ class UAS_PT_ShotManager_ShotProperties(Panel):
             grid_flow.scale_x = 1.8
             grid_flow.prop(shot, "camera", text="")
             grid_flow.scale_x = 0.4
-            grid_flow.operator(
-                "uas_shot_manager.list_camera_instances", text=str(props.getNumSharedCamera(shot.camera))
+            camlistrow = grid_flow.row(align=True)
+            camlistrow.scale_x = 0.6
+            numSharedCam = props.getNumSharedCamera(shot.camera)
+            camlistrow.alert = 1 < numSharedCam
+            camlistrow.operator(
+                "uas_shot_manager.list_camera_instances", text=str(numSharedCam)
             ).index = props.selected_shot_index
 
             if not cameraIsValid:

@@ -175,8 +175,8 @@ def draw3DRenderPanel(self, context):
     row.scale_x = 1.2
     row.prop(props, "displayStillProps", text="", icon="IMAGE_DATA")
     row.operator("uas_shot_manager.render", text="Render Image").renderMode = "STILL"
-    row.separator(factor=2)
 
+    row.separator(factor=2)
     row.scale_x = 1.2
     row.prop(props, "displayAnimationProps", text="", icon="RENDER_ANIMATION")
     row.operator("uas_shot_manager.render", text="Render Current Shot").renderMode = "ANIMATION"

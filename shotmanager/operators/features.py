@@ -37,6 +37,13 @@ class UAS_ShotManager_Features(Operator):
     def draw(self, context):
         props = context.scene.UAS_shot_manager_props
         prefs = context.preferences.addons["shotmanager"].preferences
+        scale_x = 0.85
+
+        def _draw_separator_row(layout):
+            separatorrow = layout.row()
+            separatorrow.scale_y = 0.7
+            separatorrow.separator()
+
         layout = self.layout
 
         layout.label(text="Display Takes and Shots additionnal features:")
@@ -45,7 +52,7 @@ class UAS_ShotManager_Features(Operator):
         # empty spacer column
         row = box.row()
         col = row.column()
-        col.scale_x = 1.0
+        col.scale_x = scale_x
         col.label(text=" ")
         col = row.column()
 
@@ -66,6 +73,8 @@ class UAS_ShotManager_Features(Operator):
         subrow.prop(props, "display_takerendersettings_in_properties", text="", icon="OUTPUT")
         subrow.label(text="Takes Render Settings")
 
+        _draw_separator_row(col)
+
         ################
         # Camera BG
         subrow = col.row()
@@ -82,7 +91,15 @@ class UAS_ShotManager_Features(Operator):
         subrow.prop(props, "display_greasepencil_in_properties", text="", icon_value=icon.icon_id)
         subrow.label(text="Camera Grease Pencil")
 
+        _draw_separator_row(col)
+
         ################
+        # Edit mode
+        subrow = col.row()
+        subrow.scale_x = 1.5
+        subrow.prop(props, "display_editmode_in_properties", text="", icon="SEQ_SEQUENCER")
+        subrow.label(text="Edit Mode")
+
         # Global Edit Integration
         subrow = col.row()
         subrow.scale_x = 1.5
@@ -96,7 +113,7 @@ class UAS_ShotManager_Features(Operator):
         # empty spacer column
         row = box.row()
         col = row.column()
-        col.scale_x = 1.0
+        col.scale_x = scale_x
         col.label(text=" ")
         col = row.column()
 

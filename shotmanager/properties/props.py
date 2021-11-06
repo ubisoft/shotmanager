@@ -273,6 +273,10 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
             res = True
         return res
 
+    sequence_name: StringProperty(
+        name="Sequence Name", description="Name of the sequence edited in the scene", default="My Sequence", options=set(),
+    )
+
     # wkip rrs specific
     #############
 
@@ -611,6 +615,13 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
     display_greasepencil_in_properties: BoolProperty(
         # name="Display Grease Pencil in Shot Properties",
         description="Display Grease Pencil in the Shot Properties panels",
+        default=False,
+        options=set(),
+    )
+
+    display_editmode_in_properties: BoolProperty(
+        name="Display Global Edit Integration Tools",
+        description="Display the advanced properties of the takes used to specify their position in a global edit",
         default=False,
         options=set(),
     )

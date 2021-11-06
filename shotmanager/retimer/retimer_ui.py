@@ -272,7 +272,7 @@ class UAS_PT_ShotManagerRetimer(Panel):
             pass
 
         row.separator(factor=1)
-        doc_op = row.operator("shotmanager.open_documentation_url", text="", icon="INFO")
+        doc_op = row.operator("shotmanager.open_documentation_url", text="", icon="INFO", emboss=False)
         quickHelpInfo = retimerProps.getQuickHelp(retimerProps.mode)
         doc_op.path = quickHelpInfo[3]
         tooltipStr = quickHelpInfo[1]

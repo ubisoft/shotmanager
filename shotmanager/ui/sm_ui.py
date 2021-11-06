@@ -262,25 +262,62 @@ class UAS_PT_ShotManager(Panel):
         if props.dontRefreshUI():
             return None
 
+        # sequence name
+        ################
+        seqrow = layout.row()
+        seqcol = seqrow.column(align=True)
+
+        if False:
+            spacerrow = seqcol.row()
+            spacerrow.scale_y = 0.3
+            spacerrow.alignment = "CENTER"
+            spacerrow.label(text="           -------------------------------------------------------")
+            # spacerrow.scale_y = 1.0
+
+        seqcol.separator(factor=0.8)
+        namerow = seqcol.row(align=True)
+        namerow.scale_y = 1.2
+        leftrow = namerow.row()
+        leftrow.alignment = "LEFT"
+        leftrow.label(text="Sequence:")
+
+        subnamerow = namerow.row(align=True)
+        # subnamerow.scale
+        # subnamerow.alignment = "RIGHT"
+        subnamerow.prop(props, "sequence_name", text="")
+        subnamerow.separator()
+        subnamerow.operator("uas_shot_manager.features", text="", icon="PROPERTIES", emboss=False)
+        subnamerow.separator()
+        seqcol.separator(factor=0.3)
+        # seqcol.label(text="________________________")
+
         # editing
         ################
-        row = layout.row(align=True)
-        editingDuration = props.getEditDuration()
-        editingDurationStr = "-" if -1 == editingDuration else (str(editingDuration) + " frames")
-        row.label(text="Editing Duration: " + editingDurationStr)
+        if props.display_editmode_in_properties:
+            box = layout.box()
+            editrow = box.row()
+            leftrow = editrow.row()
+            leftrow.alignment = "LEFT"
+            leftrow.scale_x = 0.8
+            leftrow.label(text="Edit:")
 
-        row.separator()
-        #    row = layout.row(align=True)
-        # context.props.getCurrentShotIndex(ignoreDisabled = False
-        editingCurrentTime = props.getEditCurrentTime()
-        editingCurrentTimeStr = "-" if -1 == editingCurrentTime else str(editingCurrentTime)
-        row.label(text="Current Time in Edit: " + editingCurrentTimeStr)
+            rightrow = editrow.row()
+            editingDuration = props.getEditDuration()
+            editingDurationStr = "-" if -1 == editingDuration else (str(editingDuration) + " fr.")
+            rightrow.label(text="Duration: " + editingDurationStr)
 
-        row.alignment = "RIGHT"
+            # editrow.separator()
+            #    editrow = layout.row(align=True)
+            # context.props.getCurrentShotIndex(ignoreDisabled = False
+            editingCurrentTime = props.getEditCurrentTime()
+            editingCurrentTimeStr = "-" if -1 == editingCurrentTime else str(editingCurrentTime)
+            rightrow.label(text="Current Time in Edit: " + editingCurrentTimeStr)
 
-        if props.use_project_settings and props.project_fps != scene.render.fps:
-            row.alert = True
-        row.label(text=str(scene.render.fps) + " fps")
+            rightrow.alignment = "RIGHT"
+
+            if props.use_project_settings and props.project_fps != scene.render.fps:
+                rightrow.alert = True
+            rightrow.label(text=str(scene.render.fps) + " fps")
 
         # takes
         ################
@@ -289,16 +326,22 @@ class UAS_PT_ShotManager(Panel):
         if currentTake is not None:
             takeHasNotes = currentTake.hasNotes()
 
-        layout.separator(factor=0.3)
         box = layout.box()
         row = box.row(align=False)
 
         # if props.display_globaleditintegr_in_properties or props.display_notes_in_properties or props.display_takerendersettings_in_properties or takeHasNotes:
-        if props.display_globaleditintegr_in_properties or props.display_takerendersettings_in_properties:
+        display_take_arrow = (
+            props.display_globaleditintegr_in_properties or props.display_takerendersettings_in_properties
+        )
+        if display_take_arrow:
             row.prop(prefs, "take_properties_expanded", text="", icon=panelIcon, emboss=False)
 
+        leftrow = row.row()
+        leftrow.alignment = "LEFT"
+        leftrow.scale_x = 0.81 if display_take_arrow else 1.16
         takeStr = "Take:" if not props.display_advanced_infos else f"Take ({currentTakeInd + 1}/{props.getNumTakes()}):"
-        row.label(text=takeStr)
+        leftrow.label(text=takeStr)
+
         subrow = row.row(align=True)
         #    row.scale_y = 1.5
         subrow.scale_x = 2.0
@@ -462,11 +505,14 @@ class UAS_PT_ShotManager(Panel):
             # subrow.alignment = "LEFT"
             # subrow.scale_x = 1.0
 
-            shotsStr = "Shots:" if not props.display_advanced_infos else f"Shots ({numEnabledShots}/{numShots}):"
             shotsrowleft = shotsrow.row(align=True)
+            # shotsrowleft.alignment = "LEFT"
             shotsrowlefttxt = shotsrowleft.row(align=True)
-            shotsrowlefttxt.alignment = "EXPAND"
+            shotsrowlefttxt.alignment = "LEFT"
+
+            shotsStr = "Shots:" if not props.display_advanced_infos else f"Shots ({numEnabledShots}/{numShots}):"
             shotsrowlefttxt.label(text=shotsStr)
+            #   shotsrowlefttxt.operator("uas_shot_manager.enabledisableall", text="", icon="TIME")
 
             # subrow.separator()
             #  column_flow.scale_x = 1.0
@@ -482,7 +528,7 @@ class UAS_PT_ShotManager(Panel):
             # spacer
             spacerrow = shotsrowleft.row(align=False)
             spacerrow.alignment = "LEFT"
-            # spacerrow.scale_x = 0.5
+            spacerrow.scale_x = 1.26 if props.display_notes_in_properties else 0.92
             spacerrow.label(text="")
             # spacerrow.separator(factor=1)
 
@@ -490,20 +536,21 @@ class UAS_PT_ShotManager(Panel):
             ###########################
             #  shotsrow.alignment = "EXPAND"
 
-            subrowedit = shotsrowleft.row(align=True)
+            subrowedit = shotsrowleft.row(align=False)
             subrowedit.alignment = "RIGHT"
             iconCheckBoxes = "CHECKBOX_HLT" if not prefs.toggleShotsEnabledState else "CHECKBOX_DEHLT"
-            subrowedit.operator("uas_shot_manager.enabledisableall", text="", icon=iconCheckBoxes)
-            # subrow.separator(factor=0.2)
-            subrowedit.prop(
-                props,
-                "display_edit_times_in_shotlist",
-                text="" if display_adv_features else "Edit Times",
-                toggle=True,
-                icon="SEQ_STRIP_DUPLICATE",
-            )
+            subrowedit.operator("uas_shot_manager.enabledisableall", text="", icon=iconCheckBoxes, emboss=False)
 
-            if not display_adv_features:
+            if props.display_editmode_in_properties:
+                subrowedit.prop(
+                    props,
+                    "display_edit_times_in_shotlist",
+                    text="" if display_adv_features else "Edit Times",
+                    toggle=True,
+                    icon="SEQ_STRIP_DUPLICATE",
+                )
+
+            if True or not display_adv_features:
                 spacerrow = shotsrowleft.row(align=False)
                 spacerrow.alignment = "EXPAND"
                 #   spacerrow.scale_x = 0.5
@@ -523,7 +570,7 @@ class UAS_PT_ShotManager(Panel):
                 subrowtools = shotsrow.row(align=True)
                 #    subrowtools.separator(factor=0.5)
                 # subrow.scale_x = 0.9
-                # subrow.alignment = "RIGHT"
+                subrowtools.alignment = "LEFT"
                 # subrowtools.scale_x = 0.9
 
                 if props.display_greasepencil_in_properties:
@@ -582,9 +629,10 @@ class UAS_PT_ShotManager(Panel):
             timerow.operator("uas_shot_manager.scenerangefrom3dedit", text="", icon="PREVIEW_RANGE")
 
             # col = row.column(align=True)
-            # col.separator(factor=3.0)
+            # shotsrow.separator(factor=3.2)
             # row.operator("uas_shot_manager.shots_prefs", text="", icon="SETTINGS")
-            shotsrow.operator("uas_shot_manager.features", text="", icon="PROPERTIES")
+            #  shotsrow.operator("uas_shot_manager.features", text="", icon="PROPERTIES")
+            shotsrow.menu("UAS_MT_Shot_Manager_shots_toolsmenu", icon="TOOL_SETTINGS", text="")
 
             ##################################################
             ##################################################
@@ -602,9 +650,9 @@ class UAS_PT_ShotManager(Panel):
             col.operator("uas_shot_manager.shot_move", icon="TRIA_UP", text="").action = "UP"
             col.operator("uas_shot_manager.shot_move", icon="TRIA_DOWN", text="").action = "DOWN"
             col.separator()
-            col.menu("UAS_MT_Shot_Manager_shots_toolsmenu", icon="TOOL_SETTINGS", text="")
+        #   col.menu("UAS_MT_Shot_Manager_shots_toolsmenu", icon="TOOL_SETTINGS", text="")
 
-            # layout.separator ( factor = 1 )
+        # layout.separator ( factor = 1 )
 
     def drawWarnings(self, context, ui_component, warningsList):
         if len(warningsList):

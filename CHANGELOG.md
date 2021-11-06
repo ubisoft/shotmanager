@@ -3,6 +3,9 @@
 - Changed some UI icons
 - Removed Camera tools (Create Camera From Viewport and Move Selected Camera to Viewport)
 and introduced a button in the Shots section instead
+- Introduced some new icons (Overlay Tools, Retimer, Camera to Viewport...)
+- Made the number of occurences of each camera appear in red when the camera is used
+by several shots
 
 
 # 1.5.75 (2021-11-05)

@@ -262,9 +262,12 @@ class UAS_UL_ShotManager_Items(bpy.types.UIList):
                 grid_flow.alert = True
             grid_flow.prop(item, "camera", text="")
             grid_flow.scale_x = 0.3
-            grid_flow.operator(
-                "uas_shot_manager.list_camera_instances", text=str(props.getNumSharedCamera(item.camera))
-            ).index = index
+
+            camlistrow = grid_flow.row(align=True)
+            # camlistrow.scale_x = 1.0
+            numSharedCam = props.getNumSharedCamera(item.camera)
+            camlistrow.alert = 1 < numSharedCam
+            camlistrow.operator("uas_shot_manager.list_camera_instances", text=str(numSharedCam)).index = index
             if item.camera is None:
                 grid_flow.alert = False
 
