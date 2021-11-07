@@ -16,7 +16,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 """
-To do: module description here.
+Operators for Shot Manager
 """
 
 import bpy
@@ -26,6 +26,44 @@ from bpy.props import BoolProperty, StringProperty
 from shotmanager.config import config
 from shotmanager.operators.shots import convertMarkersFromCameraBindingToShots
 from shotmanager.utils.utils import getSceneVSE, convertVersionIntToStr, clearMarkersFromCameraBinding
+
+
+###################
+# Properties accessible by operators for key mapping
+###################
+
+
+class UAS_ShotManager_OT_ShotsPlayMode(Operator):
+    bl_idname = "uas_shot_manager.shots_play_mode"
+    bl_label = "Toggle Shots Play Mode"
+    # bl_description = "Bla"
+    bl_options = {"INTERNAL"}
+
+    def invoke(self, context, event):
+        context.window_manager.UAS_shot_manager_shots_play_mode = (
+            not context.window_manager.UAS_shot_manager_shots_play_mode
+        )
+
+        return {"FINISHED"}
+
+
+class UAS_ShotManager_OT_DisplayOverlayTools(Operator):
+    bl_idname = "uas_shot_manager.display_overlay_tools"
+    bl_label = "Toggle Overlay Tools Display"
+    # bl_description = "Bla"
+    bl_options = {"INTERNAL"}
+
+    def invoke(self, context, event):
+        context.window_manager.UAS_shot_manager_display_overlay_tools = (
+            not context.window_manager.UAS_shot_manager_display_overlay_tools
+        )
+
+        return {"FINISHED"}
+
+
+###################
+# Various
+###################
 
 
 class UAS_ShotManager_OT_ClearMarkersFromCameraBinding(Operator):
@@ -191,6 +229,8 @@ class UAS_ShotManager_OT_EnableDebug(Operator):
 
 
 _classes = (
+    UAS_ShotManager_OT_ShotsPlayMode,
+    UAS_ShotManager_OT_DisplayOverlayTools,
     UAS_ShotManager_OT_ClearMarkersFromCameraBinding,
     UAS_ShotManager_OT_ConvertMarkersFromCameraBindingToShots,
     UAS_ShotManager_OT_GoToVideoShotManager,

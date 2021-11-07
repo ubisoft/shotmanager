@@ -172,7 +172,7 @@ class UAS_PT_ShotManager(Panel):
         ################
         playEnabled = not utils.sceneContainsCameraBinding(scene)
         row = layout.row()
-        row.scale_y = 1.2
+        row.scale_y = 1.3
         rowPlayButton = row.row()
         rowPlayButton.enabled = playEnabled
         rowPlayButton.prop(
@@ -182,11 +182,18 @@ class UAS_PT_ShotManager(Panel):
             toggle=True,
             icon="ANIM" if context.window_manager.UAS_shot_manager_shots_play_mode else "FORWARD",
         )
-        subRow = row.row(align=True)
-        subRow.prop(
-            context.window_manager, "UAS_shot_manager_display_overlay_tools", text="", toggle=True, icon="NLA_PUSHDOWN"
-        )
-        subSubRow = subRow.row(align=True)
+
+        toggleButsRow = row.row(align=True)
+        toggleButsRow.scale_x = 1.1
+        icon = config.icons_col["ShotManager_Tools_OverlayTools_32"]
+        toggleButsRow.prop(
+            context.window_manager,
+            "UAS_shot_manager_display_overlay_tools",
+            text="",
+            toggle=True,
+            icon_value=icon.icon_id,
+        )  # icon="NLA_PUSHDOWN"
+        subSubRow = toggleButsRow.row(align=True)
         subSubRow.enabled = context.window_manager.UAS_shot_manager_display_overlay_tools
         subSubRow.prop(
             context.window_manager,
@@ -195,13 +202,15 @@ class UAS_PT_ShotManager(Panel):
             icon="ARROW_LEFTRIGHT",
             toggle=True,
         )
-        subSubRow = subRow.row(align=True)
-        subSubRow.prop(
+        #  subSubRow = toggleButsRow.row(align=True)
+        toggleButsRow.prop(
             context.window_manager, "UAS_shot_manager_use_best_perfs", text="", icon="INDIRECT_ONLY_ON", toggle=True,
         )
 
         # row.prop(scene, "use_audio", text="", icon="PLAY_SOUND")      # works inverted :S
-        row.operator("uas_shot_manager.use_audio", text="", icon="PLAY_SOUND", depress=not scene.use_audio)
+        toggleSoundRow = row.row(align=True)
+        toggleSoundRow.scale_x = 1.1
+        toggleSoundRow.operator("uas_shot_manager.use_audio", text="", icon="PLAY_SOUND", depress=not scene.use_audio)
 
         # play bar
         ################
@@ -267,12 +276,12 @@ class UAS_PT_ShotManager(Panel):
         seqrow = layout.row()
         seqcol = seqrow.column(align=True)
 
-        if False:
-            spacerrow = seqcol.row()
-            spacerrow.scale_y = 0.3
-            spacerrow.alignment = "CENTER"
-            spacerrow.label(text="           -------------------------------------------------------")
-            # spacerrow.scale_y = 1.0
+        # if False:
+        #     spacerrow = seqcol.row()
+        #     spacerrow.scale_y = 0.3
+        #     spacerrow.alignment = "CENTER"
+        #     spacerrow.label(text="           -------------------------------------------------------")
+        #     # spacerrow.scale_y = 1.0
 
         seqcol.separator(factor=0.8)
         namerow = seqcol.row(align=True)
@@ -611,8 +620,9 @@ class UAS_PT_ShotManager(Panel):
             camrow = shotsrow.row(align=True)
             camrow.alignment = "RIGHT"
 
+            icon = config.icons_col["ShotManager_Tools_CamToView_32"]
             camrow.operator_context = "INVOKE_DEFAULT"
-            camrow.operator("uas_utils.camera_to_view", text="", icon="TRANSFORM_ORIGINS")
+            camrow.operator("uas_utils.camera_to_view", text="", icon_value=icon.icon_id)  # icon="TRANSFORM_ORIGINS"
 
             camrow.alert = props.useLockCameraView
             camrow.prop(props, "useLockCameraView", text="", icon="CAMERA_DATA")
@@ -624,7 +634,7 @@ class UAS_PT_ShotManager(Panel):
             timerow = shotsrow.row(align=True)
             timerow.alignment = "RIGHT"
             timerow.operator("uas_shot_manager.scenerangefromshots", text="", icon="PREVIEW_RANGE")
-            
+
             # col = row.column(align=True)
             # shotsrow.separator(factor=3.2)
             # row.operator("uas_shot_manager.shots_prefs", text="", icon="SETTINGS")

@@ -24,6 +24,7 @@ from bpy.types import Panel, Operator
 from bpy.props import IntProperty, EnumProperty, BoolProperty, FloatProperty, StringProperty
 
 from . import retimer
+from shotmanager.config import config
 
 
 class UAS_PT_ShotManagerRetimer(Panel):
@@ -47,7 +48,8 @@ class UAS_PT_ShotManagerRetimer(Panel):
         layout.emboss = "NONE"
 
         row = layout.row(align=True)
-        row.label(icon="TIME")
+        icon = config.icons_col["ShotManager_Retimer_32"]
+        row.label(icon_value=icon.icon_id)
 
     def draw(self, context):
         def _get_retime_frames_as_range(start, end):

@@ -121,7 +121,8 @@ class UAS_ShotManager_Features(Operator):
         # Retimer
         subrow = col.row()
         subrow.scale_x = 1.5
-        subrow.prop(prefs, "display_retimer_in_properties", text="", icon="TIME")
+        icon = config.icons_col["ShotManager_Retimer_32"]
+        subrow.prop(prefs, "display_retimer_in_properties", text="", icon_value=icon.icon_id)
         subrow.label(text="Retimer")
 
         layout.separator()

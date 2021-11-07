@@ -45,6 +45,8 @@ def jump_to_shot(scene):
         return None
 
     shotList = props.get_shots()
+    if len(shotList) <= 0:
+        return
 
     current_shot_index = props.current_shot_index
     props.restartPlay = False

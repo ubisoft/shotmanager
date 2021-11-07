@@ -77,6 +77,8 @@ from .scripts import rrs
 # from .data_patches.data_patch_to_v1_3_16 import data_patch_to_v1_3_16
 # from .data_patches.data_patch_to_v1_3_31 import data_patch_to_v1_3_31
 
+from . import keymaps
+
 from .debug import sm_debug
 
 bl_info = {
@@ -523,6 +525,7 @@ def register():
     prefs.register()
     features.register()
     about.register()
+    keymaps.register()
 
     # rrs specific
     # rrs_vsm_tools.register()
@@ -540,7 +543,7 @@ def register():
     )
 
     bpy.types.WindowManager.UAS_shot_manager_display_overlay_tools = BoolProperty(
-        name="Display Overlay Tools",
+        name="Show Overlay Tools",
         description="Toggle the display of the overlay tools in the opened editors:"
         "\n  - Sequence Timeline in the 3D viewport"
         "\n  - Interactive Shots Stack in the Timeline editor",
@@ -619,6 +622,7 @@ def unregister():
     from .utils import utils_vse_render
 
     # ui
+    keymaps.unregister()
     print("--about.unregister")
     about.unregister()
     print("--features.unregister")

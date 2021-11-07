@@ -1,17 +1,24 @@
 # 1.5.77 (2021-11-05)
 
-- Changed some UI icons
+## Tools
+
 - Removed Camera tools (Create Camera From Viewport and Move Selected Camera to Viewport)
 and introduced a button in the Shots section instead
-- Introduced some new icons (Overlay Tools, Retimer, Camera to Viewport...)
-- Made the number of occurences of each camera appear in red when the camera is used
+- Made the number of occurrences of each camera appear in red when the camera is used
 by several shots
+
+## UI
+- Introduced some new icons (Overlay Tools, Retimer, Camera to Viewport...)
+- Changed some custom icons, moved some buttons, improved responsive design
+- Exposed key mapping for:
+   - Shots Play Mode: Alt + Space
+   - Toggle Overlay Tools: Not defined
 
 
 # 1.5.75 (2021-11-05)
 
 - Improved warnings display
-- Add a button tp convert camera bound markesr to shots
+- Add a button tp convert camera bound markers to shots
 - Fixed bugs in the Best Play Performance mode
 - Fixed a bug in the play of the sequence timeline
 
@@ -57,7 +64,7 @@ New Shot dialog box:
 
 ## Retimer Tool
 
-Mainy improvements / bug fixes / code cleaning on the Retimer:
+Many improvements / bug fixes / code cleaning on the Retimer:
 
 - Bug fix: Grease Pencil wasn't updated after a time change
 
