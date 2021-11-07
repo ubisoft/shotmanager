@@ -2,7 +2,7 @@
 
   <br/>
 
-..  image:: /img/ubisoft_logo.png
+..  image:: /docs/img/ubisoft_logo.png
     :align: center
 
 Ubisoft Shot Manager: Creative narration and editing with Blender
@@ -10,7 +10,7 @@ Ubisoft Shot Manager: Creative narration and editing with Blender
 
 **Manage the cameras and the editing of your scenes inside Blender in real time and with great simplicity.**
 
-..  image:: /img/ShotManager_screen.png
+..  image:: /docs/img/ShotManager_screen.png
     :align: center
     :width: 80%
 
