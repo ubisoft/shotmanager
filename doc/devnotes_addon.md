@@ -24,17 +24,17 @@ Shot Manager requires the following packages and add-ons to run at its best:
 ## Important points in Shot Manager
 
 ### 3D:
-- Camera markers are NOT compatible with Shot Manager. They prevent the shot play to work correctlt.
+- Camera markers are NOT compatible with Shot Manager. They prevent the shot play to work correctly.
 Shot Manager will then not allow their use by freezint its user interface.
 
-- Negative frames are not supported. When starting the action prepare a sate time zone between 0 and the
+- Negative frames are not supported. When starting the action prepare a start time zone between 0 and the
 start of the first shot (including the lenght of the handles).
 
 - The end frame of a shot is included in the shot and rendered.
-The duration of a shot (ie the total number of frames) is then equal to end - start + 1
+The duration of a shot (ie. the total number of frames) is then equal to end - start + 1
 
 ### 3D Edit:
-- By default first frame of the edit is 0, as most edititng applications, but this is a preference and it can
+- By default first frame of the edit is 0, as most editing applications, but this is a preference and it can
 be set to 1, or event to an arbitrary (positive) number (so that the sequence and exported xml can be added
 at the end of another one)
 
