@@ -18,7 +18,7 @@ Glossary
     
     These settings can be entered manually in the Project Settings dialog box of the Shot Manager panel, in which
     case they are set only for the current scene.
-    In production these settings would be set by a custom script, written speifically for your own pipeline and 
+    In production these settings would be set by a custom script, written specifically for your own pipeline and 
     automatically run when the Blender file is opened.
 
     For a local use of Shot Manager it is not necessary to define a project. The settings of the scene will then
@@ -32,10 +32,10 @@ Glossary
     is considered as invalid and cannot be used in the [Take]_.
 
 .. [Take]
-    A take is an ordered list of shots. Basicaly **a take is an edit** where shots are played one after the other, in the order
+    A take is an ordered list of shots. Basically **a take is an edit** where shots are played one after the other, in the order
     set in the take and independently from the time at which they start in the time of the 3D scene.
     
-    In practice - or in a production context - a take would generaly refert to what is commonly called a sequence, that's to say
+    In practice - or in a production context - a take would generally refert to what is commonly called a sequence, that's to say
     a small edit of shots that are tied together in the narration.
     
     In order to preserve the parallel with live shooting the take entity could probably have been named edit or sequence.
