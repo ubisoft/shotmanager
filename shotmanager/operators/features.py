@@ -106,8 +106,19 @@ class UAS_ShotManager_Features(Operator):
         subrow.prop(props, "display_globaleditintegr_in_properties", text="", icon="SEQ_STRIP_META")
         subrow.label(text="Global Edit Integration")
 
+        _draw_separator_row(col)
+
+        ################
+        # Advanced infos
+        subrow = col.row()
+        subrow.scale_x = 1.5
+        subrow.prop(props, "display_advanced_infos", text="", icon="SYNTAX_ON")
+        subrow.label(text="Display Advanced Infos")
+
+        ################
+        ################
         layout.separator()
-        layout.label(text="Display additionnal panels:")
+        layout.label(text="Shot Manager Panels:")
         box = layout.box()
 
         # empty spacer column
@@ -123,13 +134,36 @@ class UAS_ShotManager_Features(Operator):
         subrow.scale_x = 1.5
         icon = config.icons_col["ShotManager_Retimer_32"]
         subrow.prop(prefs, "display_retimer_in_properties", text="", icon_value=icon.icon_id)
-        subrow.label(text="Retimer")
+        subrow.label(text="Retimer Panel")
 
+        ################
+        # Renderer
+        subrow = col.row()
+        subrow.scale_x = 1.5
+        icon = config.icons_col["ShotManager_Retimer_32"]
+        subrow.prop(prefs, "display_render_in_properties", text="", icon="RENDER_ANIMATION")
+        subrow.label(text="Shot Manager Renderer Panel")
+
+        ################
+        ################
         layout.separator()
-        layout.label(text="Other:")
-        row = layout.row()
-        row.separator(factor=2)
-        row.prop(props, "display_advanced_infos")
+        layout.label(text="Additional Tools in Editors:")
+        box = layout.box()
+
+        # empty spacer column
+        row = box.row()
+        col = row.column()
+        col.scale_x = scale_x
+        col.label(text=" ")
+        col = row.column()
+
+        ################
+        # Frame Range
+        subrow = col.row()
+        subrow.scale_x = 1.5
+        icon = config.icons_col["ShotManager_Retimer_32"]
+        subrow.prop(prefs, "display_frame_range_tool", text="", icon="CENTER_ONLY")
+        subrow.label(text="Frame Range Tool (in Timeline")
 
         layout.separator(factor=2)
 

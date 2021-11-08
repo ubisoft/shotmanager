@@ -3,6 +3,7 @@
 ## UI
 
 - Fixed the Frame Time Range button in the Timeline
+- improved behaviors when clicking on Set Current shot with modifier keys
 
 ## Add-on preferences
 

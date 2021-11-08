@@ -59,6 +59,10 @@ class UAS_MT_ShotManager_Prefs_MainMenu(Menu):
 
         layout.separator()
 
+        # row = layout.row(align=True)
+        # row.operator_context = "INVOKE_DEFAULT"
+        # row.operator("uas_shot_manager.tools_prefs", text="Tools Settings...")
+
         row = layout.row(align=True)
         row.operator_context = "INVOKE_DEFAULT"
         row.operator("uas_shot_manager.overlay_tools_prefs", text="Overlay Tools Settings...")
@@ -319,7 +323,6 @@ class UAS_ShotManager_Shots_Prefs(Operator):
         col.prop(props, "display_selectbut_in_shotlist", text="Display Camera Select Button")
         col.prop(props, "display_enabled_in_shotlist", text="Display Enabled State")
         col.prop(props, "display_getsetcurrentframe_in_shotlist", text="Display Get/Set current Frame Buttons")
-        col.prop(props, "display_edit_times_in_shotlist", text="Display Edit Times in Shot List")
 
         col.prop(props, "display_cameraBG_in_shotlist")
         col.prop(props, "display_greasepencil_in_shotlist")

@@ -51,7 +51,7 @@ from ..operators.shots_global_settings import UAS_ShotManager_ShotsGlobalSetting
 from ..retimer.retimer_props import UAS_Retimer_Properties
 
 from shotmanager.utils import utils
-from shotmanager.utils.utils_get_set_current_time import zoom_dopesheet_view_to_range
+from shotmanager.utils.utils_time import zoom_dopesheet_view_to_range
 
 import logging
 

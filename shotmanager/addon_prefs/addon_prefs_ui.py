@@ -67,18 +67,18 @@ def draw_shotmanager_addon_prefs(self, context):
 
     # Tools
     ###############
-    box = layout.box()
-    collapsable_panel(box, self, "addonPrefs_tools_expanded", text="Tools")
-    if self.addonPrefs_tools_expanded:
-        uiSplitFactor = 0.15
+    # box = layout.box()
+    # collapsable_panel(box, self, "addonPrefs_tools_expanded", text="Tools")
+    # if self.addonPrefs_tools_expanded:
+    #     uiSplitFactor = 0.15
 
-        # column component here is technicaly not necessary but reduces the space between lines
-        col = box.column()
+    #     # column component here is technicaly not necessary but reduces the space between lines
+    #     col = box.column()
 
-        split = col.split(factor=uiSplitFactor)
-        rowLeft = split.row()
-        rowRight = split.row()
-        rowRight.prop(self, "display_frame_range_tool", text="Display Frame Range Tool in the Timeline Editor")
+    #     split = col.split(factor=uiSplitFactor)
+    #     rowLeft = split.row()
+    #     rowRight = split.row()
+    #     rowRight.prop(self, "display_frame_range_tool", text="Display Frame Range Tool in the Timeline Editor")
 
     # Dev and debug
     ###############

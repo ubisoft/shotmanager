@@ -38,11 +38,21 @@ class UAS_PT_ShotManagerRenderPanelStdalone(Panel):
     @classmethod
     def poll(cls, context):
         props = context.scene.UAS_shot_manager_props
+        prefs = context.preferences.addons["shotmanager"].preferences
         displayPanel = context.preferences.addons["shotmanager"].preferences.separatedRenderPanel
 
         displayPanel = displayPanel and props.getCurrentShot() is not None
 
-        return displayPanel
+        return displayPanel and prefs.display_render_in_properties
+
+    def draw_header(self, context):
+        layout = self.layout
+        layout.emboss = "NONE"
+
+        row = layout.row(align=True)
+        # icon = config.icons_col["ShotManager_Retimer_32"]
+        # row.label(icon=icon.icon_id)
+        row.label(icon="RENDER_ANIMATION")
 
     def draw(self, context):
         draw3DRenderPanel(self, context)
@@ -59,15 +69,26 @@ class UAS_PT_ShotManagerRenderPanel(Panel):
     @classmethod
     def poll(cls, context):
         props = context.scene.UAS_shot_manager_props
+        prefs = context.preferences.addons["shotmanager"].preferences
+        displayPanel = context.preferences.addons["shotmanager"].preferences.separatedRenderPanel
         val = not props.dontRefreshUI() and len(props.takes) and len(props.get_shots())
         val = val and not context.preferences.addons["shotmanager"].preferences.separatedRenderPanel
-        return val
+        return val and prefs.display_render_in_properties
 
     # def check(self, context):
     #     # should we redraw when a button is pressed?
     #     if True:
     #         return True
     #     return False
+
+    def draw_header(self, context):
+        layout = self.layout
+        layout.emboss = "NONE"
+
+        row = layout.row(align=True)
+        # icon = config.icons_col["ShotManager_Retimer_32"]
+        # row.label(icon=icon.icon_id)
+        row.label(icon="RENDER_ANIMATION")
 
     def draw(self, context):
         draw3DRenderPanel(self, context)

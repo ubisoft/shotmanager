@@ -47,6 +47,7 @@ from .operators import playbar
 from .operators import shots_toolbar
 
 from .operators import prefs
+from .operators import prefs_tools
 from .operators import features
 from .operators import about
 
@@ -68,7 +69,7 @@ from .utils import utils
 from .utils import utils_render
 from .utils import utils_handlers
 from .utils import utils_operators
-from .utils import utils_get_set_current_time
+from .tools import frame_range
 from .utils.utils_os import module_can_be_imported
 
 from .scripts import rrs
@@ -480,7 +481,7 @@ def register():
     cameraBG.register()
     soundBG.register()
     greasepencil.register()
-    utils_get_set_current_time.register()
+    frame_range.register()
     rendering.register()
     takes.register()
     shots.register()
@@ -523,6 +524,7 @@ def register():
     sequence_timeline.register()
     viewport_camera_hud.register()
     prefs.register()
+    prefs_tools.register()
     features.register()
     about.register()
     keymaps.register()
@@ -628,6 +630,7 @@ def unregister():
     print("--features.unregister")
     features.unregister()
     print("--prefs.unregister")
+    prefs_tools.unregister()
     prefs.unregister()
     print("--viewport_camera_hud.unregister")
     viewport_camera_hud.unregister()
@@ -660,11 +663,10 @@ def unregister():
     playbar.unregister()
     precut_tools.unregister()
     shots_global_settings.unregister()
-    print("--shots.unregister")
     shots.unregister()
     takes.unregister()
     utils_operators.unregister()
-    utils_get_set_current_time.unregister()
+    frame_range.unregister()
     greasepencil.unregister()
     soundBG.unregister()
     cameraBG.unregister()

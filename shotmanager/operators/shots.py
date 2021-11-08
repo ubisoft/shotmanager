@@ -27,7 +27,7 @@ from random import uniform
 import json
 
 from shotmanager.utils import utils
-from shotmanager.utils.utils_get_set_current_time import zoom_dopesheet_view_to_range
+from shotmanager.utils.utils_time import zoom_dopesheet_view_to_range
 
 
 def list_cameras(self, context):

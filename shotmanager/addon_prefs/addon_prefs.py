@@ -57,9 +57,16 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
         default=50,
     )
 
+    def _update_display_frame_range_tool(self, context):
+        # print("\n*** _update_display_frame_range_tool. New state: ", self.display_frame_range_tool)
+        from shotmanager.tools.frame_range.frame_range_operators import display_frame_range_in_editor
+
+        display_frame_range_in_editor(self.display_frame_range_tool)
+
     display_frame_range_tool: BoolProperty(
         name="Frame Time Range",
         description="Easily get and set the time range from the Timeline editor.\nA tool from Ubisoft Shot Manager",
+        update=_update_display_frame_range_tool,
         default=True,
     )
 
@@ -186,6 +193,12 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
 
     # ****** settings exposed to the user in the prefs panel:
     # ------------------------------
+
+    display_render_in_properties: BoolProperty(
+        name="Display Renderer",
+        description="Display the Render sub-panel in the Shot Manager panel.\n(saved in the add-on preferences)",
+        default=True,
+    )
 
     separatedRenderPanel: BoolProperty(
         name="Separated Render Panel",
