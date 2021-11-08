@@ -42,7 +42,18 @@ from .utils_os import open_folder
 def collapsable_panel(
     layout: bpy.types.UILayout, data: bpy.types.AnyType, property: str, alert: bool = False, **kwargs
 ):
-    row = layout.row()
+    """Draw an arrow to collapse or extend a panel
+    Args:
+        layout: parent component
+        data: the object with the properties
+        property: the boolean used to store the rolled-down state of the panel
+        alert: is the title bar of the panel is drawn in alert mode
+    eg: collapsable_panel(layout, addon_props, "display_users", text="Server Users")
+        if addon_props.addonPrefs_ui_expanded: ...
+    """
+    row = layout.row(align=True)
+    row.alignment = "LEFT"
+    # row.scale_x = 0.9
     row.prop(
         data, property, icon="TRIA_DOWN" if getattr(data, property) else "TRIA_RIGHT", icon_only=True, emboss=False,
     )

@@ -16,7 +16,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 """
-To do: module description here.
+Shots functions and operators
 """
 
 import bpy
@@ -27,6 +27,7 @@ from random import uniform
 import json
 
 from shotmanager.utils import utils
+from shotmanager.utils.utils_get_set_current_time import zoom_dopesheet_view_to_range
 
 
 def list_cameras(self, context):
@@ -58,36 +59,52 @@ class UAS_ShotManager_SetCurrentShot(Operator):
 
     index: bpy.props.IntProperty()
 
-    def adjust_dopesheet_view(self, context, shot):
-        ctx = context.copy()
-        for area in context.screen.areas:
-            if area.type == "DOPESHEET_EDITOR":
-                ctx["area"] = area
-                for region in area.regions:
-                    if region.type == "WINDOW":
-                        ctx["region"] = region
-                        bpy.ops.view2d.reset(ctx)
-                        context.scene.frame_current = shot.start + (shot.end - shot.start) // 2
-                        bpy.ops.action.view_frame(ctx)
-                        bpy.ops.view2d.zoom(ctx, deltax=(region.width // 2 - (shot.end - shot.start) // 2) - 10)
-
     def invoke(self, context, event):
-        props = context.scene.UAS_shot_manager_props
-        self.adjust_dopesheet_view(context, props.getShotByIndex(self.index))
-        if event.shift and not event.ctrl and not event.alt:
-            shot = props.getShotByIndex(self.index)
+        scene = context.scene
+        props = scene.UAS_shot_manager_props
+        prefs = bpy.context.preferences.addons["shotmanager"].preferences
+        shot = props.getShotByIndex(self.index)
+        currentShotChanged = False
+
+        # change shot
+        if not event.shift and not event.ctrl:
+            if event.alt:
+                props.setCurrentShotByIndex(self.index, changeTime=False, area=context.area)
+            else:
+                props.setCurrentShotByIndex(self.index, area=context.area)
+            props.setSelectedShotByIndex(self.index)
+            currentShotChanged = True
+
+        # disable shot
+        elif event.shift and not event.ctrl and not event.alt:
             shot.enabled = not shot.enabled
+
+        # select camera
         elif event.ctrl and not event.shift and not event.alt:
-            context.scene.UAS_shot_manager_props.setSelectedShotByIndex(self.index)
-            context.scene.UAS_shot_manager_props.selectCamera(self.index)
-        elif event.alt and not event.shift and not event.ctrl:
-            props.setCurrentShotByIndex(self.index, changeTime=False, area=context.area)
-            props.setSelectedShotByIndex(self.index)
-        elif not event.alt and not event.shift and not event.ctrl:
-            props.setCurrentShotByIndex(self.index, area=context.area)
-            props.setSelectedShotByIndex(self.index)
+            scene.UAS_shot_manager_props.setSelectedShotByIndex(self.index)
+            scene.UAS_shot_manager_props.selectCamera(self.index)
+
+        # already handled in first condition
+        # elif event.alt and not event.shift and not event.ctrl:
+        #     props.setCurrentShotByIndex(self.index, changeTime=False, area=context.area)
+        #     props.setSelectedShotByIndex(self.index)
+
         else:
             pass
+
+        if currentShotChanged:
+            # change time range to match shot range
+            if prefs.current_shot_changes_time_range:
+                if scene.use_preview_range:
+                    scene.frame_preview_start = shot.start
+                    scene.frame_preview_end = shot.end
+                else:
+                    scene.frame_start = shot.start
+                    scene.frame_end = shot.end
+
+            # zoom to frame shot in anim range
+            if prefs.current_shot_changes_time_zoom:
+                zoom_dopesheet_view_to_range(context, shot.start, shot.end)
 
         return {"FINISHED"}
 

@@ -1,3 +1,14 @@
+# 1.6.02 (2021-11-08)
+
+## UI
+
+- Fixed the Frame Time Range button in the Timeline
+
+## Add-on preferences
+
+- Added a Frame Shot in Timeline option to change the timeline zoom when a shot is selected
+
+
 # 1.5.77 (2021-11-05)
 
 ## Tools
@@ -8,6 +19,7 @@ and introduced a button in the Shots section instead
 by several shots
 
 ## UI
+
 - Introduced some new icons (Overlay Tools, Retimer, Camera to Viewport...)
 - Changed some custom icons, moved some buttons, improved responsive design
 - Exposed key mapping for:

@@ -16,11 +16,12 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 """
-To do: module description here.
+UI for the Add-on Preferences
 """
 
-from ..config import config
-from ..ui.dependencies_ui import drawDependencies
+from shotmanager.config import config
+from shotmanager.ui.dependencies_ui import drawDependencies
+from shotmanager.utils.utils_ui import collapsable_panel
 
 
 ##################################################################################
@@ -28,52 +29,62 @@ from ..ui.dependencies_ui import drawDependencies
 ##################################################################################
 def draw_shotmanager_addon_prefs(self, context):
     layout = self.layout
+    layout = layout.column(align=False)
     # prefs = context.preferences.addons["shotmanager"].preferences
     splitFactor = 0.3
-
-    # Settings
-    ###############
-    box = layout.box()
-    box.use_property_decorate = False
-    box.label(text="Settings:")
-
-    #    col.prop(self, "useLockCameraView", text="Use Lock Camera View")
-
-    split = box.split(factor=splitFactor)
-    rowLeft = split.row()
-    rowLeft.alignment = "RIGHT"
-    rowLeft.label(text="Default Shot Duration")
-    rowRight = split.row()
-    rowRight.prop(self, "new_shot_duration", text="Frames")
-
-    # General UI
-    ###############
-    box = layout.box()
-    uiSplitFactor = 0.15
-
-    # column component here is technicaly not necessary but reduces the space between lines
-    col = box.column()
-    col.label(text="UI:")
-
-    split = col.split(factor=uiSplitFactor)
-    rowLeft = split.row()
-    rowRight = split.row()
-    rowRight.prop(self, "separatedRenderPanel", text="Make Render Panel a Separated Tab in the Viewport N-Panel")
-
-    split = col.split(factor=uiSplitFactor)
-    rowLeft = split.row()
-    rowRight = split.row()
-    rowRight.prop(self, "display_frame_range_tool", text="Display Frame Range Tool in the Timeline Editor")
 
     # Dependencies
     ###############
     drawDependencies(context, layout)
 
+    # Settings
+    ###############
+    box = layout.box()
+    collapsable_panel(box, self, "addonPrefs_settings_expanded", text="Settings")
+    if self.addonPrefs_settings_expanded:
+        box.use_property_decorate = False
+        split = box.split(factor=splitFactor)
+        rowLeft = split.row()
+        rowLeft.alignment = "RIGHT"
+        rowLeft.label(text="Default Shot Duration")
+        rowRight = split.row()
+        rowRight.prop(self, "new_shot_duration", text="Frames")
+
+    # General UI
+    ###############
+    box = layout.box()
+    collapsable_panel(box, self, "addonPrefs_ui_expanded", text="UI")
+    if self.addonPrefs_ui_expanded:
+        uiSplitFactor = 0.15
+
+        # column component here is technicaly not necessary but reduces the space between lines
+        col = box.column()
+
+        split = col.split(factor=uiSplitFactor)
+        rowLeft = split.row()
+        rowRight = split.row()
+        rowRight.prop(self, "separatedRenderPanel", text="Make Render Panel a Separated Tab in the Viewport N-Panel")
+
+    # Tools
+    ###############
+    box = layout.box()
+    collapsable_panel(box, self, "addonPrefs_tools_expanded", text="Tools")
+    if self.addonPrefs_tools_expanded:
+        uiSplitFactor = 0.15
+
+        # column component here is technicaly not necessary but reduces the space between lines
+        col = box.column()
+
+        split = col.split(factor=uiSplitFactor)
+        rowLeft = split.row()
+        rowRight = split.row()
+        rowRight.prop(self, "display_frame_range_tool", text="Display Frame Range Tool in the Timeline Editor")
+
     # Dev and debug
     ###############
     box = layout.box()
 
-    split = box.split(factor=splitFactor)
+    split = box.split(factor=0.5)
     rowLeft = split.row()
     rowLeft.label(text="Development and Debug:")
     rowRight = split.row()

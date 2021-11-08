@@ -52,29 +52,32 @@ def draw_item(self, context):
     layout.menu(MyCustomMenu.bl_idname)
 
 
+def zoom_dopesheet_view_to_range(context, start, end):
+    ctx = context.copy()
+    for area in context.screen.areas:
+        if area.type == "DOPESHEET_EDITOR":
+            ctx["area"] = area
+            for region in area.regions:
+                if region.type == "WINDOW":
+                    ctx["region"] = region
+                    bpy.ops.view2d.reset(ctx)
+                    context.scene.frame_current = start + (end - start) // 2
+                    bpy.ops.action.view_frame(ctx)
+                    bpy.ops.view2d.zoom(ctx, deltax=(region.width // 2 - (end - start) // 2) - 10)
+
+
 class UAS_ShotManager_SetTimeRangeStart(Operator):
     bl_idname = "uas_shot_manager.set_time_range_start"
     bl_label = "Set Start Range"
     bl_description = "Set the end time range with the curent time value"
-    bl_options = {"INTERNAL"}
-
-    spacerPercent: FloatProperty(
-        description="Range of time, in percentage, before and after the time range", min=0.0, max=40.0, default=5
-    )
-
-    # def invoke(self, context, event):
-    #     props = context.scene.UAS_shot_manager_props
-
-    #     return {"FINISHED"}
+    bl_options = {"INTERNAL", "UNDO"}
 
     def execute(self, context):
         scene = context.scene
-
         if scene.use_preview_range:
             scene.frame_preview_start = scene.frame_current
         else:
             scene.frame_start = scene.frame_current
-
         return {"FINISHED"}
 
 
@@ -82,25 +85,14 @@ class UAS_ShotManager_SetTimeRangeEnd(Operator):
     bl_idname = "uas_shot_manager.set_time_range_end"
     bl_label = "Set End Range"
     bl_description = "Set the end time range with the curent time value"
-    bl_options = {"INTERNAL"}
-
-    spacerPercent: FloatProperty(
-        description="Range of time, in percentage, before and after the time range", min=0.0, max=40.0, default=5
-    )
-
-    # def invoke(self, context, event):
-    #     props = context.scene.UAS_shot_manager_props
-
-    #     return {"FINISHED"}
+    bl_options = {"INTERNAL", "UNDO"}
 
     def execute(self, context):
         scene = context.scene
-
         if scene.use_preview_range:
             scene.frame_preview_end = scene.frame_current
         else:
             scene.frame_end = scene.frame_current
-
         return {"FINISHED"}
 
 
@@ -120,6 +112,14 @@ class UAS_ShotManager_FrameTimeRange(Operator):
     #     return {"FINISHED"}
 
     def execute(self, context):
+        if context.scene.use_preview_range:
+            zoom_dopesheet_view_to_range(context, context.scene.frame_preview_start, context.scene.frame_preview_end)
+        else:
+            zoom_dopesheet_view_to_range(context, context.scene.frame_start, context.scene.frame_end)
+        return {"FINISHED"}
+
+    # wkip to delete, marche pas
+    def execute_deprecated(self, context):
         scene = context.scene
         props = scene.UAS_shot_manager_props
 

@@ -146,7 +146,7 @@ class ShotClip:
 
         # print("here 01")
         if current_shot != -1 and self.shot.name == current_shot.name:
-            UNIFORM_SHADER_2D.uniform_float("color", (0.6, 0.6, 0.9, 0.9))
+            UNIFORM_SHADER_2D.uniform_float("color", (0.2, 0.9, 0.2, 0.99))
             self.contour_mesh.draw(UNIFORM_SHADER_2D, context.region, "LINES")
         #  print("here 02")
 

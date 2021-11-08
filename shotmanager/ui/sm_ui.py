@@ -343,7 +343,8 @@ class UAS_PT_ShotManager(Panel):
             props.display_globaleditintegr_in_properties or props.display_takerendersettings_in_properties
         )
         if display_take_arrow:
-            row.prop(prefs, "take_properties_expanded", text="", icon=panelIcon, emboss=False)
+            # utils_ui.collapsable_panel(row, prefs, "take_properties_expanded")     # doesn't improve the UI
+            row.prop(prefs, "take_properties_expanded", text="", icon_only=True, icon=panelIcon, emboss=False)
 
         leftrow = row.row()
         leftrow.alignment = "LEFT"

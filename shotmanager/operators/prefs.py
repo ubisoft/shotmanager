@@ -238,7 +238,7 @@ class UAS_ShotManager_OverlayTools_Prefs(Operator):
         col.prop(
             prefs, "best_play_perfs_turnOff_interactiveShotsStack", text="Interactive Shots Stack",
         )
-        col.prop(props, "best_play_perfs_turnOff_mainUI", text="Main Panel UI")
+        col.prop(prefs, "best_play_perfs_turnOff_mainUI", text="Main Panel UI")
 
         # Sequence timeline ######
         # layout.separator(factor=1)
@@ -336,16 +336,15 @@ class UAS_ShotManager_Shots_Prefs(Operator):
         row.prop(props, "current_shot_properties_mode", text="")
         row.separator()
 
-        # box.separator(factor=0.5)
-
         # User Prefs at addon level
         ###############
 
+        box.separator(factor=0.5)
         # main column, to allow title offset
         maincol = box.column()
         row = maincol.row()
         row.separator(factor=2)
-        row.label(text="Time Change:")
+        row.label(text="When Current Shot Is Changed:  (Settings stored in the Add-on Preferences):")
 
         # empty spacer column
         row = maincol.row()
@@ -360,12 +359,13 @@ class UAS_ShotManager_Shots_Prefs(Operator):
         col.separator(factor=0.5)
         col.use_property_split = False
         col.prop(
-            prefs,
-            "current_shot_changes_current_time",
-            text="Set Current Frame To Shot Start When Current Shot Is Changed",
+            prefs, "current_shot_changes_current_time", text="Set Current Frame To Shot Start",
         )
         col.prop(
-            prefs, "current_shot_changes_time_range", text="Set Time Range To Shot Range When Current Shot Is Changed"
+            prefs, "current_shot_changes_time_range", text="Set Scene Animation Range To Shot Range",
+        )
+        col.prop(
+            prefs, "current_shot_changes_time_zoom", text="Zoom Timeline Content To Frame The Shot Range",
         )
 
         box.separator(factor=0.3)

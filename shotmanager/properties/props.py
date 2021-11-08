@@ -51,6 +51,7 @@ from ..operators.shots_global_settings import UAS_ShotManager_ShotsGlobalSetting
 from ..retimer.retimer_props import UAS_Retimer_Properties
 
 from shotmanager.utils import utils
+from shotmanager.utils.utils_get_set_current_time import zoom_dopesheet_view_to_range
 
 import logging
 
@@ -274,7 +275,10 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         return res
 
     sequence_name: StringProperty(
-        name="Sequence Name", description="Name of the sequence edited in the scene", default="My Sequence", options=set(),
+        name="Sequence Name",
+        description="Name of the sequence edited in the scene",
+        default="My Sequence",
+        options=set(),
     )
 
     # wkip rrs specific
@@ -1760,7 +1764,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
     def setCurrentShotByIndex(self, currentShotIndex, changeTime=None, area=None):
         """Changing the current shot:
           - doesn't affect the selected one
-          - change the current time
+          - changes the current time if specifed
         Args:
             changeTime:
                 - None(default): depends on the state of prefs.current_shot_changes_current_time
@@ -1785,8 +1789,9 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
             elif changeTime:
                 scene.frame_current = currentShot.start
 
-            if prefs.current_shot_changes_time_range and scene.use_preview_range:
-                bpy.ops.uas_shot_manager.scenerangefromshot()
+            # removed: timeline zoom should not be changed here
+            # if prefs.current_shot_changes_time_range:
+            #     zoom_dopesheet_view_to_range(bpy.context, currentShot.start, currentShot.end)
 
             if currentShot.camera is not None and bpy.context.screen is not None:
                 # set the current camera in the 3D view: [‘PERSP’, ‘ORTHO’, ‘CAMERA’]

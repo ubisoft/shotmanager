@@ -116,11 +116,35 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
         name="Expand Shot Grease Pencil", default=False,
     )
 
+    # prefs panels
+    ######################
+    addonPrefs_settings_expanded: BoolProperty(
+        name="Expand Settings Preferences", default=False,
+    )
+    addonPrefs_ui_expanded: BoolProperty(
+        name="Expand UI Preferences", default=False,
+    )
+    addonPrefs_tools_expanded: BoolProperty(
+        name="Expand Tools Preferences", default=False,
+    )
+    addonPrefs_debug_expanded: BoolProperty(
+        name="Expand Debug Preferences", default=False,
+    )
+
     current_shot_changes_current_time: BoolProperty(
-        name="Set Current Frame To Shot Start When Current Shot Is Changed", description="", default=True,
+        name="Set Current Frame To Shot Start",
+        description="Set the current time to the start of the shot when the current shot is changed.\n(Add-on preference)",
+        default=True,
     )
     current_shot_changes_time_range: BoolProperty(
-        name="Set Time Range To Shot Range When Current Shot Is Changed", description="", default=False,
+        name="Set Time Range To Shot Range",
+        description="Set the animation range to match the shot range when the current shot is changed.\n(Add-on preference)",
+        default=False,
+    )
+    current_shot_changes_time_zoom: BoolProperty(
+        name="Zoom Timeline to Shot Range",
+        description="Zoom the timeline content to frame the shot range when the current shot is changed.\n(Add-on preference)",
+        default=True,
     )
 
     playblastFileName: StringProperty(name="Temporary Playblast File", default="toto.mp4")
@@ -224,6 +248,14 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
         description="Apply retime operation to the animation start and end of the scene.\n(saved in the add-on preferences)",
         default=True,
     )
+
+    ########################################################################
+    # opengl tools ###
+    ########################################################################
+
+    ##################
+    # Interactive Shots Stack ###
+    ##################
 
     ########################################################################
     # tools ui   ###
