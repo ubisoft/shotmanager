@@ -206,6 +206,13 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
         default=True,
     )
 
+    deleteIntermediateFiles: BoolProperty(
+        name="Delete Intermediate Image Files",
+        description="Delete the rendered and Stamp Info temporary image files when the composited output is generated."
+        "\nIf set to False these files are kept on disk up to the next rendering of the shot",
+        default=True,
+    )
+
     # ****** hidden settings:
     # ------------------------------
 
@@ -222,7 +229,9 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
         default="STILL",
     )
 
+    ########################################################################
     ### Overlay tools
+    ########################################################################
 
     # tools disabled during play
     best_play_perfs_turnOff_sequenceTimeline: BoolProperty(

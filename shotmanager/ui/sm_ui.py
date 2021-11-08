@@ -118,6 +118,8 @@ class UAS_PT_ShotManager(Panel):
         currentTake = props.getCurrentTake()
         currentTakeInd = props.getCurrentTakeIndex()
 
+        enlargeButs = 1.15
+
         # addon warning message - for beta message display
         ###############
         # import addon_utils
@@ -620,6 +622,7 @@ class UAS_PT_ShotManager(Panel):
             #  subrow.scale_x = 1.0
             camrow = shotsrow.row(align=True)
             camrow.alignment = "RIGHT"
+            camrow.scale_x = enlargeButs
 
             icon = config.icons_col["ShotManager_Tools_CamToView_32"]
             camrow.operator_context = "INVOKE_DEFAULT"
@@ -634,6 +637,7 @@ class UAS_PT_ShotManager(Panel):
 
             timerow = shotsrow.row(align=True)
             timerow.alignment = "RIGHT"
+            timerow.scale_x = enlargeButs
             timerow.operator("uas_shot_manager.scenerangefromshots", text="", icon="PREVIEW_RANGE")
 
             # col = row.column(align=True)

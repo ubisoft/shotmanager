@@ -22,6 +22,7 @@ To do: module description here.
 import bpy
 
 from .rendering_props import UAS_ShotManager_RenderGlobalContext, UAS_ShotManager_RenderSettings
+from .rendering_prefs import UAS_ShotManager_Render_Prefs
 from . import rendering_operators
 
 import logging
@@ -32,6 +33,7 @@ _logger = logging.getLogger(__name__)
 _classes = (
     UAS_ShotManager_RenderGlobalContext,
     UAS_ShotManager_RenderSettings,
+    UAS_ShotManager_Render_Prefs,
 )
 
 

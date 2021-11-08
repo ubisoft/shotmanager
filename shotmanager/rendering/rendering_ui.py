@@ -54,6 +54,9 @@ class UAS_PT_ShotManagerRenderPanelStdalone(Panel):
         # row.label(icon=icon.icon_id)
         row.label(icon="RENDER_ANIMATION")
 
+    def draw_header_preset(self, context):
+        drawHeaderPreset(self, context)
+
     def draw(self, context):
         draw3DRenderPanel(self, context)
 
@@ -90,8 +93,21 @@ class UAS_PT_ShotManagerRenderPanel(Panel):
         # row.label(icon=icon.icon_id)
         row.label(icon="RENDER_ANIMATION")
 
+    def draw_header_preset(self, context):
+        drawHeaderPreset(self, context)
+
     def draw(self, context):
         draw3DRenderPanel(self, context)
+
+
+def drawHeaderPreset(self, context):
+    layout = self.layout
+    layout.emboss = "NONE"
+
+    row = layout.row(align=True)
+    # row.menu("UAS_MT_Shot_Manager_prefs_mainmenu", icon="PREFERENCES", text="")
+    row.operator("uas_shot_manager.render_prefs", icon="PREFERENCES", text="")
+    row.separator(factor=1.0)
 
 
 def draw3DRenderPanel(self, context):

@@ -1,4 +1,4 @@
-# 1.6.02 (2021-11-08)
+# 1.6.03 (2021-11-09)
 
 ## UI
 
@@ -8,6 +8,7 @@
 ## Add-on preferences
 
 - Added a Frame Shot in Timeline option to change the timeline zoom when a shot is selected
+- Added a render parameter to allow the generated files to be kept on disk
 
 
 # 1.5.77 (2021-11-05)

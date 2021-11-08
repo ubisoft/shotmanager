@@ -62,7 +62,6 @@ from .rendering import rendering_ui
 
 from .scripts import precut_tools
 
-
 from .ui import sm_ui
 
 from .utils import utils
@@ -87,7 +86,7 @@ bl_info = {
     "author": "Ubisoft - Julien Blervaque (aka Werwack), Romain Carriquiry Borchiari",
     "description": "Manage a sequence of shots and cameras in the 3D View - Ubisoft Animation Studio",
     "blender": (2, 92, 0),
-    "version": (1, 6, 2),
+    "version": (1, 6, 3),
     "location": "View3D > Shot Manager",
     "wiki_url": "https://ubisoft-shotmanager.readthedocs.io",
     # "warning": "BETA Version",

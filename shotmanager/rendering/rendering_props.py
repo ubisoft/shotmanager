@@ -321,9 +321,7 @@ class UAS_ShotManager_RenderSettings(PropertyGroup):
     renderHandles: BoolProperty(name="Render With Handles", default=False)
 
     renderSound: BoolProperty(
-        name="Render Sound",
-        description="Also generate sound in rendered media",
-        default=True,
+        name="Render Sound", description="Also generate sound in rendered media", default=True,
     )
 
     disableCameraBG: BoolProperty(
