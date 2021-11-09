@@ -746,7 +746,16 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
 
     change_time: BoolProperty(default=True, options=set())
 
+    # sequence timeline properties
+    #################################
     display_disabledshots_in_timeline: BoolProperty(default=False, options=set())
+
+    # interact shots stack properties
+    #################################
+    display_disabledshots_in_interactShotsStack: BoolProperty(default=False, options=set())
+    interactShotsStack_displayInCompactMode: BoolProperty(default=False, options=set())
+
+
 
     def _get_playSpeedGlobal(self):
         val = self.get("playSpeedGlobal", 1.0)

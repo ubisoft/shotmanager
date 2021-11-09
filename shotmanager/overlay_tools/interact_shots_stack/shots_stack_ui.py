@@ -133,7 +133,12 @@ class ShotClip:
         bgl.glEnable(bgl.GL_BLEND)
         UNIFORM_SHADER_2D.bind()
         color = (self.shot.color[0], self.shot.color[1], self.shot.color[2], 0.5)
+
         color = gamma_color(color)
+
+        if not self.shot.enabled:
+            color = (0.15, 0.15, 0.15, 0.5)
+
         if self.highlight:
             color = (0.9, 0.9, 0.9, 0.5)
         UNIFORM_SHADER_2D.uniform_float("color", color)
@@ -318,9 +323,14 @@ class UAS_ShotManager_DrawMontageTimeline(bpy.types.Operator):
         return {"PASS_THROUGH"}
 
     def build_clips(self):
+        props = bpy.context.scene.UAS_shot_manager_props
         self.clips.clear()
-        if self.compact_display:
-            shots = sorted(self.sm_props.getShotsList(ignoreDisabled=True), key=lambda s: s.start)
+        # if self.compact_display:
+        if props.interactShotsStack_displayInCompactMode:
+            shots = sorted(
+                self.sm_props.getShotsList(ignoreDisabled=not props.display_disabledshots_in_interactShotsStack),
+                key=lambda s: s.start,
+            )
             shots_from_lane = defaultdict(list)
             for i, shot in enumerate(shots):
                 lane = 0
@@ -338,7 +348,9 @@ class UAS_ShotManager_DrawMontageTimeline(bpy.types.Operator):
 
                 self.clips.append(ShotClip(self.context, shot, lane, self.sm_props))
         else:
-            for i, shot in enumerate(self.sm_props.getShotsList(ignoreDisabled=True)):
+            for i, shot in enumerate(
+                self.sm_props.getShotsList(ignoreDisabled=not props.display_disabledshots_in_interactShotsStack)
+            ):
                 self.clips.append(ShotClip(self.context, shot, i, self.sm_props))
 
     def draw(self, context):

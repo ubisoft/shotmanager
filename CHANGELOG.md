@@ -1,4 +1,9 @@
-# 1.6.03 (2021-11-09)
+# 1.6.05 (2021-11-09)
+
+## Overlay tools
+
+- Exposed preferences to display disabled shots in the timeline and shots stack
+- Exposed a Compact mode for the shots stack
 
 ## UI
 
@@ -8,7 +13,7 @@
 ## Add-on preferences
 
 - Added a Frame Shot in Timeline option to change the timeline zoom when a shot is selected
-- Added a render parameter to allow the generated files to be kept on disk
+- Added a render parameter in the Render Prefs panel to allow the generated files to be kept on disk
 
 
 # 1.5.77 (2021-11-05)

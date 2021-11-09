@@ -244,7 +244,9 @@ class UAS_ShotManager_OverlayTools_Prefs(Operator):
         )
         col.prop(prefs, "best_play_perfs_turnOff_mainUI", text="Main Panel UI")
 
+        ###################################
         # Sequence timeline ######
+        ###################################
         # layout.separator(factor=1)
         layout.label(text="Sequence Timeline:")
         box = layout.box()
@@ -261,6 +263,32 @@ class UAS_ShotManager_OverlayTools_Prefs(Operator):
         # col.use_property_decorate = False
         col.prop(
             props, "display_disabledshots_in_timeline", text="Display Disabled Shots",
+        )
+
+        ###################################
+        # Interactive Shots Stack ######
+        ###################################
+        # layout.separator(factor=1)
+        layout.label(text="Interactive Shots Stack:")
+        box = layout.box()
+        box.use_property_decorate = False
+
+        # empty spacer column
+        row = box.row()
+        col = row.column()
+        col.scale_x = 0.3
+        col.label(text=" ")
+        col = row.column()
+
+        col.use_property_split = False
+        # col.use_property_decorate = False
+        col.prop(
+            props, "display_disabledshots_in_interactShotsStack", text="Display Disabled Shots",
+        )
+        col.prop(
+            props,
+            "interactShotsStack_displayInCompactMode",
+            text="Compact Shots Display (= decrease visual stack height)",
         )
 
         # Edit ######
