@@ -25,14 +25,13 @@ import os
 from pathlib import Path
 
 import bpy
-from bpy.app.handlers import persistent
 
 from bpy.props import BoolProperty, IntProperty, FloatProperty
 
-
 from .config import config
 
-from .handlers import jump_to_shot
+from . import handlers
+from .handlers.sm_overlay_tools_handlers import install_handler_for_shot, timeline_valueChanged
 
 from .features import cameraBG
 from .features import soundBG
@@ -66,7 +65,6 @@ from .ui import sm_ui
 
 from .utils import utils
 from .utils import utils_render
-from .utils import utils_handlers
 from .utils import utils_operators
 from .tools import frame_range
 from .utils.utils_os import module_can_be_imported
@@ -86,7 +84,7 @@ bl_info = {
     "author": "Ubisoft - Julien Blervaque (aka Werwack), Romain Carriquiry Borchiari",
     "description": "Manage a sequence of shots and cameras in the 3D View - Ubisoft Animation Studio",
     "blender": (2, 92, 0),
-    "version": (1, 6, 4),
+    "version": (1, 6, 5),
     "location": "View3D > Shot Manager",
     "wiki_url": "https://ubisoft-shotmanager.readthedocs.io",
     # "warning": "BETA Version",
@@ -106,11 +104,9 @@ _logger = logging.getLogger(__name__)
 _logger.propagate = False
 MODULE_PATH = Path(__file__).parent.parent
 logging.basicConfig(level=logging.INFO)
-_logger.setLevel(logging.DEBUG)  # CRITICAL ERROR WARNING INFO DEBUG NOTSET
+_logger.setLevel(logging.INFO)  # CRITICAL ERROR WARNING INFO DEBUG NOTSET
 
-
-# _logger.info(f"Logger {str(256) + 'mon texte super long et tout'}")
-
+# _logger.info(f"Logger {str(256) + 'my long very long text'}")
 # _logger.info(f"Logger {str(256)}")
 # _logger.warning(f"logger {256}")
 # _logger.error(f"error {256}")
@@ -159,176 +155,12 @@ class Formatter(logging.Formatter):
 #     return os.path.join(get_logs_directory(), f"mixer_logs_{share_data.run_id}.log")
 
 
-###########
-# Handlers
-###########
-
-
-def timeline_valueChanged(self, context):
-    # print("  timeline_valueChanged:  self.UAS_shot_manager_display_overlay_tools: ", self.UAS_shot_manager_display_overlay_tools)
-    if self.UAS_shot_manager_display_overlay_tools:
-        a = bpy.ops.uas_shot_manager.draw_timeline("INVOKE_DEFAULT")
-        # print(f"a: {a}")
-        bpy.ops.uas_shot_manager.draw_montage_timeline("INVOKE_DEFAULT")
-        pass
-        # bpy.ops.uas_shot_manager.draw_cameras_ui("INVOKE_DEFAULT")
-    else:
-        pass
-        # print(f"a operator timeline not updated")
-
-        # bpy.ops.uas_shot_manager.draw_timeline.cancel(context)
-        # print(f"a b operator timeline not updated")
-    # pistes pour killer un operateur:
-    #   - mettre un Poll
-    #   - faire un return Cancel dans le contenu
-    #   - killer, d'une maniere ou d'une autre
-
-
-def install_shot_handler(self, context):
-    """Called as the update function of WindowManager.UAS_shot_manager_shots_play_mode
-    """
-    scene = context.scene
-
-    scene.UAS_shot_manager_props.setResolutionToScene()
-
-    if self.UAS_shot_manager_shots_play_mode and jump_to_shot not in bpy.app.handlers.frame_change_pre:
-        shots = scene.UAS_shot_manager_props.get_shots()
-        for i, shot in enumerate(shots):
-            if shot.start <= scene.frame_current <= shot.end:
-                scene.UAS_shot_manager_props.current_shot_index = i
-                break
-        bpy.app.handlers.frame_change_pre.append(jump_to_shot)
-    #     bpy.app.handlers.frame_change_post.append(jump_to_shot__frame_change_post)
-
-    #    bpy.ops.uas_shot_manager.draw_timeline ( "INVOKE_DEFAULT" )
-    elif not self.UAS_shot_manager_shots_play_mode and jump_to_shot in bpy.app.handlers.frame_change_pre:
-        utils_handlers.removeAllHandlerOccurences(jump_to_shot, handlerCateg=bpy.app.handlers.frame_change_pre)
-        # utils_handlers.removeAllHandlerOccurences(
-        #     jump_to_shot__frame_change_post, handlerCateg=bpy.app.handlers.frame_change_post
-        # )
-
-
-@persistent
-def checkDataVersion_post_load_handler(self, context):
-    loadedFileName = bpy.path.basename(bpy.context.blend_data.filepath)
-    print("\n\n-------------------------------------------------------")
-    if "" == loadedFileName:
-        print("\nNew file loaded")
-    else:
-        print("\nExisting file loaded: ", bpy.path.basename(bpy.context.blend_data.filepath))
-        _logger.info("  - Shot Manager is checking the version used to create the loaded scene data...")
-
-        latestVersionToPatch = 1003061
-
-        numScenesToUpgrade = 0
-        lowerSceneVersion = -1
-        for scn in bpy.data.scenes:
-
-            # if "UAS_shot_manager_props" in scn:
-            if getattr(bpy.context.scene, "UAS_shot_manager_props", None) is not None:
-                #   print("\n   Shot Manager instance found in scene " + scn.name)
-                props = scn.UAS_shot_manager_props
-
-                # # Dirty hack to avoid accidental move of the cameras
-                # try:
-                #     print("ici")
-                #     if bpy.context.space_data is not None:
-                #         print("ici 02")
-                #         if props.useLockCameraView:
-                #             print("ici 03")
-                #             bpy.context.space_data.lock_camera = False
-                # except Exception as e:
-                #     print("ici error")
-                #     _logger.error("** bpy.context.space_data.lock_camera had an error **")
-                #     pass
-
-                #   print("     Data version: ", props.dataVersion)
-                #   print("     Shot Manager version: ", bpy.context.window_manager.UAS_shot_manager_version)
-                # if props.dataVersion <= 0 or props.dataVersion < bpy.context.window_manager.UAS_shot_manager_version:
-                # if props.dataVersion <= 0 or props.dataVersion < props.version()[1]:
-                if props.dataVersion <= 0 or props.dataVersion < latestVersionToPatch:  # <= ???
-                    _logger.info(
-                        f"     *** Scene {scn.name}: Shot Manager Data Version is lower than the latest Shot Manager version to patch"
-                    )
-                    numScenesToUpgrade += 1
-                    if -1 == lowerSceneVersion or props.dataVersion < lowerSceneVersion:
-                        lowerSceneVersion = props.dataVersion
-                else:
-                    if props.dataVersion < props.version()[1]:
-                        props.dataVersion = props.version()[1]
-                    # set right data version
-                    # props.dataVersion = bpy.context.window_manager.UAS_shot_manager_version
-                    # print("       Data upgraded to version V. ", props.dataVersion)
-
-        if numScenesToUpgrade:
-            print(
-                "Shot Manager Data Version is lower than the current Shot Manager version - Upgrading data with patches..."
-            )
-            # apply patch and apply new data version
-            # wkip patch strategy to re-think. Collect the data versions and apply the respective patches?
-
-            patchVersion = 1002026
-            if lowerSceneVersion < patchVersion:
-                from .data_patches.data_patch_to_v1_2_25 import data_patch_to_v1_2_25
-
-                print(f"       Applying data patch to file: upgrade to {patchVersion}")
-                data_patch_to_v1_2_25()
-                lowerSceneVersion = patchVersion
-
-            patchVersion = 1003016
-            if lowerSceneVersion < patchVersion:
-                from .data_patches.data_patch_to_v1_3_16 import data_patch_to_v1_3_16
-
-                print(f"       Applying data patch to file: upgrade to {patchVersion}")
-                data_patch_to_v1_3_16()
-                lowerSceneVersion = patchVersion
-
-            patchVersion = 1003061
-            if lowerSceneVersion < patchVersion:
-                from .data_patches.data_patch_to_v1_3_61 import data_patch_to_v1_3_61
-
-                print(f"       Applying data patch to file: upgrade to {patchVersion}")
-                data_patch_to_v1_3_61()
-                lowerSceneVersion = patchVersion
-
-            # current version, no patch required but data version is updated
-            if lowerSceneVersion < props.version()[1]:
-                props.dataVersion = props.version()[1]
-
-    props = bpy.context.scene.UAS_shot_manager_props
-    if props is not None:
-        if props.display_shotname_in_3dviewport:
-            try:
-                bpy.ops.uas_shot_manager.draw_cameras_ui("INVOKE_DEFAULT")
-            except Exception:
-                print("Paf in draw cameras ui  *")
-
-        if props.display_hud_in_3dviewport:
-            try:
-                bpy.ops.uas_shot_manager.draw_hud("INVOKE_DEFAULT")
-            except Exception:
-                print("Paf in draw hud  *")
-
-
-# wkip doesn t work!!! Property values changed right before the save are not saved in the file!
-# @persistent
-# def checkDataVersion_save_pre_handler(self, context):
-#     print("\nFile saved - Shot Manager is writing its data version in the scene")
-#     for scn in bpy.data.scenes:
-#         if "UAS_shot_manager_props" in scn:
-#             print("\n   Shot Manager instance found in scene, writing data version: " + scn.name)
-#             props.dataVersion = bpy.context.window_manager.UAS_shot_manager_version
-#             print("   props.dataVersion: ", props.dataVersion)
-
-
 def register():
 
     from .utils import utils_ui
 
     utils_ui.register()
-
     versionTupple = utils.display_addon_registered_version("Shot Manager")
-
     config.initGlobalVariables()
 
     ###################
@@ -343,7 +175,8 @@ def register():
             ch = "~"  # "\u02EB"
             formatter = Formatter(ch + " {message:<140}", style="{")
         else:
-            formatter = Formatter("{asctime} {levelname[0]} {name:<30}  - {message:<80}", style="{")
+            # formatter = Formatter("{asctime} {levelname[0]} {name:<30}  - {message:<80}", style="{")
+            formatter = Formatter("SM " + " {message:<80}", style="{")
         handler = logging.StreamHandler()
         handler.setFormatter(formatter)
         _logger.addHandler(handler)
@@ -383,7 +216,7 @@ def register():
         installErrorCode = install_dependencies([("opentimelineio", "opentimelineio")], retries=1, timeout=20)
         # installErrorCode = 0
         if 0 != installErrorCode:
-            # utils_handlers.removeAllHandlerOccurences(jump_to_shot, handlerCateg=bpy.app.handlers.frame_change_pre)
+            # utils_handlers.removeAllHandlerOccurences(shotMngHandler_frame_change_pre_jumpToShot, handlerCateg=bpy.app.handlers.frame_change_pre)
             # return installErrorCode
             print("  *** OpenTimelineIO install failed for Ubisoft Shot Manager ***")
             pass
@@ -426,53 +259,7 @@ def register():
         name="Add-on Version Int", description="Add-on version as integer", default=versionTupple[1]
     )
 
-    # handler to check the data version at load
-    ##################
-    # print("       * Post Load handler added\n")
-
-    # if config.devDebug:
-    #     utils_handlers.displayHandlers(handlerCategName="load_post")
-
-    utils_handlers.removeAllHandlerOccurences(
-        checkDataVersion_post_load_handler, handlerCateg=bpy.app.handlers.load_post
-    )
-    bpy.app.handlers.load_post.append(checkDataVersion_post_load_handler)
-
-    if config.devDebug:
-        utils_handlers.displayHandlers(handlerCategName="load_post")
-
-    # handler to write the data version at save
-    ##################
-    # print("       - Pre Save handler added")
-    # if config.devDebug:
-    #     utils_handlers.displayHandlers(handlerCategName="save_pre")
-
-    # utils_handlers.removeAllHandlerOccurences(checkDataVersion_save_pre_handler, handlerCateg=bpy.app.handlers.save_pre)
-    # bpy.app.handlers.save_pre.append(checkDataVersion_save_pre_handler)
-
-    # if config.devDebug:
-    #     utils_handlers.displayHandlers(handlerCategName="save_pre")
-
-    # initialization
-    ##################
-
-    # data version is written in the initialize function
-    # bpy.types.WindowManager.UAS_shot_manager_isInitialized = BoolProperty(
-    #     name="Shot Manager is initialized", description="", default=False
-    # )
-
-    # utils_handlers.displayHandlers()
-    utils_handlers.removeAllHandlerOccurences(jump_to_shot, handlerCateg=bpy.app.handlers.frame_change_pre)
-    # utils_handlers.removeAllHandlerOccurences(
-    #     jump_to_shot__frame_change_post, handlerCateg=bpy.app.handlers.frame_change_post
-    # )
-    # utils_handlers.displayHandlers()
-
-    # for cls in classes:
-    #     bpy.utils.register_class(cls)
-
     addon_prefs.register()
-
     utils_operators.register()
 
     # operators
@@ -527,6 +314,7 @@ def register():
     features.register()
     about.register()
     keymaps.register()
+    handlers.register()
 
     # rrs specific
     # rrs_vsm_tools.register()
@@ -536,20 +324,26 @@ def register():
 
     # call in the code by context.window_manager.UAS_shot_manager_shots_play_mode etc
 
+    def _update_UAS_shot_manager_shots_play_mode(self, context):
+        install_handler_for_shot(self, context)
+
     bpy.types.WindowManager.UAS_shot_manager_shots_play_mode = BoolProperty(
         name="Enable Shot Play Mode",
         description="Override the standard animation Play mode to play the enabled shots" "\nin the specified order",
+        update=_update_UAS_shot_manager_shots_play_mode,
         default=False,
-        update=install_shot_handler,
     )
+
+    def _update_UAS_shot_manager_display_overlay_tool(self, context):
+        timeline_valueChanged(self, context)
 
     bpy.types.WindowManager.UAS_shot_manager_display_overlay_tools = BoolProperty(
         name="Show Overlay Tools",
         description="Toggle the display of the overlay tools in the opened editors:"
         "\n  - Sequence Timeline in the 3D viewport"
         "\n  - Interactive Shots Stack in the Timeline editor",
+        update=_update_UAS_shot_manager_display_overlay_tool,
         default=False,
-        update=timeline_valueChanged,
     )
 
     bpy.types.WindowManager.UAS_shot_manager_toggle_montage_interaction = BoolProperty(
@@ -593,12 +387,6 @@ def unregister():
     from .overlay_tools import interact_shots_stack
     from .overlay_tools import viewport_camera_hud
 
-    #    bpy.context.scene.UAS_shot_manager_props.display_shotname_in_3dviewport = False
-    # if True:
-    utils_handlers.removeAllHandlerOccurences(
-        checkDataVersion_post_load_handler, handlerCateg=bpy.app.handlers.load_post
-    )
-
     # Unregister packages that may have been registered if the install had errors
     ###################
     from .install.install_dependencies import unregister_from_failed_install
@@ -623,33 +411,23 @@ def unregister():
     from .utils import utils_vse_render
 
     # ui
+    handlers.unregister()
     keymaps.unregister()
-    print("--about.unregister")
     about.unregister()
-    print("--features.unregister")
     features.unregister()
-    print("--prefs.unregister")
     prefs_tools.unregister()
     prefs.unregister()
-    print("--viewport_camera_hud.unregister")
     viewport_camera_hud.unregister()
-    print("--sequence_timeline.unregister")
     sequence_timeline.unregister()
-    print("--interact_shots_stack.unregister")
     interact_shots_stack.unregister()
-    print("--general.unregister")
     general.unregister()
-    print("--utils_render.unregister")
     utils_render.unregister()
-    print("--utils_vse_render.unregister")
     try:
         utils_vse_render.unregister()
     except Exception:
         print("*** Paf for utils_vse_render.unregister")
 
-    print("--rendering_ui.unregister")
     rendering_ui.unregister()
-    print("--retimer_ui.unregister")
     retimer_ui.unregister()
     rrs.unregister()
     sm_ui.unregister()
@@ -671,12 +449,6 @@ def unregister():
     cameraBG.unregister()
 
     addon_prefs.unregister()
-
-    # for cls in reversed(classes):
-    #     bpy.utils.unregister_class(cls)
-
-    if jump_to_shot in bpy.app.handlers.frame_change_pre:
-        bpy.app.handlers.frame_change_pre.remove(jump_to_shot)
 
     del bpy.types.WindowManager.UAS_shot_manager_shots_play_mode
     del bpy.types.WindowManager.UAS_shot_manager_display_overlay_tools

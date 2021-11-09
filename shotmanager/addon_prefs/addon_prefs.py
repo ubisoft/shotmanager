@@ -254,6 +254,13 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
         options=set(),
     )
 
+    seqTimeline_not_disabled_with_overlays: BoolProperty(
+        name="Display Sequence Timeline Even If Overlays Are Hidden",
+        description="Display Sequence Timeline Even If Overlays Are Hidden",
+        default=False,
+        options=set(),
+    )
+
     ### Retimer
     display_retimer_in_properties: BoolProperty(
         name="Display Retimer",

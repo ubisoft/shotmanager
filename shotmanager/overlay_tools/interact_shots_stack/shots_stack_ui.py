@@ -230,7 +230,23 @@ class UAS_ShotManager_DrawMontageTimeline(bpy.types.Operator):
 
         self.frame_under_mouse = None
 
+    def ignoreWidget(self, context):
+        prefs = bpy.context.preferences.addons["shotmanager"].preferences
+
+        if not context.window_manager.UAS_shot_manager_display_overlay_tools:
+            return True
+
+        if (context.screen.is_animation_playing and not context.screen.is_scrubbing) and (
+            context.window_manager.UAS_shot_manager_use_best_perfs
+            and prefs.best_play_perfs_turnOff_interactiveShotsStack
+        ):
+            return True
+        return False
+
     def invoke(self, context, event):
+        if self.ignoreWidget(context):
+            return {"CANCELLED"}
+
         self.draw_handle = bpy.types.SpaceDopeSheetEditor.draw_handler_add(
             self.draw, (context,), "WINDOW", "POST_PIXEL"
         )
@@ -242,23 +258,26 @@ class UAS_ShotManager_DrawMontageTimeline(bpy.types.Operator):
         return {"RUNNING_MODAL"}
 
     def modal(self, context, event):
-        prefs = bpy.context.preferences.addons["shotmanager"].preferences
 
-        if (
-            bpy.context.screen.is_animation_playing
-            and not bpy.context.screen.is_scrubbing
-            and bpy.context.window_manager.UAS_shot_manager_use_best_perfs
-            and prefs.best_play_perfs_turnOff_interactiveShotsStack
-        ):
+        for area in context.screen.areas:
+            if area.type == "DOPESHEET_EDITOR":
+                area.tag_redraw()
+
+        if not context.window_manager.UAS_shot_manager_display_overlay_tools:
+            context.window_manager.event_timer_remove(self.draw_event)
+            bpy.types.SpaceDopeSheetEditor.draw_handler_remove(self.draw_handle, "WINDOW")
+            return {"CANCELLED"}
+
+        if self.ignoreWidget(context):
             return {"PASS_THROUGH"}
 
         if config.devDebug:
             print("wkip modal redrawing of the Interactive Shots Stack")
         # TODO: wkip here investigate for optimization cause this forced refresh is really greedy !!!
 
-        for area in context.screen.areas:
-            if area.type == "DOPESHEET_EDITOR":
-                area.tag_redraw()
+        # for area in context.screen.areas:
+        #     if area.type == "DOPESHEET_EDITOR":
+        #         area.tag_redraw()
 
         if not context.window_manager.UAS_shot_manager_toggle_montage_interaction:
             return {"PASS_THROUGH"}
@@ -314,12 +333,6 @@ class UAS_ShotManager_DrawMontageTimeline(bpy.types.Operator):
         if event_handled:
             return {"RUNNING_MODAL"}
 
-        if not context.window_manager.UAS_shot_manager_display_overlay_tools:
-            context.window_manager.event_timer_remove(self.draw_event)
-            bpy.types.SpaceDopeSheetEditor.draw_handler_remove(self.draw_handle, "WINDOW")
-
-            return {"CANCELLED"}
-
         return {"PASS_THROUGH"}
 
     def build_clips(self):
@@ -354,15 +367,9 @@ class UAS_ShotManager_DrawMontageTimeline(bpy.types.Operator):
                 self.clips.append(ShotClip(self.context, shot, i, self.sm_props))
 
     def draw(self, context):
-        prefs = bpy.context.preferences.addons["shotmanager"].preferences
-
-        if (
-            bpy.context.screen.is_animation_playing
-            and not bpy.context.screen.is_scrubbing
-            and bpy.context.window_manager.UAS_shot_manager_use_best_perfs
-            and prefs.best_play_perfs_turnOff_interactiveShotsStack
-        ):
-            return
+        # !!! warning: Blender Timeline editor has a problem of refresh so even if the display is not done it may appear in the editor
+        if self.ignoreWidget(context):
+            return False
 
         try:
             for clip in self.clips:

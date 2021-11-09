@@ -475,10 +475,6 @@ class BL_UI_Timeline:
             offset_x += int(self.width * float(shot.end + 1 - shot.start) / total_range)
 
     def draw(self):
-        # wkip wkip wkip code removed: quick fix crado pour éviter un crash
-        # if not bpy.context.space_data.overlay.show_overlays:
-        #     return
-
         self.width = self.context.area.width
         area_height = self.get_area_height()
 
@@ -510,8 +506,10 @@ class BL_UI_Timeline:
         self.frame_cursor.draw()
 
     def handle_event(self, event):
+
+        prefs = bpy.context.preferences.addons["shotmanager"].preferences
         if hasattr(bpy.context.space_data, "overlay"):
-            if not bpy.context.space_data.overlay.show_overlays:
+            if prefs.seqTimeline_not_disabled_with_overlays and not bpy.context.space_data.overlay.show_overlays:
                 return
 
         if self.frame_cursor.handle_event(event):
@@ -607,6 +605,15 @@ class UAS_ShotManager_DrawTimeline(bpy.types.Operator):
     bl_description = "Draw the edting timeline in the viewport"
     bl_options = {"REGISTER", "INTERNAL"}
 
+    # @classmethod
+    # def poll(cls, context):
+    #     props = context.scene.UAS_shot_manager_props
+    #     prefs = context.preferences.addons["shotmanager"].preferences
+    #     val = True
+    #     if prefs.seqTimeline_not_disabled_with_overlays and not bpy.context.space_data.overlay.show_overlays:
+    #         val = False
+    #     return False
+
     def __init__(self):
         self.draw_handle = None
         self.draw_event = None
@@ -618,15 +625,28 @@ class UAS_ShotManager_DrawTimeline(bpy.types.Operator):
         for widget in self.widgets:
             widget.init(context)
 
-    def on_invoke(self, context, event):
-        self.init_widgets(context, [BL_UI_Timeline(0, context.area.height - 25, context.area.width, 25)])
+    def ignoreWidget(self, context):
+        prefs = bpy.context.preferences.addons["shotmanager"].preferences
+
+        if not context.window_manager.UAS_shot_manager_display_overlay_tools:
+            return True
+        if (context.screen.is_animation_playing and not context.screen.is_scrubbing) and (
+            context.window_manager.UAS_shot_manager_use_best_perfs and prefs.best_play_perfs_turnOff_sequenceTimeline
+        ):
+            return True
+        if hasattr(bpy.context.space_data, "overlay"):
+            if not prefs.seqTimeline_not_disabled_with_overlays and not context.space_data.overlay.show_overlays:
+                return True
+        return False
 
     def invoke(self, context, event):
 
-        self.on_invoke(context, event)
+        if self.ignoreWidget(context):
+            return {"CANCELLED"}
+
+        self.init_widgets(context, [BL_UI_Timeline(0, context.area.height - 25, context.area.width, 25)])
 
         args = (self, context)
-
         self.register_handlers(args, context)
 
         context.window_manager.modal_handler_add(self)
@@ -644,17 +664,10 @@ class UAS_ShotManager_DrawTimeline(bpy.types.Operator):
         self.draw_event = None
 
     def handle_widget_events(self, event):
-        prefs = bpy.context.preferences.addons["shotmanager"].preferences
         result = False
 
-        # if not bpy.context.screen.is_animation_playing or bpy.context.screen.is_scrubbing:
-        if (
-            bpy.context.screen.is_animation_playing
-            and not bpy.context.screen.is_scrubbing
-            and bpy.context.window_manager.UAS_shot_manager_use_best_perfs
-            and prefs.best_play_perfs_turnOff_sequenceTimeline
-        ):
-            pass
+        if False and self.ignoreWidget(bpy.context):
+            return False
         else:
             # print("handle_widget_events")
             for widget in self.widgets:
@@ -664,19 +677,15 @@ class UAS_ShotManager_DrawTimeline(bpy.types.Operator):
         return result
 
     def modal(self, context, event):
-        prefs = bpy.context.preferences.addons["shotmanager"].preferences
-
         # print(f"playint: {bpy.context.screen.is_animation_playing}, scrubbing: {bpy.context.screen.is_scrubbing}")
+        # return {"PASS_THROUGH"}
+
         if context.area:
+            if self.ignoreWidget(context):
+                return {"PASS_THROUGH"}
+
             # print(f"playint: {bpy.context.screen.is_animation_playing}, scrubbing: {bpy.context.screen.is_scrubbing}")
             # if not bpy.context.screen.is_animation_playing or bpy.context.screen.is_scrubbing:
-            if (
-                bpy.context.screen.is_animation_playing
-                and not bpy.context.screen.is_scrubbing
-                and bpy.context.window_manager.UAS_shot_manager_use_best_perfs
-                and prefs.best_play_perfs_turnOff_sequenceTimeline
-            ):
-                pass
             else:
                 if config.devDebug:
                     print("wkip modal redrawing of the Sequence Timeline")
@@ -688,8 +697,6 @@ class UAS_ShotManager_DrawTimeline(bpy.types.Operator):
                 if self.handle_widget_events(event):
                     return {"RUNNING_MODAL"}
 
-        #   if not context.window_manager.UAS_shot_manager_shots_play_mode:
-        #  if not context.scene.UAS_shot_manager_props.display_timeline:
         if not context.window_manager.UAS_shot_manager_display_overlay_tools:
             self.unregister_handlers(context)
             return {"CANCELLED"}
@@ -701,23 +708,15 @@ class UAS_ShotManager_DrawTimeline(bpy.types.Operator):
 
     # Draw handler to paint onto the screen
     def draw_callback_px(self, op, context):
-        prefs = bpy.context.preferences.addons["shotmanager"].preferences
         # print(
         #     f"*** context.window_manager.UAS_shot_manager_display_overlay_tools: {context.window_manager.UAS_shot_manager_display_overlay_tools}"
         # )
-        if not context.window_manager.UAS_shot_manager_display_overlay_tools:
-            return
-
-        # if context.screen.is_animation_playing and not bpy.context.screen.is_scrubbing:
-        if (
-            bpy.context.screen.is_animation_playing
-            and not bpy.context.screen.is_scrubbing
-            and bpy.context.window_manager.UAS_shot_manager_use_best_perfs
-            and prefs.best_play_perfs_turnOff_sequenceTimeline
-        ):
-            return
-        # if context.screen.is_animation_playing:
+        # if not context.window_manager.UAS_shot_manager_display_overlay_tools:
         #     return
+
+        ignoreWidget = self.ignoreWidget(context)
+        if ignoreWidget:
+            return
 
         try:
             self

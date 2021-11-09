@@ -261,9 +261,8 @@ class UAS_ShotManager_OverlayTools_Prefs(Operator):
 
         col.use_property_split = False
         # col.use_property_decorate = False
-        col.prop(
-            props, "display_disabledshots_in_timeline", text="Display Disabled Shots",
-        )
+        col.prop(props, "display_disabledshots_in_timeline", text="Display Disabled Shots")
+        col.prop(prefs, "seqTimeline_not_disabled_with_overlays")
 
         ###################################
         # Interactive Shots Stack ######

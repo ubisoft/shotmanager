@@ -16,14 +16,73 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 """
-Handlers
+Handlers specific to overlay tools
 """
 
 import bpy
+from bpy.app.handlers import persistent
+
 from shotmanager.utils import utils
+from shotmanager.utils import utils_handlers
+
+import logging
+
+_logger = logging.getLogger(__name__)
 
 
-def jump_to_shot(scene):
+def install_handler_for_shot(self, context):
+    """Called in the update function of WindowManager.UAS_shot_manager_shots_play_mode
+    """
+    scene = context.scene
+
+    scene.UAS_shot_manager_props.setResolutionToScene()
+
+    if (
+        self.UAS_shot_manager_shots_play_mode
+        and shotMngHandler_frame_change_pre_jumpToShot not in bpy.app.handlers.frame_change_pre
+    ):
+        shots = scene.UAS_shot_manager_props.get_shots()
+        for i, shot in enumerate(shots):
+            if shot.start <= scene.frame_current <= shot.end:
+                scene.UAS_shot_manager_props.current_shot_index = i
+                break
+        bpy.app.handlers.frame_change_pre.append(shotMngHandler_frame_change_pre_jumpToShot)
+    #     bpy.app.handlers.frame_change_post.append(shotMngHandler_frame_change_pre_jumpToShot__frame_change_post)
+
+    #    bpy.ops.uas_shot_manager.draw_timeline ( "INVOKE_DEFAULT" )
+    elif (
+        not self.UAS_shot_manager_shots_play_mode
+        and shotMngHandler_frame_change_pre_jumpToShot in bpy.app.handlers.frame_change_pre
+    ):
+        utils_handlers.removeAllHandlerOccurences(
+            shotMngHandler_frame_change_pre_jumpToShot, handlerCateg=bpy.app.handlers.frame_change_pre
+        )
+        # utils_handlers.removeAllHandlerOccurences(
+        #     shotMngHandler_frame_change_pre_jumpToShot__frame_change_post, handlerCateg=bpy.app.handlers.frame_change_post
+        # )
+
+
+def timeline_valueChanged(self, context):
+    # print("  timeline_valueChanged:  self.UAS_shot_manager_display_overlay_tools: ", self.UAS_shot_manager_display_overlay_tools)
+    if self.UAS_shot_manager_display_overlay_tools:
+        a = bpy.ops.uas_shot_manager.draw_timeline("INVOKE_DEFAULT")
+        # print(f"a: {a}")
+        bpy.ops.uas_shot_manager.draw_montage_timeline("INVOKE_DEFAULT")
+        pass
+        # bpy.ops.uas_shot_manager.draw_cameras_ui("INVOKE_DEFAULT")
+    else:
+        pass
+        # print(f"a operator timeline not updated")
+
+        # bpy.ops.uas_shot_manager.draw_timeline.cancel(context)
+        # print(f"a b operator timeline not updated")
+    # pistes pour killer un operateur:
+    #   - mettre un Poll
+    #   - faire un return Cancel dans le contenu
+    #   - killer, d'une maniere ou d'une autre
+
+
+def shotMngHandler_frame_change_pre_jumpToShot(scene):
     props = scene.UAS_shot_manager_props
 
     def get_previous_shot(shots, current_shot):
@@ -139,5 +198,5 @@ def jump_to_shot(scene):
                     else:
                         # paf what to do?
                         # props.setCurrentShot(candidates[0][1])
-                        print("SM: Paf in jump_to_shot: No valid shot found")
+                        print("SM: Paf in shotMngHandler_frame_change_pre_jumpToShot: No valid shot found")
 
