@@ -3,7 +3,10 @@
 ## Overlay tools
 
 - Exposed preferences to display disabled shots in the timeline and shots stack
-- Exposed a Compact mode for the shots stack
+- Exposed a Compact mode for the shots stack in the settings
+
+- Refactored code for the handlers
+- Improved the look and feel of the Interactive Shots Stack
 
 ## UI
 

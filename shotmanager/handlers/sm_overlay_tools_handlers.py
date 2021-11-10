@@ -49,7 +49,7 @@ def install_handler_for_shot(self, context):
         bpy.app.handlers.frame_change_pre.append(shotMngHandler_frame_change_pre_jumpToShot)
     #     bpy.app.handlers.frame_change_post.append(shotMngHandler_frame_change_pre_jumpToShot__frame_change_post)
 
-    #    bpy.ops.uas_shot_manager.draw_timeline ( "INVOKE_DEFAULT" )
+    #    bpy.ops.uas_shot_manager.sequence_timeline ( "INVOKE_DEFAULT" )
     elif (
         not self.UAS_shot_manager_shots_play_mode
         and shotMngHandler_frame_change_pre_jumpToShot in bpy.app.handlers.frame_change_pre
@@ -65,16 +65,16 @@ def install_handler_for_shot(self, context):
 def timeline_valueChanged(self, context):
     # print("  timeline_valueChanged:  self.UAS_shot_manager_display_overlay_tools: ", self.UAS_shot_manager_display_overlay_tools)
     if self.UAS_shot_manager_display_overlay_tools:
-        a = bpy.ops.uas_shot_manager.draw_timeline("INVOKE_DEFAULT")
+        a = bpy.ops.uas_shot_manager.sequence_timeline("INVOKE_DEFAULT")
         # print(f"a: {a}")
-        bpy.ops.uas_shot_manager.draw_montage_timeline("INVOKE_DEFAULT")
+        bpy.ops.uas_shot_manager.interactive_shots_stack("INVOKE_DEFAULT")
         pass
         # bpy.ops.uas_shot_manager.draw_cameras_ui("INVOKE_DEFAULT")
     else:
         pass
         # print(f"a operator timeline not updated")
 
-        # bpy.ops.uas_shot_manager.draw_timeline.cancel(context)
+        # bpy.ops.uas_shot_manager.sequence_timeline.cancel(context)
         # print(f"a b operator timeline not updated")
     # pistes pour killer un operateur:
     #   - mettre un Poll

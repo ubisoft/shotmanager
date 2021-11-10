@@ -394,10 +394,10 @@ def unregister():
     bpy.context.window_manager.UAS_shot_manager_display_overlay_tools = False
 
     # bpy.utils.unregister_class(cls)
-    #    bpy.ops.uas_shot_manager.draw_timeline.cancel(bpy.context)
+    #    bpy.ops.uas_shot_manager.sequence_timeline.cancel(bpy.context)
 
-    #  bpy.context.window_manager.event_timer_remove(bpy.ops.uas_shot_manager.draw_timeline.draw_event)
-    # bpy.types.SpaceView3D.draw_handler_remove(bpy.ops.uas_shot_manager.draw_timeline.draw_handle, "WINDOW")
+    #  bpy.context.window_manager.event_timer_remove(bpy.ops.uas_shot_manager.sequence_timeline.draw_event)
+    # bpy.types.SpaceView3D.draw_handler_remove(bpy.ops.uas_shot_manager.sequence_timeline.draw_handle, "WINDOW")
 
     if unregister_from_failed_install():
         utils_ui.unregister()

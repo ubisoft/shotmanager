@@ -599,10 +599,10 @@ class BL_UI_Timeline:
         pass
 
 
-class UAS_ShotManager_DrawTimeline(bpy.types.Operator):
-    bl_idname = "uas_shot_manager.draw_timeline"
-    bl_label = "Draw Timeline"
-    bl_description = "Draw the edting timeline in the viewport"
+class UAS_ShotManager_sequenceTimeline(bpy.types.Operator):
+    bl_idname = "uas_shot_manager.sequence_timeline"
+    bl_label = "Display Sequence Timeline"
+    bl_description = "Draw the sequence timeline in the 3D viewport"
     bl_options = {"REGISTER", "INTERNAL"}
 
     # @classmethod
@@ -669,7 +669,6 @@ class UAS_ShotManager_DrawTimeline(bpy.types.Operator):
         if False and self.ignoreWidget(bpy.context):
             return False
         else:
-            # print("handle_widget_events")
             for widget in self.widgets:
                 if widget.handle_event(event):
                     result = True
@@ -756,18 +755,18 @@ class UAS_ShotManager_DrawTimeline(bpy.types.Operator):
             self.draw_handle = None
 
 
-_classes = (UAS_ShotManager_DrawTimeline,)
+_classes = (UAS_ShotManager_sequenceTimeline,)
 
 
 def register():
-    print("       - Registering Viewport 3D Package")
+    print("       - Registering Sequence Timeline Package")
 
     for cls in _classes:
         bpy.utils.register_class(cls)
 
 
 def unregister():
-    print("       - Unregistering Viewport 3D Package")
+    print("       - Unregistering Sequence Timeline Package")
 
     # context.window_manager.UAS_shot_manager_display_overlay_tools = False
     # bpy.types.SpaceView3D.draw_handler_remove(self.draw_handle, "WINDOW")

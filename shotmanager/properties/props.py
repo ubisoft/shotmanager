@@ -738,7 +738,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
 
     # def timeline_valueChanged( self, context ):
     #     if self.display_timeline:
-    #         bpy.ops.uas_shot_manager.draw_timeline ( "INVOKE_DEFAULT" )
+    #         bpy.ops.uas_shot_manager.sequence_timeline ( "INVOKE_DEFAULT" )
 
     # display_timeline: BoolProperty (    default = False,
     #                                     options = set ( ),
@@ -754,8 +754,6 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
     #################################
     display_disabledshots_in_interactShotsStack: BoolProperty(default=False, options=set())
     interactShotsStack_displayInCompactMode: BoolProperty(default=False, options=set())
-
-
 
     def _get_playSpeedGlobal(self):
         val = self.get("playSpeedGlobal", 1.0)

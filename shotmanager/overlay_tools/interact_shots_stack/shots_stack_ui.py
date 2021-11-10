@@ -46,11 +46,75 @@ def clamp_to_region(x, y, region):
     return clamp(x, l_x, h_x), clamp(y, l_y, h_y)
 
 
+class Image2D:
+    def __init__(self, position, width, height):
+        import os
+
+        # IMAGE_NAME = "Untitled"
+        IMAGE_NAME = os.path.join(os.path.dirname(__file__), "../../icons/ShotMan_EnabledCurrentCam.png")
+
+        # image = bpy.types.Image()
+        # # image.file_format = 'PNG'
+        # image.filepath = IMAGE_NAME
+
+        # self._image = bpy.data.images[image]
+        self._image = bpy.data.images.load(IMAGE_NAME)
+        self._shader = gpu.shader.from_builtin("2D_IMAGE")
+
+        x1, y1 = position.x, position.y
+        x2, y2 = position.x + width, position.y
+        x3, y3 = position.x, position.y + height
+        x4, y4 = position.x + width, position.y + height
+
+        self._position = position
+        self._vertices = ((x1, y1), (x2, y2), (x4, y4), (x3, y3))
+        # print(f"vertices: {self._vertices}")
+        # self._vertices = ((100, 100), (200, 100), (200, 200), (100, 200))
+        #    self._verticesSquare = ((0, 0), (0, 1), (1, 1), (0, 1))
+
+        # origin is bottom left of the screen
+        # self._vertices = ((bottom_left.x, bottom_left.y), (bottom_right.x, bottom_right.y), (top_right.x, top_right.y), (top_left.x, top_left.y))
+
+        if self._image.gl_load():
+            raise Exception()
+
+    def draw(self, region=None):
+        bgl.glActiveTexture(bgl.GL_TEXTURE0)
+        bgl.glBindTexture(bgl.GL_TEXTURE_2D, self._image.bindcode)
+
+        transformed_vertices = self._vertices
+        if region:
+            transformed_vertices = [
+                region.view2d.view_to_region(*clamp_to_region(x, y, region), clip=True) for x, y in transformed_vertices
+            ]
+
+        verticesSquare = (
+            (transformed_vertices[0][0], transformed_vertices[0][1],),
+            (
+                transformed_vertices[0][0] + transformed_vertices[3][1] - transformed_vertices[0][1],
+                transformed_vertices[0][1],
+            ),
+            (
+                transformed_vertices[0][0] + transformed_vertices[3][1] - transformed_vertices[0][1],
+                transformed_vertices[3][1],
+            ),
+            (transformed_vertices[0][0], transformed_vertices[3][1],),
+        )
+
+        batch = batch_for_shader(
+            self._shader, "TRI_FAN", {"pos": verticesSquare, "texCoord": ((0, 0), (1, 0), (1, 1), (0, 1)),},
+        )
+        self._shader.bind()
+        self._shader.uniform_int("image", 0)
+        batch.draw(self._shader)
+
+
 class Mesh2D:
     def __init__(self, vertices=None, indices=None, texcoords=None):
         self._vertices = list() if vertices is None else vertices
         self._indices = list() if indices is None else indices
         self._texcoords = list() if texcoords is None else texcoords
+        self._linewidth = 1
 
     @property
     def vertices(self):
@@ -64,15 +128,38 @@ class Mesh2D:
     def texcoords(self):
         return list(self._texcoords)
 
-    def draw(self, shader, region=None, draw_types="TRIS"):
+    @property
+    def linewidth(self):
+        return self._linewidth
+
+    @linewidth.setter
+    def linewidth(self, value):
+        self._linewidth = max(1, value)
+
+    def draw(self, shader, region=None, draw_types="TRIS", cap_lines=False):
         transformed_vertices = self._vertices
         if region:
             transformed_vertices = [
                 region.view2d.view_to_region(*clamp_to_region(x, y, region), clip=True) for x, y in transformed_vertices
             ]
 
-        batch = batch_for_shader(shader, draw_types, {"pos": transformed_vertices}, indices=self._indices)
-        batch.draw(shader)
+        if "TRIS" == draw_types:
+            batch = batch_for_shader(shader, draw_types, {"pos": transformed_vertices}, indices=self._indices)
+            batch.draw(shader)
+        elif "LINES":
+            # draw lines and points fo the caps
+            batch = batch_for_shader(shader, draw_types, {"pos": transformed_vertices}, indices=self._indices)
+            bgl.glLineWidth(self._linewidth)
+            batch.draw(shader)
+            if cap_lines:
+                batch = batch_for_shader(shader, draw_types, {"pos": transformed_vertices})
+                bgl.glPointSize(self._linewidth)
+                batch.draw(shader)
+        elif "POINTS":
+            # wkip here draw points for rounded line caps
+            batch = batch_for_shader(shader, "POINTS", {"pos": transformed_vertices})
+            bgl.glPointSize(self._linewidth)
+            batch.draw(shader)
 
 
 def build_rectangle_mesh(position, width, height, as_lines=False):
@@ -115,10 +202,20 @@ class ShotClip:
         self._highlight = False
         self.clip_mesh = None
         self.contour_mesh = None
+        self.contourCurrent_mesh = None
+        self.camIcon = None
         self.start_interaction_mesh = None
         self.end_interaction_mesh = None
         self.origin = None
         self.sm_props = sm_props
+
+        self.color_currentShot_border = (0.92, 0.55, 0.18, 0.99)
+        self.color_currentShot_border_mix = (0.94, 0.3, 0.1, 0.99)
+
+        # self.color_selectedShot_border = (0.9, 0.9, 0.2, 0.99)
+        #    self.color_selectedShot_border = (0.2, 0.2, 0.2, 0.99)  # dark gray
+        self.color_selectedShot_border = (0.95, 0.95, 0.95, 0.9)  # white
+
         self.update()
 
     @property
@@ -148,12 +245,23 @@ class ShotClip:
         self.end_interaction_mesh.draw(UNIFORM_SHADER_2D, context.region)
 
         current_shot = self.sm_props.getCurrentShot()
+        selected_shot = self.sm_props.getSelectedShot()
 
-        # print("here 01")
+        # current shot
         if current_shot != -1 and self.shot.name == current_shot.name:
-            UNIFORM_SHADER_2D.uniform_float("color", (0.2, 0.9, 0.2, 0.99))
+            UNIFORM_SHADER_2D.uniform_float("color", self.color_currentShot_border)
+            self.contourCurrent_mesh.linewidth = 4 if current_shot == selected_shot else 2
+            self.contourCurrent_mesh.draw(UNIFORM_SHADER_2D, context.region, "LINES")
+
+        # selected shot
+        if current_shot != -1 and self.shot.name == selected_shot.name:
+            UNIFORM_SHADER_2D.uniform_float("color", self.color_selectedShot_border)
+            self.contour_mesh.linewidth = 1 if current_shot == selected_shot else 2
             self.contour_mesh.draw(UNIFORM_SHADER_2D, context.region, "LINES")
-        #  print("here 02")
+
+        # draw a camera icon on the current shot
+        # TODO finish and clean
+        #   self.camIcon.draw(context.region)
 
         bgl.glDisable(bgl.GL_BLEND)
 
@@ -203,11 +311,16 @@ class ShotClip:
         self.start_interaction_mesh = build_rectangle_mesh(self.origin, 1, self.height)
         self.end_interaction_mesh = build_rectangle_mesh(self.origin + Vector([self.width - 1, 0]), 1, self.height)
         self.contour_mesh = build_rectangle_mesh(self.origin, self.width, self.height, True)
+        self.contourCurrent_mesh = build_rectangle_mesh(self.origin, self.width, self.height, True)
+        # self.contourCurrent_mesh = build_rectangle_mesh(
+        #     Vector([self.origin.x - 1, self.origin.y - 1]), self.width + 2, self.height + 2, True
+        # )
+        self.camIcon = Image2D(self.origin, self.width, self.height)
 
 
-class UAS_ShotManager_DrawMontageTimeline(bpy.types.Operator):
-    bl_idname = "uas_shot_manager.draw_montage_timeline"
-    bl_label = "Draw Montage in timeline"
+class UAS_ShotManager_InteractiveShotsStack(bpy.types.Operator):
+    bl_idname = "uas_shot_manager.interactive_shots_stack"
+    bl_label = "Draw Interactive Shots Stack in timeline"
     bl_options = {"REGISTER", "INTERNAL"}
 
     def __init__(self):
@@ -300,7 +413,7 @@ class UAS_ShotManager_DrawMontageTimeline(bpy.types.Operator):
                             clip.highlight = False
 
                     counter = time.perf_counter()
-                    if self.active_clip and counter - self.prev_click < 0.2:  # Double click.
+                    if self.active_clip and counter - self.prev_click < 0.3:  # Double click.
                         self.sm_props.setCurrentShot(self.active_clip.shot)
                         event_handled = True
 
@@ -386,19 +499,21 @@ class UAS_ShotManager_DrawMontageTimeline(bpy.types.Operator):
                 blf.draw(0, str(self.frame_under_mouse))
 
         except Exception as ex:
-            _logger.error(f"*** Crash in ogl context - Draw clips loop {ex} ***")
+            _logger.error(f"*** Crash in ogl context - Draw clips loop: error: {ex} ***")
             context.window_manager.UAS_shot_manager_display_overlay_tools = False
             # context.window_manager.UAS_shot_manager_display_overlay_tools = True
 
 
-_classes = (UAS_ShotManager_DrawMontageTimeline,)
+_classes = (UAS_ShotManager_InteractiveShotsStack,)
 
 
 def register():
+    print("       - Registering Interactive Shots Stack Package")
     for cls in _classes:
         bpy.utils.register_class(cls)
 
 
 def unregister():
+    print("       - Unegistering Interactive Shots Stack Package")
     for cls in reversed(_classes):
         bpy.utils.unregister_class(cls)

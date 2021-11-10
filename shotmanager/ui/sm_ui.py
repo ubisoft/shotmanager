@@ -24,7 +24,7 @@ from bpy.types import Panel, Operator
 
 from shotmanager.config import config
 
-# from shotmanager.viewport_3d.ogl_ui import UAS_ShotManager_DrawTimeline
+# from shotmanager.viewport_3d.ogl_ui import UAS_ShotManager_sequenceTimeline
 
 from shotmanager.utils import utils
 
@@ -734,7 +734,7 @@ class UAS_PT_ShotManager_Initialize(Operator):
 
 classes = (
     UAS_PT_ShotManager,
-    #  UAS_ShotManager_DrawTimeline,
+    #  UAS_ShotManager_sequenceTimeline,
     UAS_PT_ShotManager_Initialize,
 )
 

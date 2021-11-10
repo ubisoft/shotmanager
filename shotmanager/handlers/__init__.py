@@ -27,9 +27,11 @@ from shotmanager.utils import utils_handlers
 
 from .sm_handlers import shotMngHandler_undo_pre, shotMngHandler_undo_post, shotMngHandler_load_pre
 
+# from . import sm_check_data_handlers
 from .sm_check_data_handlers import shotMngHandler_load_post_checkDataVersion
 
 from .sm_overlay_tools_handlers import shotMngHandler_frame_change_pre_jumpToShot
+
 
 import logging
 
@@ -38,6 +40,15 @@ _logger = logging.getLogger(__name__)
 
 def register():
     print("       - Registering Handlers Package")
+
+    # for cls in _classes:
+    #     bpy.utils.register_class(cls)
+
+    # from . import interact_shots_stack
+    # from . import sequence_timeline
+
+    # interact_shots_stack.register()
+    # sequence_timeline.regitster()
 
     ###################
     # update data
@@ -99,6 +110,12 @@ def register():
 def unregister():
     print("       - Unregistering Handlers Package")
 
+    # for cls in reversed(_classes):
+    #     bpy.utils.unregister_class(cls)
+
+    # from . import interact_shots_stack
+    # from . import sequence_timeline
+
     #    bpy.context.scene.UAS_shot_manager_props.display_shotname_in_3dviewport = False
     # if True:
     utils_handlers.removeAllHandlerOccurences(
@@ -107,6 +124,9 @@ def unregister():
 
     if shotMngHandler_frame_change_pre_jumpToShot in bpy.app.handlers.frame_change_pre:
         bpy.app.handlers.frame_change_pre.remove(shotMngHandler_frame_change_pre_jumpToShot)
+
+    # sequence_timeline.unregitster()
+    # interact_shots_stack.unregister()
 
 
 #  sm_overlay_tools_handlers.unregister()
