@@ -199,7 +199,7 @@ class UAS_PT_ShotManager(Panel):
         subSubRow.enabled = context.window_manager.UAS_shot_manager_display_overlay_tools
         subSubRow.prop(
             context.window_manager,
-            "UAS_shot_manager_toggle_montage_interaction",
+            "UAS_shot_manager_toggle_shots_stack_interaction",
             text="",
             icon="ARROW_LEFTRIGHT",
             toggle=True,
@@ -292,12 +292,32 @@ class UAS_PT_ShotManager(Panel):
         leftrow.alignment = "LEFT"
         leftrow.label(text="Sequence:")
 
-        subnamerow = namerow.row(align=True)
+        rightsplit = namerow.split(align=True, factor=0.7)
         # subnamerow.scale
+        #  rightsplit.alignment = "RIGHT"
+        rightsplitrow = rightsplit.row(align=True)
+        rightsplitrow.prop(props, "sequence_name", text="")
+        subnamerow = rightsplit.row(align=True)
+        subnamerow.separator(factor=0.2)
+        # subnamerow.operator(
+        #     "shot_manager.workspace_info",
+        #     text="",
+        #     icon="WORDWRAP_ON",
+        #     depress=context.window_manager.UAS_shot_manager_identify_3dViews,
+        #     emboss=False,
+        # )
+
         # subnamerow.alignment = "RIGHT"
-        subnamerow.prop(props, "sequence_name", text="")
+        activeindrow = subnamerow.row(align=True)
+        # activeindrow.scale_x = 0.4
+        subactiveindrow = activeindrow.row(align=True)
+        subactiveindrow.prop(
+            context.window_manager, "UAS_shot_manager_identify_3dViews", text="", toggle=True, icon="WORDWRAP_ON",
+        )
+        subnamerow.prop(context.window_manager, "shotmanager_target_viewport", text="")
+
         subnamerow.separator()
-        subnamerow.operator("uas_shot_manager.features", text="", icon="PROPERTIES", emboss=False)
+        subnamerow.operator("shot_manager.features", text="", icon="PROPERTIES", emboss=False)
         subnamerow.separator()
         seqcol.separator(factor=0.3)
         # seqcol.label(text="________________________")
@@ -643,7 +663,7 @@ class UAS_PT_ShotManager(Panel):
             # col = row.column(align=True)
             # shotsrow.separator(factor=3.2)
             # row.operator("uas_shot_manager.shots_prefs", text="", icon="SETTINGS")
-            #  shotsrow.operator("uas_shot_manager.features", text="", icon="PROPERTIES")
+            #  shotsrow.operator("shot_manager.features", text="", icon="PROPERTIES")
             shotsrow.menu("UAS_MT_Shot_Manager_shots_toolsmenu", icon="TOOL_SETTINGS", text="")
 
             ##################################################

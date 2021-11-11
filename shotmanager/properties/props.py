@@ -589,7 +589,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
     def _update_display_hud_in_3dviewport(self, context):
         # print("\n*** Stamp Info updated. New state: ", self.stampInfoUsed)
         if self.display_shotname_in_3dviewport:
-            bpy.ops.uas_shot_manager.draw_hud("INVOKE_DEFAULT")
+            bpy.ops.uas_shot_manager.draw_hud_on_camera_pov("INVOKE_DEFAULT")
 
     display_hud_in_3dviewport: BoolProperty(
         name="Display HUD in 3D Viewports",
@@ -736,13 +736,13 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
     # timeline
     #############
 
-    # def timeline_valueChanged( self, context ):
+    # def toggle_overlay_tools_display( self, context ):
     #     if self.display_timeline:
     #         bpy.ops.uas_shot_manager.sequence_timeline ( "INVOKE_DEFAULT" )
 
     # display_timeline: BoolProperty (    default = False,
     #                                     options = set ( ),
-    #                                     update = timeline_valueChanged )
+    #                                     update = toggle_overlay_tools_display )
 
     change_time: BoolProperty(default=True, options=set())
 
@@ -1781,7 +1781,11 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         scene = bpy.context.scene
         props = scene.UAS_shot_manager_props
 
-        area = area if area is not None else bpy.context.area
+        if area is None:
+            # area = bpy.context.area
+            area = utils.getViewportAreaView(
+                bpy.context, viewport_index=bpy.context.window_manager.shotmanager_target_viewport
+            )
 
         shotList = self.get_shots()
         self.current_shot_index = currentShotIndex
@@ -1803,11 +1807,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
             if currentShot.camera is not None and bpy.context.screen is not None:
                 # set the current camera in the 3D view: [‘PERSP’, ‘ORTHO’, ‘CAMERA’]
                 scene.camera = currentShot.camera
-                utils.setCurrentCameraToViewport(bpy.context, area)
-                # area = next(area for area in bpy.context.screen.areas if area.type == "VIEW_3D")
-
-                # area.spaces[0].use_local_camera = False
-                # area.spaces[0].region_3d.view_perspective = "CAMERA"
+                utils.setCurrentCameraToViewport2(bpy.context, area)
 
             # wkip use if
             # if prefs.toggleCamsSoundBG:

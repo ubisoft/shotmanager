@@ -532,17 +532,27 @@ def cameras_from_scene(scene):
     return camList
 
 
-def getViewportAreaView(context):
+def getViewportAreaView(context, viewport_index=0):
+    # for screen_area in context.screen.areas:
+    #     if screen_area.type == "VIEW_3D":
+    #         v3d = screen_area.spaces[0]
+    #         rv3d = v3d.region_3d
+    #         return rv3d
+
+    screens3D = []
     for screen_area in context.screen.areas:
         if screen_area.type == "VIEW_3D":
-            v3d = screen_area.spaces[0]
-            rv3d = v3d.region_3d
-            return rv3d
+            screens3D.append(screen_area)
+
+    if len(screens3D):
+        return screens3D[min(viewport_index, len(screens3D))]
 
     return None
 
 
-def getCameraCurrentlyInViewport(context, area=None):
+def getCameraCurrentlyInViewport(
+    context, area=None,
+):
     """Return the camera currently used by the view, None if
     no camera is used or if the 3D view is not found.
     Requires a valid area VIEW_3D"""
@@ -584,29 +594,33 @@ def makeCameraMatchViewport(context, cam, matchLens=False, putCamInViewport=True
     scene = context.scene
     #  print(f" makeCameraMatchViewport")
 
-    camInViewport = getCameraCurrentlyInViewport(context)
+    areaView = getViewportAreaView(context, viewport_index=context.window_manager.shotmanager_target_viewport)
+    if areaView is None:
+        return
+
+    camInViewport = getCameraCurrentlyInViewport(context, area=areaView)
     camOk = False
 
     if camInViewport is None:
         # we get the viewport cam settings
-        areaView = getViewportAreaView(context)
-        if areaView is not None:
-            import math
+        import math
 
-            areaView.view_camera_zoom = 0.0
-            cam.matrix_world = areaView.view_matrix.inverted()
-            if matchLens:
-                vmat_inv = areaView.view_matrix.inverted()
-                pmat = areaView.perspective_matrix @ vmat_inv
-                fov = 2.0 * abs(1.0 * math.atan(1.0 / pmat[1][1]))
-                #    print(f"Cam fov: {fov}  {fov * 180.0 / math.pi}, zoom: {areaView.view_camera_zoom}")
-                # cam.data.sensor_width = 72
-                #    cam.data.lens_unit = "FOV"
-                # cam.data.angle = fov - areaView.view_camera_zoom * math.pi / 180
-                cam.data.angle = fov
-                # cam.data.lens -= areaView.view_camera_zoom
-                #  areaView.view_camera_zoom = 0.0
-            camOk = True
+        areaViewRegion = areaView.spaces[0].region_3d
+
+        areaViewRegion.view_camera_zoom = 0.0
+        cam.matrix_world = areaViewRegion.view_matrix.inverted()
+        if matchLens:
+            vmat_inv = areaViewRegion.view_matrix.inverted()
+            pmat = areaViewRegion.perspective_matrix @ vmat_inv
+            fov = 2.0 * abs(1.0 * math.atan(1.0 / pmat[1][1]))
+            #    print(f"Cam fov: {fov}  {fov * 180.0 / math.pi}, zoom: {areaViewRegion.view_camera_zoom}")
+            # cam.data.sensor_width = 72
+            #    cam.data.lens_unit = "FOV"
+            # cam.data.angle = fov - areaViewRegion.view_camera_zoom * math.pi / 180
+            cam.data.angle = fov
+            # cam.data.lens -= areaViewRegion.view_camera_zoom
+            #  areaViewRegion.view_camera_zoom = 0.0
+        camOk = True
     else:
         if cam != camInViewport:
             cam.location = camInViewport.location
@@ -618,7 +632,7 @@ def makeCameraMatchViewport(context, cam, matchLens=False, putCamInViewport=True
     if putCamInViewport and camOk:
         # align camera to view
         scene.camera = cam
-        setCurrentCameraToViewport(context)
+        setCurrentCameraToViewport2(context, area=areaView)
 
 
 def setCurrentCameraToViewport2(context, area=None):

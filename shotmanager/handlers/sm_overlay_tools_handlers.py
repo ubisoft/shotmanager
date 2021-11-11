@@ -62,8 +62,8 @@ def install_handler_for_shot(self, context):
         # )
 
 
-def timeline_valueChanged(self, context):
-    # print("  timeline_valueChanged:  self.UAS_shot_manager_display_overlay_tools: ", self.UAS_shot_manager_display_overlay_tools)
+def toggle_overlay_tools_display(self, context):
+    # print("  toggle_overlay_tools_display:  self.UAS_shot_manager_display_overlay_tools: ", self.UAS_shot_manager_display_overlay_tools)
     if self.UAS_shot_manager_display_overlay_tools:
         a = bpy.ops.uas_shot_manager.sequence_timeline("INVOKE_DEFAULT")
         # print(f"a: {a}")

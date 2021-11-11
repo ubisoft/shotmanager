@@ -644,6 +644,7 @@ class UAS_ShotManager_sequenceTimeline(bpy.types.Operator):
         if self.ignoreWidget(context):
             return {"CANCELLED"}
 
+        # print("Invoke timeline")
         self.init_widgets(context, [BL_UI_Timeline(0, context.area.height - 25, context.area.width, 25)])
 
         args = (self, context)
@@ -679,6 +680,10 @@ class UAS_ShotManager_sequenceTimeline(bpy.types.Operator):
         # print(f"playint: {bpy.context.screen.is_animation_playing}, scrubbing: {bpy.context.screen.is_scrubbing}")
         # return {"PASS_THROUGH"}
 
+        if not context.window_manager.UAS_shot_manager_display_overlay_tools:
+            self.unregister_handlers(context)
+            return {"CANCELLED"}
+
         if context.area:
             if self.ignoreWidget(context):
                 return {"PASS_THROUGH"}
@@ -695,10 +700,6 @@ class UAS_ShotManager_sequenceTimeline(bpy.types.Operator):
                         area.tag_redraw()
                 if self.handle_widget_events(event):
                     return {"RUNNING_MODAL"}
-
-        if not context.window_manager.UAS_shot_manager_display_overlay_tools:
-            self.unregister_handlers(context)
-            return {"CANCELLED"}
 
         return {"PASS_THROUGH"}
 

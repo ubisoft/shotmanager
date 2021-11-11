@@ -392,7 +392,7 @@ class UAS_ShotManager_InteractiveShotsStack(bpy.types.Operator):
         #     if area.type == "DOPESHEET_EDITOR":
         #         area.tag_redraw()
 
-        if not context.window_manager.UAS_shot_manager_toggle_montage_interaction:
+        if not context.window_manager.UAS_shot_manager_toggle_shots_stack_interaction:
             return {"PASS_THROUGH"}
 
         event_handled = False

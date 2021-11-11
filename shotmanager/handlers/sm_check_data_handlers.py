@@ -124,7 +124,7 @@ def shotMngHandler_load_post_checkDataVersion(self, context):
 
         if props.display_hud_in_3dviewport:
             try:
-                bpy.ops.uas_shot_manager.draw_hud("INVOKE_DEFAULT")
+                bpy.ops.uas_shot_manager.draw_hud_on_camera_pov("INVOKE_DEFAULT")
             except Exception:
                 print("Paf in draw hud  *")
 

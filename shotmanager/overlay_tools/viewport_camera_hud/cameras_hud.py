@@ -209,10 +209,10 @@ def view3d_camera_border(context):
     return frame_px
 
 
-class UAS_ShotManager_DrawHUD(bpy.types.Operator):
+class UAS_ShotManager_DrawHudOnCamPov(bpy.types.Operator):
     bl_idname = "uas_shot_manager.draw_hud"
-    bl_label = "Shot Manager Draw HUD."
-    bl_description = "Draw the shot manager hud."
+    bl_label = "Shot Manager Draw HUD on Camera POV."
+    bl_description = "Draw the shot manager camera hud when the current point of view is a camera"
     bl_options = {"REGISTER", "INTERNAL"}
 
     def __init__(self):
@@ -230,7 +230,7 @@ class UAS_ShotManager_DrawHUD(bpy.types.Operator):
         self.draw_event = context.window_manager.event_timer_add(0.1, window=context.window)
 
     def unregister_handlers(self, context):
-        #    print(" *** Unregister Display HUD handler *** ")
+        print(" *** Unregister Display HUD handler *** ")
         context.window_manager.event_timer_remove(self.draw_event)
         bpy.types.SpaceView3D.draw_handler_remove(self.draw_handle, "WINDOW")
 
@@ -254,6 +254,10 @@ class UAS_ShotManager_DrawHUD(bpy.types.Operator):
         # if not bpy.context.space_data.overlay.show_overlays:
         #     # if not bpy.context.space_data.show_gizmo:
         #     return
+
+        if not hasattr(context.scene, "UAS_shot_manager_props"):
+            print("Error in UAS_ShotManager_DrawHudOnCamPov draw: no UAS_shot_manager_props defined")
+            return
 
         props = context.scene.UAS_shot_manager_props
         current_shot = props.getCurrentShot()
@@ -303,7 +307,7 @@ class UAS_ShotManager_DrawHUD(bpy.types.Operator):
 
 _classes = (
     UAS_ShotManager_DrawCameras_UI,
-    UAS_ShotManager_DrawHUD,
+    UAS_ShotManager_DrawHudOnCamPov,
 )
 
 

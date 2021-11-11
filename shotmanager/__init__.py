@@ -31,7 +31,8 @@ from bpy.props import BoolProperty, IntProperty, FloatProperty
 from .config import config
 
 from . import handlers
-from .handlers.sm_overlay_tools_handlers import install_handler_for_shot, timeline_valueChanged
+from .handlers.sm_overlay_tools_handlers import install_handler_for_shot, toggle_overlay_tools_display
+from .overlay_tools.workspace_info.workspace_info import toggle_workspace_info_display
 
 from .features import cameraBG
 from .features import soundBG
@@ -162,6 +163,10 @@ def register():
     utils_ui.register()
     versionTupple = utils.display_addon_registered_version("Shot Manager")
     config.initGlobalVariables()
+
+    from .overlay_tools.workspace_info import workspace_info
+
+    workspace_info.register()
 
     ###################
     # logging
@@ -335,7 +340,7 @@ def register():
     )
 
     def _update_UAS_shot_manager_display_overlay_tool(self, context):
-        timeline_valueChanged(self, context)
+        toggle_overlay_tools_display(self, context)
 
     bpy.types.WindowManager.UAS_shot_manager_display_overlay_tools = BoolProperty(
         name="Show Overlay Tools",
@@ -346,7 +351,27 @@ def register():
         default=False,
     )
 
-    bpy.types.WindowManager.UAS_shot_manager_toggle_montage_interaction = BoolProperty(
+    def _update_UAS_shot_manager_identify_3dViews(self, context):
+        toggle_workspace_info_display(self, context)
+
+    bpy.types.WindowManager.UAS_shot_manager_identify_3dViews = BoolProperty(
+        name="Identify 3D Views",
+        description="Display an index on each 3D View to clearly identify them",
+        update=_update_UAS_shot_manager_identify_3dViews,
+        default=False,
+    )
+
+    bpy.types.WindowManager.shotmanager_target_viewport = IntProperty(
+        name="Target 3D View",
+        description="Index of the 3D view of the current workspace which"
+        "\nwill receive all the actions set in the Shot Manager UI",
+        min=0,
+        max=3,
+        default=0,
+        options=set(),
+    )
+
+    bpy.types.WindowManager.UAS_shot_manager_toggle_shots_stack_interaction = BoolProperty(
         name="Enable Shots Manipulation",
         description="Enable the interactions with the shots in the Interactive Shots Stack,"
         "\nin the Timeline editor."
@@ -470,6 +495,10 @@ def unregister():
         otio.unregister()
     else:
         print("       *** No Otio found to unregister ***")
+
+    from .overlay_tools.workspace_info import workspace_info
+
+    workspace_info.unregister()
 
     utils_ui.unregister()
     config.releaseGlobalVariables()

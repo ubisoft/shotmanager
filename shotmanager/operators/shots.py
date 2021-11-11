@@ -578,7 +578,7 @@ class UAS_ShotManager_ShotAdd(Operator):
 
         if 0 < props.getNumShots() and props.display_shotname_in_3dviewport:
             bpy.ops.uas_shot_manager.draw_cameras_ui("INVOKE_DEFAULT")
-            bpy.ops.uas_shot_manager.draw_hud("INVOKE_DEFAULT")
+            bpy.ops.uas_shot_manager.draw_hud_on_camera_pov("INVOKE_DEFAULT")
 
         # removed, now done in addShot
         # props.setCurrentShotByIndex(newShotInd)
