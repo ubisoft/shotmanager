@@ -599,14 +599,28 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         options=set(),
     )
 
-    def getTargetAreaIndex(self, context):
+    def getTargetViewportIndex(self, context, only_valid=False):
+        """Return the index of the viewport where all the actions of the Shot Manager should occur.
+        This viewport is called the target viewport and is defined in the UI by the user thanks
+        to the variable context.window_manager.shotmanager_target_viewport_dropdwn.
+        A viewport is an area of type VIEW_3D.
 
+        Args:
+        only_valid:
+            Since there may have more items in the list than viewports in the considered workspace the target viewport index
+            may refer to a viewport that doesn't exist.
+            To get a valid target viewport use the argument only_valid: if set to True it will return the index of the current
+            context area, which should be the viewport with the calling Shot Manager.
+            Return -1 if no viewport is available
+
+        wkip context.window_manager.shotmanager_target_viewport_dropdwn should be stored in the scene, per layout
+        """
         ind = -1
-
         item = context.window_manager.shotmanager_target_viewport_dropdwn
-        #   print(f"getTargetAreaIndex item: {item}")
+        current_area_ind = utils.getAreaIndex(context, context.area, "VIEW_3D")
+        #   print(f"getTargetViewportIndex item: {item}")
         if "SELF" == item:
-            ind = utils.getAreaIndex(context, context.area, "VIEW_3D")
+            ind = current_area_ind
         elif "AREA_00" == item:
             ind = 0
         elif "AREA_01" == item:
@@ -616,8 +630,26 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         elif "AREA_03" == item:
             ind = 3
 
-        print(f"getTargetAreaIndex item: {item}")
+        if only_valid:
+            areasList = utils.getAreasByType(context, "VIEW_3D")
+
+            if 0 == len(areasList):
+                ind = -1
+            elif len(areasList) <= ind:
+                ind = current_area_ind
+
+        # print(f"getTargetViewportIndex item: {item}")
         return ind
+
+    def getValidTargetViewport(self, context):
+        """Return a valid (= existing in the context) target viewport (= 3D view area)
+        Return None if no valid viewport exists in the screen
+        """
+        valid_target = None
+        valid_target_ind = self.getTargetViewportIndex(context, only_valid=True)
+        if -1 < valid_target_ind:
+            valid_target = utils.getAreaFromIndex(context, valid_target_ind, "VIEW_3D")
+        return valid_target
 
     # Features
     #############
@@ -1801,7 +1833,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         scene = bpy.context.scene
         props = scene.UAS_shot_manager_props
 
-        target_area_index = self.getTargetAreaIndex(bpy.context)
+        target_area_index = self.getTargetViewportIndex(bpy.context)
         target_area = utils.getAreaFromIndex(bpy.context, target_area_index, "VIEW_3D")
         if source_area is None:
             # source_area = bpy.context.area

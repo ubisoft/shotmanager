@@ -397,7 +397,7 @@ def register():
             res = nothingList
         return res
 
-    # Get the target index with the function props.getTargetAreaIndex(context)
+    # Get the target index with the function props.getTargetViewportIndex(context)
     bpy.types.WindowManager.shotmanager_target_viewport_dropdwn = EnumProperty(
         name="Target 3D View",
         description="Index of the 3D view of the current workspace which"

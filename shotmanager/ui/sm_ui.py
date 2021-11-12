@@ -314,7 +314,15 @@ class UAS_PT_ShotManager(Panel):
         subactiveindrow.prop(
             context.window_manager, "UAS_shot_manager_identify_3dViews", text="", toggle=True, icon="WORDWRAP_ON",
         )
-        subactiveindrow.prop(context.window_manager, "shotmanager_target_viewport_dropdwn", text="")
+        targviewprow = subactiveindrow.row(align=True)
+        expected_target_area_ind = props.getTargetViewportIndex(context, only_valid=False)
+        target_area_ind = props.getTargetViewportIndex(context, only_valid=True)
+        # print(f"display area targ: expected_target_area_ind:{expected_target_area_ind}, targ:{target_area_ind}")
+        targviewprow.alert = target_area_ind < expected_target_area_ind
+        targviewprow.prop(context.window_manager, "shotmanager_target_viewport_dropdwn", text="")
+
+        # target_area = props.getValidTargetViewport(context)
+
         #  subnamerow.prop(context.window_manager, "shotmanager_target_viewport", text="")
 
         subnamerow.separator()

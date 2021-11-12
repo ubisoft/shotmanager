@@ -30,6 +30,7 @@ import bpy
 from gpu_extras.batch import batch_for_shader
 
 from shotmanager.config import config
+from shotmanager.utils import utils
 from shotmanager.utils.utils import clamp, gamma_color, darken_color, remap
 from shotmanager.utils.utils_ogl import get_region_at_xy, Square
 
@@ -346,7 +347,7 @@ class BL_UI_Shot:
 
 
 class BL_UI_Timeline:
-    def __init__(self, x, y, width, height):
+    def __init__(self, x, y, width, height, target_area=None):
         self.x = x
         self.y = y
         self.x_screen = x
@@ -357,6 +358,7 @@ class BL_UI_Timeline:
         self._mouse_y = 0
         self._bg_color = (0.1, 0.1, 0.1, 0.85)
         self.context = None
+        self.target_area = target_area
         self.__inrect = False
         self._mouse_down = False
 
@@ -475,6 +477,9 @@ class BL_UI_Timeline:
             offset_x += int(self.width * float(shot.end + 1 - shot.start) / total_range)
 
     def draw(self):
+        if self.target_area is not None and self.context.area != self.target_area:
+            return
+
         self.width = self.context.area.width
         area_height = self.get_area_height()
 
@@ -510,7 +515,10 @@ class BL_UI_Timeline:
         prefs = bpy.context.preferences.addons["shotmanager"].preferences
         if hasattr(bpy.context.space_data, "overlay"):
             if prefs.seqTimeline_not_disabled_with_overlays and not bpy.context.space_data.overlay.show_overlays:
-                return
+                return False
+
+        if self.target_area is not None and self.context.area != self.target_area:
+            return False
 
         if self.frame_cursor.handle_event(event):
             return True
@@ -620,9 +628,11 @@ class UAS_ShotManager_sequenceTimeline(bpy.types.Operator):
 
         self.widgets = []
 
-    def init_widgets(self, context, widgets):
+    def init_widgets(self, context, widgets, target_area=None):
         self.widgets = widgets
+        print(f"init_widgets, num widgets: {len(widgets)}")
         for widget in self.widgets:
+            print(f"Widget: {str(widget)}")
             widget.init(context)
 
     def ignoreWidget(self, context):
@@ -640,17 +650,33 @@ class UAS_ShotManager_sequenceTimeline(bpy.types.Operator):
         return False
 
     def invoke(self, context, event):
+        props = context.scene.UAS_shot_manager_props
 
         if self.ignoreWidget(context):
             return {"CANCELLED"}
 
+        # get the area index of invocation
+        source_area_ind = utils.getAreaIndex(context, context.area, "VIEW_3D")
+        expected_target_area_ind = props.getTargetViewportIndex(context, only_valid=False)
+        target_area_ind = props.getTargetViewportIndex(context, only_valid=True)
+        target_area = props.getValidTargetViewport(context)
+        print(
+            f"Invoke Timeline area ind: {source_area_ind}, expected target: {expected_target_area_ind}, valid target: {target_area_ind}"
+        )
+
         # print("Invoke timeline")
-        self.init_widgets(context, [BL_UI_Timeline(0, context.area.height - 25, context.area.width, 25)])
+        if target_area is None:
+            return {"CANCELLED"}
+        else:
+            self.init_widgets(
+                context, [BL_UI_Timeline(0, context.area.height - 25, context.area.width, 25, target_area=target_area)]
+            )  # , target_area=target_area
 
-        args = (self, context)
-        self.register_handlers(args, context)
+            args = (self, context)
+            self.register_handlers(args, context)
 
-        context.window_manager.modal_handler_add(self)
+            context.window_manager.modal_handler_add(self)
+
         return {"RUNNING_MODAL"}
 
     def register_handlers(self, args, context):
@@ -698,6 +724,9 @@ class UAS_ShotManager_sequenceTimeline(bpy.types.Operator):
                 for area in context.screen.areas:
                     if area.type == "VIEW_3D":
                         area.tag_redraw()
+                        # region.tag_redraw() #???? faster?
+
+                        # context.region.tag_redraw()
                 if self.handle_widget_events(event):
                     return {"RUNNING_MODAL"}
 
@@ -714,6 +743,7 @@ class UAS_ShotManager_sequenceTimeline(bpy.types.Operator):
         # if not context.window_manager.UAS_shot_manager_display_overlay_tools:
         #     return
 
+        # return
         ignoreWidget = self.ignoreWidget(context)
         if ignoreWidget:
             return

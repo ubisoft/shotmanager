@@ -44,6 +44,10 @@ def shotMngHandler_undo_post(self, context):
 def shotMngHandler_load_pre(self, context):
     print("\nSM Handler: Load Pre")
 
+
+def shotMngHandler_load_post(self, context):
+    print("\nSM Handler: Load Post")
+
     # bpy.ops.uas_shot_manager.sequence_timeline.cancel(bpy.context)
 
     # bpy.context.window_manager.event_timer_remove(bpy.ops.uas_shot_manager.sequence_timeline.draw_event)

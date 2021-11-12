@@ -86,10 +86,10 @@ def draw_callback__viewport_info_workspace(self, context, message, message2):
 
     # areaView = getViewportAreaView(context)
     # if areaView is not None:
-    screens3D = []
-    for screen_area in context.screen.areas:
-        if screen_area.type == "VIEW_3D":
-            screens3D.append(screen_area)
+    screens3D = utils.getAreasByType(context, "VIEW_3D")
+    # for screen_area in context.screen.areas:
+    #     if screen_area.type == "VIEW_3D":
+    #         screens3D.append(screen_area)
 
     # ok but not looping
     # if context.area == screens3D[0]:
@@ -147,7 +147,7 @@ class ShotManager_WorkspaceInfo(bpy.types.Operator):
 
         callingAreaType = context.area.type
         callingAreaIndex = utils.getAreaIndex(context, context.area, "VIEW_3D")
-        targetAreaIndex = props.getTargetAreaIndex(context)
+        targetAreaIndex = props.getTargetViewportIndex(context)
 
         if context.area.type == "VIEW_3D":  # and context.area == screens3D[0]:
 

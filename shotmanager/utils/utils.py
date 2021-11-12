@@ -371,8 +371,64 @@ def deleteMarkerAtFrame(scene, frame):
 
 
 ###################
-# Various
+# Areas, Various
 ###################
+
+
+def getAreasByType(context, area_type):
+    """Return a list of the areas of the specifed type from the specified context
+    """
+    areasList = list()
+    for screen_area in context.screen.areas:
+        if screen_area.type == area_type:
+            areasList.append(screen_area)
+    return areasList
+
+
+def getAreaFromIndex(context, area_index, area_type):
+    """Return the area that has the index area_index in the list of areas of the specified type
+    Args:
+        area_type: can be "VIEW_3D", ...
+    Return: None if not found
+    """
+    areasList = getAreasByType(context, area_type)
+
+    if 0 <= area_index < len(areasList):
+        return areasList[area_index]
+    return None
+
+
+def getAreaIndex(context, area, area_type):
+    """Return the index of the area in the list of areas of the specified type
+    *** warning: be sure area_type is really the type of area (we can get it from area.type) ***
+    Args:
+        area_type: can be "VIEW_3D", ...
+    Return: -1 if area not found
+    """
+    areasList = getAreasByType(context, area_type)
+
+    for i, a in enumerate(areasList):
+        if area == a:
+            return i
+    return -1
+
+
+def getViewportAreaView(context, viewport_index=0):
+    # for screen_area in context.screen.areas:
+    #     if screen_area.type == "VIEW_3D":
+    #         v3d = screen_area.spaces[0]
+    #         rv3d = v3d.region_3d
+    #         return rv3d
+
+    screens3D = []
+    for screen_area in context.screen.areas:
+        if screen_area.type == "VIEW_3D":
+            screens3D.append(screen_area)
+
+    if len(screens3D):
+        return screens3D[min(viewport_index, len(screens3D))]
+
+    return None
 
 
 def findFirstUniqueName(originalItem, name, itemsArray):
@@ -534,58 +590,6 @@ def cameras_from_scene(scene):
     return camList
 
 
-def getAreaFromIndex(context, area_index, area_type):
-    """Return the area that has the index area_index in the list of areas of the specified type
-    Args:
-        area_type: can be "VIEW_3D", ...
-    Return: None if not found
-    """
-    areasList = list()
-    for screen_area in context.screen.areas:
-        if screen_area.type == area_type:
-            areasList.append(screen_area)
-
-    if 0 <= area_index < len(areasList):
-        return areasList[area_index]
-    return None
-
-
-def getAreaIndex(context, area, area_type):
-    """Return the index of the area in the list of areas of the specified type
-    *** warning: be sure area_type is really the type of area (we can get it from area.type) ***
-    Args:
-        area_type: can be "VIEW_3D", ...
-    Return: -1 if area not found
-    """
-    areasList = list()
-    for screen_area in context.screen.areas:
-        if screen_area.type == area_type:
-            areasList.append(screen_area)
-
-    for i, a in enumerate(areasList):
-        if area == a:
-            return i
-    return -1
-
-
-def getViewportAreaView(context, viewport_index=0):
-    # for screen_area in context.screen.areas:
-    #     if screen_area.type == "VIEW_3D":
-    #         v3d = screen_area.spaces[0]
-    #         rv3d = v3d.region_3d
-    #         return rv3d
-
-    screens3D = []
-    for screen_area in context.screen.areas:
-        if screen_area.type == "VIEW_3D":
-            screens3D.append(screen_area)
-
-    if len(screens3D):
-        return screens3D[min(viewport_index, len(screens3D))]
-
-    return None
-
-
 def getCameraCurrentlyInViewport(
     context, area=None,
 ):
@@ -631,7 +635,7 @@ def makeCameraMatchViewport(context, cam, matchLens=False, putCamInViewport=True
     props = context.scene.UAS_shot_manager_props
     #  print(f" makeCameraMatchViewport")
 
-    areaView = getViewportAreaView(context, viewport_index=props.getTargetAreaIndex(context))
+    areaView = getViewportAreaView(context, viewport_index=props.getTargetViewportIndex(context))
     if areaView is None:
         return
 
@@ -674,17 +678,16 @@ def makeCameraMatchViewport(context, cam, matchLens=False, putCamInViewport=True
 
 def setCurrentCameraToViewport2(context, area=None):
     """Requires a valid area VIEW_3D"""
-    area3D = area
     #   print(f"Cam in area3D 01: {area3D}")
     if area is None:
         for screen_area in context.screen.areas:
             if screen_area.type == "VIEW_3D":
-                area3D = screen_area
+                area = screen_area
                 break
 
     #    print(f"Cam in area3D 02: {area3D}")
 
-    if area3D is not None:
+    if area is not None:
         for space_data in area.spaces:
             if space_data.type == "VIEW_3D":
                 space_data.use_local_camera = False

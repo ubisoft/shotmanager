@@ -65,9 +65,15 @@ def shotMngHandler_load_post_checkDataVersion(self, context):
                 #   print("     Shot Manager version: ", bpy.context.window_manager.UAS_shot_manager_version)
                 # if props.dataVersion <= 0 or props.dataVersion < bpy.context.window_manager.UAS_shot_manager_version:
                 # if props.dataVersion <= 0 or props.dataVersion < props.version()[1]:
+
+                # wkip to remove - quick fix degueu
+                if props.dataVersion <= 0:
+                    return
+
                 if props.dataVersion <= 0 or props.dataVersion < latestVersionToPatch:  # <= ???
                     _logger.info(
                         f"     *** Scene {scn.name}: Shot Manager Data Version is lower than the latest Shot Manager version to patch"
+                        f"\n     Data Version: {props.dataVersion}, latest version to patch: {latestVersionToPatch}"
                     )
                     numScenesToUpgrade += 1
                     if -1 == lowerSceneVersion or props.dataVersion < lowerSceneVersion:
@@ -113,8 +119,6 @@ def shotMngHandler_load_post_checkDataVersion(self, context):
             # current version, no patch required but data version is updated
             if lowerSceneVersion < props.version()[1]:
                 props.dataVersion = props.version()[1]
-
-    
 
 
 # wkip doesn t work!!! Property values changed right before the save are not saved in the file!

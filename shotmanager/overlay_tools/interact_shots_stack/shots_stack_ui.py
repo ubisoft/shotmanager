@@ -360,32 +360,51 @@ class UAS_ShotManager_InteractiveShotsStack(bpy.types.Operator):
         if self.ignoreWidget(context):
             return {"CANCELLED"}
 
-        self.draw_handle = bpy.types.SpaceDopeSheetEditor.draw_handler_add(
-            self.draw, (context,), "WINDOW", "POST_PIXEL"
-        )
-        self.draw_event = context.window_manager.event_timer_add(0.1, window=context.window)
+        args = (self, context)
+        self.register_handlers(args, context)
+
         context.window_manager.modal_handler_add(self)
         self.context = context
         self.sm_props = context.scene.UAS_shot_manager_props
         self.build_clips()
         return {"RUNNING_MODAL"}
 
+    def register_handlers(self, args, context):
+        self.draw_handle = bpy.types.SpaceDopeSheetEditor.draw_handler_add(
+            self.draw, (context,), "WINDOW", "POST_PIXEL"
+        )
+        self.draw_event = context.window_manager.event_timer_add(0.1, window=context.window)
+
+    def unregister_handlers(self, context):
+        context.window_manager.event_timer_remove(self.draw_event)
+        bpy.types.SpaceDopeSheetEditor.draw_handler_remove(self.draw_handle, "WINDOW")
+
+        self.draw_handle = None
+        self.draw_event = None
+
     def modal(self, context, event):
 
-        for area in context.screen.areas:
-            if area.type == "DOPESHEET_EDITOR":
-                area.tag_redraw()
-
         if not context.window_manager.UAS_shot_manager_display_overlay_tools:
-            context.window_manager.event_timer_remove(self.draw_event)
-            bpy.types.SpaceDopeSheetEditor.draw_handler_remove(self.draw_handle, "WINDOW")
+            self.unregister_handlers(context)
+            context.window_manager.UAS_shot_manager_display_overlay_tools = False
             return {"CANCELLED"}
 
         if self.ignoreWidget(context):
             return {"PASS_THROUGH"}
 
+        for area in context.screen.areas:
+            if area.type == "DOPESHEET_EDITOR":
+                try:
+                    area.tag_redraw()
+                except Exception as e:
+                    print("*** Paf in DopeSheet Modal Shots Stack")
+                    self.unregister_handlers(context)
+                    context.window_manager.UAS_shot_manager_display_overlay_tools = False
+                    return {"CANCELLED"}
+
         if config.devDebug:
-            print("wkip modal redrawing of the Interactive Shots Stack")
+            # print("wkip modal redrawing of the Interactive Shots Stack")
+            pass
         # TODO: wkip here investigate for optimization cause this forced refresh is really greedy !!!
 
         # for area in context.screen.areas:
@@ -480,11 +499,19 @@ class UAS_ShotManager_InteractiveShotsStack(bpy.types.Operator):
                 self.clips.append(ShotClip(self.context, shot, i, self.sm_props))
 
     def draw(self, context):
-        # !!! warning: Blender Timeline editor has a problem of refresh so even if the display is not done it may appear in the editor
-        if self.ignoreWidget(context):
-            return False
+        # if not context.window_manager.UAS_shot_manager_display_overlay_tools:
+        #     context.window_manager.event_timer_remove(self.draw_event)
+        #     bpy.types.SpaceDopeSheetEditor.draw_handler_remove(self.draw_handle, "WINDOW")
 
+        #     self.draw_handle = None
+        #     self.draw_event = None
+        #     return
+
+        # !!! warning: Blender Timeline editor has a problem of refresh so even if the display is not done it may appear in the editor
         try:
+            if self.ignoreWidget(context):
+                return False
+
             for clip in self.clips:
                 clip.draw(context)
                 # try:
@@ -500,6 +527,7 @@ class UAS_ShotManager_InteractiveShotsStack(bpy.types.Operator):
 
         except Exception as ex:
             _logger.error(f"*** Crash in ogl context - Draw clips loop: error: {ex} ***")
+            self.unregister_handlers(context)
             context.window_manager.UAS_shot_manager_display_overlay_tools = False
             # context.window_manager.UAS_shot_manager_display_overlay_tools = True
 

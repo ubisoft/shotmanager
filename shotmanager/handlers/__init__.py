@@ -25,7 +25,12 @@ from bpy.app.handlers import persistent
 from shotmanager.config import config
 from shotmanager.utils import utils_handlers
 
-from .sm_handlers import shotMngHandler_undo_pre, shotMngHandler_undo_post, shotMngHandler_load_pre
+from .sm_handlers import (
+    shotMngHandler_undo_pre,
+    shotMngHandler_undo_post,
+    shotMngHandler_load_pre,
+    shotMngHandler_load_post,
+)
 
 # from . import sm_check_data_handlers
 from .sm_check_data_handlers import shotMngHandler_load_post_checkDataVersion
@@ -73,6 +78,7 @@ def register():
     bpy.app.handlers.load_post.append(shotMngHandler_load_post_cameraHUD)
 
     bpy.app.handlers.load_pre.append(shotMngHandler_load_pre)
+    bpy.app.handlers.load_post.append(shotMngHandler_load_post)
 
     bpy.app.handlers.undo_pre.append(shotMngHandler_undo_pre)
     bpy.app.handlers.undo_pre.append(shotMngHandler_undo_post)

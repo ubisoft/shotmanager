@@ -1,5 +1,9 @@
 # 1.6.05 (2021-11-09)
 
+## Features
+
+- Added a viewport target
+
 ## Fixes
 
 - Fixed Make All Cameras Unique script
