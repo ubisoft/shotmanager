@@ -314,7 +314,8 @@ class UAS_PT_ShotManager(Panel):
         subactiveindrow.prop(
             context.window_manager, "UAS_shot_manager_identify_3dViews", text="", toggle=True, icon="WORDWRAP_ON",
         )
-        subnamerow.prop(context.window_manager, "shotmanager_target_viewport", text="")
+        subactiveindrow.prop(context.window_manager, "shotmanager_target_viewport_dropdwn", text="")
+        #  subnamerow.prop(context.window_manager, "shotmanager_target_viewport", text="")
 
         subnamerow.separator()
         subnamerow.operator("shot_manager.features", text="", icon="PROPERTIES", emboss=False)

@@ -114,19 +114,7 @@ def shotMngHandler_load_post_checkDataVersion(self, context):
             if lowerSceneVersion < props.version()[1]:
                 props.dataVersion = props.version()[1]
 
-    props = bpy.context.scene.UAS_shot_manager_props
-    if props is not None:
-        if props.display_shotname_in_3dviewport:
-            try:
-                bpy.ops.uas_shot_manager.draw_cameras_ui("INVOKE_DEFAULT")
-            except Exception:
-                print("Paf in draw cameras ui  *")
-
-        if props.display_hud_in_3dviewport:
-            try:
-                bpy.ops.uas_shot_manager.draw_hud_on_camera_pov("INVOKE_DEFAULT")
-            except Exception:
-                print("Paf in draw hud  *")
+    
 
 
 # wkip doesn t work!!! Property values changed right before the save are not saved in the file!

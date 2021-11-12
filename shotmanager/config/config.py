@@ -37,7 +37,7 @@ def initGlobalVariables():
     else:
         devDebug = True
 
-    devDebug = False
+    devDebug = True
 
     global devDebug_keepVSEContent
     devDebug_keepVSEContent = True and devDebug

@@ -217,8 +217,12 @@ class UAS_ShotManager_OverlayTools_Prefs(Operator):
         layout.label(text="Any change is effective immediately")
         layout.alert = False
 
-        # Best play perfs ######
-        layout.label(text="Best Play Performance:")
+        ###################################
+        # Toggle overlay tools ######
+        ###################################
+
+        icon = config.icons_col["ShotManager_Tools_OverlayTools_32"]
+        layout.label(text="Toggle Overlay Tools:", icon_value=icon.icon_id)
         box = layout.box()
         box.use_property_decorate = False
 
@@ -236,10 +240,40 @@ class UAS_ShotManager_OverlayTools_Prefs(Operator):
         col = row.column()
 
         col.use_property_split = False
-        col.prop(
+        linerow = col.row()
+        linerow.prop(
+            prefs, "toggle_overlays_turnOn_sequenceTimeline", text="Sequence Timeline",
+        )
+        linerow.prop(
+            prefs, "toggle_overlays_turnOn_interactiveShotsStack", text="Interactive Shots Stack",
+        )
+
+        ###################################
+        # # Best play perfs ######
+        ###################################
+        layout.label(text="Best Play Performance:", icon="INDIRECT_ONLY_ON")
+        box = layout.box()
+        box.use_property_decorate = False
+
+        # main column, to allow title offset
+        maincol = box.column()
+        row = maincol.row()
+        row.separator(factor=2)
+        row.label(text="Check the tools and features that will be disabled when animation is playing:")
+
+        # empty spacer column
+        row = maincol.row()
+        col = row.column()
+        col.scale_x = 0.3
+        col.label(text=" ")
+        col = row.column()
+
+        col.use_property_split = False
+        linerow = col.row()
+        linerow.prop(
             prefs, "best_play_perfs_turnOff_sequenceTimeline", text="Sequence Timeline",
         )
-        col.prop(
+        linerow.prop(
             prefs, "best_play_perfs_turnOff_interactiveShotsStack", text="Interactive Shots Stack",
         )
         col.prop(prefs, "best_play_perfs_turnOff_mainUI", text="Main Panel UI")

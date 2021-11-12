@@ -1,5 +1,13 @@
 # 1.6.05 (2021-11-09)
 
+## Fixes
+
+- Fixed Make All Cameras Unique script
+
+## Preferences and user settings
+
+- Can show or hide overlay tools
+
 ## Overlay tools
 
 - Exposed preferences to display disabled shots in the timeline and shots stack

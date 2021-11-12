@@ -431,7 +431,9 @@ def getSceneVSE(vsm_sceneName, createVseTab=False):
 
 
 def duplicateObject(sourceObject, newName=None):
-    """Duplicate (deepcopy) an object and place it in the same collection"""
+    """Duplicate (deepcopy) an object and place it in the same collection
+        Can be any 3D object, camera...
+    """
     newObject = sourceObject.copy()
     if newObject.animation_data is not None:
         newObject.animation_data.action = sourceObject.animation_data.action.copy()
@@ -532,6 +534,40 @@ def cameras_from_scene(scene):
     return camList
 
 
+def getAreaFromIndex(context, area_index, area_type):
+    """Return the area that has the index area_index in the list of areas of the specified type
+    Args:
+        area_type: can be "VIEW_3D", ...
+    Return: None if not found
+    """
+    areasList = list()
+    for screen_area in context.screen.areas:
+        if screen_area.type == area_type:
+            areasList.append(screen_area)
+
+    if 0 <= area_index < len(areasList):
+        return areasList[area_index]
+    return None
+
+
+def getAreaIndex(context, area, area_type):
+    """Return the index of the area in the list of areas of the specified type
+    *** warning: be sure area_type is really the type of area (we can get it from area.type) ***
+    Args:
+        area_type: can be "VIEW_3D", ...
+    Return: -1 if area not found
+    """
+    areasList = list()
+    for screen_area in context.screen.areas:
+        if screen_area.type == area_type:
+            areasList.append(screen_area)
+
+    for i, a in enumerate(areasList):
+        if area == a:
+            return i
+    return -1
+
+
 def getViewportAreaView(context, viewport_index=0):
     # for screen_area in context.screen.areas:
     #     if screen_area.type == "VIEW_3D":
@@ -592,9 +628,10 @@ def makeCameraMatchViewport(context, cam, matchLens=False, putCamInViewport=True
     # There is also an operator to do part of the code below: bpy.ops.view3d.camera_to_view()
 
     scene = context.scene
+    props = context.scene.UAS_shot_manager_props
     #  print(f" makeCameraMatchViewport")
 
-    areaView = getViewportAreaView(context, viewport_index=context.window_manager.shotmanager_target_viewport)
+    areaView = getViewportAreaView(context, viewport_index=props.getTargetAreaIndex(context))
     if areaView is None:
         return
 

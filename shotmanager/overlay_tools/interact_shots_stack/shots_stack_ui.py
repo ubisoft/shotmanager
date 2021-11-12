@@ -508,12 +508,10 @@ _classes = (UAS_ShotManager_InteractiveShotsStack,)
 
 
 def register():
-    print("       - Registering Interactive Shots Stack Package")
     for cls in _classes:
         bpy.utils.register_class(cls)
 
 
 def unregister():
-    print("       - Unegistering Interactive Shots Stack Package")
     for cls in reversed(_classes):
         bpy.utils.unregister_class(cls)

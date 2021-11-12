@@ -599,6 +599,26 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         options=set(),
     )
 
+    def getTargetAreaIndex(self, context):
+
+        ind = -1
+
+        item = context.window_manager.shotmanager_target_viewport_dropdwn
+        #   print(f"getTargetAreaIndex item: {item}")
+        if "SELF" == item:
+            ind = utils.getAreaIndex(context, context.area, "VIEW_3D")
+        elif "AREA_00" == item:
+            ind = 0
+        elif "AREA_01" == item:
+            ind = 1
+        elif "AREA_02" == item:
+            ind = 2
+        elif "AREA_03" == item:
+            ind = 3
+
+        print(f"getTargetAreaIndex item: {item}")
+        return ind
+
     # Features
     #############
 
@@ -1768,7 +1788,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
 
         return currentShot
 
-    def setCurrentShotByIndex(self, currentShotIndex, changeTime=None, area=None):
+    def setCurrentShotByIndex(self, currentShotIndex, changeTime=None, source_area=None):
         """Changing the current shot:
           - doesn't affect the selected one
           - changes the current time if specifed
@@ -1781,11 +1801,14 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         scene = bpy.context.scene
         props = scene.UAS_shot_manager_props
 
-        if area is None:
-            # area = bpy.context.area
-            area = utils.getViewportAreaView(
-                bpy.context, viewport_index=bpy.context.window_manager.shotmanager_target_viewport
-            )
+        target_area_index = self.getTargetAreaIndex(bpy.context)
+        target_area = utils.getAreaFromIndex(bpy.context, target_area_index, "VIEW_3D")
+        if source_area is None:
+            # source_area = bpy.context.area
+            # source_area = utils.getViewportAreaView(
+            #     bpy.context, viewport_index=bpy.context.window_manager.shotmanager_target_viewport
+            # )
+            source_area = utils.getViewportAreaView(bpy.context, viewport_index=target_area_index)
 
         shotList = self.get_shots()
         self.current_shot_index = currentShotIndex
@@ -1807,7 +1830,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
             if currentShot.camera is not None and bpy.context.screen is not None:
                 # set the current camera in the 3D view: [‘PERSP’, ‘ORTHO’, ‘CAMERA’]
                 scene.camera = currentShot.camera
-                utils.setCurrentCameraToViewport2(bpy.context, area)
+                utils.setCurrentCameraToViewport2(bpy.context, target_area)
 
             # wkip use if
             # if prefs.toggleCamsSoundBG:
@@ -1817,10 +1840,10 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
 
         # bpy.context.scene.objects["Camera_Sapin"]
 
-    def setCurrentShot(self, currentShot, changeTime=None, area=None):
+    def setCurrentShot(self, currentShot, changeTime=None, source_area=None):
         shotInd = self.getShotIndex(currentShot)
         # print("setCurrentShot: shotInd:", shotInd)
-        self.setCurrentShotByIndex(shotInd, changeTime=changeTime, area=area)
+        self.setCurrentShotByIndex(shotInd, changeTime=changeTime, source_area=source_area)
 
     def getSelectedShotIndex(self):
         """Return the index of the selected shot in the enabled shot list of the current take

@@ -233,6 +233,19 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
     ### Overlay tools
     ########################################################################
 
+    # tools displayed when toggle overlays button is on
+    toggle_overlays_turnOn_sequenceTimeline: BoolProperty(
+        name="Turn On Sequence Timeline",
+        description="Display Sequence Timeline in the 3d viewport when Toggle Overlay Tools button is pressed",
+        default=True,
+    )
+
+    toggle_overlays_turnOn_interactiveShotsStack: BoolProperty(
+        name="Turn Off Interactive Shots Stack",
+        description="Display Interactive Shots Stack in the Timeline editor when Toggle Overlay Tools button is pressed",
+        default=True,
+    )
+
     # tools disabled during play
     best_play_perfs_turnOff_sequenceTimeline: BoolProperty(
         name="Turn Off Sequence Timeline",

@@ -26,7 +26,7 @@ from pathlib import Path
 
 import bpy
 
-from bpy.props import BoolProperty, IntProperty, FloatProperty
+from bpy.props import BoolProperty, IntProperty, FloatProperty, EnumProperty
 
 from .config import config
 
@@ -340,7 +340,7 @@ def register():
     )
 
     def _update_UAS_shot_manager_display_overlay_tool(self, context):
-        toggle_overlay_tools_display(self, context)
+        toggle_overlay_tools_display(context)
 
     bpy.types.WindowManager.UAS_shot_manager_display_overlay_tools = BoolProperty(
         name="Show Overlay Tools",
@@ -361,14 +361,50 @@ def register():
         default=False,
     )
 
-    bpy.types.WindowManager.shotmanager_target_viewport = IntProperty(
+    # bpy.types.WindowManager.shotmanager_target_viewport = IntProperty(
+    #     name="Target 3D View",
+    #     description="Index of the 3D view of the current workspace which"
+    #     "\nwill receive all the actions set in the Shot Manager UI",
+    #     min=0,
+    #     max=3,
+    #     default=0,
+    #     options=set(),
+    # )
+
+    def list_target_areas(self, context):
+        # res = config.gSeqEnumList
+        res = None
+        # res = list()
+        nothingList = list()
+        nothingList.append(("SELF", "Me", "Me too", 0))
+        nothingList.append(("AREA_00", "0", "Me too", 1))
+        nothingList.append(("AREA_01", "1", "Me too", 2))
+        nothingList.append(("AREA_02", "2", "Me too", 3))
+        nothingList.append(("AREA_03", "3", "Me too", 4))
+
+        # seqList = getSequenceListFromOtioTimeline(config.gMontageOtio)
+        # for i, item in enumerate(seqList):
+        #     res.append((item, item, "My seq", i + 1))
+
+        # res = getSequenceListFromOtio()
+        # res.append(("NEW_CAMERA", "New Camera", "Create new camera", 0))
+        # for i, cam in enumerate([c for c in context.scene.objects if c.type == "CAMERA"]):
+        #     res.append(
+        #         (cam.name, cam.name, 'Use the exising scene camera named "' + cam.name + '"\nfor the new shot', i + 1)
+        #     )
+
+        if res is None or 0 == len(res):
+            res = nothingList
+        return res
+
+    # Get the target index with the function props.getTargetAreaIndex(context)
+    bpy.types.WindowManager.shotmanager_target_viewport_dropdwn = EnumProperty(
         name="Target 3D View",
         description="Index of the 3D view of the current workspace which"
         "\nwill receive all the actions set in the Shot Manager UI",
-        min=0,
-        max=3,
-        default=0,
-        options=set(),
+        items=(list_target_areas),
+        # default=0,
+        #        options=set(),
     )
 
     bpy.types.WindowManager.UAS_shot_manager_toggle_shots_stack_interaction = BoolProperty(

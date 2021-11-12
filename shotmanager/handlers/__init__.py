@@ -29,6 +29,7 @@ from .sm_handlers import shotMngHandler_undo_pre, shotMngHandler_undo_post, shot
 
 # from . import sm_check_data_handlers
 from .sm_check_data_handlers import shotMngHandler_load_post_checkDataVersion
+from shotmanager.overlay_tools.viewport_camera_hud.camera_hud import shotMngHandler_load_post_cameraHUD
 
 from .sm_overlay_tools_handlers import shotMngHandler_frame_change_pre_jumpToShot
 
@@ -65,6 +66,11 @@ def register():
         shotMngHandler_load_post_checkDataVersion, handlerCateg=bpy.app.handlers.load_post
     )
     bpy.app.handlers.load_post.append(shotMngHandler_load_post_checkDataVersion)
+
+    utils_handlers.removeAllHandlerOccurences(
+        shotMngHandler_load_post_cameraHUD, handlerCateg=bpy.app.handlers.load_post
+    )
+    bpy.app.handlers.load_post.append(shotMngHandler_load_post_cameraHUD)
 
     bpy.app.handlers.load_pre.append(shotMngHandler_load_pre)
 
@@ -120,6 +126,9 @@ def unregister():
     # if True:
     utils_handlers.removeAllHandlerOccurences(
         shotMngHandler_load_post_checkDataVersion, handlerCateg=bpy.app.handlers.load_post
+    )
+    utils_handlers.removeAllHandlerOccurences(
+        shotMngHandler_load_post_cameraHUD, handlerCateg=bpy.app.handlers.load_post
     )
 
     if shotMngHandler_frame_change_pre_jumpToShot in bpy.app.handlers.frame_change_pre:

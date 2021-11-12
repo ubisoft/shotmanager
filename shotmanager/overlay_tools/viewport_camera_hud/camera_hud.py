@@ -16,10 +16,13 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 """
-To do: module description here.
+Camera HUD
 """
 
 from collections import defaultdict
+
+import bpy
+from bpy.app.handlers import persistent
 
 import gpu
 import bgl, blf
@@ -31,6 +34,27 @@ import mathutils
 from shotmanager.utils.utils_ogl import get_region_at_xy, Square
 
 # font_info = {"font_id": 0, "handler": None}
+
+
+@persistent
+def shotMngHandler_load_post_cameraHUD(self, context):
+    print("Activating Camera HUD Handlers")
+
+    props = bpy.context.scene.UAS_shot_manager_props
+    if props is not None:
+        if props.display_shotname_in_3dviewport:
+            try:
+                bpy.ops.uas_shot_manager.draw_cameras_ui("INVOKE_DEFAULT")
+            except Exception:
+                print("******** Paf in draw cameras ui  *")
+
+        if props.display_hud_in_3dviewport:
+            # bpy.ops.uas_shot_manager.draw_hud_on_camera_pov("INVOKE_DEFAULT")
+            try:
+                bpy.ops.uas_shot_manager.draw_hud_on_camera_pov("INVOKE_DEFAULT")
+            except Exception:
+                print("****** Paf in draw hud on camera pov *")
+                # raise()
 
 
 class UAS_ShotManager_DrawCameras_UI(bpy.types.Operator):

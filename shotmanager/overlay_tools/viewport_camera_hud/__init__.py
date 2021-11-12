@@ -19,19 +19,19 @@
 Display camera opengl hud in the viewports
 """
 
-from . import cameras_hud
+from . import camera_hud
 
 
 def register():
     print("       - Registering Viewport Camera HUD Package")
 
-    cameras_hud.register()
+    camera_hud.register()
 
 
 def unregister():
     print("       - Unregistering Viewport Camera HUD Package")
 
     try:
-        cameras_hud.unregister()
+        camera_hud.unregister()
     except Exception:
         print("Paf in Unregister viewport_camera_hud")

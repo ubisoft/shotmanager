@@ -163,7 +163,7 @@ class UAS_Utils_CameraToView(Operator):
         if event.shift and not event.ctrl:
             # create a new camera
             newCam = utils.create_new_camera("New_Camera")
-            utils.makeCameraMatchViewport(context, newCam)
+            utils.makeCameraMatchViewport(context, newCam, matchLens=True)
         elif event.ctrl and not event.shift:
             # align camera and change lens
             if 0 < len(context.selected_objects) and "CAMERA" == context.selected_objects[0].type:
