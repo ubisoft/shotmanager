@@ -188,21 +188,37 @@ class UAS_PT_ShotManager(Panel):
         toggleButsRow = row.row(align=True)
         toggleButsRow.scale_x = 1.1
         icon = config.icons_col["ShotManager_Tools_OverlayTools_32"]
-        toggleButsRow.prop(
-            context.window_manager,
-            "UAS_shot_manager_display_overlay_tools",
+        toggleButsRow.operator(
+            "uas_shot_manager.display_overlay_tools",
             text="",
-            toggle=True,
+            depress=context.window_manager.UAS_shot_manager_display_overlay_tools,
             icon_value=icon.icon_id,
-        )  # icon="NLA_PUSHDOWN"
+        )
+        ## replaced by operators ########
+        # toggleButsRow.prop(
+        #     context.window_manager,
+        #     "UAS_shot_manager_display_overlay_tools",
+        #     text="",
+        #     toggle=True,
+        #     icon_value=icon.icon_id,
+        # )
+        # subSubRow = toggleButsRow.row(align=True)
+        # subSubRow.enabled = context.window_manager.UAS_shot_manager_display_overlay_tools
+        # subSubRow.prop(
+        #     context.window_manager,
+        #     "UAS_shot_manager_toggle_shots_stack_interaction",
+        #     text="",
+        #     icon="ARROW_LEFTRIGHT",
+        #     toggle=True,
+        # )
+
         subSubRow = toggleButsRow.row(align=True)
         subSubRow.enabled = context.window_manager.UAS_shot_manager_display_overlay_tools
-        subSubRow.prop(
-            context.window_manager,
-            "UAS_shot_manager_toggle_shots_stack_interaction",
+        subSubRow.operator(
+            "uas_shot_manager.toggle_shots_stack_interaction",
             text="",
             icon="ARROW_LEFTRIGHT",
-            toggle=True,
+            depress=context.window_manager.UAS_shot_manager_toggle_shots_stack_interaction,
         )
         #  subSubRow = toggleButsRow.row(align=True)
         toggleButsRow.prop(

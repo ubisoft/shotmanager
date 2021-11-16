@@ -666,6 +666,7 @@ class UAS_ShotManager_sequenceTimeline(bpy.types.Operator):
 
         # print("Invoke timeline")
         if target_area is None:
+            print("Invoke timeline cancelled")
             return {"CANCELLED"}
         else:
             self.init_widgets(
@@ -718,7 +719,8 @@ class UAS_ShotManager_sequenceTimeline(bpy.types.Operator):
             # if not bpy.context.screen.is_animation_playing or bpy.context.screen.is_scrubbing:
             else:
                 if config.devDebug:
-                    print("wkip modal redrawing of the Sequence Timeline")
+                    #         print("wkip modal redrawing of the Sequence Timeline")
+                    pass
                 # TODO: wkip here investigate for optimization cause this forced refresh is really greedy !!!
                 # context.area.tag_redraw ( )
                 for area in context.screen.areas:

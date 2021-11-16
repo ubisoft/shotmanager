@@ -57,19 +57,6 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
         default=50,
     )
 
-    def _update_display_frame_range_tool(self, context):
-        # print("\n*** _update_display_frame_range_tool. New state: ", self.display_frame_range_tool)
-        from shotmanager.tools.frame_range.frame_range_operators import display_frame_range_in_editor
-
-        display_frame_range_in_editor(self.display_frame_range_tool)
-
-    display_frame_range_tool: BoolProperty(
-        name="Frame Time Range",
-        description="Easily get and set the time range from the Timeline editor.\nA tool from Ubisoft Shot Manager",
-        update=_update_display_frame_range_tool,
-        default=True,
-    )
-
     displaySMDebugPanel: BoolProperty(
         name="Display Debug Panel",
         description="Display the debug panel and debug tools of Shot Manager.\nIt will be as a tab in the viewport N-Panel",
@@ -292,12 +279,60 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
     )
 
     ########################################################################
-    # opengl tools ###
+    # additional tools ###
     ########################################################################
 
-    ##################
-    # Interactive Shots Stack ###
-    ##################
+    ###################################
+    # Sequence Timeline ###############
+    ###################################
+    seqTimeline_settings_expanded: BoolProperty(
+        name="Expand Panel Settings", default=False,
+    )
+
+    ###################################
+    # Interactive Shots Stack #########
+    ###################################
+    intShStack_settings_expanded: BoolProperty(
+        name="Expand Panel Settings", default=False,
+    )
+
+    def _update_display_intShStack_toolbar(self, context):
+        # print("\n*** _update_display_frame_range_tool. New state: ", self.display_frame_range_tool)
+        from shotmanager.overlay_tools.interact_shots_stack.shots_stack_toolbar import (
+            display_shots_stack_toolbar_in_editor,
+        )
+
+        display_shots_stack_toolbar_in_editor(self.display_intShStack_toolbar)
+
+    display_intShStack_toolbar: BoolProperty(
+        name="Display Interactive Shots Stack Toolbar",
+        description="Display Interactive Shots Stack toolbar in the Timeline editor",
+        update=_update_display_intShStack_toolbar,
+        default=True,
+    )
+
+    ###################################
+    # Camera HUD ######################
+    ###################################
+    cameraHUD_settings_expanded: BoolProperty(
+        name="Expand Panel Settings", default=False,
+    )
+
+    ###################################
+    # Frame Range #####################
+    ###################################
+    def _update_display_frame_range_tool(self, context):
+        # print("\n*** _update_display_frame_range_tool. New state: ", self.display_frame_range_tool)
+        from shotmanager.tools.frame_range.frame_range_operators import display_frame_range_in_editor
+
+        display_frame_range_in_editor(self.display_frame_range_tool)
+
+    display_frame_range_tool: BoolProperty(
+        name="Frame Time Range",
+        description="Easily get and set the time range from the Timeline editor.\nA tool from Ubisoft Shot Manager",
+        update=_update_display_frame_range_tool,
+        default=True,
+    )
 
     ########################################################################
     # tools ui   ###

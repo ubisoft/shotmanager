@@ -22,8 +22,6 @@ To do: module description here.
 import bpy
 from bpy.types import Panel, Operator, Menu
 
-from . import prefs_project
-
 from shotmanager.config import config
 
 

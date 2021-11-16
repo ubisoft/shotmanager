@@ -46,12 +46,9 @@ from .operators import general
 from .operators import playbar
 from .operators import shots_toolbar
 
-from .operators import prefs
-from .operators import prefs_tools
-from .operators import features
-from .operators import about
-
 from .properties import props
+
+from . import prefs
 
 from . import retimer
 from .retimer import retimer_ui
@@ -315,9 +312,6 @@ def register():
     sequence_timeline.register()
     viewport_camera_hud.register()
     prefs.register()
-    prefs_tools.register()
-    features.register()
-    about.register()
     keymaps.register()
     handlers.register()
 
@@ -474,9 +468,6 @@ def unregister():
     # ui
     handlers.unregister()
     keymaps.unregister()
-    about.unregister()
-    features.unregister()
-    prefs_tools.unregister()
     prefs.unregister()
     viewport_camera_hud.unregister()
     sequence_timeline.unregister()

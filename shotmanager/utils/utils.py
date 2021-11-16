@@ -635,7 +635,7 @@ def makeCameraMatchViewport(context, cam, matchLens=False, putCamInViewport=True
     props = context.scene.UAS_shot_manager_props
     #  print(f" makeCameraMatchViewport")
 
-    areaView = getViewportAreaView(context, viewport_index=props.getTargetViewportIndex(context))
+    areaView = getViewportAreaView(context, viewport_index=props.getTargetViewportIndex(context, only_valid=True))
     if areaView is None:
         return
 

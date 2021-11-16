@@ -50,12 +50,26 @@ class UAS_ShotManager_OT_ShotsPlayMode(Operator):
 class UAS_ShotManager_OT_DisplayOverlayTools(Operator):
     bl_idname = "uas_shot_manager.display_overlay_tools"
     bl_label = "Toggle Overlay Tools Display"
-    # bl_description = "Bla"
+    # bl_description = "Toggle Overlay Tools Display"
     bl_options = {"INTERNAL"}
 
     def invoke(self, context, event):
         context.window_manager.UAS_shot_manager_display_overlay_tools = (
             not context.window_manager.UAS_shot_manager_display_overlay_tools
+        )
+
+        return {"FINISHED"}
+
+
+class UAS_ShotManager_OT_ToggleShotsStackInteraction(Operator):
+    bl_idname = "uas_shot_manager.toggle_shots_stack_interaction"
+    bl_label = "Toggle interactions in the Interactive Shots Stack"
+    # bl_description = "Toggle Shots Stack Interactions"
+    bl_options = {"INTERNAL"}
+
+    def invoke(self, context, event):
+        context.window_manager.UAS_shot_manager_toggle_shots_stack_interaction = (
+            not context.window_manager.UAS_shot_manager_toggle_shots_stack_interaction
         )
 
         return {"FINISHED"}
@@ -231,6 +245,7 @@ class UAS_ShotManager_OT_EnableDebug(Operator):
 _classes = (
     UAS_ShotManager_OT_ShotsPlayMode,
     UAS_ShotManager_OT_DisplayOverlayTools,
+    UAS_ShotManager_OT_ToggleShotsStackInteraction,
     UAS_ShotManager_OT_ClearMarkersFromCameraBinding,
     UAS_ShotManager_OT_ConvertMarkersFromCameraBindingToShots,
     UAS_ShotManager_OT_GoToVideoShotManager,

@@ -65,16 +65,29 @@ def install_handler_for_shot(self, context):
 def toggle_overlay_tools_display(context):
     # print("  toggle_overlay_tools_display:  self.UAS_shot_manager_display_overlay_tools: ", self.UAS_shot_manager_display_overlay_tools)
     prefs = context.preferences.addons["shotmanager"].preferences
+
     if context.window_manager.UAS_shot_manager_display_overlay_tools:
-        if prefs.toggle_overlays_turnOn_sequenceTimeline:
-            a = bpy.ops.uas_shot_manager.sequence_timeline("INVOKE_DEFAULT")
+
+        if context.window_manager.UAS_shot_manager__useSequenceTimeline:
+            if prefs.toggle_overlays_turnOn_sequenceTimeline:
+                a = bpy.ops.uas_shot_manager.sequence_timeline("INVOKE_DEFAULT")
         # print(f"a: {a}")
 
+        # from shotmanager.overlay_tools.interact_shots_stack.shots_stack_toolbar import display_state_changed_intShStack
+
+        # display_state_changed_intShStack(context)
+        # UAS_shot_manager__useInteracShotsStack
+
         if prefs.toggle_overlays_turnOn_interactiveShotsStack:
-            bpy.ops.uas_shot_manager.interactive_shots_stack("INVOKE_DEFAULT")
+            context.window_manager.UAS_shot_manager__useInteracShotsStack = True
+            # if context.window_manager.UAS_shot_manager__useInteracShotsStack:
+            #     bpy.ops.uas_shot_manager.interactive_shots_stack("INVOKE_DEFAULT")
 
         # bpy.ops.uas_shot_manager.draw_cameras_ui("INVOKE_DEFAULT")
     else:
+        if prefs.toggle_overlays_turnOn_interactiveShotsStack:
+            context.window_manager.UAS_shot_manager__useInteracShotsStack = False
+
         pass
         # print(f"a operator timeline not updated")
 
