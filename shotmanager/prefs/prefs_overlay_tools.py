@@ -59,7 +59,7 @@ class UAS_ShotManager_OverlayTools_Prefs(Operator):
         maincol = box.column()
         row = maincol.row()
         row.separator(factor=2)
-        row.label(text="Check the tools and features that will be disabled when animation is playing:")
+        row.label(text="Check the tools that will be enabled and disabled with the Overlay Tools mode:")
 
         # empty spacer column
         row = maincol.row()

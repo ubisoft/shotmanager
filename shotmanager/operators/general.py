@@ -47,6 +47,22 @@ class UAS_ShotManager_OT_ShotsPlayMode(Operator):
         return {"FINISHED"}
 
 
+class UAS_ShotManager_OT_ToggleShotsStackWithOverlayTools(Operator):
+    bl_idname = "uas_shot_manager.toggle_shots_stack_with_overlay_tools"
+    bl_label = "Toggle Shots Stack With Overlay Tools Display"
+    # bl_description = "Toggle Overlay Tools Display"
+    bl_options = {"INTERNAL"}
+
+    def invoke(self, context, event):
+        prefs = context.preferences.addons["shotmanager"].preferences
+        prefs.toggle_overlays_turnOn_interactiveShotsStack = not prefs.toggle_overlays_turnOn_interactiveShotsStack
+
+        # toggle on or off the overlay tools mode
+        #  context.window_manager.UAS_shot_manager_display_overlay_tools = prefs.toggle_overlays_turnOn_interactiveShotsStack
+
+        return {"FINISHED"}
+
+
 class UAS_ShotManager_OT_DisplayOverlayTools(Operator):
     bl_idname = "uas_shot_manager.display_overlay_tools"
     bl_label = "Toggle Overlay Tools Display"
@@ -244,6 +260,7 @@ class UAS_ShotManager_OT_EnableDebug(Operator):
 
 _classes = (
     UAS_ShotManager_OT_ShotsPlayMode,
+    UAS_ShotManager_OT_ToggleShotsStackWithOverlayTools,
     UAS_ShotManager_OT_DisplayOverlayTools,
     UAS_ShotManager_OT_ToggleShotsStackInteraction,
     UAS_ShotManager_OT_ClearMarkersFromCameraBinding,

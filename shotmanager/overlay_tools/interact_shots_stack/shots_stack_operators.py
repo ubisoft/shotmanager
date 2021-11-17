@@ -27,6 +27,7 @@ from .shots_stack_ui import ShotClip, draw_shots_stack
 import bpy
 
 from shotmanager.config import config
+from shotmanager.utils import utils
 from shotmanager.utils.utils_ogl import get_region_at_xy
 
 
@@ -41,6 +42,7 @@ class UAS_ShotManager_InteractiveShotsStack(bpy.types.Operator):
     bl_options = {"REGISTER", "INTERNAL"}
 
     def __init__(self):
+        print("Initialize interactive shots stack here")
         self.asset_browser = None
         self.compact_display = False
 
@@ -50,6 +52,7 @@ class UAS_ShotManager_InteractiveShotsStack(bpy.types.Operator):
         self.sm_props = None
         self.clips = list()
         self.context = None
+        self.target_area = target_area = None
 
         self.prev_mouse_x = 0
         self.prev_mouse_y = 0
@@ -59,6 +62,19 @@ class UAS_ShotManager_InteractiveShotsStack(bpy.types.Operator):
         self.active_clip_region = None
 
         self.frame_under_mouse = None
+
+    def register_handlers(self, args, context):
+        self.draw_handle = bpy.types.SpaceDopeSheetEditor.draw_handler_add(
+            self.draw, (context,), "WINDOW", "POST_PIXEL"
+        )
+        self.draw_event = context.window_manager.event_timer_add(0.1, window=context.window)
+
+    def unregister_handlers(self, context):
+        context.window_manager.event_timer_remove(self.draw_event)
+        bpy.types.SpaceDopeSheetEditor.draw_handler_remove(self.draw_handle, "WINDOW")
+
+        self.draw_handle = None
+        self.draw_event = None
 
     def ignoreWidget(self, context):
         prefs = bpy.context.preferences.addons["shotmanager"].preferences
@@ -78,6 +94,9 @@ class UAS_ShotManager_InteractiveShotsStack(bpy.types.Operator):
             return {"CANCELLED"}
 
         args = (self, context)
+        target_area_index = 0
+        target_area = utils.getAreaFromIndex(context, target_area_index, "DOPESHEET_EDITOR", mode="TIMELINE")
+        self.target_area = target_area
         self.register_handlers(args, context)
 
         context.window_manager.modal_handler_add(self)
@@ -86,24 +105,15 @@ class UAS_ShotManager_InteractiveShotsStack(bpy.types.Operator):
         self.build_clips()
         return {"RUNNING_MODAL"}
 
-    def register_handlers(self, args, context):
-        self.draw_handle = bpy.types.SpaceDopeSheetEditor.draw_handler_add(
-            self.draw, (context,), "WINDOW", "POST_PIXEL"
-        )
-        self.draw_event = context.window_manager.event_timer_add(0.1, window=context.window)
-
-    def unregister_handlers(self, context):
-        context.window_manager.event_timer_remove(self.draw_event)
-        bpy.types.SpaceDopeSheetEditor.draw_handler_remove(self.draw_handle, "WINDOW")
-
-        self.draw_handle = None
-        self.draw_event = None
-
     def modal(self, context, event):
+        prefs = context.preferences.addons["shotmanager"].preferences
 
-        if not context.window_manager.UAS_shot_manager_display_overlay_tools:
+        if (
+            not context.window_manager.UAS_shot_manager_display_overlay_tools
+            or not prefs.toggle_overlays_turnOn_interactiveShotsStack
+        ):
             self.unregister_handlers(context)
-            context.window_manager.UAS_shot_manager_display_overlay_tools = False
+            # context.window_manager.UAS_shot_manager_display_overlay_tools = False
             return {"CANCELLED"}
 
         if self.ignoreWidget(context):
@@ -216,6 +226,7 @@ class UAS_ShotManager_InteractiveShotsStack(bpy.types.Operator):
                 self.clips.append(ShotClip(self.context, shot, i, self.sm_props))
 
     def draw(self, context):
+
         # if not context.window_manager.UAS_shot_manager_display_overlay_tools:
         #     context.window_manager.event_timer_remove(self.draw_event)
         #     bpy.types.SpaceDopeSheetEditor.draw_handler_remove(self.draw_handle, "WINDOW")
@@ -227,6 +238,9 @@ class UAS_ShotManager_InteractiveShotsStack(bpy.types.Operator):
         # !!! warning: Blender Timeline editor has a problem of refresh so even if the display is not done it may appear in the editor
         try:
             if self.ignoreWidget(context):
+                return False
+
+            if self.target_area is not None and self.context.area != self.target_area:
                 return False
 
             draw_shots_stack(context, self)

@@ -349,8 +349,9 @@ def register():
         toggle_workspace_info_display(self, context)
 
     bpy.types.WindowManager.UAS_shot_manager_identify_3dViews = BoolProperty(
-        name="Identify 3D Views",
-        description="Display an index on each 3D View to clearly identify them",
+        name="Identify 3D Viewports",
+        description="Display an index on each 3D viewport to clearly identify them."
+        "\nThe Shot Manager target 3D viewport will appear in green",
         update=_update_UAS_shot_manager_identify_3dViews,
         default=False,
     )
@@ -370,11 +371,13 @@ def register():
         res = None
         # res = list()
         nothingList = list()
-        nothingList.append(("SELF", "Me", "Me too", 0))
-        nothingList.append(("AREA_00", "0", "Me too", 1))
-        nothingList.append(("AREA_01", "1", "Me too", 2))
-        nothingList.append(("AREA_02", "2", "Me too", 3))
-        nothingList.append(("AREA_03", "3", "Me too", 4))
+        nothingList.append(
+            ("SELF", "Me", "Target 3D View is the viewport where Shot Manager is used, 0 if not found", 0)
+        )
+        nothingList.append(("AREA_00", "0", "Target 3D View is viewport 0", 1))
+        nothingList.append(("AREA_01", "1", "Target 3D View is viewport 1", 2))
+        nothingList.append(("AREA_02", "2", "Target 3D View is viewport 2", 3))
+        nothingList.append(("AREA_03", "3", "Target 3D View is viewport 3", 4))
 
         # seqList = getSequenceListFromOtioTimeline(config.gMontageOtio)
         # for i, item in enumerate(seqList):
@@ -393,9 +396,9 @@ def register():
 
     # Get the target index with the function props.getTargetViewportIndex(context)
     bpy.types.WindowManager.shotmanager_target_viewport_dropdwn = EnumProperty(
-        name="Target 3D View",
-        description="Index of the 3D view of the current workspace which"
-        "\nwill receive all the actions set in the Shot Manager UI",
+        name="Target 3D Viewport",
+        description="Index of the target viewport of the current workspace that will"
+        "\nreceive all the actions set in the Shot Manager panel",
         items=(list_target_areas),
         # default=0,
         #        options=set(),

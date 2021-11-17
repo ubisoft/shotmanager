@@ -341,9 +341,10 @@ class UAS_PT_ShotManager(Panel):
 
         #  subnamerow.prop(context.window_manager, "shotmanager_target_viewport", text="")
 
-        subnamerow.separator()
+        subnamerow = namerow
+        subnamerow.separator(factor=1.7)
         subnamerow.operator("shot_manager.features", text="", icon="PROPERTIES", emboss=False)
-        subnamerow.separator()
+        subnamerow.separator(factor=0.5)
         seqcol.separator(factor=0.3)
         # seqcol.label(text="________________________")
 

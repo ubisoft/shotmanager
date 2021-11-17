@@ -51,25 +51,27 @@ def draw_typo_2d(color, text, position, font_size):
     blf.draw(font_id, text)
 
 
-def draw_callback__viewport_info(self, context, message, message2):
+def draw_callback__viewport_info(self, context, callingArea, targetViewportIndex):
+    "Infos on viewport areas"
     # return
 
-    # areaView = getViewportAreaView(context)
-    # if areaView is not None:
-    screens3D = []
-    for screen_area in context.screen.areas:
-        if screen_area.type == "VIEW_3D":
-            screens3D.append(screen_area)
-    areaIndStr = "?"
-    for i, screen_area in enumerate(screens3D):
-        if context.area == screens3D[i]:
-            areaIndStr = str(i)
+    viewports = utils.getAreasByType(context, "VIEW_3D")
+
+    contextViewportInd = -1
+    for i, screen_area in enumerate(viewports):
+        if context.area == viewports[i]:
+            contextViewportInd = i
             break
 
-    if len(screens3D):
+    if len(viewports):
         position = Vector([70, 40])
         size = 50
-        color = (0.95, 0.95, 0.95, 1.0)
+        if targetViewportIndex == contextViewportInd:
+            color = (0.1, 0.95, 0.1, 1.0)
+        else:
+            color = (0.95, 0.95, 0.95, 1.0)
+
+        areaIndStr = "?" if -1 == contextViewportInd else contextViewportInd
         draw_typo_2d(color, f"3D View: {areaIndStr}", position, size)
 
         # position = Vector([70, 38])
@@ -79,58 +81,135 @@ def draw_callback__viewport_info(self, context, message, message2):
         # draw_typo_2d(color, f"{str(message2)}", position, 20)
 
 
-def draw_callback__viewport_info_workspace(self, context, message, message2):
-    """Advanced and debug infos
+def draw_callback__area_info(self, context, callingArea, targetViewportIndex):
+    """Advanced and debug infos on all areas
+    context.area is the calling area, from where the initial message was sent (= the current area)
     """
     # return
+    # bgl.glClearStencil(0)
+    # bgl.glClear(0)
+    # bgl.glClearStencil(1)
+    # bgl.glClear(1)
+    # bgl.glClearStencil(2)
+    # bgl.glClear(2)
 
-    # areaView = getViewportAreaView(context)
-    # if areaView is not None:
-    screens3D = utils.getAreasByType(context, "VIEW_3D")
-    # for screen_area in context.screen.areas:
-    #     if screen_area.type == "VIEW_3D":
-    #         screens3D.append(screen_area)
+    ## get all areas ######
+    # context.area is the calling area, from where the initial message was sent (= the current area)
+    areasList = list()
+    for screen_area in context.screen.areas:
+        #     if screen_area.type == "VIEW_3D":
+        areasList.append(screen_area)
 
-    # ok but not looping
-    # if context.area == screens3D[0]:
-    #     # areaIndStr = "Add-on Launcher Area"
-    #     areaIndStr = "0"
-    # elif context.area == screens3D[1]:
-    #     areaIndStr = "1"
-    # elif context.area == screens3D[2]:
-    #     areaIndStr = "2"
-
-    areaIndStr = "?"
-    for i, screen_area in enumerate(screens3D):
-        if context.area == screens3D[i]:
-            areaIndStr = str(i)
+    contextArea = context.area
+    contextAreaType = contextArea.type
+    contextAreaInd = -1
+    for i, area in enumerate(context.screen.areas):
+        if area == context.area:
+            contextAreaInd = i
             break
 
-    if len(screens3D):
-        # bgl.glEnable(bgl.GL_BLEND)
-        position = Vector([70, 80])
-        size = 50
-        color = (1.0, 0.0, 0.0, 1.0)
-        draw_typo_2d(color, f"3D View: {areaIndStr}", position, size)
+    ## get calling area ######
+    callingAreaType = callingArea.type
+    callingAreaInd = -1
+    for i, area in enumerate(context.screen.areas):
+        if area == callingArea:
+            callingAreaInd = i
+            break
 
-        position = Vector([70, 38])
-        draw_typo_2d(color, f"{str(message)}", position, 20)
+    ## get viewports ######
+    contextViewportInd = -1
+    viewports = utils.getAreasByType(context, "VIEW_3D")
+    for i, viewport in enumerate(viewports):
+        if viewport == context.area:
+            contextViewportInd = i
+            break
 
-        position = Vector([70, 20])
-        draw_typo_2d(color, f"{str(message2)}", position, 20)
+    ## get calling viewport ######
+    callingViewportInd = -1
+    for i, viewport in enumerate(viewports):
+        if viewport == callingArea:
+            callingViewportInd = i
+            break
 
-        # draw_typo_2d((1.0, 0.0, 0.0, 1.0), str(i))
-        # bgl.glEnd()
+    ##########################
+    # Display ################
+    size = 16
+    color = (1.0, 0.6, 0.6, 1.0)
+    y_offset = -20
+    position = Vector([70, 150])
 
-        # restore opengl defaults
-        # bgl.glLineWidth(1)
-        # bgl.glDisable(bgl.GL_BLEND)
-        # bgl.glEnable(bgl.GL_DEPTH_TEST)
+    if len(viewports):
+        if contextViewportInd == targetViewportIndex:
+            color = (0.0, 1.0, 0.0, 1.0)
+        elif contextViewportInd == callingViewportInd:
+            color = (1.0, 1.0, 0.0, 1.0)
+
+    ## type ###
+    message = f"{contextAreaType}"
+    if "DOPESHEET_EDITOR" == contextAreaType:
+        message += f" in mode {contextArea.spaces[0].mode}"
+
+    position.y += y_offset
+    draw_typo_2d(color, f"{message}", position, size)
+
+    position.y += y_offset
+    message = f"Context area index: {contextAreaInd}, Tolal number of areas: {len(context.screen.areas)}"
+    draw_typo_2d(color, f"{message}", position, size)
+
+    position.y += y_offset - 10
+    message = f"Calling area index: {callingAreaInd}, type: {callingAreaType}"
+    draw_typo_2d(color, f"{message}", position, size)
+
+    position.y += -10
+
+    if len(viewports):
+        if "VIEW_3D" == contextArea.type:
+            position.y += y_offset
+            draw_typo_2d(
+                color,
+                f"Viewport index: {contextViewportInd}, Num viewports: {len(viewports)}, Calling viewport: {callingViewportInd}",
+                position,
+                size,
+            )
+
+            position.y += y_offset
+            message = f"Shot Manager target viewport: {targetViewportIndex}"
+            draw_typo_2d(color, f"{message}", position, size)
 
 
 class ShotManager_WorkspaceInfo(bpy.types.Operator):
     bl_idname = "shot_manager.workspace_info"
     bl_label = "Simple Modal View3D Operator"
+
+    def __init__(self):
+        print("Initialize ShotManager_WorkspaceInfo")
+        # self.draw_handle = None
+        # self.draw_event = None
+        self._handle_draw_onView3D = None
+        self._handle_draw_onDopeSheet = None
+
+    def register_handlers(self, args, context):
+        # self.draw_handle = bpy.types.SpaceDopeSheetEditor.draw_handler_add(
+        #     self.draw, (context,), "WINDOW", "POST_PIXEL"
+        # )
+        # self.draw_event = context.window_manager.event_timer_add(0.1, window=context.window)
+        pass
+
+    def unregister_handlers(self, context):
+
+        print("unregister_handlers ShotManager_WorkspaceInfo")
+        # context.window_manager.event_timer_remove(self.draw_event)
+        # bpy.types.SpaceDopeSheetEditor.draw_handler_remove(self.draw_handle, "WINDOW")
+
+        bpy.types.SpaceView3D.draw_handler_remove(self._handle_draw_onView3D, "WINDOW")
+        self._handle_draw_onView3D = None
+
+        bpy.types.SpaceDopeSheetEditor.draw_handler_remove(self._handle_draw_onDopeSheet, "WINDOW")
+        self._handle_draw_onDopeSheet = None
+
+        # redraw all
+        for area in context.screen.areas:
+            area.tag_redraw()
 
     def invoke(self, context, event):
 
@@ -147,36 +226,51 @@ class ShotManager_WorkspaceInfo(bpy.types.Operator):
 
         callingAreaType = context.area.type
         callingAreaIndex = utils.getAreaIndex(context, context.area, "VIEW_3D")
-        targetAreaIndex = props.getTargetViewportIndex(context)
+        targetViewportIndex = props.getTargetViewportIndex(context)
 
-        if context.area.type == "VIEW_3D":  # and context.area == screens3D[0]:
-
+        if config.devDebug:
             # the arguments we pass the the callback
-            message = f"Calling area index: {callingAreaIndex}, type: {callingAreaType}"
-            message2 = f"target: {targetAreaIndex}"
-            args = (self, context, message, message2)
+            # message = f"Calling area index: {callingAreaIndex}, type: {callingAreaType}"
+            # message2 = f"target: {targetViewportIndex}"
+            args = (self, context, context.area, targetViewportIndex)
             # Add the region OpenGL drawing callback
             # draw in view space with 'POST_VIEW' and 'PRE_VIEW'
             #   self._handle_3d = bpy.types.SpaceView3D.draw_handler_add(draw_callback_3d, args, "WINDOW", "POST_VIEW")
-            # self._handle_2d = bpy.types.SpaceView3D.draw_handler_add(draw_callback_2d, args, "WINDOW", "POST_PIXEL")
+            # self._handle_draw_onView3D = bpy.types.SpaceView3D.draw_handler_add(draw_callback_2d, args, "WINDOW", "POST_PIXEL")
 
-            if config.devDebug:
-                self._handle_2d = bpy.types.SpaceView3D.draw_handler_add(
-                    draw_callback__viewport_info_workspace, args, "WINDOW", "POST_PIXEL"
-                )
-            else:
-                self._handle_2d = bpy.types.SpaceView3D.draw_handler_add(
-                    draw_callback__viewport_info, args, "WINDOW", "POST_PIXEL"
-                )
+            # see types of spaces here: https://docs.blender.org/api/current/bpy.types.Space.html#bpy.types.Space
+            self._handle_draw_onView3D = bpy.types.SpaceView3D.draw_handler_add(
+                draw_callback__area_info, args, "WINDOW", "POST_PIXEL"
+            )
+            self._handle_draw_onDopeSheet = bpy.types.SpaceDopeSheetEditor.draw_handler_add(
+                draw_callback__area_info, args, "WINDOW", "POST_PIXEL"
+            )
 
             context.window_manager.modal_handler_add(self)
             return {"RUNNING_MODAL"}
+
         else:
-            self.report({"WARNING"}, "View3D not found, cannot run operator")
-            return {"CANCELLED"}
+            if context.area.type == "VIEW_3D":  # and context.area == screens3D[0]:
+
+                # the arguments we pass the the callback
+                args = (self, context, context.area, targetViewportIndex)
+                # Add the region OpenGL drawing callback
+                # draw in view space with 'POST_VIEW' and 'PRE_VIEW'
+                #   self._handle_3d = bpy.types.SpaceView3D.draw_handler_add(draw_callback_3d, args, "WINDOW", "POST_VIEW")
+                # self._handle_draw_onView3D = bpy.types.SpaceView3D.draw_handler_add(draw_callback_2d, args, "WINDOW", "POST_PIXEL")
+
+                self._handle_draw_onView3D = bpy.types.SpaceView3D.draw_handler_add(
+                    draw_callback__viewport_info, args, "WINDOW", "POST_PIXEL"
+                )
+
+                context.window_manager.modal_handler_add(self)
+                return {"RUNNING_MODAL"}
+            else:
+                self.report({"WARNING"}, "View3D not found, cannot run operator")
+                return {"CANCELLED"}
 
     def modal(self, context, event):
-        context.area.tag_redraw()
+        #    context.area.tag_redraw()
 
         # code for press and release but
 
@@ -188,13 +282,15 @@ class ShotManager_WorkspaceInfo(bpy.types.Operator):
         #         print("LMB Released")
         #         # print("Modal ShotManager_WorkspaceInfo")
         #         context.window_manager.UAS_shot_manager_identify_3dViews = False
-        #         bpy.types.SpaceView3D.draw_handler_remove(self._handle_2d, "WINDOW")
+        #         bpy.types.SpaceView3D.draw_handler_remove(self._handle_draw_onView3D, "WINDOW")
         #         return {"FINISHED"}
 
         if not context.window_manager.UAS_shot_manager_identify_3dViews:
             # or event.type in {"RIGHTMOUSE", "ESC"}
             #   bpy.types.SpaceView3D.draw_handler_remove(self._handle_3d, "WINDOW")
-            bpy.types.SpaceView3D.draw_handler_remove(self._handle_2d, "WINDOW")
+
+            self.unregister_handlers(context)
+
             return {"CANCELLED"}
 
         return {"PASS_THROUGH"}
@@ -206,6 +302,12 @@ def register():
 
 
 def unregister():
+    try:
+        self.unregister_handlers(bpy.context)
+    except Exception as e:
+        if config.devDebug:
+            print("Cannot remove SpaceView3D.draw_handler")
+
     bpy.utils.unregister_class(ShotManager_WorkspaceInfo)
 
 

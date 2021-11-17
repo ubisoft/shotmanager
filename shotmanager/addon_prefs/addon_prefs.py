@@ -220,19 +220,6 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
     ### Overlay tools
     ########################################################################
 
-    # tools displayed when toggle overlays button is on
-    toggle_overlays_turnOn_sequenceTimeline: BoolProperty(
-        name="Turn On Sequence Timeline",
-        description="Display Sequence Timeline in the 3d viewport when Toggle Overlay Tools button is pressed",
-        default=True,
-    )
-
-    toggle_overlays_turnOn_interactiveShotsStack: BoolProperty(
-        name="Turn Off Interactive Shots Stack",
-        description="Display Interactive Shots Stack in the Timeline editor when Toggle Overlay Tools button is pressed",
-        default=True,
-    )
-
     # tools disabled during play
     best_play_perfs_turnOff_sequenceTimeline: BoolProperty(
         name="Turn Off Sequence Timeline",
@@ -285,6 +272,14 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
     ###################################
     # Sequence Timeline ###############
     ###################################
+
+    # displayed when toggle overlays button is on
+    toggle_overlays_turnOn_sequenceTimeline: BoolProperty(
+        name="Turn On Sequence Timeline",
+        description="Display Sequence Timeline in the 3d viewport when Toggle Overlay Tools button is pressed",
+        default=True,
+    )
+
     seqTimeline_settings_expanded: BoolProperty(
         name="Expand Panel Settings", default=False,
     )
@@ -292,6 +287,41 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
     ###################################
     # Interactive Shots Stack #########
     ###################################
+
+    # displayed when toggle overlays button is on
+    def _update_toggle_overlays_turnOn_interactiveShotsStack(self, context):
+        print("_update_toggle_overlays_turnOn_interactiveShotsStack")
+
+        ## toggle on or off the overlay tools mode
+        if self.toggle_overlays_turnOn_interactiveShotsStack:
+            if not context.window_manager.UAS_shot_manager_display_overlay_tools:
+                context.window_manager.UAS_shot_manager_display_overlay_tools = True
+            else:
+                bpy.ops.uas_shot_manager.interactive_shots_stack("INVOKE_DEFAULT")
+        else:
+            if context.window_manager.UAS_shot_manager_display_overlay_tools:
+                pass
+                # context.window_manager.UAS_shot_manager_display_overlay_tools = False
+
+                # from shotmanager.overlay_tools.interact_shots_stack.shots_stack_toolbar import (
+                #     display_state_changed_intShStack,
+                #     stop_display_intShStack,
+                # )
+
+                # display_state_changed_intShStack
+            #  bpy.ops.uas_shot_manager.interactive_shots_stack.unregister_handlers()
+
+            #  context.window_manager.UAS_shot_manager_display_overlay_tools = True
+
+        #  context.window_manager.UAS_shot_manager_display_overlay_tools = prefs.toggle_overlays_turnOn_interactiveShotsStack
+
+    toggle_overlays_turnOn_interactiveShotsStack: BoolProperty(
+        name="Turn Off Interactive Shots Stack",
+        description="Display Interactive Shots Stack in the Timeline editor when Toggle Overlay Tools button is pressed",
+        update=_update_toggle_overlays_turnOn_interactiveShotsStack,
+        default=True,
+    )
+
     intShStack_settings_expanded: BoolProperty(
         name="Expand Panel Settings", default=False,
     )

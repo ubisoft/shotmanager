@@ -116,11 +116,15 @@ class UAS_ShotManager_Features(Operator):
 
         ################
         # Grease Pencil
-        subrow = col.row()
-        subrow.scale_x = 1.5
-        icon = config.icons_col["ShotManager_CamGPVisible_32"]
-        subrow.prop(props, "display_greasepencil_in_properties", text="", icon_value=icon.icon_id)
-        subrow.label(text="Camera Grease Pencil")
+        if config.devDebug:
+            subrow = col.row()
+            subrow.scale_x = 1.5
+            icon = config.icons_col["ShotManager_CamGPVisible_32"]
+            subrow.prop(props, "display_greasepencil_in_properties", text="", icon_value=icon.icon_id)
+            subrow.label(text="Camera Grease Pencil")
+        else:
+            subrow = col.row()
+            subrow.label(text=" ")
 
         _draw_separator_row(col)
 

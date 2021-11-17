@@ -35,6 +35,10 @@ def display_state_changed_intShStack(context):
         bpy.ops.uas_shot_manager.interactive_shots_stack("INVOKE_DEFAULT")
 
 
+def stop_display_intShStack(context):
+    print("stop_display_intShStack")
+
+
 class UAS_ShotManager_displayShotsStack(Operator):
     bl_idname = "uas_shot_manager.display_shots_stack"
     bl_label = "Display Shots Stack"
@@ -57,6 +61,7 @@ class UAS_ShotManager_displayShotsStack(Operator):
 
 def draw_shots_stack_toolbar_in_editor(self, context):
     props = context.scene.UAS_shot_manager_props
+    prefs = context.preferences.addons["shotmanager"].preferences
     layout = self.layout
     butScale = 1.4
 
@@ -64,7 +69,17 @@ def draw_shots_stack_toolbar_in_editor(self, context):
     row.separator(factor=3)
     row.alignment = "RIGHT"
 
-    toggleButRow = row.row(align=True)
+    row.operator(
+        "uas_shot_manager.toggle_shots_stack_with_overlay_tools",
+        text="",
+        icon="NLA_PUSHDOWN",
+        depress=prefs.toggle_overlays_turnOn_interactiveShotsStack,
+    )
+    row.separator(factor=0.8)
+
+    butsrow = row.row(align=True)
+    butsrow.enabled = prefs.toggle_overlays_turnOn_interactiveShotsStack
+    toggleButRow = butsrow.row(align=True)
     toggleButRow.scale_x = butScale
     icon = config.icons_col["ShotManager_Tools_OverlayTools_32"]
     # toggleButRow.prop(
@@ -77,7 +92,7 @@ def draw_shots_stack_toolbar_in_editor(self, context):
         icon_value=icon.icon_id,
     )
 
-    interacButRow = row.row(align=True)
+    interacButRow = butsrow.row(align=True)
     # interacButRow.scale_x = butScale
     interacButRow.enabled = context.window_manager.UAS_shot_manager_display_overlay_tools
     interacButRow.operator(
@@ -92,14 +107,14 @@ def draw_shots_stack_toolbar_in_editor(self, context):
     interacButRow.prop(props, "interactShotsStack_displayInCompactMode", text="", icon="SEQ_STRIP_META")
     #     text="Compact Shots Display (= decrease visual stack height)",
 
-    row.separator()
-    row.operator(
+    butsrow.separator()
+    butsrow.operator(
         "uas_shot_manager.display_shots_stack",
         text="",
         depress=context.window_manager.UAS_shot_manager__useInteracShotsStack,
         icon="NLA_PUSHDOWN",
     )
-    row.prop(context.window_manager, "UAS_shot_manager__useInteracShotsStack", text="", icon="FUND")
+    butsrow.prop(context.window_manager, "UAS_shot_manager__useInteracShotsStack", text="", icon="FUND")
 
 
 def display_shots_stack_toolbar_in_editor(display_value):

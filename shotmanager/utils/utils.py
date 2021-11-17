@@ -379,9 +379,9 @@ def getAreasByType(context, area_type):
     """Return a list of the areas of the specifed type from the specified context
     """
     areasList = list()
-    for screen_area in context.screen.areas:
-        if screen_area.type == area_type:
-            areasList.append(screen_area)
+    for area in context.screen.areas:
+        if area.type == area_type:
+            areasList.append(area)
     return areasList
 
 
@@ -409,6 +409,76 @@ def getAreaIndex(context, area, area_type):
 
     for i, a in enumerate(areasList):
         if area == a:
+            return i
+    return -1
+
+
+# 3D VIEW areas (= viewports)
+#####################################
+
+
+def getViewports(context):
+    """
+    Return: empty list if no viewports found
+    """
+    return getAreasByType(context, "VIEW_3D")
+
+
+def getViewportFromIndex(context, viewport_index):
+    """
+    Return: None if not found
+    """
+    return getAreaFromIndex(context, viewport_index, "VIEW_3D")
+
+
+def getViewportIndex(context, viewport):
+    """
+    Return: -1 if area not found
+    """
+    return getAreaIndex(context, viewport, "VIEW_3D")
+
+
+# Dopesheet areas (= timelines + dopesheets + grease pencil + action + shapekey + mask + cachefile)
+# cf https://docs.blender.org/api/current/bpy.types.SpaceDopeSheetEditor.html
+#####################################
+# DOPESHEET TIMELINE ACTION SHAPEKEY GPENCIL MASK CACHEFILE ALL
+
+
+def getDopesheets(context, mode="ALL"):
+    """
+    Return: empty list if no dopesheets found
+    """
+    dopesheetAreas = getAreasByType(context, "DOPESHEET_EDITOR")
+    dopesheets = list()
+    for dp in dopesheetAreas:
+        # wkip not sure first space is the dopesheet
+        if "ALL" == dp.spaces[0].mode:
+            dopesheets.append(dp)
+        elif mode == dp.spaces[0].mode:
+            dopesheets.append(dp)
+
+    return dopesheets
+
+
+def getDopesheetFromIndex(context, dopesheet_index, mode="ALL"):
+    """
+    Return: None if not found
+    """
+    dopesheets = getDopesheets(context, mode=mode)
+
+    if 0 <= dopesheet_index < len(dopesheets):
+        return dopesheets[dopesheet_index]
+    else:
+        return None
+
+
+def getDopesheetIndex(context, dopesheet, mode="ALL"):
+    """
+    Return: -1 if area not found
+    """
+    dopesheets = getDopesheets(context, mode=mode)
+    for i, dp in enumerate(dopesheets):
+        if dopesheet == a:
             return i
     return -1
 
