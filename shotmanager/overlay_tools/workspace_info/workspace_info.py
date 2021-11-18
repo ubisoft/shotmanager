@@ -31,9 +31,12 @@ from shotmanager.utils import utils
 from shotmanager.config import config
 
 
-def toggle_workspace_info_display(self, context):
+def toggle_workspace_info_display(context):
     # print("  toggle_workspace_info_display:  self.UAS_shot_manager_display_overlay_tools: ", self.UAS_shot_manager_display_overlay_tools)
-    if self.UAS_shot_manager_identify_3dViews:
+    if (
+        context.window_manager.UAS_shot_manager_identify_3dViews
+        or context.window_manager.UAS_shot_manager_identify_dopesheets
+    ):
         bpy.ops.shot_manager.workspace_info("INVOKE_DEFAULT")
         return
     else:
@@ -51,9 +54,46 @@ def draw_typo_2d(color, text, position, font_size):
     blf.draw(font_id, text)
 
 
+# def draw_callback__user_info(self, context, callingArea, targetViewportIndex):
+#     """Infos on user areas
+#     """
+#     if context.window_manager.UAS_shot_manager_identify_3dViews:
+#         draw_callback__viewport_info(self, context, callingArea, targetViewportIndex)
+#     if context.window_manager.UAS_shot_manager_identify_dopesheets:
+#         draw_callback__dopesheet_info(self, context, callingArea, targetViewportIndex)
+
+
+def draw_callback__dopesheet_info(self, context, callingArea, targetDopesheetIndex):
+    """Infos on dopesheet areas
+    """
+    if not context.window_manager.UAS_shot_manager_identify_dopesheets:
+        return
+
+    dopesheets = utils.getDopesheets(context)
+
+    contextDopesheetsInd = -1
+    for i, screen_area in enumerate(dopesheets):
+        if context.area == dopesheets[i]:
+            contextDopesheetsInd = i
+            break
+
+    if len(dopesheets):
+        position = Vector([70, 40])
+        size = 30
+        if targetDopesheetIndex == contextDopesheetsInd:
+            color = (0.1, 0.95, 0.1, 1.0)
+        else:
+            color = (0.95, 0.95, 0.95, 1.0)
+
+        areaIndStr = "?" if -1 == contextDopesheetsInd else contextDopesheetsInd
+        draw_typo_2d(color, f"Dopesheet: {areaIndStr}", position, size)
+
+
 def draw_callback__viewport_info(self, context, callingArea, targetViewportIndex):
-    "Infos on viewport areas"
-    # return
+    """Infos on viewport areas
+    """
+    if not context.window_manager.UAS_shot_manager_identify_3dViews:
+        return
 
     viewports = utils.getAreasByType(context, "VIEW_3D")
 
@@ -201,32 +241,26 @@ class ShotManager_WorkspaceInfo(bpy.types.Operator):
         # context.window_manager.event_timer_remove(self.draw_event)
         # bpy.types.SpaceDopeSheetEditor.draw_handler_remove(self.draw_handle, "WINDOW")
 
-        bpy.types.SpaceView3D.draw_handler_remove(self._handle_draw_onView3D, "WINDOW")
-        self._handle_draw_onView3D = None
+        if self._handle_draw_onView3D is not None:
+            bpy.types.SpaceView3D.draw_handler_remove(self._handle_draw_onView3D, "WINDOW")
+            self._handle_draw_onView3D = None
 
-        bpy.types.SpaceDopeSheetEditor.draw_handler_remove(self._handle_draw_onDopeSheet, "WINDOW")
-        self._handle_draw_onDopeSheet = None
+        if self._handle_draw_onDopeSheet is not None:
+            bpy.types.SpaceDopeSheetEditor.draw_handler_remove(self._handle_draw_onDopeSheet, "WINDOW")
+            self._handle_draw_onDopeSheet = None
 
         # redraw all
         for area in context.screen.areas:
             area.tag_redraw()
 
     def invoke(self, context, event):
-
-        print("Invoke ShotManager_WorkspaceInfo")
         props = context.scene.UAS_shot_manager_props
 
-        #        for i, screen_area in enumerate(context.screen.areas):
-        # if screen_area.type == "VIEW_3D" and i == 0:
-        # get the list of 3D areas
-        screens3D = []
-        for screen_area in context.screen.areas:
-            if screen_area.type == "VIEW_3D":
-                screens3D.append(screen_area)
+        # callingAreaType = context.area.type
+        # callingAreaIndex = utils.getAreaIndex(context, context.area, "VIEW_3D")
 
-        callingAreaType = context.area.type
-        callingAreaIndex = utils.getAreaIndex(context, context.area, "VIEW_3D")
         targetViewportIndex = props.getTargetViewportIndex(context)
+        targetDopesheetIndex = props.getTargetDopesheetIndex(context)
 
         if config.devDebug:
             # the arguments we pass the the callback
@@ -250,24 +284,27 @@ class ShotManager_WorkspaceInfo(bpy.types.Operator):
             return {"RUNNING_MODAL"}
 
         else:
-            if context.area.type == "VIEW_3D":  # and context.area == screens3D[0]:
+            # the arguments we pass the the callback
+            # Add the region OpenGL drawing callback
+            # draw in view space with 'POST_VIEW' and 'PRE_VIEW'
+            #   self._handle_3d = bpy.types.SpaceView3D.draw_handler_add(draw_callback_3d, args, "WINDOW", "POST_VIEW")
+            # self._handle_draw_onView3D = bpy.types.SpaceView3D.draw_handler_add(draw_callback_2d, args, "WINDOW", "POST_PIXEL")
 
-                # the arguments we pass the the callback
-                args = (self, context, context.area, targetViewportIndex)
-                # Add the region OpenGL drawing callback
-                # draw in view space with 'POST_VIEW' and 'PRE_VIEW'
-                #   self._handle_3d = bpy.types.SpaceView3D.draw_handler_add(draw_callback_3d, args, "WINDOW", "POST_VIEW")
-                # self._handle_draw_onView3D = bpy.types.SpaceView3D.draw_handler_add(draw_callback_2d, args, "WINDOW", "POST_PIXEL")
+            args = (self, context, context.area, targetViewportIndex)
+            self._handle_draw_onView3D = bpy.types.SpaceView3D.draw_handler_add(
+                draw_callback__viewport_info, args, "WINDOW", "POST_PIXEL"
+            )
 
-                self._handle_draw_onView3D = bpy.types.SpaceView3D.draw_handler_add(
-                    draw_callback__viewport_info, args, "WINDOW", "POST_PIXEL"
-                )
+            args = (self, context, context.area, targetDopesheetIndex)
+            self._handle_draw_onDopeSheet = bpy.types.SpaceDopeSheetEditor.draw_handler_add(
+                draw_callback__dopesheet_info, args, "WINDOW", "POST_PIXEL"
+            )
 
-                context.window_manager.modal_handler_add(self)
-                return {"RUNNING_MODAL"}
-            else:
-                self.report({"WARNING"}, "View3D not found, cannot run operator")
-                return {"CANCELLED"}
+            context.window_manager.modal_handler_add(self)
+            return {"RUNNING_MODAL"}
+            # else:
+            #     self.report({"WARNING"}, "View3D not found, cannot run operator")
+            #     return {"CANCELLED"}
 
     def modal(self, context, event):
         #    context.area.tag_redraw()
@@ -285,7 +322,10 @@ class ShotManager_WorkspaceInfo(bpy.types.Operator):
         #         bpy.types.SpaceView3D.draw_handler_remove(self._handle_draw_onView3D, "WINDOW")
         #         return {"FINISHED"}
 
-        if not context.window_manager.UAS_shot_manager_identify_3dViews:
+        if (
+            not context.window_manager.UAS_shot_manager_identify_3dViews
+            and not context.window_manager.UAS_shot_manager_identify_dopesheets
+        ):
             # or event.type in {"RIGHTMOUSE", "ESC"}
             #   bpy.types.SpaceView3D.draw_handler_remove(self._handle_3d, "WINDOW")
 
