@@ -34,7 +34,7 @@ from .sm_handlers import (
 
 # from . import sm_check_data_handlers
 from .sm_check_data_handlers import shotMngHandler_load_post_checkDataVersion
-from shotmanager.overlay_tools.viewport_camera_hud.camera_hud import shotMngHandler_load_post_cameraHUD
+from shotmanager.overlay_tools.viewport_camera_hud.camera_hud_handlers import shotMngHandler_load_post_cameraHUD
 
 from .sm_overlay_tools_handlers import shotMngHandler_frame_change_pre_jumpToShot
 
@@ -128,7 +128,6 @@ def unregister():
     # from . import interact_shots_stack
     # from . import sequence_timeline
 
-    #    bpy.context.scene.UAS_shot_manager_props.display_shotname_in_3dviewport = False
     # if True:
     utils_handlers.removeAllHandlerOccurences(
         shotMngHandler_load_post_checkDataVersion, handlerCateg=bpy.app.handlers.load_post

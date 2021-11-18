@@ -16,7 +16,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 """
-To do: module description here.
+Shot Manager properties
 """
 
 import os
@@ -94,6 +94,10 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         self.dataVersion = bpy.context.window_manager.UAS_shot_manager_version
         self.createDefaultTake()
         self.createRenderSettings()
+
+        self.camera_hud_display_in_viewports = True
+        self.camera_hud_display_in_pov = True
+
         self.isInitialized = True
 
     def get_isInitialized(self):
@@ -573,29 +577,29 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         options=set(),
     )
 
-    def _update_display_shotname_in_3dviewport(self, context):
+    def _update_camera_hud_display_in_viewports(self, context):
         # print("\n*** Stamp Info updated. New state: ", self.stampInfoUsed)
-        if self.display_shotname_in_3dviewport:
-            bpy.ops.uas_shot_manager.draw_cameras_ui("INVOKE_DEFAULT")
+        if self.camera_hud_display_in_viewports:
+            bpy.ops.uas_shot_manager.draw_camera_hud_in_viewports("INVOKE_DEFAULT")
 
-    display_shotname_in_3dviewport: BoolProperty(
-        name="Display Shot name in 3D Viewports",
+    camera_hud_display_in_viewports: BoolProperty(
+        name="Display Shot name on cameras in 3D Viewports",
         description="Display the name of the shots near the camera object or frame in the 3D viewport",
-        default=True,
-        update=_update_display_shotname_in_3dviewport,
+        default=False,
+        update=_update_camera_hud_display_in_viewports,
         options=set(),
     )
 
-    def _update_display_hud_in_3dviewport(self, context):
+    def _update_camera_hud_display_in_pov(self, context):
         # print("\n*** Stamp Info updated. New state: ", self.stampInfoUsed)
-        if self.display_shotname_in_3dviewport:
-            bpy.ops.uas_shot_manager.draw_hud_on_camera_pov("INVOKE_DEFAULT")
+        if self.camera_hud_display_in_pov:
+            bpy.ops.uas_shot_manager.draw_camera_hud_in_pov("INVOKE_DEFAULT")
 
-    display_hud_in_3dviewport: BoolProperty(
-        name="Display HUD in 3D Viewports",
+    camera_hud_display_in_pov: BoolProperty(
+        name="Display Camera HUD in POV view mode in the 3D viewports",
         description="Display global infos in the 3D viewport",
-        default=True,
-        update=_update_display_hud_in_3dviewport,
+        default=False,
+        update=_update_camera_hud_display_in_pov,
         options=set(),
     )
 
@@ -920,7 +924,12 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         if -1 == current_area_ind:
             # we try to get the first viewport, if one is available
             if 0 < len(dopesheetsList):
-                current_area_ind = 0
+                # try to get the first dopesheet with a timeline
+                timelines = utils.getDopesheets(context, "TIMELINE")
+                if len(timelines):
+                    current_area_ind = utils.getDopesheetIndex(context, timelines[0])
+                else:
+                    current_area_ind = 0
 
         if "SELF" == item:
             ind = current_area_ind
@@ -942,7 +951,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         return ind
 
     def getValidTargetDopesheet(self, context):
-        """Return a valid (= existing in the context) target dopesheet (= 3D view area)
+        """Return a valid (= existing in the context) target dopesheet
         Return None if no valid dopesheet exists in the screen
         """
         valid_target = None

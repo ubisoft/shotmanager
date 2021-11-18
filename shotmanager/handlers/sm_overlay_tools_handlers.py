@@ -77,7 +77,7 @@ def toggle_overlay_tools_display(context):
             display_state_changed_intShStack(context)
     ###         context.window_manager.UAS_shot_manager__useInteracShotsStack = True
 
-    # bpy.ops.uas_shot_manager.draw_cameras_ui("INVOKE_DEFAULT")
+    # bpy.ops.uas_shot_manager.draw_camera_hud_in_viewports("INVOKE_DEFAULT")
     else:
         if prefs.toggle_overlays_turnOn_interactiveShotsStack:
             ###         context.window_manager.UAS_shot_manager__useInteracShotsStack = False

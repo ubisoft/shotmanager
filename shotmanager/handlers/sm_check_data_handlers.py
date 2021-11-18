@@ -22,6 +22,8 @@ Shot Manager Init for check data handlers
 import bpy
 from bpy.app.handlers import persistent
 
+from shotmanager.utils import utils
+
 import logging
 
 _logger = logging.getLogger(__name__)
@@ -72,8 +74,8 @@ def shotMngHandler_load_post_checkDataVersion(self, context):
 
                 if props.dataVersion <= 0 or props.dataVersion < latestVersionToPatch:  # <= ???
                     _logger.info(
-                        f"     *** Scene {scn.name}: Shot Manager Data Version is lower than the latest Shot Manager version to patch"
-                        f"\n     Data Version: {props.dataVersion}, latest version to patch: {latestVersionToPatch}"
+                        f"   *** Scene {scn.name}: The version of the Shot Manager data is lower than the latest patch version - Need patching ***"
+                        f"\n     Data Version: {utils.convertVersionIntToStr(props.dataVersion)}, latest version to patch: {utils.convertVersionIntToStr(latestVersionToPatch)}"
                     )
                     numScenesToUpgrade += 1
                     if -1 == lowerSceneVersion or props.dataVersion < lowerSceneVersion:
@@ -86,9 +88,7 @@ def shotMngHandler_load_post_checkDataVersion(self, context):
                     # print("       Data upgraded to version V. ", props.dataVersion)
 
         if numScenesToUpgrade:
-            print(
-                "Shot Manager Data Version is lower than the current Shot Manager version - Upgrading data with patches..."
-            )
+            print("\nUpgrading Shot Manager data with latest patches...")
             # apply patch and apply new data version
             # wkip patch strategy to re-think. Collect the data versions and apply the respective patches?
 

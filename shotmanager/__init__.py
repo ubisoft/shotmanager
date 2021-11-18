@@ -97,12 +97,33 @@ display_version = __version__
 # Logging
 ###########
 
+
+def set_logger_color(org_string, level=None):
+    color_levels = {
+        10: "\033[36m{}\033[0m",  # DEBUG
+        20: "\033[32m{}\033[0m",  # INFO
+        30: "\033[33m{}\033[0m",  # WARNING
+        40: "\033[31m{}\033[0m",  # ERROR
+        50: "\033[7;31;31m{}\033[0m",  # FATAL/CRITICAL/EXCEPTION
+    }
+    if level is None:
+        return color_levels[20].format(org_string)
+    else:
+        return color_levels[int(level)].format(org_string)
+
+
 # https://docs.python.org/fr/3/howto/logging.html
 _logger = logging.getLogger(__name__)
 _logger.propagate = False
 MODULE_PATH = Path(__file__).parent.parent
 logging.basicConfig(level=logging.INFO)
 _logger.setLevel(logging.INFO)  # CRITICAL ERROR WARNING INFO DEBUG NOTSET
+
+_logger.info(set_logger_color("test"))
+_logger.debug(set_logger_color("test", level=10))
+_logger.warning(set_logger_color("test", level=30))
+_logger.error(set_logger_color("test", level=40))
+_logger.fatal(set_logger_color("test", level=50))
 
 # _logger.info(f"Logger {str(256) + 'my long very long text'}")
 # _logger.info(f"Logger {str(256)}")
@@ -158,7 +179,9 @@ def register():
     from .utils import utils_ui
 
     utils_ui.register()
-    versionTupple = utils.display_addon_registered_version("Shot Manager")
+
+    logger_level = f"Logger level: {logging.getLevelName(_logger.level)}"
+    versionTupple = utils.display_addon_registered_version("Shot Manager", more_info=logger_level)
     config.initGlobalVariables()
 
     from .overlay_tools.workspace_info import workspace_info

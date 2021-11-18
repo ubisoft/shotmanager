@@ -24,6 +24,7 @@ from bpy.types import Panel, Operator, Menu
 
 from shotmanager.config import config
 from shotmanager.overlay_tools.interact_shots_stack import shots_stack_prefs
+from shotmanager.overlay_tools.viewport_camera_hud import camera_hud_prefs
 
 
 class UAS_ShotManager_Features(Operator):
@@ -247,21 +248,16 @@ class UAS_ShotManager_Features(Operator):
         icon = config.icons_col["ShotManager_Retimer_32"]
         butsubrow = subrow.row()
         butsubrow.scale_x = 1.5
-        butsubrow.prop(prefs, "display_frame_range_tool", text="", icon="CAMERA_DATA")
+        butsubrow.operator(
+            "uas_shot_manager.camerahud_toggle_display",
+            text="",
+            icon="CAMERA_DATA",
+            depress=props.camera_hud_display_in_viewports or props.camera_hud_display_in_pov,
+        )
         subrow.label(text="Camera HUD (in Viewport)")
 
         if prefs.cameraHUD_settings_expanded:
-            leftCol = box.column()
-
-            # empty spacer column
-            row = leftCol.row()
-            col = row.column()
-            col.scale_x = 0.25
-            col.label(text=" ")
-            col = row.column(align=True)
-
-            col.prop(props, "display_shotname_in_3dviewport", text="Display Shot name in 3D Viewport")
-            col.prop(props, "display_hud_in_3dviewport", text="Display HUD in 3D Viewport")
+            camera_hud_prefs.draw_settings(context, box)
 
         ###################################
         # Frame Range #####################

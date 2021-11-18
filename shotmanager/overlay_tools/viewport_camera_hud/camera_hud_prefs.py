@@ -16,26 +16,25 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 """
-Display camera opengl hud in the viewports
+Settings panel for the camera HUD tool
 """
-import bpy
-
-from . import camera_hud
-from . import camera_hud_operators
 
 
-def register():
-    print("       - Registering Viewport Camera HUD Package")
+def draw_settings(context, layout):
+    """Used in Shot Manager Features panel
+    """
+    props = context.scene.UAS_shot_manager_props
+    prefs = context.preferences.addons["shotmanager"].preferences
 
-    camera_hud.register()
-    camera_hud_operators.register()
+    leftCol = layout.column()
 
+    # empty spacer column
+    row = leftCol.row()
+    col = row.column()
+    col.scale_x = 0.25
+    col.label(text=" ")
+    col = row.column(align=True)
 
-def unregister():
-    print("       - Unregistering Viewport Camera HUD Package")
+    col.prop(props, "camera_hud_display_in_viewports", text="Display Shot name in 3D Viewport")
+    col.prop(props, "camera_hud_display_in_pov", text="Display HUD in 3D Viewport")
 
-    camera_hud_operators.unregister()
-    try:
-        camera_hud.unregister()
-    except Exception:
-        print("Paf in Unregister viewport_camera_hud")

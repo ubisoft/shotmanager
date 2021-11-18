@@ -576,9 +576,10 @@ class UAS_ShotManager_ShotAdd(Operator):
         utils.clear_selection()
         utils.add_to_selection(cam)
 
-        if 0 < props.getNumShots() and props.display_shotname_in_3dviewport:
-            bpy.ops.uas_shot_manager.draw_cameras_ui("INVOKE_DEFAULT")
-            bpy.ops.uas_shot_manager.draw_hud_on_camera_pov("INVOKE_DEFAULT")
+        # removed, now done in camera HUD overlay tool
+        # if 0 < props.getNumShots() and props.camera_hud_display_in_viewports:
+        #     bpy.ops.uas_shot_manager.draw_camera_hud_in_viewports("INVOKE_DEFAULT")
+        #     bpy.ops.uas_shot_manager.draw_camera_hud_in_pov("INVOKE_DEFAULT")
 
         # removed, now done in addShot
         # props.setCurrentShotByIndex(newShotInd)
