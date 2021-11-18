@@ -100,7 +100,7 @@ class UAS_ShotManager_OT_InteractShotsStackSettingsWind(Operator):
 
     def invoke(self, context, event):
         # return context.window_manager.invoke_props_dialog(self, width=360)
-        return context.window_manager.invoke_popup(self, width=230)
+        return context.window_manager.invoke_popup(self, width=250)
         # # dialog box with no OK button
         # context.window_manager.popup_menu(draw_settings_in_menu)
         # return {"FINISHED"}
@@ -112,11 +112,15 @@ class UAS_ShotManager_OT_InteractShotsStackSettingsWind(Operator):
 
         # targetrow.separator(factor=1.0)
 
+        #######################
+        # target dopesheet
+        #######################
         targetrow = layout.row(align=True)
         # activeindrow.scale_x = 0.4
+        targetrow.separator(factor=4)
 
         split = targetrow.split(factor=0.6)
-        split.label(text="Target Dopesheet Editor:")
+        split.label(text="Target Dopesheet Editor")
 
         targetrow = split.row(align=True)
         targetrow.prop(
@@ -129,6 +133,20 @@ class UAS_ShotManager_OT_InteractShotsStackSettingsWind(Operator):
         # print(f"display area targ: expected_target_area_ind:{expected_target_area_ind}, targ:{target_area_ind}")
         targdoperow.alert = target_area_ind < expected_target_area_ind
         targdoperow.prop(props, "interactShotsStack_target_dopesheet_index", text="")
+
+        #######################
+        # seq timeline
+        #######################
+
+        targetrow = layout.row(align=True)
+        targetrow.operator(
+            "uas_shot_manager.toggle_seq_timeline_with_overlay_tools",
+            text="",
+            icon="SEQ_STRIP_DUPLICATE",
+            depress=prefs.toggle_overlays_turnOn_sequenceTimeline,
+        )
+        targetrow.separator()
+        targetrow.label(text="Sequence Timeline (in Viewport)")
 
     def execute(self, context):
         return {"FINISHED"}

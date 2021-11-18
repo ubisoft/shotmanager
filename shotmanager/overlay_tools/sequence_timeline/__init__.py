@@ -22,13 +22,15 @@ Draw an interactive timeline in the 3D viewport
 import bpy
 from bpy.props import BoolProperty
 
-from . import timeline_ui
+from . import seq_timeline
+from . import seq_timeline_operators
 
 
 def register():
     print("       - Registering Viewport Timeline Package")
 
-    timeline_ui.register()
+    seq_timeline.register()
+    seq_timeline_operators.register()
 
     def _update_UAS_shot_manager__useSequenceTimeline(self, context):
         # toggle_overlay_tools_display(context)
@@ -45,8 +47,10 @@ def register():
 def unregister():
     print("       - Unregistering Viewport Timeline Package")
 
+    seq_timeline_operators.unregister()
+
     try:
-        timeline_ui.unregister()
+        seq_timeline.unregister()
     except Exception:
         print("       - Paf in Unregistering Viewport Timeline Package")
 

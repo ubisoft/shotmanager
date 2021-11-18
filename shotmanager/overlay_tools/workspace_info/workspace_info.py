@@ -230,7 +230,7 @@ class ShotManager_WorkspaceInfo(bpy.types.Operator):
 
     def register_handlers(self, args, context):
         # self.draw_handle = bpy.types.SpaceDopeSheetEditor.draw_handler_add(
-        #     self.draw, (context,), "WINDOW", "POST_PIXEL"
+        #     self.draw, args, "WINDOW", "POST_PIXEL"
         # )
         # self.draw_event = context.window_manager.event_timer_add(0.1, window=context.window)
         pass

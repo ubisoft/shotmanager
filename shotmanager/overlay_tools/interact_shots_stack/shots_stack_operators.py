@@ -25,6 +25,7 @@ from collections import defaultdict
 from .shots_stack_bgl import ShotClip, draw_shots_stack
 
 import bpy
+from bpy.types import Operator
 
 from shotmanager.config import config
 from shotmanager.utils import utils
@@ -36,7 +37,20 @@ from shotmanager.config import sm_logging
 _logger = sm_logging.getLogger(__name__)
 
 
-class UAS_ShotManager_InteractiveShotsStack(bpy.types.Operator):
+def ignoreWidget(context):
+    prefs = bpy.context.preferences.addons["shotmanager"].preferences
+
+    if not context.window_manager.UAS_shot_manager_display_overlay_tools:
+        return True
+
+    if (context.screen.is_animation_playing and not context.screen.is_scrubbing) and (
+        context.window_manager.UAS_shot_manager_use_best_perfs and prefs.best_play_perfs_turnOff_interactiveShotsStack
+    ):
+        return True
+    return False
+
+
+class UAS_ShotManager_InteractiveShotsStack(Operator):
     bl_idname = "uas_shot_manager.interactive_shots_stack"
     bl_label = "Draw Interactive Shots Stack in timeline"
     bl_options = {"REGISTER", "INTERNAL"}
@@ -64,7 +78,7 @@ class UAS_ShotManager_InteractiveShotsStack(bpy.types.Operator):
 
     def register_handlers(self, args, context):
         self.draw_handle = bpy.types.SpaceDopeSheetEditor.draw_handler_add(
-            self.draw, (context,), "WINDOW", "POST_PIXEL"
+            self.draw_callback_px, args, "WINDOW", "POST_PIXEL"
         )
         self.draw_event = context.window_manager.event_timer_add(0.1, window=context.window)
 
@@ -75,21 +89,8 @@ class UAS_ShotManager_InteractiveShotsStack(bpy.types.Operator):
         self.draw_handle = None
         self.draw_event = None
 
-    def ignoreWidget(self, context):
-        prefs = bpy.context.preferences.addons["shotmanager"].preferences
-
-        if not context.window_manager.UAS_shot_manager_display_overlay_tools:
-            return True
-
-        if (context.screen.is_animation_playing and not context.screen.is_scrubbing) and (
-            context.window_manager.UAS_shot_manager_use_best_perfs
-            and prefs.best_play_perfs_turnOff_interactiveShotsStack
-        ):
-            return True
-        return False
-
     def invoke(self, context, event):
-        if self.ignoreWidget(context):
+        if ignoreWidget(context):
             return {"CANCELLED"}
 
         props = context.scene.UAS_shot_manager_props
@@ -99,6 +100,7 @@ class UAS_ShotManager_InteractiveShotsStack(bpy.types.Operator):
         self.target_area = props.getValidTargetDopesheet(context)
 
         args = (self, context)
+        args = (context, self.target_area)
         self.register_handlers(args, context)
 
         context.window_manager.modal_handler_add(self)
@@ -118,7 +120,7 @@ class UAS_ShotManager_InteractiveShotsStack(bpy.types.Operator):
             # context.window_manager.UAS_shot_manager_display_overlay_tools = False
             return {"CANCELLED"}
 
-        if self.ignoreWidget(context):
+        if ignoreWidget(context):
             return {"PASS_THROUGH"}
 
         for area in context.screen.areas:
@@ -140,12 +142,15 @@ class UAS_ShotManager_InteractiveShotsStack(bpy.types.Operator):
         #     if area.type == "DOPESHEET_EDITOR":
         #         area.tag_redraw()
 
-        if not context.window_manager.UAS_shot_manager_toggle_shots_stack_interaction:
-            return {"PASS_THROUGH"}
+        # if not context.window_manager.UAS_shot_manager_toggle_shots_stack_interaction:
+        #     return {"PASS_THROUGH"}
 
         event_handled = False
         region, area = get_region_at_xy(context, event.mouse_x, event.mouse_y, "DOPESHEET_EDITOR")
         if region:
+            if not context.window_manager.UAS_shot_manager_toggle_shots_stack_interaction:
+                return {"PASS_THROUGH"}
+
             mouse_x, mouse_y = region.view2d.region_to_view(event.mouse_x - region.x, event.mouse_y - region.y)
             if event.type == "LEFTMOUSE":
                 if event.value == "PRESS":
@@ -227,7 +232,7 @@ class UAS_ShotManager_InteractiveShotsStack(bpy.types.Operator):
             ):
                 self.clips.append(ShotClip(self.context, shot, i, self.sm_props))
 
-    def draw(self, context):
+    def draw_callback_px(self, context, target_area):
 
         # if not context.window_manager.UAS_shot_manager_display_overlay_tools:
         #     context.window_manager.event_timer_remove(self.draw_event)
@@ -239,10 +244,12 @@ class UAS_ShotManager_InteractiveShotsStack(bpy.types.Operator):
 
         # !!! warning: Blender Timeline editor has a problem of refresh so even if the display is not done it may appear in the editor
         try:
-            if self.ignoreWidget(context):
-                return False
+            # if ignoreWidget(context):
+            #     return False
 
-            if self.target_area is not None and self.context.area != self.target_area:
+            # if self.target_area is not None and self.context.area != self.target_area:
+            #     return False
+            if target_area is not None and context.area != target_area:
                 return False
 
             draw_shots_stack(context, self)
@@ -261,12 +268,46 @@ class UAS_ShotManager_InteractiveShotsStack(bpy.types.Operator):
 
         except Exception as ex:
             _logger.error(f"*** Crash in ogl context - Draw clips loop: error: {ex} ***")
-            self.unregister_handlers(context)
-            context.window_manager.UAS_shot_manager_display_overlay_tools = False
+            # self.unregister_handlers(context)
+            # context.window_manager.UAS_shot_manager_display_overlay_tools = False
             # context.window_manager.UAS_shot_manager_display_overlay_tools = True
 
 
-_classes = (UAS_ShotManager_InteractiveShotsStack,)
+class UAS_ShotManager_OT_ToggleShotsStackWithOverlayTools(Operator):
+    bl_idname = "uas_shot_manager.toggle_shots_stack_with_overlay_tools"
+    bl_label = "Toggle Display"
+    bl_description = "Toggle Interactive Shots Stack display with overlay tools"
+    bl_options = {"INTERNAL"}
+
+    def invoke(self, context, event):
+        prefs = context.preferences.addons["shotmanager"].preferences
+        prefs.toggle_overlays_turnOn_interactiveShotsStack = not prefs.toggle_overlays_turnOn_interactiveShotsStack
+
+        # toggle on or off the overlay tools mode
+        #  context.window_manager.UAS_shot_manager_display_overlay_tools = prefs.toggle_overlays_turnOn_interactiveShotsStack
+
+        return {"FINISHED"}
+
+
+class UAS_ShotManager_OT_ToggleShotsStackInteraction(Operator):
+    bl_idname = "uas_shot_manager.toggle_shots_stack_interaction"
+    bl_label = "Toggle interactions in the Interactive Shots Stack"
+    # bl_description = "Toggle Shots Stack Interactions"
+    bl_options = {"INTERNAL"}
+
+    def invoke(self, context, event):
+        context.window_manager.UAS_shot_manager_toggle_shots_stack_interaction = (
+            not context.window_manager.UAS_shot_manager_toggle_shots_stack_interaction
+        )
+
+        return {"FINISHED"}
+
+
+_classes = (
+    UAS_ShotManager_InteractiveShotsStack,
+    UAS_ShotManager_OT_ToggleShotsStackWithOverlayTools,
+    UAS_ShotManager_OT_ToggleShotsStackInteraction,
+)
 
 
 def register():

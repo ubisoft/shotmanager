@@ -195,8 +195,11 @@ class UAS_ShotManager_Features(Operator):
         icon = config.icons_col["ShotManager_Retimer_32"]
         butsubrow = subrow.row()
         butsubrow.scale_x = 1.5
-        butsubrow.prop(
-            context.window_manager, "UAS_shot_manager__useSequenceTimeline", text="", icon="SEQ_STRIP_DUPLICATE"
+        butsubrow.operator(
+            "uas_shot_manager.toggle_seq_timeline_with_overlay_tools",
+            text="",
+            icon="SEQ_STRIP_DUPLICATE",
+            depress=prefs.toggle_overlays_turnOn_sequenceTimeline,
         )
         subrow.label(text="Sequence Timeline (in Viewport)")
 

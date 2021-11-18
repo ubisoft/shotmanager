@@ -47,22 +47,6 @@ class UAS_ShotManager_OT_ShotsPlayMode(Operator):
         return {"FINISHED"}
 
 
-class UAS_ShotManager_OT_ToggleShotsStackWithOverlayTools(Operator):
-    bl_idname = "uas_shot_manager.toggle_shots_stack_with_overlay_tools"
-    bl_label = "Toggle Display"
-    bl_description = "Toggle Interactive Shots Stack display with overlay tools"
-    bl_options = {"INTERNAL"}
-
-    def invoke(self, context, event):
-        prefs = context.preferences.addons["shotmanager"].preferences
-        prefs.toggle_overlays_turnOn_interactiveShotsStack = not prefs.toggle_overlays_turnOn_interactiveShotsStack
-
-        # toggle on or off the overlay tools mode
-        #  context.window_manager.UAS_shot_manager_display_overlay_tools = prefs.toggle_overlays_turnOn_interactiveShotsStack
-
-        return {"FINISHED"}
-
-
 class UAS_ShotManager_OT_DisplayOverlayTools(Operator):
     bl_idname = "uas_shot_manager.display_overlay_tools"
     bl_label = "Toggle Overlay Tools Display"
@@ -89,20 +73,6 @@ class UAS_ShotManager_OT_DisplayDisabledShotsInOverlays(Operator):
         val = not props.interactShotsStack_displayDisabledShots
         props.interactShotsStack_displayDisabledShots = val
         props.seqTimeline_displayDisabledShots = val
-
-        return {"FINISHED"}
-
-
-class UAS_ShotManager_OT_ToggleShotsStackInteraction(Operator):
-    bl_idname = "uas_shot_manager.toggle_shots_stack_interaction"
-    bl_label = "Toggle interactions in the Interactive Shots Stack"
-    # bl_description = "Toggle Shots Stack Interactions"
-    bl_options = {"INTERNAL"}
-
-    def invoke(self, context, event):
-        context.window_manager.UAS_shot_manager_toggle_shots_stack_interaction = (
-            not context.window_manager.UAS_shot_manager_toggle_shots_stack_interaction
-        )
 
         return {"FINISHED"}
 
@@ -277,9 +247,7 @@ class UAS_ShotManager_OT_EnableDebug(Operator):
 _classes = (
     UAS_ShotManager_OT_ShotsPlayMode,
     UAS_ShotManager_OT_DisplayDisabledShotsInOverlays,
-    UAS_ShotManager_OT_ToggleShotsStackWithOverlayTools,
     UAS_ShotManager_OT_DisplayOverlayTools,
-    UAS_ShotManager_OT_ToggleShotsStackInteraction,
     UAS_ShotManager_OT_ClearMarkersFromCameraBinding,
     UAS_ShotManager_OT_ConvertMarkersFromCameraBindingToShots,
     UAS_ShotManager_OT_GoToVideoShotManager,
