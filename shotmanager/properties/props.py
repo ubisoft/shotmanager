@@ -602,7 +602,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
     def getTargetViewportIndex(self, context, only_valid=False):
         """Return the index of the viewport where all the actions of the Shot Manager should occur.
         This viewport is called the target viewport and is defined in the UI by the user thanks
-        to the variable context.window_manager.shotmanager_target_viewport_dropdwn.
+        to the variable props.target_viewport_index.
         A viewport is an area of type VIEW_3D.
 
         Args:
@@ -613,10 +613,10 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
             context area, which should be the viewport with the calling Shot Manager.
             Return -1 if no viewport is available
 
-        wkip context.window_manager.shotmanager_target_viewport_dropdwn should be stored in the scene, per layout
+        wkip props.target_viewport_index should be stored in the scene, per layout
         """
         ind = -1
-        item = context.window_manager.shotmanager_target_viewport_dropdwn
+        item = self.target_viewport_index
         # print(f"--- getTargetViewportIndex item: {item}")
         viewportsList = utils.getAreasByType(context, "VIEW_3D")
 
@@ -655,6 +655,44 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         if -1 < valid_target_ind:
             valid_target = utils.getAreaFromIndex(context, valid_target_ind, "VIEW_3D")
         return valid_target
+
+    def list_target_viewports(self, context):
+        # res = config.gSeqEnumList
+        res = None
+        # res = list()
+        nothingList = list()
+        nothingList.append(
+            ("SELF", "Me", "Target 3D View is the viewport where Shot Manager is used, 0 if not found", 0)
+        )
+        nothingList.append(("AREA_00", "0", "Target 3D View is viewport 0", 1))
+        nothingList.append(("AREA_01", "1", "Target 3D View is viewport 1", 2))
+        nothingList.append(("AREA_02", "2", "Target 3D View is viewport 2", 3))
+        nothingList.append(("AREA_03", "3", "Target 3D View is viewport 3", 4))
+
+        # seqList = getSequenceListFromOtioTimeline(config.gMontageOtio)
+        # for i, item in enumerate(seqList):
+        #     res.append((item, item, "My seq", i + 1))
+
+        # res = getSequenceListFromOtio()
+        # res.append(("NEW_CAMERA", "New Camera", "Create new camera", 0))
+        # for i, cam in enumerate([c for c in context.scene.objects if c.type == "CAMERA"]):
+        #     res.append(
+        #         (cam.name, cam.name, 'Use the exising scene camera named "' + cam.name + '"\nfor the new shot', i + 1)
+        #     )
+
+        if res is None or 0 == len(res):
+            res = nothingList
+        return res
+
+    # Get the target index with the function props.getTargetViewportIndex(context)
+    target_viewport_index: EnumProperty(
+        name="Target 3D Viewport",
+        description="Index of the target viewport of the current workspace that will"
+        "\nreceive all the actions set in the Shot Manager panel",
+        items=(list_target_viewports),
+        options=set(),
+        # default=0,
+    )
 
     # Features
     #############
@@ -805,13 +843,116 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
 
     # sequence timeline properties
     #################################
-    display_disabledshots_in_timeline: BoolProperty(default=False, options=set())
+    seqTimeline_displayDisabledShots: BoolProperty(default=False, options=set())
 
     # interact shots stack properties
     #################################
-    display_disabledshots_in_interactShotsStack: BoolProperty(default=False, options=set())
+    interactShotsStack_displayDisabledShots: BoolProperty(default=False, options=set())
     interactShotsStack_displayInCompactMode: BoolProperty(default=False, options=set())
 
+    def list_target_dopesheets(self, context):
+        # res = config.gSeqEnumList
+        res = None
+        # res = list()
+        nothingList = list()
+        nothingList.append(
+            (
+                "SELF",
+                "Me",
+                "Target Dopesheet is the editor where the Interactive Shots Stack is used, 0 if not found",
+                0,
+            )
+        )
+        nothingList.append(("AREA_00", "0", "Target Dopesheet is 0", 1))
+        nothingList.append(("AREA_01", "1", "Target Dopesheet is 1", 2))
+        nothingList.append(("AREA_02", "2", "Target Dopesheet is 2", 3))
+        nothingList.append(("AREA_03", "3", "Target Dopesheet is 3", 4))
+
+        # seqList = getSequenceListFromOtioTimeline(config.gMontageOtio)
+        # for i, item in enumerate(seqList):
+        #     res.append((item, item, "My seq", i + 1))
+
+        # res = getSequenceListFromOtio()
+        # res.append(("NEW_CAMERA", "New Camera", "Create new camera", 0))
+        # for i, cam in enumerate([c for c in context.scene.objects if c.type == "CAMERA"]):
+        #     res.append(
+        #         (cam.name, cam.name, 'Use the exising scene camera named "' + cam.name + '"\nfor the new shot', i + 1)
+        #     )
+
+        if res is None or 0 == len(res):
+            res = nothingList
+        return res
+
+    # Get the target index with the function props.getTargetViewportIndex(context)
+    interactShotsStack_target_dopesheet_index: EnumProperty(
+        name="Target Dopesheet",
+        description="Index of the target dopesheet of the current workspace that will"
+        "\nreceive the Interactive Shots Stack tool."
+        "\nThe dopesheet target index will be displayed in green",
+        items=(list_target_dopesheets),
+        options=set(),
+        # default=0,
+    )
+
+    def getTargetDopesheetIndex(self, context, only_valid=False):
+        """Return the index of the viewport where all the actions of the Shot Manager should occur.
+        This viewport is called the target viewport and is defined in the UI by the user thanks
+        to the variable props.target_viewport_index.
+        A viewport is an area of type VIEW_3D.
+
+        Args:
+        only_valid:
+            Since there may have more items in the list than viewports in the considered workspace the target viewport index
+            may refer to a viewport that doesn't exist.
+            To get a valid target viewport use the argument only_valid: if set to True it will return the index of the current
+            context area, which should be the viewport with the calling Shot Manager.
+            Return -1 if no viewport is available
+
+        wkip props.target_viewport_index should be stored in the scene, per layout
+        """
+        ind = -1
+        item = self.interactShotsStack_target_dopesheet_index
+        # print(f"--- getTargetViewportIndex item: {item}")
+        dopesheetsList = utils.getDopesheets(context)
+
+        # can be -1 if the context area is not a viewport or if no viewport is available in the workspace
+        current_area_ind = utils.getDopesheetIndex(context, context.area)
+        if -1 == current_area_ind:
+            # we try to get the first viewport, if one is available
+            if 0 < len(dopesheetsList):
+                current_area_ind = 0
+
+        if "SELF" == item:
+            ind = current_area_ind
+        elif "AREA_00" == item:
+            ind = 0
+        elif "AREA_01" == item:
+            ind = 1
+        elif "AREA_02" == item:
+            ind = 2
+        elif "AREA_03" == item:
+            ind = 3
+
+        if only_valid:
+            if 0 == len(dopesheetsList):
+                ind = -1
+            elif len(dopesheetsList) <= ind:
+                ind = current_area_ind
+
+        return ind
+
+    def getValidTargetDopesheet(self, context):
+        """Return a valid (= existing in the context) target dopesheet (= 3D view area)
+        Return None if no valid dopesheet exists in the screen
+        """
+        valid_target = None
+        valid_target_ind = self.getTargetDopesheetIndex(context, only_valid=True)
+        if -1 < valid_target_ind:
+            valid_target = utils.getDopesheetFromIndex(context, valid_target_ind)
+        return valid_target
+
+    #################################
+    #################################
     def _get_playSpeedGlobal(self):
         val = self.get("playSpeedGlobal", 1.0)
         val = 100.0 / bpy.context.scene.render.fps_base
@@ -1742,7 +1883,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
             return shotList
 
         # for shot in self.takes[takeInd].shots:
-        #     # if shot.enabled or self.context.scene.UAS_shot_manager_props.display_disabledshots_in_timeline:
+        #     # if shot.enabled or self.context.scene.UAS_shot_manager_props.seqTimeline_displayDisabledShots:
         #     if not ignoreDisabled or shot.enabled:
         #         shotList.append(shot)
 

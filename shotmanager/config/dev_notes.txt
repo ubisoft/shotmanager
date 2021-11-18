@@ -9,4 +9,4 @@ Dialog windows width:   360
                         480
 
 
-
+invoke_popup width:     250

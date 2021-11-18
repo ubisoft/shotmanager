@@ -301,19 +301,6 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
         else:
             if context.window_manager.UAS_shot_manager_display_overlay_tools:
                 pass
-                # context.window_manager.UAS_shot_manager_display_overlay_tools = False
-
-                # from shotmanager.overlay_tools.interact_shots_stack.shots_stack_toolbar import (
-                #     display_state_changed_intShStack,
-                #     stop_display_intShStack,
-                # )
-
-                # display_state_changed_intShStack
-            #  bpy.ops.uas_shot_manager.interactive_shots_stack.unregister_handlers()
-
-            #  context.window_manager.UAS_shot_manager_display_overlay_tools = True
-
-        #  context.window_manager.UAS_shot_manager_display_overlay_tools = prefs.toggle_overlays_turnOn_interactiveShotsStack
 
     toggle_overlays_turnOn_interactiveShotsStack: BoolProperty(
         name="Turn Off Interactive Shots Stack",

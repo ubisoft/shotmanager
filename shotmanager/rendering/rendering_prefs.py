@@ -85,7 +85,7 @@ class UAS_ShotManager_Render_Prefs(Operator):
         # col.use_property_split = False
         # # col.use_property_decorate = False
         # col.prop(
-        #     props, "display_disabledshots_in_timeline", text="Display Disabled Shots",
+        #     props, "seqTimeline_displayDisabledShots", text="Display Disabled Shots",
         # )
 
         # # Edit ######

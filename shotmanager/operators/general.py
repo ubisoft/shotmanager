@@ -49,8 +49,8 @@ class UAS_ShotManager_OT_ShotsPlayMode(Operator):
 
 class UAS_ShotManager_OT_ToggleShotsStackWithOverlayTools(Operator):
     bl_idname = "uas_shot_manager.toggle_shots_stack_with_overlay_tools"
-    bl_label = "Toggle Shots Stack With Overlay Tools Display"
-    # bl_description = "Toggle Overlay Tools Display"
+    bl_label = "Toggle Display"
+    bl_description = "Toggle Interactive Shots Stack display with overlay tools"
     bl_options = {"INTERNAL"}
 
     def invoke(self, context, event):
@@ -73,6 +73,22 @@ class UAS_ShotManager_OT_DisplayOverlayTools(Operator):
         context.window_manager.UAS_shot_manager_display_overlay_tools = (
             not context.window_manager.UAS_shot_manager_display_overlay_tools
         )
+
+        return {"FINISHED"}
+
+
+class UAS_ShotManager_OT_DisplayDisabledShotsInOverlays(Operator):
+    bl_idname = "uas_shot_manager.display_disabledshots_in_overlays"
+    bl_label = "Display Disabled Shots in Overlay Tools"
+    # bl_description = "Display Disabled Shots in Overlay Tools"
+    bl_options = {"INTERNAL"}
+
+    def invoke(self, context, event):
+        props = context.scene.UAS_shot_manager_props
+
+        val = not props.interactShotsStack_displayDisabledShots
+        props.interactShotsStack_displayDisabledShots = val
+        props.seqTimeline_displayDisabledShots = val
 
         return {"FINISHED"}
 
@@ -260,6 +276,7 @@ class UAS_ShotManager_OT_EnableDebug(Operator):
 
 _classes = (
     UAS_ShotManager_OT_ShotsPlayMode,
+    UAS_ShotManager_OT_DisplayDisabledShotsInOverlays,
     UAS_ShotManager_OT_ToggleShotsStackWithOverlayTools,
     UAS_ShotManager_OT_DisplayOverlayTools,
     UAS_ShotManager_OT_ToggleShotsStackInteraction,

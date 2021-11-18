@@ -346,13 +346,24 @@ def register():
     )
 
     def _update_UAS_shot_manager_identify_3dViews(self, context):
-        toggle_workspace_info_display(self, context)
+        toggle_workspace_info_display(context)
 
     bpy.types.WindowManager.UAS_shot_manager_identify_3dViews = BoolProperty(
         name="Identify 3D Viewports",
         description="Display an index on each 3D viewport to clearly identify them."
         "\nThe Shot Manager target 3D viewport will appear in green",
         update=_update_UAS_shot_manager_identify_3dViews,
+        default=False,
+    )
+
+    def _update_UAS_shot_manager_identify_dopesheets(self, context):
+        toggle_workspace_info_display(context)
+
+    bpy.types.WindowManager.UAS_shot_manager_identify_dopesheets = BoolProperty(
+        name="Identify Dopesheet Editors",
+        description="Display an index on each dopesheet editor to clearly identify them."
+        "\nThe Shot Manager target dopesheet will appear in green",
+        update=_update_UAS_shot_manager_identify_dopesheets,
         default=False,
     )
 
@@ -366,43 +377,43 @@ def register():
     #     options=set(),
     # )
 
-    def list_target_areas(self, context):
-        # res = config.gSeqEnumList
-        res = None
-        # res = list()
-        nothingList = list()
-        nothingList.append(
-            ("SELF", "Me", "Target 3D View is the viewport where Shot Manager is used, 0 if not found", 0)
-        )
-        nothingList.append(("AREA_00", "0", "Target 3D View is viewport 0", 1))
-        nothingList.append(("AREA_01", "1", "Target 3D View is viewport 1", 2))
-        nothingList.append(("AREA_02", "2", "Target 3D View is viewport 2", 3))
-        nothingList.append(("AREA_03", "3", "Target 3D View is viewport 3", 4))
+    # # # def list_target_areas(self, context):
+    # # #     # res = config.gSeqEnumList
+    # # #     res = None
+    # # #     # res = list()
+    # # #     nothingList = list()
+    # # #     nothingList.append(
+    # # #         ("SELF", "Me", "Target 3D View is the viewport where Shot Manager is used, 0 if not found", 0)
+    # # #     )
+    # # #     nothingList.append(("AREA_00", "0", "Target 3D View is viewport 0", 1))
+    # # #     nothingList.append(("AREA_01", "1", "Target 3D View is viewport 1", 2))
+    # # #     nothingList.append(("AREA_02", "2", "Target 3D View is viewport 2", 3))
+    # # #     nothingList.append(("AREA_03", "3", "Target 3D View is viewport 3", 4))
 
-        # seqList = getSequenceListFromOtioTimeline(config.gMontageOtio)
-        # for i, item in enumerate(seqList):
-        #     res.append((item, item, "My seq", i + 1))
+    # # #     # seqList = getSequenceListFromOtioTimeline(config.gMontageOtio)
+    # # #     # for i, item in enumerate(seqList):
+    # # #     #     res.append((item, item, "My seq", i + 1))
 
-        # res = getSequenceListFromOtio()
-        # res.append(("NEW_CAMERA", "New Camera", "Create new camera", 0))
-        # for i, cam in enumerate([c for c in context.scene.objects if c.type == "CAMERA"]):
-        #     res.append(
-        #         (cam.name, cam.name, 'Use the exising scene camera named "' + cam.name + '"\nfor the new shot', i + 1)
-        #     )
+    # # #     # res = getSequenceListFromOtio()
+    # # #     # res.append(("NEW_CAMERA", "New Camera", "Create new camera", 0))
+    # # #     # for i, cam in enumerate([c for c in context.scene.objects if c.type == "CAMERA"]):
+    # # #     #     res.append(
+    # # #     #         (cam.name, cam.name, 'Use the exising scene camera named "' + cam.name + '"\nfor the new shot', i + 1)
+    # # #     #     )
 
-        if res is None or 0 == len(res):
-            res = nothingList
-        return res
+    # # #     if res is None or 0 == len(res):
+    # # #         res = nothingList
+    # # #     return res
 
-    # Get the target index with the function props.getTargetViewportIndex(context)
-    bpy.types.WindowManager.shotmanager_target_viewport_dropdwn = EnumProperty(
-        name="Target 3D Viewport",
-        description="Index of the target viewport of the current workspace that will"
-        "\nreceive all the actions set in the Shot Manager panel",
-        items=(list_target_areas),
-        # default=0,
-        #        options=set(),
-    )
+    # # # # Get the target index with the function props.getTargetViewportIndex(context)
+    # # # bpy.types.WindowManager.shotmanager_target_viewport_dropdwn = EnumProperty(
+    # # #     name="Target 3D Viewport",
+    # # #     description="Index of the target viewport of the current workspace that will"
+    # # #     "\nreceive all the actions set in the Shot Manager panel",
+    # # #     items=(list_target_areas),
+    # # #     # default=0,
+    # # #     #        options=set(),
+    # # # )
 
     bpy.types.WindowManager.UAS_shot_manager_toggle_shots_stack_interaction = BoolProperty(
         name="Enable Shots Manipulation",

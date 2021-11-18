@@ -23,6 +23,7 @@ import bpy
 from bpy.types import Panel, Operator, Menu
 
 from shotmanager.config import config
+from shotmanager.overlay_tools.interact_shots_stack import shots_stack_prefs
 
 
 class UAS_ShotManager_Features(Operator):
@@ -208,7 +209,7 @@ class UAS_ShotManager_Features(Operator):
             col.label(text=" ")
             col = row.column(align=True)
 
-            col.prop(props, "display_disabledshots_in_timeline", text="Display Disabled Shots")
+            col.prop(props, "seqTimeline_displayDisabledShots", text="Display Disabled Shots")
             col.prop(prefs, "seqTimeline_not_disabled_with_overlays")
 
         ###################################
@@ -223,29 +224,16 @@ class UAS_ShotManager_Features(Operator):
         icon = config.icons_col["ShotManager_Retimer_32"]
         butsubrow = subrow.row()
         butsubrow.scale_x = 1.5
-        butsubrow.prop(prefs, "display_intShStack_toolbar", text="", icon="NLA_PUSHDOWN")
-        # butsubrow.prop(context.window_manager, "UAS_shot_manager__useInteracShotsStack", text="", icon="NLA_PUSHDOWN")
+        butsubrow.operator(
+            "uas_shot_manager.toggle_shots_stack_with_overlay_tools",
+            text="",
+            icon="NLA_PUSHDOWN",
+            depress=prefs.toggle_overlays_turnOn_interactiveShotsStack,
+        )
         subrow.label(text="Interaction Shots Stack (in Timeline)")
 
         if prefs.intShStack_settings_expanded:
-            leftCol = box.column()
-
-            # empty spacer column
-            row = leftCol.row()
-            col = row.column()
-            col.scale_x = 0.25
-            col.label(text=" ")
-            col = row.column(align=True)
-
-            col.prop(prefs, "display_intShStack_toolbar")
-            col.prop(
-                props, "display_disabledshots_in_interactShotsStack", text="Display Disabled Shots",
-            )
-            col.prop(
-                props,
-                "interactShotsStack_displayInCompactMode",
-                text="Compact Shots Display (= decrease visual stack height)",
-            )
+            shots_stack_prefs.draw_settings(context, box)
 
         ###################################
         # Camera HUD ######################

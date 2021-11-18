@@ -452,9 +452,9 @@ def getDopesheets(context, mode="ALL"):
     dopesheets = list()
     for dp in dopesheetAreas:
         # wkip not sure first space is the dopesheet
-        if "ALL" == dp.spaces[0].mode:
+        if "ALL" == mode:
             dopesheets.append(dp)
-        elif mode == dp.spaces[0].mode:
+        elif dp.spaces[0].mode == mode:
             dopesheets.append(dp)
 
     return dopesheets
@@ -478,7 +478,7 @@ def getDopesheetIndex(context, dopesheet, mode="ALL"):
     """
     dopesheets = getDopesheets(context, mode=mode)
     for i, dp in enumerate(dopesheets):
-        if dopesheet == a:
+        if dopesheet == dp:
             return i
     return -1
 

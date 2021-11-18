@@ -22,7 +22,7 @@ UI for the Interactive Shots Stack overlay tool
 import time
 from collections import defaultdict
 
-from .shots_stack_ui import ShotClip, draw_shots_stack
+from .shots_stack_bgl import ShotClip, draw_shots_stack
 
 import bpy
 
@@ -42,7 +42,6 @@ class UAS_ShotManager_InteractiveShotsStack(bpy.types.Operator):
     bl_options = {"REGISTER", "INTERNAL"}
 
     def __init__(self):
-        print("Initialize interactive shots stack here")
         self.asset_browser = None
         self.compact_display = False
 
@@ -52,7 +51,7 @@ class UAS_ShotManager_InteractiveShotsStack(bpy.types.Operator):
         self.sm_props = None
         self.clips = list()
         self.context = None
-        self.target_area = target_area = None
+        self.target_area = None
 
         self.prev_mouse_x = 0
         self.prev_mouse_y = 0
@@ -93,10 +92,13 @@ class UAS_ShotManager_InteractiveShotsStack(bpy.types.Operator):
         if self.ignoreWidget(context):
             return {"CANCELLED"}
 
+        props = context.scene.UAS_shot_manager_props
+
+        # target_area_index = 1
+        # self.target_area = utils.getAreaFromIndex(context, target_area_index, "DOPESHEET_EDITOR")
+        self.target_area = props.getValidTargetDopesheet(context)
+
         args = (self, context)
-        target_area_index = 0
-        target_area = utils.getAreaFromIndex(context, target_area_index, "DOPESHEET_EDITOR", mode="TIMELINE")
-        self.target_area = target_area
         self.register_handlers(args, context)
 
         context.window_manager.modal_handler_add(self)
@@ -200,7 +202,7 @@ class UAS_ShotManager_InteractiveShotsStack(bpy.types.Operator):
         # if self.compact_display:
         if props.interactShotsStack_displayInCompactMode:
             shots = sorted(
-                self.sm_props.getShotsList(ignoreDisabled=not props.display_disabledshots_in_interactShotsStack),
+                self.sm_props.getShotsList(ignoreDisabled=not props.interactShotsStack_displayDisabledShots),
                 key=lambda s: s.start,
             )
             shots_from_lane = defaultdict(list)
@@ -221,7 +223,7 @@ class UAS_ShotManager_InteractiveShotsStack(bpy.types.Operator):
                 self.clips.append(ShotClip(self.context, shot, lane, self.sm_props))
         else:
             for i, shot in enumerate(
-                self.sm_props.getShotsList(ignoreDisabled=not props.display_disabledshots_in_interactShotsStack)
+                self.sm_props.getShotsList(ignoreDisabled=not props.interactShotsStack_displayDisabledShots)
             ):
                 self.clips.append(ShotClip(self.context, shot, i, self.sm_props))
 

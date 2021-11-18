@@ -35,30 +35,6 @@ def display_state_changed_intShStack(context):
         bpy.ops.uas_shot_manager.interactive_shots_stack("INVOKE_DEFAULT")
 
 
-def stop_display_intShStack(context):
-    print("stop_display_intShStack")
-
-
-class UAS_ShotManager_displayShotsStack(Operator):
-    bl_idname = "uas_shot_manager.display_shots_stack"
-    bl_label = "Display Shots Stack"
-    bl_description = "Display Shots Stack"
-    bl_options = {"INTERNAL"}
-
-    # @classmethod
-    # def poll(cls, context):
-    #     return bpy.context.preferences.addons["shotmanager"].preferences.display_frame_range_tool
-
-    def invoke(self, context, event):
-        context.window_manager.UAS_shot_manager__useInteracShotsStack = (
-            not context.window_manager.UAS_shot_manager__useInteracShotsStack
-        )
-        print(
-            f"Invoke uas_shot_manager.display_shots_stack: UAS_shot_manager__useInteracShotsStack: {context.window_manager.UAS_shot_manager__useInteracShotsStack}"
-        )
-        return {"FINISHED"}
-
-
 def draw_shots_stack_toolbar_in_editor(self, context):
     props = context.scene.UAS_shot_manager_props
     prefs = context.preferences.addons["shotmanager"].preferences
@@ -69,17 +45,7 @@ def draw_shots_stack_toolbar_in_editor(self, context):
     row.separator(factor=3)
     row.alignment = "RIGHT"
 
-    row.operator(
-        "uas_shot_manager.toggle_shots_stack_with_overlay_tools",
-        text="",
-        icon="NLA_PUSHDOWN",
-        depress=prefs.toggle_overlays_turnOn_interactiveShotsStack,
-    )
-    row.separator(factor=0.8)
-
-    butsrow = row.row(align=True)
-    butsrow.enabled = prefs.toggle_overlays_turnOn_interactiveShotsStack
-    toggleButRow = butsrow.row(align=True)
+    toggleButRow = row.row(align=True)
     toggleButRow.scale_x = butScale
     icon = config.icons_col["ShotManager_Tools_OverlayTools_32"]
     # toggleButRow.prop(
@@ -91,30 +57,56 @@ def draw_shots_stack_toolbar_in_editor(self, context):
         depress=context.window_manager.UAS_shot_manager_display_overlay_tools,
         icon_value=icon.icon_id,
     )
+    row.separator(factor=0.8)
+
+    row.operator(
+        "uas_shot_manager.toggle_shots_stack_with_overlay_tools",
+        text="",
+        icon="NLA_PUSHDOWN",
+        depress=prefs.toggle_overlays_turnOn_interactiveShotsStack,
+    )
+
+    butsrow = row.row(align=True)
+    butsrow.enabled = prefs.toggle_overlays_turnOn_interactiveShotsStack
 
     interacButRow = butsrow.row(align=True)
     # interacButRow.scale_x = butScale
-    interacButRow.enabled = context.window_manager.UAS_shot_manager_display_overlay_tools
+    #  interacButRow.enabled = context.window_manager.UAS_shot_manager_display_overlay_tools
+    interacButRow.enabled = prefs.toggle_overlays_turnOn_interactiveShotsStack
     interacButRow.operator(
         "uas_shot_manager.toggle_shots_stack_interaction",
         text="",
         icon="ARROW_LEFTRIGHT",
         depress=context.window_manager.UAS_shot_manager_toggle_shots_stack_interaction,
     )
-    interacButRow.prop(
-        props, "display_disabledshots_in_interactShotsStack", text="", icon="NLA",
+
+    # wkip to remove and to put in the settings menu??
+    interacButRow.operator(
+        "uas_shot_manager.display_disabledshots_in_overlays",
+        text="",
+        icon="NLA",
+        depress=props.interactShotsStack_displayDisabledShots,
     )
+
+    # interacButRow.prop(
+    #     props, "interactShotsStack_displayDisabledShots", text="", icon="NLA",
+    # )
+
     interacButRow.prop(props, "interactShotsStack_displayInCompactMode", text="", icon="SEQ_STRIP_META")
     #     text="Compact Shots Display (= decrease visual stack height)",
 
-    butsrow.separator()
-    butsrow.operator(
-        "uas_shot_manager.display_shots_stack",
-        text="",
-        depress=context.window_manager.UAS_shot_manager__useInteracShotsStack,
-        icon="NLA_PUSHDOWN",
+    #    butsrow.menu("UAS_MT_Shot_Manager_Interact_Shots_Stack_Settings_Menu", text="", icon="PROPERTIES")
+
+    # butsrow.operator(
+    #     "uas_shot_manager.interact_shots_stack_settings", text="x", icon="PROPERTIES",
+    # )
+    # butsrow.operator(
+    row.operator(
+        "uas_shot_manager.interact_shots_stack_settings_wind", text="", icon="PROPERTIES",
     )
-    butsrow.prop(context.window_manager, "UAS_shot_manager__useInteracShotsStack", text="", icon="FUND")
+
+    # # # butsrow.separator()
+    # # # butsrow.prop(context.window_manager, "UAS_shot_manager__useInteracShotsStack", text="", icon="FUND")
 
 
 def display_shots_stack_toolbar_in_editor(display_value):
@@ -124,29 +116,14 @@ def display_shots_stack_toolbar_in_editor(display_value):
         bpy.types.TIME_MT_editor_menus.remove(draw_shots_stack_toolbar_in_editor)
 
 
-_classes = (UAS_ShotManager_displayShotsStack,)
+# _classes = (,)
+
+# def register():
+#     for cls in _classes:
+#         bpy.utils.register_class(cls)
 
 
-def register():
-    for cls in _classes:
-        bpy.utils.register_class(cls)
+# def unregister():
+#     for cls in reversed(_classes):
+#         bpy.utils.unregister_class(cls)
 
-    # lets add ourselves to the main header
-    # bpy.types.TIME_MT_editor_menus.prepend(draw_shots_stack_toolbar_in_editor)
-
-    # display_shots_stack_toolbar_in_editor(context.window_manager.UAS_shot_manager__useInteracShotsStack)
-
-    # vse
-    # bpy.types.SEQUENCER_HT_header.append(draw_shots_stack_toolbar_in_editor)
-
-
-#   bpy.types.TIME_HT_editor_buttons.append(draw_shots_stack_toolbar_in_editor)
-# bpy.types.TIME_MT_editor_menus.append(draw_item)
-# bpy.types.TIME_MT_view.append(draw_item)
-
-
-def unregister():
-    for cls in reversed(_classes):
-        bpy.utils.unregister_class(cls)
-
-    # display_shots_stack_toolbar_in_editor(False)

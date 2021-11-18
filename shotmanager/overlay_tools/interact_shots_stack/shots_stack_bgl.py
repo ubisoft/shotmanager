@@ -16,7 +16,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 """
-UI for the Interactive Shots Stack overlay tool
+UI in BGL for the Interactive Shots Stack overlay tool
 """
 
 import time

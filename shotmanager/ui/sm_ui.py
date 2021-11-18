@@ -335,7 +335,7 @@ class UAS_PT_ShotManager(Panel):
         target_area_ind = props.getTargetViewportIndex(context, only_valid=True)
         # print(f"display area targ: expected_target_area_ind:{expected_target_area_ind}, targ:{target_area_ind}")
         targviewprow.alert = target_area_ind < expected_target_area_ind
-        targviewprow.prop(context.window_manager, "shotmanager_target_viewport_dropdwn", text="")
+        targviewprow.prop(props, "target_viewport_index", text="")
 
         # target_area = props.getValidTargetViewport(context)
 
