@@ -23,9 +23,9 @@ Eg here: https://blender.stackexchange.com/questions/196483/create-keyboard-shor
 
 import bpy
 
-import logging
+from shotmanager.config import sm_logging
 
-_logger = logging.getLogger(__name__)
+_logger = sm_logging.getLogger(__name__)
 
 addon_keymaps = []
 

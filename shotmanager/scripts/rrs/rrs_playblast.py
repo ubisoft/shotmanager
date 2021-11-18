@@ -30,9 +30,9 @@ from shotmanager.config import config
 
 # from shotmanager.rrs_specific.montage.montage_otio import MontageOtio
 
-import logging
+from shotmanager.config import sm_logging
 
-_logger = logging.getLogger(__name__)
+_logger = sm_logging.getLogger(__name__)
 
 
 def importShotMarkersFromMontage(scene, montageOtio, verbose=False):

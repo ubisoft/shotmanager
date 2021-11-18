@@ -53,9 +53,9 @@ from ..retimer.retimer_props import UAS_Retimer_Properties
 from shotmanager.utils import utils
 from shotmanager.utils.utils_time import zoom_dopesheet_view_to_range
 
-import logging
+from shotmanager.config import sm_logging
 
-_logger = logging.getLogger(__name__)
+_logger = sm_logging.getLogger(__name__)
 
 
 class UAS_ShotManager_Props(MontageInterface, PropertyGroup):

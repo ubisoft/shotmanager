@@ -25,9 +25,9 @@ from bpy.app.handlers import persistent
 from shotmanager.utils import utils
 from shotmanager.utils import utils_handlers
 
-import logging
+from shotmanager.config import sm_logging
 
-_logger = logging.getLogger(__name__)
+_logger = sm_logging.getLogger(__name__)
 
 
 def install_handler_for_shot(self, context):

@@ -19,10 +19,7 @@
 Shot Manager initialization
 """
 
-import logging
-
 import os
-from pathlib import Path
 
 import bpy
 
@@ -77,6 +74,12 @@ from . import keymaps
 
 from .debug import sm_debug
 
+# from shotmanager.config import sm_logging
+from shotmanager.config import sm_logging
+
+_logger = sm_logging.getLogger(__name__)
+
+
 bl_info = {
     "name": "Shot Manager",
     "author": "Ubisoft - Julien Blervaque (aka Werwack), Romain Carriquiry Borchiari",
@@ -93,125 +96,24 @@ __version__ = ".".join(str(i) for i in bl_info["version"])
 display_version = __version__
 
 
-###########
-# Logging
-###########
-
-
-def set_logger_color(org_string, level=None):
-    color_levels = {
-        10: "\033[36m{}\033[0m",  # DEBUG
-        20: "\033[32m{}\033[0m",  # INFO
-        30: "\033[33m{}\033[0m",  # WARNING
-        40: "\033[31m{}\033[0m",  # ERROR
-        50: "\033[7;31;31m{}\033[0m",  # FATAL/CRITICAL/EXCEPTION
-    }
-    if level is None:
-        return color_levels[20].format(org_string)
-    else:
-        return color_levels[int(level)].format(org_string)
-
-
-# https://docs.python.org/fr/3/howto/logging.html
-_logger = logging.getLogger(__name__)
-_logger.propagate = False
-MODULE_PATH = Path(__file__).parent.parent
-logging.basicConfig(level=logging.INFO)
-_logger.setLevel(logging.INFO)  # CRITICAL ERROR WARNING INFO DEBUG NOTSET
-
-_logger.info(set_logger_color("test"))
-_logger.debug(set_logger_color("test", level=10))
-_logger.warning(set_logger_color("test", level=30))
-_logger.error(set_logger_color("test", level=40))
-_logger.fatal(set_logger_color("test", level=50))
-
-# _logger.info(f"Logger {str(256) + 'my long very long text'}")
-# _logger.info(f"Logger {str(256)}")
-# _logger.warning(f"logger {256}")
-# _logger.error(f"error {256}")
-# _logger.debug(f"debug {256}")
-
-
-class Formatter(logging.Formatter):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
-    def format(self, record: logging.LogRecord):
-        """
-        The role of this custom formatter is:
-        - append filepath and lineno to logging format but shorten path to files, to make logs more clear
-        - to append "./" at the begining to permit going to the line quickly with VS Code CTRL+click from terminal
-        """
-        s = super().format(record)
-        pathname = Path(record.pathname).relative_to(MODULE_PATH)
-        s += f"  [{os.curdir}{os.sep}{pathname}:{record.lineno}]"
-        return s
-
-
-# def get_logs_directory():
-#     def _get_logs_directory():
-#         import tempfile
-
-#         if "MIXER_USER_LOGS_DIR" in os.environ:
-#             username = os.getlogin()
-#             base_shared_path = Path(os.environ["MIXER_USER_LOGS_DIR"])
-#             if os.path.exists(base_shared_path):
-#                 return os.path.join(os.fspath(base_shared_path), username)
-#             logger.error(
-#                 f"MIXER_USER_LOGS_DIR env var set to {base_shared_path}, but directory does not exists. Falling back to default location."
-#             )
-#         return os.path.join(os.fspath(tempfile.gettempdir()), "mixer")
-
-#     dir = _get_logs_directory()
-#     if not os.path.exists(dir):
-#         os.makedirs(dir)
-#     return dir
-
-
-# def get_log_file():
-#     from mixer.share_data import share_data
-
-#     return os.path.join(get_logs_directory(), f"mixer_logs_{share_data.run_id}.log")
-
-
 def register():
+
+    config.initGlobalVariables()
 
     from .utils import utils_ui
 
     utils_ui.register()
 
-    logger_level = f"Logger level: {logging.getLevelName(_logger.level)}"
+    sm_logging.initialize()
+    if config.devDebug:
+        _logger.setLevel("DEBUG")  # CRITICAL ERROR WARNING INFO DEBUG NOTSET
+
+    logger_level = f"Logger level: {sm_logging.getLevelName()}"
     versionTupple = utils.display_addon_registered_version("Shot Manager", more_info=logger_level)
-    config.initGlobalVariables()
 
     from .overlay_tools.workspace_info import workspace_info
 
     workspace_info.register()
-
-    ###################
-    # logging
-    ###################
-
-    if len(_logger.handlers) == 0:
-        _logger.setLevel(logging.WARNING)
-        formatter = None
-
-        if config.devDebug_ignoreLoggerFormatting:
-            ch = "~"  # "\u02EB"
-            formatter = Formatter(ch + " {message:<140}", style="{")
-        else:
-            # formatter = Formatter("{asctime} {levelname[0]} {name:<30}  - {message:<80}", style="{")
-            formatter = Formatter("SM " + " {message:<80}", style="{")
-        handler = logging.StreamHandler()
-        handler.setFormatter(formatter)
-        _logger.addHandler(handler)
-
-        # handler = logging.FileHandler(get_log_file())
-        # handler.setFormatter(formatter)
-        # _logger.addHandler(handler)
-
-    if config.devDebug:
-        _logger.setLevel(logging.DEBUG)  # CRITICAL ERROR WARNING INFO DEBUG NOTSET
 
     # install dependencies and required Python libraries
     ###################
@@ -466,8 +368,7 @@ def register():
     )
 
     if config.devDebug:
-        print(f"\n ------ UAS debug: {config.devDebug} ------- ")
-        print(f" ------ _Logger Level: {logging.getLevelName(_logger.level)} ------- \n")
+        print(f"\n ------ Shot Manager debug: {config.devDebug} ------- ")
 
     print("")
 

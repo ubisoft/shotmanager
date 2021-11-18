@@ -99,7 +99,7 @@ def display_addon_registered_version(addon_name, more_info=""):
     versionTupple = addonVersion(addon_name)
     if versionTupple is not None:
         print(
-            "\n*** *** Registering "
+            "\n*** *** Registering Ubisoft "
             + addon_name
             + " Add-on - version: "
             + versionTupple[0]

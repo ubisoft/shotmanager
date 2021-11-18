@@ -36,9 +36,9 @@ from shotmanager.utils import utils_store_context as utilsStore
 from shotmanager.utils.utils_os import module_can_be_imported
 
 
-import logging
+from shotmanager.config import sm_logging
 
-_logger = logging.getLogger(__name__)
+_logger = sm_logging.getLogger(__name__)
 
 
 # def getCompositedMediaPath(rootPath, shot, specificFrame=None):

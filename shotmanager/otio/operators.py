@@ -44,9 +44,9 @@ from shotmanager.rrs_specific.montage.montage_otio import MontageOtio
 
 from . import otio_wrapper as ow
 
-import logging
+from shotmanager.config import sm_logging
 
-_logger = logging.getLogger(__name__)
+_logger = sm_logging.getLogger(__name__)
 
 
 class UAS_ShotManager_Export_OTIO(Operator):

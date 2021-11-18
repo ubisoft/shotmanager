@@ -32,9 +32,9 @@ from mathutils import Vector
 from shotmanager.config import config
 from shotmanager.utils.utils import clamp, gamma_color
 
-import logging
+from shotmanager.config import sm_logging
 
-_logger = logging.getLogger(__name__)
+_logger = sm_logging.getLogger(__name__)
 
 UNIFORM_SHADER_2D = gpu.shader.from_builtin("2D_UNIFORM_COLOR")
 

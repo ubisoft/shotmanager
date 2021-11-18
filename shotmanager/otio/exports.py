@@ -28,9 +28,9 @@ from xml.dom.minidom import parse
 
 from shotmanager.utils import utils_xml
 
-import logging
+from shotmanager.config import sm_logging
 
-_logger = logging.getLogger(__name__)
+_logger = sm_logging.getLogger(__name__)
 
 
 def exportShotManagerEditToOtio(

@@ -26,9 +26,9 @@ from pathlib import Path
 import bpy
 from shotmanager.rendering import rendering
 
-import logging
+from shotmanager.config import sm_logging
 
-_logger = logging.getLogger(__name__)
+_logger = sm_logging.getLogger(__name__)
 
 
 def verbose_set(key: str, default: bool, override: str, verbose: bool = True) -> None:

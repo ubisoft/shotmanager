@@ -39,9 +39,9 @@ from shotmanager.overlay_tools.viewport_camera_hud.camera_hud_handlers import sh
 from .sm_overlay_tools_handlers import shotMngHandler_frame_change_pre_jumpToShot
 
 
-import logging
+from shotmanager.config import sm_logging
 
-_logger = logging.getLogger(__name__)
+_logger = sm_logging.getLogger(__name__)
 
 
 def register():

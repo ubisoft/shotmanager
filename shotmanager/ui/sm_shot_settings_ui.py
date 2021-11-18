@@ -30,9 +30,9 @@ from shotmanager.features.cameraBG import cameraBG_ui as cBG
 from shotmanager.features.soundBG import soundBG_ui as sBG
 from shotmanager.features.greasepencil import greasepencil_ui as gp
 
-import logging
+from shotmanager.config import sm_logging
 
-_logger = logging.getLogger(__name__)
+_logger = sm_logging.getLogger(__name__)
 
 
 ##################

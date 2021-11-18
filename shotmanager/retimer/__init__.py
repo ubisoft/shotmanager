@@ -25,9 +25,9 @@ from . import retimer_ui
 from . import retimer_props
 from . import retimer_operators
 
-import logging
+from shotmanager.config import sm_logging
 
-_logger = logging.getLogger(__name__)
+_logger = sm_logging.getLogger(__name__)
 
 
 def register():

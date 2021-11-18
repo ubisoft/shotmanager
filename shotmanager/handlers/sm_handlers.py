@@ -22,9 +22,9 @@ Handler functions
 import bpy
 from bpy.app.handlers import persistent
 
-import logging
+from shotmanager.config import sm_logging
 
-_logger = logging.getLogger(__name__)
+_logger = sm_logging.getLogger(__name__)
 
 
 # @persistent

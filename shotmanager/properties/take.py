@@ -32,9 +32,9 @@ from shotmanager.rrs_specific.montage.montage_interface import SequenceInterface
 
 from shotmanager.properties.output_params import UAS_ShotManager_OutputParams_Resolution
 
-import logging
+from shotmanager.config import sm_logging
 
-_logger = logging.getLogger(__name__)
+_logger = sm_logging.getLogger(__name__)
 
 
 class UAS_ShotManager_Take(SequenceInterface, PropertyGroup):
@@ -91,8 +91,7 @@ class UAS_ShotManager_Take(SequenceInterface, PropertyGroup):
     #     return parentShotManager
 
     def initialize(self, parentProps, name="New Take"):
-        print("Initialising new take...")
-        _logger.debug(f"\n  Initialising new take with the name: {name}")
+        print(f"\nInitializing new take with name {name}...")
 
         self.parentScene = parentProps.parentScene
 

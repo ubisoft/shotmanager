@@ -36,9 +36,9 @@ from shotmanager.utils.utils_ogl import get_region_at_xy, Square
 
 # import mathutils
 
-import logging
+from shotmanager.config import sm_logging
 
-_logger = logging.getLogger(__name__)
+_logger = sm_logging.getLogger(__name__)
 
 
 class BL_UI_Cursor:

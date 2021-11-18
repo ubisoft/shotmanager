@@ -35,7 +35,6 @@ class UAS_ShotManager_DrawCameras_UI(bpy.types.Operator):
         self.draw_event = None
 
     def invoke(self, context, event):
-        print("Invoce draw_camera_hud_in_viewports")
         self.register_handlers(context)
 
         context.window_manager.modal_handler_add(self)
@@ -89,7 +88,6 @@ class UAS_ShotManager_DrawHudOnCamPov(bpy.types.Operator):
         self.draw_event = None
 
     def invoke(self, context, event):
-        print("invoke draw_camera_hud_in_pov")
         self.register_handlers(context)
 
         context.window_manager.modal_handler_add(self)

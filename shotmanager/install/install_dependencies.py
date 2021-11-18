@@ -23,9 +23,9 @@ import bpy
 from ..utils.utils_os import internet_on, module_can_be_imported, is_admin
 from . import addon_error_prefs
 
-import logging
+from shotmanager.config import sm_logging
 
-_logger = logging.getLogger(__name__)
+_logger = sm_logging.getLogger(__name__)
 
 
 def install_library(lib_names, pip_retries=2, pip_timeout=-100):
@@ -130,8 +130,8 @@ def install_library(lib_names, pip_retries=2, pip_timeout=-100):
                     str(pip_retries),
                     "install",
                     lib_names[1],
-                    #"git+https://github.com/PixarAnimationStudios/OpenTimelineIO.git",
-                    #"opentimelineio==0.11.0",
+                    # "git+https://github.com/PixarAnimationStudios/OpenTimelineIO.git",
+                    # "opentimelineio==0.11.0",
                     "--ignore-installed",
                 ]
             )
