@@ -22,31 +22,52 @@ Handler functions
 import bpy
 from bpy.app.handlers import persistent
 
+from shotmanager.config import config
 from shotmanager.config import sm_logging
 
 _logger = sm_logging.getLogger(__name__)
 
 
-# @persistent
+@persistent
 def shotMngHandler_undo_pre(self, context):
     print("\nSM Handler: Undo Pre")
+
+    # config.gShotsStackInfos["clips"] = list()
+    config.gShotsStackInfos = None
 
 
 #   bpy.context.window_manager.UAS_shot_manager_display_overlay_tools = False
 
 
-# @persistent
+@persistent
 def shotMngHandler_undo_post(self, context):
-    print("\nSM Handler: Undo Post")
+    print("SM Handler: Undo Post")
 
 
-# @persistent
+@persistent
+def shotMngHandler_redo_pre(self, context):
+    print("SM Handler: Redo Pre")
+
+    # config.gShotsStackInfos["clips"] = list()
+    config.gShotsStackInfos = None
+
+
+#   bpy.context.window_manager.UAS_shot_manager_display_overlay_tools = False
+
+
+@persistent
+def shotMngHandler_redo_post(self, context):
+    print("SM Handler: Redo Post")
+
+
+@persistent
 def shotMngHandler_load_pre(self, context):
-    print("\nSM Handler: Load Pre")
+    print("SM Handler: Load Pre")
 
 
+@persistent
 def shotMngHandler_load_post(self, context):
-    print("\nSM Handler: Load Post")
+    print("SM Handler: Load Post")
 
     # bpy.ops.uas_shot_manager.sequence_timeline.cancel(bpy.context)
 

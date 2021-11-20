@@ -53,6 +53,7 @@ from ..retimer.retimer_props import UAS_Retimer_Properties
 from shotmanager.utils import utils
 from shotmanager.utils.utils_time import zoom_dopesheet_view_to_range
 
+from shotmanager.config import config
 from shotmanager.config import sm_logging
 
 _logger = sm_logging.getLogger(__name__)
@@ -219,14 +220,15 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
 
         # check is the data version is compatible with the current version
         # wkip obsolete code due to post register data version check
-        if self.dataVersion <= 0 or self.dataVersion < bpy.context.window_manager.UAS_shot_manager_version:
-            # print("Warning: elf.dataVersion:", self.dataVersion)
-            # print(
-            #     "Warning: bpy.context.window_manager.UAS_shot_manager_version:",
-            #     bpy.context.window_manager.UAS_shot_manager_version,
-            # )
+        if config.devDebug:
+            if self.dataVersion <= 0 or self.dataVersion < bpy.context.window_manager.UAS_shot_manager_version:
+                # print("Warning: elf.dataVersion:", self.dataVersion)
+                # print(
+                #     "Warning: bpy.context.window_manager.UAS_shot_manager_version:",
+                #     bpy.context.window_manager.UAS_shot_manager_version,
+                # )
 
-            warningList.append(("Data version is lower than SM version !!", 50))
+                warningList.append(("Debug: Data version is lower than SM version. Save the file.", 50))
 
         # check if some camera markers bound to cameras are used in the scene
         ###########
@@ -2042,6 +2044,8 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         return self.selected_shot_index
 
     def getSelectedShot(self):
+        """Return the shot currently selected in the current take, None otherwise
+        """
         selectedShotInd = self.getSelectedShotIndex()
         selectedShot = None
         if -1 != selectedShotInd:

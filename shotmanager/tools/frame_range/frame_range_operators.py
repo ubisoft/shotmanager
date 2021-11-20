@@ -29,8 +29,8 @@ from shotmanager.utils.utils_time import zoom_dopesheet_view_to_range
 class UAS_ShotManager_SetTimeRangeStart(Operator):
     bl_idname = "uas_shot_manager.set_time_range_start"
     bl_label = "Set Start Range"
-    bl_description = "Set the end time range with the curent time value"
-    bl_options = {"INTERNAL", "UNDO"}
+    bl_description = "Set the start time range with the curent time value"
+    bl_options = {"REGISTER", "UNDO"}
 
     @classmethod
     def poll(cls, context):
@@ -49,7 +49,7 @@ class UAS_ShotManager_SetTimeRangeEnd(Operator):
     bl_idname = "uas_shot_manager.set_time_range_end"
     bl_label = "Set End Range"
     bl_description = "Set the end time range with the curent time value"
-    bl_options = {"INTERNAL", "UNDO"}
+    bl_options = {"REGISTER", "UNDO"}
 
     @classmethod
     def poll(cls, context):
@@ -68,7 +68,7 @@ class UAS_ShotManager_FrameTimeRange(Operator):
     bl_idname = "uas_shot_manager.frame_time_range"
     bl_label = "Frame Time Range"
     bl_description = "Change the VSE zoom value to fit the scene time range"
-    bl_options = {"INTERNAL"}
+    bl_options = {"REGISTER"}
 
     spacerPercent: FloatProperty(
         description="Range of time, in percentage, before and after the time range", min=0.0, max=40.0, default=5

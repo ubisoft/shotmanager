@@ -56,6 +56,10 @@ def initGlobalVariables():
 
     icons_col = pcoll
 
+    # interactive shots stack ############
+    global gShotsStackInfos
+    gShotsStackInfos = None
+
     # otio ############
 
     global gImportOpenTimelineIO

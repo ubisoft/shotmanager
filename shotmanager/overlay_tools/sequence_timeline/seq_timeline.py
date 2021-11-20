@@ -100,7 +100,7 @@ class UAS_ShotManager_sequenceTimeline(Operator):
                 context, [BL_UI_Timeline(0, context.area.height - 25, context.area.width, 25, target_area=target_area)]
             )  # , target_area=target_area
 
-            args = (self, context)
+            args = (self, context, self.widgets)
             self.register_handlers(args, context)
 
             context.window_manager.modal_handler_add(self)
@@ -165,53 +165,38 @@ class UAS_ShotManager_sequenceTimeline(Operator):
         self.unregister_handlers(context)
 
     # Draw handler to paint onto the screen
-    def draw_callback_px(self, op, context):
+    def draw_callback_px(self, op, context, widgets):
         # print(
         #     f"*** context.window_manager.UAS_shot_manager_display_overlay_tools: {context.window_manager.UAS_shot_manager_display_overlay_tools}"
         # )
         # if not context.window_manager.UAS_shot_manager_display_overlay_tools:
         #     return
 
-        # return
         if ignoreWidget(context):
             return
 
-        try:
-            self
-        except Exception as e:
-            # except NameError as e:
-            # self = None  # or some other default value.
-            _logger.error(f"*** Crash 1 in ogl context (draw_callback_px) - {e} ***")
-            return
+        # try:
+        #     if self is None or self.draw_handle is None:
+        #         print("*** draw_handled 11 in ogl context (draw_callback_px)")
+        #         return
+        # except Exception as e:
+        #     # except NameError as e:
+        #     # self = None  # or some other default value.
+        #     _logger.error(f"*** Crash 11 in ogl context (draw_callback_px) - {e} ***")
 
-        #   from _bpy import types as bpy_types
-
-        #   StructRNA = bpy_types.bpy_struct
-        #   properties = StructRNA.path_resolve(self, "properties")
-        #   _logger.error(f"*** Crash 15 in ogl context (draw_callback_px) - {properties} ***")
-
-        try:
-            if self is None or self.draw_handle is None:
-                print("*** draw_handled 11 in ogl context (draw_callback_px)")
-                return
-        except Exception as e:
-            # except NameError as e:
-            # self = None  # or some other default value.
-            _logger.error(f"*** Crash 11 in ogl context (draw_callback_px) - {e} ***")
-
-            context.window_manager.UAS_shot_manager_display_overlay_tools = False
-            bpy.types.SpaceView3D.draw_handler_remove(self.draw_handle, "WINDOW")
-            self.draw_handle = None
-            return
+        #     context.window_manager.UAS_shot_manager_display_overlay_tools = False
+        #     bpy.types.SpaceView3D.draw_handler_remove(self.draw_handle, "WINDOW")
+        #     self.draw_handle = None
+        #     return
 
         try:
-            for widget in self.widgets:
+            for widget in widgets:
                 widget.draw()
         except Exception as e:
             _logger.error(f"*** Crash 2 in ogl context (draw_callback_px) - {e} ***")
-            context.window_manager.UAS_shot_manager_display_overlay_tools = False
-            bpy.types.SpaceView3D.draw_handler_remove(self.draw_handle, "WINDOW")
-            self.draw_handle = None
+            # context.window_manager.UAS_shot_manager_display_overlay_tools = False
+            # bpy.types.SpaceView3D.draw_handler_remove(self.draw_handle, "WINDOW")
+            # self.draw_handle = None
 
 
 _classes = (UAS_ShotManager_sequenceTimeline,)

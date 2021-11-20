@@ -35,6 +35,7 @@ def register():
 
     shots_stack_operators.register()
     shots_stack_prefs.register()
+    shots_stack_toolbar.register()
     # shots_stack_bgl.register()
 
     # # # def _update_UAS_shot_manager__useInteracShotsStack(self, context):
@@ -62,6 +63,7 @@ def unregister():
     shots_stack_toolbar.display_shots_stack_toolbar_in_editor(False)
 
     # shots_stack_bgl.unregister()
+    shots_stack_toolbar.unregister()
     shots_stack_prefs.unregister()
     shots_stack_operators.unregister()
 

@@ -32,6 +32,7 @@ from mathutils import Vector
 from shotmanager.config import config
 from shotmanager.utils.utils import clamp, gamma_color
 
+from shotmanager.config import config
 from shotmanager.config import sm_logging
 
 _logger = sm_logging.getLogger(__name__)
@@ -39,19 +40,32 @@ _logger = sm_logging.getLogger(__name__)
 UNIFORM_SHADER_2D = gpu.shader.from_builtin("2D_UNIFORM_COLOR")
 
 
-def draw_shots_stack(context, shotsStackProps):
-    for clip in shotsStackProps.clips:
-        clip.draw(context)
-        # try:
-        #     clip.draw(context)
-        # except Exception as e:
-        #     # wkip wkip
-        #     pass
-    if shotsStackProps.frame_under_mouse is not None:
-        blf.color(0, 0.99, 0.99, 0.99, 1)
-        blf.size(0, 11, 72)
-        blf.position(0, shotsStackProps.prev_mouse_x + 4, shotsStackProps.prev_mouse_y + 10, 0)
-        blf.draw(0, str(shotsStackProps.frame_under_mouse))
+def draw_shots_stack(context):
+    ## with dico
+    # print(f" suis dans draw_shots_stack: config.gShotsStackInfos: {config.gShotsStackInfos}")
+    print("Here 80 - config.gShotsStackInfos Clips len: " + str(len(config.gShotsStackInfos["clips"])))
+
+    if config.gShotsStackInfos is not None:
+        print("Here 82")
+        for clip in config.gShotsStackInfos["clips"]:
+            print("Here 83")
+            clip.draw(context)
+            # try:
+            #     clip.draw(context)
+            # except Exception as e:
+            #     # wkip wkip
+            #     pass
+        print("Here 84")
+        if config.gShotsStackInfos["frame_under_mouse"] != -1:
+            print("Here 85")
+            blf.color(0, 0.99, 0.99, 0.99, 1)
+            blf.size(0, 11, 72)
+            blf.position(
+                0, config.gShotsStackInfos["prev_mouse_x"] + 4, config.gShotsStackInfos["prev_mouse_y"] + 10, 0
+            )
+            print("Here 86")
+            blf.draw(0, str(config.gShotsStackInfos["frame_under_mouse"]))
+            print("Here 87")
 
 
 def clamp_to_region(x, y, region):
@@ -304,11 +318,22 @@ class ShotClip:
 
         return None
 
+    ### #TODO: wkip undo doesn't work here !!!
     def handle_mouse_interaction(self, region, mouse_disp):
+        """
+        region: if region == -1:    left clip handle (start)
+                if region == 1:     right lip handle (end)
+        """
+        from shotmanager.properties.shot import UAS_ShotManager_Shot
+
+        #  bpy.ops.ed.undo_push(message=f"Set Shot Start...")
+
+        # !! we have to be sure we work on the selected shot !!!
         if region == 1:
             self.shot.end += mouse_disp
         elif region == -1:
             self.shot.start += mouse_disp
+            # bpy.ops.uas_shot_manager.set_shot_start(newStart=self.shot.start + mouse_disp)
         else:
             # Very important, don't use properties for changing both start and ends. Depending of the amount of displacement duration can change.
             if mouse_disp > 0:

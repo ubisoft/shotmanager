@@ -144,7 +144,7 @@ class UAS_ShotManager_OT_Create_Shots_From_OTIO_RRS(Operator):
     bl_idname = "uasshotmanager.createshotsfromotio_rrs"
     bl_label = "Import/Update Shots from EDL File"
     bl_description = "Open EDL file (Final Cut XML, OTIO...) to import a set of shots"
-    bl_options = {"INTERNAL", "UNDO"}
+    bl_options = {"REGISTER", "UNDO"}
 
     filepath: StringProperty(subtype="FILE_PATH")
     filter_glob: StringProperty(default="*.xml;*.otio", options={"HIDDEN"})
@@ -822,7 +822,7 @@ class UAS_ShotManager_OT_Create_Shots_From_OTIO(Operator):
     bl_idname = "uasshotmanager.createshotsfromotio"
     bl_label = "Import/Update Shots from EDL File - deprec"
     bl_description = "Open EDL file (Final Cut XML, OTIO...) to import a set of shots"
-    bl_options = {"INTERNAL", "UNDO"}
+    bl_options = {"REGISTER", "UNDO"}
 
     filepath: StringProperty(subtype="FILE_PATH")
     filter_glob: StringProperty(default="*.xml;*.otio", options={"HIDDEN"})

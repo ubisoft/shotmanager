@@ -112,18 +112,29 @@ def draw_shots_stack_toolbar_in_editor(self, context):
 def display_shots_stack_toolbar_in_editor(display_value):
     if display_value:
         bpy.types.TIME_MT_editor_menus.append(draw_shots_stack_toolbar_in_editor)
+
     else:
         bpy.types.TIME_MT_editor_menus.remove(draw_shots_stack_toolbar_in_editor)
 
 
+# https://blender.stackexchange.com/questions/34434/timeline-header-python-modification
 # _classes = (,)
 
-# def register():
-#     for cls in _classes:
-#         bpy.utils.register_class(cls)
+
+def register():
+    print("Register Shots Stack Toolbar")
+    #     for cls in _classes:
+    #         bpy.utils.register_class(cls)
 
 
-# def unregister():
-#     for cls in reversed(_classes):
-#         bpy.utils.unregister_class(cls)
+#   bpy.types.TIME_HT_editor_buttons.append(draw_frame_rate_property)
+
+
+def unregister():
+    print("Unregister Shots Stack Toolbar")
+    #     for cls in reversed(_classes):
+    #         bpy.utils.unregister_class(cls)
+
+
+#  bpy.types.TIME_HT_editor_buttons.remove(draw_frame_rate_property)
 

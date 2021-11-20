@@ -25,12 +25,8 @@ from bpy.app.handlers import persistent
 from shotmanager.config import config
 from shotmanager.utils import utils_handlers
 
-from .sm_handlers import (
-    shotMngHandler_undo_pre,
-    shotMngHandler_undo_post,
-    shotMngHandler_load_pre,
-    shotMngHandler_load_post,
-)
+from . import sm_handlers
+
 
 # from . import sm_check_data_handlers
 from .sm_check_data_handlers import shotMngHandler_load_post_checkDataVersion
@@ -77,11 +73,17 @@ def register():
     )
     bpy.app.handlers.load_post.append(shotMngHandler_load_post_cameraHUD)
 
-    bpy.app.handlers.load_pre.append(shotMngHandler_load_pre)
-    bpy.app.handlers.load_post.append(shotMngHandler_load_post)
+    # load
+    bpy.app.handlers.load_pre.append(sm_handlers.shotMngHandler_load_pre)
+    bpy.app.handlers.load_post.append(sm_handlers.shotMngHandler_load_post)
 
-    bpy.app.handlers.undo_pre.append(shotMngHandler_undo_pre)
-    bpy.app.handlers.undo_pre.append(shotMngHandler_undo_post)
+    # undo
+    bpy.app.handlers.undo_pre.append(sm_handlers.shotMngHandler_undo_pre)
+    bpy.app.handlers.undo_post.append(sm_handlers.shotMngHandler_undo_post)
+
+    # redo
+    bpy.app.handlers.redo_pre.append(sm_handlers.shotMngHandler_redo_pre)
+    bpy.app.handlers.redo_post.append(sm_handlers.shotMngHandler_redo_post)
 
     if config.devDebug:
         utils_handlers.displayHandlers(handlerCategName="load_post")
@@ -127,6 +129,17 @@ def unregister():
 
     # from . import interact_shots_stack
     # from . import sequence_timeline
+
+    # undo
+    bpy.app.handlers.undo_pre.remove(sm_handlers.shotMngHandler_undo_pre)
+    bpy.app.handlers.undo_post.remove(sm_handlers.shotMngHandler_undo_post)
+    # redo
+    bpy.app.handlers.redo_pre.remove(sm_handlers.shotMngHandler_redo_pre)
+    bpy.app.handlers.redo_post.remove(sm_handlers.shotMngHandler_redo_post)
+
+    # load
+    bpy.app.handlers.load_pre.remove(sm_handlers.shotMngHandler_load_pre)
+    bpy.app.handlers.load_post.remove(sm_handlers.shotMngHandler_load_post)
 
     # if True:
     utils_handlers.removeAllHandlerOccurences(

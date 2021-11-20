@@ -133,7 +133,7 @@ class UAS_Utils_CreateCameraFromView(Operator):
         "\nIf the view already contains a camera then its location and fov are used."
         "\nIf the viewport is not found then the new camera will be at the origin or at the cursor"
     )
-    bl_options = {"INTERNAL", "UNDO"}
+    bl_options = {"REGISTER", "UNDO"}
 
     def execute(self, context):
         scene = context.scene
@@ -155,7 +155,7 @@ class UAS_Utils_CameraToView(Operator):
         "\nShift + Click: Create a new camera matching the 3D view."
         "\nCtrl + Click: Make selected camera match the 3D view, LENS INCLUDED"
     )
-    bl_options = {"INTERNAL", "UNDO"}
+    bl_options = {"REGISTER", "UNDO"}
 
     def invoke(self, context, event):
         scene = context.scene
@@ -189,7 +189,7 @@ class UAS_Utils_GetCurrentFrameForTimeRange(Operator):
     bl_idname = "uas_utils.get_current_frame_for_time_range"
     bl_label = "Get/Set Current Frame"
     bl_description = "Click: Set time range with current frame value.\nShift + Click: Get value for current frame"
-    bl_options = {"INTERNAL", "UNDO"}
+    bl_options = {"REGISTER", "UNDO"}
 
     # opArgs is a dictionary containing this operator properties and dumped to a json string
     opArgs: StringProperty(default="")

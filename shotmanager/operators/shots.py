@@ -23,6 +23,8 @@ import bpy
 from bpy.types import Operator
 from bpy.props import IntProperty, StringProperty, EnumProperty, BoolProperty, FloatVectorProperty, PointerProperty
 
+from shotmanager.properties.shot import UAS_ShotManager_Shot
+
 from random import uniform
 import json
 
@@ -36,6 +38,56 @@ def list_cameras(self, context):
         res.append((cam.name, cam.name, "", i))
 
     return res
+
+
+########################
+# for shot manipulation
+########################
+
+
+class UAS_ShotManager_SetShotStart(Operator):
+    bl_idname = "uas_shot_manager.set_shot_start"
+    bl_label = "Set Shot Start"
+    bl_description = "Set the end time range with the curent time value"
+    bl_options = {"INTERNAL", "UNDO_GROUPED"}
+
+    # @classmethod
+    # def poll(cls, context):
+    #     return bpy.context.preferences.addons["shotmanager"].preferences.display_frame_range_tool
+
+    newStart: IntProperty(default=-99999)
+    # shot: PointerProperty(type=UAS_ShotManager_Shot)
+
+    def execute(self, context):
+        props = context.scene.UAS_shot_manager_props
+        shot = props.getSelectedShot()
+        # Manually add undo here
+        if shot is not None:
+            print(f"Shot Op: {self.newStart}, shot:{shot.name}")
+            newValidStart = min(self.newStart, shot.end)
+            #    bpy.ops.ed.undo_push(message=f"Set Shot Start to {newValidStart}")
+            if shot.durationLocked:
+                shot.durationLocked = False
+                shot.start = newValidStart
+                shot.durationLocked = True
+            else:
+                shot.start = newValidStart
+
+        # if shot.durationLocked:
+        #     if start_frame < shot.start:
+        #         shot.start += offset
+        #     elif start_frame < shot.end:
+        #         shot.durationLocked = False
+        #         shot.end += offset
+        #         shot.durationLocked = True
+        # else:
+        #     # important to offset end first!!
+        #     if start_frame < shot.end:
+        #         shot.end += offset
+        #     if start_frame < shot.start:
+        #         shot.start += offset
+
+        return {"FINISHED"}
 
 
 ########################
@@ -55,7 +107,7 @@ class UAS_ShotManager_SetCurrentShot(Operator):
         "\nCtrl + Click: Select Shot Camera."
         "\nAlt + Click: Set the shot as current one but do not change time"
     )
-    bl_options = {"INTERNAL", "UNDO"}
+    bl_options = {"REGISTER", "UNDO"}
 
     index: bpy.props.IntProperty()
 
@@ -256,7 +308,7 @@ class UAS_ShotManager_MakeShotCameraUnique(Operator):
     bl_idname = "uas_shot_manager.make_shot_camera_unique"
     bl_label = "Make Shot Camera Unique"
     bl_description = "If the camera is also used by another shot of the scene then it gets duplicated"
-    bl_options = {"INTERNAL", "UNDO"}
+    bl_options = {"REGISTER", "UNDO"}
 
     shotName: StringProperty(default="")
 
@@ -291,7 +343,7 @@ class UAS_ShotManager_ShotAdd_GetCurrentFrameFor(Operator):
     bl_idname = "uas_shot_manager.shotadd_getcurrentframefor"
     bl_label = "Get Current Frame"
     bl_description = "Use the current frame for the specifed component"
-    bl_options = {"INTERNAL", "UNDO"}
+    bl_options = {"REGISTER", "UNDO"}
 
     propertyToUpdate: StringProperty()
 
@@ -319,7 +371,7 @@ class UAS_ShotManager_ShotAdd(Operator):
         "Add a new shot starting at the current frame and using the selected camera"
         "\nThe new shot is put after the selected shot"
     )
-    bl_options = {"INTERNAL", "UNDO"}
+    bl_options = {"REGISTER", "UNDO"}
 
     name: StringProperty(name="Name")
     cameraName: EnumProperty(items=list_cameras_for_new_shot, name="Camera", description="New Shot Camera")
@@ -593,7 +645,7 @@ class UAS_ShotManager_ShotDuplicate(Operator):
     bl_label = "Duplicate Selected Shot..."
     bl_description = "Duplicate the shot selected in the shot list."
     "\nThe new shot is put after the selected shot"
-    bl_options = {"INTERNAL", "UNDO"}
+    bl_options = {"REGISTER", "UNDO"}
 
     name: StringProperty(name="Name")
     startAtCurrentTime: BoolProperty(name="Start at Current Frame", default=True)
@@ -681,7 +733,7 @@ class UAS_ShotManager_ShotRemove(Operator):
     bl_idname = "uas_shot_manager.shot_remove"
     bl_label = "Remove Selected Shot"
     bl_description = "Remove the shot selected in the shot list."
-    bl_options = {"INTERNAL", "UNDO"}
+    bl_options = {"REGISTER", "UNDO"}
 
     @classmethod
     def poll(cls, context):
@@ -708,7 +760,7 @@ class UAS_ShotManager_ShotMove(Operator):
     bl_idname = "uas_shot_manager.shot_move"
     bl_label = "Move Shot"
     bl_description = "Move selected shot up or down in the take, in other words before or after in the edit"
-    bl_options = {"INTERNAL", "UNDO"}
+    bl_options = {"REGISTER", "UNDO"}
 
     action: bpy.props.EnumProperty(items=(("UP", "Up", ""), ("DOWN", "Down", "")))
 
@@ -808,7 +860,7 @@ class UAS_ShotManager_CreateShotsFromEachCamera(Operator):
     bl_idname = "uas_shot_manager.create_shots_from_each_camera"
     bl_label = "Create Shots From Existing Cameras"
     bl_description = "Create a new shot for each camera in the scene.\nThe edit made with these shots will cover the current animation range."
-    bl_options = {"INTERNAL", "UNDO"}
+    bl_options = {"REGISTER", "UNDO"}
 
     def invoke(self, context, event):
         scene = context.scene
@@ -1009,7 +1061,7 @@ class UAS_ShotManager_DuplicateShotsToOtherTake(Operator):
     bl_idname = "uas_shot_manager.shot_duplicates_to_other_take"
     bl_label = "Duplicate / Move Enabled Shots to Another Take..."
     bl_description = "Duplicate or move enabled shots to the specified take"
-    bl_options = {"INTERNAL", "UNDO"}
+    bl_options = {"REGISTER", "UNDO"}
 
     mode: EnumProperty(
         name="Mode",
@@ -1117,7 +1169,7 @@ class UAS_ShotManager_ShotRemoveMultiple(Operator):
     bl_idname = "uas_shot_manager.remove_multiple_shots"
     bl_label = "Remove Shots"
     bl_description = "Remove the specified shots from the current take"
-    bl_options = {"INTERNAL", "UNDO"}
+    bl_options = {"REGISTER", "UNDO"}
 
     action: EnumProperty(items=(("ALL", "ALL", ""), ("DISABLED", "DISABLED", "")), default="ALL")
 
@@ -1215,7 +1267,7 @@ class UAS_ShotManager_Shots_SelectCamera(Operator):
     bl_idname = "uas_shot_manager.shots_selectcamera"
     bl_label = "Select Camera"
     bl_description = "Deselect all and select specified camera"
-    bl_options = {"INTERNAL", "UNDO"}
+    bl_options = {"REGISTER", "UNDO"}
 
     index: bpy.props.IntProperty(default=0)
 
@@ -1236,7 +1288,7 @@ class UAS_ShotManager_Shots_RemoveCamera(Operator):
     bl_idname = "uas_shot_manager.shots_removecamera"
     bl_label = "Remove Camera From All Shots..."
     bl_description = "Remove the camera of the selected shot from all the shots."
-    bl_options = {"INTERNAL", "UNDO"}
+    bl_options = {"REGISTER", "UNDO"}
 
     removeFromOtherTakes: BoolProperty(name="Also Remove From Other Takes", default=False)
 
@@ -1286,7 +1338,7 @@ class UAS_ShotManager_UniqueCameras(Operator):
     bl_idname = "uas_shot_manager.unique_cameras"
     bl_label = "Make All Cameras Unique"
     bl_description = "Make cameras unique per shot"
-    bl_options = {"INTERNAL", "UNDO"}
+    bl_options = {"REGISTER", "UNDO"}
 
     @classmethod
     def poll(cls, context):
@@ -1329,6 +1381,8 @@ class UAS_ShotManager_UniqueCameras(Operator):
 
 
 _classes = (
+    # for shot maniputlation
+    UAS_ShotManager_SetShotStart,
     # for shot items:
     UAS_ShotManager_SetCurrentShot,
     UAS_ShotManager_ShotDuration,

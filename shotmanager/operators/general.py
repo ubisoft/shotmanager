@@ -86,7 +86,7 @@ class UAS_ShotManager_OT_ClearMarkersFromCameraBinding(Operator):
     bl_idname = "uas_shot_manager.clear_markers_from_camera_binding"
     bl_label = "Clear Camera Binding"
     bl_description = "Remove the camera binding from the markers used in the timeline.\nMarkers are not deleted"
-    bl_options = {"INTERNAL", "UNDO"}
+    bl_options = {"REGISTER", "UNDO"}
 
     def invoke(self, context, event):
         clearMarkersFromCameraBinding(context.scene)
@@ -99,7 +99,7 @@ class UAS_ShotManager_OT_ConvertMarkersFromCameraBindingToShots(Operator):
     bl_description = (
         "Convert the camera binding used by markers to shots and remove their binding.\nMarkers are not deleted"
     )
-    bl_options = {"INTERNAL", "UNDO"}
+    bl_options = {"REGISTER", "UNDO"}
 
     def invoke(self, context, event):
         convertMarkersFromCameraBindingToShots(context.scene)
