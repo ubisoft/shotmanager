@@ -17,76 +17,118 @@
 
 """
 Logging for Shot Manager
+
+Read this: https://stackoverflow.com/questions/7274732/extending-the-python-logger
+
 """
 
 import os
 from pathlib import Path
 
+import sys
 import logging
+from logging import DEBUG, INFO, ERROR
 
 from shotmanager.config import config
 
 
 def getLogger(name):
-    return logging.getLogger(name)
+    return _logger
 
 
 def getLevelName():
     return logging.getLevelName(_logger.level)
 
 
-def setLevel(level_name):
-    if "NOTSET" == level_name:
-        _logger.setLevel(logging.NOTSET)
-    elif "DEBUG" == level_name:
-        _logger.setLevel(logging.DEBUG)
-    elif "INFO" == level_name:
-        _logger.setLevel(logging.INFO)
-    elif "WARNING" == level_name:
-        _logger.setLevel(logging.WARNING)
-    elif "ERROR" == level_name:
-        _logger.setLevel(logging.ERROR)
-    elif "CRITICAL" == level_name:
-        _logger.setLevel(logging.CRITICAL)
+# cf https://stackoverflow.com/questions/7274732/extending-the-python-logger
 
 
-def set_logger_color(org_string, level=None):
-    color_levels = {
-        10: "\033[36m{}\033[0m",  # DEBUG
-        20: "\033[32m{}\033[0m",  # INFO
-        30: "\033[33m{}\033[0m",  # WARNING
-        40: "\033[31m{}\033[0m",  # ERROR
-        50: "\033[7;31;31m{}\033[0m",  # FATAL/CRITICAL/EXCEPTION
-    }
-    if level is None:
-        return color_levels[20].format(org_string)
-    else:
-        return color_levels[int(level)].format(org_string)
+class SM_Logger(logging.getLoggerClass()):
+    def __init__(self, name):
+        super(SM_Logger, self).__init__(name)
 
+        # colors in terminal: https://stackoverflow.com/questions/384076/how-can-i-color-python-logging-output
+        self._colors = {
+            "GREEN": "\33[32m",
+            "GRAY": "\33[1;30m",
+            "YELLOW": "\33[33m",
+            "RED": "\33[31m",
+            "BLUE": "\33[34m",
+            "VIOLET": "\33[35m",
+            "TURQUOISE": "\33[36m",
+            "WHITE": "\33[37m",
+        }
 
-# https://docs.python.org/fr/3/howto/logging.html
-_logger = logging.getLogger(__name__)
-_logger.propagate = False
-MODULE_PATH = Path(__file__).parent.parent
-logging.basicConfig(level=logging.INFO)
-_logger.setLevel(logging.INFO)  # CRITICAL ERROR WARNING INFO DEBUG NOTSET
+        # self._formatter_standard = Formatter("\33[36m" + "~Basic +++" + " {message:<140}" + "\033[0m", style="{")
+        self._formatter_standard = Formatter("SM - " + " {message:<110}", style="{")
+        self._formatter_basic = Formatter("\33[36m" + "~Basic +++" + " {message:<140}" + "\033[0m", style="{")
+        self._formatter_other = Formatter("\33[36m" + "S OTHER M+" + " {message:<140}" + "\033[0m", style="{")
+        self._formatter = {
+            "STD": self._formatter_standard,
+            "BASIC": self._formatter_basic,
+            "OTHER": self._formatter_other,
+        }
 
-# _logger.info(set_logger_color("test"))
-# _logger.debug(set_logger_color("test", level=10))
-# _logger.warning(set_logger_color("test", level=30))
-# _logger.error(set_logger_color("test", level=40))
-# _logger.fatal(set_logger_color("test", level=50))
+    def _getFormatter(self, col="", form="DEFAULT"):
+        color = self._colors[col] if col != "" else ""
 
-# _logger.info(f"Logger {str(256) + 'my long very long text'}")
-# _logger.info(f"Logger {str(256)}")
-# _logger.warning(f"logger {256}")
-# _logger.error(f"error {256}")
-# _logger.debug(f"debug {256}")
+        if "STD" == form:
+            f = Formatter(color + "~Std +++" + " {message:<140}" + "\033[0m", style="{")
+        elif "REG" == form:
+            if "" == col:
+                color = self._colors["YELLOW"]
+            f = Formatter(color + "{message:<90}" + "\033[0m", style="{")
+        elif "UNREG" == form:
+            if "" == col:
+                color = self._colors["GRAY"]
+            f = Formatter(color + "{message:<90}" + "\033[0m", style="{")
+        elif "BASIC" == form:
+            f = Formatter(color + "~Basic +++" + " {message:<140}" + "\033[0m", style="{")
+        elif "OTHER" == form:
+            f = Formatter(color + "~Other +++" + " {message:<140}" + "\033[0m", style="{")
+        else:  # "DEFAULT"
+            f = Formatter("\033[0m" + "~Std default +++" + " {message:<140}", style="{")
+        return f
 
+    # to remove
+    def info_colored(self, msg, extra=None, col=""):
+        super(SM_Logger, self).info((self._colors[col] + "{}\033[0m").format(msg), extra=extra)
 
-###########
-# Logging
-###########
+    # def debug_basic(self, msg, extra=None, color="GREEN", formatter="OTHER"):
+    #     ch = logging.StreamHandler()
+    #     ch.setLevel(logging.DEBUG)
+    #     ### ch.setFormatter(self.formatter_basic)
+    #     # _logger.handlers[0].setFormatter(self.formatter_basic)
+    #     _logger.handlers[0].setFormatter(self._formatter[formatter])
+    #     super(SM_Logger, self).debug((self._colors[color] + "{}\033[0m").format(msg), extra=extra)
+    #     # ch.setFormatter(self.formatter_other)
+    #     _logger.handlers[0].setFormatter(self._formatter["OTHER"])
+
+    def debug_form(self, col="GREEN", form="DEFAULT"):
+        """Set formatter. To use before call to debug()
+            eg: _logger.debug_form(col="GREEN", form="STD")
+                _logger.debug("debug test timer green")
+        """
+        ch = logging.StreamHandler()
+        ch.setLevel(logging.DEBUG)
+        _logger.handlers[0].setFormatter(self._getFormatter(col, form))
+
+    def debug_ext(self, msg, extra=None, col="", form="STD"):
+        _logger.handlers[0].setFormatter(self._getFormatter(col, form))
+
+        # Note: marvellous parameter: stacklevel allows to get the call from the sender, otherwise
+        # it is this function that is used and the path is not good
+        # cf https://stackoverflow.com/questions/14406347/python-logging-check-location-of-log-files
+        # and https://www.py4u.net/discuss/157715
+        super(SM_Logger, self).debug(("{}").format(msg), extra=extra, stacklevel=2)
+        _logger.handlers[0].setFormatter(self._getFormatter(col, form))
+
+    # # wkip not working...
+    # def debug(self, msg, extra=None, col="GREEN", form="STD"):
+    #     print("Kid")
+    #     _logger.handlers[0].setFormatter(self._getFormatter(col, form))
+    #     super(SM_Logger, self).debug(("{}").format(msg), extra=extra, stacklevel=2)
+    #     _logger.handlers[0].setFormatter(self._formatter["STD"])
 
 
 class Formatter(logging.Formatter):
@@ -100,9 +142,87 @@ class Formatter(logging.Formatter):
         - to append "./" at the begining to permit going to the line quickly with VS Code CTRL+click from terminal
         """
         s = super().format(record)
+
+        MODULE_PATH = Path(__file__).parent.parent
+        # print("MODULE_PATH:" + str(MODULE_PATH))
         pathname = Path(record.pathname).relative_to(MODULE_PATH)
         s += f"  [{os.curdir}{os.sep}{pathname}:{record.lineno}]"
         return s
+
+
+def loggerFormatTest(message=""):
+    return
+
+    print(message)
+    # warning: put back to the application mode afterward
+    _logger.setLevel(logging.DEBUG)
+
+    _logger.debug("debug message")
+    _logger.info("info message")
+    _logger.info_colored("info message colored")
+    _logger.warning("warning message")
+    _logger.error("error message")
+    _logger.critical("critical message")
+
+    # _logger.debug_basic("Test Debug Basic")
+    # _logger.debug_basic("Test Debug Basic", formatter="BASIC")
+    _logger.debug("debug message 02")
+
+    _logger.debug_ext("debug_ext", col="RED", form="STD")
+    _logger.debug_ext("debug_ext", col="BLUE", form="BASIC")
+
+    mes = "          - Registering Test Package"
+    print(mes)
+    _logger.debug_ext(mes, form="REG")
+    _logger.debug_ext("debug test override", col="RED", form="REG")
+
+    # use normal debug() call with aformmatter set before
+    _logger.debug_form(col="GREEN", form="STD")
+    _logger.debug("debug test timer green")
+
+
+logging.setLoggerClass(SM_Logger)
+_logger = logging.getLogger(__name__)
+
+# https://docs.python.org/fr/3/howto/logging.html
+# https://stackoverflow.com/questions/11581794/how-do-i-change-the-format-of-a-python-log-message-on-a-per-logger-basis
+
+
+def initialize():
+
+    if config.devDebug:
+        print(f"Initializing Logger...")
+        print(f"len(_logger.handlers): {len(_logger.handlers)}")
+
+    _logger.propagate = False
+
+    logging.basicConfig(level=logging.INFO)
+    _logger.setLevel(logging.INFO)  # CRITICAL ERROR WARNING INFO DEBUG NOTSET
+
+    # _logger.setLevel(logging.DEBUG)
+    formatter = None
+
+    # call config.initGlobalVariables() to get the config variables (currently done in Shot Manager init)
+    if config.devDebug_ignoreLoggerFormatting:
+        ch = "~"  # "\u02EB"
+        formatter = Formatter("\33[36m" + ch + " {message:<140}" + "\033[0m", style="{")
+    else:
+        # formatter = Formatter("{asctime} {levelname[0]} {name:<30}  - {message:<80}", style="{")
+        formatter = Formatter("SM " + " {message:<80}", style="{")
+
+    if len(_logger.handlers) == 0:
+        handler = logging.StreamHandler()
+        handler.setFormatter(formatter)
+        _logger.addHandler(handler)
+
+    else:
+        _logger.handlers[0].setFormatter(formatter)
+
+        # handler = logging.FileHandler(get_log_file())
+        # handler.setFormatter(formatter)
+        # _logger.addHandler(handler)
+
+    loggerFormatTest()
 
 
 # def get_logs_directory():
@@ -129,24 +249,3 @@ class Formatter(logging.Formatter):
 #     from mixer.share_data import share_data
 
 #     return os.path.join(get_logs_directory(), f"mixer_logs_{share_data.run_id}.log")
-
-
-def initialize():
-    if len(_logger.handlers) == 0:
-        _logger.setLevel(logging.WARNING)
-        formatter = None
-
-        # call config.initGlobalVariables() to get the config variables (currently done in Shot Manager init)
-        if config.devDebug_ignoreLoggerFormatting:
-            ch = "~"  # "\u02EB"
-            formatter = Formatter(ch + " {message:<140}", style="{")
-        else:
-            # formatter = Formatter("{asctime} {levelname[0]} {name:<30}  - {message:<80}", style="{")
-            formatter = Formatter("SM " + " {message:<80}", style="{")
-        handler = logging.StreamHandler()
-        handler.setFormatter(formatter)
-        _logger.addHandler(handler)
-
-        # handler = logging.FileHandler(get_log_file())
-        # handler.setFormatter(formatter)
-        # _logger.addHandler(handler)

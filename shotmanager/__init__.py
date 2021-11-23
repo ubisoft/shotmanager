@@ -111,6 +111,9 @@ def register():
     logger_level = f"Logger level: {sm_logging.getLevelName()}"
     versionTupple = utils.display_addon_registered_version("Shot Manager", more_info=logger_level)
 
+    # _logger.info_green(f"my test")
+    # _logger.debug_colored(f"my test")
+
     from .overlay_tools.workspace_info import workspace_info
 
     workspace_info.register()

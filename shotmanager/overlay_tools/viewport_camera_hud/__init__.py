@@ -23,16 +23,20 @@ import bpy
 from . import camera_hud
 from . import camera_hud_operators
 
+from shotmanager.config import sm_logging
+
+_logger = sm_logging.getLogger(__name__)
+
 
 def register():
-    print("       - Registering Viewport Camera HUD Package")
+    _logger.debug_ext("       - Registering Viewport Camera HUD Package", form="REG")
 
     camera_hud.register()
     camera_hud_operators.register()
 
 
 def unregister():
-    print("       - Unregistering Viewport Camera HUD Package")
+    _logger.debug_ext("       - Unregistering Viewport Camera HUD Package", form="UNREG")
 
     camera_hud_operators.unregister()
     try:

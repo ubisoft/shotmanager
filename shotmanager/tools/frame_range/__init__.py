@@ -20,18 +20,19 @@ Frame Range Init
 """
 
 import bpy
-
-
 from . import frame_range_operators
+from shotmanager.config import sm_logging
+
+_logger = sm_logging.getLogger(__name__)
 
 
 def register():
-    print("       - Registering Frame Range Tool Package")
+    _logger.debug_ext("       - Registering Frame Range Tool Package", form="REG")
 
     frame_range_operators.register()
 
 
 def unregister():
-    print("       - Unregistering Frame Range Tool Package")
+    _logger.debug_ext("       - Unregistering Frame Range Tool Package", form="UNREG")
 
     frame_range_operators.unregister()

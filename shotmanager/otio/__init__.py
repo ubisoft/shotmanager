@@ -16,7 +16,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 """
-To do: module description here.
+OTIO
 """
 
 import os
@@ -134,12 +134,14 @@ else:
 def register():
     from . import operators
 
-    print("       - Registering OTIO Package")
+    _logger.debug_ext("       - Registering OTIO Package", form="REG")
+
     operators.register()
 
 
 def unregister():
     from . import operators
 
-    print("       - Unregistering OTIO Package")
+    _logger.debug_ext("       - Unregistering OTIO Package", form="UNREG")
+
     operators.unregister()

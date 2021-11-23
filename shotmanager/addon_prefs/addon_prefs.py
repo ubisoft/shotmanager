@@ -27,6 +27,10 @@ from bpy.props import StringProperty, IntProperty, BoolProperty, EnumProperty
 
 from .addon_prefs_ui import draw_shotmanager_addon_prefs
 
+from shotmanager.config import sm_logging
+
+_logger = sm_logging.getLogger(__name__)
+
 
 class UAS_ShotManager_AddonPrefs(AddonPreferences):
     """
@@ -454,11 +458,14 @@ _classes = (UAS_ShotManager_AddonPrefs,)
 
 
 def register():
+    _logger.debug_ext("       - Registering Add-on Preferences", form="REG")
+
     for cls in _classes:
         bpy.utils.register_class(cls)
 
 
 def unregister():
-    print("       - Unregistering Add-on Preferences")
+    _logger.debug_ext("       - Unregistering Add-on Preferences", form="UNREG")
+
     for cls in reversed(_classes):
         bpy.utils.unregister_class(cls)

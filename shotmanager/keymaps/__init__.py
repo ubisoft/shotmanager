@@ -31,7 +31,7 @@ addon_keymaps = []
 
 
 def register():
-    print("       - Registering Keymaps Package")
+    _logger.debug_ext("       - Registering Keymaps Package", form="REG")
 
     # Add the hotkey
     wm = bpy.context.window_manager
@@ -75,7 +75,7 @@ def register():
 
 
 def unregister():
-    print("       - Unregistering Keymaps Package")
+    _logger.debug_ext("       - Unregistering Keymaps Package", form="UNREG")
 
     # Remove the hotkey
     for km, kmi in addon_keymaps:

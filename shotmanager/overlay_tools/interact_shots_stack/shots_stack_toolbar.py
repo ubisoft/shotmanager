@@ -24,6 +24,9 @@ from bpy.types import Operator
 from bpy.props import FloatProperty
 
 from shotmanager.config import config
+from shotmanager.config import sm_logging
+
+_logger = sm_logging.getLogger(__name__)
 
 
 def display_state_changed_intShStack(context):
@@ -122,7 +125,8 @@ def display_shots_stack_toolbar_in_editor(display_value):
 
 
 def register():
-    print("Register Shots Stack Toolbar")
+    _logger.debug_ext("       - Registering Shots Stack Toolbar", form="REG")
+
     #     for cls in _classes:
     #         bpy.utils.register_class(cls)
 
@@ -131,7 +135,8 @@ def register():
 
 
 def unregister():
-    print("Unregister Shots Stack Toolbar")
+    _logger.debug_ext("       - Unregistering Shots Stack Toolbar", form="UNREG")
+
     #     for cls in reversed(_classes):
     #         bpy.utils.unregister_class(cls)
 

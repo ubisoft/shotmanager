@@ -25,9 +25,13 @@ from bpy.props import BoolProperty
 from . import seq_timeline
 from . import seq_timeline_operators
 
+from shotmanager.config import sm_logging
+
+_logger = sm_logging.getLogger(__name__)
+
 
 def register():
-    print("       - Registering Viewport Timeline Package")
+    _logger.debug_ext("       - Registering Sequence Timeline", form="REG")
 
     seq_timeline.register()
     seq_timeline_operators.register()
@@ -45,13 +49,13 @@ def register():
 
 
 def unregister():
-    print("       - Unregistering Viewport Timeline Package")
+    _logger.debug_ext("       - Unregistering Sequence Timeline", form="UNREG")
 
     seq_timeline_operators.unregister()
 
     try:
         seq_timeline.unregister()
     except Exception:
-        print("       - Paf in Unregistering Viewport Timeline Package")
+        print("       - Paf in Unregistering Sequence Timeline Package")
 
     del bpy.types.WindowManager.UAS_shot_manager__useSequenceTimeline

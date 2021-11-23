@@ -41,7 +41,7 @@ _logger = sm_logging.getLogger(__name__)
 
 
 def register():
-    print("       - Registering Handlers Package")
+    _logger.debug_ext("       - Registering Handlers Package", form="REG")
 
     # for cls in _classes:
     #     bpy.utils.register_class(cls)
@@ -122,7 +122,7 @@ def register():
 
 
 def unregister():
-    print("       - Unregistering Handlers Package")
+    _logger.debug_ext("       - Unregistering Handlers Package", form="UNREG")
 
     # for cls in reversed(_classes):
     #     bpy.utils.unregister_class(cls)

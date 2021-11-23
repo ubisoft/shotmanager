@@ -28,9 +28,14 @@ from . import shots_stack_toolbar
 
 # from . import shots_stack_bgl
 
+from shotmanager.config import sm_logging
+
+_logger = sm_logging.getLogger(__name__)
+
 
 def register():
-    print("       - Registering Interactive Shots Stack Package")
+    _logger.debug_ext("       - Registering Interactive Shots Stack Package", form="REG")
+
     prefs = bpy.context.preferences.addons["shotmanager"].preferences
 
     shots_stack_operators.register()
@@ -57,7 +62,7 @@ def register():
 
 
 def unregister():
-    print("       - Unregistering Interactive Shots Stack Package")
+    _logger.debug_ext("       - Unregistering Interactive Shots Stack Package", form="UNREG")
 
     # shots_stack_toolbar.unregister()
     shots_stack_toolbar.display_shots_stack_toolbar_in_editor(False)

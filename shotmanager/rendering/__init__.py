@@ -38,7 +38,7 @@ _classes = (
 
 
 def register():
-    print("       - Registering Rendering Package")
+    _logger.debug_ext("       - Registering Rendering Package", form="REG")
 
     for cls in _classes:
         bpy.utils.register_class(cls)
@@ -48,6 +48,8 @@ def register():
 
 
 def unregister():
+    _logger.debug_ext("       - Unregistering Rendering Package", form="UNREG")
+
     for cls in reversed(_classes):
         bpy.utils.unregister_class(cls)
 

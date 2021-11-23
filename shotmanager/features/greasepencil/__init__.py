@@ -16,7 +16,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 """
-To do: module description here.
+Grease Pencil
 """
 
 from shotmanager.config import config
@@ -33,8 +33,7 @@ _logger = sm_logging.getLogger(__name__)
 
 
 def register():
-    if config.devDebug:
-        print("       - Registering Grease Pencil Package")
+    _logger.debug_ext("       - Registering Grease Pencil Package", form="REG")
 
     # for cls in _classes:
     #     bpy.utils.register_class(cls)
@@ -44,6 +43,8 @@ def register():
 
 
 def unregister():
+    _logger.debug_ext("       - Unregistering Grease Pencil Package", form="UNREG")
+
     # for cls in reversed(_classes):
     #     bpy.utils.unregister_class(cls)
 

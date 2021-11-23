@@ -31,12 +31,15 @@ from . import prefs_sequence
 from . import prefs_tools
 from . import prefs
 
+from shotmanager.config import sm_logging
+
+_logger = sm_logging.getLogger(__name__)
 
 # _classes = (UAS_ShotManager_OT_About,)
 
 
 def register():
-    print("       - Registering Prefs Package")
+    _logger.debug_ext("       - Registering Prefs Package", form="REG")
 
     about.register()
     features.register()
@@ -53,7 +56,7 @@ def register():
 
 
 def unregister():
-    print("       - Unregistering Prefs Package")
+    _logger.debug_ext("       - Unregistering Prefs Package", form="UNREG")
 
     # for cls in reversed(_classes):
     #     bpy.utils.unregister_class(cls)

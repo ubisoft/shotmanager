@@ -203,15 +203,11 @@ _classes = (UAS_ShotManager_sequenceTimeline,)
 
 
 def register():
-    print("       - Registering Sequence Timeline Package")
-
     for cls in _classes:
         bpy.utils.register_class(cls)
 
 
 def unregister():
-    print("       - Unregistering Sequence Timeline Package")
-
     # context.window_manager.UAS_shot_manager_display_overlay_tools = False
     # bpy.types.SpaceView3D.draw_handler_remove(self.draw_handle, "WINDOW")
     # self.draw_handle = None

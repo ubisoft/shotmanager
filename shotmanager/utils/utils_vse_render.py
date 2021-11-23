@@ -16,12 +16,11 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 """
-To do: module description here.
+VSE
 """
 
 import os
 from pathlib import Path
-
 
 import bpy
 
@@ -34,6 +33,11 @@ from bpy.props import (
 
 from ..config import config
 from ..utils import utils
+
+from shotmanager.config import sm_logging
+
+_logger = sm_logging.getLogger(__name__)
+
 
 # # ------------------------------------------------------------------------#
 # #                                VSE tool Panel                             #
@@ -1075,7 +1079,7 @@ _classes = (
 
 
 def register():
-    print("       - Registering utils_vse_render Package")
+    _logger.debug_ext("       - Registering Utils VSE Render Package", form="REG")
 
     for cls in _classes:
         bpy.utils.register_class(cls)
@@ -1084,9 +1088,10 @@ def register():
 
 
 def unregister():
-    pass
+    _logger.debug_ext("       - Unregistering Utils VSE Render Package", form="UNREG")
+
     for cls in reversed(_classes):
-        print(f"     -- Utils_vse_render.py {str(cls)}")
+        print(f"           -- Utils_vse_render.py {str(cls)}")
         bpy.utils.unregister_class(cls)
 
     del bpy.types.WindowManager.UAS_vse_render
