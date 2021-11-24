@@ -61,9 +61,14 @@ class BL_UI_Cursor:
 
         self.hightlighted = False
         self.edit_time = 0
-        self.color = (0.2, 0.2, 1.0, 1)
-        self.hightlighted_color = (0.5, 0.5, 0.9, 1)
-        self.darken_color = (0.1, 0.1, 0.3, 1)
+
+        # normal play mode
+        self.color = (0.1, 0.5, 0.2, 1)
+        self.hightlighted_color = (0.2, 0.7, 0.3, 1)
+        self.darken_color = (0.2, 0.2, 0.2, 1)
+
+        self.disabled_color = (0.25, 0.25, 0.25, 1)
+
         self._p_mouse_x = 0
         self._mouse_down = False
         self._dragable = False
@@ -71,6 +76,8 @@ class BL_UI_Cursor:
         self.__inrect = False
         self.__area = None
         self.__region = None
+
+        self.time_is_invalid = False
 
     @property
     def value(self):
@@ -80,9 +87,14 @@ class BL_UI_Cursor:
     def value(self, value):
         self._value = clamp(value, self.range_min, self.range_max)
 
-    def init(self, context):
+    def init(self, context, cursor_forShotPlayMode=False):
         self.context = context
         self.__area = context.area
+
+        if cursor_forShotPlayMode:
+            self.color = (0.2, 0.2, 1.0, 1)
+            self.hightlighted_color = (0.3, 0.3, 1.0, 1)
+            self.darken_color = (0.1, 0.1, 0.3, 1)
 
     def draw(self):
         props = self.context.scene.UAS_shot_manager_props
@@ -101,14 +113,40 @@ class BL_UI_Cursor:
         caret_to_draw = self.caret.copy()
         caret_to_draw.x = self.posx + fix_offset_x
         edit_start_frame = props.editStartFrame
-        scene_edit_time = props.getEditCurrentTimeForSelectedShot(
-            ignoreDisabled=not props.seqTimeline_displayDisabledShots
-        )
+        if self.context.window_manager.UAS_shot_manager_shots_play_mode:
+            scene_edit_time = props.getEditCurrentTime(ignoreDisabled=not props.seqTimeline_displayDisabledShots)
+        else:
+            scene_edit_time = props.getEditCurrentTimeForSelectedShot(
+                ignoreDisabled=not props.seqTimeline_displayDisabledShots
+            )
 
-        #   print("\nscene_edit_time 01: ", scene_edit_time)
-        # wkip
+        self.time_is_invalid = False
         if not self._dragable:
-            scene_edit_time = max(edit_start_frame, scene_edit_time)
+
+            if -1 == scene_edit_time:
+                current_frame = bpy.context.scene.frame_current
+                prevShotInd = props.getFirstShotIndexBeforeFrame(
+                    current_frame, ignoreDisabled=not props.seqTimeline_displayDisabledShots
+                )
+                # _logger.debug(f"scene_edit_time is -1. prevShotInd: {prevShotInd}")
+                if -1 != prevShotInd:
+                    shotList = props.get_shots()
+                    scene_edit_time = props.getEditTime(
+                        shotList[prevShotInd],
+                        shotList[prevShotInd].end,
+                        ignoreDisabled=not props.seqTimeline_displayDisabledShots,
+                    )
+                    # we add 1 frame here to place the cursor right after the end of the shot, not on the latest frame
+                    scene_edit_time += 1
+                #    _logger.debug(f"scene_edit_time shot not found: {scene_edit_time}")
+                else:
+                    scene_edit_time = edit_start_frame
+
+                self.time_is_invalid = True
+            else:
+                scene_edit_time = max(edit_start_frame, scene_edit_time)
+                self.time_is_invalid = False
+
             val = remap(
                 scene_edit_time,
                 edit_start_frame,
@@ -130,16 +168,27 @@ class BL_UI_Cursor:
         box_to_draw.x = max(box_to_draw.sx, box_to_draw.x)
         box_to_draw.x = min(box_to_draw.x, self.context.area.width - 1 - box_to_draw.sx)
 
+        # shadow underneath
         box_to_draw_bg.draw()
+
+        # micro rect bellow the cursor
         caret_to_draw.draw()
+
+        # cursor
+        if self.time_is_invalid:
+            box_to_draw.color = self.disabled_color
         box_to_draw.draw()
 
+        # edit time value displayed on cursor
+        if self.context.window_manager.UAS_shot_manager_shots_play_mode:
+            edit_time_without_disabled = props.getEditCurrentTime(ignoreDisabled=True)
+
+        frameStr = str(max(edit_time_without_disabled, edit_start_frame)) if not self.time_is_invalid else "."
         blf.color(0, 0.9, 0.9, 0.9, 1)
         blf.size(0, 12, 72)
-        frame = str(max(scene_edit_time, edit_start_frame))
-        font_width, font_height = blf.dimensions(0, frame)
+        font_width, font_height = blf.dimensions(0, frameStr)
         blf.position(0, box_to_draw.x - 0.5 * font_width, box_to_draw.y - 0.5 * font_height, 0)
-        blf.draw(0, frame)
+        blf.draw(0, frameStr)
 
     #   print("\nscene_edit_time 02: ", scene_edit_time)
 
@@ -362,6 +411,7 @@ class BL_UI_Timeline:
 
         self.ui_shots = list()
         self.frame_cursor = BL_UI_Cursor(self.frame_cursor_moved)
+        self.frame_cursor_forShotPlayMode = BL_UI_Cursor(self.frame_cursor_moved)
 
     def set_location(self, x, y):
         self.x = x
@@ -380,6 +430,7 @@ class BL_UI_Timeline:
     def init(self, context):
         self.context = context
         self.frame_cursor.init(context)
+        self.frame_cursor_forShotPlayMode.init(context, cursor_forShotPlayMode=True)
 
     def draw_caret(self, x, color):
         caret_width = 3
@@ -506,7 +557,10 @@ class BL_UI_Timeline:
         bgl.glDisable(bgl.GL_BLEND)
 
         self.draw_shots()
-        self.frame_cursor.draw()
+        if self.context.window_manager.UAS_shot_manager_shots_play_mode:
+            self.frame_cursor_forShotPlayMode.draw()
+        else:
+            self.frame_cursor.draw()
 
     def handle_event(self, event):
 
@@ -518,8 +572,12 @@ class BL_UI_Timeline:
         if self.target_area is not None and self.context.area != self.target_area:
             return False
 
-        if self.frame_cursor.handle_event(event):
-            return True
+        if self.context.window_manager.UAS_shot_manager_shots_play_mode:
+            if self.frame_cursor_forShotPlayMode.handle_event(event):
+                return True
+        else:
+            if self.frame_cursor.handle_event(event):
+                return True
 
         x = event.mouse_region_x
         y = event.mouse_region_y
@@ -570,13 +628,21 @@ class BL_UI_Timeline:
         # shots = props.getShotsList(ignoreDisabled=not props.seqTimeline_displayDisabledShots)
         shots = props.get_shots()
 
+        # get the right frame_cursor
+        if self.context.window_manager.UAS_shot_manager_shots_play_mode:
+            current_frame_cursor = self.frame_cursor_forShotPlayMode
+        else:
+            current_frame_cursor = self.frame_cursor
+
         new_edit_frame = round(
             remap(
-                self.frame_cursor.value,
-                self.frame_cursor.range_min,
-                self.frame_cursor.range_max,
+                current_frame_cursor.value,
+                current_frame_cursor.range_min,
+                current_frame_cursor.range_max,
                 props.editStartFrame,
-                props.editStartFrame + props.getEditDuration() - 1,
+                props.editStartFrame
+                + props.getEditDuration(ignoreDisabled=not props.seqTimeline_displayDisabledShots)
+                - 1,
             )
         )
         sequence_current_frame = props.editStartFrame

@@ -1091,7 +1091,7 @@ def unregister():
     _logger.debug_ext("       - Unregistering Utils VSE Render Package", form="UNREG")
 
     for cls in reversed(_classes):
-        print(f"           -- Utils_vse_render.py {str(cls)}")
+        #  print(f"           -- Utils_vse_render.py {str(cls)}")
         bpy.utils.unregister_class(cls)
 
     del bpy.types.WindowManager.UAS_vse_render

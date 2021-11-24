@@ -388,6 +388,7 @@ def unregister():
     from .install.install_dependencies import unregister_from_failed_install
 
     bpy.context.window_manager.UAS_shot_manager_display_overlay_tools = False
+    bpy.context.window_manager.UAS_shot_manager_shots_play_mode = False
 
     # bpy.utils.unregister_class(cls)
     #    bpy.ops.uas_shot_manager.sequence_timeline.cancel(bpy.context)

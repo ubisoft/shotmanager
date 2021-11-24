@@ -43,29 +43,30 @@ UNIFORM_SHADER_2D = gpu.shader.from_builtin("2D_UNIFORM_COLOR")
 def draw_shots_stack(context):
     ## with dico
     # print(f" suis dans draw_shots_stack: config.gShotsStackInfos: {config.gShotsStackInfos}")
-    _logger.debug_colored("Here 80 - config.gShotsStackInfos Clips len: " + str(len(config.gShotsStackInfos["clips"])))
+
+    # _logger.debug_colored("Here 80 - config.gShotsStackInfos Clips len: " + str(len(config.gShotsStackInfos["clips"])))
 
     if config.gShotsStackInfos is not None:
-        _logger.debug_colored("Here 82")
+        #    _logger.debug_colored("Here 82")
         for clip in config.gShotsStackInfos["clips"]:
-            _logger.debug_colored("Here 83")
+            #        _logger.debug_colored("Here 83")
             clip.draw(context)
             # try:
             #     clip.draw(context)
             # except Exception as e:
             #     # wkip wkip
             #     pass
-        _logger.debug_colored("Here 84")
+        #    _logger.debug_colored("Here 84")
         if config.gShotsStackInfos["frame_under_mouse"] != -1:
-            _logger.debug_colored("Here 85")
+            #       _logger.debug_colored("Here 85")
             blf.color(0, 0.99, 0.99, 0.99, 1)
             blf.size(0, 11, 72)
             blf.position(
                 0, config.gShotsStackInfos["prev_mouse_x"] + 4, config.gShotsStackInfos["prev_mouse_y"] + 10, 0
             )
-            _logger.debug_colored("Here 86")
+            #      _logger.debug_colored("Here 86")
             blf.draw(0, str(config.gShotsStackInfos["frame_under_mouse"]))
-            _logger.debug_colored("Here 87")
+    #      _logger.debug_colored("Here 87")
 
 
 def clamp_to_region(x, y, region):

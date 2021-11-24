@@ -176,7 +176,7 @@ class UAS_ShotManager_Shots_Prefs(Operator):
             prefs, "current_shot_changes_time_range", text="Set Scene Animation Range To Shot Range",
         )
         col.prop(
-            prefs, "current_shot_changes_time_zoom", text="Zoom Timeline Content To Frame The Shot Range",
+            prefs, "current_shot_changes_time_zoom", text="Zoom Timeline Content To Frame The Current Shot",
         )
 
         layout.separator(factor=2)

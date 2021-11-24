@@ -141,7 +141,7 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
     )
     current_shot_changes_time_zoom: BoolProperty(
         name="Zoom Timeline to Shot Range",
-        description="Zoom the timeline content to frame the shot range when the current shot is changed.\n(Add-on preference)",
+        description="Automatically zoom the timeline content to frame the shot when the current shot is changed.\n(Add-on preference)",
         default=True,
     )
 

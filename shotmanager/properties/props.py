@@ -1424,10 +1424,10 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
 
         return duration
 
-    def getEditTime(self, referenceShot, frameIndexIn3DTime, referenceLevel="TAKE"):
+    def getEditTime(self, referenceShot, frameIndexIn3DTime, referenceLevel="TAKE", ignoreDisabled=True):
         """Return edit current time in frames, -1 if no shots or if current shot is disabled
         Works on the take from which referenceShot is coming from.
-        Disabled shots are always ignored and considered as not belonging to the edit.
+        If ignoreDisabled is True disabled shots are always ignored and considered as not belonging to the edit.
         wkip negative times issues coming here... :/
         referenceLevel can be "TAKE" or "GLOBAL_EDIT"
         """
@@ -1436,7 +1436,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
             return frameIndInEdit
 
         takeInd = referenceShot.getParentTakeIndex()
-        ignoreDisabled = True
+        # ignoreDisabled = True
 
         # case where specified shot is disabled -- current shot may not be in the shot list if shotList is not the whole list
         if ignoreDisabled and not referenceShot.enabled:
@@ -1468,7 +1468,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         return frameIndInEdit
 
     def getEditCurrentTime(self, referenceLevel="TAKE", ignoreDisabled=True):
-        """Return edit current time in frames, -1 if no shots or if current shot is disabled
+        """Return edit current time in frames, -1 if no shots or if current shot is disabled and ignoreDisabled is True
         works only on current take
         wkip negative times issues coming here... :/
         """
@@ -1484,7 +1484,9 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         #        shotList = self.getShotsList(ignoreDisabled=ignoreDisabled, takeIndex=takeInd)
         shot = self.getCurrentShot()
 
-        return self.getEditTime(shot, bpy.context.scene.frame_current, referenceLevel=referenceLevel)
+        return self.getEditTime(
+            shot, bpy.context.scene.frame_current, referenceLevel=referenceLevel, ignoreDisabled=ignoreDisabled
+        )
 
         # # works only on current take
         # takeInd = self.getCurrentTakeIndex()

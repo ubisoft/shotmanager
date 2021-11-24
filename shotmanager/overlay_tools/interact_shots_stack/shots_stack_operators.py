@@ -158,17 +158,13 @@ class UAS_ShotManager_InteractiveShotsStack(Operator):
             if not context.window_manager.UAS_shot_manager_toggle_shots_stack_interaction:
                 return {"PASS_THROUGH"}
 
-            print("Here 10")
             mouse_x, mouse_y = region.view2d.region_to_view(event.mouse_x - region.x, event.mouse_y - region.y)
             if event.type == "LEFTMOUSE":
                 if event.value == "PRESS":
-                    print("Here 12")
                     # bpy.ops.ed.undo_push(message=f"Set Shot Start...")
                     for clip in config.gShotsStackInfos["clips"]:
                         active_clip_region = clip.get_region(mouse_x, mouse_y)
                         if active_clip_region is not None:
-                            # if config.devDebug:
-                            print("Here 15")
                             clip.highlight = True
                             self.active_clip = clip
                             self.active_clip_region = active_clip_region
@@ -187,7 +183,6 @@ class UAS_ShotManager_InteractiveShotsStack(Operator):
                     bpy.ops.ed.undo_push(message=f"Change Shot...")
 
             elif event.type == "MOUSEMOVE":
-                print("Here 20")
                 if event.value == "PRESS":
                     if self.active_clip:
                         mouse_frame = int(region.view2d.region_to_view(event.mouse_x - region.x, 0)[0])
@@ -207,7 +202,6 @@ class UAS_ShotManager_InteractiveShotsStack(Operator):
                         # self.frame_under_mouse = None
                         config.gShotsStackInfos["frame_under_mouse"] = -1
 
-            print("Here 30")
             self.prev_mouse_x = event.mouse_x - region.x
             self.prev_mouse_y = event.mouse_y - region.y
 
@@ -219,7 +213,7 @@ class UAS_ShotManager_InteractiveShotsStack(Operator):
             config.gShotsStackInfos["prev_mouse_x"] = self.prev_mouse_x
             config.gShotsStackInfos["prev_mouse_y"] = self.prev_mouse_y
         else:
-            print("Here 50 - config.gShotsStackInfos Clips len: " + str(len(config.gShotsStackInfos["clips"])))
+            #   print("Here 50 - config.gShotsStackInfos Clips len: " + str(len(config.gShotsStackInfos["clips"])))
             self.build_clips()  # Assume that when the mouse got out of the region shots may be edited
             self.active_clip = None
 
@@ -238,10 +232,8 @@ class UAS_ShotManager_InteractiveShotsStack(Operator):
             config.gShotsStackInfos["clips"].clear()
 
         # if self.compact_display:
-        print("Here 52: in build_clips")
-        print("Here 53 - config.gShotsStackInfos Clips len: " + str(len(config.gShotsStackInfos["clips"])))
+        # print("Here 53 - config.gShotsStackInfos Clips len: " + str(len(config.gShotsStackInfos["clips"])))
         if props.interactShotsStack_displayInCompactMode:
-            print("Here 54")
             shots = sorted(
                 props.getShotsList(ignoreDisabled=not props.interactShotsStack_displayDisabledShots),
                 key=lambda s: s.start,
@@ -263,13 +255,12 @@ class UAS_ShotManager_InteractiveShotsStack(Operator):
 
                 config.gShotsStackInfos["clips"].append(ShotClip(context, shot, lane, props))
         else:
-            print("Here 55")
             allShots = props.getShotsList(ignoreDisabled=not props.interactShotsStack_displayDisabledShots)
-            print(f"Here 56, len allShots = {len(allShots)}")
+            #    print(f"Here 56, len allShots = {len(allShots)}")
             for i, shot in enumerate(allShots):
-                print(f"   i: {i}")
+                # print(f"   i: {i}")
                 config.gShotsStackInfos["clips"].append(ShotClip(context, shot, i, props))
-            print("Here 57 - config.gShotsStackInfos Clips len: " + str(len(config.gShotsStackInfos["clips"])))
+        #   print("Here 57 - config.gShotsStackInfos Clips len: " + str(len(config.gShotsStackInfos["clips"])))
 
 
 ## !!! not in the class !!!
