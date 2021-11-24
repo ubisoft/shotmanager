@@ -30,7 +30,7 @@ from gpu_extras.batch import batch_for_shader
 from mathutils import Vector
 
 from shotmanager.config import config
-from shotmanager.utils.utils import clamp, gamma_color
+from shotmanager.utils.utils import clamp, gamma_color, color_is_dark
 
 from shotmanager.config import config
 from shotmanager.config import sm_logging
@@ -241,6 +241,10 @@ class ShotClip:
         self.color_currentShot_border = (0.92, 0.55, 0.18, 0.99)
         self.color_currentShot_border_mix = (0.94, 0.3, 0.1, 0.99)
 
+        self._name_color_light = (0.9, 0.9, 0.9, 1)
+        self._name_color_dark = (0.12, 0.12, 0.12, 1)
+        self._name_color_disabled = (0.6, 0.6, 0.6, 1)
+
         # self.color_selectedShot_border = (0.9, 0.9, 0.2, 0.99)
         #    self.color_selectedShot_border = (0.2, 0.2, 0.2, 0.99)  # dark gray
         self.color_selectedShot_border = (0.95, 0.95, 0.95, 0.9)  # white
@@ -294,12 +298,17 @@ class ShotClip:
 
         bgl.glDisable(bgl.GL_BLEND)
 
-        blf.color(0, 0.99, 0.99, 0.99, 1)
-        blf.size(0, 11, 72)
-        blf.position(0, *context.region.view2d.view_to_region(self.origin.x + 1.01, self.origin.y + 4), 0)
-        blf.draw(0, self.shot.name)
+        if self.shot.enabled:
+            if color_is_dark(color, 0.4):
+                blf.color(0, *self._name_color_light)
+            else:
+                blf.color(0, *self._name_color_dark)
+        else:
+            blf.color(0, *self._name_color_disabled)
 
-    #   print("here 03")
+        blf.size(0, 11, 72)
+        blf.position(0, *context.region.view2d.view_to_region(self.origin.x + 1.3, self.origin.y + 5), 0)
+        blf.draw(0, self.shot.name)
 
     def get_region(self, x, y):
         """

@@ -944,6 +944,17 @@ def slightlyRandomizeColor(refColor, weight=0.8):
     return newColor
 
 
+def color_is_dark(color, threshold):
+    """
+    Args:
+        color: tupple 4
+        treshold: value between 0.0 and 1.0
+    """
+    from statistics import mean
+
+    return mean(color[:-1]) < threshold
+
+
 def darken_color(color):
     factor = 0.6
     d_color = (color[0] * factor, color[1] * factor, color[2] * factor, color[3] * 1.0)

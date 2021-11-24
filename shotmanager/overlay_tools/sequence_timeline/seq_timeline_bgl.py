@@ -22,14 +22,13 @@ Draw an interactive stack of shots in the Timeline editor
 """
 
 from collections import defaultdict
-from statistics import mean
 
 import gpu
 import bgl, blf
 import bpy
 from gpu_extras.batch import batch_for_shader
 
-from shotmanager.utils.utils import clamp, gamma_color, darken_color, remap
+from shotmanager.utils.utils import clamp, gamma_color, darken_color, remap, color_is_dark
 from shotmanager.utils.utils_ogl import get_region_at_xy, Square
 
 # import mathutils
@@ -117,13 +116,13 @@ class BL_UI_Cursor:
         if self.context.window_manager.UAS_shot_manager_shots_play_mode:
             scene_edit_time = props.getEditCurrentTime(ignoreDisabled=not props.seqTimeline_displayDisabledShots)
         else:
-            scene_edit_time = props.getEditCurrentTimeForSelectedShot(
-                ignoreDisabled=not props.seqTimeline_displayDisabledShots
-            )
+            scene_edit_time = props.getEditCurrentTime(ignoreDisabled=not props.seqTimeline_displayDisabledShots)
+
+        current_shot = props.getCurrentShot(ignoreDisabled=False)
 
         self.time_is_invalid = False
+        # if THIS gl cursor is not being moved by the user:
         if not self._being_dragged:
-
             if -1 == scene_edit_time:
                 current_frame = bpy.context.scene.frame_current
                 prevShotInd = props.getFirstShotIndexBeforeFrame(
@@ -146,7 +145,7 @@ class BL_UI_Cursor:
                 self.time_is_invalid = True
             else:
                 scene_edit_time = max(edit_start_frame, scene_edit_time)
-                current_shot = props.getCurrentShot(ignoreDisabled=False)
+
                 if props.seqTimeline_displayDisabledShots and not current_shot.enabled:
                     self.time_is_invalid = True
                 else:
@@ -163,7 +162,6 @@ class BL_UI_Cursor:
         else:
             #  _logger.debug(f"being dragged")
 
-            current_shot = props.getCurrentShot(ignoreDisabled=False)
             if props.seqTimeline_displayDisabledShots and not current_shot.enabled:
                 self.time_is_invalid = True
             else:
@@ -289,20 +287,40 @@ class BL_UI_Cursor:
 
 
 class BL_UI_Shot:
-    def __init__(self, x, y, width, height, label, bypass_state):
+    def __init__(self, x, y, width, height, name, enabled, shotIsCurrent, shotIsSelected):
         self.x = x
         self.y = y
         self.x_screen = x
         self.y_screen = y
         self.width = width
         self.height = height
-        self.label = label
-        self.bypass_state = bypass_state
-        self._bg_color = (0.8, 0.3, 0.3, 1.0)
-        self._label_color = (0.05, 0.05, 0.05, 1)
+
+        self.name = name
+        self._name_color_light = (0.9, 0.9, 0.9, 1)
+        self._name_color_dark = (0.12, 0.12, 0.12, 1)
+        self._name_color_disabled = (0.6, 0.6, 0.6, 1)
+
+        self.shotIsCurrent = shotIsCurrent
+        self.shotIsSelected = shotIsSelected
+        self.enabled = enabled
+
+        self._shot_color = (0.8, 0.3, 0.3, 1.0)
+        self._shot_color_disabled = (0.23, 0.23, 0.23, 1)
+
         self.context = None
         self.__inrect = False
         self._mouse_down = False
+
+        self.color_currentShot_border = (0.92, 0.5, 0.12, 1.0)
+        self.color_currentShot_border_shadow = (0.5, 0.3, 0.1, 1.0)
+        self.color_currentShot_border_mix = (0.94, 0.3, 0.1, 1.0)
+
+        # to change also in Timeline class
+        self._bg_color = (0.14, 0.14, 0.14, 1.0)
+
+        # self.color_selectedShot_border = (0.9, 0.9, 0.2, 0.99)
+        #    self.color_selectedShot_border = (0.2, 0.2, 0.2, 0.99)  # dark gray
+        self.color_selectedShot_border = (0.95, 0.95, 0.95, 0.9)  # white
 
     def set_location(self, x, y):
         self.x = x
@@ -312,16 +330,14 @@ class BL_UI_Shot:
 
     @property
     def bg_color(self):
-        return self._bg_color
+        return self._shot_color
 
     @bg_color.setter
     def bg_color(self, value):
-        self._bg_color = value
-        if mean(self._bg_color[:-1]) < 0.4:
-            self._label_color = (0.9, 0.9, 0.9, 1)
+        self._shot_color = value
 
-        if self.bypass_state:
-            self._bg_color = (0.2, 0.2, 0.2, 1)
+        # if not self.enabled:
+        #     self._shot_color = (0.2, 0.2, 0.2, 1)
 
     def init(self, context):
         self.context = context
@@ -347,16 +363,82 @@ class BL_UI_Shot:
         batch_panel = batch_for_shader(shader, "TRIS", {"pos": vertices}, indices=indices)
 
         shader.bind()
-        shader.uniform_float("color", self._bg_color)
+        shader.uniform_float("color", self._shot_color if self.enabled else self._shot_color_disabled)
         bgl.glEnable(bgl.GL_BLEND)
         batch_panel.draw(shader)
         bgl.glDisable(bgl.GL_BLEND)
 
-        blf.position(0, self.x_screen + 2, y_screen_flip - self.height * 0.5, 0)
-        blf.color(0, *self._label_color)
+        # draw vertical separators
+        line_thickness = 1
+        currentBboxBG = Square(
+            self.x_screen,
+            y_screen_flip - self.height + 1,
+            line_thickness,
+            self.height,
+            color=self._bg_color,
+            origin="LEFT_BOTTOM",
+        )
+        currentBboxBG.draw()
+
+        # draw linebar bg
+        line_thickness = 4
+        currentBboxBG = Square(
+            self.x_screen,
+            y_screen_flip - self.height + 1,
+            self.width,
+            line_thickness,
+            color=self._bg_color,
+            origin="LEFT_BOTTOM",
+        )
+        currentBboxBG.draw()
+
+        # draw line for current shot
+        if self.shotIsSelected:
+            currentBbox = Square(
+                self.x_screen,
+                y_screen_flip - self.height,
+                self.width,
+                line_thickness,
+                color=self.color_selectedShot_border,
+                origin="LEFT_BOTTOM",
+            )
+            currentBbox.draw()
+
+        if self.shotIsCurrent:
+            if self.shotIsSelected:
+                currentBbox = Square(
+                    self.x_screen,
+                    y_screen_flip - self.height,
+                    self.width,
+                    line_thickness // 2 + 1,
+                    color=self.color_currentShot_border,
+                    origin="LEFT_BOTTOM",
+                )
+                currentBbox.draw()
+            else:
+                currentBbox = Square(
+                    self.x_screen,
+                    y_screen_flip - self.height,
+                    self.width,
+                    line_thickness,
+                    color=self.color_currentShot_border,
+                    origin="LEFT_BOTTOM",
+                )
+                currentBbox.draw()
+
+        blf.position(0, self.x_screen + 3, y_screen_flip - self.height * 0.5, 0)
+
+        if self.enabled:
+            if color_is_dark(self._shot_color, 0.4):
+                blf.color(0, *self._name_color_light)
+            else:
+                blf.color(0, *self._name_color_dark)
+        else:
+            blf.color(0, *self._name_color_disabled)
+
         blf.shadow(0, 3, 0.1, 0.1, 0.1, 1)
-        blf.size(0, 14, 72)
-        blf.draw(0, self.label)
+        blf.size(0, 12, 72)
+        blf.draw(0, self.name)
 
     def handle_event(self, event):
         x = event.mouse_region_x
@@ -427,11 +509,13 @@ class BL_UI_Timeline:
         self.width = width
         self.height = height
         self._mouse_y = 0
-        self._bg_color = (0.1, 0.1, 0.1, 0.85)
         self.context = None
         self.target_area = target_area
         self.__inrect = False
         self._mouse_down = False
+
+        # to change also in shot class, except for opacity
+        self._bg_color = (0.14, 0.14, 0.14, 0.85)
 
         self.ui_shots = list()
         self.frame_cursor = BL_UI_Cursor(self.frame_cursor_moved)
@@ -516,15 +600,30 @@ class BL_UI_Timeline:
     def draw_shots(self):
         total_range = 0
         props = self.context.scene.UAS_shot_manager_props
-        shots = props.getShotsList(ignoreDisabled=not props.seqTimeline_displayDisabledShots)
-        currentShotIndex = props.getCurrentShotIndex(ignoreDisabled=not props.seqTimeline_displayDisabledShots)
+        shots = props.get_shots()
+        # currentShotIndex = props.getCurrentShotIndex(ignoreDisabled=not props.seqTimeline_displayDisabledShots)
+        currentShotIndex = props.getCurrentShotIndex()
+        selectedShotIndex = props.getSelectedShotIndex()
 
         self.ui_shots.clear()
-        total_range += sum([s.end + 1 - s.start for s in shots])
+        total_range = props.getEditDuration(ignoreDisabled=not props.seqTimeline_displayDisabledShots)
         offset_x = 0
+        shotNum = -1
         for i, shot in enumerate(shots):
+            if not props.seqTimeline_displayDisabledShots and not shot.enabled:
+                continue
+            shotNum += 1
             size_x = int(self.width * float(shot.end + 1 - shot.start) / total_range)
-            s = BL_UI_Shot(offset_x, self.y, size_x, self.height, shot.name, not shot.enabled)
+            s = BL_UI_Shot(
+                offset_x,
+                self.y,
+                size_x,
+                self.height,
+                shot.name,
+                shot.enabled,
+                i == currentShotIndex,
+                i == selectedShotIndex,
+            )
             self.ui_shots.append(s)
             s.init(self.context)
             s.bg_color = tuple(gamma_color(shot.color))
@@ -537,7 +636,7 @@ class BL_UI_Timeline:
             frame_width = size_x / float(shot.end + 1 - shot.start)
 
             if self.context.window_manager.UAS_shot_manager_shots_play_mode:
-                if currentShotIndex == i:
+                if currentShotIndex == shotNum:
                     caret_color = (1.0, 0.1, 0.1, 1)
                     self.draw_frame_caret(caret_pos, frame_width, darken_color(caret_color))
                     self.draw_caret(caret_pos, caret_color)
@@ -562,7 +661,8 @@ class BL_UI_Timeline:
 
         indices = ((0, 1, 2), (0, 2, 3))
 
-        y_screen_flip = area_height - self.y_screen
+        # we add +1 to get a thin bg line at the top of the timeline
+        y_screen_flip = area_height - self.y_screen + 1
         # bottom left, top left, top right, bottom right
         vertices = (
             (self.x_screen, y_screen_flip),

@@ -38,8 +38,11 @@ _logger = sm_logging.getLogger(__name__)
 
 
 def ignoreWidget(context):
+    props = context.scene.UAS_shot_manager_props
     prefs = bpy.context.preferences.addons["shotmanager"].preferences
 
+    if not len(props.get_shots()):
+        return True
     if not context.window_manager.UAS_shot_manager_display_overlay_tools:
         return True
 
@@ -175,7 +178,7 @@ class UAS_ShotManager_InteractiveShotsStack(Operator):
 
                     counter = time.perf_counter()
                     if self.active_clip and counter - self.prev_click < 0.3:  # Double click.
-                        props.setCurrentShot(self.active_clip.shot)
+                        props.setCurrentShot(self.active_clip.shot, changeTime=False)
                         event_handled = True
 
                     self.prev_click = counter
@@ -273,6 +276,8 @@ def draw_callback_px(context, target_area):
     #     bpy.types.SpaceDopeSheetEditor.draw_handler_remove(self.draw_handle, "WINDOW")
 
     # !!! warning: Blender Timeline editor has a problem of refresh so even if the display is not done it may appear in the editor
+    draw_shots_stack(context)
+
     try:
         # if ignoreWidget(context):
         #     return False

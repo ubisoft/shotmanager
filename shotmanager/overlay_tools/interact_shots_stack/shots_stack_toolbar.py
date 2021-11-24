@@ -23,6 +23,8 @@ import bpy
 from bpy.types import Operator
 from bpy.props import FloatProperty
 
+from shotmanager.utils.utils import sceneContainsCameraBinding
+
 from shotmanager.config import config
 from shotmanager.config import sm_logging
 
@@ -47,6 +49,19 @@ def draw_shots_stack_toolbar_in_editor(self, context):
     row = layout.row(align=True)
     row.separator(factor=3)
     row.alignment = "RIGHT"
+
+    playEnabled = not sceneContainsCameraBinding(context.scene)
+    rowPlayButton = row.row(align=True)
+    rowPlayButton.scale_x = butScale
+    rowPlayButton.enabled = playEnabled
+    rowPlayButton.prop(
+        context.window_manager,
+        "UAS_shot_manager_shots_play_mode",
+        # text="Shots Play Mode" if context.window_manager.UAS_shot_manager_shots_play_mode else "Standard Play Mode",
+        text="",
+        toggle=True,
+        icon="ANIM" if context.window_manager.UAS_shot_manager_shots_play_mode else "FORWARD",
+    )
 
     toggleButRow = row.row(align=True)
     toggleButRow.scale_x = butScale

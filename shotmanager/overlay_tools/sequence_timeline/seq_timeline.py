@@ -34,8 +34,11 @@ _logger = sm_logging.getLogger(__name__)
 
 
 def ignoreWidget(context):
+    props = context.scene.UAS_shot_manager_props
     prefs = bpy.context.preferences.addons["shotmanager"].preferences
 
+    if not len(props.get_shots()):
+        return True
     if not context.window_manager.UAS_shot_manager_display_overlay_tools:
         return True
     if (context.screen.is_animation_playing and not context.screen.is_scrubbing) and (
@@ -189,14 +192,17 @@ class UAS_ShotManager_sequenceTimeline(Operator):
         #     self.draw_handle = None
         #     return
 
-        try:
-            for widget in widgets:
-                widget.draw()
-        except Exception as e:
-            _logger.error(f"*** Crash 2 in ogl context (draw_callback_px) - {e} ***")
-            # context.window_manager.UAS_shot_manager_display_overlay_tools = False
-            # bpy.types.SpaceView3D.draw_handler_remove(self.draw_handle, "WINDOW")
-            # self.draw_handle = None
+        for widget in widgets:
+            widget.draw()
+        # # try:
+        # #     for widget in widgets:
+        # #         widget.draw()
+        # # except Exception as e:
+        # #     _logger.error(f"*** Crash 2 in ogl context (draw_callback_px) - {e} ***")
+
+        # context.window_manager.UAS_shot_manager_display_overlay_tools = False
+        # bpy.types.SpaceView3D.draw_handler_remove(self.draw_handle, "WINDOW")
+        # self.draw_handle = None
 
 
 _classes = (UAS_ShotManager_sequenceTimeline,)
