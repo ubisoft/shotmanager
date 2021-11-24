@@ -54,7 +54,13 @@ from bpy.types import Operator
 class UAS_ShotManager_EnableDisableAll(Operator):
     bl_idname = "uas_shot_manager.enabledisableall"
     bl_label = "Enable / Disable All Shots"
-    bl_description = "Toggle shot enabled state.\nShift + Click: Enable all shots,\nCtrl + Click: Disable all shots,\nCtrl + Shift + Click: Invert shots state,\nAlt + Click: Isolate Selected Shot,"
+    bl_description = (
+        "Toggle shot enabled state."
+        "\n+ Ctrl: Disable all shots"
+        "\n+ Ctrl + Shift: Invert shots state"
+        "\n+ Shift: Enable all shots"
+        "\n+ Alt: Isolate Selected Shot"
+    )
     bl_options = {"REGISTER", "UNDO"}
 
     def invoke(self, context, event):
@@ -97,8 +103,8 @@ class UAS_ShotManager_SceneRangeFromShots(Operator):
     bl_label = "Scene Range From Shot"
     bl_description = (
         "Set scene time range with take range"
-        #    "\nShift + Click: Create a new camera from the 3D view and put it in the viewport."
-        "\nCtrl + Click: Set scene time range with current shot range"
+        #    "\n+ Shift: Create a new camera from the 3D view and put it in the viewport."
+        "\n+ Ctrl: Set scene time range with current shot range"
         "\nUse Alt for the Preview time range"
     )
     bl_options = {"INTERNAL"}

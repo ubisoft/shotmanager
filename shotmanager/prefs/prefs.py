@@ -170,7 +170,7 @@ class UAS_ShotManager_Shots_Prefs(Operator):
         col.separator(factor=0.5)
         col.use_property_split = False
         col.prop(
-            prefs, "current_shot_changes_current_time", text="Set Current Frame To Shot Start",
+            prefs, "current_shot_changes_current_time_to_start", text="Set Current Frame To Shot Start",
         )
         col.prop(
             prefs, "current_shot_changes_time_range", text="Set Scene Animation Range To Shot Range",

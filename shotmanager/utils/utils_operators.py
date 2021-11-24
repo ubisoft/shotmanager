@@ -152,8 +152,8 @@ class UAS_Utils_CameraToView(Operator):
     bl_description = (
         "Make selected camera match the position and orientation of the 3D view"
         "\nor the current camera."
-        "\nShift + Click: Create a new camera matching the 3D view."
-        "\nCtrl + Click: Make selected camera match the 3D view, LENS INCLUDED"
+        "\n+ Ctrl: Make selected camera match the 3D view, LENS INCLUDED."
+        "\n+ Shift: Create a new camera matching the 3D view"
     )
     bl_options = {"REGISTER", "UNDO"}
 

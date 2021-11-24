@@ -51,7 +51,8 @@ from ..operators.shots_global_settings import UAS_ShotManager_ShotsGlobalSetting
 from ..retimer.retimer_props import UAS_Retimer_Properties
 
 from shotmanager.utils import utils
-from shotmanager.utils.utils_time import zoom_dopesheet_view_to_range
+
+# from shotmanager.utils.utils_time import zoom_dopesheet_view_to_range
 
 from shotmanager.config import config
 from shotmanager.config import sm_logging
@@ -1985,7 +1986,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
           - changes the current time if specifed
         Args:
             changeTime:
-                - None(default): depends on the state of prefs.current_shot_changes_current_time
+                - None(default): depends on the state of prefs.current_shot_changes_current_time_to_start
                 - True: set current time to the start of the new shot
                 - False: current time is not changed
         """
@@ -2009,7 +2010,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
             currentShot = shotList[currentShotIndex]
 
             if changeTime is None:
-                if prefs.current_shot_changes_current_time:
+                if prefs.current_shot_changes_current_time_to_start:
                     scene.frame_current = currentShot.start
             elif changeTime:
                 scene.frame_current = currentShot.start

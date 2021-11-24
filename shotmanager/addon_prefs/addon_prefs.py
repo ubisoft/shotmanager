@@ -129,7 +129,7 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
         name="Expand Debug Preferences", default=False,
     )
 
-    current_shot_changes_current_time: BoolProperty(
+    current_shot_changes_current_time_to_start: BoolProperty(
         name="Set Current Frame To Shot Start",
         description="Set the current time to the start of the shot when the current shot is changed.\n(Add-on preference)",
         default=True,
@@ -142,7 +142,7 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
     current_shot_changes_time_zoom: BoolProperty(
         name="Zoom Timeline to Shot Range",
         description="Automatically zoom the timeline content to frame the shot when the current shot is changed.\n(Add-on preference)",
-        default=True,
+        default=False,
     )
 
     playblastFileName: StringProperty(name="Temporary Playblast File", default="toto.mp4")

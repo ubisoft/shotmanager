@@ -34,6 +34,7 @@ from shotmanager.utils.utils_ogl import get_region_at_xy, Square
 
 # import mathutils
 
+from shotmanager.config import config
 from shotmanager.config import sm_logging
 
 _logger = sm_logging.getLogger(__name__)
@@ -71,7 +72,7 @@ class BL_UI_Cursor:
 
         self._p_mouse_x = 0
         self._mouse_down = False
-        self._dragable = False
+        self._being_dragged = False
         self._move_callback = move_callback
         self.__inrect = False
         self.__area = None
@@ -121,7 +122,7 @@ class BL_UI_Cursor:
             )
 
         self.time_is_invalid = False
-        if not self._dragable:
+        if not self._being_dragged:
 
             if -1 == scene_edit_time:
                 current_frame = bpy.context.scene.frame_current
@@ -145,7 +146,11 @@ class BL_UI_Cursor:
                 self.time_is_invalid = True
             else:
                 scene_edit_time = max(edit_start_frame, scene_edit_time)
-                self.time_is_invalid = False
+                current_shot = props.getCurrentShot(ignoreDisabled=False)
+                if props.seqTimeline_displayDisabledShots and not current_shot.enabled:
+                    self.time_is_invalid = True
+                else:
+                    self.time_is_invalid = False
 
             val = remap(
                 scene_edit_time,
@@ -156,6 +161,14 @@ class BL_UI_Cursor:
             )
             self.value = remap(val, 0, self.context.area.width, self.range_min, self.range_max)
         else:
+            #  _logger.debug(f"being dragged")
+
+            current_shot = props.getCurrentShot(ignoreDisabled=False)
+            if props.seqTimeline_displayDisabledShots and not current_shot.enabled:
+                self.time_is_invalid = True
+            else:
+                self.time_is_invalid = False
+
             val = remap(self.value, self.range_min, self.range_max, 0, self.context.area.width)
 
         box_to_draw_bg.x = val + 1 + fix_offset_x
@@ -179,11 +192,22 @@ class BL_UI_Cursor:
             box_to_draw.color = self.disabled_color
         box_to_draw.draw()
 
+        frameStr = str(max(scene_edit_time, edit_start_frame))
         # edit time value displayed on cursor
-        if self.context.window_manager.UAS_shot_manager_shots_play_mode:
-            edit_time_without_disabled = props.getEditCurrentTime(ignoreDisabled=True)
+        if self.time_is_invalid:
+            frameStr = "."
+            if config.devDebug:
+                if props.seqTimeline_displayDisabledShots and not current_shot.enabled:
+                    # if self.context.window_manager.UAS_shot_manager_shots_play_mode:
+                    # get time in the edit when edit includes even the disabled shots
+                    # scene_edit_time = scene_edit_time
+                    frameStr = str(max(scene_edit_time, edit_start_frame))
+                    pass
+                else:
+                    # get time in the edit without disabled shots
+                    # scene_edit_time = props.getEditCurrentTime(ignoreDisabled=True)
+                    frameStr = "."
 
-        frameStr = str(max(edit_time_without_disabled, edit_start_frame)) if not self.time_is_invalid else "."
         blf.color(0, 0.9, 0.9, 0.9, 1)
         blf.size(0, 12, 72)
         font_width, font_height = blf.dimensions(0, frameStr)
@@ -240,13 +264,13 @@ class BL_UI_Cursor:
     def mouse_down(self, x, y):
         if self.is_in_rect(x, y):
             self._p_mouse_x = x
-            self._dragable = True
+            self._being_dragged = True
             return True
 
         return False
 
     def mouse_up(self, x, y):
-        self._dragable = False
+        self._being_dragged = False
         self.hightlighted = False
 
     def mouse_enter(self, event, x, y):
@@ -256,7 +280,7 @@ class BL_UI_Cursor:
         self.hightlighted = False
 
     def mouse_move(self, x, y):
-        if self._dragable and self.__area is not None:
+        if self._being_dragged and self.__area is not None:
             # self.posx += x - self._p_mouse_x
             self.value += (x - self._p_mouse_x) * (self.range_max - self.range_min) / self.__area.width
             self._p_mouse_x = x

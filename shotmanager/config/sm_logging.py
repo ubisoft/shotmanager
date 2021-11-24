@@ -49,13 +49,19 @@ class SM_Logger(logging.getLoggerClass()):
 
         # colors in terminal: https://stackoverflow.com/questions/384076/how-can-i-color-python-logging-output
         self._colors = {
+            "BLUE": "\33[34m",
+            "BLUE_LIGHT": "\33[1;34m",
             "GREEN": "\33[32m",
+            "GREEN_LIGHT": "\33[1;32m",
             "GRAY": "\33[1;30m",
             "YELLOW": "\33[33m",
+            "YELLOW_LIGHT": "\33[1;33m",
+            "ORANGE": "\33[1;31m",
             "RED": "\33[31m",
-            "BLUE": "\33[34m",
-            "VIOLET": "\33[35m",
+            "PURPLE": "\33[35m",
+            "PURPULE_LIGHT": "\33[1;35m",
             "TURQUOISE": "\33[36m",
+            "TURQUOISE_LIGHT": "\33[1;36m",
             "WHITE": "\33[37m",
         }
 
@@ -139,7 +145,7 @@ class Formatter(logging.Formatter):
         """
         The role of this custom formatter is:
         - append filepath and lineno to logging format but shorten path to files, to make logs more clear
-        - to append "./" at the begining to permit going to the line quickly with VS Code CTRL+click from terminal
+        - to append "./" at the begining to permit going to the line quickly with VS Code Ctrl + Click from terminal
         """
         s = super().format(record)
 

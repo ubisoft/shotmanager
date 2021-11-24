@@ -84,6 +84,7 @@ class UAS_ShotManager_FrameTimeRange(Operator):
     #     return {"FINISHED"}
 
     def execute(self, context):
+        ## note: possibility to use the optional parameter changeTime: to prevent current time to be changed
         if context.scene.use_preview_range:
             zoom_dopesheet_view_to_range(context, context.scene.frame_preview_start, context.scene.frame_preview_end)
         else:
