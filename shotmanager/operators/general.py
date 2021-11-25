@@ -50,8 +50,12 @@ class UAS_ShotManager_OT_ShotsPlayMode(Operator):
 class UAS_ShotManager_OT_DisplayOverlayTools(Operator):
     bl_idname = "uas_shot_manager.display_overlay_tools"
     bl_label = "Toggle Overlay Tools Display"
-    # bl_description = "Toggle Overlay Tools Display"
+    bl_description = "Show or hide the Sequence Timeline, Interactive Shots Stack and some other tools"
     bl_options = {"INTERNAL"}
+
+    @classmethod
+    def poll(cls, context):
+        return len(context.scene.UAS_shot_manager_props.get_shots())
 
     def invoke(self, context, event):
         context.window_manager.UAS_shot_manager_display_overlay_tools = (
@@ -63,8 +67,8 @@ class UAS_ShotManager_OT_DisplayOverlayTools(Operator):
 
 class UAS_ShotManager_OT_DisplayDisabledShotsInOverlays(Operator):
     bl_idname = "uas_shot_manager.display_disabledshots_in_overlays"
-    bl_label = "Display Disabled Shots in Overlay Tools"
-    # bl_description = "Display Disabled Shots in Overlay Tools"
+    bl_label = "Toggle Disabled Shots Display"
+    bl_description = "Display Disabled Shots in Overlay Tools"
     bl_options = {"INTERNAL"}
 
     def invoke(self, context, event):

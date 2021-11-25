@@ -890,6 +890,17 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
             res = nothingList
         return res
 
+    def _update_interactShotsStack_target_dopesheet_index(self, context):
+        prev = context.window_manager.UAS_shot_manager_display_overlay_tools
+        context.window_manager.UAS_shot_manager_display_overlay_tools = False
+        if prev:
+           # bpy.ops.uas_shot_manager.interactive_shots_stack.unregister_handlers(context)
+            context.window_manager.UAS_shot_manager_display_overlay_tools = True
+
+        # from shotmanager.overlay_tools.interact_shots_stack.shots_stack_toolbar import display_state_changed_intShStack
+
+        # display_state_changed_intShStack(context)
+
     # Get the target index with the function props.getTargetViewportIndex(context)
     interactShotsStack_target_dopesheet_index: EnumProperty(
         name="Target Dopesheet",
@@ -897,6 +908,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         "\nreceive the Interactive Shots Stack tool."
         "\nThe dopesheet target index will be displayed in green",
         items=(list_target_dopesheets),
+        update=_update_interactShotsStack_target_dopesheet_index,
         options=set(),
         # default=0,
     )

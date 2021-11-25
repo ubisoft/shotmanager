@@ -32,7 +32,6 @@ _logger = sm_logging.getLogger(__name__)
 def shotMngHandler_undo_pre(self, context):
     print("\nSM Handler: Undo Pre")
 
-    # config.gShotsStackInfos["clips"] = list()
     config.gShotsStackInfos = None
 
 
@@ -48,7 +47,6 @@ def shotMngHandler_undo_post(self, context):
 def shotMngHandler_redo_pre(self, context):
     print("SM Handler: Redo Pre")
 
-    # config.gShotsStackInfos["clips"] = list()
     config.gShotsStackInfos = None
 
 
@@ -63,6 +61,7 @@ def shotMngHandler_redo_post(self, context):
 @persistent
 def shotMngHandler_load_pre(self, context):
     print("SM Handler: Load Pre")
+    bpy.context.window_manager.UAS_shot_manager_display_overlay_tools = False
 
 
 @persistent

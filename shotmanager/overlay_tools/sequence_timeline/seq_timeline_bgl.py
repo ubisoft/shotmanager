@@ -300,9 +300,9 @@ class BL_UI_Shot:
         self._name_color_dark = (0.12, 0.12, 0.12, 1)
         self._name_color_disabled = (0.6, 0.6, 0.6, 1)
 
+        self.enabled = enabled
         self.shotIsCurrent = shotIsCurrent
         self.shotIsSelected = shotIsSelected
-        self.enabled = enabled
 
         self._shot_color = (0.8, 0.3, 0.3, 1.0)
         self._shot_color_disabled = (0.23, 0.23, 0.23, 1)
@@ -329,15 +329,12 @@ class BL_UI_Shot:
         self.y_screen = y
 
     @property
-    def bg_color(self):
+    def shot_color(self):
         return self._shot_color
 
-    @bg_color.setter
-    def bg_color(self, value):
+    @shot_color.setter
+    def shot_color(self, value):
         self._shot_color = value
-
-        # if not self.enabled:
-        #     self._shot_color = (0.2, 0.2, 0.2, 1)
 
     def init(self, context):
         self.context = context
@@ -608,11 +605,9 @@ class BL_UI_Timeline:
         self.ui_shots.clear()
         total_range = props.getEditDuration(ignoreDisabled=not props.seqTimeline_displayDisabledShots)
         offset_x = 0
-        shotNum = -1
         for i, shot in enumerate(shots):
             if not props.seqTimeline_displayDisabledShots and not shot.enabled:
                 continue
-            shotNum += 1
             size_x = int(self.width * float(shot.end + 1 - shot.start) / total_range)
             s = BL_UI_Shot(
                 offset_x,
@@ -624,9 +619,9 @@ class BL_UI_Timeline:
                 i == currentShotIndex,
                 i == selectedShotIndex,
             )
-            self.ui_shots.append(s)
             s.init(self.context)
-            s.bg_color = tuple(gamma_color(shot.color))
+            s.shot_color = tuple(gamma_color(shot.color))
+            self.ui_shots.append(s)
 
             s.draw()
 
@@ -636,7 +631,7 @@ class BL_UI_Timeline:
             frame_width = size_x / float(shot.end + 1 - shot.start)
 
             if self.context.window_manager.UAS_shot_manager_shots_play_mode:
-                if currentShotIndex == shotNum:
+                if currentShotIndex == i:
                     caret_color = (1.0, 0.1, 0.1, 1)
                     self.draw_frame_caret(caret_pos, frame_width, darken_color(caret_color))
                     self.draw_caret(caret_pos, caret_color)

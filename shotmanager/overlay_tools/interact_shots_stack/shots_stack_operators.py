@@ -22,13 +22,14 @@ UI for the Interactive Shots Stack overlay tool
 import time
 from collections import defaultdict
 
-from .shots_stack_bgl import ShotClip, draw_shots_stack
+from .shots_stack_bgl import BL_UI_ShotClip, draw_shots_stack
 
 import bpy
 from bpy.types import Operator
 
 from shotmanager.config import config
 from shotmanager.utils import utils
+from shotmanager.utils.utils import gamma_color
 from shotmanager.utils.utils_ogl import get_region_at_xy
 
 
@@ -41,8 +42,8 @@ def ignoreWidget(context):
     props = context.scene.UAS_shot_manager_props
     prefs = bpy.context.preferences.addons["shotmanager"].preferences
 
-    if not len(props.get_shots()):
-        return True
+    # if not len(props.get_shots()):
+    #     return True
     if not context.window_manager.UAS_shot_manager_display_overlay_tools:
         return True
 
@@ -73,6 +74,7 @@ class UAS_ShotManager_InteractiveShotsStack(Operator):
         self.draw_event = None
 
         self.target_area = None
+        self.target_area_index = -1
 
         self.prev_mouse_x = 0
         self.prev_mouse_y = 0
@@ -87,9 +89,11 @@ class UAS_ShotManager_InteractiveShotsStack(Operator):
         self.draw_handle = bpy.types.SpaceDopeSheetEditor.draw_handler_add(
             draw_callback_px, args, "WINDOW", "POST_PIXEL"
         )
-        self.draw_event = context.window_manager.event_timer_add(0.1, window=context.window)
+        self.draw_event = context.window_manager.event_timer_add(0.2, window=context.window)
 
     def unregister_handlers(self, context):
+        # context.window_manager.UAS_shot_manager_display_overlay_tools = False
+
         context.window_manager.event_timer_remove(self.draw_event)
         bpy.types.SpaceDopeSheetEditor.draw_handler_remove(self.draw_handle, "WINDOW")
 
@@ -104,6 +108,7 @@ class UAS_ShotManager_InteractiveShotsStack(Operator):
 
         # target_area_index = 1
         # self.target_area = utils.getAreaFromIndex(context, target_area_index, "DOPESHEET_EDITOR")
+        self.target_area_index = props.getTargetDopesheetIndex(context, only_valid=True)
         self.target_area = props.getValidTargetDopesheet(context)
 
         args = (context, self.target_area)
@@ -122,23 +127,37 @@ class UAS_ShotManager_InteractiveShotsStack(Operator):
         if (
             not context.window_manager.UAS_shot_manager_display_overlay_tools
             or not prefs.toggle_overlays_turnOn_interactiveShotsStack
+            or not len(props.get_shots())
+            or self.target_area_index != props.getTargetDopesheetIndex(context, only_valid=True)
         ):
             self.unregister_handlers(context)
             # context.window_manager.UAS_shot_manager_display_overlay_tools = False
-            return {"CANCELLED"}
+            # return {"CANCELLED"}
+            return {"FINISHED"}
 
         if ignoreWidget(context):
             return {"PASS_THROUGH"}
 
+        # self.build_clips()  # Assume that when the mouse got out of the region shots may be edited
+        # self.active_clip = None
         for area in context.screen.areas:
-            if area.type == "DOPESHEET_EDITOR":
+            if area.type == "DOPESHEET_EDITOR" and area == self.target_area:
+                # _logger.debug_ext("Redraw", col="PURPLE")
                 try:
+                    # if True:
+                    self.build_clips()  # Assume that when the mouse got out of the region shots may be edited
+                    #  self.active_clip = None
                     area.tag_redraw()
                 except Exception as e:
                     print("*** Paf in DopeSheet Modal Shots Stack")
                     self.unregister_handlers(context)
                     context.window_manager.UAS_shot_manager_display_overlay_tools = False
                     return {"CANCELLED"}
+
+        # # if context.area != self.target_area:
+        # #     return {"PASS_THROUGH"}
+
+        # # context.area.tag_redraw()
 
         if config.devDebug:
             # print("wkip modal redrawing of the Interactive Shots Stack")
@@ -154,9 +173,17 @@ class UAS_ShotManager_InteractiveShotsStack(Operator):
 
         event_handled = False
         region, area = get_region_at_xy(context, event.mouse_x, event.mouse_y, "DOPESHEET_EDITOR")
+
+        # don't get events when out of area
+        if self.target_area is not None and area != self.target_area:
+            return {"PASS_THROUGH"}
+
+        # _logger.debug("in region Area")
+
         if region:
-            if 0 == len(config.gShotsStackInfos["clips"]):
-                self.build_clips()
+            # wkip
+            # if 0 == len(config.gShotsStackInfos["clips"]):
+            #     self.build_clips()
 
             if not context.window_manager.UAS_shot_manager_toggle_shots_stack_interaction:
                 return {"PASS_THROUGH"}
@@ -164,21 +191,24 @@ class UAS_ShotManager_InteractiveShotsStack(Operator):
             mouse_x, mouse_y = region.view2d.region_to_view(event.mouse_x - region.x, event.mouse_y - region.y)
             if event.type == "LEFTMOUSE":
                 if event.value == "PRESS":
+                    _logger.debug("Press")
                     # bpy.ops.ed.undo_push(message=f"Set Shot Start...")
                     for clip in config.gShotsStackInfos["clips"]:
-                        active_clip_region = clip.get_region(mouse_x, mouse_y)
+                        _logger.debug(f"Press for clip {clip.shot_index}")
+                        active_clip_region = clip.get_handle(mouse_x, mouse_y)
                         if active_clip_region is not None:
+                            _logger.debug("   in clip region")
                             clip.highlight = True
                             self.active_clip = clip
                             self.active_clip_region = active_clip_region
-                            props.setSelectedShot(self.active_clip.shot)
+                            props.setSelectedShotByIndex(self.active_clip.shot_index)
                             event_handled = True
                         else:
                             clip.highlight = False
 
                     counter = time.perf_counter()
                     if self.active_clip and counter - self.prev_click < 0.3:  # Double click.
-                        props.setCurrentShot(self.active_clip.shot, changeTime=False)
+                        props.setCurrentShotByIndex(self.active_clip.shot_index, changeTime=False)
                         event_handled = True
 
                     self.prev_click = counter
@@ -216,9 +246,9 @@ class UAS_ShotManager_InteractiveShotsStack(Operator):
             config.gShotsStackInfos["prev_mouse_x"] = self.prev_mouse_x
             config.gShotsStackInfos["prev_mouse_y"] = self.prev_mouse_y
         else:
-            #   print("Here 50 - config.gShotsStackInfos Clips len: " + str(len(config.gShotsStackInfos["clips"])))
-            self.build_clips()  # Assume that when the mouse got out of the region shots may be edited
-            self.active_clip = None
+            print("Here 50 - config.gShotsStackInfos Clips len: " + str(len(config.gShotsStackInfos["clips"])))
+            # self.build_clips()  # Assume that when the mouse got out of the region shots may be edited
+            # self.active_clip = None
 
         if event_handled:
             return {"RUNNING_MODAL"}
@@ -226,23 +256,30 @@ class UAS_ShotManager_InteractiveShotsStack(Operator):
         return {"PASS_THROUGH"}
 
     def build_clips(self):
-        context = bpy.context
-        props = context.scene.UAS_shot_manager_props
+        props = bpy.context.scene.UAS_shot_manager_props
 
         if config.gShotsStackInfos is None:
             config.gShotsStackInfos = initialize_gShotsStackInfos()
         else:
             config.gShotsStackInfos["clips"].clear()
 
+        currentShotIndex = props.getCurrentShotIndex()
+        selectedShotIndex = props.getSelectedShotIndex()
+
         # if self.compact_display:
         # print("Here 53 - config.gShotsStackInfos Clips len: " + str(len(config.gShotsStackInfos["clips"])))
+        shots = props.get_shots()
+
         if props.interactShotsStack_displayInCompactMode:
-            shots = sorted(
-                props.getShotsList(ignoreDisabled=not props.interactShotsStack_displayDisabledShots),
-                key=lambda s: s.start,
-            )
+            # shots = sorted(
+            #     props.getShotsList(ignoreDisabled=not props.interactShotsStack_displayDisabledShots),
+            #     key=lambda s: s.start,
+            # )
+            shots = sorted(shots, key=lambda s: s.start,)
             shots_from_lane = defaultdict(list)
             for i, shot in enumerate(shots):
+                if not props.interactShotsStack_displayDisabledShots and not shot.enabled:
+                    continue
                 lane = 0
                 if i > 0:
                     for l, shots_in_lane in shots_from_lane.items():
@@ -253,16 +290,29 @@ class UAS_ShotManager_InteractiveShotsStack(Operator):
                             lane = l
                             break
                     else:
-                        lane = max(shots_from_lane) + 1  # No free lane, make a new one.
+                        if len(shots_from_lane):
+                            lane = max(shots_from_lane) + 1  # No free lane, make a new one.
+                        else:
+                            laine = 1
                 shots_from_lane[lane].append(shot)
 
-                config.gShotsStackInfos["clips"].append(ShotClip(context, shot, lane, props))
+                s = BL_UI_ShotClip(lane, i)
+                s.shot_color = gamma_color(shot.color)
+                s.update()
+                config.gShotsStackInfos["clips"].append(s)
         else:
-            allShots = props.getShotsList(ignoreDisabled=not props.interactShotsStack_displayDisabledShots)
+
             #    print(f"Here 56, len allShots = {len(allShots)}")
-            for i, shot in enumerate(allShots):
+            numShots = -1
+            for i, shot in enumerate(shots):
+                if not props.interactShotsStack_displayDisabledShots and not shot.enabled:
+                    continue
+                numShots += 1
                 # print(f"   i: {i}")
-                config.gShotsStackInfos["clips"].append(ShotClip(context, shot, i, props))
+                s = BL_UI_ShotClip(numShots, i)
+                s.shot_color = gamma_color(shot.color)
+                s.update()
+                config.gShotsStackInfos["clips"].append(s)
         #   print("Here 57 - config.gShotsStackInfos Clips len: " + str(len(config.gShotsStackInfos["clips"])))
 
 
@@ -276,14 +326,14 @@ def draw_callback_px(context, target_area):
     #     bpy.types.SpaceDopeSheetEditor.draw_handler_remove(self.draw_handle, "WINDOW")
 
     # !!! warning: Blender Timeline editor has a problem of refresh so even if the display is not done it may appear in the editor
-    draw_shots_stack(context)
 
+    if target_area is not None and context.area != target_area:
+        return False
+
+    # draw_shots_stack(context)
     try:
         # if ignoreWidget(context):
         #     return False
-
-        if target_area is not None and context.area != target_area:
-            return False
 
         draw_shots_stack(context)
 

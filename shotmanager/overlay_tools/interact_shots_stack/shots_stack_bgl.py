@@ -47,6 +47,7 @@ def draw_shots_stack(context):
     # _logger.debug_colored("Here 80 - config.gShotsStackInfos Clips len: " + str(len(config.gShotsStackInfos["clips"])))
 
     if config.gShotsStackInfos is not None:
+        # _logger.debug_ext("Redraw in draw_shots_stack", col="PURPLE")
         #    _logger.debug_colored("Here 82")
         for clip in config.gShotsStackInfos["clips"]:
             #        _logger.debug_colored("Here 83")
@@ -221,10 +222,11 @@ def get_lane_origin_y(lane):
     return -LANE_HEIGHT * lane - 39  # an offset to put it under timeline ruler.
 
 
-class ShotClip:
-    def __init__(self, context, shot, lane, sm_props):
-        self.context = context
-        self.shot = shot
+class BL_UI_ShotClip:
+    def __init__(self, lane, shot_index):
+        """
+        shot_index is the index of the shot in the whole take list
+        """
         self.height = LANE_HEIGHT
         self.width = 0
         self.lane = lane
@@ -236,20 +238,56 @@ class ShotClip:
         self.start_interaction_mesh = None
         self.end_interaction_mesh = None
         self.origin = None
-        self.sm_props = sm_props
 
         self.color_currentShot_border = (0.92, 0.55, 0.18, 0.99)
         self.color_currentShot_border_mix = (0.94, 0.3, 0.1, 0.99)
 
+        self._shot_index = shot_index
         self._name_color_light = (0.9, 0.9, 0.9, 1)
         self._name_color_dark = (0.12, 0.12, 0.12, 1)
         self._name_color_disabled = (0.6, 0.6, 0.6, 1)
+
+        self._shot_color = (0.8, 0.3, 0.3, 1.0)
+        self._shot_color_disabled = (0.23, 0.23, 0.23, 1)
 
         # self.color_selectedShot_border = (0.9, 0.9, 0.2, 0.99)
         #    self.color_selectedShot_border = (0.2, 0.2, 0.2, 0.99)  # dark gray
         self.color_selectedShot_border = (0.95, 0.95, 0.95, 0.9)  # white
 
-        self.update()
+        # self.update()
+
+    def update(self):
+        props = bpy.context.scene.UAS_shot_manager_props
+        shots = props.get_shots()
+        shot = shots[self._shot_index]
+
+        self.width = shot.end - shot.start + 1
+        self.origin = Vector([shot.start, get_lane_origin_y(self.lane)])
+        self.clip_mesh = build_rectangle_mesh(self.origin, self.width, self.height)
+        self.start_interaction_mesh = build_rectangle_mesh(self.origin, 1, self.height)
+        self.end_interaction_mesh = build_rectangle_mesh(self.origin + Vector([self.width - 1, 0]), 1, self.height)
+        self.contour_mesh = build_rectangle_mesh(self.origin, self.width, self.height, True)
+        self.contourCurrent_mesh = build_rectangle_mesh(self.origin, self.width, self.height, True)
+        # self.contourCurrent_mesh = build_rectangle_mesh(
+        #     Vector([self.origin.x - 1, self.origin.y - 1]), self.width + 2, self.height + 2, True
+        # )
+        self.camIcon = Image2D(self.origin, self.width, self.height)
+
+    @property
+    def shot_index(self):
+        return self._shot_index
+
+    @shot_index.setter
+    def shot_index(self, value):
+        self._shot_index = value
+
+    @property
+    def shot_color(self):
+        return self._shot_color
+
+    @shot_color.setter
+    def shot_color(self, value):
+        self._shot_color = (value[0], value[1], value[2], 0.5)
 
     @property
     def highlight(self):
@@ -260,13 +298,17 @@ class ShotClip:
         self._highlight = value
 
     def draw(self, context):
+        props = context.scene.UAS_shot_manager_props
+        shots = props.get_shots()
+        shot = shots[self._shot_index]
+
         bgl.glEnable(bgl.GL_BLEND)
         UNIFORM_SHADER_2D.bind()
-        color = (self.shot.color[0], self.shot.color[1], self.shot.color[2], 0.5)
 
-        color = gamma_color(color)
+        self.shot_color = shot.color
+        color = gamma_color(self.shot_color)
 
-        if not self.shot.enabled:
+        if not shot.enabled:
             color = (0.15, 0.15, 0.15, 0.5)
 
         if self.highlight:
@@ -277,19 +319,23 @@ class ShotClip:
         self.start_interaction_mesh.draw(UNIFORM_SHADER_2D, context.region)
         self.end_interaction_mesh.draw(UNIFORM_SHADER_2D, context.region)
 
-        current_shot = self.sm_props.getCurrentShot()
-        selected_shot = self.sm_props.getSelectedShot()
+        # current_shot = props.getCurrentShot()
+        # selected_shot = props.getSelectedShot()
+        current_shot_ind = props.getCurrentShotIndex()
+        selected_shot_ind = props.getSelectedShotIndex()
 
         # current shot
-        if current_shot != -1 and self.shot.name == current_shot.name:
+        # if current_shot != -1 and self.name == current_shot.name:
+        if self.shot_index == current_shot_ind:
             UNIFORM_SHADER_2D.uniform_float("color", self.color_currentShot_border)
-            self.contourCurrent_mesh.linewidth = 4 if current_shot == selected_shot else 2
+            self.contourCurrent_mesh.linewidth = 4 if current_shot_ind == selected_shot_ind else 2
             self.contourCurrent_mesh.draw(UNIFORM_SHADER_2D, context.region, "LINES")
 
         # selected shot
-        if current_shot != -1 and self.shot.name == selected_shot.name:
+        # if current_shot != -1 and self.name == selected_shot.name:
+        if self.shot_index == selected_shot_ind:
             UNIFORM_SHADER_2D.uniform_float("color", self.color_selectedShot_border)
-            self.contour_mesh.linewidth = 1 if current_shot == selected_shot else 2
+            self.contour_mesh.linewidth = 1 if current_shot_ind == selected_shot_ind else 2
             self.contour_mesh.draw(UNIFORM_SHADER_2D, context.region, "LINES")
 
         # draw a camera icon on the current shot
@@ -298,7 +344,7 @@ class ShotClip:
 
         bgl.glDisable(bgl.GL_BLEND)
 
-        if self.shot.enabled:
+        if shot.enabled:
             if color_is_dark(color, 0.4):
                 blf.color(0, *self._name_color_light)
             else:
@@ -308,20 +354,24 @@ class ShotClip:
 
         blf.size(0, 11, 72)
         blf.position(0, *context.region.view2d.view_to_region(self.origin.x + 1.3, self.origin.y + 5), 0)
-        blf.draw(0, self.shot.name)
+        blf.draw(0, shot.name)
 
-    def get_region(self, x, y):
+    def get_handle(self, x, y):
         """
-        Return the region the mouse is on -1 for start, 0 for move, 1 for end. None else
+        Return the handle of the clip the mouse is on: -1 for start, 0 for move, 1 for end. None otherwise
         :param x:
         :param y:
         :return:
         """
-        if self.shot.start <= x < self.shot.end + 1 and self.origin.y <= y < self.origin.y + self.height:
+        props = bpy.context.scene.UAS_shot_manager_props
+        shots = props.get_shots()
+        shot = shots[self._shot_index]
+
+        if shot.start <= x < shot.end + 1 and self.origin.y <= y < self.origin.y + self.height:
             # Test order is important for the case of start and end are the same. We want to prioritize moving the end.
-            if self.shot.end <= x < self.shot.end + 1:
+            if shot.end <= x < shot.end + 1:
                 return 1
-            elif self.shot.start <= x < self.shot.start + 1:
+            elif shot.start <= x < shot.start + 1:
                 return -1
             else:
                 return 0
@@ -334,35 +384,24 @@ class ShotClip:
         region: if region == -1:    left clip handle (start)
                 if region == 1:     right lip handle (end)
         """
-        from shotmanager.properties.shot import UAS_ShotManager_Shot
+        # from shotmanager.properties.shot import UAS_ShotManager_Shot
 
         #  bpy.ops.ed.undo_push(message=f"Set Shot Start...")
 
+        props = bpy.context.scene.UAS_shot_manager_props
+        shots = props.get_shots()
+        shot = shots[self._shot_index]
         # !! we have to be sure we work on the selected shot !!!
         if region == 1:
-            self.shot.end += mouse_disp
+            shot.end += mouse_disp
         elif region == -1:
-            self.shot.start += mouse_disp
-            # bpy.ops.uas_shot_manager.set_shot_start(newStart=self.shot.start + mouse_disp)
+            shot.start += mouse_disp
+            # bpy.ops.uas_shot_manager.set_shot_start(newStart=self.start + mouse_disp)
         else:
             # Very important, don't use properties for changing both start and ends. Depending of the amount of displacement duration can change.
             if mouse_disp > 0:
-                self.shot.end += mouse_disp
-                self.shot.start += mouse_disp
+                shot.end += mouse_disp
+                shot.start += mouse_disp
             else:
-                self.shot.start += mouse_disp
-                self.shot.end += mouse_disp
-
-    def update(self):
-        self.width = self.shot.end - self.shot.start + 1
-        self.origin = Vector([self.shot.start, get_lane_origin_y(self.lane)])
-        self.clip_mesh = build_rectangle_mesh(self.origin, self.width, self.height)
-        self.start_interaction_mesh = build_rectangle_mesh(self.origin, 1, self.height)
-        self.end_interaction_mesh = build_rectangle_mesh(self.origin + Vector([self.width - 1, 0]), 1, self.height)
-        self.contour_mesh = build_rectangle_mesh(self.origin, self.width, self.height, True)
-        self.contourCurrent_mesh = build_rectangle_mesh(self.origin, self.width, self.height, True)
-        # self.contourCurrent_mesh = build_rectangle_mesh(
-        #     Vector([self.origin.x - 1, self.origin.y - 1]), self.width + 2, self.height + 2, True
-        # )
-        self.camIcon = Image2D(self.origin, self.width, self.height)
-
+                shot.start += mouse_disp
+                shot.end += mouse_disp

@@ -112,7 +112,7 @@ class UAS_ShotManager_sequenceTimeline(Operator):
 
     def register_handlers(self, args, context):
         self.draw_handle = bpy.types.SpaceView3D.draw_handler_add(self.draw_callback_px, args, "WINDOW", "POST_PIXEL")
-        self.draw_event = context.window_manager.event_timer_add(0.1, window=context.window)
+        self.draw_event = context.window_manager.event_timer_add(0.2, window=context.window)
 
     def unregister_handlers(self, context):
         context.window_manager.event_timer_remove(self.draw_event)
@@ -153,12 +153,16 @@ class UAS_ShotManager_sequenceTimeline(Operator):
                     pass
                 # TODO: wkip here investigate for optimization cause this forced refresh is really greedy !!!
                 # context.area.tag_redraw ( )
-                for area in context.screen.areas:
-                    if area.type == "VIEW_3D":
-                        area.tag_redraw()
-                        # region.tag_redraw() #???? faster?
 
-                        # context.region.tag_redraw()
+                # # for area in context.screen.areas:
+                # #     if area.type == "VIEW_3D":
+                # #         area.tag_redraw()
+                # region.tag_redraw() #???? faster?
+
+                # context.region.tag_redraw()
+                # if not context.window_manager.UAS_shot_manager_toggle_shots_stack_interaction:
+                #     return {"PASS_THROUGH"}
+
                 if self.handle_widget_events(event):
                     return {"RUNNING_MODAL"}
 
