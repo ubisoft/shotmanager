@@ -27,6 +27,9 @@ from shotmanager.config import config
 from shotmanager.operators.shots import convertMarkersFromCameraBindingToShots
 from shotmanager.utils.utils import getSceneVSE, convertVersionIntToStr, clearMarkersFromCameraBinding
 
+from shotmanager.config import sm_logging
+
+_logger = sm_logging.getLogger(__name__)
 
 ###################
 # Properties accessible by operators for key mapping
@@ -55,9 +58,11 @@ class UAS_ShotManager_OT_DisplayOverlayTools(Operator):
 
     @classmethod
     def poll(cls, context):
+        # _logger.debug_ext(f"uas_shot_manager.display_overlay_tools Poll", col="PURPLE")
         return len(context.scene.UAS_shot_manager_props.get_shots())
 
     def invoke(self, context, event):
+        #  _logger.debug_ext(f"uas_shot_manager.display_overlay_tools Invoke", col="PURPLE")
         context.window_manager.UAS_shot_manager_display_overlay_tools = (
             not context.window_manager.UAS_shot_manager_display_overlay_tools
         )

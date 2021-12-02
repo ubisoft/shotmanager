@@ -46,7 +46,6 @@ def ignoreWidget(context):
     #     return True
     if not context.window_manager.UAS_shot_manager_display_overlay_tools:
         return True
-
     if (context.screen.is_animation_playing and not context.screen.is_scrubbing) and (
         context.window_manager.UAS_shot_manager_use_best_perfs and prefs.best_play_perfs_turnOff_interactiveShotsStack
     ):
@@ -56,6 +55,16 @@ def ignoreWidget(context):
 
 def initialize_gShotsStackInfos():
     return {"prev_mouse_x": 0, "prev_mouse_y": 0, "frame_under_mouse": -1, "clips": list()}
+
+
+def display_state_changed_intShStack(context):
+    print("display_state_changed_intShStack")
+    prefs = context.preferences.addons["shotmanager"].preferences
+    # if (
+    #     context.window_manager.UAS_shot_manager_display_overlay_tools
+    #     and prefs.toggle_overlays_turnOn_interactiveShotsStack
+    # ):
+    bpy.ops.uas_shot_manager.interactive_shots_stack("INVOKE_DEFAULT")
 
 
 class UAS_ShotManager_InteractiveShotsStack(Operator):
@@ -136,6 +145,11 @@ class UAS_ShotManager_InteractiveShotsStack(Operator):
             return {"FINISHED"}
 
         if ignoreWidget(context):
+            #  self.unregister_handlers(context)
+            # for area in context.screen.areas:
+            #     #    if area.type == "DOPESHEET_EDITOR" and area == self.target_area:
+            #     area.tag_redraw()
+            #     print("Ignioring...")
             return {"PASS_THROUGH"}
 
         # self.build_clips()  # Assume that when the mouse got out of the region shots may be edited
@@ -148,6 +162,7 @@ class UAS_ShotManager_InteractiveShotsStack(Operator):
                     self.build_clips()  # Assume that when the mouse got out of the region shots may be edited
                     #  self.active_clip = None
                     area.tag_redraw()
+                # print("Redraw")
                 except Exception as e:
                     print("*** Paf in DopeSheet Modal Shots Stack")
                     self.unregister_handlers(context)
@@ -176,11 +191,13 @@ class UAS_ShotManager_InteractiveShotsStack(Operator):
 
         # don't get events when out of area
         if self.target_area is not None and area != self.target_area:
+            #    _logger.debug_ext("in region Area", col="YELLOW")
             return {"PASS_THROUGH"}
 
-        # _logger.debug("in region Area")
+        # _logger.debug_ext("in region Area", col="PURPLE")
 
         if region:
+            #    _logger.debug_ext("in region Area 02", col="RED")
             # wkip
             # if 0 == len(config.gShotsStackInfos["clips"]):
             #     self.build_clips()
@@ -191,13 +208,10 @@ class UAS_ShotManager_InteractiveShotsStack(Operator):
             mouse_x, mouse_y = region.view2d.region_to_view(event.mouse_x - region.x, event.mouse_y - region.y)
             if event.type == "LEFTMOUSE":
                 if event.value == "PRESS":
-                    _logger.debug("Press")
                     # bpy.ops.ed.undo_push(message=f"Set Shot Start...")
                     for clip in config.gShotsStackInfos["clips"]:
-                        _logger.debug(f"Press for clip {clip.shot_index}")
                         active_clip_region = clip.get_handle(mouse_x, mouse_y)
                         if active_clip_region is not None:
-                            _logger.debug("   in clip region")
                             clip.highlight = True
                             self.active_clip = clip
                             self.active_clip_region = active_clip_region
@@ -246,7 +260,9 @@ class UAS_ShotManager_InteractiveShotsStack(Operator):
             config.gShotsStackInfos["prev_mouse_x"] = self.prev_mouse_x
             config.gShotsStackInfos["prev_mouse_y"] = self.prev_mouse_y
         else:
-            print("Here 50 - config.gShotsStackInfos Clips len: " + str(len(config.gShotsStackInfos["clips"])))
+            _logger.debug(
+                "Should I be here ? - config.gShotsStackInfos Clips len: " + str(len(config.gShotsStackInfos["clips"]))
+            )
             # self.build_clips()  # Assume that when the mouse got out of the region shots may be edited
             # self.active_clip = None
 
@@ -266,8 +282,6 @@ class UAS_ShotManager_InteractiveShotsStack(Operator):
         currentShotIndex = props.getCurrentShotIndex()
         selectedShotIndex = props.getSelectedShotIndex()
 
-        # if self.compact_display:
-        # print("Here 53 - config.gShotsStackInfos Clips len: " + str(len(config.gShotsStackInfos["clips"])))
         shots = props.get_shots()
 
         if props.interactShotsStack_displayInCompactMode:
@@ -301,8 +315,6 @@ class UAS_ShotManager_InteractiveShotsStack(Operator):
                 s.update()
                 config.gShotsStackInfos["clips"].append(s)
         else:
-
-            #    print(f"Here 56, len allShots = {len(allShots)}")
             numShots = -1
             for i, shot in enumerate(shots):
                 if not props.interactShotsStack_displayDisabledShots and not shot.enabled:
@@ -313,7 +325,6 @@ class UAS_ShotManager_InteractiveShotsStack(Operator):
                 s.shot_color = gamma_color(shot.color)
                 s.update()
                 config.gShotsStackInfos["clips"].append(s)
-        #   print("Here 57 - config.gShotsStackInfos Clips len: " + str(len(config.gShotsStackInfos["clips"])))
 
 
 ## !!! not in the class !!!
@@ -334,7 +345,6 @@ def draw_callback_px(context, target_area):
     try:
         # if ignoreWidget(context):
         #     return False
-
         draw_shots_stack(context)
 
     except Exception as ex:

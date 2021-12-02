@@ -23,6 +23,16 @@ import bpy
 from bpy.types import Operator
 
 
+# def display_state_changed_seqTimeline(context):
+#     print("display_state_changed_seqTimeline")
+#     prefs = context.preferences.addons["shotmanager"].preferences
+#     # if (
+#     #     context.window_manager.UAS_shot_manager_display_overlay_tools
+#     #     and prefs.toggle_overlays_turnOn_interactiveShotsStack
+#     # ):
+#     bpy.ops.uas_shot_manager.sequence_timeline("INVOKE_DEFAULT")
+
+
 class UAS_ShotManager_OT_ToggleSeqTimelineWithOverlayTools(Operator):
     bl_idname = "uas_shot_manager.toggle_seq_timeline_with_overlay_tools"
     bl_label = "Toggle Display"

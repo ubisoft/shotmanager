@@ -294,7 +294,7 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
 
     # displayed when toggle overlays button is on
     def _update_toggle_overlays_turnOn_interactiveShotsStack(self, context):
-        print("_update_toggle_overlays_turnOn_interactiveShotsStack")
+        _logger.debug_ext("_update_toggle_overlays_turnOn_interactiveShotsStack")
 
         ## toggle on or off the overlay tools mode
         if self.toggle_overlays_turnOn_interactiveShotsStack:

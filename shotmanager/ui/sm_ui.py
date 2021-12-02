@@ -52,6 +52,9 @@ class UAS_PT_ShotManager(Panel):
 
     @classmethod
     def poll(cls, context):
+        props = context.scene.UAS_shot_manager_props
+        # hide the whole panel if used
+        # return not props.dontRefreshUI()
         return True
 
     def draw_header(self, context):
@@ -185,24 +188,25 @@ class UAS_PT_ShotManager(Panel):
             icon="ANIM" if context.window_manager.UAS_shot_manager_shots_play_mode else "FORWARD",
         )
 
-        toggleButsRow = row.row(align=True)
-        toggleButsRow.scale_x = 1.1
+        toggleButRow = row.row(align=True)
+        toggleButRow.operator_context = "INVOKE_DEFAULT"
+        toggleButRow.scale_x = 1.1
         icon = config.icons_col["ShotManager_Tools_OverlayTools_32"]
-        toggleButsRow.operator(
+        toggleButRow.operator(
             "uas_shot_manager.display_overlay_tools",
             text="",
             depress=context.window_manager.UAS_shot_manager_display_overlay_tools,
             icon_value=icon.icon_id,
         )
         ## replaced by operators ########
-        # toggleButsRow.prop(
+        # toggleButRow.prop(
         #     context.window_manager,
         #     "UAS_shot_manager_display_overlay_tools",
         #     text="",
         #     toggle=True,
         #     icon_value=icon.icon_id,
         # )
-        # subSubRow = toggleButsRow.row(align=True)
+        # subSubRow = toggleButRow.row(align=True)
         # subSubRow.enabled = context.window_manager.UAS_shot_manager_display_overlay_tools
         # subSubRow.prop(
         #     context.window_manager,
@@ -212,7 +216,7 @@ class UAS_PT_ShotManager(Panel):
         #     toggle=True,
         # )
 
-        subSubRow = toggleButsRow.row(align=True)
+        subSubRow = toggleButRow.row(align=True)
         subSubRow.enabled = context.window_manager.UAS_shot_manager_display_overlay_tools
         subSubRow.operator(
             "uas_shot_manager.toggle_shots_stack_interaction",
@@ -220,8 +224,8 @@ class UAS_PT_ShotManager(Panel):
             icon="ARROW_LEFTRIGHT",
             depress=context.window_manager.UAS_shot_manager_toggle_shots_stack_interaction,
         )
-        #  subSubRow = toggleButsRow.row(align=True)
-        toggleButsRow.prop(
+        #  subSubRow = toggleButRow.row(align=True)
+        toggleButRow.prop(
             context.window_manager, "UAS_shot_manager_use_best_perfs", text="", icon="INDIRECT_ONLY_ON", toggle=True,
         )
 

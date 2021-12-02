@@ -413,6 +413,26 @@ def getAreaIndex(context, area, area_type):
     return -1
 
 
+def getAreaInfo(context, area, verbose=False):
+    """Return a tupple with:
+        - the index of the area in the list of areas of the specified type
+        - the type of the area
+    Args:
+        area_type: can be "VIEW_3D", ...
+    Return: None if area not found
+    """
+    if area is None:
+        print(f"Specified area is nul: {i}, {area.type}")
+        return None
+    for i, screenArea in enumerate(context.screen.areas):
+        if area == screenArea:
+            if verbose:
+                print(f"Area: {i}, {area.type}")
+            return (i, area.type)
+
+    return None
+
+
 # 3D VIEW areas (= viewports)
 #####################################
 

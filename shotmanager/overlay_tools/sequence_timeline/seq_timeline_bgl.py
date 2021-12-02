@@ -30,6 +30,7 @@ from gpu_extras.batch import batch_for_shader
 
 from shotmanager.utils.utils import clamp, gamma_color, darken_color, remap, color_is_dark
 from shotmanager.utils.utils_ogl import get_region_at_xy, Square
+from shotmanager.utils import utils
 
 # import mathutils
 
@@ -227,6 +228,10 @@ class BL_UI_Cursor:
         return False
 
     def handle_event(self, event):
+        """handle event for BL_UI_Cursor
+        """
+        _logger.debug_ext(f"*** handle event for BL_UI_Cursor", col="GREEN", tag="TIMELINE_EVENT")
+
         x = event.mouse_x
         y = event.mouse_y
 
@@ -438,6 +443,10 @@ class BL_UI_Shot:
         blf.draw(0, self.name)
 
     def handle_event(self, event):
+        """handle event for BL_UI_Shot
+        """
+        _logger.debug_ext(f"*** handle event for BL_UI_Shot", col="GREEN", tag="TIMELINE_EVENT")
+
         x = event.mouse_region_x
         y = event.mouse_region_y
 
@@ -682,20 +691,31 @@ class BL_UI_Timeline:
             self.frame_cursor.draw()
 
     def handle_event(self, event):
+        """handle event for BL_UI_Timeline
+        """
+        _logger.debug_ext(f"*** handle event for BL_UI_Timeline", col="GREEN", tag="TIMELINE_EVENT")
 
         prefs = bpy.context.preferences.addons["shotmanager"].preferences
         if hasattr(bpy.context.space_data, "overlay"):
             if prefs.seqTimeline_not_disabled_with_overlays and not bpy.context.space_data.overlay.show_overlays:
+                _logger.debug_ext(f"   Canceled cause overlays hidden", col="RED")
                 return False
 
-        if self.target_area is not None and self.context.area != self.target_area:
-            return False
+        # if self.target_area is not None and bpy.context.area != self.target_area:
+        #     # verify target area:
+        #     print(f"target area: {utils.getAreaInfo(bpy.context, self.target_area, verbose=False)}")
+        #     print(f"source area: {utils.getAreaInfo(bpy.context, bpy.context.area, verbose=False)}")
+
+        #     _logger.debug_ext(f"   context area != target area", col="GREEN_LIGHT")
+        #     return False
 
         if self.context.window_manager.UAS_shot_manager_shots_play_mode:
             if self.frame_cursor_forShotPlayMode.handle_event(event):
+                #     _logger.debug_ext(f"   self.frame_cursor_forShotPlayMode.handle_event", col="GREEN_LIGHT")
                 return True
         else:
             if self.frame_cursor.handle_event(event):
+                #     _logger.debug_ext(f"   to self.frame_cursor.handle_event", col="GREEN_LIGHT")
                 return True
 
         x = event.mouse_region_x

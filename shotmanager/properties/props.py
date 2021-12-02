@@ -691,12 +691,24 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
             res = nothingList
         return res
 
+    def _update_target_viewport_index(self, context):
+        prev = context.window_manager.UAS_shot_manager_display_overlay_tools
+        context.window_manager.UAS_shot_manager_display_overlay_tools = False
+        if prev:
+            # bpy.ops.uas_shot_manager.interactive_shots_stack.unregister_handlers(context)
+            context.window_manager.UAS_shot_manager_display_overlay_tools = True
+
+        # from shotmanager.overlay_tools.interact_shots_stack.shots_stack_toolbar import display_state_changed_intShStack
+
+        # display_state_changed_intShStack(context)
+
     # Get the target index with the function props.getTargetViewportIndex(context)
     target_viewport_index: EnumProperty(
         name="Target 3D Viewport",
         description="Index of the target viewport of the current workspace that will"
         "\nreceive all the actions set in the Shot Manager panel",
         items=(list_target_viewports),
+        update=_update_target_viewport_index,
         options=set(),
         # default=0,
     )
@@ -894,7 +906,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         prev = context.window_manager.UAS_shot_manager_display_overlay_tools
         context.window_manager.UAS_shot_manager_display_overlay_tools = False
         if prev:
-           # bpy.ops.uas_shot_manager.interactive_shots_stack.unregister_handlers(context)
+            # bpy.ops.uas_shot_manager.interactive_shots_stack.unregister_handlers(context)
             context.window_manager.UAS_shot_manager_display_overlay_tools = True
 
         # from shotmanager.overlay_tools.interact_shots_stack.shots_stack_toolbar import display_state_changed_intShStack
@@ -1019,7 +1031,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
 
     def _update_current_take_name(self, context):
         # print(f"_update_current_take_name: {self.getCurrentTakeIndex()}, {self.getCurrentTakeName()}")
-        _logger.debug("Change current take")
+        #_logger.debug("Change current take")
 
         self.setResolutionToScene()
         self.setCurrentShotByIndex(0)

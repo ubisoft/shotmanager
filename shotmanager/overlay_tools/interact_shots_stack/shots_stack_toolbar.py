@@ -31,15 +31,6 @@ from shotmanager.config import sm_logging
 _logger = sm_logging.getLogger(__name__)
 
 
-def display_state_changed_intShStack(context):
-    print("display_state_changed_intShStack")
-    prefs = context.preferences.addons["shotmanager"].preferences
-    if (
-        context.window_manager.UAS_shot_manager_display_overlay_tools and prefs.toggle_overlays_turnOn_sequenceTimeline
-    ) or context.window_manager.UAS_shot_manager__useSequenceTimeline:
-        bpy.ops.uas_shot_manager.interactive_shots_stack("INVOKE_DEFAULT")
-
-
 def draw_shots_stack_toolbar_in_editor(self, context):
     props = context.scene.UAS_shot_manager_props
     prefs = context.preferences.addons["shotmanager"].preferences
@@ -64,6 +55,7 @@ def draw_shots_stack_toolbar_in_editor(self, context):
     )
 
     toggleButRow = row.row(align=True)
+    toggleButRow.operator_context = "INVOKE_DEFAULT"
     toggleButRow.scale_x = butScale
     icon = config.icons_col["ShotManager_Tools_OverlayTools_32"]
     # toggleButRow.prop(
@@ -75,6 +67,7 @@ def draw_shots_stack_toolbar_in_editor(self, context):
         depress=context.window_manager.UAS_shot_manager_display_overlay_tools,
         icon_value=icon.icon_id,
     )
+
     row.separator(factor=0.8)
 
     row.operator(

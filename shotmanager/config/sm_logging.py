@@ -79,7 +79,7 @@ class SM_Logger(logging.getLoggerClass()):
         color = self._colors[col] if col != "" else ""
 
         if "STD" == form:
-            f = Formatter(color + "~Std +++" + " {message:<140}" + "\033[0m", style="{")
+            f = Formatter(color + "SM: " + " {message:<120}" + "\033[0m", style="{")
         elif "REG" == form:
             if "" == col:
                 color = self._colors["YELLOW"]
@@ -93,7 +93,7 @@ class SM_Logger(logging.getLoggerClass()):
         elif "OTHER" == form:
             f = Formatter(color + "~Other +++" + " {message:<140}" + "\033[0m", style="{")
         else:  # "DEFAULT"
-            f = Formatter("\033[0m" + "~Std default +++" + " {message:<140}", style="{")
+            f = Formatter("\033[0m" + "~default +++" + " {message:<140}", style="{")
         return f
 
     # to remove
@@ -119,8 +119,14 @@ class SM_Logger(logging.getLoggerClass()):
         ch.setLevel(logging.DEBUG)
         _logger.handlers[0].setFormatter(self._getFormatter(col, form))
 
-    def debug_ext(self, msg, extra=None, col="", form="STD"):
+    def debug_ext(self, msg, extra=None, col="", form="STD", tag=None):
         _logger.handlers[0].setFormatter(self._getFormatter(col, form))
+
+        # accept or silence message display according to tags
+        if tag is not None:
+            if "TIMELINE_EVENT" == tag:
+                return
+                pass
 
         # Note: marvellous parameter: stacklevel allows to get the call from the sender, otherwise
         # it is this function that is used and the path is not good

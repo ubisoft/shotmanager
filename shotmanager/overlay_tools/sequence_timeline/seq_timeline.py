@@ -70,6 +70,9 @@ class UAS_ShotManager_sequenceTimeline(Operator):
         self.draw_handle = None
         self.draw_event = None
 
+        # self.target_area = None
+        self.target_area_index = -1
+
         self.widgets = []
 
     def init_widgets(self, context, widgets, target_area=None):
@@ -80,10 +83,12 @@ class UAS_ShotManager_sequenceTimeline(Operator):
             widget.init(context)
 
     def invoke(self, context, event):
-        props = context.scene.UAS_shot_manager_props
+        # _logger.debug_ext(f"uas_shot_manager.sequence_timeline  Invoke", col="RED")
 
         if ignoreWidget(context):
             return {"CANCELLED"}
+
+        props = context.scene.UAS_shot_manager_props
 
         # get the area index of invocation
         source_area_ind = utils.getAreaIndex(context, context.area, "VIEW_3D")
@@ -93,6 +98,9 @@ class UAS_ShotManager_sequenceTimeline(Operator):
         # print(
         #     f"Invoke Timeline area ind: {source_area_ind}, expected target: {expected_target_area_ind}, valid target: {target_area_ind}"
         # )
+
+        self.target_area_index = props.getTargetViewportIndex(context, only_valid=True)
+        #     self.target_area = props.getValidTargetViewport(context)
 
         # print("Invoke timeline")
         if target_area is None:
@@ -122,27 +130,42 @@ class UAS_ShotManager_sequenceTimeline(Operator):
         self.draw_event = None
 
     def handle_widget_events(self, event):
+        """handle event for sequence_timeline operator
+        """
+        _logger.debug_ext(f"*-- handle event for sequence_timeline operator", col="GREEN", tag="TIMELINE_EVENT")
+
         result = False
 
-        if False and ignoreWidget(bpy.context):
-            return False
-        else:
-            for widget in self.widgets:
-                if widget.handle_event(event):
-                    result = True
+        # if ignoreWidget(bpy.context):
+        #     return False
+        # else:
+        for widget in self.widgets:
+            if widget.handle_event(event):
+                result = True
 
         return result
 
     def modal(self, context, event):
+        props = context.scene.UAS_shot_manager_props
+        prefs = context.preferences.addons["shotmanager"].preferences
+        # _logger.debug_ext(f"uas_shot_manager.sequence_timeline  Modal", col="RED")
         # print(f"playint: {bpy.context.screen.is_animation_playing}, scrubbing: {bpy.context.screen.is_scrubbing}")
         # return {"PASS_THROUGH"}
 
-        if not context.window_manager.UAS_shot_manager_display_overlay_tools:
+        # if not context.window_manager.UAS_shot_manager_display_overlay_tools:
+        if (
+            not context.window_manager.UAS_shot_manager_display_overlay_tools
+            or not prefs.toggle_overlays_turnOn_sequenceTimeline
+            or not len(props.get_shots())
+            or self.target_area_index != props.getTargetViewportIndex(context, only_valid=True)
+        ):
             self.unregister_handlers(context)
             return {"CANCELLED"}
 
         if context.area:
+            # _logger.debug_ext(f"    context.area", col="YELLOW")
             if ignoreWidget(context):
+                #    _logger.debug_ext(f"         ignore widget", col="PURPLE")
                 return {"PASS_THROUGH"}
 
             # print(f"playint: {bpy.context.screen.is_animation_playing}, scrubbing: {bpy.context.screen.is_scrubbing}")
@@ -163,9 +186,11 @@ class UAS_ShotManager_sequenceTimeline(Operator):
                 # if not context.window_manager.UAS_shot_manager_toggle_shots_stack_interaction:
                 #     return {"PASS_THROUGH"}
 
-                if self.handle_widget_events(event):
-                    return {"RUNNING_MODAL"}
+            if self.handle_widget_events(event):
+                _logger.debug_ext(f"       handle widget events", col="PURPLE", tag="TIMELINE_EVENT")
+                return {"RUNNING_MODAL"}
 
+        #   _logger.debug_ext(f"      Pass Through", col="PURPLE")
         return {"PASS_THROUGH"}
 
     def cancel(self, context):

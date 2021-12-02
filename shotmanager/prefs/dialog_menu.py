@@ -31,6 +31,7 @@ class UAS_MT_ShotManager_Prefs_MainMenu(Menu):
     # bl_description = "Display the settings for the Shot Manager instanced in the current scene"
 
     def draw(self, context):
+        print("")
         layout = self.layout
 
         row = layout.row(align=True)
