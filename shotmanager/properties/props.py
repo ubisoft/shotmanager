@@ -219,6 +219,11 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         if 100 != scene.render.resolution_percentage:
             warningList.append(("Render Resolution Percentage is not at 100%", 40))
 
+        # check if the resolution render uses multiples of 2
+        ###########
+        if 0 != scene.render.resolution_x % 2 or 0 != scene.render.resolution_y % 2:
+            warningList.append(("Render Resolution must use multiples of 2", 42))
+
         # check is the data version is compatible with the current version
         # wkip obsolete code due to post register data version check
         if config.devDebug:
@@ -255,9 +260,14 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         if self.renderRootPath.startswith("//"):
             if "" == bpy.data.filepath:
                 renderWarnings = "*** Save file first ***"
-        elif "" == self.renderRootPath:
+
+        if "" == self.renderRootPath:
             renderWarnings = "*** Invalid Output File Name ***"
-        elif len(self.get_shots()) <= 0:
+
+        if 0 != bpy.context.scene.render.resolution_x % 2 or 0 != bpy.context.scene.render.resolution_y % 2:
+            renderWarnings = "*** Output resolution must use multiples of 2 ***"
+
+        if len(self.get_shots()) <= 0:
             renderWarnings = "*** No shots in the current take ***"
 
         if "" != renderWarnings:
@@ -1031,7 +1041,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
 
     def _update_current_take_name(self, context):
         # print(f"_update_current_take_name: {self.getCurrentTakeIndex()}, {self.getCurrentTakeName()}")
-        #_logger.debug("Change current take")
+        # _logger.debug("Change current take")
 
         self.setResolutionToScene()
         self.setCurrentShotByIndex(0)

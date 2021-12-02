@@ -32,6 +32,7 @@ from . import sm_shots_ui
 from . import sm_takes_ui
 from . import sm_shot_settings_ui
 from . import sm_shots_global_settings_ui
+from .warnings_ui import drawWarnings
 
 from shotmanager.config import sm_logging
 
@@ -171,7 +172,7 @@ class UAS_PT_ShotManager(Panel):
         # scene warnings
         ################
         warningsList = props.getWarnings(scene)
-        self.drawWarnings(context, layout, warningsList)
+        drawWarnings(context, layout, warningsList, panelType="MAIN")
 
         # play and timeline
         ################
@@ -715,54 +716,6 @@ class UAS_PT_ShotManager(Panel):
         #   col.menu("UAS_MT_Shot_Manager_shots_toolsmenu", icon="TOOL_SETTINGS", text="")
 
         # layout.separator ( factor = 1 )
-
-    def drawWarnings(self, context, ui_component, warningsList):
-        if len(warningsList):
-            prefs = context.preferences.addons["shotmanager"].preferences
-            panelIcon = "TRIA_DOWN" if prefs.general_warning_expanded else "TRIA_RIGHT"
-
-            box = ui_component.box()
-            panelRow = box.row()
-            panelRow.prop(prefs, "general_warning_expanded", text="", icon=panelIcon, emboss=False)
-            titleRow = panelRow.row()
-            titleRow.alert = True
-            warningStr = f"Warnings: {len(warningsList)}"
-            titleRow.label(text=warningStr)
-
-            # display text near warnings ############
-            # titleRowRight = panelRow.row()
-            # titleRowRight.alignment = "RIGHT"
-            # titleRowRight.alert = True
-            # titleRowRight.label(text="test")
-
-            if prefs.general_warning_expanded:
-                mainRow = box.row()
-                mainRow.separator(factor=2.0)
-                warningsRow = mainRow.column(align=False)
-                for w in warningsList:
-                    messages = w[0].split("\n")
-
-                    row = warningsRow.row()
-                    row.alert = True
-                    warningCol = row.column(align=False)
-                    warningCol.scale_y = 0.5
-                    for i, mess in enumerate(messages):
-                        if 0 == i:
-                            warningCol.label(text="-  " + mess)
-                        else:
-                            warningCol.label(text="    " + mess)
-
-                    if 60 == w[1]:
-                        warningCol.scale_y = 1.0
-                        butsrow = warningCol.row()
-                        butsrow.separator(factor=0.5)
-                        butsrow.operator("uas_shot_manager.clear_markers_from_camera_binding", text="Clear Binding")
-                        butsrow.operator(
-                            "uas_shot_manager.convert_markers_from_camera_binding_to_shots", text="Convert Binding"
-                        )
-                        butsrow.separator(factor=0.5)
-
-                    warningCol.separator(factor=1.0)
 
 
 #########

@@ -27,6 +27,8 @@ from bpy.types import Panel
 from ..config import config
 from ..utils import utils
 
+from shotmanager.ui.warnings_ui import drawWarnings
+
 
 class UAS_PT_ShotManagerRenderPanelStdalone(Panel):
     bl_label = "Shot Manager - Render"
@@ -111,12 +113,12 @@ def drawHeaderPreset(self, context):
 
 
 def draw3DRenderPanel(self, context):
-
+    scene = context.scene
     props = context.scene.UAS_shot_manager_props
     iconExplorer = config.icons_col["General_Explorer_32"]
 
     layout = self.layout
-    row = layout.row()
+    # row = layout.row()
     # row.separator(factor=3)
     # if not props.useProjectRenderSettings:
     #     row.alert = True
@@ -124,6 +126,21 @@ def draw3DRenderPanel(self, context):
     # row.operator("uas_shot_manager.render_restore_project_settings")
     # row.operator("uas_shot_manager.project_settings_prefs")
     # row.separator(factor=0.1)
+
+    if config.devDebug:
+        row = layout.row()
+        row.label(text="Debug Mode:")
+        subrow = row.row()
+        # subrow.operator("uas_shot_manager.enable_debug", text="Off").enable_debug = True
+        subrow.alert = config.devDebug
+        subrow.operator("uas_shot_manager.enable_debug", text="On").enable_debug = False
+
+    # scene warnings
+    ################
+    warningsList = props.getWarnings(scene)
+    drawWarnings(context, layout, warningsList, panelType="RENDERING")
+
+    row = layout.row()
 
     if props.use_project_settings:
         row.alert = True
