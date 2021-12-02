@@ -58,14 +58,26 @@ def get_region_at_xy(context, x, y, area_type="VIEW_3D"):
 # Geometry utils functions
 #
 class Square:
+    """Draw a rectangle filled with the specifed color, from bottom left corner and with 
+    width and height.
+    Origin of the object is at the center.
+
+    **** Warning: crappy implementation: not a square but a rect, and with MIDDLE_MIDDLE provided height and width are half the size
+    of the expected result ! ***
+    """
+
     UNIFORM_SHADER_2D = gpu.shader.from_builtin("2D_UNIFORM_COLOR")
 
-    def __init__(self, x, y, sx, sy, color=(1.0, 1.0, 1.0, 1.0)):
+    def __init__(self, x, y, sx, sy, color=(1.0, 1.0, 1.0, 1.0), origin="MIDDLE_MIDDLE"):
+        """
+        origin can be: MIDDLE_MIDDLE, LEFT_BOTTOM
+        """
         self._x = x
         self._y = y
         self._sx = sx
         self._sy = sy
         self._color = color
+        self._origin = origin
 
     @property
     def x(self):
@@ -107,16 +119,32 @@ class Square:
     def color(self, value):
         self._color = value
 
-    def copy(self):
-        return Square(self.x, self.y, self.sx, self.sy, self.color)
+    @property
+    def origin(self):
+        return self._origin
 
-    def draw(self):
-        vertices = (
-            (-self._sx + self._x, self._sy + self._y),
-            (self._sx + self._x, self._sy + self._y),
-            (-self._sx + self._x, -self._sy + self._y),
-            (self._sx + self._x, -self._sy + self._y),
-        )
+    @origin.setter
+    def origin(self, value):
+        self._origin = value
+
+    def copy(self):
+        return Square(self.x, self.y, self.sx, self.sy, self.color, self.origin)
+
+    def draw(self, position=None):
+        if "LEFT_BOTTOM" == self._origin:
+            vertices = (
+                (self._x, self._sy + self._y),
+                (self._sx + self._x, self._sy + self._y),
+                (self._x, self._y),
+                (self._sx + self._x, self._y),
+            )
+        else:
+            vertices = (
+                (-self._sx + self._x, self._sy + self._y),
+                (self._sx + self._x, self._sy + self._y),
+                (-self._sx + self._x, -self._sy + self._y),
+                (self._sx + self._x, -self._sy + self._y),
+            )
         # vertices += [ pos_2d.x, pos_2d.y ]
         indices = ((0, 1, 2), (2, 1, 3))
 

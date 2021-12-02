@@ -25,13 +25,13 @@ from . import retimer_ui
 from . import retimer_props
 from . import retimer_operators
 
-import logging
+from shotmanager.config import sm_logging
 
-_logger = logging.getLogger(__name__)
+_logger = sm_logging.getLogger(__name__)
 
 
 def register():
-    print("       - Registering Retimer Package")
+    _logger.debug_ext("       - Registering Retimer Package", form="REG")
 
     retimer_props.register()
     retimer_operators.register()
@@ -39,7 +39,7 @@ def register():
 
 
 def unregister():
-    print("       - Unregistering Retimer Package")
+    _logger.debug_ext("       - Unregistering Retimer Package", form="UNREG")
 
     # rendering_ui.unregister()   # done in shotmanager.__init__ in order to display the panel in the right order
     retimer_operators.unregister()

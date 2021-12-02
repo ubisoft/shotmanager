@@ -16,14 +16,86 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 """
-Handlers
+Handlers specific to overlay tools
 """
 
 import bpy
+from bpy.app.handlers import persistent
+
 from shotmanager.utils import utils
+from shotmanager.utils import utils_handlers
+
+from shotmanager.config import sm_logging
+
+_logger = sm_logging.getLogger(__name__)
 
 
-def jump_to_shot(scene):
+def install_handler_for_shot(self, context):
+    """Called in the update function of WindowManager.UAS_shot_manager_shots_play_mode
+    """
+    scene = context.scene
+
+    scene.UAS_shot_manager_props.setResolutionToScene()
+
+    if (
+        self.UAS_shot_manager_shots_play_mode
+        and shotMngHandler_frame_change_pre_jumpToShot not in bpy.app.handlers.frame_change_pre
+    ):
+        shots = scene.UAS_shot_manager_props.get_shots()
+        for i, shot in enumerate(shots):
+            if shot.start <= scene.frame_current <= shot.end:
+                scene.UAS_shot_manager_props.current_shot_index = i
+                break
+        bpy.app.handlers.frame_change_pre.append(shotMngHandler_frame_change_pre_jumpToShot)
+    #     bpy.app.handlers.frame_change_post.append(shotMngHandler_frame_change_pre_jumpToShot__frame_change_post)
+
+    #    bpy.ops.uas_shot_manager.sequence_timeline ( "INVOKE_DEFAULT" )
+    elif (
+        not self.UAS_shot_manager_shots_play_mode
+        and shotMngHandler_frame_change_pre_jumpToShot in bpy.app.handlers.frame_change_pre
+    ):
+        utils_handlers.removeAllHandlerOccurences(
+            shotMngHandler_frame_change_pre_jumpToShot, handlerCateg=bpy.app.handlers.frame_change_pre
+        )
+        # utils_handlers.removeAllHandlerOccurences(
+        #     shotMngHandler_frame_change_pre_jumpToShot__frame_change_post, handlerCateg=bpy.app.handlers.frame_change_post
+        # )
+
+
+def toggle_overlay_tools_display(context):
+    # print("  toggle_overlay_tools_display:  self.UAS_shot_manager_display_overlay_tools: ", self.UAS_shot_manager_display_overlay_tools)
+    prefs = context.preferences.addons["shotmanager"].preferences
+    from shotmanager.overlay_tools.interact_shots_stack.shots_stack_operators import display_state_changed_intShStack
+
+    if context.window_manager.UAS_shot_manager_display_overlay_tools:
+        if prefs.toggle_overlays_turnOn_sequenceTimeline:
+            a = bpy.ops.uas_shot_manager.sequence_timeline("INVOKE_DEFAULT")
+
+        if prefs.toggle_overlays_turnOn_interactiveShotsStack:
+            display_state_changed_intShStack(context)
+    ###         context.window_manager.UAS_shot_manager__useInteracShotsStack = True
+
+    # bpy.ops.uas_shot_manager.draw_camera_hud_in_viewports("INVOKE_DEFAULT")
+    else:
+        if prefs.toggle_overlays_turnOn_sequenceTimeline:
+            a = bpy.ops.uas_shot_manager.sequence_timeline("INVOKE_DEFAULT")
+
+        if prefs.toggle_overlays_turnOn_interactiveShotsStack:
+            ###         context.window_manager.UAS_shot_manager__useInteracShotsStack = False
+            display_state_changed_intShStack(context)
+
+        pass
+        # print(f"a operator timeline not updated")
+
+        # bpy.ops.uas_shot_manager.sequence_timeline.cancel(context)
+        # print(f"a b operator timeline not updated")
+    # pistes pour killer un operateur:
+    #   - mettre un Poll
+    #   - faire un return Cancel dans le contenu
+    #   - killer, d'une maniere ou d'une autre
+
+
+def shotMngHandler_frame_change_pre_jumpToShot(scene):
     props = scene.UAS_shot_manager_props
 
     def get_previous_shot(shots, current_shot):
@@ -45,6 +117,8 @@ def jump_to_shot(scene):
         return None
 
     shotList = props.get_shots()
+    if len(shotList) <= 0:
+        return
 
     current_shot_index = props.current_shot_index
     props.restartPlay = False
@@ -114,7 +188,8 @@ def jump_to_shot(scene):
         if not (current_shot.start <= current_frame <= current_shot.end):
             candidates = list()
             for i, shot in enumerate(shotList):
-                if shot.start <= current_frame <= shot.end:
+                # wk
+                if shot.enabled and shot.start <= current_frame <= shot.end:
                     candidates.append((i, shot))
 
             if 0 < len(candidates):
@@ -122,20 +197,20 @@ def jump_to_shot(scene):
                 scene.frame_current = current_frame
             else:
                 # case were the new current time is out of every shots
-                # we then get the first shot after current time, or the very first shot if there is no shots after
-                nextShotInd = props.getFirstShotIndexAfterFrame(current_frame, ignoreDisabled=True)
-                if -1 != nextShotInd:
-                    props.setCurrentShot(shotList[nextShotInd], changeTime=False)
+                # we then get the first shot BEFORE current time, or the very first shot if there is no shots after
+                prevShotInd = props.getFirstShotIndexBeforeFrame(current_frame, ignoreDisabled=True)
+                if -1 != prevShotInd:
+                    props.setCurrentShot(shotList[prevShotInd], changeTime=False)
                     # don't change current time in order to let the user see changes in the scene
-                    # scene.frame_current = shotList[nextShotInd].start
+                    # scene.frame_current = shotList[prevShotInd].start
                 else:
-                    prevShotInd = props.getFirstShotIndexBeforeFrame(current_frame, ignoreDisabled=True)
-                    if -1 != prevShotInd:
-                        props.setCurrentShot(shotList[prevShotInd], changeTime=False)
+                    nextShotInd = props.getFirstShotIndexAfterFrame(current_frame, ignoreDisabled=True)
+                    if -1 != nextShotInd:
+                        props.setCurrentShot(shotList[nextShotInd], changeTime=False)
                         # don't change current time in order to let the user see changes in the scene
-                        # scene.frame_current = shotList[prevShotInd].start
+                        # scene.frame_current = shotList[nextShotInd].start
                     else:
                         # paf what to do?
                         # props.setCurrentShot(candidates[0][1])
-                        print("SM: Paf in jump_to_shot: No valid shot found")
+                        logger.error("SM: Paf in shotMngHandler_frame_change_pre_jumpToShot: No valid shot found")
 

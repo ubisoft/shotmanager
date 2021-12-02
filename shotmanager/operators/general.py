@@ -16,7 +16,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 """
-To do: module description here.
+Operators for Shot Manager
 """
 
 import bpy
@@ -27,12 +27,75 @@ from shotmanager.config import config
 from shotmanager.operators.shots import convertMarkersFromCameraBindingToShots
 from shotmanager.utils.utils import getSceneVSE, convertVersionIntToStr, clearMarkersFromCameraBinding
 
+from shotmanager.config import sm_logging
+
+_logger = sm_logging.getLogger(__name__)
+
+###################
+# Properties accessible by operators for key mapping
+###################
+
+
+class UAS_ShotManager_OT_ShotsPlayMode(Operator):
+    bl_idname = "uas_shot_manager.shots_play_mode"
+    bl_label = "Toggle Shots Play Mode"
+    # bl_description = "Bla"
+    bl_options = {"INTERNAL"}
+
+    def invoke(self, context, event):
+        context.window_manager.UAS_shot_manager_shots_play_mode = (
+            not context.window_manager.UAS_shot_manager_shots_play_mode
+        )
+
+        return {"FINISHED"}
+
+
+class UAS_ShotManager_OT_DisplayOverlayTools(Operator):
+    bl_idname = "uas_shot_manager.display_overlay_tools"
+    bl_label = "Toggle Overlay Tools Display"
+    bl_description = "Show or hide the Sequence Timeline, Interactive Shots Stack and some other tools"
+    bl_options = {"INTERNAL"}
+
+    @classmethod
+    def poll(cls, context):
+        # _logger.debug_ext(f"uas_shot_manager.display_overlay_tools Poll", col="PURPLE")
+        return len(context.scene.UAS_shot_manager_props.get_shots())
+
+    def invoke(self, context, event):
+        #  _logger.debug_ext(f"uas_shot_manager.display_overlay_tools Invoke", col="PURPLE")
+        context.window_manager.UAS_shot_manager_display_overlay_tools = (
+            not context.window_manager.UAS_shot_manager_display_overlay_tools
+        )
+
+        return {"FINISHED"}
+
+
+class UAS_ShotManager_OT_DisplayDisabledShotsInOverlays(Operator):
+    bl_idname = "uas_shot_manager.display_disabledshots_in_overlays"
+    bl_label = "Toggle Disabled Shots Display"
+    bl_description = "Display Disabled Shots in Overlay Tools"
+    bl_options = {"INTERNAL"}
+
+    def invoke(self, context, event):
+        props = context.scene.UAS_shot_manager_props
+
+        val = not props.interactShotsStack_displayDisabledShots
+        props.interactShotsStack_displayDisabledShots = val
+        props.seqTimeline_displayDisabledShots = val
+
+        return {"FINISHED"}
+
+
+###################
+# Various
+###################
+
 
 class UAS_ShotManager_OT_ClearMarkersFromCameraBinding(Operator):
     bl_idname = "uas_shot_manager.clear_markers_from_camera_binding"
     bl_label = "Clear Camera Binding"
     bl_description = "Remove the camera binding from the markers used in the timeline.\nMarkers are not deleted"
-    bl_options = {"INTERNAL", "UNDO"}
+    bl_options = {"REGISTER", "UNDO"}
 
     def invoke(self, context, event):
         clearMarkersFromCameraBinding(context.scene)
@@ -45,7 +108,7 @@ class UAS_ShotManager_OT_ConvertMarkersFromCameraBindingToShots(Operator):
     bl_description = (
         "Convert the camera binding used by markers to shots and remove their binding.\nMarkers are not deleted"
     )
-    bl_options = {"INTERNAL", "UNDO"}
+    bl_options = {"REGISTER", "UNDO"}
 
     def invoke(self, context, event):
         convertMarkersFromCameraBindingToShots(context.scene)
@@ -191,6 +254,9 @@ class UAS_ShotManager_OT_EnableDebug(Operator):
 
 
 _classes = (
+    UAS_ShotManager_OT_ShotsPlayMode,
+    UAS_ShotManager_OT_DisplayDisabledShotsInOverlays,
+    UAS_ShotManager_OT_DisplayOverlayTools,
     UAS_ShotManager_OT_ClearMarkersFromCameraBinding,
     UAS_ShotManager_OT_ConvertMarkersFromCameraBindingToShots,
     UAS_ShotManager_OT_GoToVideoShotManager,

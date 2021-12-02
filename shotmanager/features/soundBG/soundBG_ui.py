@@ -21,9 +21,7 @@ To do: module description here.
 
 import bpy
 from bpy.types import Operator
-from bpy.props import EnumProperty, BoolProperty, StringProperty
 
-from shotmanager.utils import utils
 from shotmanager.config import config
 
 

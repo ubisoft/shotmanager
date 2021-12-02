@@ -18,20 +18,28 @@
 """
 Display camera opengl hud in the viewports
 """
+import bpy
 
-from . import cameras_hud
+from . import camera_hud
+from . import camera_hud_operators
+
+from shotmanager.config import sm_logging
+
+_logger = sm_logging.getLogger(__name__)
 
 
 def register():
-    print("       - Registering Viewport Camera HUD Package")
+    _logger.debug_ext("       - Registering Viewport Camera HUD Package", form="REG")
 
-    cameras_hud.register()
+    camera_hud.register()
+    camera_hud_operators.register()
 
 
 def unregister():
-    print("       - Unregistering Viewport Camera HUD Package")
+    _logger.debug_ext("       - Unregistering Viewport Camera HUD Package", form="UNREG")
 
+    camera_hud_operators.unregister()
     try:
-        cameras_hud.unregister()
+        camera_hud.unregister()
     except Exception:
         print("Paf in Unregister viewport_camera_hud")

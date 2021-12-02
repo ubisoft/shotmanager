@@ -21,9 +21,9 @@ To do: module description here.
 
 from shotmanager.utils.utils_os import module_can_be_imported
 
-import logging
+from shotmanager.config import sm_logging
 
-_logger = logging.getLogger(__name__)
+_logger = sm_logging.getLogger(__name__)
 
 
 def export_otio(shot_manager, file_path="", file_name="", add_take_name_to_path=False, take_index=-1, fps=-1):

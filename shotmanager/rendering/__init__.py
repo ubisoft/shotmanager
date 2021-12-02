@@ -22,21 +22,23 @@ To do: module description here.
 import bpy
 
 from .rendering_props import UAS_ShotManager_RenderGlobalContext, UAS_ShotManager_RenderSettings
+from .rendering_prefs import UAS_ShotManager_Render_Prefs
 from . import rendering_operators
 
-import logging
+from shotmanager.config import sm_logging
 
-_logger = logging.getLogger(__name__)
+_logger = sm_logging.getLogger(__name__)
 
 
 _classes = (
     UAS_ShotManager_RenderGlobalContext,
     UAS_ShotManager_RenderSettings,
+    UAS_ShotManager_Render_Prefs,
 )
 
 
 def register():
-    print("       - Registering Rendering Package")
+    _logger.debug_ext("       - Registering Rendering Package", form="REG")
 
     for cls in _classes:
         bpy.utils.register_class(cls)
@@ -46,6 +48,8 @@ def register():
 
 
 def unregister():
+    _logger.debug_ext("       - Unregistering Rendering Package", form="UNREG")
+
     for cls in reversed(_classes):
         bpy.utils.unregister_class(cls)
 

@@ -16,7 +16,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 """
-To do: module description here.
+Camera BG
 """
 
 import bpy
@@ -26,14 +26,13 @@ from shotmanager.config import config
 # from .greasepencil_props import UAS_ShotManager_RenderGlobalContext, UAS_ShotManager_RenderSettings
 from . import cameraBG_operators
 
-import logging
+from shotmanager.config import sm_logging
 
-_logger = logging.getLogger(__name__)
+_logger = sm_logging.getLogger(__name__)
 
 
 def register():
-    if config.devDebug:
-        print("       - Registering Camera Background Package")
+    _logger.debug_ext("       - Registering Camera Background Package", form="REG")
 
     # for cls in _classes:
     #     bpy.utils.register_class(cls)
@@ -43,6 +42,8 @@ def register():
 
 
 def unregister():
+    _logger.debug_ext("       - Unregistering Camera Background Package", form="UNREG")
+
     # for cls in reversed(_classes):
     #     bpy.utils.unregister_class(cls)
 

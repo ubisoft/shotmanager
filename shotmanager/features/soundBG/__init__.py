@@ -26,14 +26,13 @@ from shotmanager.config import config
 # from .greasepencil_props import UAS_ShotManager_RenderGlobalContext, UAS_ShotManager_RenderSettings
 from . import soundBG_operators
 
-import logging
+from shotmanager.config import sm_logging
 
-_logger = logging.getLogger(__name__)
+_logger = sm_logging.getLogger(__name__)
 
 
 def register():
-    if config.devDebug:
-        print("       - Registering Sound Background Package")
+    _logger.debug_ext("       - Registering Sound Background Package", form="REG")
 
     # for cls in _classes:
     #     bpy.utils.register_class(cls)
@@ -43,6 +42,8 @@ def register():
 
 
 def unregister():
+    _logger.debug_ext("       - Unregistering Sound Background Package", form="UNREG")
+
     # for cls in reversed(_classes):
     #     bpy.utils.unregister_class(cls)
 

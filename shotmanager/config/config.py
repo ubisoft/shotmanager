@@ -37,6 +37,7 @@ def initGlobalVariables():
     else:
         devDebug = True
 
+    # change this value to force debug at start time
     devDebug = False
 
     global devDebug_keepVSEContent
@@ -54,6 +55,13 @@ def initGlobalVariables():
         pcoll.load(png.stem, str(png), "IMAGE")
 
     icons_col = pcoll
+
+    # interactive shots stack ############
+    global gShotsStackInfos
+    gShotsStackInfos = None
+
+    global gModulePath
+    gModulePath = None
 
     # otio ############
 

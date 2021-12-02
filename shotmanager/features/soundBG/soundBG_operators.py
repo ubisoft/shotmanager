@@ -26,9 +26,9 @@ from bpy.props import StringProperty, BoolProperty, IntProperty
 from shotmanager.config import config
 from shotmanager.utils import utils
 
-import logging
+from shotmanager.config import sm_logging
 
-_logger = logging.getLogger(__name__)
+_logger = sm_logging.getLogger(__name__)
 
 
 class UAS_ShotManager_EnableDisableSoundBG(Operator):

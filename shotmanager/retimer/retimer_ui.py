@@ -24,6 +24,7 @@ from bpy.types import Panel, Operator
 from bpy.props import IntProperty, EnumProperty, BoolProperty, FloatProperty, StringProperty
 
 from . import retimer
+from shotmanager.config import config
 
 
 class UAS_PT_ShotManagerRetimer(Panel):
@@ -41,6 +42,14 @@ class UAS_PT_ShotManagerRetimer(Panel):
         prefs = context.preferences.addons["shotmanager"].preferences
         val = prefs.display_retimer_in_properties and not props.dontRefreshUI()
         return val
+
+    def draw_header(self, context):
+        layout = self.layout
+        layout.emboss = "NONE"
+
+        row = layout.row(align=True)
+        icon = config.icons_col["ShotManager_Retimer_32"]
+        row.label(icon_value=icon.icon_id)
 
     def draw(self, context):
         def _get_retime_frames_as_range(start, end):
@@ -265,7 +274,7 @@ class UAS_PT_ShotManagerRetimer(Panel):
             pass
 
         row.separator(factor=1)
-        doc_op = row.operator("shotmanager.open_documentation_url", text="", icon="INFO")
+        doc_op = row.operator("shotmanager.open_documentation_url", text="", icon="INFO", emboss=False)
         quickHelpInfo = retimerProps.getQuickHelp(retimerProps.mode)
         doc_op.path = quickHelpInfo[3]
         tooltipStr = quickHelpInfo[1]

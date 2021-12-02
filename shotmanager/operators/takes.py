@@ -43,7 +43,7 @@ class UAS_ShotManager_TakeAdd(Operator):
     bl_idname = "uas_shot_manager.take_add"
     bl_label = "Add New Take"
     bl_description = "Add a new take"
-    bl_options = {"INTERNAL", "UNDO"}
+    bl_options = {"REGISTER", "UNDO"}
 
     name: StringProperty(name="Name")
 
@@ -132,7 +132,7 @@ class UAS_ShotManager_TakeDuplicate(Operator):
     bl_idname = "uas_shot_manager.take_duplicate"
     bl_label = "Duplicate Current Take"
     bl_description = "Duplicate the current take"
-    bl_options = {"INTERNAL", "UNDO"}
+    bl_options = {"REGISTER", "UNDO"}
 
     newTakeName: StringProperty(name="New Take Name")
     alsoDisabled: BoolProperty(name="Also Apply to Disabled Shots", default=True)
@@ -199,7 +199,7 @@ class UAS_ShotManager_TakeRemove(Operator):
     bl_idname = "uas_shot_manager.take_remove"
     bl_label = "Remove Current Take"
     bl_description = "Remove the current take.\nMain Take, as the base take, cannot be removed"
-    bl_options = {"INTERNAL", "UNDO"}
+    bl_options = {"REGISTER", "UNDO"}
 
     @classmethod
     def poll(cls, context):
@@ -235,7 +235,7 @@ class UAS_ShotManager_TakeRename(Operator):
     bl_idname = "uas_shot_manager.take_rename"
     bl_label = "Rename Take"
     bl_description = "Rename the current take.\nMain Take, as the base take, cannot be renamed"
-    bl_options = {"INTERNAL", "UNDO"}
+    bl_options = {"REGISTER", "UNDO"}
 
     name: StringProperty(name="Name")
 
@@ -269,7 +269,7 @@ class UAS_ShotManager_TakeMoveUp(Operator):
     bl_idname = "uas_shot_manager.take_move_up"
     bl_label = "Move Take Up"
     bl_description = "Move current take up in the take list"
-    bl_options = {"INTERNAL", "UNDO"}
+    bl_options = {"REGISTER", "UNDO"}
 
     @classmethod
     def poll(cls, context):
@@ -295,7 +295,7 @@ class UAS_ShotManager_TakeMoveDown(Operator):
     bl_idname = "uas_shot_manager.take_move_down"
     bl_label = "Move Take Down"
     bl_description = "Move current take down in the take list"
-    bl_options = {"INTERNAL", "UNDO"}
+    bl_options = {"REGISTER", "UNDO"}
 
     @classmethod
     def poll(cls, context):
@@ -320,7 +320,7 @@ class UAS_ShotManager_TakeAsMain(Operator):
     bl_idname = "uas_shot_manager.take_as_main"
     bl_label = "Set as Main Take"
     bl_description = "Set current take as the Main Take.\nPrevious Main Take is duplicated for backup"
-    bl_options = {"INTERNAL", "UNDO"}
+    bl_options = {"REGISTER", "UNDO"}
 
     @classmethod
     def poll(cls, context):
@@ -355,7 +355,7 @@ class UAS_ShotManager_ResetTakesToDefault(Operator):
     bl_idname = "uas_shot_manager.reset_takes_to_default"
     bl_label = "Reset Takes to Default"
     bl_description = "Clear all exisiting takes"
-    bl_options = {"INTERNAL", "UNDO"}
+    bl_options = {"REGISTER", "UNDO"}
 
     def invoke(self, context, event):
         return context.window_manager.invoke_props_dialog(self)

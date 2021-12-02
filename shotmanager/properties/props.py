@@ -16,7 +16,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 """
-To do: module description here.
+Shot Manager properties
 """
 
 import os
@@ -52,9 +52,12 @@ from ..retimer.retimer_props import UAS_Retimer_Properties
 
 from shotmanager.utils import utils
 
-import logging
+# from shotmanager.utils.utils_time import zoom_dopesheet_view_to_range
 
-_logger = logging.getLogger(__name__)
+from shotmanager.config import config
+from shotmanager.config import sm_logging
+
+_logger = sm_logging.getLogger(__name__)
 
 
 class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
@@ -93,6 +96,10 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         self.dataVersion = bpy.context.window_manager.UAS_shot_manager_version
         self.createDefaultTake()
         self.createRenderSettings()
+
+        self.camera_hud_display_in_viewports = True
+        self.camera_hud_display_in_pov = True
+
         self.isInitialized = True
 
     def get_isInitialized(self):
@@ -212,16 +219,22 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         if 100 != scene.render.resolution_percentage:
             warningList.append(("Render Resolution Percentage is not at 100%", 40))
 
+        # check if the resolution render uses multiples of 2
+        ###########
+        if 0 != scene.render.resolution_x % 2 or 0 != scene.render.resolution_y % 2:
+            warningList.append(("Render Resolution must use multiples of 2", 42))
+
         # check is the data version is compatible with the current version
         # wkip obsolete code due to post register data version check
-        if self.dataVersion <= 0 or self.dataVersion < bpy.context.window_manager.UAS_shot_manager_version:
-            # print("Warning: elf.dataVersion:", self.dataVersion)
-            # print(
-            #     "Warning: bpy.context.window_manager.UAS_shot_manager_version:",
-            #     bpy.context.window_manager.UAS_shot_manager_version,
-            # )
+        if config.devDebug:
+            if self.dataVersion <= 0 or self.dataVersion < bpy.context.window_manager.UAS_shot_manager_version:
+                # print("Warning: elf.dataVersion:", self.dataVersion)
+                # print(
+                #     "Warning: bpy.context.window_manager.UAS_shot_manager_version:",
+                #     bpy.context.window_manager.UAS_shot_manager_version,
+                # )
 
-            warningList.append(("Data version is lower than SM version !!", 50))
+                warningList.append(("Debug: Data version is lower than SM version. Save the file.", 50))
 
         # check if some camera markers bound to cameras are used in the scene
         ###########
@@ -247,9 +260,14 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         if self.renderRootPath.startswith("//"):
             if "" == bpy.data.filepath:
                 renderWarnings = "*** Save file first ***"
-        elif "" == self.renderRootPath:
+
+        if "" == self.renderRootPath:
             renderWarnings = "*** Invalid Output File Name ***"
-        elif len(self.get_shots()) <= 0:
+
+        if 0 != bpy.context.scene.render.resolution_x % 2 or 0 != bpy.context.scene.render.resolution_y % 2:
+            renderWarnings = "*** Output resolution must use multiples of 2 ***"
+
+        if len(self.get_shots()) <= 0:
             renderWarnings = "*** No shots in the current take ***"
 
         if "" != renderWarnings:
@@ -272,6 +290,13 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         ):
             res = True
         return res
+
+    sequence_name: StringProperty(
+        name="Sequence Name",
+        description="Name of the sequence edited in the scene",
+        default="My Sequence",
+        options=set(),
+    )
 
     # wkip rrs specific
     #############
@@ -565,30 +590,137 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         options=set(),
     )
 
-    def _update_display_shotname_in_3dviewport(self, context):
+    def _update_camera_hud_display_in_viewports(self, context):
         # print("\n*** Stamp Info updated. New state: ", self.stampInfoUsed)
-        if self.display_shotname_in_3dviewport:
-            bpy.ops.uas_shot_manager.draw_cameras_ui("INVOKE_DEFAULT")
+        if self.camera_hud_display_in_viewports:
+            bpy.ops.uas_shot_manager.draw_camera_hud_in_viewports("INVOKE_DEFAULT")
 
-    display_shotname_in_3dviewport: BoolProperty(
-        name="Display Shot name in 3D Viewports",
+    camera_hud_display_in_viewports: BoolProperty(
+        name="Display Shot name on cameras in 3D Viewports",
         description="Display the name of the shots near the camera object or frame in the 3D viewport",
-        default=True,
-        update=_update_display_shotname_in_3dviewport,
+        default=False,
+        update=_update_camera_hud_display_in_viewports,
         options=set(),
     )
 
-    def _update_display_hud_in_3dviewport(self, context):
+    def _update_camera_hud_display_in_pov(self, context):
         # print("\n*** Stamp Info updated. New state: ", self.stampInfoUsed)
-        if self.display_shotname_in_3dviewport:
-            bpy.ops.uas_shot_manager.draw_hud("INVOKE_DEFAULT")
+        if self.camera_hud_display_in_pov:
+            bpy.ops.uas_shot_manager.draw_camera_hud_in_pov("INVOKE_DEFAULT")
 
-    display_hud_in_3dviewport: BoolProperty(
-        name="Display HUD in 3D Viewports",
+    camera_hud_display_in_pov: BoolProperty(
+        name="Display Camera HUD in POV view mode in the 3D viewports",
         description="Display global infos in the 3D viewport",
-        default=True,
-        update=_update_display_hud_in_3dviewport,
+        default=False,
+        update=_update_camera_hud_display_in_pov,
         options=set(),
+    )
+
+    def getTargetViewportIndex(self, context, only_valid=False):
+        """Return the index of the viewport where all the actions of the Shot Manager should occur.
+        This viewport is called the target viewport and is defined in the UI by the user thanks
+        to the variable props.target_viewport_index.
+        A viewport is an area of type VIEW_3D.
+
+        Args:
+        only_valid:
+            Since there may have more items in the list than viewports in the considered workspace the target viewport index
+            may refer to a viewport that doesn't exist.
+            To get a valid target viewport use the argument only_valid: if set to True it will return the index of the current
+            context area, which should be the viewport with the calling Shot Manager.
+            Return -1 if no viewport is available
+
+        wkip props.target_viewport_index should be stored in the scene, per layout
+        """
+        ind = -1
+        item = self.target_viewport_index
+        # print(f"--- getTargetViewportIndex item: {item}")
+        viewportsList = utils.getAreasByType(context, "VIEW_3D")
+
+        # can be -1 if the context area is not a viewport or if no viewport is available in the workspace
+        current_area_ind = utils.getAreaIndex(context, context.area, "VIEW_3D")
+        if -1 == current_area_ind:
+            # we try to get the first viewport, if one is available
+            if 0 < len(viewportsList):
+                current_area_ind = 0
+
+        if "SELF" == item:
+            ind = current_area_ind
+        elif "AREA_00" == item:
+            ind = 0
+        elif "AREA_01" == item:
+            ind = 1
+        elif "AREA_02" == item:
+            ind = 2
+        elif "AREA_03" == item:
+            ind = 3
+
+        if only_valid:
+            if 0 == len(viewportsList):
+                ind = -1
+            elif len(viewportsList) <= ind:
+                ind = current_area_ind
+
+        return ind
+
+    def getValidTargetViewport(self, context):
+        """Return a valid (= existing in the context) target viewport (= 3D view area)
+        Return None if no valid viewport exists in the screen
+        """
+        valid_target = None
+        valid_target_ind = self.getTargetViewportIndex(context, only_valid=True)
+        if -1 < valid_target_ind:
+            valid_target = utils.getAreaFromIndex(context, valid_target_ind, "VIEW_3D")
+        return valid_target
+
+    def list_target_viewports(self, context):
+        # res = config.gSeqEnumList
+        res = None
+        # res = list()
+        nothingList = list()
+        nothingList.append(
+            ("SELF", "Me", "Target 3D View is the viewport where Shot Manager is used, 0 if not found", 0)
+        )
+        nothingList.append(("AREA_00", "0", "Target 3D View is viewport 0", 1))
+        nothingList.append(("AREA_01", "1", "Target 3D View is viewport 1", 2))
+        nothingList.append(("AREA_02", "2", "Target 3D View is viewport 2", 3))
+        nothingList.append(("AREA_03", "3", "Target 3D View is viewport 3", 4))
+
+        # seqList = getSequenceListFromOtioTimeline(config.gMontageOtio)
+        # for i, item in enumerate(seqList):
+        #     res.append((item, item, "My seq", i + 1))
+
+        # res = getSequenceListFromOtio()
+        # res.append(("NEW_CAMERA", "New Camera", "Create new camera", 0))
+        # for i, cam in enumerate([c for c in context.scene.objects if c.type == "CAMERA"]):
+        #     res.append(
+        #         (cam.name, cam.name, 'Use the exising scene camera named "' + cam.name + '"\nfor the new shot', i + 1)
+        #     )
+
+        if res is None or 0 == len(res):
+            res = nothingList
+        return res
+
+    def _update_target_viewport_index(self, context):
+        prev = context.window_manager.UAS_shot_manager_display_overlay_tools
+        context.window_manager.UAS_shot_manager_display_overlay_tools = False
+        if prev:
+            # bpy.ops.uas_shot_manager.interactive_shots_stack.unregister_handlers(context)
+            context.window_manager.UAS_shot_manager_display_overlay_tools = True
+
+        # from shotmanager.overlay_tools.interact_shots_stack.shots_stack_toolbar import display_state_changed_intShStack
+
+        # display_state_changed_intShStack(context)
+
+    # Get the target index with the function props.getTargetViewportIndex(context)
+    target_viewport_index: EnumProperty(
+        name="Target 3D Viewport",
+        description="Index of the target viewport of the current workspace that will"
+        "\nreceive all the actions set in the Shot Manager panel",
+        items=(list_target_viewports),
+        update=_update_target_viewport_index,
+        options=set(),
+        # default=0,
     )
 
     # Features
@@ -611,6 +743,13 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
     display_greasepencil_in_properties: BoolProperty(
         # name="Display Grease Pencil in Shot Properties",
         description="Display Grease Pencil in the Shot Properties panels",
+        default=False,
+        options=set(),
+    )
+
+    display_editmode_in_properties: BoolProperty(
+        name="Display Global Edit Integration Tools",
+        description="Display the advanced properties of the takes used to specify their position in a global edit",
         default=False,
         options=set(),
     )
@@ -668,7 +807,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
 
     # fake property: value never used in itself, its purpose is to update ofher properties
     useLockCameraView: BoolProperty(
-        name="Lock Cameras to View",
+        name="Lock Camera to View",
         description="Enable view navigation within the camera view",
         get=_get_useLockCameraView,
         set=_set_useLockCameraView,
@@ -721,18 +860,145 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
     # timeline
     #############
 
-    # def timeline_valueChanged( self, context ):
+    # def toggle_overlay_tools_display( self, context ):
     #     if self.display_timeline:
-    #         bpy.ops.uas_shot_manager.draw_timeline ( "INVOKE_DEFAULT" )
+    #         bpy.ops.uas_shot_manager.sequence_timeline ( "INVOKE_DEFAULT" )
 
     # display_timeline: BoolProperty (    default = False,
     #                                     options = set ( ),
-    #                                     update = timeline_valueChanged )
+    #                                     update = toggle_overlay_tools_display )
 
     change_time: BoolProperty(default=True, options=set())
 
-    display_disabledshots_in_timeline: BoolProperty(default=False, options=set())
+    # sequence timeline properties
+    #################################
+    seqTimeline_displayDisabledShots: BoolProperty(default=False, options=set())
 
+    # interact shots stack properties
+    #################################
+    interactShotsStack_displayDisabledShots: BoolProperty(default=False, options=set())
+    interactShotsStack_displayInCompactMode: BoolProperty(default=False, options=set())
+
+    def list_target_dopesheets(self, context):
+        # res = config.gSeqEnumList
+        res = None
+        # res = list()
+        nothingList = list()
+        nothingList.append(
+            (
+                "SELF",
+                "Me",
+                "Target Dopesheet is the editor where the Interactive Shots Stack is used, 0 if not found",
+                0,
+            )
+        )
+        nothingList.append(("AREA_00", "0", "Target Dopesheet is 0", 1))
+        nothingList.append(("AREA_01", "1", "Target Dopesheet is 1", 2))
+        nothingList.append(("AREA_02", "2", "Target Dopesheet is 2", 3))
+        nothingList.append(("AREA_03", "3", "Target Dopesheet is 3", 4))
+
+        # seqList = getSequenceListFromOtioTimeline(config.gMontageOtio)
+        # for i, item in enumerate(seqList):
+        #     res.append((item, item, "My seq", i + 1))
+
+        # res = getSequenceListFromOtio()
+        # res.append(("NEW_CAMERA", "New Camera", "Create new camera", 0))
+        # for i, cam in enumerate([c for c in context.scene.objects if c.type == "CAMERA"]):
+        #     res.append(
+        #         (cam.name, cam.name, 'Use the exising scene camera named "' + cam.name + '"\nfor the new shot', i + 1)
+        #     )
+
+        if res is None or 0 == len(res):
+            res = nothingList
+        return res
+
+    def _update_interactShotsStack_target_dopesheet_index(self, context):
+        prev = context.window_manager.UAS_shot_manager_display_overlay_tools
+        context.window_manager.UAS_shot_manager_display_overlay_tools = False
+        if prev:
+            # bpy.ops.uas_shot_manager.interactive_shots_stack.unregister_handlers(context)
+            context.window_manager.UAS_shot_manager_display_overlay_tools = True
+
+        # from shotmanager.overlay_tools.interact_shots_stack.shots_stack_toolbar import display_state_changed_intShStack
+
+        # display_state_changed_intShStack(context)
+
+    # Get the target index with the function props.getTargetViewportIndex(context)
+    interactShotsStack_target_dopesheet_index: EnumProperty(
+        name="Target Dopesheet",
+        description="Index of the target dopesheet of the current workspace that will"
+        "\nreceive the Interactive Shots Stack tool."
+        "\nThe dopesheet target index will be displayed in green",
+        items=(list_target_dopesheets),
+        update=_update_interactShotsStack_target_dopesheet_index,
+        options=set(),
+        # default=0,
+    )
+
+    def getTargetDopesheetIndex(self, context, only_valid=False):
+        """Return the index of the viewport where all the actions of the Shot Manager should occur.
+        This viewport is called the target viewport and is defined in the UI by the user thanks
+        to the variable props.target_viewport_index.
+        A viewport is an area of type VIEW_3D.
+
+        Args:
+        only_valid:
+            Since there may have more items in the list than viewports in the considered workspace the target viewport index
+            may refer to a viewport that doesn't exist.
+            To get a valid target viewport use the argument only_valid: if set to True it will return the index of the current
+            context area, which should be the viewport with the calling Shot Manager.
+            Return -1 if no viewport is available
+
+        wkip props.target_viewport_index should be stored in the scene, per layout
+        """
+        ind = -1
+        item = self.interactShotsStack_target_dopesheet_index
+        # print(f"--- getTargetViewportIndex item: {item}")
+        dopesheetsList = utils.getDopesheets(context)
+
+        # can be -1 if the context area is not a viewport or if no viewport is available in the workspace
+        current_area_ind = utils.getDopesheetIndex(context, context.area)
+        if -1 == current_area_ind:
+            # we try to get the first viewport, if one is available
+            if 0 < len(dopesheetsList):
+                # try to get the first dopesheet with a timeline
+                timelines = utils.getDopesheets(context, "TIMELINE")
+                if len(timelines):
+                    current_area_ind = utils.getDopesheetIndex(context, timelines[0])
+                else:
+                    current_area_ind = 0
+
+        if "SELF" == item:
+            ind = current_area_ind
+        elif "AREA_00" == item:
+            ind = 0
+        elif "AREA_01" == item:
+            ind = 1
+        elif "AREA_02" == item:
+            ind = 2
+        elif "AREA_03" == item:
+            ind = 3
+
+        if only_valid:
+            if 0 == len(dopesheetsList):
+                ind = -1
+            elif len(dopesheetsList) <= ind:
+                ind = current_area_ind
+
+        return ind
+
+    def getValidTargetDopesheet(self, context):
+        """Return a valid (= existing in the context) target dopesheet
+        Return None if no valid dopesheet exists in the screen
+        """
+        valid_target = None
+        valid_target_ind = self.getTargetDopesheetIndex(context, only_valid=True)
+        if -1 < valid_target_ind:
+            valid_target = utils.getDopesheetFromIndex(context, valid_target_ind)
+        return valid_target
+
+    #################################
+    #################################
     def _get_playSpeedGlobal(self):
         val = self.get("playSpeedGlobal", 1.0)
         val = 100.0 / bpy.context.scene.render.fps_base
@@ -775,7 +1041,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
 
     def _update_current_take_name(self, context):
         # print(f"_update_current_take_name: {self.getCurrentTakeIndex()}, {self.getCurrentTakeName()}")
-        _logger.debug("Change current take")
+        # _logger.debug("Change current take")
 
         self.setResolutionToScene()
         self.setCurrentShotByIndex(0)
@@ -1193,10 +1459,10 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
 
         return duration
 
-    def getEditTime(self, referenceShot, frameIndexIn3DTime, referenceLevel="TAKE"):
+    def getEditTime(self, referenceShot, frameIndexIn3DTime, referenceLevel="TAKE", ignoreDisabled=True):
         """Return edit current time in frames, -1 if no shots or if current shot is disabled
         Works on the take from which referenceShot is coming from.
-        Disabled shots are always ignored and considered as not belonging to the edit.
+        If ignoreDisabled is True disabled shots are always ignored and considered as not belonging to the edit.
         wkip negative times issues coming here... :/
         referenceLevel can be "TAKE" or "GLOBAL_EDIT"
         """
@@ -1205,7 +1471,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
             return frameIndInEdit
 
         takeInd = referenceShot.getParentTakeIndex()
-        ignoreDisabled = True
+        # ignoreDisabled = True
 
         # case where specified shot is disabled -- current shot may not be in the shot list if shotList is not the whole list
         if ignoreDisabled and not referenceShot.enabled:
@@ -1237,7 +1503,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         return frameIndInEdit
 
     def getEditCurrentTime(self, referenceLevel="TAKE", ignoreDisabled=True):
-        """Return edit current time in frames, -1 if no shots or if current shot is disabled
+        """Return edit current time in frames, -1 if no shots or if current shot is disabled and ignoreDisabled is True
         works only on current take
         wkip negative times issues coming here... :/
         """
@@ -1253,7 +1519,9 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         #        shotList = self.getShotsList(ignoreDisabled=ignoreDisabled, takeIndex=takeInd)
         shot = self.getCurrentShot()
 
-        return self.getEditTime(shot, bpy.context.scene.frame_current, referenceLevel=referenceLevel)
+        return self.getEditTime(
+            shot, bpy.context.scene.frame_current, referenceLevel=referenceLevel, ignoreDisabled=ignoreDisabled
+        )
 
         # # works only on current take
         # takeInd = self.getCurrentTakeIndex()
@@ -1663,7 +1931,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
             return shotList
 
         # for shot in self.takes[takeInd].shots:
-        #     # if shot.enabled or self.context.scene.UAS_shot_manager_props.display_disabledshots_in_timeline:
+        #     # if shot.enabled or self.context.scene.UAS_shot_manager_props.seqTimeline_displayDisabledShots:
         #     if not ignoreDisabled or shot.enabled:
         #         shotList.append(shot)
 
@@ -1746,20 +2014,27 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
 
         return currentShot
 
-    def setCurrentShotByIndex(self, currentShotIndex, changeTime=None, area=None):
+    def setCurrentShotByIndex(self, currentShotIndex, changeTime=None, source_area=None):
         """Changing the current shot:
           - doesn't affect the selected one
-          - change the current time
+          - changes the current time if specifed
         Args:
             changeTime:
-                - None(default): depends on the state of prefs.current_shot_changes_current_time
+                - None(default): depends on the state of prefs.current_shot_changes_current_time_to_start
                 - True: set current time to the start of the new shot
                 - False: current time is not changed
         """
         scene = bpy.context.scene
         props = scene.UAS_shot_manager_props
 
-        area = area if area is not None else bpy.context.area
+        target_area_index = self.getTargetViewportIndex(bpy.context, only_valid=True)
+        target_area = utils.getAreaFromIndex(bpy.context, target_area_index, "VIEW_3D")
+        if source_area is None:
+            # source_area = bpy.context.area
+            # source_area = utils.getViewportAreaView(
+            #     bpy.context, viewport_index=bpy.context.window_manager.shotmanager_target_viewport
+            # )
+            source_area = utils.getViewportAreaView(bpy.context, viewport_index=target_area_index)
 
         shotList = self.get_shots()
         self.current_shot_index = currentShotIndex
@@ -1769,22 +2044,19 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
             currentShot = shotList[currentShotIndex]
 
             if changeTime is None:
-                if prefs.current_shot_changes_current_time:
+                if prefs.current_shot_changes_current_time_to_start:
                     scene.frame_current = currentShot.start
             elif changeTime:
                 scene.frame_current = currentShot.start
 
-            if prefs.current_shot_changes_time_range and scene.use_preview_range:
-                bpy.ops.uas_shot_manager.scenerangefromshot()
+            # removed: timeline zoom should not be changed here
+            # if prefs.current_shot_changes_time_range:
+            #     zoom_dopesheet_view_to_range(bpy.context, currentShot.start, currentShot.end)
 
             if currentShot.camera is not None and bpy.context.screen is not None:
                 # set the current camera in the 3D view: [‘PERSP’, ‘ORTHO’, ‘CAMERA’]
                 scene.camera = currentShot.camera
-                utils.setCurrentCameraToViewport(bpy.context, area)
-                # area = next(area for area in bpy.context.screen.areas if area.type == "VIEW_3D")
-
-                # area.spaces[0].use_local_camera = False
-                # area.spaces[0].region_3d.view_perspective = "CAMERA"
+                utils.setCurrentCameraToViewport2(bpy.context, target_area)
 
             # wkip use if
             # if prefs.toggleCamsSoundBG:
@@ -1794,10 +2066,10 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
 
         # bpy.context.scene.objects["Camera_Sapin"]
 
-    def setCurrentShot(self, currentShot, changeTime=None, area=None):
+    def setCurrentShot(self, currentShot, changeTime=None, source_area=None):
         shotInd = self.getShotIndex(currentShot)
         # print("setCurrentShot: shotInd:", shotInd)
-        self.setCurrentShotByIndex(shotInd, changeTime=changeTime, area=area)
+        self.setCurrentShotByIndex(shotInd, changeTime=changeTime, source_area=source_area)
 
     def getSelectedShotIndex(self):
         """Return the index of the selected shot in the enabled shot list of the current take
@@ -1809,6 +2081,8 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         return self.selected_shot_index
 
     def getSelectedShot(self):
+        """Return the shot currently selected in the current take, None otherwise
+        """
         selectedShotInd = self.getSelectedShotIndex()
         selectedShot = None
         if -1 != selectedShotInd:

@@ -24,9 +24,9 @@ import bpy
 from bpy.types import PropertyGroup
 from bpy.props import IntProperty, BoolProperty
 
-import logging
+from shotmanager.config import sm_logging
 
-_logger = logging.getLogger(__name__)
+_logger = sm_logging.getLogger(__name__)
 
 
 class UAS_ShotManager_OutputParams_Resolution(PropertyGroup):

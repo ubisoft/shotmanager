@@ -19,17 +19,59 @@
 Interactive Shots Stack overlay tool
 """
 
-from . import shots_stack_ui
+import bpy
+from bpy.props import BoolProperty
+
+from . import shots_stack_operators
+from . import shots_stack_prefs
+from . import shots_stack_toolbar
+
+# from . import shots_stack_bgl
+
+from shotmanager.config import sm_logging
+
+_logger = sm_logging.getLogger(__name__)
 
 
 def register():
-    print("       - Registering Interactive Shots Stack Package")
+    _logger.debug_ext("       - Registering Interactive Shots Stack Package", form="REG")
 
-    shots_stack_ui.register()
+    prefs = bpy.context.preferences.addons["shotmanager"].preferences
+
+    shots_stack_operators.register()
+    shots_stack_prefs.register()
+    shots_stack_toolbar.register()
+    # shots_stack_bgl.register()
+
+    # # # def _update_UAS_shot_manager__useInteracShotsStack(self, context):
+    # # #     # toggle_overlay_tools_display(context)
+    # # #     print(f"\nFrom Update fct: Toggle Interactive Shots Stack: {self.UAS_shot_manager__useInteracShotsStack}")
+    # # #     from shotmanager.overlay_tools.interact_shots_stack.shots_stack_toolbar import display_state_changed_intShStack
+
+    # # #     display_state_changed_intShStack(context)
+
+    # # # bpy.types.WindowManager.UAS_shot_manager__useInteracShotsStack = BoolProperty(
+    # # #     name="Use Sequence Timeline",
+    # # #     description="Toggle the use of Shot Manager Sequence Timeline",
+    # # #     update=_update_UAS_shot_manager__useInteracShotsStack,
+    # # #     default=True,
+    # # # )
+
+    # shots_stack_toolbar.register()
+    shots_stack_toolbar.display_shots_stack_toolbar_in_editor(prefs.display_intShStack_toolbar)
 
 
 def unregister():
-    print("       - Unregistering Interactive Shots Stack Package")
+    _logger.debug_ext("       - Unregistering Interactive Shots Stack Package", form="UNREG")
 
-    shots_stack_ui.unregister()
+    # shots_stack_toolbar.unregister()
+    shots_stack_toolbar.display_shots_stack_toolbar_in_editor(False)
+
+    # shots_stack_bgl.unregister()
+    shots_stack_toolbar.unregister()
+    shots_stack_prefs.unregister()
+    shots_stack_operators.unregister()
+
+
+### del bpy.types.WindowManager.UAS_shot_manager__useInteracShotsStack
 

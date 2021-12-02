@@ -19,13 +19,17 @@
 add-on global preferences
 """
 
+import sys
+
 import bpy
 from bpy.types import AddonPreferences
 from bpy.props import BoolProperty, StringProperty
 
 from ..ui.dependencies_ui import drawDependencies
 
-import sys
+from shotmanager.config import sm_logging
+
+_logger = sm_logging.getLogger(__name__)
 
 
 class UAS_ShotManager_AddonErrorPrefs(AddonPreferences):
@@ -128,17 +132,18 @@ _classes = (UAS_ShotManager_AddonErrorPrefs,)
 
 
 def register():
-    for cls in _classes:
-        bpy.utils.register_class(cls)
-
     prefs_addon = bpy.context.preferences.addons["shotmanager"].preferences
     if prefs_addon.verbose:
-        print("       - Registering Add-on Installation Error Preferences\n")
+        _logger.debug_ext("       - Registering Add-on Installation Error Preferences", form="REG")
+
+    for cls in _classes:
+        bpy.utils.register_class(cls)
 
 
 def unregister():
     prefs_addon = bpy.context.preferences.addons["shotmanager"].preferences
     if prefs_addon.verbose:
-        print("       - Unregistering Add-on Installation Error Preferences")
+        _logger.debug_ext("       - Unregistering Add-on Installation Error Preferences", form="UNREG")
+
     for cls in reversed(_classes):
         bpy.utils.unregister_class(cls)

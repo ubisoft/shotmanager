@@ -28,9 +28,9 @@ from shotmanager.utils import utils
 
 from shotmanager.features.greasepencil import greasepencil_ui as gp
 
-import logging
+from shotmanager.config import sm_logging
 
-_logger = logging.getLogger(__name__)
+_logger = sm_logging.getLogger(__name__)
 
 
 class UAS_PT_ShotManager_ShotsGlobalSettings(Panel):

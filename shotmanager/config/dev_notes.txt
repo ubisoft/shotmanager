@@ -1,0 +1,12 @@
+
+Dialog windows width:   360
+                        350
+                        300
+                        500
+                        400
+                        450
+                        420
+                        480
+
+
+invoke_popup width:     250

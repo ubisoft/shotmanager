@@ -19,20 +19,31 @@
 Draw an interactive timeline in the 3D viewport
 """
 
-from . import timeline_ui
+import bpy
+from bpy.props import BoolProperty
+
+from . import seq_timeline
+from . import seq_timeline_operators
+
+from shotmanager.config import sm_logging
+
+_logger = sm_logging.getLogger(__name__)
 
 
 def register():
-    print("       - Registering Viewport Timeline Package")
+    _logger.debug_ext("       - Registering Sequence Timeline", form="REG")
 
-    timeline_ui.register()
+    seq_timeline.register()
+    seq_timeline_operators.register()
 
 
 def unregister():
-    print("       - Unregistering Viewport Timeline Package")
+    _logger.debug_ext("       - Unregistering Sequence Timeline", form="UNREG")
+
+    seq_timeline_operators.unregister()
 
     try:
-        timeline_ui.unregister()
+        seq_timeline.unregister()
     except Exception:
-        print("       - Paf in Unregistering Viewport Timeline Package")
+        print("       - Paf in Unregistering Sequence Timeline Package")
 

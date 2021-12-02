@@ -16,7 +16,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 """
-To do: module description here.
+Definition of a shot
 """
 
 import bpy
@@ -30,9 +30,9 @@ from bpy.props import StringProperty, IntProperty, BoolProperty, PointerProperty
 from shotmanager.utils import utils
 from shotmanager.rrs_specific.montage.montage_interface import ShotInterface
 
-import logging
+from shotmanager.config import sm_logging
 
-_logger = logging.getLogger(__name__)
+_logger = sm_logging.getLogger(__name__)
 
 
 class UAS_ShotManager_Shot(ShotInterface, PropertyGroup):

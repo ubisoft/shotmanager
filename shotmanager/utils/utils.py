@@ -95,17 +95,17 @@ def addonVersion(addonName):
     return versions
 
 
-def display_addon_registered_version(addon_name):
+def display_addon_registered_version(addon_name, more_info=""):
     versionTupple = addonVersion(addon_name)
     if versionTupple is not None:
         print(
-            "\n*** *** Registering "
+            "\n*** *** Registering Ubisoft "
             + addon_name
             + " Add-on - version: "
             + versionTupple[0]
-            + "  ("
-            + str(versionTupple[1])
-            + ") *** ***"
+            + f"  ({versionTupple[1]})"
+            + (f" - {more_info}" if more_info != "" else "")
+            + " *** ***"
         )
     else:
         print('\n *** Cannot find registered version for add-on "' + addon_name + '" ***\n')
@@ -262,6 +262,7 @@ def openMedia(media_filepath, inExternalPlayer=False):
 # Time
 ###################
 
+
 def getFrameInAnimRange(scene, frame):
     """Check if the specified frame is in the current animation range of the scene
     (considering that the Preview Range can also be activated) and return a
@@ -276,6 +277,7 @@ def getFrameInAnimRange(scene, frame):
         newFrame = max(newFrame, scene.frame_start)
         newFrame = min(newFrame, scene.frame_end)
     return newFrame
+
 
 ###################
 # Markers
@@ -369,8 +371,154 @@ def deleteMarkerAtFrame(scene, frame):
 
 
 ###################
-# Various
+# Areas, Various
 ###################
+
+
+def getAreasByType(context, area_type):
+    """Return a list of the areas of the specifed type from the specified context
+    """
+    areasList = list()
+    for area in context.screen.areas:
+        if area.type == area_type:
+            areasList.append(area)
+    return areasList
+
+
+def getAreaFromIndex(context, area_index, area_type):
+    """Return the area that has the index area_index in the list of areas of the specified type
+    Args:
+        area_type: can be "VIEW_3D", ...
+    Return: None if not found
+    """
+    areasList = getAreasByType(context, area_type)
+
+    if 0 <= area_index < len(areasList):
+        return areasList[area_index]
+    return None
+
+
+def getAreaIndex(context, area, area_type):
+    """Return the index of the area in the list of areas of the specified type
+    *** warning: be sure area_type is really the type of area (we can get it from area.type) ***
+    Args:
+        area_type: can be "VIEW_3D", ...
+    Return: -1 if area not found
+    """
+    areasList = getAreasByType(context, area_type)
+
+    for i, a in enumerate(areasList):
+        if area == a:
+            return i
+    return -1
+
+
+def getAreaInfo(context, area, verbose=False):
+    """Return a tupple with:
+        - the index of the area in the list of areas of the specified type
+        - the type of the area
+    Args:
+        area_type: can be "VIEW_3D", ...
+    Return: None if area not found
+    """
+    if area is None:
+        print(f"Specified area is nul: {i}, {area.type}")
+        return None
+    for i, screenArea in enumerate(context.screen.areas):
+        if area == screenArea:
+            if verbose:
+                print(f"Area: {i}, {area.type}")
+            return (i, area.type)
+
+    return None
+
+
+# 3D VIEW areas (= viewports)
+#####################################
+
+
+def getViewports(context):
+    """
+    Return: empty list if no viewports found
+    """
+    return getAreasByType(context, "VIEW_3D")
+
+
+def getViewportFromIndex(context, viewport_index):
+    """
+    Return: None if not found
+    """
+    return getAreaFromIndex(context, viewport_index, "VIEW_3D")
+
+
+def getViewportIndex(context, viewport):
+    """
+    Return: -1 if area not found
+    """
+    return getAreaIndex(context, viewport, "VIEW_3D")
+
+
+# Dopesheet areas (= timelines + dopesheets + grease pencil + action + shapekey + mask + cachefile)
+# cf https://docs.blender.org/api/current/bpy.types.SpaceDopeSheetEditor.html
+#####################################
+# DOPESHEET TIMELINE ACTION SHAPEKEY GPENCIL MASK CACHEFILE ALL
+
+
+def getDopesheets(context, mode="ALL"):
+    """
+    Return: empty list if no dopesheets found
+    """
+    dopesheetAreas = getAreasByType(context, "DOPESHEET_EDITOR")
+    dopesheets = list()
+    for dp in dopesheetAreas:
+        # wkip not sure first space is the dopesheet
+        if "ALL" == mode:
+            dopesheets.append(dp)
+        elif dp.spaces[0].mode == mode:
+            dopesheets.append(dp)
+
+    return dopesheets
+
+
+def getDopesheetFromIndex(context, dopesheet_index, mode="ALL"):
+    """
+    Return: None if not found
+    """
+    dopesheets = getDopesheets(context, mode=mode)
+
+    if 0 <= dopesheet_index < len(dopesheets):
+        return dopesheets[dopesheet_index]
+    else:
+        return None
+
+
+def getDopesheetIndex(context, dopesheet, mode="ALL"):
+    """
+    Return: -1 if area not found
+    """
+    dopesheets = getDopesheets(context, mode=mode)
+    for i, dp in enumerate(dopesheets):
+        if dopesheet == dp:
+            return i
+    return -1
+
+
+def getViewportAreaView(context, viewport_index=0):
+    # for screen_area in context.screen.areas:
+    #     if screen_area.type == "VIEW_3D":
+    #         v3d = screen_area.spaces[0]
+    #         rv3d = v3d.region_3d
+    #         return rv3d
+
+    screens3D = []
+    for screen_area in context.screen.areas:
+        if screen_area.type == "VIEW_3D":
+            screens3D.append(screen_area)
+
+    if len(screens3D):
+        return screens3D[min(viewport_index, len(screens3D))]
+
+    return None
 
 
 def findFirstUniqueName(originalItem, name, itemsArray):
@@ -429,7 +577,9 @@ def getSceneVSE(vsm_sceneName, createVseTab=False):
 
 
 def duplicateObject(sourceObject, newName=None):
-    """Duplicate (deepcopy) an object and place it in the same collection"""
+    """Duplicate (deepcopy) an object and place it in the same collection
+        Can be any 3D object, camera...
+    """
     newObject = sourceObject.copy()
     if newObject.animation_data is not None:
         newObject.animation_data.action = sourceObject.animation_data.action.copy()
@@ -530,17 +680,9 @@ def cameras_from_scene(scene):
     return camList
 
 
-def getViewportAreaView(context):
-    for screen_area in context.screen.areas:
-        if screen_area.type == "VIEW_3D":
-            v3d = screen_area.spaces[0]
-            rv3d = v3d.region_3d
-            return rv3d
-
-    return None
-
-
-def getCameraCurrentlyInViewport(context, area=None):
+def getCameraCurrentlyInViewport(
+    context, area=None,
+):
     """Return the camera currently used by the view, None if
     no camera is used or if the 3D view is not found.
     Requires a valid area VIEW_3D"""
@@ -567,66 +709,75 @@ def getCameraCurrentlyInViewport(context, area=None):
     return None
 
 
-def makeCameraMatchViewport(context, cam, putCamInViewport=True):
+def makeCameraMatchViewport(context, cam, matchLens=False, putCamInViewport=True):
     """Move, orient and change the lens of the specified camera to match the current viewport framing.
     If the viewport already contains a camera then the settings of this camera will be copied to the specifed one.
     If the viewport is not a 3D view nothing happends.
-    If putCamInViewport is True then the camera is also set as the current one in the scene and used
-    in the Viewport.
+    Args:
+        matchLens: if True then the camera lens will match the viewport camera lens
+        putCamInViewport: if True then the camera is also set as the current one in the scene and used
+        in the Viewport.
     """
     # Refs: https://blender.stackexchange.com/questions/46391/how-to-convert-spaceview3d-lens-to-field-of-view
+    # There is also an operator to do part of the code below: bpy.ops.view3d.camera_to_view()
 
     scene = context.scene
+    props = context.scene.UAS_shot_manager_props
     #  print(f" makeCameraMatchViewport")
 
-    camInViewport = getCameraCurrentlyInViewport(context)
+    areaView = getViewportAreaView(context, viewport_index=props.getTargetViewportIndex(context, only_valid=True))
+    if areaView is None:
+        return
+
+    camInViewport = getCameraCurrentlyInViewport(context, area=areaView)
     camOk = False
 
     if camInViewport is None:
         # we get the viewport cam settings
-        areaView = getViewportAreaView(context)
-        if areaView is not None:
-            import math
+        import math
 
-            areaView.view_camera_zoom = 0.0
-            cam.matrix_world = areaView.view_matrix.inverted()
-            vmat_inv = areaView.view_matrix.inverted()
-            pmat = areaView.perspective_matrix @ vmat_inv
+        areaViewRegion = areaView.spaces[0].region_3d
+
+        areaViewRegion.view_camera_zoom = 0.0
+        cam.matrix_world = areaViewRegion.view_matrix.inverted()
+        if matchLens:
+            vmat_inv = areaViewRegion.view_matrix.inverted()
+            pmat = areaViewRegion.perspective_matrix @ vmat_inv
             fov = 2.0 * abs(1.0 * math.atan(1.0 / pmat[1][1]))
-            #    print(f"Cam fov: {fov}  {fov * 180.0 / math.pi}, zoom: {areaView.view_camera_zoom}")
+            #    print(f"Cam fov: {fov}  {fov * 180.0 / math.pi}, zoom: {areaViewRegion.view_camera_zoom}")
             # cam.data.sensor_width = 72
             #    cam.data.lens_unit = "FOV"
-            # cam.data.angle = fov - areaView.view_camera_zoom * math.pi / 180
+            # cam.data.angle = fov - areaViewRegion.view_camera_zoom * math.pi / 180
             cam.data.angle = fov
-            # cam.data.lens -= areaView.view_camera_zoom
-            #  areaView.view_camera_zoom = 0.0
-            camOk = True
+            # cam.data.lens -= areaViewRegion.view_camera_zoom
+            #  areaViewRegion.view_camera_zoom = 0.0
+        camOk = True
     else:
         if cam != camInViewport:
             cam.location = camInViewport.location
             cam.rotation_euler = camInViewport.rotation_euler
-            cam.data.lens = camInViewport.data.lens
+            if matchLens:
+                cam.data.lens = camInViewport.data.lens
             camOk = True
 
     if putCamInViewport and camOk:
         # align camera to view
         scene.camera = cam
-        setCurrentCameraToViewport(context)
+        setCurrentCameraToViewport2(context, area=areaView)
 
 
 def setCurrentCameraToViewport2(context, area=None):
     """Requires a valid area VIEW_3D"""
-    area3D = area
     #   print(f"Cam in area3D 01: {area3D}")
     if area is None:
         for screen_area in context.screen.areas:
             if screen_area.type == "VIEW_3D":
-                area3D = screen_area
+                area = screen_area
                 break
 
     #    print(f"Cam in area3D 02: {area3D}")
 
-    if area3D is not None:
+    if area is not None:
         for space_data in area.spaces:
             if space_data.type == "VIEW_3D":
                 space_data.use_local_camera = False
@@ -811,6 +962,17 @@ def slightlyRandomizeColor(refColor, weight=0.8):
         newColor.append(refColor[3])
 
     return newColor
+
+
+def color_is_dark(color, threshold):
+    """
+    Args:
+        color: tupple 4
+        treshold: value between 0.0 and 1.0
+    """
+    from statistics import mean
+
+    return mean(color[:-1]) < threshold
 
 
 def darken_color(color):

@@ -27,6 +27,8 @@ from bpy.types import Panel
 from ..config import config
 from ..utils import utils
 
+from shotmanager.ui.warnings_ui import drawWarnings
+
 
 class UAS_PT_ShotManagerRenderPanelStdalone(Panel):
     bl_label = "Shot Manager - Render"
@@ -38,11 +40,24 @@ class UAS_PT_ShotManagerRenderPanelStdalone(Panel):
     @classmethod
     def poll(cls, context):
         props = context.scene.UAS_shot_manager_props
+        prefs = context.preferences.addons["shotmanager"].preferences
         displayPanel = context.preferences.addons["shotmanager"].preferences.separatedRenderPanel
 
         displayPanel = displayPanel and props.getCurrentShot() is not None
 
-        return displayPanel
+        return displayPanel and prefs.display_render_in_properties
+
+    def draw_header(self, context):
+        layout = self.layout
+        layout.emboss = "NONE"
+
+        row = layout.row(align=True)
+        # icon = config.icons_col["ShotManager_Retimer_32"]
+        # row.label(icon=icon.icon_id)
+        row.label(icon="RENDER_ANIMATION")
+
+    def draw_header_preset(self, context):
+        drawHeaderPreset(self, context)
 
     def draw(self, context):
         draw3DRenderPanel(self, context)
@@ -59,9 +74,11 @@ class UAS_PT_ShotManagerRenderPanel(Panel):
     @classmethod
     def poll(cls, context):
         props = context.scene.UAS_shot_manager_props
+        prefs = context.preferences.addons["shotmanager"].preferences
+        displayPanel = context.preferences.addons["shotmanager"].preferences.separatedRenderPanel
         val = not props.dontRefreshUI() and len(props.takes) and len(props.get_shots())
         val = val and not context.preferences.addons["shotmanager"].preferences.separatedRenderPanel
-        return val
+        return val and prefs.display_render_in_properties
 
     # def check(self, context):
     #     # should we redraw when a button is pressed?
@@ -69,17 +86,39 @@ class UAS_PT_ShotManagerRenderPanel(Panel):
     #         return True
     #     return False
 
+    def draw_header(self, context):
+        layout = self.layout
+        layout.emboss = "NONE"
+
+        row = layout.row(align=True)
+        # icon = config.icons_col["ShotManager_Retimer_32"]
+        # row.label(icon=icon.icon_id)
+        row.label(icon="RENDER_ANIMATION")
+
+    def draw_header_preset(self, context):
+        drawHeaderPreset(self, context)
+
     def draw(self, context):
         draw3DRenderPanel(self, context)
 
 
-def draw3DRenderPanel(self, context):
+def drawHeaderPreset(self, context):
+    layout = self.layout
+    layout.emboss = "NONE"
 
+    row = layout.row(align=True)
+    # row.menu("UAS_MT_Shot_Manager_prefs_mainmenu", icon="PREFERENCES", text="")
+    row.operator("uas_shot_manager.render_prefs", icon="PREFERENCES", text="")
+    row.separator(factor=1.0)
+
+
+def draw3DRenderPanel(self, context):
+    scene = context.scene
     props = context.scene.UAS_shot_manager_props
     iconExplorer = config.icons_col["General_Explorer_32"]
 
     layout = self.layout
-    row = layout.row()
+    # row = layout.row()
     # row.separator(factor=3)
     # if not props.useProjectRenderSettings:
     #     row.alert = True
@@ -87,6 +126,21 @@ def draw3DRenderPanel(self, context):
     # row.operator("uas_shot_manager.render_restore_project_settings")
     # row.operator("uas_shot_manager.project_settings_prefs")
     # row.separator(factor=0.1)
+
+    if config.devDebug:
+        row = layout.row()
+        row.label(text="Debug Mode:")
+        subrow = row.row()
+        # subrow.operator("uas_shot_manager.enable_debug", text="Off").enable_debug = True
+        subrow.alert = config.devDebug
+        subrow.operator("uas_shot_manager.enable_debug", text="On").enable_debug = False
+
+    # scene warnings
+    ################
+    warningsList = props.getWarnings(scene)
+    drawWarnings(context, layout, warningsList, panelType="RENDERING")
+
+    row = layout.row()
 
     if props.use_project_settings:
         row.alert = True
@@ -175,8 +229,8 @@ def draw3DRenderPanel(self, context):
     row.scale_x = 1.2
     row.prop(props, "displayStillProps", text="", icon="IMAGE_DATA")
     row.operator("uas_shot_manager.render", text="Render Image").renderMode = "STILL"
-    row.separator(factor=2)
 
+    row.separator(factor=2)
     row.scale_x = 1.2
     row.prop(props, "displayAnimationProps", text="", icon="RENDER_ANIMATION")
     row.operator("uas_shot_manager.render", text="Render Current Shot").renderMode = "ANIMATION"

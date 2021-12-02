@@ -16,7 +16,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 """
-To do: module description here.
+OTIO
 """
 
 import os
@@ -32,9 +32,9 @@ import bpy
 import sys
 from pathlib import Path
 
-import logging
+from shotmanager.config import sm_logging
 
-_logger = logging.getLogger(__name__)
+_logger = sm_logging.getLogger(__name__)
 
 
 # def importOpenTimelineIOLib():
@@ -134,12 +134,14 @@ else:
 def register():
     from . import operators
 
-    print("       - Registering OTIO Package")
+    _logger.debug_ext("       - Registering OTIO Package", form="REG")
+
     operators.register()
 
 
 def unregister():
     from . import operators
 
-    print("       - Unregistering OTIO Package")
+    _logger.debug_ext("       - Unregistering OTIO Package", form="UNREG")
+
     operators.unregister()

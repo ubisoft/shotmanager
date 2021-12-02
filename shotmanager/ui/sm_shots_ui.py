@@ -25,9 +25,9 @@ from bpy.types import Menu
 from shotmanager.config import config
 from shotmanager.utils.utils_os import module_can_be_imported
 
-import logging
+from shotmanager.config import sm_logging
 
-_logger = logging.getLogger(__name__)
+_logger = sm_logging.getLogger(__name__)
 
 
 #############
@@ -262,9 +262,12 @@ class UAS_UL_ShotManager_Items(bpy.types.UIList):
                 grid_flow.alert = True
             grid_flow.prop(item, "camera", text="")
             grid_flow.scale_x = 0.3
-            grid_flow.operator(
-                "uas_shot_manager.list_camera_instances", text=str(props.getNumSharedCamera(item.camera))
-            ).index = index
+
+            camlistrow = grid_flow.row(align=True)
+            # camlistrow.scale_x = 1.0
+            numSharedCam = props.getNumSharedCamera(item.camera)
+            camlistrow.alert = 1 < numSharedCam
+            camlistrow.operator("uas_shot_manager.list_camera_instances", text=str(numSharedCam)).index = index
             if item.camera is None:
                 grid_flow.alert = False
 
@@ -347,17 +350,17 @@ class UAS_MT_ShotManager_Shots_ToolsMenu(Menu):
 
         layout.separator()
 
-        # tools for cameras ###
-        row = layout.row(align=True)
-        row.label(text="Tools for Cameras:")
+        # # tools for cameras ###
+        # row = layout.row(align=True)
+        # row.label(text="Tools for Cameras:")
 
-        row = layout.row(align=True)
-        row.operator_context = "INVOKE_DEFAULT"
-        row.operator("uas_utils.create_camera_from_view", text="   New Camera from View")
+        # row = layout.row(align=True)
+        # row.operator_context = "INVOKE_DEFAULT"
+        # row.operator("uas_utils.create_camera_from_view", text="   New Camera from View")
 
-        row = layout.row(align=True)
-        row.operator_context = "INVOKE_DEFAULT"
-        row.operator("uas_utils.selected_camera_to_view", text="   Selected Camera to View")
+        # row = layout.row(align=True)
+        # row.operator_context = "INVOKE_DEFAULT"
+        # row.operator("uas_utils.camera_to_view", text="   Selected Camera to View")
 
         #############
         # tools for precut ###

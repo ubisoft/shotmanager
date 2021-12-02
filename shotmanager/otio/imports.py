@@ -36,9 +36,9 @@ from shotmanager.utils import utils_vse
 
 from . import otio_wrapper as ow
 
-import logging
+from shotmanager.config import sm_logging
 
-_logger = logging.getLogger(__name__)
+_logger = sm_logging.getLogger(__name__)
 
 
 def importTrack(track, trackInd, track_type, timeRange=None, offsetFrameNumber=0, alternative_media_folder=""):

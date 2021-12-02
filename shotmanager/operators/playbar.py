@@ -165,6 +165,20 @@ class UAS_ShotManager_Playbar_GoToNextFrame(Operator):
         return {"FINISHED"}
 
 
+class UAS_ShotManager_UseAudio(Operator):
+    bl_idname = "uas_shot_manager.use_audio"
+    bl_label = "Use Audio"
+    bl_description = "Toggle the audio in the scene"
+    bl_options = {"INTERNAL"}
+    """Blender scene property use_audio is the opposite of what it should be, should have been named audio_muted.
+    This operator make it work as expected.
+    """
+
+    def execute(self, context):
+        context.scene.use_audio = not context.scene.use_audio
+        return {"FINISHED"}
+
+
 _classes = (
     UAS_ShotManager_Playbar_GoToFirstShot,
     UAS_ShotManager_Playbar_GoToLastShot,
@@ -172,6 +186,7 @@ _classes = (
     UAS_ShotManager_Playbar_GoToNextShotBoundary,
     UAS_ShotManager_Playbar_GoToPreviousFrame,
     UAS_ShotManager_Playbar_GoToNextFrame,
+    UAS_ShotManager_UseAudio,
 )
 
 

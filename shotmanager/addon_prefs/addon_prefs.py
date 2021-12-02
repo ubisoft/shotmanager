@@ -27,6 +27,10 @@ from bpy.props import StringProperty, IntProperty, BoolProperty, EnumProperty
 
 from .addon_prefs_ui import draw_shotmanager_addon_prefs
 
+from shotmanager.config import sm_logging
+
+_logger = sm_logging.getLogger(__name__)
+
 
 class UAS_ShotManager_AddonPrefs(AddonPreferences):
     """
@@ -57,12 +61,6 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
         default=50,
     )
 
-    display_frame_range_tool: BoolProperty(
-        name="Frame Time Range",
-        description="Easily get and set the time range from the Timeline editor.\nA tool from Ubisoft Shot Manager",
-        default=True,
-    )
-
     displaySMDebugPanel: BoolProperty(
         name="Display Debug Panel",
         description="Display the debug panel and debug tools of Shot Manager.\nIt will be as a tab in the viewport N-Panel",
@@ -81,7 +79,7 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
         return val
 
     def _set_take_properties_expanded(self, value):
-        print(f"*** _set_take_properties_expanded: {self.take_properties_expanded}, value: {value}")
+        # print(f"*** _set_take_properties_expanded: {self.take_properties_expanded}, value: {value}")
         # close other panels
         if self.take_properties_expanded != value and not value:
             prefs = bpy.context.preferences.addons["shotmanager"].preferences
@@ -116,11 +114,35 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
         name="Expand Shot Grease Pencil", default=False,
     )
 
-    current_shot_changes_current_time: BoolProperty(
-        name="Set Current Frame To Shot Start When Current Shot Is Changed", description="", default=True,
+    # prefs panels
+    ######################
+    addonPrefs_settings_expanded: BoolProperty(
+        name="Expand Settings Preferences", default=False,
+    )
+    addonPrefs_ui_expanded: BoolProperty(
+        name="Expand UI Preferences", default=False,
+    )
+    addonPrefs_tools_expanded: BoolProperty(
+        name="Expand Tools Preferences", default=False,
+    )
+    addonPrefs_debug_expanded: BoolProperty(
+        name="Expand Debug Preferences", default=False,
+    )
+
+    current_shot_changes_current_time_to_start: BoolProperty(
+        name="Set Current Frame To Shot Start",
+        description="Set the current time to the start of the shot when the current shot is changed.\n(Add-on preference)",
+        default=True,
     )
     current_shot_changes_time_range: BoolProperty(
-        name="Set Time Range To Shot Range When Current Shot Is Changed", description="", default=False,
+        name="Set Time Range To Shot Range",
+        description="Set the animation range to match the shot range when the current shot is changed.\n(Add-on preference)",
+        default=False,
+    )
+    current_shot_changes_time_zoom: BoolProperty(
+        name="Zoom Timeline to Shot Range",
+        description="Automatically zoom the timeline content to frame the shot when the current shot is changed.\n(Add-on preference)",
+        default=False,
     )
 
     playblastFileName: StringProperty(name="Temporary Playblast File", default="toto.mp4")
@@ -163,9 +185,22 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
     # ****** settings exposed to the user in the prefs panel:
     # ------------------------------
 
+    display_render_in_properties: BoolProperty(
+        name="Display Renderer",
+        description="Display the Render sub-panel in the Shot Manager panel.\n(saved in the add-on preferences)",
+        default=True,
+    )
+
     separatedRenderPanel: BoolProperty(
         name="Separated Render Panel",
         description="If checked, the render panel will be a tab separated from Shot Manager panel",
+        default=True,
+    )
+
+    deleteIntermediateFiles: BoolProperty(
+        name="Delete Intermediate Image Files",
+        description="Delete the rendered and Stamp Info temporary image files when the composited output is generated."
+        "\nIf set to False these files are kept on disk up to the next rendering of the shot",
         default=True,
     )
 
@@ -185,7 +220,9 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
         default="STILL",
     )
 
+    ########################################################################
     ### Overlay tools
+    ########################################################################
 
     # tools disabled during play
     best_play_perfs_turnOff_sequenceTimeline: BoolProperty(
@@ -208,6 +245,13 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
         options=set(),
     )
 
+    seqTimeline_not_disabled_with_overlays: BoolProperty(
+        name="Display Sequence Timeline Even If Overlays Are Hidden",
+        description="Display Sequence Timeline Even If Overlays Are Hidden",
+        default=False,
+        options=set(),
+    )
+
     ### Retimer
     display_retimer_in_properties: BoolProperty(
         name="Display Retimer",
@@ -222,6 +266,92 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
     applyToSceneRange: BoolProperty(
         name="Apply to Scene Range",
         description="Apply retime operation to the animation start and end of the scene.\n(saved in the add-on preferences)",
+        default=True,
+    )
+
+    ########################################################################
+    # additional tools ###
+    ########################################################################
+
+    ###################################
+    # Sequence Timeline ###############
+    ###################################
+
+    # displayed when toggle overlays button is on
+    toggle_overlays_turnOn_sequenceTimeline: BoolProperty(
+        name="Turn On Sequence Timeline",
+        description="Display Sequence Timeline in the 3d viewport when Toggle Overlay Tools button is pressed",
+        default=True,
+    )
+
+    seqTimeline_settings_expanded: BoolProperty(
+        name="Expand Panel Settings", default=False,
+    )
+
+    ###################################
+    # Interactive Shots Stack #########
+    ###################################
+
+    # displayed when toggle overlays button is on
+    def _update_toggle_overlays_turnOn_interactiveShotsStack(self, context):
+        _logger.debug_ext("_update_toggle_overlays_turnOn_interactiveShotsStack")
+
+        ## toggle on or off the overlay tools mode
+        if self.toggle_overlays_turnOn_interactiveShotsStack:
+            if not context.window_manager.UAS_shot_manager_display_overlay_tools:
+                context.window_manager.UAS_shot_manager_display_overlay_tools = True
+            else:
+                bpy.ops.uas_shot_manager.interactive_shots_stack("INVOKE_DEFAULT")
+        else:
+            if context.window_manager.UAS_shot_manager_display_overlay_tools:
+                pass
+
+    toggle_overlays_turnOn_interactiveShotsStack: BoolProperty(
+        name="Turn Off Interactive Shots Stack",
+        description="Display Interactive Shots Stack in the Timeline editor when Toggle Overlay Tools button is pressed",
+        update=_update_toggle_overlays_turnOn_interactiveShotsStack,
+        default=True,
+    )
+
+    intShStack_settings_expanded: BoolProperty(
+        name="Expand Panel Settings", default=False,
+    )
+
+    def _update_display_intShStack_toolbar(self, context):
+        # print("\n*** _update_display_frame_range_tool. New state: ", self.display_frame_range_tool)
+        from shotmanager.overlay_tools.interact_shots_stack.shots_stack_toolbar import (
+            display_shots_stack_toolbar_in_editor,
+        )
+
+        display_shots_stack_toolbar_in_editor(self.display_intShStack_toolbar)
+
+    display_intShStack_toolbar: BoolProperty(
+        name="Display Interactive Shots Stack Toolbar",
+        description="Display Interactive Shots Stack toolbar in the Timeline editor",
+        update=_update_display_intShStack_toolbar,
+        default=True,
+    )
+
+    ###################################
+    # Camera HUD ######################
+    ###################################
+    cameraHUD_settings_expanded: BoolProperty(
+        name="Expand Panel Settings", default=False,
+    )
+
+    ###################################
+    # Frame Range #####################
+    ###################################
+    def _update_display_frame_range_tool(self, context):
+        # print("\n*** _update_display_frame_range_tool. New state: ", self.display_frame_range_tool)
+        from shotmanager.tools.frame_range.frame_range_operators import display_frame_range_in_editor
+
+        display_frame_range_in_editor(self.display_frame_range_tool)
+
+    display_frame_range_tool: BoolProperty(
+        name="Frame Time Range",
+        description="Easily get and set the time range from the Timeline editor.\nA tool from Ubisoft Shot Manager",
+        update=_update_display_frame_range_tool,
         default=True,
     )
 
@@ -328,11 +458,14 @@ _classes = (UAS_ShotManager_AddonPrefs,)
 
 
 def register():
+    _logger.debug_ext("       - Registering Add-on Preferences", form="REG")
+
     for cls in _classes:
         bpy.utils.register_class(cls)
 
 
 def unregister():
-    print("       - Unregistering Add-on Preferences")
+    _logger.debug_ext("       - Unregistering Add-on Preferences", form="UNREG")
+
     for cls in reversed(_classes):
         bpy.utils.unregister_class(cls)

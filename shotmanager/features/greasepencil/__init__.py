@@ -16,7 +16,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 """
-To do: module description here.
+Grease Pencil
 """
 
 from shotmanager.config import config
@@ -24,17 +24,16 @@ from shotmanager.config import config
 # from .greasepencil_props import UAS_ShotManager_RenderGlobalContext, UAS_ShotManager_RenderSettings
 from . import greasepencil_operators
 
-import logging
+from shotmanager.config import sm_logging
 
-_logger = logging.getLogger(__name__)
+_logger = sm_logging.getLogger(__name__)
 
 
 # _classes = (UAS_ShotManager_OT_AddGreasePencil,)
 
 
 def register():
-    if config.devDebug:
-        print("       - Registering Grease Pencil Package")
+    _logger.debug_ext("       - Registering Grease Pencil Package", form="REG")
 
     # for cls in _classes:
     #     bpy.utils.register_class(cls)
@@ -44,6 +43,8 @@ def register():
 
 
 def unregister():
+    _logger.debug_ext("       - Unregistering Grease Pencil Package", form="UNREG")
+
     # for cls in reversed(_classes):
     #     bpy.utils.unregister_class(cls)
 

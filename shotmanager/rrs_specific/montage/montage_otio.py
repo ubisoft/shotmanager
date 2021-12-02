@@ -28,9 +28,9 @@ from .montage_interface import MontageInterface, SequenceInterface, ShotInterfac
 from shotmanager.otio import otio_wrapper as ow
 import opentimelineio
 
-import logging
+from shotmanager.config import sm_logging
 
-_logger = logging.getLogger(__name__)
+_logger = sm_logging.getLogger(__name__)
 
 
 class MontageOtio(MontageInterface):

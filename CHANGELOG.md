@@ -1,7 +1,58 @@
+# 1.6.05 (2021-11-09)
+
+## Features
+
+- Added a viewport target
+
+## Fixes
+
+- Fixed Make All Cameras Unique script
+
+## Preferences and user settings
+
+- Can show or hide overlay tools
+
+## Overlay tools
+
+- Exposed preferences to display disabled shots in the timeline and shots stack
+- Exposed a Compact mode for the shots stack in the settings
+
+- Refactored code for the handlers
+- Improved the look and feel of the Interactive Shots Stack
+
+## UI
+
+- Fixed the Frame Time Range button in the Timeline
+- improved behaviors when clicking on Set Current shot with modifier keys
+
+## Add-on preferences
+
+- Added a Frame Shot in Timeline option to change the timeline zoom when a shot is selected
+- Added a render parameter in the Render Prefs panel to allow the generated files to be kept on disk
+
+
+# 1.5.77 (2021-11-05)
+
+## Tools
+
+- Removed Camera tools (Create Camera From Viewport and Move Selected Camera to Viewport)
+and introduced a button in the Shots section instead
+- Made the number of occurrences of each camera appear in red when the camera is used
+by several shots
+
+## UI
+
+- Introduced some new icons (Overlay Tools, Retimer, Camera to Viewport...)
+- Changed some custom icons, moved some buttons, improved responsive design
+- Exposed key mapping for:
+   - Shots Play Mode: Alt + Space
+   - Toggle Overlay Tools: Not defined
+
+
 # 1.5.75 (2021-11-05)
 
 - Improved warnings display
-- Add a button tp convert camera bound markesr to shots
+- Add a button tp convert camera bound markers to shots
 - Fixed bugs in the Best Play Performance mode
 - Fixed a bug in the play of the sequence timeline
 
@@ -47,7 +98,7 @@ New Shot dialog box:
 
 ## Retimer Tool
 
-Mainy improvements / bug fixes / code cleaning on the Retimer:
+Many improvements / bug fixes / code cleaning on the Retimer:
 
 - Bug fix: Grease Pencil wasn't updated after a time change
 

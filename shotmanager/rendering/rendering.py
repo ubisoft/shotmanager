@@ -36,9 +36,9 @@ from shotmanager.utils import utils_store_context as utilsStore
 from shotmanager.utils.utils_os import module_can_be_imported
 
 
-import logging
+from shotmanager.config import sm_logging
 
-_logger = logging.getLogger(__name__)
+_logger = sm_logging.getLogger(__name__)
 
 
 # def getCompositedMediaPath(rootPath, shot, specificFrame=None):
@@ -115,6 +115,7 @@ def launchRenderWithVSEComposite(
     scene = context.scene
     props = scene.UAS_shot_manager_props
     vse_render = context.window_manager.UAS_vse_render
+    prefs = context.preferences.addons["shotmanager"].preferences
 
     currentShot = props.getCurrentShot()
 
@@ -295,7 +296,7 @@ def launchRenderWithVSEComposite(
         else:
             props.renderContext.applyRenderQualitySettings(context)
 
-    # change color tone mode to prevent washout bug
+    # change color tone mode to prevent washout bug (usually with "filmic" mode)
     scene.view_settings.view_transform = "Standard"
 
     #######################
@@ -627,7 +628,7 @@ def launchRenderWithVSEComposite(
                 # bpy.ops.render.render('INVOKE_DEFAULT', animation = True)
                 # bpy.ops.render.opengl ( animation = True )
 
-                deleteTempFiles = not config.devDebug_keepVSEContent
+                deleteTempFiles = not config.devDebug_keepVSEContent and prefs.deleteIntermediateFiles
                 if deleteTempFiles:
                     _deleteTempFiles(newTempRenderPath)
 
@@ -706,7 +707,7 @@ def launchRenderWithVSEComposite(
                     renderedShotSequencesArr, sequenceOutputFullPath, handles, projectFps
                 )
 
-            deleteTempFiles = not config.devDebug_keepVSEContent
+            deleteTempFiles = not config.devDebug_keepVSEContent and prefs.deleteIntermediateFiles
             if deleteTempFiles:
                 for i in range(len(renderedShotSequencesArr)):
                     _deleteTempFiles(str(Path(renderedShotSequencesArr[i]["image_sequence"]).parent))
