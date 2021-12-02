@@ -982,7 +982,7 @@ class UAS_Vse_Render_PropsGpr(PropertyGroup):
         vse_scene.render.filepath = output_filepath
         vse_scene.render.use_file_extension = False
 
-        # change color tone mode to prevent washout bug
+        # change color tone mode to prevent washout bug (usually with "filmic" mode)
         vse_scene.view_settings.view_transform = "Filmic"  # "raw"
 
         bgClip = None

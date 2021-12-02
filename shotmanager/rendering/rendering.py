@@ -296,7 +296,7 @@ def launchRenderWithVSEComposite(
         else:
             props.renderContext.applyRenderQualitySettings(context)
 
-    # change color tone mode to prevent washout bug
+    # change color tone mode to prevent washout bug (usually with "filmic" mode)
     scene.view_settings.view_transform = "Standard"
 
     #######################

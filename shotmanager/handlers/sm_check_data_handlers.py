@@ -94,7 +94,7 @@ def shotMngHandler_load_post_checkDataVersion(self, context):
 
             patchVersion = 1002026
             if lowerSceneVersion < patchVersion:
-                from .data_patches.data_patch_to_v1_2_25 import data_patch_to_v1_2_25
+                from shotmanager.data_patches.data_patch_to_v1_2_25 import data_patch_to_v1_2_25
 
                 print(f"       Applying data patch to file: upgrade to {patchVersion}")
                 data_patch_to_v1_2_25()
@@ -102,7 +102,7 @@ def shotMngHandler_load_post_checkDataVersion(self, context):
 
             patchVersion = 1003016
             if lowerSceneVersion < patchVersion:
-                from .data_patches.data_patch_to_v1_3_16 import data_patch_to_v1_3_16
+                from shotmanager.data_patches.data_patch_to_v1_3_16 import data_patch_to_v1_3_16
 
                 print(f"       Applying data patch to file: upgrade to {patchVersion}")
                 data_patch_to_v1_3_16()
@@ -110,7 +110,7 @@ def shotMngHandler_load_post_checkDataVersion(self, context):
 
             patchVersion = 1003061
             if lowerSceneVersion < patchVersion:
-                from .data_patches.data_patch_to_v1_3_61 import data_patch_to_v1_3_61
+                from shotmanager.data_patches.data_patch_to_v1_3_61 import data_patch_to_v1_3_61
 
                 print(f"       Applying data patch to file: upgrade to {patchVersion}")
                 data_patch_to_v1_3_61()
