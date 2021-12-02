@@ -58,7 +58,8 @@ def initialize_gShotsStackInfos():
 
 
 def display_state_changed_intShStack(context):
-    print("display_state_changed_intShStack")
+    # wkip could be removed, not used as such
+    print("display_state_changed_intShStack - to remove")
     prefs = context.preferences.addons["shotmanager"].preferences
     # if (
     #     context.window_manager.UAS_shot_manager_display_overlay_tools
