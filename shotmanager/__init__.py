@@ -66,15 +66,10 @@ from .utils.utils_os import module_can_be_imported
 
 from .scripts import rrs
 
-# from .data_patches.data_patch_to_v1_2_25 import data_patch_to_v1_2_25
-# from .data_patches.data_patch_to_v1_3_16 import data_patch_to_v1_3_16
-# from .data_patches.data_patch_to_v1_3_31 import data_patch_to_v1_3_31
-
 from . import keymaps
 
 from .debug import sm_debug
 
-# from shotmanager.config import sm_logging
 from shotmanager.config import sm_logging
 
 _logger = sm_logging.getLogger(__name__)
@@ -84,8 +79,8 @@ bl_info = {
     "name": "Shot Manager",
     "author": "Ubisoft - Julien Blervaque (aka Werwack), Romain Carriquiry Borchiari",
     "description": "Manage a sequence of shots and cameras in the 3D View - Ubisoft Animation Studio",
-    "blender": (2, 92, 0),
-    "version": (1, 6, 8),
+    "blender": (2, 93, 0),
+    "version": (1, 6, 9),
     "location": "View3D > Shot Manager",
     "wiki_url": "https://ubisoft-shotmanager.readthedocs.io",
     # "warning": "BETA Version",
@@ -125,8 +120,19 @@ def register():
     # is used and provide some visibility to the user to solve the issue
     # Pillow lib is installed there
 
-    if (2, 93, 0) <= bpy.app.version:
-        # print("  installing OpenTimelineIO 0.13 for Python 3.9 for Ubisoft Shot Manager...")
+    from .install.install_dependencies import install_dependencies
+
+    installErrorCode = install_dependencies([("opentimelineio", "opentimelineio")], retries=1, timeout=20)
+    # installErrorCode = 0
+    if 0 != installErrorCode:
+        # utils_handlers.removeAllHandlerOccurences(shotMngHandler_frame_change_pre_jumpToShot, handlerCateg=bpy.app.handlers.frame_change_pre)
+        # return installErrorCode
+        print("  *** OpenTimelineIO install failed for Ubisoft Shot Manager ***")
+        pass
+    else:
+        print("  OpenTimelineIO correctly installed for Ubisoft Shot Manager")
+
+        # otio
         try:
             from . import otio
 
@@ -140,33 +146,6 @@ def register():
             #     print("       *** OTIO Package import failed ***")
         except ModuleNotFoundError:
             print("       *** OTIO Package import failed ****")
-    else:
-        from .install.install_dependencies import install_dependencies
-
-        installErrorCode = install_dependencies([("opentimelineio", "opentimelineio")], retries=1, timeout=20)
-        # installErrorCode = 0
-        if 0 != installErrorCode:
-            # utils_handlers.removeAllHandlerOccurences(shotMngHandler_frame_change_pre_jumpToShot, handlerCateg=bpy.app.handlers.frame_change_pre)
-            # return installErrorCode
-            print("  *** OpenTimelineIO install failed for Ubisoft Shot Manager ***")
-            pass
-        else:
-            print("  OpenTimelineIO correctly installed for Ubisoft Shot Manager")
-
-            # otio
-            try:
-                from . import otio
-
-                otio.register()
-
-                # from shotmanager.otio import importOpenTimelineIOLib
-
-                # if importOpenTimelineIOLib():
-                #     otio.register()
-                # else:
-                #     print("       *** OTIO Package import failed ***")
-            except ModuleNotFoundError:
-                print("       *** OTIO Package import failed ****")
 
     # if install went right then register other packages
     ###################
@@ -294,54 +273,6 @@ def register():
         update=_update_UAS_shot_manager_identify_dopesheets,
         default=False,
     )
-
-    # bpy.types.WindowManager.shotmanager_target_viewport = IntProperty(
-    #     name="Target 3D View",
-    #     description="Index of the 3D view of the current workspace which"
-    #     "\nwill receive all the actions set in the Shot Manager UI",
-    #     min=0,
-    #     max=3,
-    #     default=0,
-    #     options=set(),
-    # )
-
-    # # # def list_target_areas(self, context):
-    # # #     # res = config.gSeqEnumList
-    # # #     res = None
-    # # #     # res = list()
-    # # #     nothingList = list()
-    # # #     nothingList.append(
-    # # #         ("SELF", "Me", "Target 3D View is the viewport where Shot Manager is used, 0 if not found", 0)
-    # # #     )
-    # # #     nothingList.append(("AREA_00", "0", "Target 3D View is viewport 0", 1))
-    # # #     nothingList.append(("AREA_01", "1", "Target 3D View is viewport 1", 2))
-    # # #     nothingList.append(("AREA_02", "2", "Target 3D View is viewport 2", 3))
-    # # #     nothingList.append(("AREA_03", "3", "Target 3D View is viewport 3", 4))
-
-    # # #     # seqList = getSequenceListFromOtioTimeline(config.gMontageOtio)
-    # # #     # for i, item in enumerate(seqList):
-    # # #     #     res.append((item, item, "My seq", i + 1))
-
-    # # #     # res = getSequenceListFromOtio()
-    # # #     # res.append(("NEW_CAMERA", "New Camera", "Create new camera", 0))
-    # # #     # for i, cam in enumerate([c for c in context.scene.objects if c.type == "CAMERA"]):
-    # # #     #     res.append(
-    # # #     #         (cam.name, cam.name, 'Use the exising scene camera named "' + cam.name + '"\nfor the new shot', i + 1)
-    # # #     #     )
-
-    # # #     if res is None or 0 == len(res):
-    # # #         res = nothingList
-    # # #     return res
-
-    # # # # Get the target index with the function props.getTargetViewportIndex(context)
-    # # # bpy.types.WindowManager.shotmanager_target_viewport_dropdwn = EnumProperty(
-    # # #     name="Target 3D Viewport",
-    # # #     description="Index of the target viewport of the current workspace that will"
-    # # #     "\nreceive all the actions set in the Shot Manager panel",
-    # # #     items=(list_target_areas),
-    # # #     # default=0,
-    # # #     #        options=set(),
-    # # # )
 
     bpy.types.WindowManager.UAS_shot_manager_toggle_shots_stack_interaction = BoolProperty(
         name="Enable Shots Manipulation",

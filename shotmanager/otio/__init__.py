@@ -56,6 +56,8 @@ if (2, 93, 0) <= bpy.app.version:
         try:
             import opentimelineio
 
+            _logger.debug_ext("OTIO correctly imported", col="GREEN")
+
         except ModuleNotFoundError:
             _logger.error("*** Error - OpenTimelineIO import failed - Installing provided version")
 
@@ -134,7 +136,15 @@ else:
 def register():
     from . import operators
 
-    _logger.debug_ext("       - Registering OTIO Package", form="REG")
+    try:
+        import opentimelineio as otio
+
+        otioVersion = otio.__version__
+        otioVersionStr = f" - OpenTimelineIO V. {otioVersion}"
+    except Exception:
+        otioVersionStr = " - OpenTimelineIO not available"
+
+    _logger.debug_ext("       - Registering OTIO Package" + otioVersionStr, form="REG")
 
     operators.register()
 

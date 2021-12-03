@@ -38,7 +38,7 @@ def drawDependencies(context, layout: bpy.types.UILayout, **kwargs):
     split = row.split(factor=splitFactor)
     split.label(text="- OpenTimelineIO:")
     try:
-        import opentimelineio2 as otio
+        import opentimelineio as otio
 
         otioVersion = otio.__version__
         split.label(text=f"V. {otioVersion}  installed")
@@ -58,7 +58,7 @@ def drawDependencies(context, layout: bpy.types.UILayout, **kwargs):
                 rowRight = row.row()
                 rowRight.alignment = "RIGHT"
                 rowRight.scale_x = 1.0
-                doc_op = rowRight.operator("shotmanager.open_documentation_url", text="Stamp Info FAQ")
+                doc_op = rowRight.operator("shotmanager.open_documentation_url", text="Shot Manager FAQ")
                 doc_op.path = "https://ubisoft-shotmanager.readthedocs.io/en/latest/troubleshoot/faq.html#installation"
                 doc_op.tooltip = "Open online FAQ: " + doc_op.path
                 col.separator(factor=0.3)
