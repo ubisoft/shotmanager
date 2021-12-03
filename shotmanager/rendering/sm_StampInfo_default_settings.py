@@ -62,6 +62,8 @@ def set_StampInfoSettings(scene):
                 # bottom
                 ####################################
 
+                if hasattr(stampInfoSettings, "sequenceUsed"):
+                    stampInfoSettings.sequenceUsed = True
                 stampInfoSettings.sceneUsed = True
                 stampInfoSettings.takeUsed = True
                 #  stampInfoSettings.shotName       = shotName
