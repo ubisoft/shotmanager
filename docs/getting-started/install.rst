@@ -19,7 +19,7 @@ Download
 Open the `latest release <https://github.com/ubisoft/shotmanager/releases/latest>`__  page from the Shot Manager Gihub `releases page <https://github.com/ubisoft/shotmanager/releases>`_.
 Download the zip file listed in **Assets** that has the package icon: |package-icon|.
 
-.. |package-icon| image:: /img/package-icon.png
+.. |package-icon| image:: /docs/img/package-icon.png
 
 .. _installing:
 
@@ -27,10 +27,10 @@ Install of Shot Manager
 -----------------------
 
 .. note::
-    Shot Manager needs to download some external Python dependencies in order to be fully functionnal. Hence,
+    Shot Manager needs to download some external Python dependencies in order to be fully functional. Hence,
     when launching the installation of this add-on, be sure to match these conditions:
 
-        - **Run Blender with elevated priviledges (or in Administrator mode)**
+        - **Run Blender with elevated privileges (or in Administrator mode)**
         - **Be connected to the internet**
         - **Be sure the firewall is not blocking the requests (use OpenVPN or equivalent if needed)**
 
@@ -47,7 +47,7 @@ Install of complementary add-ons
 --------------------------------
 
 Shot Manager can work as is. Nevertheless we've developed 2 additional add-ons that are considerably 
-expanding the features and capabilitie of this tool. It is strongly advised to install them too
+expanding the features and capabilities of this tool. It is strongly advised to install them too
 to get the full experience.
 
     - Download Ubisoft Stamp Info here: `Stamp Info latest release <https://github.com/ubisoft/stampinfo/releases/latest>`_
