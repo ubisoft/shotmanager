@@ -18,7 +18,7 @@
 
 ## Overlay tools
 
-- Added controls for the Interactive Shots Staqk in a toolbar in the Timeline editor
+- Added controls for the Interactive Shots Stack in a toolbar in the Timeline editor
 
 - Exposed preferences to display disabled shots in the timeline and shots stack
 - Exposed a Compact mode for the shots stack in the settings
@@ -29,7 +29,7 @@
 
 ## UI
 
-- Rewapped all the Settings panels
+- Rewampped all the Settings panels
 
 - Added a viewport target to specify which view will receive the camera and sequence timeline
 - Added a nodesheet target to specify which timeline or node sheet editor will receive the interactive
