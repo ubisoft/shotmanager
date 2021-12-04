@@ -38,7 +38,7 @@ def initGlobalVariables():
         devDebug = True
 
     # change this value to force debug at start time
-    devDebug = True
+    devDebug = False
 
     global devDebug_keepVSEContent
     devDebug_keepVSEContent = True and devDebug
