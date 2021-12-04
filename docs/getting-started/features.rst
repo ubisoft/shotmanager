@@ -18,12 +18,16 @@ Overview
 - Edit forth and back with VSE (experimental)
 - ...
 
+Latest improvements
+-------------------
+
+See the `detailed changelog <https://github.com/ubisoft/shotmanager/blob/main/CHANGELOG.md>`__ on the GitHub project.
+
 
 Limitations
 -----------
 
 .. warning::
-    - Blender 2.93: Some features (EDL imports and exports) are NOT YET SUPPORTED ON Mac and Linux because there is currently no OpenTimelineIO package for Python 3.9 for these plateforms
     - Shot Manager is not compatible with camera binding. Indeed the *Shot Play Mode* overrides the standant play mode and has its own
       way of changing the viewport camera. Good news is this mode is far more powerfull than the camera binding approach :)
 

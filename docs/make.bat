@@ -5,7 +5,7 @@ pushd %~dp0
 REM Command file for Sphinx documentation
 
 REM temp fix
-set SPHINXBUILD="Z:\EvalSofts\Blender\DevPython\UAS_ShotManager_Addon\.venv\Scripts\sphinx-build.exe"
+set SPHINXBUILD="Z:\EvalSofts\Blender\DevPython\.venv\Scripts\sphinx-build.exe"
 
 if "%SPHINXBUILD%" == "" (
 	set SPHINXBUILD=sphinx-build
