@@ -1,9 +1,9 @@
-.. _advanced-features:
+.. _panel-features:
 
-Advanced features
-=================
+Panel features
+==============
 
-Advanced features are a set of modules that can be triggered in order to extend the capabilities of Shot Manager.
+Panel features are a set of modules that can be triggered in order to extend the capabilities of Shot Manager.
 When activated a module and its related graphics components will become visible in the main panel, at various places
 according to its way of working.
 
@@ -22,7 +22,7 @@ There are 2 ways to open the Features dialog box:
 
 ..  image:: /img/features-advanced/SM_Features_OpenFromSettings.png
     :align: center
-    :scale: 80%
+    :scale: 100%
 
 - Or directly click on the *Features* button.
   
@@ -31,13 +31,13 @@ There are 2 ways to open the Features dialog box:
 
 ..  image:: /img/features-advanced/SM_Features_OpenFromButton.png
     :align: center
-    :scale: 80%
+    :scale: 100%
 
 The Features dialog box gets opened. It allows the listed featuers to be toggled by a simple click on they associated button.
 
 ..  image:: /img/features-advanced/SM_Features_DialogBox.png
     :align: center
-    :scale: 80%
+    :scale: 100%
 
 
 

@@ -10,6 +10,8 @@ Ubisoft Shot Manager: Creative narration and editing with Blender
 
 **Manage the cameras and the editing of your scenes inside Blender in real time and with great simplicity.**
 
+**Current version is 1.6. The currently supported Blender versions are 2.93.x and 3.0.x.**
+
 ..  image:: /img/ShotManager_screen.png
     :align: center
     :width: 80%
@@ -31,11 +33,6 @@ Be aware that neither Ubisoft nor Ubisoft employees can be taken as responsible 
 
 **This said, we will do our best to listen to your feedback and improve this add-on accordingly in order to provide a robust and flexible production tool.
 Have fun !**
-
-.. warning::
-   !! Blender 2.93: Some features (EDL imports and exports) are NOT YET SUPPORTED ONT THIS VERSION because there is currently no OpenTimelineIO package for Python 3.9 !!
-   
-   This will be fixed as soon as possible.
 
    
 Getting started
@@ -74,7 +71,7 @@ Then:
 
    /features/features
    /features/main-panel
-   /features-advanced/advanced-features
+   /features-advanced/panel-features
    
 .. toctree::
    :maxdepth: 3

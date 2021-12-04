@@ -6,10 +6,8 @@ Supported versions
 
 Shot Manager is developed and actively tested on Windows 10. Community users reported successful usage on Linux platform. 
 
-The currently supported Blender version is 2.93. Shot Manager also loads successfully and should work on 2.83 LTS.
+The currently supported Blender versions are 2.93.x and 3.0.x. Shot Manager should also still work on 2.83 LTS.
 
-.. warning::
-    Shot Manager is currently not working on Blender 2.93 on Mac and Linux because no OpenTimelineIO package is available at the moment for Python 3.9.
 
 .. _download:
 
@@ -19,7 +17,7 @@ Download
 Open the `latest release <https://github.com/ubisoft/shotmanager/releases/latest>`__  page from the Shot Manager Gihub `releases page <https://github.com/ubisoft/shotmanager/releases>`_.
 Download the zip file listed in **Assets** that has the package icon: |package-icon|.
 
-.. |package-icon| image:: /docs/img/package-icon.png
+.. |package-icon| image:: /img/package-icon.png
 
 .. _installing:
 

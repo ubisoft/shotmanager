@@ -19,7 +19,7 @@ To display the Retimer panel open the :ref:`Features dialog box <advanced-featur
 
 ..  image:: /img/features-advanced/SM_Features_Retimer.png
     :align: center
-    :scale: 80%
+    :scale: 100%
 
 The panel then appears below the Shot Manager main panel.
 
