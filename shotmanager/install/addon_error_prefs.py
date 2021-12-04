@@ -120,7 +120,7 @@ class UAS_ShotManager_AddonErrorPrefs(AddonPreferences):
         rowRight = row.row()
         rowRight.alignment = "RIGHT"
         rowRight.scale_x = 1.0
-        doc_op = rowRight.operator("shotmanager.open_documentation_url", text="Stamp Info FAQ")
+        doc_op = rowRight.operator("shotmanager.open_documentation_url", text="Shot Manager FAQ")
         doc_op.path = "https://ubisoft-shotmanager.readthedocs.io/en/latest/troubleshoot/faq.html#installation"
         doc_op.tooltip = "Open online FAQ: " + doc_op.path
         box.separator(factor=0.3)
