@@ -46,7 +46,7 @@ class UAS_ShotManager_OT_About(Operator):
         ###############
         row = col.row()
         row.separator()
-        row.label(text="Version: " + props.version()[0] + " - (" + "Sept. 18th 2021" + ")" + " -  Ubisoft")
+        row.label(text="Version: " + props.version()[0] + " - (" + "Dec. 04th 2021" + ")" + " -  Ubisoft")
 
         # Category
         ###############
@@ -58,7 +58,10 @@ class UAS_ShotManager_OT_About(Operator):
         ###############
         row = col.row()
         row.separator()
-        row.label(text="Written by Julien Blervaque (aka Werwack), Romain Carriquiry Borchiari")
+        row.label(text="Designed and developed by Julien Blervaque (aka Werwack)")
+        row = col.row()
+        row.separator()
+        row.label(text="Contributions from Romain Carriquiry Borchiari")
 
         # Purpose
         ###############

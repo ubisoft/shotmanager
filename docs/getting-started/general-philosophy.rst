@@ -19,11 +19,11 @@ iterate fast in the way an action is edited. And is there a better way to so so 
 
 So the key idea lies in the analogy with shooting a continuous live action from several real cameras:
 
-    - In a Blender scene we create an action, usualy corresponding to what would be a sequence in terms of narration,
+    - In a Blender scene we create an action, usually corresponding to what would be a sequence in terms of narration,
       this with a plausible timing;
     - Next we introduce several cameras and we define from the tool when the cameras are recording and in which order they
       appear in the edit;
-    - Then by playing the edit and iterating on the tweaks on the action, the record timings and the order of appartition
+    - Then by playing the edit and iterating on the tweaks on the action, the record timings and the order of apparition
       of the point of views we polish it and finalize the way we want the whole sequence to appear on the scene.
 
 
@@ -58,4 +58,4 @@ camera to another.
 time, to play the scene action again from another camera. And that's the essence of Shot Manager!**
 
 
-.. UX phitlosophy: simple, consistent, predictible
+.. UX philosophy: simple, consistent, predictible

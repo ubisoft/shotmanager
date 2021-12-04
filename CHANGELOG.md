@@ -1,8 +1,12 @@
-# 1.6.05 (2021-11-09)
+# 1.6.9 (2021-12-04)
 
-## Features
+## UX
 
-- Added a viewport target
+- Improved performances during animation play
+- Fixed crashes on undo and redo with the overlay tools
+- Improved warning messages
+- Exposed a render param to preserve rendered images
+- Added a button to convert camera binding to shots
 
 ## Fixes
 
@@ -14,13 +18,24 @@
 
 ## Overlay tools
 
+- Added controls for the Interactive Shots Stack in a toolbar in the Timeline editor
+
 - Exposed preferences to display disabled shots in the timeline and shots stack
 - Exposed a Compact mode for the shots stack in the settings
 
 - Refactored code for the handlers
 - Improved the look and feel of the Interactive Shots Stack
+- Improved the look and feel of the Sequence Timeline
 
 ## UI
+
+- Rewampped all the Settings panels
+
+- Added a viewport target to specify which view will receive the camera and sequence timeline
+- Added a nodesheet target to specify which timeline or node sheet editor will receive the interactive
+shots stack
+
+- Added a button to toggle the scene sound
 
 - Fixed the Frame Time Range button in the Timeline
 - improved behaviors when clicking on Set Current shot with modifier keys
@@ -29,6 +44,15 @@
 
 - Added a Frame Shot in Timeline option to change the timeline zoom when a shot is selected
 - Added a render parameter in the Render Prefs panel to allow the generated files to be kept on disk
+
+## Documentation
+
+- Updated online documentation
+
+## Dev
+
+- Import OpentimelineIO 0.14 from pip
+- Refactored Logger integration
 
 
 # 1.5.77 (2021-11-05)

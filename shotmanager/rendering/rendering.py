@@ -813,6 +813,10 @@ def renderStampedInfoForShot(
     #####################
     # set properties independently to them being enabled or not
     #####################
+
+    if hasattr(stampInfoSettings, "sequenceName"):
+        stampInfoSettings.sequenceName = props.sequence_name
+
     if props.use_project_settings:
         # wkip get stamp info configuration specifed for the project
 
