@@ -1072,9 +1072,9 @@ class UAS_Vse_Render_PropsGpr(PropertyGroup):
 
 _classes = (
     # UAS_PT_VSERender,
+    UAS_VSE_OpenFileBrowser,
     UAS_Vse_Render_PropsGpr,
     UAS_compositeVideoInVSE,
-    UAS_VSE_OpenFileBrowser,
 )
 
 
@@ -1092,6 +1092,9 @@ def unregister():
 
     for cls in reversed(_classes):
         #  print(f"           -- Utils_vse_render.py {str(cls)}")
-        bpy.utils.unregister_class(cls)
+        try:
+            bpy.utils.unregister_class(cls)
+        except Exception as e:
+            _logger.error_ext(f"Error in Unregistering class {str(cls)}:  {e}")
 
     del bpy.types.WindowManager.UAS_vse_render

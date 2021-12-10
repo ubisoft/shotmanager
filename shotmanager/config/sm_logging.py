@@ -25,7 +25,6 @@ Read this: https://stackoverflow.com/questions/7274732/extending-the-python-logg
 import os
 from pathlib import Path
 
-import sys
 import logging
 from logging import DEBUG, INFO, ERROR
 
@@ -88,8 +87,8 @@ class SM_Logger(logging.getLoggerClass()):
             if "" == col:
                 color = self._colors["GRAY"]
             f = Formatter(color + "{message:<90}" + "\033[0m", style="{")
-        elif "BASIC" == form:
-            f = Formatter(color + "~Basic +++" + " {message:<140}" + "\033[0m", style="{")
+        elif "ERROR" == form:
+            f = Formatter(color + "Shot Manager: " + " {message:<140}" + "\033[0m", style="{")
         elif "OTHER" == form:
             f = Formatter(color + "~Other +++" + " {message:<140}" + "\033[0m", style="{")
         else:  # "DEFAULT"
@@ -127,12 +126,21 @@ class SM_Logger(logging.getLoggerClass()):
             if "TIMELINE_EVENT" == tag:
                 return
                 pass
+            elif "JUMP" == tag:
+                #    return
+                pass
 
         # Note: marvellous parameter: stacklevel allows to get the call from the sender, otherwise
         # it is this function that is used and the path is not good
         # cf https://stackoverflow.com/questions/14406347/python-logging-check-location-of-log-files
         # and https://www.py4u.net/discuss/157715
         super(SM_Logger, self).debug(("{}").format(msg), extra=extra, stacklevel=2)
+        _logger.handlers[0].setFormatter(self._getFormatter(col, form))
+
+    def error_ext(self, msg, extra=None, col="RED", form="ERROR"):
+        _logger.handlers[0].setFormatter(self._getFormatter(col, form))
+
+        super(SM_Logger, self).error(("{}").format(msg), extra=extra, stacklevel=2)
         _logger.handlers[0].setFormatter(self._getFormatter(col, form))
 
     # # wkip not working...
@@ -203,7 +211,7 @@ _logger = logging.getLogger(__name__)
 def initialize():
 
     if config.devDebug:
-        print(f"Initializing Logger...")
+        print("Initializing Logger...")
         print(f"len(_logger.handlers): {len(_logger.handlers)}")
 
     _logger.propagate = False

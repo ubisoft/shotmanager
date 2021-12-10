@@ -278,9 +278,24 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
     ###################################
 
     # displayed when toggle overlays button is on
+    def _update_toggle_overlays_turnOn_sequenceTimeline(self, context):
+        _logger.debug_ext("_update_toggle_overlays_turnOn_sequenceTimeline")
+
+        ## toggle on or off the overlay tools mode
+        if self.toggle_overlays_turnOn_sequenceTimeline:
+            if not context.window_manager.UAS_shot_manager_display_overlay_tools:
+                context.window_manager.UAS_shot_manager_display_overlay_tools = True
+            else:
+                bpy.ops.uas_shot_manager.sequence_timeline("INVOKE_DEFAULT")
+        else:
+            if context.window_manager.UAS_shot_manager_display_overlay_tools:
+                pass
+
+    # displayed when toggle overlays button is on
     toggle_overlays_turnOn_sequenceTimeline: BoolProperty(
         name="Turn On Sequence Timeline",
         description="Display Sequence Timeline in the 3d viewport when Toggle Overlay Tools button is pressed",
+        update=_update_toggle_overlays_turnOn_sequenceTimeline,
         default=True,
     )
 

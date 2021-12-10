@@ -58,7 +58,7 @@ Various development notes related to the add-on itself, to the Git project or to
 
 # Support
 
-The active support repository is on the [StampInfo Github repository](https://github.com/ubisoft/shotmanager) which is part of the [Ubisoft open source](https://github.com/ubisoft) projects group.
+The active support repository is on the [Shot Manager Github repository](https://github.com/ubisoft/shotmanager) which is part of the [Ubisoft open source](https://github.com/ubisoft) projects group.
 
 
 # License and copyright

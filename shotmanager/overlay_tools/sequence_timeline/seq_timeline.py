@@ -83,9 +83,10 @@ class UAS_ShotManager_sequenceTimeline(Operator):
             widget.init(context)
 
     def invoke(self, context, event):
-        # _logger.debug_ext(f"uas_shot_manager.sequence_timeline  Invoke", col="RED")
+        _logger.debug_ext(f"Invoke uas_shot_manager.sequence_timeline", col="RED")
 
         if ignoreWidget(context):
+            _logger.debug_ext(f"Canceled uas_shot_manager.sequence_timeline", col="RED")
             return {"CANCELLED"}
 
         props = context.scene.UAS_shot_manager_props
@@ -105,6 +106,7 @@ class UAS_ShotManager_sequenceTimeline(Operator):
         # print("Invoke timeline")
         if target_area is None:
             # print("Invoke timeline cancelled")
+            _logger.debug_ext(f"Canceled uas_shot_manager.sequence_timeline area", col="RED")
             return {"CANCELLED"}
         else:
             self.init_widgets(
@@ -159,6 +161,7 @@ class UAS_ShotManager_sequenceTimeline(Operator):
             or not len(props.get_shots())
             or self.target_area_index != props.getTargetViewportIndex(context, only_valid=True)
         ):
+            # _logger.debug_ext(f"sequence_timeline In Modal - for Cancel", col="RED")
             self.unregister_handlers(context)
             return {"CANCELLED"}
 

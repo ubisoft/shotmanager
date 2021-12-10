@@ -54,7 +54,14 @@ def ignoreWidget(context):
 
 
 def initialize_gShotsStackInfos():
-    return {"prev_mouse_x": 0, "prev_mouse_y": 0, "frame_under_mouse": -1, "clips": list()}
+    return {
+        "prev_mouse_x": 0,
+        "prev_mouse_y": 0,
+        "frame_under_mouse": -1,
+        "active_clip_index": -1,
+        "active_clip_region": None,
+        "clips": list(),
+    }
 
 
 def display_state_changed_intShStack(context):
@@ -111,6 +118,8 @@ class UAS_ShotManager_InteractiveShotsStack(Operator):
         self.draw_event = None
 
     def invoke(self, context, event):
+        _logger.debug_ext("Invoke interactive_shots_stack", col="PURPLE")
+
         if ignoreWidget(context):
             return {"CANCELLED"}
 
@@ -129,6 +138,10 @@ class UAS_ShotManager_InteractiveShotsStack(Operator):
         return {"RUNNING_MODAL"}
 
     def modal(self, context, event):
+        newRedrawTime = -1
+        config.devDebug_lastRedrawTime = newRedrawTime
+        newRedrawTime = 0
+
         props = context.scene.UAS_shot_manager_props
         prefs = context.preferences.addons["shotmanager"].preferences
         if config.gShotsStackInfos is None:
@@ -210,28 +223,57 @@ class UAS_ShotManager_InteractiveShotsStack(Operator):
             if event.type == "LEFTMOUSE":
                 if event.value == "PRESS":
                     # bpy.ops.ed.undo_push(message=f"Set Shot Start...")
-                    for clip in config.gShotsStackInfos["clips"]:
+                    for i, clip in enumerate(config.gShotsStackInfos["clips"]):
                         active_clip_region = clip.get_handle(mouse_x, mouse_y)
                         if active_clip_region is not None:
+                            _logger.debug_ext(f"highlight Shot", col="RED")
                             clip.highlight = True
+                            config.gShotsStackInfos["active_clip_index"] = i
+                            config.gShotsStackInfos["active_clip_region"] = active_clip_region
                             self.active_clip = clip
                             self.active_clip_region = active_clip_region
                             props.setSelectedShotByIndex(self.active_clip.shot_index)
                             event_handled = True
+                            continue
                         else:
                             clip.highlight = False
 
                     counter = time.perf_counter()
                     if self.active_clip and counter - self.prev_click < 0.3:  # Double click.
                         props.setCurrentShotByIndex(self.active_clip.shot_index, changeTime=False)
+                        mouse_frame = int(region.view2d.region_to_view(event.mouse_x - region.x, 0)[0])
+                        context.scene.frame_current = mouse_frame
                         event_handled = True
 
                     self.prev_click = counter
                 elif event.value == "RELEASE":
                     bpy.ops.ed.undo_push(message=f"Change Shot...")
+                    config.gShotsStackInfos["active_clip_index"] = -1
+                    config.gShotsStackInfos["active_clip_region"] = None
 
             elif event.type == "MOUSEMOVE":
+                print("I move")
+
+                print("I move no clic")
+                # mouse over handles?
+                config.gShotsStackInfos["active_clip_over"] = False
+                for i, clip in enumerate(config.gShotsStackInfos["clips"]):
+                    active_clip_region = clip.get_handle(mouse_x, mouse_y)
+                    if active_clip_region is not None:
+                        _logger.debug_ext(
+                            f"highlight Shot handle over, clip {i} region: {active_clip_region}", col="BLUE"
+                        )
+                        clip.highlight = True
+                        config.gShotsStackInfos["active_clip_index"] = i
+                        config.gShotsStackInfos["active_clip_region"] = active_clip_region
+                        config.gShotsStackInfos["active_clip_over"] = True
+                    # else:
+                    #     config.gShotsStackInfos["active_clip_index"] = -1
+                    #     config.gShotsStackInfos["active_clip_region"] = None
+                    # clip.highlight = False
+
                 if event.value == "PRESS":
+                    print("I move pressed")
                     if self.active_clip:
                         mouse_frame = int(region.view2d.region_to_view(event.mouse_x - region.x, 0)[0])
                         prev_mouse_frame = int(region.view2d.region_to_view(self.prev_mouse_x, 0)[0])
@@ -244,11 +286,13 @@ class UAS_ShotManager_InteractiveShotsStack(Operator):
                             config.gShotsStackInfos["frame_under_mouse"] = mouse_frame
                         event_handled = True
                 elif event.value == "RELEASE":
+                    print("I move Release")
                     if self.active_clip:
                         self.active_clip.highlight = False
                         self.active_clip = None
                         # self.frame_under_mouse = None
                         config.gShotsStackInfos["frame_under_mouse"] = -1
+                        event_handled = True
 
             self.prev_mouse_x = event.mouse_x - region.x
             self.prev_mouse_y = event.mouse_y - region.y

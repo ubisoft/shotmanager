@@ -38,7 +38,10 @@ def initGlobalVariables():
         devDebug = True
 
     # change this value to force debug at start time
-    devDebug = False
+    devDebug = True
+
+    global devDebug_lastRedrawTime
+    devDebug_lastRedrawTime = -1
 
     global devDebug_keepVSEContent
     devDebug_keepVSEContent = True and devDebug

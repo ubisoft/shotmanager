@@ -61,68 +61,70 @@ if (2, 93, 0) <= bpy.app.version:
         except ModuleNotFoundError:
             _logger.error("*** Error - OpenTimelineIO import failed - Installing provided version")
 
-            # we use the provided wheel
-            pyExeFile = sys.executable
-            localPyDir = str(Path(pyExeFile).parent) + "\\lib\\site-packages\\"
+            # # we use the provided wheel
+            # pyExeFile = sys.executable
+            # localPyDir = str(Path(pyExeFile).parent) + "\\lib\\site-packages\\"
 
-            try:
-                print("  installing OpenTimelineIO 0.13 for Python 3.9 for Ubisoft Shot Manager...")
-                subprocess.run(
-                    [
-                        pyExeFile,
-                        "-m",
-                        "pip",
-                        "install",
-                        os.path.join(os.path.dirname(__file__), "OpenTimelineIO-0.13.0_Ubi0.2-py3-none-any.whl"),
-                    ]
-                )
-                import opentimelineio as opentimelineio
-            except ModuleNotFoundError:
-                _logger.error("*** Error - OpenTimelineIO instal from provided version 0.013 failed")
+            # try:
+            #     print("  installing OpenTimelineIO 0.13 for Python 3.9 for Ubisoft Shot Manager...")
+            #     subprocess.run(
+            #         [
+            #             pyExeFile,
+            #             "-m",
+            #             "pip",
+            #             "install",
+            #             os.path.join(os.path.dirname(__file__), "OpenTimelineIO-0.13.0_Ubi0.2-py3-none-any.whl"),
+            #         ]
+            #     )
+            #     import opentimelineio as opentimelineio
+            # except ModuleNotFoundError:
+            #     _logger.error("*** Error - OpenTimelineIO instal from provided version 0.013 failed")
 
 
 # for versions of Blender before 2.93:
 else:
-    pyExeFile = sys.executable
-    localPyDir = str(Path(pyExeFile).parent) + "\\lib\\site-packages\\"
+    print("OpentimelineIO not available for Blender before 2.93")
 
-    try:
-        import opentimelineio
+    # pyExeFile = sys.executable
+    # localPyDir = str(Path(pyExeFile).parent) + "\\lib\\site-packages\\"
 
-        # wkip type de comparaison qui ne marche pas tout le temps!!! ex: "2.12.1"<"11.12.1"  is False !!!
-        if opentimelineio.__version__ < "0.12.1" and platform.system() == "Windows":
-            print("Upgrading OpentimelineIO to 0.12.1")
-            subprocess.run(
-                [
-                    pyExeFile,
-                    "-m",
-                    "pip",
-                    "install",
-                    os.path.join(os.path.dirname(__file__), "OpenTimelineIO-0.12.1-cp37-cp37m-win_amd64.whl"),
-                ]
-            )
-            importlib.reload(opentimelineio)  # Need to be tested.
-    except ModuleNotFoundError:
-        _logger.error("*** Error - OpenTimelineIO import failed - using provided version")
-        if platform.system() == "Windows":
-            _logger.error("Plateform: Windows")
-            try:
-                subprocess.run(
-                    [
-                        pyExeFile,
-                        "-m",
-                        "pip",
-                        "install",
-                        os.path.join(os.path.dirname(__file__), "OpenTimelineIO-0.12.1-cp37-cp37m-win_amd64.whl"),
-                    ]
-                )
-                import opentimelineio as opentimelineio
-            except ModuleNotFoundError:
-                _logger.error("*** Error - OpenTimelineIO instal from provided version failed")
-        else:
-            subprocess.run([pyExeFile, "-m", "pip", "install", "opentimelineio"])
-            import opentimelineio as opentimelineio
-        # import opentimelineio as opentimelineio
+    # try:
+    #     import opentimelineio
+
+    #     # wkip type de comparaison qui ne marche pas tout le temps!!! ex: "2.12.1"<"11.12.1"  is False !!!
+    #     if opentimelineio.__version__ < "0.12.1" and platform.system() == "Windows":
+    #         print("Upgrading OpentimelineIO to 0.12.1")
+    #         subprocess.run(
+    #             [
+    #                 pyExeFile,
+    #                 "-m",
+    #                 "pip",
+    #                 "install",
+    #                 os.path.join(os.path.dirname(__file__), "OpenTimelineIO-0.12.1-cp37-cp37m-win_amd64.whl"),
+    #             ]
+    #         )
+    #         importlib.reload(opentimelineio)  # Need to be tested.
+    # except ModuleNotFoundError:
+    #     _logger.error("*** Error - OpenTimelineIO import failed - using provided version")
+    #     if platform.system() == "Windows":
+    #         _logger.error("Plateform: Windows")
+    #         try:
+    #             subprocess.run(
+    #                 [
+    #                     pyExeFile,
+    #                     "-m",
+    #                     "pip",
+    #                     "install",
+    #                     os.path.join(os.path.dirname(__file__), "OpenTimelineIO-0.12.1-cp37-cp37m-win_amd64.whl"),
+    #                 ]
+    #             )
+    #             import opentimelineio as opentimelineio
+    #         except ModuleNotFoundError:
+    #             _logger.error("*** Error - OpenTimelineIO instal from provided version failed")
+    #     else:
+    #         subprocess.run([pyExeFile, "-m", "pip", "install", "opentimelineio"])
+    #         import opentimelineio as opentimelineio
+    # import opentimelineio as opentimelineio
 
 # try:
 #     import opentimelineio as opentimelineio

@@ -30,7 +30,6 @@ import mathutils
 import gpu
 import bgl, blf
 import bpy
-from gpu_extras.batch import batch_for_shader
 from bpy_extras.view3d_utils import location_3d_to_region_2d
 
 
