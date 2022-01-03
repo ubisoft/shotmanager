@@ -40,7 +40,7 @@ pip install -r requirements-dev.txt
 
 ## Visual Studio Code
 
-We recommand Visual Studio Code, with Python and Blender VSCode extensions.
+We recommend Visual Studio Code, with Python and Blender VSCode extensions.
 
 If you have a python file open in VSCode, it should automatically detect the virtual env, activate it when prompted. Note that VSCode never detect your python unless you open a Python file. When your python is detected, you should see it in your status bar and any new terminal open should have the virtual env activated ("(.venv)" should appear on the prompt line).
 
