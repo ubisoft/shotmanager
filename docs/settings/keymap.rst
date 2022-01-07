@@ -3,7 +3,9 @@
 Keymap
 ======
 
-Shot Manager currently exposes the following key maps:
+Shot Manager currently exposes the following key maps.
+
+<>: The action has been exposed but no mapping is configured for it by default.
 
 
 ==============  ==========================  ==============================================

@@ -272,16 +272,12 @@ def exportShotManagerEditToOtio(
     audioTrack.extend(audioClips)
 
     Path(otioRenderPath).parent.mkdir(parents=True, exist_ok=True)
-    print("Ici")
     if otioRenderPath.endswith(".xml"):
-        print("Ici 02 ")
         opentimelineio.adapters.write_to_file(timeline, otioRenderPath, adapter_name="fcp_xml")
 
-        print("Ici 03 ")
         montageCharacteristics = props.get_montage_characteristics()
         _addEditCharacteristicsToXML(otioRenderPath, montageCharacteristics)
 
-        print("Ici 04 ")
     else:
         opentimelineio.adapters.write_to_file(timeline, otioRenderPath)
 

@@ -121,7 +121,12 @@ class UAS_ShotManager_DrawHudOnCamPov(bpy.types.Operator):
 
         props = context.scene.UAS_shot_manager_props
         current_shot = props.getCurrentShot()
-        if current_shot is None or context.space_data.region_3d.view_perspective != "CAMERA":
+        if (
+            current_shot is None
+            or context.space_data.region_3d.view_perspective != "CAMERA"
+            or context.scene.camera is None
+            or "CAMERA" != context.scene.camera.type
+        ):
             return
         cam = context.scene.camera
 

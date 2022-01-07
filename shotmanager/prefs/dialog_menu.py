@@ -36,7 +36,7 @@ class UAS_MT_ShotManager_Prefs_MainMenu(Menu):
 
         row = layout.row(align=True)
         row.operator_context = "INVOKE_DEFAULT"
-        row.operator("shot_manager.features", text="Features...")
+        row.operator("shot_manager.features", text="Feature Toggles...")
 
         layout.separator()
 

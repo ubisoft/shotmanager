@@ -29,8 +29,8 @@ from shotmanager.overlay_tools.viewport_camera_hud import camera_hud_prefs
 
 class UAS_ShotManager_Features(Operator):
     bl_idname = "shot_manager.features"
-    bl_label = "Features"
-    bl_description = "Controls the additional features available with Shot Manager or displayed on its panel"
+    bl_label = "Feature Toggles"
+    bl_description = "Controls the display of additional features available with Shot Manager or displayed on its panel"
     bl_options = {"INTERNAL"}
 
     def invoke(self, context, event):

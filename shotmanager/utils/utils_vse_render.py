@@ -715,7 +715,8 @@ class UAS_Vse_Render_PropsGpr(PropertyGroup):
         bpy.context.window.scene = sequenceScene
 
         sequenceScene.render.fps = fps  # projectFps
-        sequenceScene.render.resolution_x = 1280
+        # wkipwkipwkip
+        sequenceScene.render.resolution_x = 1580
         sequenceScene.render.resolution_y = 960
         sequenceScene.frame_start = 0
         # sequenceScene.frame_end = props.getEditDuration() - 1

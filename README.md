@@ -21,10 +21,11 @@
 </p>
 
 
-**Disclaimer**
+## Disclaimer
+
 >**This tool is currently supported for LTS version of Blender 2.93 and up to Blender 3.0**
 >
->It was initialy developed for an animated TV series production in 2020 on Blender 2.83. It has the features that were needed at the time but it
+>It was initially developed for an animated TV series production in 2020 on Blender 2.83. It has the features that were needed at the time but it
 may not be considered as feature complete for a more generic purpose. In spite of all our efforts to make it reliable some troubles may occur in use cases we have not faced.
 
 <br />
@@ -33,17 +34,17 @@ Note that development is on Windows 10. Please report issues and submit PRs for 
 
 ## Purpose
 
-Manages the shots of a Blender scene. It offers a realtime editing directly on
+Manages the shots of a Blender scene. It offers a real-time editing directly on
 the data of a 3D scene.
 Shot Manager is very versatile and can be useful in many cases.
-The main usecase is this: A continuous action is set in a scene, then some cameras
+The main use case is this: A continuous action is set in a scene, then some cameras
 are put at the appropriate places in the world and a shot is created for each one of
 them in order to record the right segment of time.
 This is very convenient for previz and 3D layout.
 
 <br />
 <img src="docs/img/ShotManager_screen.png" alt="ShotManager Screen" width="70%"/>
-<br /><br />
+<br />
 
 For installation, features, FAQ, user help please check the documentation here: [https://ubisoft-shotmanager.readthedocs.io](https://ubisoft-shotmanager.readthedocs.io)
 

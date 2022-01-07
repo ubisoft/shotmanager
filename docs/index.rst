@@ -60,7 +60,6 @@ Then:
    :caption: Getting started
 
    /getting-started/install
-   /getting-started/features
    /getting-started/first-steps
    /getting-started/glossary
    
@@ -71,7 +70,7 @@ Then:
 
    /features/features
    /features/main-panel
-   /features-advanced/panel-features
+   /features-advanced/feature-toggles-panel
    
 .. toctree::
    :maxdepth: 3
