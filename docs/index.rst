@@ -12,7 +12,7 @@ Ubisoft Shot Manager: Creative narration and editing with Blender
 
 **Current version is 1.6. The currently supported Blender versions are 2.93.x and 3.0.x.**
 
-..  image:: /img/ShotManager_screen.png
+..  image:: /img/ShotManager_screen.jpg
     :align: center
     :width: 80%
 
@@ -71,6 +71,7 @@ Then:
    /features/features
    /features/main-panel
    /features-advanced/feature-toggles-panel
+   /overlay-tools/overlay-tools
    
 .. toctree::
    :maxdepth: 3
