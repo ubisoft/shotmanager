@@ -25,26 +25,26 @@ There are 3 ovelay tools:
 Displaying the overlay tools
 ----------------------------
 
-There are 2 ways to open the Features dialog box:
+There are 2 ways to open the Feature Toggles panel:
 
 - Click on the panel Settings button to open the Settings menu and choose *Features*:
 
-..  image:: /img/features-advanced/SM_Features_OpenFromSettings.png
+..  image:: /img/feature-toggles/SM_Features_OpenFromSettings.png
     :align: center
     :scale: 100%
 
 - Or directly click on the *Features* button.
   
-    This button offers a quick access to the Features dialog box, which you may find convenient when you often toggle some features in order
+    This button offers a quick access to the Feature Toggles panel, which you may find convenient when you often toggle some features in order
     to keep the UI light.
 
-..  image:: /img/features-advanced/SM_Features_OpenFromButton.png
+..  image:: /img/feature-toggles/SM_Features_OpenFromButton.png
     :align: center
     :scale: 100%
 
-The Features dialog box gets opened. It allows the listed featuers to be toggled by a simple click on they associated button.
+The Feature Toggles panel gets opened. It allows the listed featuers to be toggled by a simple click on they associated button.
 
-..  image:: /img/features-advanced/SM_Features_DialogBox.png
+..  image:: /img/feature-toggles/SM_Features_DialogBox.png
     :align: center
     :scale: 100%
 

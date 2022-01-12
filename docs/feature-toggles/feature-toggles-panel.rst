@@ -3,6 +3,9 @@
 Feature Toggles panel
 =====================
 
+
+
+
 Feature toggles are a set of toggles that can be triggered to display additional features extending the capabilities of Shot Manager.
 When activated a module and its related graphics components will become visible in the main panel, at various places
 according to its way of working.
@@ -16,11 +19,13 @@ It is then strongly advised to activate only the ones you need, at the time you 
 Opening the Feature Toggles panel
 ---------------------------------
 
+
+
 There are 2 ways to open the Feature Toggles panel:
 
 - Click on the panel Settings button to open the Settings menu and choose *Feature Toggles*:
 
-..  image:: /img/features-advanced/SM_Features_OpenFromSettings.png
+..  image:: /img/feature-toggles/SM_Features_OpenFromSettings.png
     :align: center
     :scale: 100%
 
@@ -29,41 +34,16 @@ There are 2 ways to open the Feature Toggles panel:
     This button offers a quick access to the Features dialog box, which you may find convenient when you often toggle some features in order
     to keep the UI light.
 
-..  image:: /img/features-advanced/SM_Features_OpenFromButton.png
+..  image:: /img/feature-toggles/SM_Features_OpenFromButton.png
     :align: center
     :scale: 100%
 
 The Feature Toggles panel gets opened. It allows the listed featuers to be toggled by a simple click on they associated button.
 
-..  image:: /img/features-advanced/SM_Features_DialogBox.png
+..  image:: /img/feature-toggles/SM_Features_DialogBox.png
     :align: center
     :scale: 100%
 
 
-
-Available features
-------------------
-
-The following features add their UI control components into the Take and the Shots panels:
-
-- :ref:`Shot and take notes <shot-and-take-notes>`: Add notes on shots and takes to better manage your scene content.
-- :ref:`Camera backgrounds <camera-backgrounds>`: Use and toggle camera backgrounds.
-
-
-Retimer is a tool on its own. When turned on a new panel named *Retimer* will appear below the Shots panel.
-
-- :ref:`Retimer <retimer>`: Insert, delete or scale time globally or on selected entities of the scene.
-
-
-
-.. toctree::
-    :maxdepth: 3
-    :hidden:
-    :caption: Advanced Features
- 
-    camerabg
-    notes
-    retimer
-
-
+   
  

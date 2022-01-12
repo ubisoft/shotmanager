@@ -15,15 +15,15 @@ having to creaste a set of chots.**
 The Retimer panel
 -----------------
 
-To display the Retimer panel open the :ref:`Features dialog box <advanced-features>` and click on *Retimer*.
+To display the Retimer panel open the :ref:`Feature Toggles panel <feature-toggles-panel>` and click on *Retimer*.
 
-..  image:: /img/features-advanced/SM_Features_Retimer.png
+..  image:: /img/feature-toggles/SM_Features_Retimer.png
     :align: center
     :scale: 100%
 
 The panel then appears below the Shot Manager main panel.
 
-..  image:: /img/features-advanced/SM_Retimer_Panel.png
+..  image:: /img/feature-toggles/SM_Retimer_Panel.png
     :align: center
     :scale: 80%
 

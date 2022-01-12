@@ -70,7 +70,7 @@ Then:
 
    /features/features
    /features/main-panel
-   /features-advanced/feature-toggles-panel
+   /feature-toggles/feature-toggles-list
    /overlay-tools/overlay-tools
    
 .. toctree::
@@ -88,7 +88,7 @@ Then:
    :caption: How to...
 
    /how-to/how-to
-   /how-to/how-to-advanced
+   /how-to/how-to-toggle-features
    /how-to/use-in-production
    /how-to/tips
 
