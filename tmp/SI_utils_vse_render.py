@@ -752,8 +752,12 @@ class StampInfo_Vse_Render(PropertyGroup):
         import_at_frame=1,
         clean_temp_scene=True,
     ):
-        """
-            Not set values are taken from scene
+        """High level function used to create a media from a backgroupd and foreground media and a sound
+
+        This function will set the internal bg and fg media of the vse_render class and will call compositeVideoInVSE()
+        Not set values are taken from scene
+        
+        Args:
             output_resolution: array [width, height]
         """
         self.clearMedia()
@@ -800,7 +804,10 @@ class StampInfo_Vse_Render(PropertyGroup):
         output_resolution=None,
         importAtFrame=1,
     ):
-        """
+        """Low level function that will use the bg and fg media already held by this vse_render class to generate
+        a media
+        
+        Args:
             output_resolution: array [width, height]
         """
 

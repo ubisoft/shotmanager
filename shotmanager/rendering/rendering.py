@@ -589,6 +589,7 @@ def launchRenderWithVSEComposite(
 
                 _logger.debug(f"\n - BGMediaPath: {vse_render.inputBGMediaPath}")
                 vse_render.inputBGResolution = renderedImgSeq_resolution
+                vse_render.outputResolution = vse_render.inputBGResolution
 
                 if preset_useStampInfo:
                     frameIndStr = "#####" if specificFrame is None else f"{specificFrame:05}"
@@ -596,6 +597,7 @@ def launchRenderWithVSEComposite(
                     vse_render.inputOverMediaPath = infoImgSeq
                     _logger.debug(f"\n - OverMediaPath: {vse_render.inputOverMediaPath}")
                     vse_render.inputOverResolution = infoImgSeq_resolution
+                    vse_render.outputResolution = vse_render.inputOverResolution
 
                 if specificFrame is None and renderSound:
                     vse_render.inputAudioMediaPath = audioFilePath
@@ -681,7 +683,9 @@ def launchRenderWithVSEComposite(
 
             if not fileListOnly:
                 # print(f"sequenceFiles: {sequenceFiles}")
-                vse_render.buildSequenceVideo(sequenceFiles, sequenceOutputFullPath, handles, projectFps)
+                vse_render.buildSequenceVideoFromMedia(
+                    sequenceOutputFullPath, handles, projectFps, mediaFiles=sequenceFiles
+                )
 
                 # currentTakeRenderTime = time.monotonic()
                 # print(f"      \nTake render time: {(currentTakeRenderTime - previousTakeRenderTime):0.2f} sec.")
@@ -703,8 +707,8 @@ def launchRenderWithVSEComposite(
             print(f"  Rendered sequence from shot sequences: {sequenceOutputFullPath}")
 
             if len(renderedShotSequencesArr):
-                vse_render.buildSequenceVideoFromImgSequences(
-                    renderedShotSequencesArr, sequenceOutputFullPath, handles, projectFps
+                vse_render.buildSequenceVideoFromMedia(
+                    sequenceOutputFullPath, handles, projectFps, mediaDictArr=renderedShotSequencesArr
                 )
 
             deleteTempFiles = not config.devDebug_keepVSEContent and prefs.deleteIntermediateFiles
@@ -910,7 +914,7 @@ def renderStampedInfoForShot(
                 f"      \nshotFilename: {shotFilename}"
             )
 
-        stampInfoSettings.shotName = f"{props.renderShotPrefix()}_{shot.name}"
+        stampInfoSettings.shotName = f"{props.renderShotPrefix()}{shot.name}"
         # stampInfoSettings.shotName = f"{shot.name}"
 
         if stampInfoCustomSettingsDict is not None:
