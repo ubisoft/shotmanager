@@ -332,7 +332,7 @@ class UAS_ShotManager_RenderSettings(PropertyGroup):
 
     writeToDisk: BoolProperty(name="Write to Disk", default=False)
 
-    renderOtioFile: BoolProperty(name="Render EDL File", default=False)
+    renderOtioFile: BoolProperty(name="Render Edit File", default=False)
 
     useStampInfo: BoolProperty(name="Use Stamp Info", default=True)
 

@@ -76,7 +76,7 @@ class MontageInterface(object):
     def get_montage_characteristics(self):
         """
             Return a dictionary with the characterisitics of the montage.
-            This is required to export it as xml EDL.
+            This is required to export it as xml edit file.
         """
         return self._characteristics
 

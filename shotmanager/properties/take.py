@@ -191,6 +191,32 @@ class UAS_ShotManager_Take(SequenceInterface, PropertyGroup):
     def getEditShots(self, ignoreDisabled=True):
         return self.getShotsList(ignoreDisabled=ignoreDisabled)
 
+    def getMinFrame(self, ignoreDisabled=False):
+        """Return the value of the lower frame found in the shots
+        Return None if the take has no shots
+        """
+        minFrame = None
+        for i, shot in enumerate(self.shots):
+            if ignoreDisabled or shot.enabled:
+                if minFrame is None:
+                    minFrame = shot.start
+                else:
+                    minFrame = min(minFrame, shot.start)
+        return minFrame
+
+    def getMaxFrame(self, ignoreDisabled=False):
+        """Return the value of the highest frame found in the shots
+        Return None if the take has no shots
+        """
+        maxFrame = None
+        for i, shot in enumerate(self.shots):
+            if ignoreDisabled or shot.enabled:
+                if maxFrame is None:
+                    maxFrame = shot.end
+                else:
+                    maxFrame = max(maxFrame, shot.end)
+        return maxFrame
+
     #############
     # global edit infos #####
     #############

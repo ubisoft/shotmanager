@@ -454,6 +454,11 @@ class UAS_PT_ShotManager(Panel):
         subrow.prop(props, "current_take_name", text="")
         #    row.menu(UAS_MT_ShotManager_Takes_ToolsMenu.bl_idname,text="Tools",icon='TOOL_SETTINGS')
 
+        timerow = row.row(align=True)
+        timerow.alignment = "RIGHT"
+        timerow.scale_x = enlargeButs
+        timerow.operator("uas_shot_manager.scenerangefromtake", text="", icon="PREVIEW_RANGE")
+
         # row = row.row(align=False)
         row.menu("UAS_MT_Shot_Manager_takes_toolsmenu", icon="TOOL_SETTINGS", text="")
 
@@ -689,7 +694,7 @@ class UAS_PT_ShotManager(Panel):
             timerow = shotsrow.row(align=True)
             timerow.alignment = "RIGHT"
             timerow.scale_x = enlargeButs
-            timerow.operator("uas_shot_manager.scenerangefromshots", text="", icon="PREVIEW_RANGE")
+            timerow.operator("uas_shot_manager.scenerangefromshot", text="", icon="PREVIEW_RANGE")
 
             # col = row.column(align=True)
             # shotsrow.separator(factor=3.2)

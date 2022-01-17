@@ -103,9 +103,9 @@ class UAS_PT_ShotManager_Render(Operator):
         elif "ANIMATION" == properties.renderMode:
             descr = "Render the current shot"
         elif "ALL" == properties.renderMode:
-            descr = "Render all: shots, takes, EDL..."
+            descr = "Render all: shots, takes, edit file..."
         elif "OTIO" == properties.renderMode:
-            descr = "Render the EDL"
+            descr = "Render the edit file: .otio or .xml (Final Cut)"
         elif "PLAYBLAST" == properties.renderMode:
             descr = "Fast-render the enabled shots to a single video based on the current viewport settings."
 

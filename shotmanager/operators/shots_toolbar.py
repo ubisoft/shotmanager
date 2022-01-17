@@ -98,13 +98,41 @@ class UAS_ShotManager_EnableDisableAll(Operator):
         return {"FINISHED"}
 
 
-class UAS_ShotManager_SceneRangeFromShots(Operator):
-    bl_idname = "uas_shot_manager.scenerangefromshots"
-    bl_label = "Scene Range From Shot"
+class UAS_ShotManager_SceneRangeFromTake(Operator):
+    bl_idname = "uas_shot_manager.scenerangefromtake"
+    bl_label = "Scene Range From Take"
+    bl_description = "Set scene time range with take range" "\nUse Alt for the Preview time range"
+    bl_options = {"INTERNAL"}
+
+    def invoke(self, context, event):
+        scene = context.scene
+        props = scene.UAS_shot_manager_props
+
+        if event.shift or event.ctrl:
+            pass
+        else:
+            currentTake = props.getCurrentTake()
+            if currentTake is not None:
+                if 0 < currentTake.getNumShots(ignoreDisabled=True):
+                    # preview time range
+                    if event.alt:
+                        scene.use_preview_range = True
+                        scene.frame_preview_start = currentTake.getMinFrame(ignoreDisabled=False)
+                        scene.frame_preview_end = currentTake.getMaxFrame(ignoreDisabled=False)
+                    else:
+                        scene.use_preview_range = False
+                        scene.frame_start = currentTake.getMinFrame(ignoreDisabled=False)
+                        scene.frame_end = currentTake.getMaxFrame(ignoreDisabled=False)
+
+        return {"FINISHED"}
+
+
+class UAS_ShotManager_SceneRangeFromShot(Operator):
+    bl_idname = "uas_shot_manager.scenerangefromshot"
+    bl_label = "Scene Range From Current Shot"
     bl_description = (
-        "Set scene time range with take range"
-        #    "\n+ Shift: Create a new camera from the 3D view and put it in the viewport."
-        "\n+ Ctrl: Set scene time range with current shot range"
+        "Set scene time range with current shot range"
+        # "\n+ Ctrl: Set scene time range with current shot range with time before and after"
         "\nUse Alt for the Preview time range"
     )
     bl_options = {"INTERNAL"}
@@ -113,10 +141,11 @@ class UAS_ShotManager_SceneRangeFromShots(Operator):
         scene = context.scene
         props = scene.UAS_shot_manager_props
 
-        if event.shift:
+        if event.shift or event.ctrl:
             pass
-        elif event.ctrl:
+        else:
             currentShot = props.getCurrentShot()
+            # preview time range
             if event.alt:
                 scene.use_preview_range = True
                 scene.frame_preview_start = currentShot.start
@@ -125,20 +154,6 @@ class UAS_ShotManager_SceneRangeFromShots(Operator):
                 scene.use_preview_range = False
                 scene.frame_start = currentShot.start
                 scene.frame_end = currentShot.end
-
-        elif not event.ctrl:
-            shotList = props.getShotsList(ignoreDisabled=True)
-            if 0 < len(shotList):
-                if event.alt:
-                    scene.use_preview_range = True
-                    scene.frame_preview_start = shotList[0].start
-                    scene.frame_preview_end = shotList[len(shotList) - 1].end
-                else:
-                    scene.use_preview_range = False
-                    scene.frame_start = shotList[0].start
-                    scene.frame_end = shotList[len(shotList) - 1].end
-        else:
-            pass
 
         return {"FINISHED"}
 
@@ -168,7 +183,8 @@ class UAS_ShotManager_SceneRangeFromShots(Operator):
 _classes = (
     UAS_ShotManager_EnableDisableAll,
     #   UAS_ShotManager_LockCamToView,
-    UAS_ShotManager_SceneRangeFromShots,
+    UAS_ShotManager_SceneRangeFromTake,
+    UAS_ShotManager_SceneRangeFromShot,
     #    UAS_ShotManager_SceneRangeFromEnabledShots,
 )
 

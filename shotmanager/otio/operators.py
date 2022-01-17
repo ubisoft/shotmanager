@@ -93,10 +93,12 @@ class UAS_ShotManager_Export_OTIO(Operator):
     def execute(self, context):
         props = context.scene.UAS_shot_manager_props
 
+        print("Exporting OTIO file...")
         if props.isRenderRootPathValid():
             exportShotManagerEditToOtio(
                 context.scene,
                 filePath=props.renderRootPath,
+                fileName=f"{props.getCurrentTake().getName_PathCompliant()}.{props.renderSettingsOtio.otioFileType.lower()}",
                 fps=context.scene.render.fps,
                 # montageCharacteristics=props.get_montage_characteristics(),
             )
@@ -107,12 +109,12 @@ class UAS_ShotManager_Export_OTIO(Operator):
         return {"FINISHED"}
 
 
-# def list_sequences_from_edl(context, itemList):
-def list_sequences_from_edl(self, context):
+# def list_sequences_from_edit_file(context, itemList):
+def list_sequences_from_edit_file(self, context):
     res = config.gSeqEnumList
     # res = list()
     nothingList = list()
-    nothingList.append(("NO_SEQ", "No Sequence Found", "No sequence found in the specified EDL file", 0))
+    nothingList.append(("NO_SEQ", "No Sequence Found", "No sequence found in the specified edit file", 0))
 
     # seqList = getSequenceListFromOtioTimeline(config.gMontageOtio)
     # for i, item in enumerate(seqList):
@@ -130,7 +132,7 @@ def list_sequences_from_edl(self, context):
     return res
 
 
-def list_video_tracks_from_edl(self, context):
+def list_video_tracks_from_edit_file(self, context):
     res = config.gTracksEnumList
     nothingList = list()
     nothingList.append(("1 -", "1 ---", "", 0))
@@ -142,8 +144,8 @@ def list_video_tracks_from_edl(self, context):
 
 class UAS_ShotManager_OT_Create_Shots_From_OTIO_RRS(Operator):
     bl_idname = "uasshotmanager.createshotsfromotio_rrs"
-    bl_label = "Import/Update Shots from EDL File"
-    bl_description = "Open EDL file (Final Cut XML, OTIO...) to import a set of shots"
+    bl_label = "Import/Update Shots from Edit File"
+    bl_description = "Open edit file (Final Cut XML, OTIO...) to import a set of shots"
     bl_options = {"REGISTER", "UNDO"}
 
     filepath: StringProperty(subtype="FILE_PATH")
@@ -156,20 +158,22 @@ class UAS_ShotManager_OT_Create_Shots_From_OTIO_RRS(Operator):
 
     refVideoTrackList: EnumProperty(
         name="Shots Video Track",
-        description="Track to use in the EDL to get the shot list",
+        description="Track to use in the edit file to get the shot list",
         # items=(("NO_SEQ", "No Sequence Found", ""),),
-        items=(list_video_tracks_from_edl),
+        items=(list_video_tracks_from_edit_file),
     )
 
     ############
-    # EDL edit settings
+    # edit file montage settings
     ############
     mediaInEDLHaveHandles: BoolProperty(
-        name="Media In EDL Have Handles", description="Do media used in the EDL edit have handles?", default=False,
+        name="Media In Edit File Have Handles",
+        description="Do media used in the edit file montage have handles?",
+        default=False,
     )
     mediaInEDLHandlesDuration: IntProperty(
-        name="EDL Handles Duration",
-        description="Duration of the handles in the EDL edit",
+        name="Edit File Handles Duration",
+        description="Duration of the handles in the edit file montage edit",
         soft_min=0,
         min=0,
         default=0,
@@ -186,9 +190,9 @@ class UAS_ShotManager_OT_Create_Shots_From_OTIO_RRS(Operator):
 
     sequenceList: EnumProperty(
         name="Sequence",
-        description="Sequences available in the specified EDL file",
+        description="Sequences available in the specified edit file",
         # items=(("NO_SEQ", "No Sequence Found", ""),),
-        items=(list_sequences_from_edl),
+        items=(list_sequences_from_edit_file),
     )
 
     # can be "PREDEC" or "PREVIZ"
@@ -200,16 +204,16 @@ class UAS_ShotManager_OT_Create_Shots_From_OTIO_RRS(Operator):
         items=(
             (
                 "CREATE",
-                "Create New Shots From EDL",
+                "Create New Shots From Edit File",
                 "Create new shots into the current scene. They are added to the current take if the take is empty,\nto a new take otherwise.",
             ),
             (
                 "UPDATE",
-                "Update Existing Shots From EDL",
+                "Update Existing Shots From Edit File",
                 "Update the existing shots of the current scene (order, time, background image...).\nNew shots may be added.",
             ),
         ),
-        default="UPDATE",
+        default="CREATE",
     )
 
     offsetTime: BoolProperty(
@@ -392,10 +396,10 @@ class UAS_ShotManager_OT_Create_Shots_From_OTIO_RRS(Operator):
         config.gMontageOtio = None
 
         if "" == self.otioFile:
-            print(f"*** Otio file not defined - Cannot open EDL file ***")
+            print(f"*** Otio file not defined - Cannot open edit file ***")
             return {"CANCELLED"}
         if not Path(self.otioFile).exists():
-            print(f"*** Otio file not found - Cannot open EDL file ***")
+            print(f"*** Otio file not found - Cannot open edit file ***")
             print(f"***      Otio file: {self.otioFile}")
             return {"CANCELLED"}
 
@@ -422,18 +426,36 @@ class UAS_ShotManager_OT_Create_Shots_From_OTIO_RRS(Operator):
             )
             print(f"config.gMontageOtio name: {config.gMontageOtio.get_name()}")
 
-            # wkip not very context generic...
-            currentSeqName = (scene.name)[6:]
+            # wkipwkipwkip not very context generic...
+            # currentSeqName = (scene.name)[6:]
+            # print(f"Current seq name: {currentSeqName}")
+            # currentSeqIndex = -1
+            # config.gSeqEnumList = list()
+            # if len(config.gMontageOtio.sequencesList):
+            #     for i, seq in enumerate(config.gMontageOtio.sequencesList):
+            #         strDebug = f"- seqList: i:{i}, seq: {seq.get_name()}"
+            #         if seq.get_name() == currentSeqName:
+            #             currentSeqIndex = i
+            #             strDebug += " - Is current sequence !"
+            #         _logger.debug(strDebug)
+            #         config.gSeqEnumList.append((str(i), seq.get_name(), f"Import sequence {seq.get_name()}", i + 1))
+            # else:
+            #     config.gSeqEnumList.append(
+            #         (str(0), " ** No Sequence in Ref Track **", f"No sequence found in the specifed reference track", 1)
+            #     )
+
+            currentSeqName = (scene.name)[0:6]
             print(f"Current seq name: {currentSeqName}")
             currentSeqIndex = -1
             config.gSeqEnumList = list()
             if len(config.gMontageOtio.sequencesList):
+                print("Herere")
                 for i, seq in enumerate(config.gMontageOtio.sequencesList):
                     strDebug = f"- seqList: i:{i}, seq: {seq.get_name()}"
                     if seq.get_name() == currentSeqName:
                         currentSeqIndex = i
                         strDebug += " - Is current sequence !"
-                    _logger.debug(strDebug)
+                    _logger.debug_ext(f"Seq in Edit File: {strDebug}", col="RED", tag="EDIT_IO")
                     config.gSeqEnumList.append((str(i), seq.get_name(), f"Import sequence {seq.get_name()}", i + 1))
             else:
                 config.gSeqEnumList.append(
@@ -447,7 +469,7 @@ class UAS_ShotManager_OT_Create_Shots_From_OTIO_RRS(Operator):
             _logger.debug(f"self.sequenceList: {self.sequenceList}")
 
         #    seqList = getSequenceListFromOtioTimeline(config.gMontageOtio)
-        #  self.sequenceList.items = list_sequences_from_edl(context, seqList)
+        #  self.sequenceList.items = list_sequences_from_edit_file(context, seqList)
 
         wm.invoke_props_dialog(self, width=500)
         return {"RUNNING_MODAL"}
@@ -490,7 +512,7 @@ class UAS_ShotManager_OT_Create_Shots_From_OTIO_RRS(Operator):
             row.label(text=self.importStepMode)
             row.prop(self, "refVideoTrackList")
 
-        box.label(text="EDL File (Otio, XML...):")
+        box.label(text="Edit File (Otio, XML...):")
         row = box.row()
         row.separator(factor=3)
         row.prop(self, "otioFile", text="")
@@ -498,7 +520,7 @@ class UAS_ShotManager_OT_Create_Shots_From_OTIO_RRS(Operator):
         if "" == self.otioFile or not Path(self.otioFile).exists():
             row = box.row()
             row.alert = True
-            row.label(text="Specified EDL file not found! - Verify your local depot")  # wkip rrs specific
+            row.label(text="Specified edit file not found! - Verify your local depot")  # wkip rrs specific
             row.alert = False
 
         if config.gMontageOtio is not None:
@@ -807,7 +829,7 @@ class UAS_ShotManager_OT_CompareOtioAndCurrentMontage(Operator):
     bl_idname = "uasshotmanager.compare_otio_and_current_montage"
     bl_label = "Print Comparison"
     bl_description = (
-        "Print the differences between the current sequence in the scene and the imported EDL file into the console"
+        "Print the differences between the current sequence in the scene and the imported edit file into the console"
     )
     bl_options = {"INTERNAL"}
 
@@ -820,8 +842,8 @@ class UAS_ShotManager_OT_CompareOtioAndCurrentMontage(Operator):
 
 class UAS_ShotManager_OT_Create_Shots_From_OTIO(Operator):
     bl_idname = "uasshotmanager.createshotsfromotio"
-    bl_label = "Import/Update Shots from EDL File - deprec"
-    bl_description = "Open EDL file (Final Cut XML, OTIO...) to import a set of shots"
+    bl_label = "Import/Update Shots from Edit File - deprec"
+    bl_description = "Open edit file (Final Cut XML, OTIO...) to import a set of shots"
     bl_options = {"REGISTER", "UNDO"}
 
     filepath: StringProperty(subtype="FILE_PATH")
@@ -952,8 +974,8 @@ class UAS_ShotManager_OT_Create_Shots_From_OTIO(Operator):
 # See https://sinestesia.co/blog/tutorials/using-blenders-filebrowser-with-python/
 class UAS_OTIO_OpenFileBrowser(Operator, ImportHelper):  # from bpy_extras.io_utils import ImportHelper
     bl_idname = "uasotio.openfilebrowser"
-    bl_label = "Open EDL File"
-    bl_description = "Open EDL file (Final Cut XML, OTIO...) to import a set of shots"
+    bl_label = "Open Edit File"
+    bl_description = "Open edit file (Final Cut XML, OTIO...) to import a set of shots"
 
     importMode: EnumProperty(
         name="Import Mode",
@@ -994,7 +1016,7 @@ class UAS_OTIO_OpenFileBrowser(Operator, ImportHelper):  # from bpy_extras.io_ut
         return {"RUNNING_MODAL"}
 
     def execute(self, context):
-        """Open EDL file (Final Cut XML, OTIO...) to import a set of shots"""
+        """Open edit file (Final Cut XML, OTIO...) to import a set of shots"""
         filename, extension = os.path.splitext(self.filepath)
         print("ex Selected file:", self.filepath)
         # print("ex File name:", filename)

@@ -1,5 +1,10 @@
 # 1.6.10 (2021-12-09)
+Fixed bugs in EDL import and export
 
+Added button to take range
+added information for output render
+
+fixed res ouput for sep video and for playblast
 
 
 # 1.6.9 (2021-12-04)

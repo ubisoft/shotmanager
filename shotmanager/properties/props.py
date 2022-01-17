@@ -459,7 +459,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         """Return the resolution used by Shot Manager in the current context.
         It is the resolution of the images resulting from the scene rendering, not the one resulting
         from these renderings composited with the Stamp Info frames, which can be bigger.
-        Use getStampInfoResolution() for the final composited images resolution.
+        Use getRenderResolutionForStampInfo() for the final composited images resolution.
 
         This resolution is specified by:
             - the current take resolution if it overrides the scene or project render settings,
@@ -497,7 +497,46 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
             if self.parentScene.render.resolution_y != res[1]:
                 self.parentScene.render.resolution_y = res[1]
 
-    def getStampInfoResolution(self):
+    # FIXME: add support for take custom res
+    def getRenderResolutionForStampInfo(self):
+        """Return the resolution of the images resulting from the compositing of the rendered images and
+        the frames from Stamp Info.
+        If Stamp Info is not used then the returned resolution is the one of the rendered images, which
+        can also be obtained by calling getRenderResolution().
+
+        The scene render resolution percentage is NOT involved here.
+
+        This resolution is specified by:
+            - the current take resolution if it overrides the scene or project render settings,
+            - the project, if project settings are used,
+            - or by the current scene if none of the specifications above
+
+        Returns:
+            tupple with the render resolution x and y of the take
+        """
+        scene = self.parentScene
+
+        if getattr(scene, "UAS_StampInfo_Settings", None) is None:
+            return self.getRenderResolution()
+
+        stampInfoSettings = scene.UAS_StampInfo_Settings
+        if not stampInfoSettings.stampInfoUsed:
+            return self.getRenderResolution()
+
+        if self.use_project_settings:
+            if not self.project_use_stampinfo:
+                return self.getRenderResolution()
+
+            renderResolutionFramedFull = [self.project_resolution_framed_x, self.project_resolution_framed_y]
+            return (renderResolutionFramedFull[0], renderResolutionFramedFull[1])
+        else:
+            # wkipwkipwkip use this instead:
+            # renderResolutionFramedFull = stampInfoSettings.evaluateRenderResolutionForStampInfo(renderMode=stampInfoSettings.stampInfoRenderMode, imageRes=
+            renderResolutionFramedFull = stampInfoSettings.getRenderResolutionForStampInfo(scene)
+            return (renderResolutionFramedFull[0], renderResolutionFramedFull[1])
+
+    # FIXME: add support for take custom res
+    def getRenderResolutionForFinalOutput(self, resPercentage=100, useStampInfo=None):
         """Return the resolution of the images resulting from the compositing of the rendered images and
         the frames from Stamp Info.
         If Stamp Info is not used then the returned resolution is the one of the rendered images, which
@@ -508,11 +547,33 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
             - the project, if project settings are used,
             - or by the current scene if none of the specifications above
 
+        Args:
+            resPercentage: use the scene render property named resolutionPercentage, or 100 to ignore it
+            useStampInfo: if None then uses the context to define if used or not, if True then integrates it in the computation
+            and if False then don't take it in account. This is required by the Project Bypass property in the SM Render Settings.
+            
         Returns:
             tupple with the render resolution x and y of the take
         """
-        # TODO
-        pass
+        if useStampInfo is None:
+            renderResolutionFramedFull = self.getRenderResolutionForStampInfo()
+        elif useStampInfo:
+            scene = self.parentScene
+            if getattr(scene, "UAS_StampInfo_Settings", None) is None:
+                renderResolutionFramedFull = self.getRenderResolution()
+            else:
+                stampInfoSettings = scene.UAS_StampInfo_Settings
+                renderResolutionFramedFull = stampInfoSettings.getRenderResolutionForStampInfo(scene)
+        else:
+            renderResolutionFramedFull = self.getRenderResolution()
+
+        if 100 != resPercentage:
+            finalRenderResolutionFramed = []
+            finalRenderResolutionFramed.append(int(renderResolutionFramedFull[0] * resPercentage / 100))
+            finalRenderResolutionFramed.append(int(renderResolutionFramedFull[1] * resPercentage / 100))
+            return (finalRenderResolutionFramed[0], finalRenderResolutionFramed[1])
+        else:
+            return (renderResolutionFramedFull[0], renderResolutionFramedFull[1])
 
     def areShotHandlesUsed(self):
         """Return true if the shot handles are used by Shot Manager in the current context. This value is specified by:
@@ -3394,7 +3455,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
     def get_montage_characteristics(self):
         """
         Return a dictionary with the characterisitics of the montage.
-        This is required to export it as xml EDL.
+        This is required to export it as xml edit file.
         """
         # dict cannot be set as a property for Props :S
         characteristics = dict()
@@ -3403,7 +3464,8 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
             characteristics["resolution_x"] = self.project_resolution_framed_x  # width
             characteristics["resolution_y"] = self.project_resolution_framed_y  # height
         else:
-            characteristics["resolution_x"] = self.parentScene.render.resolution_y  # width
+            # wkipwkipwkip export issue
+            characteristics["resolution_x"] = self.parentScene.render.resolution_x  # width
             characteristics["resolution_y"] = self.parentScene.render.resolution_y  # height
         characteristics["framerate"] = self.get_fps()
         characteristics["duration"] = self.get_frame_duration()

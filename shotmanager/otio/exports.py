@@ -165,7 +165,7 @@ def exportShotManagerEditToOtio(
             otioRenderPath += ".otio"
 
     print("\n--- --- --- --- --- --- --- --- --- ---")
-    print(f"\nExporting EDL: {otioRenderPath}\n")
+    print(f"\nExporting Edit file: {otioRenderPath}\n")
 
     if fileListOnly:
         return otioRenderPath
@@ -213,7 +213,7 @@ def exportShotManagerEditToOtio(
         if shot.enabled:
 
             # media
-            media_duration = shot.end - shot.start + 1 + 2 * props.handles
+            media_duration = shot.end - shot.start + 1 + 2 * props.getHandlesDuration()
             start_time, end_time_exclusive = (
                 opentimelineio.opentime.from_frames(0, sceneFps),
                 opentimelineio.opentime.from_frames(media_duration, sceneFps),
@@ -247,8 +247,8 @@ def exportShotManagerEditToOtio(
 
             # clip
             clip_start_time, clip_end_time_exclusive = (
-                opentimelineio.opentime.from_frames(props.handles, sceneFps),
-                opentimelineio.opentime.from_frames(shot.end - shot.start + 1 + props.handles, sceneFps),
+                opentimelineio.opentime.from_frames(props.getHandlesDuration(), sceneFps),
+                opentimelineio.opentime.from_frames(shot.end - shot.start + 1 + props.getHandlesDuration(), sceneFps),
             )
             source_range = opentimelineio.opentime.range_from_start_end_time(clip_start_time, clip_end_time_exclusive)
 

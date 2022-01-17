@@ -196,23 +196,68 @@ def shotMngHandler_frame_change_pre_jumpToShot(scene):
     #########################################
     if not scrubbing:
         # Order of if clauses is very important.
-        _logger.debug_ext(f"current_frame: {current_frame}", col="YELLOW", tag="JUMP")
+
+        # messages for range start and end
+        inforStr = ""
+        if _get_range_start() == current_frame:
+            inforStr = "  ** Range Start **"
+        if _get_range_end() == current_frame:
+            inforStr = "  ** Range End **"
+
+        _logger.debug_ext(f"current_frame: {current_frame}  {inforStr}", col="YELLOW", tag="JUMP")
+
+        if current_frame == current_shot.start:
+            _logger.debug_ext(
+                f"   current frame is at start of current shot: {current_shot.name}", col="GREEN_LIGHT", tag="JUMP"
+            )
+        elif current_frame == current_shot.end:
+            _logger.debug_ext(f"   current frame is at end of current shot: {current_frame}", col="ORANGE", tag="JUMP")
 
         if current_frame == _get_range_start():
             # we are here when the play head reached the anim range end and has been put back by Blender
             # to the start of the range
-            firstShotInd = _get_first_continuous_shot_index(shotList, current_shot_index)
-            _logger.debug_ext(
-                f"current_frame == range start, current shot: {current_shot.name}, first conti: {shotList[firstShotInd].name}",
-                col="GREEN",
-                tag="JUMP",
-            )
-            firstFrame = _get_max_start_frame(shotList[firstShotInd])
-            if current_shot_index != firstShotInd:
-                props.setCurrentShot(shotList[firstShotInd], changeTime=False)
-            # if we put this condition we avoid the frame to be played 2 times but we don't see the new shot becoming current
-            # if firstFrame != current_frame:
-            scene.frame_current = firstFrame
+
+            if current_frame == current_shot.start:
+                # case where the current shot is not the first one of the edit, starts at the same time as the first one and
+                # this time is also the anim range start. Then we want to preserve the current shot
+                _logger.debug_ext(
+                    f"1 current_frame == range start and current_frame == current_shot.start, current shot: {current_shot.name}",
+                    col="GREEN",
+                    tag="JUMP",
+                )
+                pass
+            else:
+                lookForFirstShot = True
+                if _get_range_end() == current_shot.end:
+                    next_shot = _get_next_shot(shotList, current_shot_index)
+                    if next_shot is not None:
+                        # next_shot_index = props.getShotIndex(next_shot)
+
+                        _logger.debug_ext(
+                            f"2 current_frame == range start, current shot: {current_shot.name}, next_shot: {next_shot.name}",
+                            col="GREEN",
+                            tag="JUMP",
+                        )
+
+                        props.setCurrentShot(next_shot, changeTime=False)
+                        scene.frame_current = next_shot.start
+
+                        lookForFirstShot = False
+
+                if lookForFirstShot:
+                    # if True:
+                    firstShotInd = _get_first_continuous_shot_index(shotList, current_shot_index)
+                    _logger.debug_ext(
+                        f"3 current_frame == range start, current shot: {current_shot.name}, first conti: {shotList[firstShotInd].name}",
+                        col="GREEN",
+                        tag="JUMP",
+                    )
+                    firstFrame = _get_max_start_frame(shotList[firstShotInd])
+                    if current_shot_index != firstShotInd:
+                        props.setCurrentShot(shotList[firstShotInd], changeTime=False)
+                    # if we put this condition we avoid the frame to be played 2 times but we don't see the new shot becoming current
+                    # if firstFrame != current_frame:
+                    scene.frame_current = firstFrame
         elif (
             current_frame == _get_range_end() and _get_previous_shot(shotList, current_shot_index) is None
         ):  # While backward playing if we hit the last frame and we are playing the first shot jump to the last shot.
@@ -234,6 +279,7 @@ def shotMngHandler_frame_change_pre_jumpToShot(scene):
             next_shot = _get_next_shot(shotList, current_shot_index)
 
             if next_shot is None:
+                print("next shot is none")
                 firstShotInd = _get_first_continuous_shot_index(shotList, current_shot_index)
                 firstFrame = _get_max_start_frame(shotList[firstShotInd])
                 if current_shot_index != firstShotInd:
@@ -242,8 +288,11 @@ def shotMngHandler_frame_change_pre_jumpToShot(scene):
                 # if firstFrame != current_frame:
                 scene.frame_current = firstFrame
             else:
+                print("next shot is NOT none")
                 if current_shot != next_shot:
+                    print("   next shot is NOT none 01")
                     props.setCurrentShot(next_shot, changeTime=False)
+                print(f"   next shot is {next_shot.name}")
                 scene.frame_current = next_shot.start
 
             # while next_shot is not None:
@@ -278,6 +327,9 @@ def shotMngHandler_frame_change_pre_jumpToShot(scene):
                 last_enabled = [s for s in shotList if s.enabled][-1]
                 props.setCurrentShot(last_enabled, changeTime=False)
                 scene.frame_current = last_enabled.end
+        else:
+            # _logger.debug_ext("current_frame Else", col="RED")
+            pass
 
     #########################################
     ## user is scrubbing

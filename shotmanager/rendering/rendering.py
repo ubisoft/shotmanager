@@ -211,6 +211,7 @@ def launchRenderWithVSEComposite(
     scene.use_preview_range = False
     renderResolution = [scene.render.resolution_x, scene.render.resolution_y]
     renderResolutionFramed = [scene.render.resolution_x, scene.render.resolution_y]
+    renderResolutionFramed = [scene.render.resolution_x, scene.render.resolution_y]
     if preset_useStampInfo:
         renderResolutionFramedFull = stampInfoSettings.getRenderResolutionForStampInfo(scene)
         renderResolutionFramed[0] = int(renderResolutionFramedFull[0] * renderPreset.resolutionPercentage / 100)
@@ -220,7 +221,7 @@ def launchRenderWithVSEComposite(
     if props.use_project_settings:
         props.applyProjectSettings()
         scene.render.image_settings.file_format = props.project_images_output_format
-        projectFps = scene.render.fps
+        projectFps = props.project_fps
         sequenceFileName = props.renderShotPrefix()
         renderResolution = [props.project_resolution_x, props.project_resolution_y]
         renderResolutionFramed = [props.project_resolution_framed_x, props.project_resolution_framed_y]
@@ -230,13 +231,33 @@ def launchRenderWithVSEComposite(
         renderResolution[0] = int(renderResolution[0] * renderPreset.resolutionPercentage / 100)
         renderResolution[1] = int(renderResolution[1] * renderPreset.resolutionPercentage / 100)
 
+        # renderResolution = props.getRenderResolutionForFinalOutput(resPercentage=renderPreset.resolutionPercentage)
+
+        # wkipwkipwkip use that instead of the block below:
+        # renderResolutionFramed = props.getRenderResolutionForFinalOutput(
+        #     resPercentage=renderPreset.resolutionPercentage, useStampInfo=preset_useStampInfo
+        # )
+
+        # if preset_useStampInfo:
+        #     renderResolutionFramedFull = stampInfoSettings.getRenderResolutionForStampInfo(scene)
+        #     renderResolutionFramed[0] = int(renderResolutionFramedFull[0] * renderPreset.resolutionPercentage / 100)
+        #     renderResolutionFramed[1] = int(renderResolutionFramedFull[1] * renderPreset.resolutionPercentage / 100)
+        # else:
+        #     renderResolutionFramed[0] = int(renderResolutionFramed[0] * renderPreset.resolutionPercentage / 100)
+        #     renderResolutionFramed[1] = int(renderResolutionFramed[1] * renderPreset.resolutionPercentage / 100)
+
         if preset_useStampInfo:
-            renderResolutionFramedFull = stampInfoSettings.getRenderResolutionForStampInfo(scene)
-            renderResolutionFramed[0] = int(renderResolutionFramedFull[0] * renderPreset.resolutionPercentage / 100)
-            renderResolutionFramed[1] = int(renderResolutionFramedFull[1] * renderPreset.resolutionPercentage / 100)
+            # getRenderResolutionForStampInfo already integrates the percentage_res value (*** found in the current scene ! ***)
+            renderResolutionFramed = stampInfoSettings.getRenderResolutionForStampInfo(scene)
+            # renderResolutionFramed[0] = int(renderResolutionFramedFull[0] * renderPreset.resolutionPercentage / 100)
+            # renderResolutionFramed[1] = int(renderResolutionFramedFull[1] * renderPreset.resolutionPercentage / 100)
         else:
             renderResolutionFramed[0] = int(renderResolutionFramed[0] * renderPreset.resolutionPercentage / 100)
             renderResolutionFramed[1] = int(renderResolutionFramed[1] * renderPreset.resolutionPercentage / 100)
+
+        # print(
+        #     f"\ntoto renderResolutionFramed: {renderResolutionFramed}, resPercent: {renderPreset.resolutionPercentage}\n"
+        # )
 
     # set output format settings
     #######################
@@ -560,7 +581,8 @@ def launchRenderWithVSEComposite(
                 _logger.debug(f"\n - specificFrame: {specificFrame}")
                 infoImgSeq = newTempRenderPath + "_tmp_StampInfo." + frameIndStr + ".png"
                 infoImgSeq_resolution = renderResolutionFramed
-                # infoImgSeq_resolution = stampInfoSettings.getRenderResolutionForStampInfo(scene)
+            #   print(f"\ntoto infoImgSeq_resolution: {infoImgSeq_resolution}\n")
+            # infoImgSeq_resolution = stampInfoSettings.getRenderResolutionForStampInfo(scene)
 
             if generateShotVideos:
 
@@ -640,17 +662,20 @@ def launchRenderWithVSEComposite(
                 #######################
                 videoAndSound = dict()
 
-                videoAndSound["image_sequence"] = renderedImgSeq
-                videoAndSound["image_sequence_resolution"] = renderedImgSeq_resolution
+                videoAndSound["bg"] = renderedImgSeq
+                videoAndSound["bg_resolution"] = renderedImgSeq_resolution
 
-                videoAndSound["bg_resolution"] = infoImgSeq_resolution
+                print(f"*** setting output_resolution: {infoImgSeq_resolution}")
+                videoAndSound["output_resolution"] = infoImgSeq_resolution
+
+                videoAndSound["fg_sequence_resolution"] = infoImgSeq_resolution
                 if preset_useStampInfo:
-                    videoAndSound["bg"] = infoImgSeq
+                    videoAndSound["fg_sequence"] = infoImgSeq
                 videoAndSound["sound"] = audioFilePath
 
                 renderedShotSequencesArr.append(videoAndSound)
 
-            #  print(f"** renderedShotSequencesArr: {renderedShotSequencesArr}")
+            print(f"** renderedShotSequencesArr: {renderedShotSequencesArr}")
 
             # print render time
             #######################
@@ -714,7 +739,7 @@ def launchRenderWithVSEComposite(
             deleteTempFiles = not config.devDebug_keepVSEContent and prefs.deleteIntermediateFiles
             if deleteTempFiles:
                 for i in range(len(renderedShotSequencesArr)):
-                    _deleteTempFiles(str(Path(renderedShotSequencesArr[i]["image_sequence"]).parent))
+                    _deleteTempFiles(str(Path(renderedShotSequencesArr[i]["fg_sequence"]).parent))
 
         renderInfo["scene"] = scene.name
         renderInfo["outputFullPath"] = sequenceOutputFullPath

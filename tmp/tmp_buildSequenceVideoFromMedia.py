@@ -26,7 +26,7 @@
         if mediaDictArr is not None:
             sequenceScene.render.resolution_x = mediaDictArr[0]["bg_resolution"][0]
             sequenceScene.render.resolution_y = mediaDictArr[0]["bg_resolution"][1]
-            inputOverResolution = mediaDictArr[0]["image_sequence_resolution"]
+            inputOverResolution = mediaDictArr[0]["fg_sequence_resolution"]
         else:
             # mediaFiles is not None
             # wkipwkipwkip
@@ -71,13 +71,13 @@
                 #    print(f"self.inputBGMediaPath: {self.inputOverMediaPath}")
 
                 shotDuration = 0
-                if "image_sequence" in mediaDict and mediaDict["image_sequence"] is not None:
+                if "fg_sequence" in mediaDict and mediaDict["fg_sequence"] is not None:
                     overClip = None
                     try:
-                        overClip = self.createNewClip(sequenceScene, mediaDict["image_sequence"], 3, atFrame)
+                        overClip = self.createNewClip(sequenceScene, mediaDict["fg_sequence"], 3, atFrame)
                         print("Over Media OK")
                     except Exception:
-                        print(f" *** Rendered shot not found: {mediaDict['image_sequence']}")
+                        print(f" *** Rendered shot not found: {mediaDict['fg_sequence']}")
                     # overClip = None
                     # if os.path.exists(self.inputOverMediaPath):
                     #     overClip = self.createNewClip(vse_scene, self.inputOverMediaPath, 2, 1)

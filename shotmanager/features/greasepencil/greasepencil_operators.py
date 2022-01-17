@@ -71,7 +71,6 @@ class UAS_ShotManager_OT_SelectGreasePencil(Operator):
 
         shot = props.getShotByIndex(props.selected_shot_index)
         if shot is not None:
-            print("toto")
             if shot.camera is not None:
                 gp_child = utils.get_greasepencil_child(shot.camera)
                 if gp_child is not None:

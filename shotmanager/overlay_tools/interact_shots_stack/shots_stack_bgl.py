@@ -343,7 +343,7 @@ class BL_UI_ShotClip:
             color = (0.15, 0.15, 0.15, 0.5)
 
         if self.highlight:
-            _logger.debug_ext(f"highlight Shot in draw", col="RED")
+            _logger.debug_ext(f"highlight Shot in draw", col="RED", tag="SHOTSTACK_EVENT")
             color = (0.9, 0.9, 0.9, 0.5)
         UNIFORM_SHADER_2D.uniform_float("color", color)
         self.clip_mesh.draw(UNIFORM_SHADER_2D, context.region)

@@ -1248,7 +1248,7 @@ def conformToRefMontage(
             # elif not importVideoInVSE and importAudioInVSE:
             #     trackType = "AUDIO"
 
-            # we import the sound only, because videos coming from the EDL are not the shots from the edit!
+            # we import the sound only, because videos coming from the edit file are not the shots from the edit!
             trackType = "AUDIO"
 
             importToVSE(

@@ -337,16 +337,18 @@ class UAS_MT_ShotManager_Shots_ToolsMenu(Menu):
         row.operator("uas_shot_manager.shots_removecamera", text="   Remove Camera From All Shots...")
 
         #############
-        # import EDL
+        # import edit file
         #############
         if module_can_be_imported("shotmanager.otio"):
             layout.separator()
             row = layout.row(align=True)
-            row.label(text="EDL / XML / OTIO:")
+            row.label(text="Tools For Edit (OTIO, XML):")
 
             row = layout.row(align=True)
             row.operator_context = "INVOKE_DEFAULT"
-            row.operator("uasotio.openfilebrowser", text="   Create Shots From EDL...").importMode = "CREATE_SHOTS"
+            row.operator(
+                "uasotio.openfilebrowser", text="   Create Shots From Edit File..."
+            ).importMode = "CREATE_SHOTS"
 
         layout.separator()
 

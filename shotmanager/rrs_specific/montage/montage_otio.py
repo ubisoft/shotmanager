@@ -60,7 +60,7 @@ class MontageOtio(MontageInterface):
     def get_montage_characteristics(self):
         """
             Return a dictionary with the characterisitics of the montage.
-            This is required to export it as xml EDL.
+            This is required to export it as xml edit file.
         """
         print(f"-++ self.timeline: {self.timeline}")
         self._characteristics["framerate"] = self.get_fps()
@@ -111,7 +111,7 @@ class MontageOtio(MontageInterface):
             self.initialize(otioFile)
 
         print(f"\n\n   fillMontageInfoFromOtioFile:")
-        print(f"      EDL: {self.otioFile} \n")
+        print(f"      Edit file: {self.otioFile} \n")
 
         if self.timeline is None:
             _logger.error("fillMontageInfoFromOtioFile: self.timeline is None!")
@@ -280,7 +280,9 @@ class MontageOtio(MontageInterface):
                         seq_pattern = "_seq"
                         #  print(f"  Clip name 03: {clip.name}")
 
-                        if seq_pattern in media_name_lower:
+                        # wkipwkipwkip
+                        # if seq_pattern in media_name_lower:
+                        if True:
                             #       print(f"media_name: {media_name}")
 
                             media_name_splited = media_name_lower.split("_")
@@ -326,6 +328,8 @@ class MontageOtio(MontageInterface):
                                 newClip = newSeq.newShot(clip)
                                 newClip.name = stackName
                                 # newClip.set_name_from_xml_clip_name(xmlClipNames)
+                        # else:
+                        # wkip debug otio import
 
         # for seq in self.sequencesList:
         #     # get the start and end of every seq

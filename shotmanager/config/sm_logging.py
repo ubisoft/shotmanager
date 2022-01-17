@@ -121,13 +121,19 @@ class SM_Logger(logging.getLoggerClass()):
     def debug_ext(self, msg, extra=None, col="", form="STD", tag=None):
         _logger.handlers[0].setFormatter(self._getFormatter(col, form))
 
-        # accept or silence message display according to tags
+        # accept or silence message display according to tags (if return is enabled then tag is ignored)
         if tag is not None:
             if "TIMELINE_EVENT" == tag:
                 return
                 pass
+            elif "SHOTSTACK_EVENT" == tag:
+                return
+                pass
             elif "JUMP" == tag:
-                #    return
+                return
+                pass
+            elif "EDIT_IO" == tag:
+                # return
                 pass
 
         # Note: marvellous parameter: stacklevel allows to get the call from the sender, otherwise

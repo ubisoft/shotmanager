@@ -13,7 +13,7 @@ Overview
 - Global control on camera video backgrounds
 - Global control on camera sound backgrounds
 - Sequence batch rendering, with Eevee, Cycle and custom playblast
-- EDL import and export based on OpenTimelineIO
+- Edit file import and export based on OpenTimelineIO
 - Grease pencil sketching per shot (experimental)
 - Edit forth and back with VSE (experimental)
 - ...

@@ -120,7 +120,7 @@ class UAS_ShotManager_SetCurrentShot(Operator):
         shot = props.getShotByIndex(self.index)
         currentShotChanged = False
 
-        def _updateEditors(zoom_mode=""):
+        def _updateEditors(changeTime=True, zoom_mode=""):
             # change time range to match shot range
             if prefs.current_shot_changes_time_range:
                 if scene.use_preview_range:
@@ -130,7 +130,7 @@ class UAS_ShotManager_SetCurrentShot(Operator):
                     scene.frame_start = shot.start
                     scene.frame_end = shot.end
 
-            if prefs.current_shot_changes_current_time_to_start:
+            if prefs.current_shot_changes_current_time_to_start and changeTime:
                 context.scene.frame_current = shot.start
 
             # zoom to frame shot or edit in anim range
@@ -151,11 +151,13 @@ class UAS_ShotManager_SetCurrentShot(Operator):
         if not event.shift and not event.ctrl:
             if event.alt:
                 props.setCurrentShotByIndex(self.index, changeTime=False, source_area=context.area)
+                props.setSelectedShotByIndex(self.index)
+                _updateEditors(changeTime=False)
             else:
                 props.setCurrentShotByIndex(self.index, source_area=context.area)
-            props.setSelectedShotByIndex(self.index)
+                props.setSelectedShotByIndex(self.index)
+                _updateEditors(changeTime=True)
             currentShotChanged = True
-            _updateEditors()
 
         # disable shot
         elif event.shift and not event.ctrl and not event.alt:
