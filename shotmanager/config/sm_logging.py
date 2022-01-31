@@ -28,7 +28,7 @@ from pathlib import Path
 import logging
 from logging import DEBUG, INFO, ERROR
 
-from shotmanager.config import config
+from ..config import config
 
 
 def getLogger(name):
@@ -45,6 +45,8 @@ def getLevelName():
 class SM_Logger(logging.getLoggerClass()):
     def __init__(self, name):
         super(SM_Logger, self).__init__(name)
+
+        self._prefix = "CX"
 
         # colors in terminal: https://stackoverflow.com/questions/384076/how-can-i-color-python-logging-output
         self._colors = {
@@ -65,7 +67,7 @@ class SM_Logger(logging.getLoggerClass()):
         }
 
         # self._formatter_standard = Formatter("\33[36m" + "~Basic +++" + " {message:<140}" + "\033[0m", style="{")
-        self._formatter_standard = Formatter("SM - " + " {message:<110}", style="{")
+        self._formatter_standard = Formatter(self._prefix + " - " + " {message:<110}", style="{")
         self._formatter_basic = Formatter("\33[36m" + "~Basic +++" + " {message:<140}" + "\033[0m", style="{")
         self._formatter_other = Formatter("\33[36m" + "S OTHER M+" + " {message:<140}" + "\033[0m", style="{")
         self._formatter = {
@@ -78,7 +80,7 @@ class SM_Logger(logging.getLoggerClass()):
         color = self._colors[col] if col != "" else ""
 
         if "STD" == form:
-            f = Formatter(color + "SM: " + " {message:<120}" + "\033[0m", style="{")
+            f = Formatter(color + self._prefix + "  {message:<120}" + "\033[0m", style="{")
         elif "REG" == form:
             if "" == col:
                 color = self._colors["YELLOW"]

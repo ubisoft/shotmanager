@@ -29,7 +29,7 @@ import math
 
 from ..utils import utils
 
-from shotmanager.config import sm_logging
+from ..config import sm_logging
 
 _logger = sm_logging.getLogger(__name__)
 

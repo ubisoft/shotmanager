@@ -316,7 +316,7 @@ class UAS_ShotManager_RenderSettings(PropertyGroup):
 
     renderAllShots: BoolProperty(name="Render All Shots", default=True)
 
-    renderAlsoDisabled: BoolProperty(name="Render Also Disabled", default=False)
+    renderAlsoDisabled: BoolProperty(name="Render Also Disabled Shots", default=False)
 
     renderHandles: BoolProperty(name="Render With Handles", default=False)
 
@@ -330,6 +330,7 @@ class UAS_ShotManager_RenderSettings(PropertyGroup):
         default=True,
     )
 
+    # only used by STILL
     writeToDisk: BoolProperty(name="Write to Disk", default=False)
 
     renderOtioFile: BoolProperty(name="Render Edit File", default=False)
@@ -345,6 +346,22 @@ class UAS_ShotManager_RenderSettings(PropertyGroup):
         options=set(),
     )
 
+    # used by ANIMATION and ALL
+    generateImageSequence: BoolProperty(
+        name="Generate Image Sequence", description="Generate an image sequence per rendered shot", default=False,
+    )
+
+    # used by ANIMATION and ALL
+    deleteUncompositedImages: BoolProperty(
+        name="Delete Uncomposited Temporary Images", description="Delete uncomposited temporary images", default=True,
+    )
+
+    # only used by ANIMATION
+    generateShotVideo: BoolProperty(
+        name="Generate Shot Video", description="Generate the video of the rendered shot", default=True,
+    )
+
+    # only used by ALL
     generateEditVideo: BoolProperty(
         name="Generate Edit Video(s)",
         description="Generate the edit video of the take with all the specified shot videos",

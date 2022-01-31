@@ -28,7 +28,7 @@ from bpy.props import StringProperty, BoolProperty, EnumProperty
 from shotmanager.config import config
 from shotmanager.utils import utils
 
-from shotmanager.rrs_specific.montage.montage_otio import MontageOtio
+from shotmanager.otio.montage_otio import MontageOtio
 from shotmanager.scripts.rrs import utils_rrs
 
 from shotmanager.scripts.rrs.rrs_playblast import (

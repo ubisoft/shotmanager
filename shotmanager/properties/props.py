@@ -38,7 +38,7 @@ from bpy.props import (
 )
 
 # from shotmanager.operators import shots
-from shotmanager.rrs_specific.montage.montage_interface import MontageInterface
+from .montage_interface import MontageInterface
 
 # from .media import UAS_ShotManager_Media
 from shotmanager.rendering.rendering_props import UAS_ShotManager_RenderSettings, UAS_ShotManager_RenderGlobalContext
@@ -311,7 +311,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         name="File List Only", default=True, options=set(),
     )
     rrs_renderAlsoDisabled: BoolProperty(
-        name="Render Also Disabled", default=False, options=set(),
+        name="Render Also Disabled Shots", default=False, options=set(),
     )
 
     # project settings

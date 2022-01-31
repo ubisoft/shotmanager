@@ -28,7 +28,7 @@ from bpy.types import PropertyGroup
 from bpy.props import StringProperty, IntProperty, BoolProperty, PointerProperty, FloatVectorProperty
 
 from shotmanager.utils import utils
-from shotmanager.rrs_specific.montage.montage_interface import ShotInterface
+from .montage_interface import ShotInterface
 
 from shotmanager.config import sm_logging
 
@@ -615,7 +615,7 @@ class UAS_ShotManager_Shot(ShotInterface, PropertyGroup):
         return props.getShotIndex(self)
 
     def get_name(self):
-        return self.name
+        return self.parentScene.UAS_shot_manager_props.renderShotPrefix() + self.name
 
     def printInfo(self, only_clip_info=False):
         super().printInfo(only_clip_info=True)

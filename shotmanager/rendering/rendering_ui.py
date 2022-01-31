@@ -173,6 +173,7 @@ def drawRenderInfos(context, layout):
         infosStr += f"{fps} fps"
         row.label(text=infosStr)
 
+        # TODO wkip
         if 100 != scene.render.resolution_percentage:
             row = col.row()
             row.alert = True
@@ -202,6 +203,17 @@ def drawRenderInfos(context, layout):
         infosStr += f"{fps} fps"
         row.label(text=infosStr)
 
+        # TODO wkip
+        if 100 != scene.render.resolution_percentage:
+            row = col.row()
+            row.alert = True
+            row.label(text="*** Warning: Resolution Percentage is not 100% ***")
+            infosStr = _getResText(imgRes[0], imgRes[1], finalRes[0], finalRes[1])
+            row = col.row()
+            row.alert = True
+            row.separator(factor=sepFactor)
+            row.label(text=infosStr)
+
         col.separator()
         row = col.row()
         filePath = props.getCurrentShot().getOutputMediaPath()
@@ -220,6 +232,17 @@ def drawRenderInfos(context, layout):
         infosStr = _getResText(imgRes[0], imgRes[1], finalRes[0], finalRes[1])
         infosStr += f"{fps} fps"
         row.label(text=infosStr)
+
+        # TODO wkip
+        if 100 != scene.render.resolution_percentage:
+            row = col.row()
+            row.alert = True
+            row.label(text="*** Warning: Resolution Percentage is not 100% ***")
+            infosStr = _getResText(imgRes[0], imgRes[1], finalRes[0], finalRes[1])
+            row = col.row()
+            row.alert = True
+            row.separator(factor=sepFactor)
+            row.label(text=infosStr)
 
         col.separator()
         row = col.row()
@@ -252,6 +275,17 @@ def drawRenderInfos(context, layout):
             rowAlert = box.row()
             rowAlert.alert = True
             rowAlert.label(text="*** Invalid Root Path ***")
+
+        # TODO wkip
+        if 100 != scene.render.resolution_percentage:
+            row = col.row()
+            row.alert = True
+            row.label(text="*** Warning: Resolution Percentage is not 100% ***")
+            infosStr = _getResText(imgRes[0], imgRes[1], finalRes[0], finalRes[1])
+            row = col.row()
+            row.alert = True
+            row.separator(factor=sepFactor)
+            row.label(text=infosStr)
 
         col.separator()
         row = col.row()

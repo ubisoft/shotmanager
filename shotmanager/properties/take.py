@@ -26,9 +26,9 @@ from bpy.types import PropertyGroup
 from bpy.props import StringProperty, CollectionProperty, PointerProperty, BoolProperty, IntProperty
 
 from .shot import UAS_ShotManager_Shot
+from .montage_interface import SequenceInterface
 
 from shotmanager.utils.utils import findFirstUniqueName
-from shotmanager.rrs_specific.montage.montage_interface import SequenceInterface
 
 from shotmanager.properties.output_params import UAS_ShotManager_OutputParams_Resolution
 

@@ -28,7 +28,7 @@ from shotmanager.utils import utils_vse
 from shotmanager.utils.utils_os import module_can_be_imported
 from shotmanager.config import config
 
-# from shotmanager.rrs_specific.montage.montage_otio import MontageOtio
+# from shotmanager.otio.montage_otio import MontageOtio
 
 from shotmanager.config import sm_logging
 
@@ -148,7 +148,7 @@ def rrs_animatic_to_vsm(editVideoFile=None, otioFile=None, montageOtio=None, imp
             if not module_can_be_imported("shotmanager.otio"):
                 _logger.error("Otio module not available (no OpenTimelineIO): Cannot import markers")
             else:
-                from shotmanager.rrs_specific.montage.montage_otio import MontageOtio
+                from shotmanager.otio.montage_otio import MontageOtio
 
                 # config.gMontageOtio
                 config.gMontageOtio = None
@@ -176,7 +176,7 @@ def getSoundFilesForEachShot(montageOtio, seqName, otioFile):
             _logger.error("Otio module not available (no OpenTimelineIO)")
             return soundsDict
         else:
-            from shotmanager.rrs_specific.montage.montage_otio import MontageOtio
+            from shotmanager.otio.montage_otio import MontageOtio
 
             config.gMontageOtio = MontageOtio()
             config.gMontageOtio.fillMontageInfoFromOtioFile(otioFile=otioFile, refVideoTrackInd=0, verboseInfo=False)

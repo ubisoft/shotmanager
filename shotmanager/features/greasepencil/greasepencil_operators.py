@@ -161,7 +161,14 @@ class UAS_ShotManager_OT_DrawOnGreasePencil(Operator):
         if gp_child is None:
             print("Grease Pencil Child is invalid for grease pencil parenting - Cancelling...")
             return {"CANCELLED"}
+        elif not gp_child.visible_get():
+            print("Grease Pencil cannot be applied on hidden objects - Cancelling...")
+            return {"CANCELLED"}
         else:
+            if context.active_object.mode == "PAINT_GPENCIL":
+                bpy.ops.gpencil.paintmode_toggle()
+                return {"FINISHED"}
+
             if context.active_object is not None and context.active_object.mode != "OBJECT":
                 bpy.ops.object.mode_set(mode="OBJECT")
             bpy.ops.object.select_all(action="DESELECT")

@@ -344,11 +344,29 @@ class UAS_MT_ShotManager_Shots_ToolsMenu(Menu):
             row = layout.row(align=True)
             row.label(text="Tools For Edit (OTIO, XML):")
 
+            if config.devDebug:
+                row = layout.row(align=True)
+                row.operator_context = "INVOKE_DEFAULT"
+                row.operator(
+                    "uasotio.openfilebrowser", text="   Create / Update Shots From Edit File - Simple Mode..."
+                ).importMode = "CREATE_SHOTS_SIMPLE"
+
             row = layout.row(align=True)
             row.operator_context = "INVOKE_DEFAULT"
             row.operator(
-                "uasotio.openfilebrowser", text="   Create Shots From Edit File..."
+                "uasotio.openfilebrowser", text="   Create / Update Shots From Edit File..."
             ).importMode = "CREATE_SHOTS"
+
+            if config.devDebug:
+                row = layout.row(align=True)
+                row.operator_context = "INVOKE_DEFAULT"
+                op = row.operator(
+                    "uasotio.openfilebrowser", text="   Import Shots From Edit File - RRS..."
+                ).importMode = "IMPORT_EDIT"
+
+                row = layout.row(align=True)
+                row.operator_context = "INVOKE_DEFAULT"
+                op = row.operator("uasotio.openfilebrowser", text="   Parse File - RRS...").importMode = "PARSE_EDIT"
 
         layout.separator()
 

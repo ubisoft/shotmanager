@@ -16,15 +16,12 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 """
-To do: module description here.
+Generic montage class used to host the content of an edit
 """
 
 from pathlib import Path
 
-import bpy
-from shotmanager.utils import utils
-
-from shotmanager.config import sm_logging
+from ..config import sm_logging
 
 _logger = sm_logging.getLogger(__name__)
 
@@ -140,7 +137,9 @@ class MontageInterface(object):
         return refSeq
 
     def conformToRefMontage(self, ref_montage, ref_sequence_name=""):
-        infoStr += f"\n\n {utils.bcolors.WARNING}Conform to ref montge (in Montage_interface.py):{utils.bcolors.ENDC}\n"
+        WARNING = "\033[93m"
+        ENDC = "\033[0m"
+        infoStr += f"\n\n {WARNING}Conform to ref montge (in Montage_interface.py):{ENDC}\n"
         print(infoStr)
 
     def compareWithMontage(self, ref_montage, ref_sequence_name=""):
@@ -152,12 +151,12 @@ class MontageInterface(object):
         def printInfoLine(col00, col01, col02):
             print(f"{col00: >10}   {col01: <37}    - {col02: <30}")
 
-        props = bpy.context.scene.UAS_shot_manager_props
         textSelf = ""
         textRef = ""
-
+        WARNING = "\033[93m"
+        ENDC = "\033[0m"
         infoStr = "\n\n ------ ------ ------ ------ ------ ------ ------ ------ ------ "
-        infoStr += f"\n\n {utils.bcolors.WARNING}Comparing montages (in Montage_interface.py):{utils.bcolors.ENDC}\n"
+        infoStr += f"\n\n {WARNING}Comparing montages (in Montage_interface.py):{ENDC}\n"
         print(infoStr)
 
         # infoStr += (
@@ -199,7 +198,7 @@ class MontageInterface(object):
             shotSelf = None
             for sh in comparedShotsList:
                 # if sh.get_name() == shotRef.get_name():
-                shotName = props.renderShotPrefix() + "_" + sh.get_name()
+                shotName = sh.get_name()
                 # print(f"shotName: {shotName}, shotRefName: {shotRefName}")
                 if shotName == shotRefName:
                     shotSelf = sh

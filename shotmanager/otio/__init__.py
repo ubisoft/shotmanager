@@ -16,7 +16,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 """
-OTIO
+OTIO package and everything related to it
 """
 
 import os
@@ -32,7 +32,7 @@ import bpy
 import sys
 from pathlib import Path
 
-from shotmanager.config import sm_logging
+from ..config import sm_logging
 
 _logger = sm_logging.getLogger(__name__)
 
@@ -136,7 +136,11 @@ else:
 
 
 def register():
-    from . import operators
+    from . import blender
+
+    # custom version used to track this package if used in several add-ons
+    package_version = "1.0.1"
+    package_last_update = "2022/01/19"
 
     try:
         import opentimelineio as otio
@@ -146,14 +150,16 @@ def register():
     except Exception:
         otioVersionStr = " - OpenTimelineIO not available"
 
-    _logger.debug_ext("       - Registering OTIO Package" + otioVersionStr, form="REG")
+    _logger.debug_ext(
+        f"       - Registering OTIO Package (V. {package_version}, {package_last_update})" + otioVersionStr, form="REG"
+    )
 
-    operators.register()
+    blender.register()
 
 
 def unregister():
-    from . import operators
+    from . import blender
 
     _logger.debug_ext("       - Unregistering OTIO Package", form="UNREG")
 
-    operators.unregister()
+    blender.unregister()

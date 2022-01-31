@@ -26,9 +26,9 @@ import opentimelineio
 
 from xml.dom.minidom import parse
 
-from shotmanager.utils import utils_xml
+from ..utils import utils_xml
 
-from shotmanager.config import sm_logging
+from ..config import sm_logging
 
 _logger = sm_logging.getLogger(__name__)
 

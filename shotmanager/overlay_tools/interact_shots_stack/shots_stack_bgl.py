@@ -78,7 +78,7 @@ def draw_shots_stack(context):
             blf.size(0, 35, 72)
             blf.position(0, 100, 100, 0)
             # blf.draw(0, "Toto")
-            blf.draw(0, f"Last: {config.devDebug_lastRedrawTime}")
+        #  blf.draw(0, f"Last: {config.devDebug_lastRedrawTime}")
 
 
 def clamp_to_region(x, y, region):

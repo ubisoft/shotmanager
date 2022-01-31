@@ -30,13 +30,13 @@ from math import radians
 import bpy
 import opentimelineio
 
-from shotmanager import config
-from shotmanager.utils import utils
-from shotmanager.utils import utils_vse
+from .. import config
+from ..utils import utils
+from ..utils import utils_vse
 
 from . import otio_wrapper as ow
 
-from shotmanager.config import sm_logging
+from ..config import sm_logging
 
 _logger = sm_logging.getLogger(__name__)
 
