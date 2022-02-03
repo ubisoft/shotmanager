@@ -1,5 +1,19 @@
 # 1.6.10 (2021-12-09)
-Fixed bugs in EDL import and export
+
+
+To do:
+   zoom time range after import edl
+   move grease pencil button
+
+
+Edit Files and OpenTimelineIO:
+Fixed several bugs in Edit List File import and export
+Improved the Import dialog window
+   Imported edit framerate and resolution can now be used to update the scene
+
+Grease Pencil:
+Fixed bug when painting on hidden objects
+
 
 Added button to take range
 added information for output render

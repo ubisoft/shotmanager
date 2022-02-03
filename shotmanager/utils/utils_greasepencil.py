@@ -16,7 +16,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 """
-To do: module description here.
+Useful functions related to the use of Grease Pencil
 """
 
 # https://towardsdatascience.com/blender-2-8-grease-pencil-scripting-and-generative-art-cbbfd3967590
@@ -145,3 +145,20 @@ def draw_canvas_rect(gp_frame, top_left: tuple, bottom_right: tuple):
     gp_stroke.points[2].co = bottom_right
     gp_stroke.points[3].co = (bottom_right[0], top_left[1], top_left[2])
     return gp_stroke
+
+
+def switchToDrawMode(gp_obj):
+    # if another object is edited it is switched to OBJECT mode
+    if bpy.context.active_object is not None and bpy.context.active_object.mode != "OBJECT":
+        bpy.ops.object.mode_set(mode="OBJECT")
+
+    # clear selection
+    bpy.ops.object.select_all(action="DESELECT")
+
+    bpy.context.view_layer.objects.active = gp_obj
+    gp_obj.select_set(True)
+    gp_obj.hide_select = False
+    gp_obj.hide_viewport = False
+
+    if "GPENCIL" == gp_obj.type:
+        bpy.ops.gpencil.paintmode_toggle()

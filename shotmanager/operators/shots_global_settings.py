@@ -210,8 +210,8 @@ class UAS_ShotsSettings_UseGreasePencil(Operator):
                 if shot.camera is not None:
                     gp_child = utils.get_greasepencil_child(shot.camera)
                     if gp_child is not None:
-                        gp_child.hide_viewport = self.useGreasepencil
-                        gp_child.hide_render = self.useGreasepencil
+                        gp_child.hide_viewport = not self.useGreasepencil
+                        gp_child.hide_render = not self.useGreasepencil
 
         return {"FINISHED"}
 

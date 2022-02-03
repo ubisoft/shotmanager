@@ -506,7 +506,13 @@ class UAS_ShotManager_Shot(ShotInterface, PropertyGroup):
             if len(self.camera.data.background_images):
                 self.removeBGImages()
             print("addBGImages 01")
-            utils.add_background_video_to_cam(self.camera.data, str(mediaFile), frame_start, alpha=alpha)
+            videoAdded = utils.add_background_video_to_cam(self.camera.data, str(mediaFile), frame_start, alpha=alpha)
+            if not videoAdded:
+                utils.ShowMessageBox(
+                    message=f"The following video cannot be imported:\n   {media_path}",
+                    title="Video Not Found",
+                    icon="ERROR",
+                )
             print(f"addBGImages 02 {self.camera.data.background_images[0].clip.name}")
 
         if addSoundFromVideo:
@@ -573,6 +579,12 @@ class UAS_ShotManager_Shot(ShotInterface, PropertyGroup):
             return gp_child is not None
         else:
             return False
+
+    def getGreasePencil(self):
+        gp_child = None
+        if self.camera is not None:
+            gp_child = utils.get_greasepencil_child(self.camera)
+        return gp_child
 
     #############
     # notes #####

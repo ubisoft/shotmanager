@@ -102,7 +102,15 @@ class UAS_UL_ShotManager_Items(bpy.types.UIList):
             if props.display_greasepencil_in_shotlist:
                 row = row.row(align=True)
                 row.scale_x = 1.0
-                icon = "OUTLINER_OB_GREASEPENCIL" if item.hasGreasePencil() else "BLANK1"
+                icon = "BLANK1"
+                gp = item.getGreasePencil()
+                if gp is not None:
+                    # if gp == context.active_object and context.active_object.mode == "PAINT_GPENCIL":
+                    if gp.mode == "PAINT_GPENCIL":
+                        icon = "GREASEPENCIL"
+                        row.alert = True
+                    else:
+                        icon = "OUTLINER_OB_GREASEPENCIL"
                 row.operator("uas_shot_manager.greasepencilitem", text="", icon=icon).index = index
                 row.scale_x = 0.9
 

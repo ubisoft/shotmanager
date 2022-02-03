@@ -164,7 +164,9 @@ class PropertyRestoreCtx:
 
 
 def ShowMessageBox(message="", title="Message Box", icon="INFO"):
-    """
+    """Display a message box
+    A message can be drawn on several lines when containing the separator \n
+
     # #Shows a message box with a specific message
     # ShowMessageBox("This is a message")
 
@@ -174,18 +176,24 @@ def ShowMessageBox(message="", title="Message Box", icon="INFO"):
     # #Shows a message box with a message, custom title, and a specific icon
     # ShowMessageBox("This is a message", "This is a custom title", 'ERROR')
 
-    Icon can be "INFO" (default), "WARNING", "ERROR"
+    Icon can be "INFO" (default), "WARNING", "ERROR", "CANCEL"
     """
 
-    # else use return context.window_manager.invoke_props_dialog(self, width=400) in a invoke function
+    messages = message.split("\n")
+    blender_icon = icon
+    if "WARNING" == icon:
+        blender_icon = "ERROR"
+
+    # NOTE: also possible to use return context.window_manager.invoke_props_dialog(self, width=400) in an invoke function
     def draw(self, context):
         layout = self.layout
-        row = layout.row()
-        if "ERROR" == icon:
-            row.alert = True  # doesn't seem to work with popup_menu
-        row.label(text=message)
+        for s in messages:
+            row = layout.row()
+            if "ERROR" == blender_icon:
+                row.alert = True  # doesn't seem to work with popup_menu
+            row.label(text=s)
 
-    bpy.context.window_manager.popup_menu(draw, title=title, icon=icon)
+    bpy.context.window_manager.popup_menu(draw, title=title, icon=blender_icon)
 
 
 # #Shows a message box with a specific message
@@ -659,6 +667,8 @@ def create_new_greasepencil(gp_name, parent_object=None, location=None, locate_o
 
 
 def get_greasepencil_child(obj, name_filter=""):
+    """Return the first child of the specifed object that is of type GPENCIL
+    """
     gpChild = None
 
     if obj is not None:
@@ -675,7 +685,8 @@ def get_greasepencil_child(obj, name_filter=""):
 
 
 def cameras_from_scene(scene):
-    """Return the list of all the cameras in the scene"""
+    """Return the list of all the cameras in the scene
+    """
     camList = [c for c in scene.objects if c.type == "CAMERA"]
     return camList
 
@@ -685,7 +696,8 @@ def getCameraCurrentlyInViewport(
 ):
     """Return the camera currently used by the view, None if
     no camera is used or if the 3D view is not found.
-    Requires a valid area VIEW_3D"""
+    Requires a valid area VIEW_3D
+    """
     area3D = area
     #   print(f"Cam in area3D 01: {area3D}")
     if area is None:
@@ -882,23 +894,55 @@ def create_new_camera(camera_name, location=[0, 0, 0], locate_on_cursor=False):
     return cam_ob
 
 
+def getMovieClipByPath(filepath):
+    """Get the first clip with the specified full file name
+    """
+    # TODO: add Case sensitive
+    for clip in bpy.data.movieclips:
+        if Path(clip.filepath) == filepath:
+            return clip
+    return None
+
+    # print(f"   -- name:{name}, path: {filepath}")
+    # for clip in bpy.data.movieclips:
+    #     print(f"   -- clip name:{clip.name}, path: {clip.filepath}")
+    #     if clip.name == name:
+    #         if filepath is None or clip.filepath == filepath:
+    #             return clip
+    # return None
+
+
 def add_background_video_to_cam(
     camera: bpy.types.Camera, movie_path, frame_start, alpha=-1, proxyRenderSize="PROXY_50", relative_path=False
 ):
     """Camera argument: use camera.data, not the camera object
     proxyRenderSize is PROXY_25, PROXY_50, PROXY_75, PROXY_100, FULL
+    Return: the video clip or None if an error occured to read the media or create the clip
     """
-    # print("add_background_video_to_cam")
     movie_path = Path(movie_path)
-    if not movie_path.exists():
-        print("    Invalid media path: ", movie_path)
-        return
+    print("add_background_video_to_cam")
+    print(f"   movie_path.parent: {movie_path.parent}")
+    print(f"   movie_path.name  : {movie_path.name}")
 
-    if "FINISHED" in bpy.ops.clip.open(
-        directory=str(movie_path.parent), files=[{"name": movie_path.name}], relative_path=relative_path
-    ):
+    clipIsValid = False
+    if movie_path.is_file():
+        try:
+            clipIsValid = "FINISHED" in bpy.ops.clip.open(
+                directory=str(movie_path.parent), files=[{"name": movie_path.name}], relative_path=relative_path
+            )
+        except Exception as e:
+            # _logger.error("** bpy.context.space_data.lock_camera had an error **")
+            color = "\033[91m"
+            print(f"{color}\n*** Media cannot be imported: {movie_path} ***{color}")
+            print(f"{color}   {e}{color}")
+    else:
+        color = "\033[91m"
+        print(f"{color}\n*** Media not found: {movie_path} ***{color}")
+
+    if clipIsValid:
         # print("   Finished block")
-        clip = bpy.data.movieclips[movie_path.name]
+        # clip = bpy.data.movieclips[movie_path.name]
+        clip = getMovieClipByPath(movie_path)
         clip.frame_start = frame_start
         camera.show_background_images = True
         bg = camera.background_images.new()
@@ -912,6 +956,9 @@ def add_background_video_to_cam(
             bg.alpha = alpha
 
         bg.clip_user.proxy_render_size = proxyRenderSize
+
+    print(f"Clip is valid: {clipIsValid}")
+    return clip if clipIsValid else None
 
 
 def remove_background_video_from_cam(camera: bpy.types.Camera):

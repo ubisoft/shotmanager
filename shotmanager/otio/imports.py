@@ -432,6 +432,7 @@ def createShotsFromOtio(
                 cam = cam_ob.data
 
             shot_re = re.compile(r"sh_?(\d+)", re.IGNORECASE)
+            atLeastOneVideoFailed = False
             for i, clip in enumerate(track.each_clip()):
                 clipName = clip.name
                 if createCameras:
@@ -457,9 +458,11 @@ def createShotsFromOtio(
                             print("   and new media_path: ", media_path)
 
                         # start frame of the background video is not set here since it will be linked to the shot start frame
-                        utils.add_background_video_to_cam(
+                        videoAdded = utils.add_background_video_to_cam(
                             cam, str(media_path), 0, alpha=props.shotsGlobalSettings.backgroundAlpha
                         )
+                        if videoAdded is None:
+                            atLeastOneVideoFailed = True
 
                 shot = props.addShot(
                     name=clipName,
@@ -490,6 +493,14 @@ def createShotsFromOtio(
                 # bpy.context.space_data.show_seconds = False
                 bpy.context.window.workspace = bpy.data.workspaces["Video Editing"]
                 importOtioToVSE(otioFile, vse, importAtFrame=importAtFrame, importVideoTracks=False)
+
+            # TOFIX wkip message don't appear...
+            if createCameras and atLeastOneVideoFailed:
+                utils.ShowMessageBox(
+                    message=f"At least one video import failed...",
+                    title="Missing Media\n   {media_path}",
+                    icon="WARNING",
+                )
 
     except opentimelineio.exceptions.NoKnownAdapterForExtensionError:
         from ..utils.utils import ShowMessageBox
@@ -561,6 +572,7 @@ def createShotsFromOtioTimelineClass(
                 cam = cam_ob.data
 
             shot_re = re.compile(r"sh_?(\d+)", re.IGNORECASE)
+            atLeastOneVideoFailed = False
             # for i, clip in enumerate(track.each_clip()):
             for i, clip in enumerate(clipList):
                 clipName = clip.clip.name
@@ -588,9 +600,11 @@ def createShotsFromOtioTimelineClass(
                             print("   and new media_path: ", media_path)
 
                         # start frame of the background video is not set here since it will be linked to the shot start frame
-                        utils.add_background_video_to_cam(
+                        videoAdded = utils.add_background_video_to_cam(
                             cam, str(media_path), 0, alpha=props.shotsGlobalSettings.backgroundAlpha
                         )
+                        if videoAdded is None:
+                            atLeastOneVideoFailed = True
 
                 shot = props.addShot(
                     name=clipName,
@@ -643,6 +657,14 @@ def createShotsFromOtioTimelineClass(
 
             if animaticFile is not None:
                 importAnimatic(montageOtio, ref_sequence_name, animaticFile, offsetFrameNumber)
+
+            # TOFIX wkip message don't appear...
+            if createCameras and atLeastOneVideoFailed:
+                utils.ShowMessageBox(
+                    message=f"At least one video import failed...",
+                    title="Missing Media\n   {media_path}",
+                    icon="WARNING",
+                )
 
             # restore context
             # wkip ajouter time range original
@@ -760,7 +782,15 @@ def _addNewShot(
             #     print("   and new media_path: ", media_path)
 
             # start frame of the background video is not set here since it will be linked to the shot start frame
-            utils.add_background_video_to_cam(cam, str(media_path), 0, alpha=props.shotsGlobalSettings.backgroundAlpha)
+            videoAdded = utils.add_background_video_to_cam(
+                cam, str(media_path), 0, alpha=props.shotsGlobalSettings.backgroundAlpha
+            )
+            if not videoAdded:
+                utils.ShowMessageBox(
+                    message=f"The following video cannot be imported:\n   {media_path}",
+                    title="Video Not Found",
+                    icon="ERROR",
+                )
 
     shot = props.addShot(name=clipName, start=start, end=end, durationLocked=True, camera=cam_ob, color=cam_ob.color,)
     shot.bgImages_linkToShotStart = True
@@ -1075,9 +1105,15 @@ def conformToRefMontage(
                     else:
                         # if True:
                         # start frame of the background video is not set here since it will be linked to the shot start frame
-                        utils.add_background_video_to_cam(
+                        videoAdded = utils.add_background_video_to_cam(
                             shotSelf.camera.data, str(media_path), 0, alpha=props.shotsGlobalSettings.backgroundAlpha
                         )
+                        if not videoAdded:
+                            utils.ShowMessageBox(
+                                message=f"The following video cannot be imported:\n   {media_path}",
+                                title="Video Not Found",
+                                icon="ERROR",
+                            )
 
                         # modifStr += f" (BG Added, new BG: {shotSelf.camera.data.background_images[0].clip.name})"
                         # print(f"shotSelf.camera.data BG:{shotSelf.camera.data.background_images[0].clip.name}")
