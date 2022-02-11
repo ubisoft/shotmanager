@@ -1,5 +1,8 @@
-# 1.6.10 (2021-12-09)
+# 1.7.1 (2022-02-11)
 
+Fixed:
+   image output were left in the rendering folder
+   Added a checkbox in the render panel to choose to keep the intermediate rendered images
 
 To do:
    zoom time range after import edl
@@ -20,6 +23,14 @@ added information for output render
 
 fixed res ouput for sep video and for playblast
 
+UI:
+   Add the items menu in the Render Panel
+
+Refactor code foir output media
+   warning: temp dirs have changed
+
+Added a global and project value to control the index of the first frame
+Added a global and project value to control the number of digits in the output file names
 
 # 1.6.9 (2021-12-04)
 

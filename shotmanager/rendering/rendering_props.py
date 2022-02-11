@@ -347,14 +347,35 @@ class UAS_ShotManager_RenderSettings(PropertyGroup):
     )
 
     # used by ANIMATION and ALL
+    # wkipwkipwkip not used!!!
     generateImageSequence: BoolProperty(
         name="Generate Image Sequence", description="Generate an image sequence per rendered shot", default=False,
     )
 
-    # used by ANIMATION and ALL
-    deleteUncompositedImages: BoolProperty(
-        name="Delete Uncomposited Temporary Images", description="Delete uncomposited temporary images", default=True,
+    outputMediaMode: EnumProperty(
+        name="Output Media Format",
+        description="Output media to generate during the rendering process",
+        items=(
+            ("IMAGE_SEQ", "Image Sequences", ""),
+            ("VIDEO", "Videos", ""),
+            ("IMAGE_SEQ_AND_VIDEO", "Image Sequences and Videos", ""),
+        ),
+        default="VIDEO",
     )
+
+    # used by ANIMATION and ALL
+    keepIntermediateFiles: BoolProperty(
+        name="Keep Intermediate Rendering Images",
+        description="Keep the rendered and Stamp Info temporary image files when the composited output is generated."
+        "\nIf set to True these files are kept on disk up to the next rendering of the shot",
+        default=False,
+    )
+    # deleteIntermediateFiles: BoolProperty(
+    #     name="Delete Intermediate Image Files",
+    #     description="Delete the rendered and Stamp Info temporary image files when the composited output is generated."
+    #     "\nIf set to False these files are kept on disk up to the next rendering of the shot",
+    #     default=True,
+    # )
 
     # only used by ANIMATION
     generateShotVideo: BoolProperty(

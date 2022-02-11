@@ -53,6 +53,24 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
     # ****** settings exposed to the user in the prefs panel:
     # ------------------------------
 
+    output_first_frame: IntProperty(
+        name="Output First Frame Index",
+        description="Index of the first frame for rendered image sequences and videos."
+        "\nThis is 0 in most editing applications, sometimes 1."
+        "\nIf the Project Settings are active then the value provided there is used instead",
+        min=0,
+        subtype="TIME",
+        default=0,
+    )
+
+    img_name_digits_padding: IntProperty(
+        name="Image Name Digit Padding",
+        description="Number of digits to use for the index of an output image in its name."
+        "\nIf the Project Settings are active then the value provided there is used instead",
+        min=1,
+        default=5,
+    )
+
     new_shot_duration: IntProperty(
         name="Default Shot Duration",
         description="Default duration for new shots, in frames",
@@ -194,13 +212,6 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
     separatedRenderPanel: BoolProperty(
         name="Separated Render Panel",
         description="If checked, the render panel will be a tab separated from Shot Manager panel",
-        default=True,
-    )
-
-    deleteIntermediateFiles: BoolProperty(
-        name="Delete Intermediate Image Files",
-        description="Delete the rendered and Stamp Info temporary image files when the composited output is generated."
-        "\nIf set to False these files are kept on disk up to the next rendering of the shot",
         default=True,
     )
 

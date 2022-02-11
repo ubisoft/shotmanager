@@ -43,8 +43,10 @@ def initGlobalVariables():
     global devDebug_lastRedrawTime
     devDebug_lastRedrawTime = -1
 
+    # keep the intermediate images after rendering (ie the original  Blender renderings
+    # and the Stamp Info temporaty images)
     global devDebug_keepVSEContent
-    devDebug_keepVSEContent = True and devDebug
+    devDebug_keepVSEContent = False
 
     global devDebug_ignoreLoggerFormatting
     devDebug_ignoreLoggerFormatting = True and devDebug

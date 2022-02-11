@@ -43,6 +43,21 @@ def draw_shotmanager_addon_prefs(self, context):
     collapsable_panel(box, self, "addonPrefs_settings_expanded", text="Settings")
     if self.addonPrefs_settings_expanded:
         box.use_property_decorate = False
+
+        split = box.split(factor=splitFactor)
+        rowLeft = split.row()
+        rowLeft.alignment = "RIGHT"
+        rowLeft.label(text="Output First Frame Index")
+        rowRight = split.row()
+        rowRight.prop(self, "output_first_frame", text="Start Frame")
+
+        split = box.split(factor=splitFactor)
+        rowLeft = split.row()
+        rowLeft.alignment = "RIGHT"
+        rowLeft.label(text="Image Name Digit Padding")
+        rowRight = split.row()
+        rowRight.prop(self, "img_name_digits_padding", text="Padding")
+
         split = box.split(factor=splitFactor)
         rowLeft = split.row()
         rowLeft.alignment = "RIGHT"

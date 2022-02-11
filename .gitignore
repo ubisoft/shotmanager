@@ -4,7 +4,8 @@ _PackagesForInstall
 *.history
 *.blend1
 .vscode/settings.json
-opentimelineio_0.13
+.VSCodeCounter
+tmp/
 
 # Virtual envs
 .venv

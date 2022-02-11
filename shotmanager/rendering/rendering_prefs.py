@@ -66,9 +66,6 @@ class UAS_ShotManager_Render_Prefs(Operator):
         col.label(text=" ")
         col = row.column()
 
-        col.use_property_split = False
-        col.prop(prefs, "deleteIntermediateFiles")
-
         # # Sequence timeline ######
         # # layout.separator(factor=1)
         # layout.label(text="Sequence Timeline:")

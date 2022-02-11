@@ -106,9 +106,13 @@ def drawHeaderPreset(self, context):
     layout = self.layout
     layout.emboss = "NONE"
 
+    if config.devDebug:
+        row = layout.row(align=True)
+        row.alert = True
+        row.operator("uas_shot_manager.render_prefs", icon="PREFERENCES", text="")
+
     row = layout.row(align=True)
-    # row.menu("UAS_MT_Shot_Manager_prefs_mainmenu", icon="PREFERENCES", text="")
-    row.operator("uas_shot_manager.render_prefs", icon="PREFERENCES", text="")
+    row.menu("UAS_MT_Shot_Manager_prefs_mainmenu", icon="PREFERENCES", text="")
     row.separator(factor=1.0)
 
 
@@ -302,6 +306,11 @@ def draw3DRenderPanel(self, context):
     props = context.scene.UAS_shot_manager_props
     iconExplorer = config.icons_col["General_Explorer_32"]
 
+    def _separatorRow(layout):
+        itemsRow = layout.row()
+        itemsRow.scale_y = 0.8
+        itemsRow.separator()
+
     layout = self.layout
     # row = layout.row()
     # row.separator(factor=3)
@@ -452,6 +461,7 @@ def draw3DRenderPanel(self, context):
     #     row.operator("uas_shot_manager.clear_last_render_results")
 
     display_bypass_options = True
+    subItemSeparator = 3
 
     # STILL ###
     if props.displayStillProps:
@@ -466,15 +476,28 @@ def draw3DRenderPanel(self, context):
                 subSubRow = subRow.row()
                 subSubRow.separator(factor=2)
                 subbox = subRow.box()
-                row = subbox.row()
+                bypassItemsCol = subbox.column()
             else:
                 display_bypass_options = False
         else:
-            row = box.row()
+            bypassItemsCol = box.column_flow(columns=1)
 
         if display_bypass_options:
-            row.prop(props.renderSettingsStill, "writeToDisk")
+            itemsRow = bypassItemsCol.row()
+            col = itemsRow.column()
+            row = col.row()
+            row.prop(props.renderSettingsStill, "writeToDisk", text="Write Image to Disk")
+
+            _separatorRow(bypassItemsCol)
+
+            itemsRow = bypassItemsCol.row()
+            col = itemsRow.column()
+            row = col.row()
             row.prop(props.renderSettingsStill, "useStampInfo")
+            row = col.row()
+            row.separator(factor=subItemSeparator)
+            row.enabled = props.renderSettingsStill.useStampInfo
+            row.prop(props.renderSettingsStill, "keepIntermediateFiles")
 
         drawRenderInfos(context, box)
 
@@ -491,15 +514,36 @@ def draw3DRenderPanel(self, context):
                 subSubRow = subRow.row()
                 subSubRow.separator(factor=2)
                 subbox = subRow.box()
-                row = subbox.row()
+                bypassItemsCol = subbox.column()
             else:
                 display_bypass_options = False
         else:
-            row = box.row()
+            bypassItemsCol = box.column_flow(columns=1)
 
         if display_bypass_options:
-            row.prop(props.renderSettingsAnim, "renderHandles")
+            itemsRow = bypassItemsCol.row()
+            col = itemsRow.column()
+            row = col.row()
+            row.label(text="Output Media:")
+            row.prop(props.renderSettingsAnim, "outputMediaMode", text="")
+
+            _separatorRow(bypassItemsCol)
+
+            itemsRow = bypassItemsCol.row()
+            col = itemsRow.column()
+            row = col.row()
             row.prop(props.renderSettingsAnim, "useStampInfo")
+            row = col.row()
+            row.separator(factor=subItemSeparator)
+            row.enabled = props.renderSettingsAnim.useStampInfo
+            row.prop(props.renderSettingsAnim, "keepIntermediateFiles")
+
+            _separatorRow(bypassItemsCol)
+
+            itemsRow = bypassItemsCol.row()
+            col = itemsRow.column()
+            row = col.row()
+            row.prop(props.renderSettingsAnim, "renderHandles")
 
         drawRenderInfos(context, box)
 
@@ -509,11 +553,6 @@ def draw3DRenderPanel(self, context):
         row.label(text="Render All:")
         box = layout.box()
 
-        row = box.row()
-        row.prop(props.renderSettingsAll, "rerenderExistingShotVideos")
-        row = box.row()
-        row.prop(props.renderSettingsAll, "generateEditVideo")
-
         if props.use_project_settings:
             box.prop(props.renderSettingsAll, "bypass_rendering_project_settings")
             if props.renderSettingsAll.bypass_rendering_project_settings:
@@ -521,21 +560,47 @@ def draw3DRenderPanel(self, context):
                 subSubRow = subRow.row()
                 subSubRow.separator(factor=2)
                 subbox = subRow.box()
-                row = subbox.row()
+                bypassItemsCol = subbox.column()
             else:
                 display_bypass_options = False
         else:
-            row = box.row()
+            bypassItemsCol = box.column_flow(columns=1)
 
         if display_bypass_options:
-            row.prop(props.renderSettingsAll, "renderAlsoDisabled")
+            itemsRow = bypassItemsCol.row()
+            col = itemsRow.column()
+
+            row = col.row()
+            row.label(text="Output Media:")
+            row.prop(props.renderSettingsAll, "outputMediaMode", text="")
+
+            _separatorRow(bypassItemsCol)
+
+            itemsRow = bypassItemsCol.row()
+            col = itemsRow.column()
+            row = col.row()
             row.prop(props.renderSettingsAll, "useStampInfo")
-            if props.use_project_settings:
-                row = subbox.row()
-            else:
-                row = box.row()
-            row.prop(props.renderSettingsAll, "renderAllTakes")
+            row = col.row()
+            row.separator(factor=subItemSeparator)
+            row.enabled = props.renderSettingsAll.useStampInfo
+            row.prop(props.renderSettingsAll, "keepIntermediateFiles")
+
+            _separatorRow(bypassItemsCol)
+
+            itemsRow = bypassItemsCol.row()
+            col = itemsRow.column()
+
+            row = col.row()
+            row.prop(props.renderSettingsAll, "generateEditVideo")
             row.prop(props.renderSettingsAll, "renderOtioFile")
+
+        col = box.column()
+        row = col.row()
+        row.prop(props.renderSettingsAll, "rerenderExistingShotVideos")
+
+        row = col.row()
+        row.prop(props.renderSettingsAll, "renderAllTakes")
+        row.prop(props.renderSettingsAll, "renderAlsoDisabled")
 
         drawRenderInfos(context, box)
 

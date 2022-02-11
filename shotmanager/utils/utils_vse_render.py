@@ -1011,32 +1011,119 @@ class ShotManager_Vse_Render(PropertyGroup):
         output_filepath,
         postfixSceneName="",
         output_resolution=None,
-        importAtFrame=1,
+        output_media_mode="VIDEO",
+        importAtFrame=0,
+        frame_padding=-1,
     ):
         """Low level function that will use the bg and fg media already held by this vse_render class to generate
         a media
         
         Args:
             output_resolution: array [width, height]
+            output_media_mode: can be "IMAGE_SEQ", "VIDEO", "IMAGE_SEQ_AND_VIDEO". Specify the file format of the rendered
+            media.
+            frame_padding: THIS ARGUMENT MUST BE ENTERED. Usually it is 4 or 5.
         """
 
+        def _setOutputMediaAndRender(output_media_type):
+            """output_media_type can be "IMAGE", "IMAGE_SEQ" or "VIDEO"
+            """
+            _logger.debug_ext(f"_setOutputMediaAndRender output_media_type: {output_media_type}", form="REG")
+
+            # get output file format from specified output (can be emtpy !!)
+            fileExt = str(Path(output_filepath).suffix).upper()
+            # get file name without extention
+            # fileNoExt = output_filepath[: len(output_filepath) - len(fileExt)]
+            fileNoExt = str(Path(output_filepath).stem)
+            # get file path only
+            filePathOnly = str(Path(output_filepath).parent) + "\\"
+
+            if "." == fileExt[0]:
+                fileExt = fileExt[1:]
+
+            # get either "#####" or a formated string for specificFrame
+            if specificFrame is None:
+                frameIndStr = "".rjust(frame_padding, "#")
+            else:
+                frameIndStr = str(specificFrame).rjust(frame_padding, "0")
+
+            # TODO: add a separator as global parameter
+            frameIndStr = "_" + frameIndStr
+
+            # case where specificFrame is NOT none
+            if "IMAGE" == output_media_type:
+                vse_scene.render.image_settings.file_format = "PNG"  # wkipwkipwkip mettre project info
+                print(f"specificFrame: {specificFrame}")
+                # remove the end digits if there are some
+                fileNoExt = fileNoExt.rstrip("0123456789")
+
+                vse_scene.render.filepath = filePathOnly + fileNoExt + frameIndStr + ".png"
+
+                # vse_scene.frame_set(specificFrame)
+                vse_scene.frame_set(importAtFrame)
+                # specificFrame = importAtFrame
+
+                vse_scene.render.use_file_extension = False
+                # bpy.ops.render.render(write_still=True)
+                bpy.ops.render.opengl(animation=False, sequencer=True, write_still=True)
+
+            elif "IMAGE_SEQ" == output_media_type:
+                if len(fileExt):
+                    if "JPG" == fileExt:
+                        vse_scene.render.image_settings.file_format = "JPG"
+                        ext = ".jpg"
+                    # if "PNG" == fileExt:
+                    else:
+                        # output file is PNG otherwise
+                        vse_scene.render.image_settings.file_format = "PNG"
+                        ext = ".png"
+                else:
+                    # output file is PNG otherwise
+                    vse_scene.render.image_settings.file_format = "PNG"
+                    ext = ".png"
+
+                vse_scene.render.filepath = filePathOnly + fileNoExt + "\\" + fileNoExt + frameIndStr + ext
+
+                # since Blender starts the render indices at 1 and not 0 we have to rename the sequence
+                # another approach than renaming is to render still images
+                vse_scene.render.use_file_extension = False
+                bpy.ops.render.opengl(animation=True, sequencer=True)
+
+                # importAtFrame
+                # if props.editStartFrame
+
+            # "VIDEO" == output_media_type:
+            else:
+                # elif "MP4" == fileExt:
+                vse_scene.render.image_settings.file_format = "FFMPEG"
+                vse_scene.render.ffmpeg.format = "MPEG4"
+                vse_scene.render.ffmpeg.constant_rate_factor = "PERC_LOSSLESS"  # "PERC_LOSSLESS"
+                vse_scene.render.ffmpeg.gopsize = 5  # keyframe interval
+                vse_scene.render.ffmpeg.audio_codec = "AAC"
+                vse_scene.render.filepath = filePathOnly + fileNoExt + ".mp4"
+
+                vse_scene.render.use_file_extension = False
+                bpy.ops.render.opengl(animation=True, sequencer=True)
+
+            return
+
         self.printMedia()
-        print(f" output_filepath: {output_filepath}")
         mediaStr = "VSE_Render  output_resolution:   "
         mediaStr += (
             "None" if output_resolution is None else f"{output_resolution[0]} x {output_resolution[1]}"
         ) + f"  {output_resolution}\n"
-        print(mediaStr)
+        # print(mediaStr)
 
         specificFrame = None
         if frame_start == frame_end:
             specificFrame = frame_start
+            # specificFrame = importAtFrame
 
         previousScene = bpy.context.window.scene
         previousWorkspace = bpy.context.workspace.name
-        print(f"Previous Workspace: {previousWorkspace}")
+        # print(f"Previous Workspace: {previousWorkspace}")
         previousScreen = bpy.context.window.screen.name
-        print(f"Previous Screen: {previousScreen}")
+        # print(f"Previous Screen: {previousScreen}")
         previousRenderView = None
         region = next(
             iter([area.spaces[0].region_3d for area in bpy.context.screen.areas if area.type == "VIEW_3D"]), None
@@ -1075,33 +1162,8 @@ class ShotManager_Vse_Render(PropertyGroup):
         vse_scene.render.resolution_y = output_res[1]
         # print(f"  * - * vse_scene.render.resolution: {vse_scene.render.resolution_x} x {vse_scene.render.resolution_y}")
 
-        # add BG
         vse_scene.frame_start = frame_start
         vse_scene.frame_end = frame_end
-
-        if specificFrame is None:
-            # get output file format from specified output
-            fileExt = str(Path(output_filepath).suffix).upper()
-
-            if 0 < len(fileExt):
-                if "." == fileExt[0]:
-                    fileExt = fileExt[1:]
-
-                if "PNG" == fileExt:
-                    vse_scene.render.image_settings.file_format = "PNG"
-                elif "JPG" == fileExt:
-                    vse_scene.render.image_settings.file_format = "JPG"
-                elif "MP4" == fileExt:
-                    vse_scene.render.image_settings.file_format = "FFMPEG"
-                    vse_scene.render.ffmpeg.format = "MPEG4"
-                    vse_scene.render.ffmpeg.constant_rate_factor = "PERC_LOSSLESS"  # "PERC_LOSSLESS"
-                    vse_scene.render.ffmpeg.gopsize = 5  # keyframe interval
-                    vse_scene.render.ffmpeg.audio_codec = "AAC"
-        else:
-            vse_scene.render.image_settings.file_format = "PNG"  # wkipwkipwkip mettre project info
-
-        vse_scene.render.filepath = output_filepath
-        vse_scene.render.use_file_extension = False
 
         # change color tone mode to prevent washout bug (usually with "filmic" mode)
         vse_scene.view_settings.view_transform = "Filmic"  # "raw"
@@ -1168,12 +1230,17 @@ class ShotManager_Vse_Render(PropertyGroup):
 
         # Make "My New Scene" the active one
         bpy.context.window.scene = vse_scene
+
+        ### render
+        ##################
         if specificFrame is None:
-            bpy.ops.render.opengl(animation=True, sequencer=True)
+            if "IMAGE_SEQ" in output_media_mode:
+                _setOutputMediaAndRender("IMAGE_SEQ")
+
+            if "VIDEO" in output_media_mode:
+                _setOutputMediaAndRender("VIDEO")
         else:
-            vse_scene.frame_set(specificFrame)
-            # bpy.ops.render.render(write_still=True)
-            bpy.ops.render.opengl(animation=False, sequencer=True, write_still=True)
+            _setOutputMediaAndRender("IMAGE")
 
         if not config.devDebug_keepVSEContent:
             bpy.ops.scene.delete()

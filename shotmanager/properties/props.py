@@ -234,7 +234,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
                 #     bpy.context.window_manager.UAS_shot_manager_version,
                 # )
 
-                warningList.append(("Debug: Data version is lower than SM version. Save the file.", 50))
+                warningList.append(("Debug: Data version is lower than SM version. Save and reload the file.", 50))
 
         # check if some camera markers bound to cameras are used in the scene
         ###########
@@ -404,6 +404,25 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         name="Sound Output Format", default="", options=set(),
     )
 
+    # add-on preferences overriden by project settings
+    project_output_first_frame: IntProperty(
+        name="Project Output First Frame Index",
+        description="Index of the first frame for rendered image sequences and videos."
+        "\nThis is 0 in most editing applications, sometimes 1."
+        "\nThis setting overrides the related Add-on Preference",
+        min=0,
+        subtype="TIME",
+        default=0,
+    )
+
+    project_img_name_digits_padding: IntProperty(
+        name="Image Name Digit Padding",
+        description="Number of digits to use for the index of an output image in its name."
+        "\nThis setting overrides the related Add-on Preference",
+        min=0,
+        default=5,
+    )
+
     # built-in project settings
     project_images_output_format: StringProperty(
         name="Image Output Format", default="PNG", options=set(),
@@ -435,7 +454,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         options=set(),
     )
 
-    # overriden by project settings
+    # shot manager per scene instance properties overriden by project settings
     render_shot_prefix: StringProperty(
         name="Render Shot Prefix",
         description="Prefix added to the shot names at render time",
@@ -2967,6 +2986,22 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
 
     ##############################
 
+    def getFramePadding(self, frame=None):
+        """Return a string with the specified frame index formated with the preferences or project padding
+        Args: frame:    If provided then the result is a string of zeros followed by this value
+                        If not provided then the returned string is made of #
+        """
+        prefs = bpy.context.preferences.addons["shotmanager"].preferences
+        formatedFrame = ""
+        padding = self.project_img_name_digits_padding if self.use_project_settings else prefs.img_name_digits_padding
+
+        if frame is None:
+            formatedFrame = formatedFrame.rjust(padding, "#")
+        else:
+            formatedFrame = str(frame).rjust(padding, "0")
+
+        return formatedFrame
+
     def renderShotPrefix(self):
         shotPrefix = ""
 
@@ -3066,6 +3101,9 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         shot,
         rootPath=None,
         insertTakeName=True,
+        insertShotFolder=False,
+        insertTempFolder=False,
+        insertShotPrefix=False,
         providePath=True,
         provideName=True,
         provideExtension=True,
@@ -3086,8 +3124,11 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         if genericFrame is True then #### is used instead of the specific frame index
         """
 
-        # file path
         filePath = ""
+        fileName = ""
+        fileExtension = ""
+
+        # file path
         if providePath:
             if rootPath is not None:
                 filePath += bpy.path.abspath(rootPath)
@@ -3098,26 +3139,29 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
             if not (filePath.endswith("/") or filePath.endswith("\\")):
                 filePath += "\\"
 
-            if insertTakeName:
-                takeName = shot.getParentTake().getName_PathCompliant()
-                filePath += takeName + "\\"
+            if insertTakeName or insertShotFolder or insertTempFolder:
+                filePath += shot.getParentTake().getName_PathCompliant() + "\\"
+
+            if insertShotFolder or insertTempFolder:
+                filePath += f"{shot.getName_PathCompliant()}"
+                if insertTempFolder:
+                    filePath += "_Intermediate"
+                filePath += "\\"
 
         # file name
-        fileName = ""
         if provideName:
-            shotPrefix = self.renderShotPrefix()
-            if "" != shotPrefix:
-                fileName += shotPrefix + "_"
-            fileName += shot.getName_PathCompliant()
-            if genericFrame:
-                fileName += "_" + "####"
-            elif specificFrame is not None:
-                fileName += "_" + f"{specificFrame:04d}"
+            fileName += shot.getName_PathCompliant(withPrefix=insertShotPrefix)
 
-        # file extension
-        fileExtension = ""
-        if provideExtension:
-            fileExtension += "." + self.getOutputFileFormat(isVideo=specificFrame is None and not genericFrame)
+            if genericFrame:
+                fileName += "_"
+                # we add "#####"
+                fileName += self.getFramePadding()
+            elif specificFrame is not None:
+                fileName += "_" + self.getFramePadding(frame=specificFrame)
+
+            # file extension
+            if provideExtension:
+                fileExtension += "." + self.getOutputFileFormat(isVideo=specificFrame is None and not genericFrame)
 
         # result
         resultStr = filePath + fileName + fileExtension
@@ -3133,6 +3177,8 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         """
         Return the shot path
         """
+        _logger.debug(f"*** props.getShotOutputFileName: Deprecated - use getShotOutputMediaPath")
+
         resultStr = ""
 
         # file

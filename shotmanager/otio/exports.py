@@ -221,18 +221,10 @@ def exportShotManagerEditToOtio(
 
             available_range = opentimelineio.opentime.range_from_start_end_time(start_time, end_time_exclusive)
 
-            # shotFileName = shot.getOutputFileName(fullPath=False)  # + ".mp4"  # wkip attention can be .png!!!
-
-            # shotFileFullPath = f"{renderPath}"
-            # _logger.info(f" renderPath: {renderPath}")
-            # if not (shotFileFullPath.endswith("/") or shotFileFullPath.endswith("\\")):
-            #     shotFileFullPath += "\\"
-            # shotFileFullPath += f"{take_name}\\{shotFileName}"
-
-            # shotFileFullPath = shot.getCompositedMediaPath(renderPath)
             shotFileFullPath = shot.getOutputMediaPath(rootPath=renderPath)
             print(" Export otio - shotFileFullPath: ", shotFileFullPath)
-            shotFileName = Path(shotFileFullPath).name
+            # shotFileName = Path(shotFileFullPath).name
+            shotFileName = Path(shotFileFullPath).stem
 
             _logger.info(f" Adding shot: {shotFileFullPath}")
             if not Path(shotFileFullPath).exists():

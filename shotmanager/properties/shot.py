@@ -104,6 +104,9 @@ class UAS_ShotManager_Shot(ShotInterface, PropertyGroup):
         self,
         rootPath=None,
         insertTakeName=True,
+        insertShotFolder=False,
+        insertTempFolder=False,
+        insertShotPrefix=False,
         providePath=True,
         provideName=True,
         provideExtension=True,
@@ -114,6 +117,9 @@ class UAS_ShotManager_Shot(ShotInterface, PropertyGroup):
             self,
             rootPath=rootPath,
             insertTakeName=insertTakeName,
+            insertShotFolder=insertShotFolder,
+            insertTempFolder=insertTempFolder,
+            insertShotPrefix=insertShotPrefix,
             providePath=providePath,
             provideName=provideName,
             provideExtension=provideExtension,
@@ -128,13 +134,23 @@ class UAS_ShotManager_Shot(ShotInterface, PropertyGroup):
 
         if not (rootFilePath.endswith("/") or rootFilePath.endswith("\\")):
             rootFilePath += "\\"
+
         compositedMediaPath = (
             f"{rootFilePath}{takeName}\\{self.getOutputFileName(fullPath=False)}"  # .{outputFileFormat}"
         )
+        print(f"++ compositedMediaPath 1: {compositedMediaPath}")
+        compositedMediaPath = self.getOutputMediaPath(rootPath=rootFilePath, insertTakeName=True)
+        print(f"++ compositedMediaPath 2: {compositedMediaPath}")
+
         if specificFrame is not None:
             compositedMediaPath = (
                 f"{rootFilePath}{takeName}\\{self.getOutputFileName(fullPath=False, specificFrame=specificFrame)}"
             )
+            print(f"++-- compositedMediaPath 3: {compositedMediaPath}")
+            compositedMediaPath = self.getOutputMediaPath(
+                rootPath=rootFilePath, insertTakeName=True, specificFrame=specificFrame
+            )
+            print(f"++-- compositedMediaPath 4: {compositedMediaPath}")
 
         # compositedMediaPath.replace("\\", "/")
 
@@ -143,7 +159,7 @@ class UAS_ShotManager_Shot(ShotInterface, PropertyGroup):
     def getName_PathCompliant(self, withPrefix=False):
         shotName = self.name.replace(" ", "_")
         if withPrefix:
-            shotName = f"{self.parentScene.UAS_shot_manager_props.renderShotPrefix()}_{shotName}"
+            shotName = f"{self.parentScene.UAS_shot_manager_props.renderShotPrefix()}{shotName}"
         return shotName
 
     def _get_name(self):
