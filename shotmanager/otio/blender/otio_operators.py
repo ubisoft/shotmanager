@@ -94,12 +94,12 @@ class UAS_ShotManager_Export_OTIO(Operator):
     def execute(self, context):
         props = context.scene.UAS_shot_manager_props
 
-        print("Exporting OTIO file...")
+        print("Exporting edit file...")
         if props.isRenderRootPathValid():
             exportShotManagerEditToOtio(
                 context.scene,
                 filePath=props.renderRootPath,
-                fileName=f"{props.getCurrentTake().getName_PathCompliant()}.{props.renderSettingsOtio.otioFileType.lower()}",
+                fileName=f"{props.getCurrentTake().getName_PathCompliant(withPrefix=True)}.{props.renderSettingsOtio.otioFileType.lower()}",
                 fps=context.scene.render.fps,
                 # montageCharacteristics=props.get_montage_characteristics(),
             )

@@ -119,8 +119,10 @@ class UAS_ShotManager_Take(SequenceInterface, PropertyGroup):
         self.note03 = _copyString(source.note03)
         self.showNotes = source.showNotes
 
-    def getName_PathCompliant(self):
+    def getName_PathCompliant(self, withPrefix=False):
         takeName = self.name.replace(" ", "_")
+        if withPrefix:
+            takeName = f"{self.parentScene.UAS_shot_manager_props.getRenderShotPrefix()}{takeName}"
         return takeName
 
     def getShotList(self, ignoreDisabled=False):

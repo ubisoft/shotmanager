@@ -658,7 +658,7 @@ def createShotsFromOtioTimelineClass(
             if animaticFile is not None:
                 importAnimatic(montageOtio, ref_sequence_name, animaticFile, offsetFrameNumber)
 
-            # TOFIX wkip message don't appear...
+            # TODO: wkipwkipwkip message don't appear...
             if createCameras and atLeastOneVideoFailed:
                 utils.ShowMessageBox(
                     message=f"At least one video import failed...",
@@ -959,7 +959,7 @@ def conformToRefMontage(
         shotSelf = None
         for sh in shotList:
             # if sh.get_name() == shotRef.get_name():
-            shotName = props.renderShotPrefix() + "_" + sh.get_name()
+            shotName = props.getRenderShotPrefix() + "_" + sh.get_name()
             # print(f"shotName: {shotName}, shotRefName: {shotRefName}")
             if shotName == shotRefName:
                 shotSelf = sh
@@ -977,7 +977,7 @@ def conformToRefMontage(
             #     print("   and new media_path: ", media_path)
 
             if createMissingShots:
-                seqSelfName = props.renderShotPrefix() + "_"
+                seqSelfName = props.getRenderShotPrefix() + "_"
                 # print(
                 #     f"here 01: seqSelfName: {seqSelfName}, shotRefName: {shotRefName}, {shotRefName.find(seqSelfName)}"
                 # )

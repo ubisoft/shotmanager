@@ -130,9 +130,6 @@ def launchRenderWithVSEComposite(
 
     _logger.debug(f"Start Time: {startRenderintTime}")
 
-    # _logger.info(f" *** launchRenderWithVSEComposite")
-    # _logger.info(f"    render_shot_prefix: {props.renderShotPrefix()}")
-
     take = props.getCurrentTake() if -1 == takeIndex else props.getTakeByIndex(takeIndex)
     takeName = take.getName_PathCompliant()
     shotListTmp = (
@@ -194,7 +191,7 @@ def launchRenderWithVSEComposite(
     #######################
 
     projectFps = scene.render.fps
-    sequenceFileName = props.renderShotPrefix() + takeName
+    sequenceFileName = props.getRenderShotPrefix() + takeName
     scene.use_preview_range = False
     renderResolution = [scene.render.resolution_x, scene.render.resolution_y]
     renderResolutionFramed = [scene.render.resolution_x, scene.render.resolution_y]
@@ -209,7 +206,7 @@ def launchRenderWithVSEComposite(
         props.applyProjectSettings()
         scene.render.image_settings.file_format = props.project_images_output_format
         projectFps = props.project_fps
-        sequenceFileName = props.renderShotPrefix()
+        sequenceFileName = props.getRenderShotPrefix()
         renderResolution = [props.project_resolution_x, props.project_resolution_y]
         renderResolutionFramed = [props.project_resolution_framed_x, props.project_resolution_framed_y]
 
@@ -334,10 +331,8 @@ def launchRenderWithVSEComposite(
         # context.window_manager.UAS_shot_manager_progressbar = (i + 1) / len(shotList) * 100.0
         # bpy.ops.wm.redraw_timer(type="DRAW_WIN_SWAP", iterations=2)
 
-        # newTempRenderPath = rootPath + takeName + "\\" + shot.getName_PathCompliant() + "\\"
         newTempRenderPath = shot.getOutputMediaPath(rootPath=rootPath, insertTempFolder=True, provideName=False)
 
-        # compositedMediaPath = shot.getCompositedMediaPath(rootPath, specificFrame=specificFrame)
         compositedMediaPath = shot.getOutputMediaPath(
             rootPath=rootPath, insertShotPrefix=True, specificFrame=specificFrame
         )
@@ -376,9 +371,6 @@ def launchRenderWithVSEComposite(
                 infoStr += f"{props.renderContext.renderHardwareMode} - {props.renderContext.renderFrameIterationMode}"
 
             print(infoStr)
-
-            # print("\n     newTempRenderPath: ", newTempRenderPath)
-            # print("     compositedMediaPath: ", compositedMediaPath)
 
             _deleteTempFiles(newTempRenderPath)
 
@@ -490,10 +482,25 @@ def launchRenderWithVSEComposite(
                         # _logger.debug("ici PAS loop pas playblast")
                         bpy.ops.render.render(animation=True, write_still=False)
 
+            renderedImgSeq_resolution = renderResolution
+
             #######################
             # render stamped info
             #######################
+            infoImgSeq = None
+            infoImgSeq_resolution = renderedImgSeq_resolution
             if preset_useStampInfo:
+                # returns "#####" if specificFrame is None, a formated frame otherwise
+                # frameIndStr = props.getFramePadding(frame=specificFrame)
+                # _logger.debug(f"\n - specificFrame: {specificFrame}")
+                #    infoImgSeq = newTempRenderPath + "_tmp_StampInfo." + frameIndStr + ".png"
+                infoImgSeq = newTempRenderPath + shot.getOutputMediaPath(
+                    providePath=False, insertStampInfoPrefix=True, genericFrame=True
+                )
+                infoImgSeq_resolution = renderResolutionFramed
+                #   print(f"\ntoto infoImgSeq_resolution: {infoImgSeq_resolution}\n")
+                # infoImgSeq_resolution = stampInfoSettings.getRenderResolutionForStampInfo(scene)
+
                 renderStampedInfoForShot(
                     stampInfoSettings,
                     props,
@@ -522,8 +529,13 @@ def launchRenderWithVSEComposite(
             audioFilePath = None
             if specificFrame is None and renderSound:
                 # render sound
+                # audioFilePath = (
+                #     newTempRenderPath + f"{props.getRenderShotPrefix()}_{shot.getName_PathCompliant()}" + ".wav"
+                # )
                 audioFilePath = (
-                    newTempRenderPath + f"{props.renderShotPrefix()}_{shot.getName_PathCompliant()}" + ".wav"
+                    newTempRenderPath
+                    + shot.getOutputMediaPath(providePath=False, insertShotPrefix=True, provideExtension=False)
+                    + ".wav"
                 )
                 _logger.debug(f"\n Sound for shot {shot.name}:  {audioFilePath}")
 
@@ -556,22 +568,10 @@ def launchRenderWithVSEComposite(
                 # scene.frame_end = 50
                 # bpy.ops.render.opengl(animation=True, write_still=False)
                 # https://blenderartists.org/t/scripterror-mixdown-operstor/548056/4
-                bpy.ops.sound.mixdown(filepath=str(audioFilePath), relative_path=False, container="WAV", codec="PCM")
+                bpy.ops.sound.mixdown(filepath=audioFilePath, relative_path=False, container="WAV", codec="PCM")
                 # bpy.ops.sound.mixdown(filepath=audioFilePath, relative_path=False, container="MP3", codec="MP3")
 
             renderedImgSeq = newTempRenderPath + shot.getOutputMediaPath(providePath=False, genericFrame=True)
-            renderedImgSeq_resolution = renderResolution
-
-            infoImgSeq = None
-            infoImgSeq_resolution = renderedImgSeq_resolution
-            if preset_useStampInfo:
-                # returns "#####" if specificFrame is None, a formated frame otherwise
-                frameIndStr = props.getFramePadding(frame=specificFrame)
-                _logger.debug(f"\n - specificFrame: {specificFrame}")
-                infoImgSeq = newTempRenderPath + "_tmp_StampInfo." + frameIndStr + ".png"
-                infoImgSeq_resolution = renderResolutionFramed
-            #   print(f"\ntoto infoImgSeq_resolution: {infoImgSeq_resolution}\n")
-            # infoImgSeq_resolution = stampInfoSettings.getRenderResolutionForStampInfo(scene)
 
             if generateShotVideos:
 
@@ -613,6 +613,8 @@ def launchRenderWithVSEComposite(
                 # This is different from props.editStartFrame which is the offset of the scene take relatively to a main edit
                 print("--    newTempRenderPath: ", newTempRenderPath)
                 print("--    compositedMediaPath: ", compositedMediaPath)
+                compositedMedia_PathOnly = shot.getOutputMediaPath(rootPath=rootPath, provideName=False)
+                compositedMedia_NameOnly = shot.getName_PathCompliant()
 
                 if specificFrame is None:
                     video_frame_start = (
@@ -627,20 +629,23 @@ def launchRenderWithVSEComposite(
                         video_frame_start,
                         video_frame_end,
                         compositedMediaPath,
-                        shot.getName_PathCompliant(),
+                        compositedMedia_NameOnly,
+                        output_file_prefix=props.getRenderShotPrefix(),
+                        postfixSceneName=shot.getName_PathCompliant(),
                         output_resolution=infoImgSeq_resolution,
                         output_media_mode=renderPreset.outputMediaMode,
                         importAtFrame=video_frame_start,
                         frame_padding=padding,
                     )
                 else:
-                    # print(f"compositedMediaPath: {compositedMediaPath}")
                     vse_render.compositeVideoInVSE(
                         projectFps,
                         specificFrame,
                         specificFrame,
                         compositedMediaPath,
-                        shot.getName_PathCompliant(),
+                        compositedMedia_NameOnly,
+                        output_file_prefix=props.getRenderShotPrefix(),
+                        postfixSceneName=shot.getName_PathCompliant(),
                         output_resolution=infoImgSeq_resolution,
                         output_media_mode=renderPreset.outputMediaMode,
                         importAtFrame=0,
@@ -757,7 +762,7 @@ def launchRenderWithVSEComposite(
     # playblastInfos = {"startFrameIn3D": startFrameIn3D, "startFrameInEdit": startFrameInEdit}
     renderInfo["startFrameIn3D"] = startFrameIn3D
     renderInfo["startFrameInEdit"] = startFrameInEdit
-    renderInfo["startShotName"] = props.renderShotPrefix() + "_" + startShot.get_name()
+    renderInfo["startShotName"] = props.getRenderShotPrefix() + "_" + startShot.get_name()
     # startFrameIn3D = -1
     # startFrameInEdit = -1
 
@@ -891,7 +896,6 @@ def renderStampedInfoForShot(
     ##############
 
     scene.camera = shot.camera
-
     scene.frame_start = shot.start - handles
     scene.frame_end = shot.end + handles
 
@@ -918,23 +922,20 @@ def renderStampedInfoForShot(
 
     for f, currentFrame in enumerate(range(render_frame_start, render_frame_end + 1)):
 
-        # to do
+        # TODO
         renderStampedInfoForFrame(scene, currentFrame)
 
         # scene.frame_current = currentFrame
         scene.frame_set(currentFrame)
 
-        # scene.render.filepath = shot.getOutputFileName(
-        #     rootFilePath=rootPath, fullPath=True, specificFrame=scene.frame_current
-        # )
         scene.render.filepath = shot.getOutputMediaPath(
             rootPath=rootPath, insertTempFolder=True, specificFrame=scene.frame_current
         )
-        shotFilename = shot.getOutputMediaPath(rootPath=rootPath, providePath=False, specificFrame=scene.frame_current)
+        #    shotFilename = shot.getName_PathCompliant()
 
         stampInfoSettings.renderRootPath = newTempRenderPath
 
-        stampInfoSettings.shotName = f"{props.renderShotPrefix()}{shot.name}"
+        stampInfoSettings.shotName = f"{props.getRenderShotPrefix()}{shot.name}"
         # stampInfoSettings.shotName = f"{shot.name}"
 
         if stampInfoCustomSettingsDict is not None:
@@ -948,23 +949,21 @@ def renderStampedInfoForShot(
         stampInfoSettings.cameraName = shot.camera.name
         stampInfoSettings.edit3DFrame = props.getEditTime(shot, currentFrame, referenceLevel="GLOBAL_EDIT")
 
-        if verbose or True:
+        tmpShotFilename = shot.getOutputMediaPath(
+            providePath=False, insertStampInfoPrefix=True, specificFrame=currentFrame
+        )
+        if verbose:
             print("      ------------------------------------------")
             print(
                 f"      \nStamp Info Frame: {currentFrame}    ( {f + 1} / {numFramesInShot} )    -     Shot: {shot.name}"
                 f"      \nscene.render.filepath: {scene.render.filepath}"
-                f"      \nshotFilename: {shotFilename}"
+                f"      \ntmpShotFilename: {tmpShotFilename}"
                 f"      \nstampInfoSettings.renderRootPath: {stampInfoSettings.renderRootPath}"
             )
 
         stampInfoSettings.renderTmpImageWithStampedInfo(
-            scene,
-            currentFrame,
-            renderPath=newTempRenderPath,
-            renderFilename=r"_tmp_StampInfo." + props.getFramePadding(frame=currentFrame) + ".png",
-            verbose=False,
+            scene, currentFrame, renderPath=newTempRenderPath, renderFilename=tmpShotFilename, verbose=False,
         )
-        # stampInfoSettings.renderTmpImageWithStampedInfo(scene, currentFrame, verbose=True)
 
     ##############
     # restore scene state
@@ -1159,6 +1158,7 @@ def launchRender(context, renderMode, rootPath, area=None):
                             scene,
                             takeIndex=takeInd,
                             filePath=props.renderRootPath,
+                            fileName=f"{props.getCurrentTake().getName_PathCompliant(withPrefix=True)}.{props.renderSettingsOtio.otioFileType.lower()}",
                             fileListOnly=False,
                             #  montageCharacteristics=props.get_montage_characteristics(),
                         )

@@ -391,8 +391,8 @@ class UAS_ShotManager_RenderSettings(PropertyGroup):
 
     otioFileType: EnumProperty(
         name="File Type",
-        description="Export the edit either in an OpenTimelineIO file format or a standard XML",
-        items=(("OTIO", "Otio", ""), ("XML", "Xml", "")),
+        description="Export the edit either in an OpenTimelineIO file format or a Final Cut XML",
+        items=(("OTIO", "Otio", ""), ("XML", "Xml (Final Cut)", "")),
         default="XML",
     )
 

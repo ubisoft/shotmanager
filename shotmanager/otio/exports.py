@@ -121,7 +121,8 @@ def exportShotManagerEditToOtio(
             seqMediaVideo.insertBefore(newNodeFormat, seqMediaVideo.firstChild)
 
         # print(f"dom1.toxml(): {dom1.toprettyxml()}")
-        print(f"dom1.toxml(): {dom1.toxml()}")
+        # use this:
+        # print(f"dom1.toxml(): {dom1.toxml()}")
 
         file_handle = open(filename, "w")
 
@@ -221,7 +222,7 @@ def exportShotManagerEditToOtio(
 
             available_range = opentimelineio.opentime.range_from_start_end_time(start_time, end_time_exclusive)
 
-            shotFileFullPath = shot.getOutputMediaPath(rootPath=renderPath)
+            shotFileFullPath = shot.getOutputMediaPath(rootPath=renderPath, insertShotPrefix=True)
             print(" Export otio - shotFileFullPath: ", shotFileFullPath)
             # shotFileName = Path(shotFileFullPath).name
             shotFileName = Path(shotFileFullPath).stem

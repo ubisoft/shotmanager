@@ -220,9 +220,9 @@ def drawRenderInfos(context, layout):
 
         col.separator()
         row = col.row()
-        filePath = props.getCurrentShot().getOutputMediaPath()
+        filePath = props.getCurrentShot().getOutputMediaPath(provideName=False)
         row.separator(factor=sepFactor)
-        row.label(text="Current Video: " + filePath)
+        row.label(text="Rendered in: " + filePath)
         row.operator("uas_shot_manager.open_explorer", text="", icon_value=iconExplorer.icon_id).path = filePath
         col.separator()
 
@@ -250,10 +250,9 @@ def drawRenderInfos(context, layout):
 
         col.separator()
         row = col.row()
-        # filePath = props.getTakeOutputFilePath()
         filePath = props.getCurrentShot().getOutputMediaPath(provideName=False, provideExtension=False)
         row.separator(factor=sepFactor)
-        row.label(text="Rendering Folder: " + filePath)
+        row.label(text="Rendered in: " + filePath)
         row.operator("uas_shot_manager.open_explorer", text="", icon_value=iconExplorer.icon_id).path = filePath
         col.separator()
 

@@ -1009,6 +1009,8 @@ class ShotManager_Vse_Render(PropertyGroup):
         frame_start,
         frame_end,
         output_filepath,
+        output_filename=None,
+        output_file_prefix="",
         postfixSceneName="",
         output_resolution=None,
         output_media_mode="VIDEO",
@@ -1034,7 +1036,10 @@ class ShotManager_Vse_Render(PropertyGroup):
             fileExt = str(Path(output_filepath).suffix).upper()
             # get file name without extention
             # fileNoExt = output_filepath[: len(output_filepath) - len(fileExt)]
-            fileNoExt = str(Path(output_filepath).stem)
+            if output_filename is None:
+                fileNoExt = str(Path(output_filepath).stem)
+            else:
+                fileNoExt = output_filename
             # get file path only
             filePathOnly = str(Path(output_filepath).parent) + "\\"
 
@@ -1057,7 +1062,7 @@ class ShotManager_Vse_Render(PropertyGroup):
                 # remove the end digits if there are some
                 fileNoExt = fileNoExt.rstrip("0123456789")
 
-                vse_scene.render.filepath = filePathOnly + fileNoExt + frameIndStr + ".png"
+                vse_scene.render.filepath = filePathOnly + output_file_prefix + fileNoExt + frameIndStr + ".png"
 
                 # vse_scene.frame_set(specificFrame)
                 vse_scene.frame_set(importAtFrame)
@@ -1082,7 +1087,9 @@ class ShotManager_Vse_Render(PropertyGroup):
                     vse_scene.render.image_settings.file_format = "PNG"
                     ext = ".png"
 
-                vse_scene.render.filepath = filePathOnly + fileNoExt + "\\" + fileNoExt + frameIndStr + ext
+                vse_scene.render.filepath = (
+                    filePathOnly + fileNoExt + "\\" + output_file_prefix + fileNoExt + frameIndStr + ext
+                )
 
                 # since Blender starts the render indices at 1 and not 0 we have to rename the sequence
                 # another approach than renaming is to render still images
@@ -1100,7 +1107,7 @@ class ShotManager_Vse_Render(PropertyGroup):
                 vse_scene.render.ffmpeg.constant_rate_factor = "PERC_LOSSLESS"  # "PERC_LOSSLESS"
                 vse_scene.render.ffmpeg.gopsize = 5  # keyframe interval
                 vse_scene.render.ffmpeg.audio_codec = "AAC"
-                vse_scene.render.filepath = filePathOnly + fileNoExt + ".mp4"
+                vse_scene.render.filepath = filePathOnly + output_file_prefix + fileNoExt + ".mp4"
 
                 vse_scene.render.use_file_extension = False
                 bpy.ops.render.opengl(animation=True, sequencer=True)

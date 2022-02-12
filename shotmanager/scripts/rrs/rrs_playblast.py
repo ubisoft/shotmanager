@@ -86,7 +86,7 @@ def rrs_animatic_to_vsm(editVideoFile=None, otioFile=None, montageOtio=None, imp
     scene.render.resolution_y = 960
 
     # projectFps = scene.render.fps
-    # sequenceFileName = props.renderShotPrefix() + takeName
+    # sequenceFileName = props.getRenderShotPrefix() + takeName
     # scene.use_preview_range = False
     # renderResolution = [scene.render.resolution_x, scene.render.resolution_y]
     # renderResolutionFramed = [scene.render.resolution_x, scene.render.resolution_y]
@@ -96,7 +96,7 @@ def rrs_animatic_to_vsm(editVideoFile=None, otioFile=None, montageOtio=None, imp
     #     props.applyProjectSettings()
     #     scene.render.image_settings.file_format = props.project_images_output_format
     #     projectFps = scene.render.fps
-    #     sequenceFileName = props.renderShotPrefix()
+    #     sequenceFileName = props.getRenderShotPrefix()
     #     renderResolution = [props.project_resolution_x, props.project_resolution_y]
     #     renderResolutionFramed = [props.project_resolution_framed_x, props.project_resolution_framed_y]
 

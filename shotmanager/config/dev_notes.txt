@@ -10,3 +10,8 @@ Dialog windows width:   360
 
 
 invoke_popup width:     250
+
+
+To do V1.7.1 +:
+    - bug ds le Comparaison à l'import d'un edit: reorder pas pris en compte
+    - 

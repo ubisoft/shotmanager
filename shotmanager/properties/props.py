@@ -457,7 +457,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
     # shot manager per scene instance properties overriden by project settings
     render_shot_prefix: StringProperty(
         name="Render Shot Prefix",
-        description="Prefix added to the shot names at render time",
+        description="Prefix added to the shot names at render time" "\nExamples: Act01_, MyMovie_...",
         default="",
         options=set(),
     )
@@ -3002,17 +3002,18 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
 
         return formatedFrame
 
-    def renderShotPrefix(self):
+    def getRenderShotPrefix(self):
         shotPrefix = ""
 
         if self.use_project_settings:
-            # wkip wkip wkip to improve with project_shot_format!!!
+            # wkipwkipwkip to improve with project_shot_format!!!
             # scene name is used but it may be weak. Replace by take name??
             # shotPrefix = self.getParentScene().name
             shotPrefix = self.parentScene.name
         else:
             shotPrefix = self.render_shot_prefix
 
+        shotPrefix += self.sequence_name + "_"
         return shotPrefix
 
     def getOutputFileFormat(self, isVideo=True):
@@ -3068,35 +3069,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
 
         return filePath
 
-    # def getShotOutputFileNameFromIndex(
-    #     self,
-    #     shotIndex=-1,
-    #     takeIndex=-1,
-    #     rootFilePath="",
-    #     fullPath=False,
-    #     fullPathOnly=False,
-    #     specificFrame=None,
-    #     noExtension=False,
-    # ):
-    #     shot = self.getShotByIndex(shotIndex=shotIndex, takeIndex=takeIndex)
-
-    #     fileName = ""
-    #     if shot is None:
-    #         return fileName
-
-    #     fileName = self.getShotOutputFileName(
-    #         shot,
-    #         rootFilePath=rootFilePath,
-    #         fullPath=fullPath,
-    #         fullPathOnly=fullPathOnly,
-    #         specificFrame=specificFrame,
-    #         noExtension=False,
-    #     )
-
-    #     return fileName
-
     def getShotOutputMediaPath(
-        # self, shot, rootFilePath=None, fullPath=False, fullPathOnly=False, specificFrame=None, noExtension=False
         self,
         shot,
         rootPath=None,
@@ -3104,6 +3077,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         insertShotFolder=False,
         insertTempFolder=False,
         insertShotPrefix=False,
+        insertStampInfoPrefix=False,
         providePath=True,
         provideName=True,
         provideExtension=True,
@@ -3112,14 +3086,17 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
     ):
         """
         Return the shot path. It is made of: <root path>/<shot take name>/<prefix>_<shot name>[_<specific frame index (if specified)].<extention>
-        rootPath: start of the path, if specified. Otherwise the current file folder is used
-        providePath: if True then the returned file name starts with the full path
-        provideName: if True then the returned file name contains the name
-        provideExtension: if True then the returned file name ends with the file extention
+
+        Args:
+            rootPath: start of the path, if specified. Otherwise the current file folder is used
+            providePath: if True then the returned file name starts with the full path
+            provideName: if True then the returned file name contains the name
+            provideExtension: if True then the returned file name ends with the file extention
 
         if providePath is True:
             if rootPath is provided then the start of the path is the root, otherwise props.renderRootPath is used
             if insertTakeName is True then the name of the take is added to the path
+            if provideName is False then the returned path ends with '\\'
 
         if genericFrame is True then #### is used instead of the specific frame index
         """
@@ -3139,7 +3116,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
             if not (filePath.endswith("/") or filePath.endswith("\\")):
                 filePath += "\\"
 
-            if insertTakeName or insertShotFolder or insertTempFolder:
+            if insertTakeName or insertShotFolder or insertTempFolder or insertStampInfoPrefix:
                 filePath += shot.getParentTake().getName_PathCompliant() + "\\"
 
             if insertShotFolder or insertTempFolder:
@@ -3150,6 +3127,9 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
 
         # file name
         if provideName:
+            if insertStampInfoPrefix:
+                fileName += "_tmp_StampInfo_"
+
             fileName += shot.getName_PathCompliant(withPrefix=insertShotPrefix)
 
             if genericFrame:
@@ -3161,7 +3141,10 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
 
             # file extension
             if provideExtension:
-                fileExtension += "." + self.getOutputFileFormat(isVideo=specificFrame is None and not genericFrame)
+                if insertStampInfoPrefix:
+                    fileExtension += ".png"
+                else:
+                    fileExtension += "." + self.getOutputFileFormat(isVideo=specificFrame is None and not genericFrame)
 
         # result
         resultStr = filePath + fileName + fileExtension
@@ -3183,7 +3166,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
 
         # file
         fileName = shot.getName_PathCompliant()
-        shotPrefix = self.renderShotPrefix()
+        shotPrefix = self.getRenderShotPrefix()
         if "" != shotPrefix:
             fileName = shotPrefix + "_" + fileName
 
@@ -3283,50 +3266,6 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         #   print("    filename: " + filename)
         return filename
 
-    # returns the path of the info image corresponding to the specified frame
-    # path of temp info files is the same as the render output files
-    #   def getInfoFileFullPath(self, renderFrameInd):
-    #      pass
-    # #    print("\n getInfoFileFullPath ")
-    # #  filepath = bpy.data.filepath                               # get current .blend file path and name
-    #     filepath = scene.render.filepath                               # get current .blend file path and name
-    # #    print("    Temp Info Filepath: ", filepath)
-
-    #     filePathIsValid = False
-
-    #     # if path is relative then get the full path
-    #     if '//' == filepath[0:2]:                        #and bpy.data.is_saved:
-    #         # print("Rendering path is relative")
-    #         filepath = bpy.path.abspath(filepath)
-
-    #     filepath = bpy.path.abspath(filepath)
-    # #    print("    Temp Info Filepath 02: ", filepath)
-
-    #     # filename is parsed in order to remove the last block in case it doesn't finish with \ or / (otherwise it is
-    #     # the name of the file)
-    #     lastOccSeparator = filepath.rfind("\\")
-    #     if -1 != lastOccSeparator:
-    #         filepath = filepath[0:lastOccSeparator + 1]
-    # #        print("    Temp Info Filepath 03: ", filepath)
-
-    #     if os.path.exists(filepath):
-    # #        print("  Rendering path is valid")
-    #         filePathIsValid = True
-
-    #     renderPath              = None
-    #     renderedInfoFileName    = None
-    #     if filePathIsValid:
-    #         renderPath = os.path.dirname(filepath)               # get only .blend path
-
-    #     #  renderPath = r"Z:\EvalSofts\Blender\DevPython_Data\UAS_StampInfo_Data\Outputs"
-    # #        print("renderPath**: ", renderPath)
-    #         renderedInfoFileName = "\\" + getRenderFileName(scene)
-    #         renderedInfoFileName += r"_tmp_StampInfo." + '{:04d}'.format(renderFrameInd) + ".png"
-
-    # #       renderedInfoFileName = r"\_tmp_StampInfo." + '{:04d}'.format(renderFrameInd) + ".png"
-
-    #     return (renderPath, renderedInfoFileName)
-
     ##############################
 
     # Project ###
@@ -3403,8 +3342,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         settingsList.append(["Project Color Space", str(self.project_color_space)])
         settingsList.append(["Project Asset Name", str(self.project_asset_name)])
         settingsList.append(["new_shot_prefix", str(self.new_shot_prefix)])
-        # settingsList.append(["render_shot_prefix", str(self.render_shot_prefix)])
-
+        
         #################
         # applying project settings to parent scene
 

@@ -360,7 +360,7 @@ class UAS_PT_ShotManager(Panel):
             editrow = box.row()
             leftrow = editrow.row()
             leftrow.alignment = "LEFT"
-            leftrow.scale_x = 0.8
+            # leftrow.scale_x = 0.8
             leftrow.label(text="Edit:")
 
             rightrow = editrow.row()

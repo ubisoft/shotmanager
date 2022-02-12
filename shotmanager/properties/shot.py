@@ -107,6 +107,7 @@ class UAS_ShotManager_Shot(ShotInterface, PropertyGroup):
         insertShotFolder=False,
         insertTempFolder=False,
         insertShotPrefix=False,
+        insertStampInfoPrefix=False,
         providePath=True,
         provideName=True,
         provideExtension=True,
@@ -120,6 +121,7 @@ class UAS_ShotManager_Shot(ShotInterface, PropertyGroup):
             insertShotFolder=insertShotFolder,
             insertTempFolder=insertTempFolder,
             insertShotPrefix=insertShotPrefix,
+            insertStampInfoPrefix=insertStampInfoPrefix,
             providePath=providePath,
             provideName=provideName,
             provideExtension=provideExtension,
@@ -127,39 +129,10 @@ class UAS_ShotManager_Shot(ShotInterface, PropertyGroup):
             genericFrame=genericFrame,
         )
 
-    def getCompositedMediaPath(self, rootFilePath, specificFrame=None):
-        # props = shot.parentScene.UAS_shot_manager_props
-        takeName = self.getParentTake().getName_PathCompliant()
-        #    outputFileFormat = props.getOutputFileFormat(isVideo=specificFrame is None)
-
-        if not (rootFilePath.endswith("/") or rootFilePath.endswith("\\")):
-            rootFilePath += "\\"
-
-        compositedMediaPath = (
-            f"{rootFilePath}{takeName}\\{self.getOutputFileName(fullPath=False)}"  # .{outputFileFormat}"
-        )
-        print(f"++ compositedMediaPath 1: {compositedMediaPath}")
-        compositedMediaPath = self.getOutputMediaPath(rootPath=rootFilePath, insertTakeName=True)
-        print(f"++ compositedMediaPath 2: {compositedMediaPath}")
-
-        if specificFrame is not None:
-            compositedMediaPath = (
-                f"{rootFilePath}{takeName}\\{self.getOutputFileName(fullPath=False, specificFrame=specificFrame)}"
-            )
-            print(f"++-- compositedMediaPath 3: {compositedMediaPath}")
-            compositedMediaPath = self.getOutputMediaPath(
-                rootPath=rootFilePath, insertTakeName=True, specificFrame=specificFrame
-            )
-            print(f"++-- compositedMediaPath 4: {compositedMediaPath}")
-
-        # compositedMediaPath.replace("\\", "/")
-
-        return compositedMediaPath
-
     def getName_PathCompliant(self, withPrefix=False):
         shotName = self.name.replace(" ", "_")
         if withPrefix:
-            shotName = f"{self.parentScene.UAS_shot_manager_props.renderShotPrefix()}{shotName}"
+            shotName = f"{self.parentScene.UAS_shot_manager_props.getRenderShotPrefix()}{shotName}"
         return shotName
 
     def _get_name(self):
@@ -643,7 +616,7 @@ class UAS_ShotManager_Shot(ShotInterface, PropertyGroup):
         return props.getShotIndex(self)
 
     def get_name(self):
-        return self.parentScene.UAS_shot_manager_props.renderShotPrefix() + self.name
+        return self.parentScene.UAS_shot_manager_props.getRenderShotPrefix() + self.name
 
     def printInfo(self, only_clip_info=False):
         super().printInfo(only_clip_info=True)
