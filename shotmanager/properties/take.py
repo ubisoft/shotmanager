@@ -126,8 +126,7 @@ class UAS_ShotManager_Take(SequenceInterface, PropertyGroup):
         return takeName
 
     def getShotList(self, ignoreDisabled=False):
-        """ Return a filtered copy of the shots associated to this take
-        """
+        """Return a filtered copy of the shots associated to this take"""
         shotList = []
 
         for shot in self.shots:
@@ -141,8 +140,7 @@ class UAS_ShotManager_Take(SequenceInterface, PropertyGroup):
         return val
 
     def _set_name(self, value):
-        """ Set a unique name to the shot
-        """
+        """Set a unique name to the shot"""
         takes = self.getParentScene().UAS_shot_manager_props.getTakes()
         newName = findFirstUniqueName(self, value, takes)
         self["name"] = newName
@@ -158,8 +156,7 @@ class UAS_ShotManager_Take(SequenceInterface, PropertyGroup):
     shots: CollectionProperty(type=UAS_ShotManager_Shot)
 
     def getNumShots(self, ignoreDisabled=False):
-        """ Return the number of shots of the take
-        """
+        """Return the number of shots of the take"""
         numShots = 0
         if ignoreDisabled:
             for shot in self.shots:
@@ -173,8 +170,7 @@ class UAS_ShotManager_Take(SequenceInterface, PropertyGroup):
         return numShots
 
     def getShotsUsingCamera(self, cam, ignoreDisabled=False):
-        """ Return the list of all the shots used by the specified camera
-        """
+        """Return the list of all the shots used by the specified camera"""
         shotList = []
         for shot in self.shots:
             if cam == shot.camera and (not ignoreDisabled or shot.enabled):
@@ -275,7 +271,9 @@ class UAS_ShotManager_Take(SequenceInterface, PropertyGroup):
     #############
 
     showNotes: BoolProperty(
-        name="Show Take Notes", description="Show or hide current take notes", default=False,
+        name="Show Take Notes",
+        description="Show or hide current take notes",
+        default=False,
     )
 
     note01: StringProperty(name="Note 1", description="")
@@ -335,14 +333,12 @@ class UAS_ShotManager_Take(SequenceInterface, PropertyGroup):
         return self.parentScene.UAS_shot_manager_props.editStartFrame
 
     def get_frame_end(self):
-        """get_frame_end is exclusive in order to follow the Blender implementation of get_frame_end for its clips
-        """
+        """get_frame_end is exclusive in order to follow the Blender implementation of get_frame_end for its clips"""
         return (
             self.parentScene.UAS_shot_manager_props.editStartFrame
             + self.parentScene.UAS_shot_manager_props.getEditDuration()
         )
 
     def get_frame_duration(self):
-        """ Same as self.getEditDuration()
-        """
+        """Same as self.getEditDuration()"""
         return self.get_frame_end() - self.get_frame_start()

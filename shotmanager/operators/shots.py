@@ -96,8 +96,7 @@ class UAS_ShotManager_SetShotStart(Operator):
 
 
 class UAS_ShotManager_SetCurrentShot(Operator):
-    """Set the specifed shot as current
-    """
+    """Set the specifed shot as current"""
 
     bl_idname = "uas_shot_manager.set_current_shot"
     bl_label = "Set Current Shot"
@@ -430,7 +429,12 @@ class UAS_ShotManager_ShotAdd(Operator):
         default=(1.0, 1.0, 1.0),
     )
 
-    alignCamToView: BoolProperty(name="Align New Camera to Current View", default=True)
+    alignCamToView: BoolProperty(
+        name="Align New Camera to Current View",
+        description="If checked, the new camera is aligned to the current view."
+        "\nIf not checked then the camera is placed at the cursor location",
+        default=True,
+    )
 
     def invoke(self, context, event):
         wm = context.window_manager
@@ -1074,8 +1078,7 @@ def list_target_takes(self, context):
 
 
 def list_target_take_shots(self, context):
-    """ first index is -1 to define the take start
-    """
+    """first index is -1 to define the take start"""
     props = context.scene.UAS_shot_manager_props
     take = props.getTakeByName(self.targetTake)
     res = list()
@@ -1103,7 +1106,9 @@ class UAS_ShotManager_DuplicateShotsToOtherTake(Operator):
     )
 
     targetTake: EnumProperty(
-        name="Target Take", description="Take in which the shots will be duplicated", items=(list_target_takes),
+        name="Target Take",
+        description="Take in which the shots will be duplicated",
+        items=(list_target_takes),
     )
 
     insertAfterShot: EnumProperty(

@@ -23,6 +23,7 @@ from pathlib import Path
 
 import bpy
 from bpy.types import Panel
+import addon_utils
 
 from ..config import config
 from ..utils import utils
@@ -305,6 +306,8 @@ def draw3DRenderPanel(self, context):
     props = context.scene.UAS_shot_manager_props
     iconExplorer = config.icons_col["General_Explorer_32"]
 
+    stampInfoAvailable = props.isStampInfoAvailable()
+
     def _separatorRow(layout):
         itemsRow = layout.row()
         itemsRow.scale_y = 0.8
@@ -491,8 +494,11 @@ def draw3DRenderPanel(self, context):
 
             itemsRow = bypassItemsCol.row()
             col = itemsRow.column()
+            col.enabled = stampInfoAvailable
             row = col.row()
             row.prop(props.renderSettingsStill, "useStampInfo")
+            if not stampInfoAvailable:
+                row.label(text="*** Add-on not available ***")
             row = col.row()
             row.separator(factor=subItemSeparator)
             row.enabled = props.renderSettingsStill.useStampInfo
@@ -530,8 +536,11 @@ def draw3DRenderPanel(self, context):
 
             itemsRow = bypassItemsCol.row()
             col = itemsRow.column()
+            col.enabled = stampInfoAvailable
             row = col.row()
             row.prop(props.renderSettingsAnim, "useStampInfo")
+            if not stampInfoAvailable:
+                row.label(text="*** Add-on not available ***")
             row = col.row()
             row.separator(factor=subItemSeparator)
             row.enabled = props.renderSettingsAnim.useStampInfo
@@ -577,8 +586,11 @@ def draw3DRenderPanel(self, context):
 
             itemsRow = bypassItemsCol.row()
             col = itemsRow.column()
+            col.enabled = stampInfoAvailable
             row = col.row()
             row.prop(props.renderSettingsAll, "useStampInfo")
+            if not stampInfoAvailable:
+                row.label(text="*** Add-on not available ***")
             row = col.row()
             row.separator(factor=subItemSeparator)
             row.enabled = props.renderSettingsAll.useStampInfo
@@ -590,12 +602,17 @@ def draw3DRenderPanel(self, context):
             col = itemsRow.column()
 
             row = col.row()
-            row.prop(props.renderSettingsAll, "generateEditVideo")
-            row.prop(props.renderSettingsAll, "renderOtioFile")
+            split = row.split(factor=0.5)
+            split.prop(props.renderSettingsAll, "renderOtioFile")
+            subSplit = split.split(factor=0.3)
+            subSplit.enabled = props.renderSettingsAll.renderOtioFile
+            subSplit.label(text="Type:")
+            subSplit.prop(props.renderSettingsAll, "otioFileType", text="")
 
         col = box.column()
         row = col.row()
         row.prop(props.renderSettingsAll, "rerenderExistingShotVideos")
+        row.prop(props.renderSettingsAll, "generateEditVideo")
 
         row = col.row()
         row.prop(props.renderSettingsAll, "renderAllTakes")
@@ -603,15 +620,20 @@ def draw3DRenderPanel(self, context):
 
         drawRenderInfos(context, box)
 
-    # Edit file ###
+    # EDIT FILE ###
     elif props.displayOtioProps:
         row = layout.row()
         row.label(text="Render Edit File:")
 
         box = layout.box()
-        row = box.row()
 
-        row.prop(props.renderSettingsOtio, "otioFileType")
+        row = box.row()
+        row.label(text="Generate Edit for:")
+        row.prop(props.renderSettingsOtio, "outputMediaMode", text="")
+
+        row = box.row()
+        row.label(text="File Type:")
+        row.prop(props.renderSettingsOtio, "otioFileType", text="")
 
         row = box.row()
 
@@ -673,12 +695,20 @@ def draw3DRenderPanel(self, context):
         #     rowAlert.alert = True
         #     rowAlert.label(text="*** Invalid Root Path ***")
 
-        row = box.row()
+        bypassItemsCol = box.column_flow(columns=1)
+
+        itemsRow = bypassItemsCol.row()
+        col = itemsRow.column()
+        row = col.row()
         row.prop(props.renderSettingsPlayblast, "stampRenderInfo")
-        subRow = row.row()
-        subRow.enabled = props.renderSettingsPlayblast.stampRenderInfo
-        subRow.prop(props.renderSettingsPlayblast, "useStampInfo")
-        box.separator(factor=0.3)
+        row = col.row()
+        row.separator(factor=subItemSeparator)
+        row.enabled = stampInfoAvailable and props.renderSettingsPlayblast.stampRenderInfo
+        row.prop(props.renderSettingsAll, "useStampInfo")
+        if not stampInfoAvailable:
+            row.label(text="*** Add-on not available ***")
+
+        _separatorRow(bypassItemsCol)
 
         row = box.row()
         colFlow = row.column_flow(columns=3)

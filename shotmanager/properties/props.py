@@ -85,7 +85,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
     )
 
     def initialize_shot_manager(self):
-        print(f"\nInitializing Shot Manager... Scene: {bpy.context.scene.name}")
+        print(f"\nInitializing Shot Manager in the current scene ({bpy.context.scene.name})...")
         # self.parentScene = self.getParentScene()
 
         if self.parentScene is None:
@@ -97,6 +97,9 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         self.createDefaultTake()
         self.createRenderSettings()
 
+        # activate camera hud
+        # bpy.ops.uas_shot_manager.draw_camera_hud_in_viewports("INVOKE_DEFAULT")
+        # bpy.ops.uas_shot_manager.draw_camera_hud_in_pov("INVOKE_DEFAULT")
         self.camera_hud_display_in_viewports = True
         self.camera_hud_display_in_pov = True
 
@@ -116,11 +119,15 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         self["isInitialized"] = value
 
     isInitialized: BoolProperty(
-        get=get_isInitialized, set=set_isInitialized, default=False, options=set(),
+        get=get_isInitialized,
+        set=set_isInitialized,
+        default=False,
+        options=set(),
     )
 
     parentScene: PointerProperty(
-        type=Scene, options=set(),
+        type=Scene,
+        options=set(),
     )
 
     def findParentScene(self):
@@ -155,7 +162,8 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         return self.parentScene
 
     retimer: PointerProperty(
-        type=UAS_Retimer_Properties, options=set(),
+        type=UAS_Retimer_Properties,
+        options=set(),
     )
 
     def getWarnings(self, scene):
@@ -302,16 +310,24 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
     #############
 
     rrs_useRenderRoot: BoolProperty(
-        name="Use Render Root", default=True, options=set(),
+        name="Use Render Root",
+        default=True,
+        options=set(),
     )
     rrs_rerenderExistingShotVideos: BoolProperty(
-        name="Force Re-render", default=True, options=set(),
+        name="Force Re-render",
+        default=True,
+        options=set(),
     )
     rrs_fileListOnly: BoolProperty(
-        name="File List Only", default=True, options=set(),
+        name="File List Only",
+        default=True,
+        options=set(),
     )
     rrs_renderAlsoDisabled: BoolProperty(
-        name="Render Also Disabled Shots", default=False, options=set(),
+        name="Render Also Disabled Shots",
+        default=False,
+        options=set(),
     )
 
     # project settings
@@ -326,13 +342,19 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
     # naming
     ############
     project_shot_format: StringProperty(
-        name="Shot Format", default=r"Act{:02}_Seq{:04}_Sh{:04}", options=set(),
+        name="Shot Format",
+        default=r"Act{:02}_Seq{:04}_Sh{:04}",
+        options=set(),
     )
     project_name: StringProperty(
-        name="Project Name", default="My Project", options=set(),
+        name="Project Name",
+        default="My Project",
+        options=set(),
     )
     project_default_take_name: StringProperty(
-        name="Default Take Name", default="Main Take", options=set(),
+        name="Default Take Name",
+        default="Main Take",
+        options=set(),
     )
 
     project_use_shot_handles: BoolProperty(
@@ -370,19 +392,35 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
     # resolution
     ############
     project_fps: FloatProperty(
-        name="Project Fps", min=0.5, max=200.0, default=25.0, options=set(),
+        name="Project Fps",
+        min=0.5,
+        max=200.0,
+        default=25.0,
+        options=set(),
     )
     project_resolution_x: IntProperty(
-        name="Res. X", min=0, default=1280, options=set(),
+        name="Res. X",
+        min=0,
+        default=1280,
+        options=set(),
     )
     project_resolution_y: IntProperty(
-        name="Res. Y", min=0, default=720, options=set(),
+        name="Res. Y",
+        min=0,
+        default=720,
+        options=set(),
     )
     project_resolution_framed_x: IntProperty(
-        name="Res. Framed X", min=0, default=1280, options=set(),
+        name="Res. Framed X",
+        min=0,
+        default=1280,
+        options=set(),
     )
     project_resolution_framed_y: IntProperty(
-        name="Res. Framed Y", min=0, default=960, options=set(),
+        name="Res. Framed Y",
+        min=0,
+        default=960,
+        options=set(),
     )
 
     ############
@@ -390,18 +428,26 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
     ############
 
     project_color_space: StringProperty(
-        name="Color Space", default="", options=set(),
+        name="Color Space",
+        default="",
+        options=set(),
     )
     project_asset_name: StringProperty(
-        name="Asset Name", default="", options=set(),
+        name="Asset Name",
+        default="",
+        options=set(),
     )
 
     project_output_format: StringProperty(
-        name="Video Output Format", default="mp4", options=set(),
+        name="Video Output Format",
+        default="mp4",
+        options=set(),
     )
 
     project_sounds_output_format: StringProperty(
-        name="Sound Output Format", default="", options=set(),
+        name="Sound Output Format",
+        default="",
+        options=set(),
     )
 
     # add-on preferences overriden by project settings
@@ -425,7 +471,9 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
 
     # built-in project settings
     project_images_output_format: StringProperty(
-        name="Image Output Format", default="PNG", options=set(),
+        name="Image Output Format",
+        default="PNG",
+        options=set(),
     )
 
     # built-in settings
@@ -444,7 +492,8 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
     )
 
     new_shot_prefix: StringProperty(
-        default="Sh", options=set(),
+        default="Sh",
+        options=set(),
     )
 
     renderSingleFrameShotAsImage: BoolProperty(
@@ -570,7 +619,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
             resPercentage: use the scene render property named resolutionPercentage, or 100 to ignore it
             useStampInfo: if None then uses the context to define if used or not, if True then integrates it in the computation
             and if False then don't take it in account. This is required by the Project Bypass property in the SM Render Settings.
-            
+
         Returns:
             tupple with the render resolution x and y of the take
         """
@@ -596,8 +645,8 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
 
     def areShotHandlesUsed(self):
         """Return true if the shot handles are used by Shot Manager in the current context. This value is specified by:
-            - the project, if project settings are used,
-            - the settings of the current instance of Shot Manager otherwise
+        - the project, if project settings are used,
+        - the settings of the current instance of Shot Manager otherwise
         """
         return self.project_use_shot_handles if self.use_project_settings else self.use_handles
 
@@ -1126,7 +1175,10 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         self.setSelectedShotByIndex(0)
 
     current_take_name: EnumProperty(
-        name="Takes", description="Select a take", items=_list_takes, update=_update_current_take_name,
+        name="Takes",
+        description="Select a take",
+        items=_list_takes,
+        update=_update_current_take_name,
     )
 
     takes: CollectionProperty(type=UAS_ShotManager_Take)
@@ -1390,7 +1442,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
     def isStampInfoAllowed(self):
         """Return True if the add-on UAS Stamp Info is available and allowed to be used"""
         allowed = self.isStampInfoAvailable()
-        # wkip temp while fixing stamp info...
+        # wkipwkipwkip temp while fixing stamp info...
         allowed = allowed and False
         return allowed
 
@@ -2159,8 +2211,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         return self.selected_shot_index
 
     def getSelectedShot(self):
-        """Return the shot currently selected in the current take, None otherwise
-        """
+        """Return the shot currently selected in the current take, None otherwise"""
         selectedShotInd = self.getSelectedShotIndex()
         selectedShot = None
         if -1 != selectedShotInd:
@@ -2593,7 +2644,13 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
 
                 clipName = "myBGSound"
                 newSoundClip = vse_render.createNewClip(
-                    scene, str(sound_path), targetTrackInd, 0, importVideo=False, importAudio=True, clipName=clipName,
+                    scene,
+                    str(sound_path),
+                    targetTrackInd,
+                    0,
+                    importVideo=False,
+                    importAudio=True,
+                    clipName=clipName,
                 )
 
                 shot.bgSoundClipName = newSoundClip.name
@@ -3342,7 +3399,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         settingsList.append(["Project Color Space", str(self.project_color_space)])
         settingsList.append(["Project Asset Name", str(self.project_asset_name)])
         settingsList.append(["new_shot_prefix", str(self.new_shot_prefix)])
-        
+
         #################
         # applying project settings to parent scene
 

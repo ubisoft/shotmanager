@@ -46,7 +46,9 @@ class SM_Logger(logging.getLoggerClass()):
     def __init__(self, name):
         super(SM_Logger, self).__init__(name)
 
-        self._prefix = "CX"
+        self._prefix = "SM"
+        self._defaultColor = "WHITE"
+        self._defaultForm = "STD"
 
         # colors in terminal: https://stackoverflow.com/questions/384076/how-can-i-color-python-logging-output
         self._colors = {
@@ -113,8 +115,8 @@ class SM_Logger(logging.getLoggerClass()):
 
     def debug_form(self, col="GREEN", form="DEFAULT"):
         """Set formatter. To use before call to debug()
-            eg: _logger.debug_form(col="GREEN", form="STD")
-                _logger.debug("debug test timer green")
+        eg: _logger.debug_form(col="GREEN", form="STD")
+            _logger.debug("debug test timer green")
         """
         ch = logging.StreamHandler()
         ch.setLevel(logging.DEBUG)
@@ -143,13 +145,13 @@ class SM_Logger(logging.getLoggerClass()):
         # cf https://stackoverflow.com/questions/14406347/python-logging-check-location-of-log-files
         # and https://www.py4u.net/discuss/157715
         super(SM_Logger, self).debug(("{}").format(msg), extra=extra, stacklevel=2)
-        _logger.handlers[0].setFormatter(self._getFormatter(col, form))
+        _logger.handlers[0].setFormatter(self._getFormatter(self._defaultColor, self._defaultForm))
 
     def error_ext(self, msg, extra=None, col="RED", form="ERROR"):
         _logger.handlers[0].setFormatter(self._getFormatter(col, form))
 
         super(SM_Logger, self).error(("{}").format(msg), extra=extra, stacklevel=2)
-        _logger.handlers[0].setFormatter(self._getFormatter(col, form))
+        _logger.handlers[0].setFormatter(self._getFormatter(self._defaultColor, self._defaultForm))
 
     # # wkip not working...
     # def debug(self, msg, extra=None, col="GREEN", form="STD"):

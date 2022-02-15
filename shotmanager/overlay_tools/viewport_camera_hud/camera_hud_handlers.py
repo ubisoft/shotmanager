@@ -42,4 +42,3 @@ def shotMngHandler_load_post_cameraHUD(self, context):
             except Exception:
                 print("****** Paf in draw hud on camera pov handler  *")
                 # raise()
-
