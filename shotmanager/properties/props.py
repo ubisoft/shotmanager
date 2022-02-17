@@ -3101,34 +3101,143 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
                 outputFileFormat = "png"
         return outputFileFormat
 
-    def getTakeOutputFilePath(self, rootFilePath="", takeIndex=-1):
-        takeInd = (
-            self.getCurrentTakeIndex()
-            if -1 == takeIndex
-            else (takeIndex if 0 <= takeIndex and takeIndex < len(self.getTakes()) else -1)
-        )
-        filePath = ""
-        if -1 == takeInd:
-            return filePath
+    def getOutputMediaPath(
+        self,
+        outputMedia,
+        entity,
+        rootPath=None,
+        insertSeqPrefix=False,
+        providePath=True,
+        provideName=True,
+        provideExtension=True,
+        specificFrame=None,
+        genericFrame=False,
+    ):
+        """
+        Return the path of the media that is generated for the specified shot.
+        It is made of: <root path>/<shot take name>/<prefix>_<shot name>[_<specific frame index (if specified)].<extention>
 
-        if "" == rootFilePath:
-            #  head, tail = os.path.split(bpy.path.abspath(bpy.data.filepath))
-            # wkip we assume renderRootPath is valid...
-            head, tail = os.path.split(bpy.path.abspath(self.renderRootPath))
-            filePath = head + "\\"
-        else:
-            # wkip tester le chemin
-            filePath = rootFilePath
-            if not filePath.endswith("\\"):
+        Args:
+            outputMedia: can be:
+                - for an entity shot:
+                    SH_STILL:
+                    SH_IMAGE_SEQ:
+                    SH_VIDEO:
+                    SH_AUDIO:
+                    SH_INTERM_IMAGE_SEQ:
+                    SH_INTERM_STAMPINFO_SEQ:
+                - for an entity take:
+                    TK_IMAGE_SEQ:
+                    TK_VIDEO:
+                    TK_EDIT_IMAGE_SEQ:
+                    TK_EDIT_VIDEO:
+                - for an entity sequence (or montage):
+                    SEQ_ROOT: root to the sequence files and folders
+
+            entity: can be a shot, a take or a sequence (ie the montage)
+
+            rootPath: start of the path, if specified. Otherwise the current file folder is used
+
+            providePath: if True then the returned file name starts with the full path
+                if providePath is True:
+                    if rootPath is provided then the start of the path is the root, otherwise props.renderRootPath is used
+                    if insertTakeName is True then the name of the take is added to the path
+                    if provideName is False then the returned path ends with '\\'
+            provideName: if True then the returned file name contains the name
+            provideExtension: if True then the returned file name ends with the file extention
+
+            genericFrame: if genericFrame is True then #### is used instead of the specific frame index
+        """
+
+        filePath = ""
+        fileName = ""
+        fileExtension = ""
+
+        # file path
+        if providePath:
+            if rootPath is not None:
+                filePath += bpy.path.abspath(rootPath)
+            else:
+                #   filePath += bpy.path.abspath(bpy.data.filepath)     # current blender file path
+                filePath += bpy.path.abspath(self.renderRootPath)
+
+            if not (filePath.endswith("/") or filePath.endswith("\\")):
                 filePath += "\\"
 
-        filePath += f"{self.getTakeName_PathCompliant(takeIndex=takeInd)}" + "\\"
+            # if insertTakeName or insertShotFolder or insertTempFolder or insertStampInfoPrefix:
+            #     filePath += shot.getParentTake().getName_PathCompliant() + "\\"
 
-        return filePath
+            if "SH_" == outputMedia[0:3]:
+                # entity is a shot
+                filePath += entity.getParentTake().getName_PathCompliant() + "\\"
+
+                filePath += f"{entity.getName_PathCompliant()}"
+
+                if "INTERM_" == outputMedia[3:10]:
+                    filePath += "_Intermediate"
+                if "AUDIO" == outputMedia[3:8]:
+                    filePath += "_Intermediate"
+
+                filePath += "\\"
+
+            # if insertShotFolder or insertTempFolder:
+            #     filePath += f"{shot.getName_PathCompliant()}"
+            #     if insertTempFolder:
+            #         filePath += "_Intermediate"
+            #     filePath += "\\"
+
+            elif "TK_" == outputMedia[0:3]:
+                # entity is a take
+                filePath += entity.getName_PathCompliant() + "\\"
+            # elif "EDIT_" == outputMedia[0:5]:
+
+        # file name
+        if provideName:
+            if "SH_" == outputMedia[0:3]:
+                if "SH_INTERM_STAMPINFO_SEQ:" == outputMedia:
+                    fileName += "_tmp_StampInfo_"
+
+                # entity is a shot
+                fileName += entity.getName_PathCompliant(withPrefix=insertSeqPrefix)
+
+                if genericFrame:
+                    fileName += "_"
+                    # we add "#####"
+                    fileName += self.getFramePadding()
+                elif specificFrame is not None:
+                    fileName += "_" + self.getFramePadding(frame=specificFrame)
+
+            elif "TK_" == outputMedia[0:3]:
+                # entity is a take
+                fileName += entity.getName_PathCompliant(withPrefix=insertSeqPrefix)
+
+                if "TK_EDIT_IMAGE_SEQ" == outputMedia:
+                    fileName += "_ImgSq"
+
+            # file extension
+            if provideExtension:
+                if "SH_" == outputMedia[0:3]:
+                    if "SH_INTERM_STAMPINFO_SEQ" == outputMedia:
+                        fileExtension += ".png"
+                    else:
+                        fileExtension += "." + self.getOutputFileFormat(
+                            isVideo=specificFrame is None and not genericFrame
+                        )
+
+                elif "TK_" == outputMedia[0:3]:
+                    if "TK_EDIT_" == outputMedia[3:8]:
+                        fileExtension += "." + "xml"
+
+        # result
+        resultStr = filePath + fileName + fileExtension
+        resultStr.replace("\\", "/")  # //
+
+        #   _logger.debug(f" ** resultStr: {resultStr}")
+
+        return resultStr
 
     def getShotOutputMediaPath(
         self,
-        shot,
         rootPath=None,
         insertTakeName=True,
         insertShotFolder=False,
@@ -3142,22 +3251,36 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         genericFrame=False,
     ):
         """
-        Return the shot path. It is made of: <root path>/<shot take name>/<prefix>_<shot name>[_<specific frame index (if specified)].<extention>
+        Return the path of the media that is generated for the specified shot.
+        It is made of: <root path>/<shot take name>/<prefix>_<shot name>[_<specific frame index (if specified)].<extention>
 
         Args:
+            entity: can be a shot, a take or a sequence (ie the montage)
+
+            outputMedia: can be:
+                - for an entity shot:
+                    IMAGE_SEQ:
+                    VIDEO:
+                - for an entity take:
+                    EDIT_IMAGE_SEQ:
+                    EDIT_VIDEO:
+                - for an entity sequence (or montage):
+                    SEQ_ROOT: root to the sequence files and folders
+
             rootPath: start of the path, if specified. Otherwise the current file folder is used
+
             providePath: if True then the returned file name starts with the full path
+                if providePath is True:
+                    if rootPath is provided then the start of the path is the root, otherwise props.renderRootPath is used
+                    if insertTakeName is True then the name of the take is added to the path
+                    if provideName is False then the returned path ends with '\\'
             provideName: if True then the returned file name contains the name
             provideExtension: if True then the returned file name ends with the file extention
 
-        if providePath is True:
-            if rootPath is provided then the start of the path is the root, otherwise props.renderRootPath is used
-            if insertTakeName is True then the name of the take is added to the path
-            if provideName is False then the returned path ends with '\\'
-
-        if genericFrame is True then #### is used instead of the specific frame index
+            genericFrame: if genericFrame is True then #### is used instead of the specific frame index
         """
 
+        _logger.debug_ext("getShotOutputMediaPath is DEPRECATED, use getOutputMediaPath instead", col="RED")
         filePath = ""
         fileName = ""
         fileExtension = ""
@@ -3209,66 +3332,6 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
 
         #   _logger.debug(f" ** resultStr: {resultStr}")
 
-        return resultStr
-
-    def getShotOutputFileName(
-        self, shot, rootFilePath="", fullPath=False, fullPathOnly=False, specificFrame=None, noExtension=False
-    ):
-        """
-        Return the shot path
-        """
-        _logger.debug(f"*** props.getShotOutputFileName: Deprecated - use getShotOutputMediaPath")
-
-        resultStr = ""
-
-        # file
-        fileName = shot.getName_PathCompliant()
-        shotPrefix = self.getRenderShotPrefix()
-        if "" != shotPrefix:
-            fileName = shotPrefix + "_" + fileName
-
-        # fileName + frame index + extension
-        fileFullName = fileName
-        if specificFrame is not None:
-            fileFullName += "_" + f"{(specificFrame):04d}"
-
-        filePath = ""
-        if fullPath or fullPathOnly:
-
-            if "" == rootFilePath:
-                #  head, tail = os.path.split(bpy.path.abspath(bpy.data.filepath))
-                # wkip we assume renderRootPath is valid...
-                head, tail = os.path.split(bpy.path.abspath(self.renderRootPath))
-                filePath = head + "\\"
-            else:
-                # wkip tester le chemin
-                filePath = rootFilePath
-                if not filePath.endswith("\\"):
-                    filePath += "\\"
-
-            filePath += f"{self.getTakeName_PathCompliant(takeIndex = shot.getParentTakeIndex())}" + "\\"
-            filePath += f"{shot.getName_PathCompliant()}" + "\\"
-
-        #   filePath += f"//{fileName}"
-
-        # path is absolute and ends with a /
-        if fullPathOnly:
-            # _logger.debug(" ** fullPathOnly")
-            resultStr = filePath
-        elif fullPath:
-            #            _logger.debug(" ** fullpath")
-            resultStr = filePath + fileFullName
-            if not noExtension:
-                resultStr += "." + self.getOutputFileFormat(isVideo=specificFrame is None)
-        else:
-            #           _logger.debug(" ** else")
-            resultStr = fileFullName
-            #          _logger.debug(f" ** resultStr 1:  {resultStr}")
-            if not noExtension:
-                resultStr += "." + self.getOutputFileFormat(isVideo=specificFrame is None)
-        #         _logger.debug(f" ** resultStr 2:  {resultStr}")
-
-        _logger.debug(f" ** resultStr: {resultStr}")
         return resultStr
 
     def getSceneCameras(self):

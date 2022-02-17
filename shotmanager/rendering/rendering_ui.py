@@ -191,7 +191,7 @@ def drawRenderInfos(context, layout):
 
         col.separator()
         row = col.row()
-        filePath = props.getCurrentShot().getOutputMediaPath(specificFrame=bpy.context.scene.frame_current)
+        filePath = props.getCurrentShot().getOutputMediaPath("SH_STILL", specificFrame=bpy.context.scene.frame_current)
         row.separator(factor=sepFactor)
         row.label(text="Current Image: " + filePath)
         row.operator("uas_shot_manager.open_explorer", text="", icon_value=iconExplorer.icon_id).path = filePath
@@ -221,7 +221,7 @@ def drawRenderInfos(context, layout):
 
         col.separator()
         row = col.row()
-        filePath = props.getCurrentShot().getOutputMediaPath(provideName=False)
+        filePath = props.getCurrentShot().getOutputMediaPath("SH_VIDEO", provideName=False)
         row.separator(factor=sepFactor)
         row.label(text="Rendered in: " + filePath)
         row.operator("uas_shot_manager.open_explorer", text="", icon_value=iconExplorer.icon_id).path = filePath
@@ -251,7 +251,7 @@ def drawRenderInfos(context, layout):
 
         col.separator()
         row = col.row()
-        filePath = props.getCurrentShot().getOutputMediaPath(provideName=False, provideExtension=False)
+        filePath = props.getCurrentShot().getOutputMediaPath("SH_VIDEO", provideName=False)
         row.separator(factor=sepFactor)
         row.label(text="Rendered in: " + filePath)
         row.operator("uas_shot_manager.open_explorer", text="", icon_value=iconExplorer.icon_id).path = filePath

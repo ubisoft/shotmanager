@@ -77,31 +77,9 @@ class UAS_ShotManager_Shot(ShotInterface, PropertyGroup):
                             return scn
         return None
 
-    # def shotManager(self):
-    #     """Return the shot manager properties instance the shot is belonging to.
-    #     """
-    #     parentShotManager = None
-    #     parentScene = self.getParentScene()
-
-    #     if parentScene is not None:
-    #         parentShotManager = parentScene.UAS_shot_manager_props
-    #     return parentShotManager
-
-    def getOutputFileName(
-        self, rootFilePath="", fullPath=False, fullPathOnly=False, specificFrame=None, noExtension=False
-    ):
-        _logger.debug(f"*** shot.getOutputFileName: Deprecated - use getOutputMediaPath")
-        return self.parentScene.UAS_shot_manager_props.getShotOutputFileName(
-            self,
-            rootFilePath=rootFilePath,
-            fullPath=fullPath,
-            fullPathOnly=fullPathOnly,
-            specificFrame=specificFrame,
-            noExtension=noExtension,
-        )
-
     def getOutputMediaPath(
         self,
+        outputMedia,
         rootPath=None,
         insertTakeName=True,
         insertShotFolder=False,
@@ -114,11 +92,24 @@ class UAS_ShotManager_Shot(ShotInterface, PropertyGroup):
         specificFrame=None,
         genericFrame=False,
     ):
-        return self.parentScene.UAS_shot_manager_props.getShotOutputMediaPath(
+        # return self.parentScene.UAS_shot_manager_props.getShotOutputMediaPath(
+        #     self,
+        #     rootPath=rootPath,
+        #     insertTakeName=insertTakeName,
+        #     insertShotFolder=insertShotFolder,
+        #     insertTempFolder=insertTempFolder,
+        #     insertShotPrefix=insertShotPrefix,
+        #     insertStampInfoPrefix=insertStampInfoPrefix,
+        #     providePath=providePath,
+        #     provideName=provideName,
+        #     provideExtension=provideExtension,
+        #     specificFrame=specificFrame,
+        #     genericFrame=genericFrame,
+        # )
+        return self.parentScene.UAS_shot_manager_props.getOutputMediaPath(
             self,
+            outputMedia=outputMedia,
             rootPath=rootPath,
-            insertTakeName=insertTakeName,
-            insertShotFolder=insertShotFolder,
             insertTempFolder=insertTempFolder,
             insertShotPrefix=insertShotPrefix,
             insertStampInfoPrefix=insertStampInfoPrefix,
@@ -140,8 +131,7 @@ class UAS_ShotManager_Shot(ShotInterface, PropertyGroup):
         return val
 
     def _set_name(self, value):
-        """ Set a unique name to the shot
-        """
+        """Set a unique name to the shot"""
         shots = self.parentScene.UAS_shot_manager_props.getShotsList(takeIndex=self.getParentTakeIndex())
         newName = utils.findFirstUniqueName(self, value, shots)
         self["name"] = newName
@@ -238,15 +228,15 @@ class UAS_ShotManager_Shot(ShotInterface, PropertyGroup):
     #############
 
     def getDuration(self):
-        """ Returns the shot duration in frames
-            In Blender - and in Shot Manager - the last frame of the shot is included in the rendered images
+        """Returns the shot duration in frames
+        In Blender - and in Shot Manager - the last frame of the shot is included in the rendered images
         """
         duration = self.end - self.start + 1
         return duration
 
     def setDuration(self, duration, bypassLock=False):
-        """ Set the shot duration in frames
-            In Blender - and in Shot Manager - the last frame of the shot is included in the rendered images
+        """Set the shot duration in frames
+        In Blender - and in Shot Manager - the last frame of the shot is included in the rendered images
         """
         newDuration = max(duration, 1)
         if not self.durationLocked:
@@ -302,8 +292,7 @@ class UAS_ShotManager_Shot(ShotInterface, PropertyGroup):
     ##############
 
     def _filter_cameras(self, object):
-        """ Return true only for cameras from the same scene as the shot
-        """
+        """Return true only for cameras from the same scene as the shot"""
         # print("self", str(self))  # this shot
         # print("object", str(object))  # all the objects of the property type
 
@@ -321,9 +310,9 @@ class UAS_ShotManager_Shot(ShotInterface, PropertyGroup):
     )
 
     def isCameraValid(self):
-        """ Sometimes a pointed camera can seem to work but the camera object doesn't exist anymore in the scene.
-            Return True if the camera is really there, False otherwise
-            Note: This doesn't change the camera attribute of the shot
+        """Sometimes a pointed camera can seem to work but the camera object doesn't exist anymore in the scene.
+        Return True if the camera is really there, False otherwise
+        Note: This doesn't change the camera attribute of the shot
         """
         cameraIsInvalid = not self.camera is None
         if self.camera is not None:
@@ -403,13 +392,13 @@ class UAS_ShotManager_Shot(ShotInterface, PropertyGroup):
 
     def getEditStart(self, referenceLevel="TAKE"):
         """
-            referenceLevel can be "TAKE" or "GLOBAL_EDIT"
+        referenceLevel can be "TAKE" or "GLOBAL_EDIT"
         """
         return self.parentScene.UAS_shot_manager_props.getEditTime(self, self.start, referenceLevel=referenceLevel)
 
     def getEditEnd(self, referenceLevel="TAKE"):
         """
-            referenceLevel can be "TAKE" or "GLOBAL_EDIT"
+        referenceLevel can be "TAKE" or "GLOBAL_EDIT"
         """
         return self.parentScene.UAS_shot_manager_props.getEditTime(self, self.end, referenceLevel=referenceLevel)
 
@@ -541,8 +530,8 @@ class UAS_ShotManager_Shot(ShotInterface, PropertyGroup):
                 soundClip.mute = not useBgSound
 
     def isSoundSequenceValid(self):
-        """ Return true if there is no sound sequence -ie self.bgSoundClipName is "") or if a sequence with this name
-            is found in the VSE, false otherwise
+        """Return true if there is no sound sequence -ie self.bgSoundClipName is "") or if a sequence with this name
+        is found in the VSE, false otherwise
         """
         if "" == self.bgSoundClipName or self.bgSoundClipName in self.parentScene.sequence_editor.sequences:
             return True
@@ -594,15 +583,14 @@ class UAS_ShotManager_Shot(ShotInterface, PropertyGroup):
     # def __init__(self, parent, shot):      # cannot use this constructor since new shots are added directly to the array of take
     def __init__(self):
         """
-            parent: reference to the parent take
+        parent: reference to the parent take
         """
         #  self.parent = None
         super().__init__()
         pass
 
     def initialize(self, parent):
-        """ Parent is the parent take
-        """
+        """Parent is the parent take"""
         # if "parent" not in self:
         # props = self.parentScene.UAS_shot_manager_props
         # #  print(" icicicic parent in shot")
@@ -632,8 +620,7 @@ class UAS_ShotManager_Shot(ShotInterface, PropertyGroup):
         return self.getEditStart()
 
     def get_frame_end(self):
-        """get_frame_end is exclusive in order to follow the Blender implementation of get_frame_end for its clips
-        """
+        """get_frame_end is exclusive in order to follow the Blender implementation of get_frame_end for its clips"""
         return self.getEditEnd() + 1
 
     def get_frame_duration(self):
@@ -643,8 +630,7 @@ class UAS_ShotManager_Shot(ShotInterface, PropertyGroup):
         return self.get_frame_start()
 
     def get_frame_final_end(self):
-        """get_frame_final_end is exclusive in order to follow the Blender implementation of get_frame_end for its clips
-        """
+        """get_frame_final_end is exclusive in order to follow the Blender implementation of get_frame_end for its clips"""
         return self.get_frame_end()
 
     def get_frame_final_duration(self):
@@ -655,4 +641,3 @@ class UAS_ShotManager_Shot(ShotInterface, PropertyGroup):
 
     def get_frame_offset_end(self):
         return 0
-

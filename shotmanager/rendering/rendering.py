@@ -331,11 +331,15 @@ def launchRenderWithVSEComposite(
         # context.window_manager.UAS_shot_manager_progressbar = (i + 1) / len(shotList) * 100.0
         # bpy.ops.wm.redraw_timer(type="DRAW_WIN_SWAP", iterations=2)
 
-        newTempRenderPath = shot.getOutputMediaPath(rootPath=rootPath, insertTempFolder=True, provideName=False)
+        # newTempRenderPath = shot.getOutputMediaPath(rootPath=rootPath, insertTempFolder=True, provideName=False)
+        newTempRenderPath = shot.getOutputMediaPath("SH_INTERM_IMAGE_SEQ", rootPath=rootPath, provideName=False)
 
         compositedMediaPath = shot.getOutputMediaPath(
-            rootPath=rootPath, insertShotPrefix=True, specificFrame=specificFrame
+            "SH_IMAGE_SEQ", rootPath=rootPath, insertShotPrefix=True, specificFrame=specificFrame
         )
+        # compositedMediaPath = shot.getOutputMediaPath(
+        #     rootPath=rootPath, insertShotPrefix=True, specificFrame=specificFrame
+        # )
 
         newMediaFiles.append(compositedMediaPath)
         if shot.enabled:
@@ -418,8 +422,11 @@ def launchRenderWithVSEComposite(
                         # scene.frame_current = currentFrame
                         scene.frame_set(currentFrame)
 
+                        # scene.render.filepath = shot.getOutputMediaPath(
+                        #     rootPath=rootPath, insertTempFolder=True, specificFrame=scene.frame_current
+                        # )
                         scene.render.filepath = shot.getOutputMediaPath(
-                            rootPath=rootPath, insertTempFolder=True, specificFrame=scene.frame_current
+                            "SH_INTERM_IMAGE_SEQ", rootPath=rootPath, specificFrame=scene.frame_current
                         )
 
                         print("      \n")
@@ -458,7 +465,10 @@ def launchRenderWithVSEComposite(
                 # render all in one anim pass
                 else:
                     scene.render.filepath = shot.getOutputMediaPath(
-                        rootPath=rootPath, insertTempFolder=True, provideExtension=False, genericFrame=True,
+                        "SH_INTERM_IMAGE_SEQ",
+                        rootPath=rootPath,
+                        provideExtension=False,
+                        genericFrame=True,
                     )
 
                     #   _logger.debug("ici PAS loop")
@@ -494,8 +504,11 @@ def launchRenderWithVSEComposite(
                 # frameIndStr = props.getFramePadding(frame=specificFrame)
                 # _logger.debug(f"\n - specificFrame: {specificFrame}")
                 #    infoImgSeq = newTempRenderPath + "_tmp_StampInfo." + frameIndStr + ".png"
+                # infoImgSeq = newTempRenderPath + shot.getOutputMediaPath(
+                #     providePath=False, insertStampInfoPrefix=True, genericFrame=True
+                # )
                 infoImgSeq = newTempRenderPath + shot.getOutputMediaPath(
-                    providePath=False, insertStampInfoPrefix=True, genericFrame=True
+                    "SH_INTERM_STAMPINFO_SEQ", providePath=False, genericFrame=True
                 )
                 infoImgSeq_resolution = renderResolutionFramed
                 #   print(f"\ntoto infoImgSeq_resolution: {infoImgSeq_resolution}\n")
@@ -534,13 +547,16 @@ def launchRenderWithVSEComposite(
                 # )
                 audioFilePath = (
                     newTempRenderPath
-                    + shot.getOutputMediaPath(providePath=False, insertShotPrefix=True, provideExtension=False)
+                    # + shot.getOutputMediaPath(providePath=False, insertShotPrefix=True, provideExtension=False)
+                    + shot.getOutputMediaPath(
+                        "SH_AUDIO", providePath=False, insertShotPrefix=True, provideExtension=False
+                    )
                     + ".wav"
                 )
                 _logger.debug(f"\n Sound for shot {shot.name}:  {audioFilePath}")
 
                 if Path(audioFilePath).exists():
-                    print(f" *** Sound file still exists... Should have been deleted ***")
+                    print(" *** Sound file still exists... Should have been deleted ***")
                     try:
                         os.remove(audioFilePath)
                         if Path(audioFilePath).exists():
@@ -571,7 +587,10 @@ def launchRenderWithVSEComposite(
                 bpy.ops.sound.mixdown(filepath=audioFilePath, relative_path=False, container="WAV", codec="PCM")
                 # bpy.ops.sound.mixdown(filepath=audioFilePath, relative_path=False, container="MP3", codec="MP3")
 
-            renderedImgSeq = newTempRenderPath + shot.getOutputMediaPath(providePath=False, genericFrame=True)
+            # renderedImgSeq = newTempRenderPath + shot.getOutputMediaPath(providePath=False, genericFrame=True)
+            renderedImgSeq = newTempRenderPath + shot.getOutputMediaPath(
+                "SH_IMAGE_SEQ", providePath=False, genericFrame=True
+            )
 
             if generateShotVideos:
 
@@ -585,8 +604,11 @@ def launchRenderWithVSEComposite(
                 if specificFrame is None:
                     vse_render.inputBGMediaPath = renderedImgSeq
                 else:
+                    # vse_render.inputBGMediaPath = newTempRenderPath + shot.getOutputMediaPath(
+                    #     providePath=False, specificFrame=specificFrame
+                    # )
                     vse_render.inputBGMediaPath = newTempRenderPath + shot.getOutputMediaPath(
-                        providePath=False, specificFrame=specificFrame
+                        "SH_IMAGE_SEQ", providePath=False, specificFrame=specificFrame
                     )
 
                 _logger.debug(f"\n - BGMediaPath: {vse_render.inputBGMediaPath}")
@@ -613,7 +635,8 @@ def launchRenderWithVSEComposite(
                 # This is different from props.editStartFrame which is the offset of the scene take relatively to a main edit
                 print("--    newTempRenderPath: ", newTempRenderPath)
                 print("--    compositedMediaPath: ", compositedMediaPath)
-                compositedMedia_PathOnly = shot.getOutputMediaPath(rootPath=rootPath, provideName=False)
+                #   compositedMedia_PathOnly = shot.getOutputMediaPath(rootPath=rootPath, provideName=False)
+                compositedMedia_PathOnly = shot.getOutputMediaPath("SH_IMAGE_SEQ", rootPath=rootPath, provideName=False)
                 compositedMedia_NameOnly = shot.getName_PathCompliant()
 
                 if specificFrame is None:
@@ -928,8 +951,11 @@ def renderStampedInfoForShot(
         # scene.frame_current = currentFrame
         scene.frame_set(currentFrame)
 
+        # scene.render.filepath = shot.getOutputMediaPath(
+        #     rootPath=rootPath, insertTempFolder=True, specificFrame=scene.frame_current
+        # )
         scene.render.filepath = shot.getOutputMediaPath(
-            rootPath=rootPath, insertTempFolder=True, specificFrame=scene.frame_current
+            "SH_INTERM_IMAGE_SEQ", rootPath=rootPath, insertTempFolder=True, specificFrame=scene.frame_current
         )
         #    shotFilename = shot.getName_PathCompliant()
 
@@ -950,7 +976,7 @@ def renderStampedInfoForShot(
         stampInfoSettings.edit3DFrame = props.getEditTime(shot, currentFrame, referenceLevel="GLOBAL_EDIT")
 
         tmpShotFilename = shot.getOutputMediaPath(
-            providePath=False, insertStampInfoPrefix=True, specificFrame=currentFrame
+            "SH_INTERM_STAMPINFO_SEQ", providePath=False, specificFrame=currentFrame
         )
         if verbose:
             print("      ------------------------------------------")
@@ -962,7 +988,11 @@ def renderStampedInfoForShot(
             )
 
         stampInfoSettings.renderTmpImageWithStampedInfo(
-            scene, currentFrame, renderPath=newTempRenderPath, renderFilename=tmpShotFilename, verbose=False,
+            scene,
+            currentFrame,
+            renderPath=newTempRenderPath,
+            renderFilename=tmpShotFilename,
+            verbose=False,
         )
 
     ##############
@@ -1047,7 +1077,7 @@ def launchRender(context, renderMode, rootPath, area=None):
     if config.devDebug:
         renderDisplayInfo += f"{'   - Debug Mode: ': <20}{config.devDebug}\n"
 
-    renderDisplayInfo += f"\n"
+    renderDisplayInfo += "\n"
     print(renderDisplayInfo)
 
     if True:
@@ -1123,7 +1153,7 @@ def launchRender(context, renderMode, rootPath, area=None):
             print(json.dumps(renderedFilesDict, indent=4))
 
         elif "ALL" == preset.renderMode:
-            _logger.debug(f"Render All:" + str(props.renderSettingsAll.renderAllTakes))
+            _logger.debug(f"Render All: {str(props.renderSettingsAll.renderAllTakes)}")
             _logger.debug(f"Render All, preset.renderAllTakes: {preset.renderAllTakes}")
             if not fileIsReadOnly:
                 bpy.ops.wm.save_mainfile()
@@ -1168,7 +1198,7 @@ def launchRender(context, renderMode, rootPath, area=None):
             print(json.dumps(renderedFilesDict, indent=4))
 
         elif "PLAYBLAST" == preset.renderMode:
-            _logger.debug(f"Render Playblast")
+            _logger.debug("Render Playblast")
             if not fileIsReadOnly:
                 bpy.ops.wm.save_mainfile()
 

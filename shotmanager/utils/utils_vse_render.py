@@ -551,7 +551,14 @@ class ShotManager_Vse_Render(PropertyGroup):
         elif "CAMERA" == mediaType:
             newClipName = clipName if "" != clipName else "myCamera"
             newClip = _new_camera_sequence(
-                scene, newClipName, channelInd, atFrame, offsetStart, offsetEnd, cameraScene, cameraObject,
+                scene,
+                newClipName,
+                channelInd,
+                atFrame,
+                offsetStart,
+                offsetEnd,
+                cameraScene,
+                cameraObject,
             )
             newClip.blend_type = "ALPHA_OVER"
 
@@ -838,7 +845,12 @@ class ShotManager_Vse_Render(PropertyGroup):
                         clip_x = inputOverResolution[0]
                         clip_y = inputOverResolution[1]
                         self.cropClipToCanvas(
-                            res_x, res_y, overClip, clip_x, clip_y, mode="FIT_WIDTH",
+                            res_x,
+                            res_y,
+                            overClip,
+                            clip_x,
+                            clip_y,
+                            mode="FIT_WIDTH",
                         )
                         # overClip.use_crop = True
                         # overClip.crop.min_x = -1 * int((mediaDictArr[0]["bg_resolution"][0] - inputOverResolution[0]) / 2)
@@ -855,7 +867,11 @@ class ShotManager_Vse_Render(PropertyGroup):
                         audioClip = self.createNewClip(
                             sequenceScene, mediaDict["sound"], 1, atFrame, final_duration=shotDuration
                         )
-                        audioClip = self.createNewClipFromRange(sequenceScene, mediaDict["sound"], 1,)
+                        audioClip = self.createNewClipFromRange(
+                            sequenceScene,
+                            mediaDict["sound"],
+                            1,
+                        )
                     else:
                         print(f" *** Rendered shot not found: {mediaDict['sound']}")
 
@@ -1019,7 +1035,7 @@ class ShotManager_Vse_Render(PropertyGroup):
     ):
         """Low level function that will use the bg and fg media already held by this vse_render class to generate
         a media
-        
+
         Args:
             output_resolution: array [width, height]
             output_media_mode: can be "IMAGE_SEQ", "VIDEO", "IMAGE_SEQ_AND_VIDEO". Specify the file format of the rendered
@@ -1028,8 +1044,7 @@ class ShotManager_Vse_Render(PropertyGroup):
         """
 
         def _setOutputMediaAndRender(output_media_type):
-            """output_media_type can be "IMAGE", "IMAGE_SEQ" or "VIDEO"
-            """
+            """output_media_type can be "IMAGE", "IMAGE_SEQ" or "VIDEO" """
             _logger.debug_ext(f"_setOutputMediaAndRender output_media_type: {output_media_type}", form="REG")
 
             # get output file format from specified output (can be emtpy !!)
