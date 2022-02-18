@@ -293,7 +293,7 @@ class ShotManager_Vse_Render(PropertyGroup):
         mediaExt = Path(filePath.lower()).suffix
         if mediaExt in (".mp4", ".avi", ".mov", ".mkv"):
             mediaType = "MOVIE"
-        elif mediaExt in (".jpg", ".jpeg", ".png", ".tga", ".tif", ".tiff"):
+        elif mediaExt in (".exr", ".jpg", ".jpeg", ".png", ".tga", ".tif", ".tiff"):
             if -1 != filePath.find("###"):
                 mediaType = "IMAGES_SEQUENCE"
             else:
@@ -551,14 +551,7 @@ class ShotManager_Vse_Render(PropertyGroup):
         elif "CAMERA" == mediaType:
             newClipName = clipName if "" != clipName else "myCamera"
             newClip = _new_camera_sequence(
-                scene,
-                newClipName,
-                channelInd,
-                atFrame,
-                offsetStart,
-                offsetEnd,
-                cameraScene,
-                cameraObject,
+                scene, newClipName, channelInd, atFrame, offsetStart, offsetEnd, cameraScene, cameraObject,
             )
             newClip.blend_type = "ALPHA_OVER"
 
@@ -845,12 +838,7 @@ class ShotManager_Vse_Render(PropertyGroup):
                         clip_x = inputOverResolution[0]
                         clip_y = inputOverResolution[1]
                         self.cropClipToCanvas(
-                            res_x,
-                            res_y,
-                            overClip,
-                            clip_x,
-                            clip_y,
-                            mode="FIT_WIDTH",
+                            res_x, res_y, overClip, clip_x, clip_y, mode="FIT_WIDTH",
                         )
                         # overClip.use_crop = True
                         # overClip.crop.min_x = -1 * int((mediaDictArr[0]["bg_resolution"][0] - inputOverResolution[0]) / 2)
@@ -867,11 +855,7 @@ class ShotManager_Vse_Render(PropertyGroup):
                         audioClip = self.createNewClip(
                             sequenceScene, mediaDict["sound"], 1, atFrame, final_duration=shotDuration
                         )
-                        audioClip = self.createNewClipFromRange(
-                            sequenceScene,
-                            mediaDict["sound"],
-                            1,
-                        )
+                        audioClip = self.createNewClipFromRange(sequenceScene, mediaDict["sound"], 1,)
                     else:
                         print(f" *** Rendered shot not found: {mediaDict['sound']}")
 
@@ -1026,6 +1010,7 @@ class ShotManager_Vse_Render(PropertyGroup):
         frame_end,
         output_filepath,
         output_filename=None,
+        compositedImgSeqPath=None,
         output_file_prefix="",
         postfixSceneName="",
         output_resolution=None,
@@ -1088,15 +1073,20 @@ class ShotManager_Vse_Render(PropertyGroup):
                 bpy.ops.render.opengl(animation=False, sequencer=True, write_still=True)
 
             elif "IMAGE_SEQ" == output_media_type:
-                if len(fileExt):
-                    if "JPG" == fileExt:
-                        vse_scene.render.image_settings.file_format = "JPG"
-                        ext = ".jpg"
-                    # if "PNG" == fileExt:
-                    else:
-                        # output file is PNG otherwise
-                        vse_scene.render.image_settings.file_format = "PNG"
-                        ext = ".png"
+                if compositedImgSeqPath is not None:
+                    ext = str(Path(compositedImgSeqPath).suffix).lower()
+
+                elif len(fileExt):
+                    # if "JPG" == fileExt:
+                    #     vse_scene.render.image_settings.file_format = "JPG"
+                    #     ext = ".jpg"
+                    # # if "PNG" == fileExt:
+                    # else:
+                    #     # output file is PNG otherwise
+                    #     vse_scene.render.image_settings.file_format = "PNG"
+                    #     ext = ".png"
+                    ext = "." + fileExt.lower()
+
                 else:
                     # output file is PNG otherwise
                     vse_scene.render.image_settings.file_format = "PNG"

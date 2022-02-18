@@ -333,7 +333,12 @@ class UAS_ShotManager_RenderSettings(PropertyGroup):
     # only used by STILL
     writeToDisk: BoolProperty(name="Write to Disk", default=False)
 
-    renderOtioFile: BoolProperty(name="Render Edit File", default=False)
+    # used by EDIT, ANIMATION and ALL
+    renderOtioFile: BoolProperty(
+        name="Generate Edit File",
+        description="Generate edit file for the current take." "\nOnly videos are supported at the moment",
+        default=False,
+    )
 
     useStampInfo: BoolProperty(name="Use Stamp Info", default=True)
 

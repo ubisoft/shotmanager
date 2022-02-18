@@ -192,7 +192,7 @@ class UAS_ShotManager_TakeDuplicate(Operator):
             props.current_take_name = newTake.name
             props.setCurrentShotByIndex(currentShotIndex)
 
-        return {"FINISHED"}
+        return {"INTERFACE"}
 
 
 class UAS_ShotManager_TakeRemove(Operator):
@@ -228,7 +228,7 @@ class UAS_ShotManager_TakeRemove(Operator):
 
         props.setCurrentShotByIndex(0)
 
-        return {"FINISHED"}
+        return {"INTERFACE"}
 
 
 class UAS_ShotManager_TakeRename(Operator):
@@ -260,7 +260,7 @@ class UAS_ShotManager_TakeRename(Operator):
             self.name = props.getUniqueTakeName(self.name)
             currentTake.name = self.name
 
-        return {"FINISHED"}
+        return {"INTERFACE"}
 
 
 class UAS_ShotManager_TakeMoveUp(Operator):
@@ -286,7 +286,7 @@ class UAS_ShotManager_TakeMoveUp(Operator):
         currentTakeInd = props.getCurrentTakeIndex()
         props.moveTakeToIndex(props.getCurrentTake(), currentTakeInd - 1)
 
-        return {"FINISHED"}
+        return {"INTERFACE"}
 
 
 class UAS_ShotManager_TakeMoveDown(Operator):
@@ -311,7 +311,7 @@ class UAS_ShotManager_TakeMoveDown(Operator):
         props = context.scene.UAS_shot_manager_props
         currentTakeInd = props.getCurrentTakeIndex()
         props.moveTakeToIndex(props.getCurrentTake(), currentTakeInd + 1)
-        return {"FINISHED"}
+        return {"INTERFACE"}
 
 
 class UAS_ShotManager_TakeAsMain(Operator):
@@ -348,7 +348,7 @@ class UAS_ShotManager_TakeAsMain(Operator):
             else:
                 newMainTake.name = "Main Take"
 
-        return {"FINISHED"}
+        return {"INTERFACE"}
 
 
 class UAS_ShotManager_ResetTakesToDefault(Operator):
@@ -382,7 +382,7 @@ class UAS_ShotManager_ResetTakesToDefault(Operator):
         #     if not c.users:
         #         bpy.data.collections.remove(c)
 
-        return {"FINISHED"}
+        return {"INTERFACE"}
 
 
 _classes = (

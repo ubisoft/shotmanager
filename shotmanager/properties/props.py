@@ -119,15 +119,11 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         self["isInitialized"] = value
 
     isInitialized: BoolProperty(
-        get=get_isInitialized,
-        set=set_isInitialized,
-        default=False,
-        options=set(),
+        get=get_isInitialized, set=set_isInitialized, default=False, options=set(),
     )
 
     parentScene: PointerProperty(
-        type=Scene,
-        options=set(),
+        type=Scene, options=set(),
     )
 
     def findParentScene(self):
@@ -162,8 +158,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         return self.parentScene
 
     retimer: PointerProperty(
-        type=UAS_Retimer_Properties,
-        options=set(),
+        type=UAS_Retimer_Properties, options=set(),
     )
 
     def getWarnings(self, scene):
@@ -310,24 +305,16 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
     #############
 
     rrs_useRenderRoot: BoolProperty(
-        name="Use Render Root",
-        default=True,
-        options=set(),
+        name="Use Render Root", default=True, options=set(),
     )
     rrs_rerenderExistingShotVideos: BoolProperty(
-        name="Force Re-render",
-        default=True,
-        options=set(),
+        name="Force Re-render", default=True, options=set(),
     )
     rrs_fileListOnly: BoolProperty(
-        name="File List Only",
-        default=True,
-        options=set(),
+        name="File List Only", default=True, options=set(),
     )
     rrs_renderAlsoDisabled: BoolProperty(
-        name="Render Also Disabled Shots",
-        default=False,
-        options=set(),
+        name="Render Also Disabled Shots", default=False, options=set(),
     )
 
     # project settings
@@ -342,19 +329,13 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
     # naming
     ############
     project_shot_format: StringProperty(
-        name="Shot Format",
-        default=r"Act{:02}_Seq{:04}_Sh{:04}",
-        options=set(),
+        name="Shot Format", default=r"Act{:02}_Seq{:04}_Sh{:04}", options=set(),
     )
     project_name: StringProperty(
-        name="Project Name",
-        default="My Project",
-        options=set(),
+        name="Project Name", default="My Project", options=set(),
     )
     project_default_take_name: StringProperty(
-        name="Default Take Name",
-        default="Main Take",
-        options=set(),
+        name="Default Take Name", default="Main Take", options=set(),
     )
 
     project_use_shot_handles: BoolProperty(
@@ -392,35 +373,19 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
     # resolution
     ############
     project_fps: FloatProperty(
-        name="Project Fps",
-        min=0.5,
-        max=200.0,
-        default=25.0,
-        options=set(),
+        name="Project Fps", min=0.5, max=200.0, default=25.0, options=set(),
     )
     project_resolution_x: IntProperty(
-        name="Res. X",
-        min=0,
-        default=1280,
-        options=set(),
+        name="Res. X", min=0, default=1280, options=set(),
     )
     project_resolution_y: IntProperty(
-        name="Res. Y",
-        min=0,
-        default=720,
-        options=set(),
+        name="Res. Y", min=0, default=720, options=set(),
     )
     project_resolution_framed_x: IntProperty(
-        name="Res. Framed X",
-        min=0,
-        default=1280,
-        options=set(),
+        name="Res. Framed X", min=0, default=1280, options=set(),
     )
     project_resolution_framed_y: IntProperty(
-        name="Res. Framed Y",
-        min=0,
-        default=960,
-        options=set(),
+        name="Res. Framed Y", min=0, default=960, options=set(),
     )
 
     ############
@@ -428,26 +393,18 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
     ############
 
     project_color_space: StringProperty(
-        name="Color Space",
-        default="",
-        options=set(),
+        name="Color Space", default="", options=set(),
     )
     project_asset_name: StringProperty(
-        name="Asset Name",
-        default="",
-        options=set(),
+        name="Asset Name", default="", options=set(),
     )
 
     project_output_format: StringProperty(
-        name="Video Output Format",
-        default="mp4",
-        options=set(),
+        name="Video Output Format", default="mp4", options=set(),
     )
 
     project_sounds_output_format: StringProperty(
-        name="Sound Output Format",
-        default="",
-        options=set(),
+        name="Sound Output Format", default="", options=set(),
     )
 
     # add-on preferences overriden by project settings
@@ -471,9 +428,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
 
     # built-in project settings
     project_images_output_format: StringProperty(
-        name="Image Output Format",
-        default="PNG",
-        options=set(),
+        name="Image Output Format", default="PNG", options=set(),
     )
 
     # built-in settings
@@ -492,8 +447,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
     )
 
     new_shot_prefix: StringProperty(
-        default="Sh",
-        options=set(),
+        default="Sh", options=set(),
     )
 
     renderSingleFrameShotAsImage: BoolProperty(
@@ -1175,10 +1129,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         self.setSelectedShotByIndex(0)
 
     current_take_name: EnumProperty(
-        name="Takes",
-        description="Select a take",
-        items=_list_takes,
-        update=_update_current_take_name,
+        name="Takes", description="Select a take", items=_list_takes, update=_update_current_take_name,
     )
 
     takes: CollectionProperty(type=UAS_ShotManager_Take)
@@ -1285,9 +1236,8 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         currentTakeName = self.current_take_name
         return currentTakeName
 
-    # wkip deprecated
     def getTakeName_PathCompliant(self, takeIndex=-1):
-        """Return the name of the specified take with spaces replaced by "_" """
+        """Return the name of the current take with spaces replaced by a non-space separator """
         takeInd = (
             self.getCurrentTakeIndex()
             if -1 == takeIndex
@@ -2490,6 +2440,22 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
 
         return (numSharedCams, len(sharedCams))
 
+    def hisThereSharedCameraInTake(self, ignoreDisabled=False, takeIndex=-1, inAllTakes=True):
+        """Return True if there is at least 1 camera shared in the specified take, False otherwise"""
+        takeInd = (
+            self.getCurrentTakeIndex()
+            if -1 == takeIndex
+            else (takeIndex if 0 <= takeIndex and takeIndex < len(self.getTakes()) else -1)
+        )
+        if -1 == takeInd:
+            return -1
+
+        for shot in self.takes[takeInd].shots:
+            if ignoreDisabled or shot.enabled:
+                if 1 < self.getNumSharedCamera(shot.camera, ignoreDisabled=ignoreDisabled, takeIndex=takeInd):
+                    return True
+        return False
+
     def getNumSharedCamera(self, cam, ignoreDisabled=False, takeIndex=-1, inAllTakes=True):
         """Return the number of times the specified camera is used by the shots of the specified takes
         0 means the camera is not used at all, -1 that the specified take is not valid
@@ -2644,13 +2610,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
 
                 clipName = "myBGSound"
                 newSoundClip = vse_render.createNewClip(
-                    scene,
-                    str(sound_path),
-                    targetTrackInd,
-                    0,
-                    importVideo=False,
-                    importAudio=True,
-                    clipName=clipName,
+                    scene, str(sound_path), targetTrackInd, 0, importVideo=False, importAudio=True, clipName=clipName,
                 )
 
                 shot.bgSoundClipName = newSoundClip.name
@@ -3171,14 +3131,15 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
                 # entity is a shot
                 filePath += entity.getParentTake().getName_PathCompliant() + "\\"
 
-                filePath += f"{entity.getName_PathCompliant()}"
+                if "SH_VIDEO" != outputMedia:
+                    filePath += f"{entity.getName_PathCompliant()}"
 
-                if "INTERM_" == outputMedia[3:10]:
-                    filePath += "_Intermediate"
-                if "AUDIO" == outputMedia[3:8]:
-                    filePath += "_Intermediate"
+                    if "INTERM_" == outputMedia[3:10]:
+                        filePath += "_Intermediate"
+                    if "AUDIO" == outputMedia[3:8]:
+                        filePath += "_Intermediate"
 
-                filePath += "\\"
+                    filePath += "\\"
 
             # if insertShotFolder or insertTempFolder:
             #     filePath += f"{shot.getName_PathCompliant()}"
@@ -3194,18 +3155,23 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         # file name
         if provideName:
             if "SH_" == outputMedia[0:3]:
-                if "SH_INTERM_STAMPINFO_SEQ:" == outputMedia:
+                if "SH_INTERM_STAMPINFO_SEQ" == outputMedia:
                     fileName += "_tmp_StampInfo_"
 
                 # entity is a shot
                 fileName += entity.getName_PathCompliant(withPrefix=insertSeqPrefix)
 
-                if genericFrame:
-                    fileName += "_"
-                    # we add "#####"
-                    fileName += self.getFramePadding()
-                elif specificFrame is not None:
-                    fileName += "_" + self.getFramePadding(frame=specificFrame)
+                # wkip hack degueu
+                if "SH_IMAGE_SEQ" == outputMedia and not genericFrame and specificFrame is None:
+                    # required by the OTIO edit file for img seq generation
+                    fileName += "_" + self.getFramePadding(frame=0)
+                else:
+                    if genericFrame:
+                        fileName += "_"
+                        # we add "#####"
+                        fileName += self.getFramePadding()
+                    elif specificFrame is not None:
+                        fileName += "_" + self.getFramePadding(frame=specificFrame)
 
             elif "TK_" == outputMedia[0:3]:
                 # entity is a take
@@ -3219,6 +3185,22 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
                 if "SH_" == outputMedia[0:3]:
                     if "SH_INTERM_STAMPINFO_SEQ" == outputMedia:
                         fileExtension += ".png"
+                    elif "SH_IMAGE_SEQ" == outputMedia or "SH_INTERM_IMAGE_SEQ" == outputMedia:
+                        # wkipwkipwkip
+                        if self.use_project_settings:
+                            fileExtension += ".png"
+                        else:
+                            fileExtension += "."
+                            sceneFileFormat = self.parentScene.render.image_settings.file_format.lower()
+                            if "jpg" == sceneFileFormat:
+                                fileExtension += "jpg"
+                            elif "png" == sceneFileFormat:
+                                fileExtension += "png"
+                            elif "open_exr" == sceneFileFormat:
+                                fileExtension += "exr"
+                            else:
+                                # output file is PNG otherwise
+                                fileExtension += "png"
                     else:
                         fileExtension += "." + self.getOutputFileFormat(
                             isVideo=specificFrame is None and not genericFrame
@@ -3227,104 +3209,6 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
                 elif "TK_" == outputMedia[0:3]:
                     if "TK_EDIT_" == outputMedia[3:8]:
                         fileExtension += "." + "xml"
-
-        # result
-        resultStr = filePath + fileName + fileExtension
-        resultStr.replace("\\", "/")  # //
-
-        #   _logger.debug(f" ** resultStr: {resultStr}")
-
-        return resultStr
-
-    def getShotOutputMediaPath(
-        self,
-        rootPath=None,
-        insertTakeName=True,
-        insertShotFolder=False,
-        insertTempFolder=False,
-        insertShotPrefix=False,
-        insertStampInfoPrefix=False,
-        providePath=True,
-        provideName=True,
-        provideExtension=True,
-        specificFrame=None,
-        genericFrame=False,
-    ):
-        """
-        Return the path of the media that is generated for the specified shot.
-        It is made of: <root path>/<shot take name>/<prefix>_<shot name>[_<specific frame index (if specified)].<extention>
-
-        Args:
-            entity: can be a shot, a take or a sequence (ie the montage)
-
-            outputMedia: can be:
-                - for an entity shot:
-                    IMAGE_SEQ:
-                    VIDEO:
-                - for an entity take:
-                    EDIT_IMAGE_SEQ:
-                    EDIT_VIDEO:
-                - for an entity sequence (or montage):
-                    SEQ_ROOT: root to the sequence files and folders
-
-            rootPath: start of the path, if specified. Otherwise the current file folder is used
-
-            providePath: if True then the returned file name starts with the full path
-                if providePath is True:
-                    if rootPath is provided then the start of the path is the root, otherwise props.renderRootPath is used
-                    if insertTakeName is True then the name of the take is added to the path
-                    if provideName is False then the returned path ends with '\\'
-            provideName: if True then the returned file name contains the name
-            provideExtension: if True then the returned file name ends with the file extention
-
-            genericFrame: if genericFrame is True then #### is used instead of the specific frame index
-        """
-
-        _logger.debug_ext("getShotOutputMediaPath is DEPRECATED, use getOutputMediaPath instead", col="RED")
-        filePath = ""
-        fileName = ""
-        fileExtension = ""
-
-        # file path
-        if providePath:
-            if rootPath is not None:
-                filePath += bpy.path.abspath(rootPath)
-            else:
-                #   filePath += bpy.path.abspath(bpy.data.filepath)     # current blender file path
-                filePath += bpy.path.abspath(self.renderRootPath)
-
-            if not (filePath.endswith("/") or filePath.endswith("\\")):
-                filePath += "\\"
-
-            if insertTakeName or insertShotFolder or insertTempFolder or insertStampInfoPrefix:
-                filePath += shot.getParentTake().getName_PathCompliant() + "\\"
-
-            if insertShotFolder or insertTempFolder:
-                filePath += f"{shot.getName_PathCompliant()}"
-                if insertTempFolder:
-                    filePath += "_Intermediate"
-                filePath += "\\"
-
-        # file name
-        if provideName:
-            if insertStampInfoPrefix:
-                fileName += "_tmp_StampInfo_"
-
-            fileName += shot.getName_PathCompliant(withPrefix=insertShotPrefix)
-
-            if genericFrame:
-                fileName += "_"
-                # we add "#####"
-                fileName += self.getFramePadding()
-            elif specificFrame is not None:
-                fileName += "_" + self.getFramePadding(frame=specificFrame)
-
-            # file extension
-            if provideExtension:
-                if insertStampInfoPrefix:
-                    fileExtension += ".png"
-                else:
-                    fileExtension += "." + self.getOutputFileFormat(isVideo=specificFrame is None and not genericFrame)
 
         # result
         resultStr = filePath + fileName + fileExtension

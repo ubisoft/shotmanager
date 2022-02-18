@@ -16,7 +16,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 """
-To do: module description here.
+Rendering code for takes and shots
 """
 
 import os
@@ -335,11 +335,8 @@ def launchRenderWithVSEComposite(
         newTempRenderPath = shot.getOutputMediaPath("SH_INTERM_IMAGE_SEQ", rootPath=rootPath, provideName=False)
 
         compositedMediaPath = shot.getOutputMediaPath(
-            "SH_IMAGE_SEQ", rootPath=rootPath, insertShotPrefix=True, specificFrame=specificFrame
+            "SH_VIDEO", rootPath=rootPath, insertSeqPrefix=True, specificFrame=specificFrame
         )
-        # compositedMediaPath = shot.getOutputMediaPath(
-        #     rootPath=rootPath, insertShotPrefix=True, specificFrame=specificFrame
-        # )
 
         newMediaFiles.append(compositedMediaPath)
         if shot.enabled:
@@ -398,8 +395,7 @@ def launchRenderWithVSEComposite(
                 scene.frame_end = specificFrame
 
             scene.camera = shot.camera
-            print("Scene.name:", scene.name)
-            print("Scene.camera:", scene.camera.name)
+
             if override_all_viewports:
                 for area in context.screen.areas:
                     utils.setCurrentCameraToViewport2(context, area)
@@ -465,10 +461,7 @@ def launchRenderWithVSEComposite(
                 # render all in one anim pass
                 else:
                     scene.render.filepath = shot.getOutputMediaPath(
-                        "SH_INTERM_IMAGE_SEQ",
-                        rootPath=rootPath,
-                        provideExtension=False,
-                        genericFrame=True,
+                        "SH_INTERM_IMAGE_SEQ", rootPath=rootPath, provideExtension=False, genericFrame=True,
                     )
 
                     #   _logger.debug("ici PAS loop")
@@ -547,9 +540,9 @@ def launchRenderWithVSEComposite(
                 # )
                 audioFilePath = (
                     newTempRenderPath
-                    # + shot.getOutputMediaPath(providePath=False, insertShotPrefix=True, provideExtension=False)
+                    # + shot.getOutputMediaPath(providePath=False, insertSeqPrefix=True, provideExtension=False)
                     + shot.getOutputMediaPath(
-                        "SH_AUDIO", providePath=False, insertShotPrefix=True, provideExtension=False
+                        "SH_AUDIO", providePath=False, insertSeqPrefix=True, provideExtension=False
                     )
                     + ".wav"
                 )
@@ -633,11 +626,12 @@ def launchRenderWithVSEComposite(
 
                 # Warning: this defines the start index of the first image (usually 0 or 1)
                 # This is different from props.editStartFrame which is the offset of the scene take relatively to a main edit
+                #   compositedMedia_PathOnly = shot.getOutputMediaPath(rootPath=rootPath, provideName=False)
+                compositedImgSeqPath = shot.getOutputMediaPath("SH_IMAGE_SEQ", rootPath=rootPath, genericFrame=True)
+                compositedMedia_NameOnly = shot.getName_PathCompliant()
                 print("--    newTempRenderPath: ", newTempRenderPath)
                 print("--    compositedMediaPath: ", compositedMediaPath)
-                #   compositedMedia_PathOnly = shot.getOutputMediaPath(rootPath=rootPath, provideName=False)
-                compositedMedia_PathOnly = shot.getOutputMediaPath("SH_IMAGE_SEQ", rootPath=rootPath, provideName=False)
-                compositedMedia_NameOnly = shot.getName_PathCompliant()
+                print("--    compositedImgSeqPath: ", compositedImgSeqPath)
 
                 if specificFrame is None:
                     video_frame_start = (
@@ -653,6 +647,7 @@ def launchRenderWithVSEComposite(
                         video_frame_end,
                         compositedMediaPath,
                         compositedMedia_NameOnly,
+                        compositedImgSeqPath=compositedImgSeqPath,
                         output_file_prefix=props.getRenderShotPrefix(),
                         postfixSceneName=shot.getName_PathCompliant(),
                         output_resolution=infoImgSeq_resolution,
@@ -955,7 +950,7 @@ def renderStampedInfoForShot(
         #     rootPath=rootPath, insertTempFolder=True, specificFrame=scene.frame_current
         # )
         scene.render.filepath = shot.getOutputMediaPath(
-            "SH_INTERM_IMAGE_SEQ", rootPath=rootPath, insertTempFolder=True, specificFrame=scene.frame_current
+            "SH_INTERM_STAMPINFO_SEQ", rootPath=rootPath, specificFrame=scene.frame_current
         )
         #    shotFilename = shot.getName_PathCompliant()
 
@@ -988,11 +983,7 @@ def renderStampedInfoForShot(
             )
 
         stampInfoSettings.renderTmpImageWithStampedInfo(
-            scene,
-            currentFrame,
-            renderPath=newTempRenderPath,
-            renderFilename=tmpShotFilename,
-            verbose=False,
+            scene, currentFrame, renderPath=newTempRenderPath, renderFilename=tmpShotFilename, verbose=False,
         )
 
     ##############
@@ -1020,6 +1011,33 @@ def launchRender(context, renderMode, rootPath, area=None):
     renderDisplayInfo += "\n\n*** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** ***\n"
     renderDisplayInfo += "\n                                 *** Shot Manager V " + props.version()[0] + " - "
 
+    def _generateEditFiles():
+        if not module_can_be_imported("shotmanager.otio"):
+            _logger.info("Otio module not available - Export failed")
+            return
+
+        from shotmanager.otio.exports import exportTakeEditToOtio
+
+        if "VIDEO" in preset.outputMediaMode or not config.devDebug:
+            renderedOtioFile = exportTakeEditToOtio(
+                scene,
+                take,
+                props.renderRootPath,
+                output_filepath=f"{props.getOutputMediaPath('TK_EDIT_VIDEO', take, rootPath=props.renderRootPath, insertSeqPrefix=True, provideExtension=False)}.{props.renderSettingsOtio.otioFileType.lower()}",
+                fileListOnly=False,
+                output_media_mode="VIDEO",
+            )
+
+        if config.devDebug and "IMAGE_SEQ" in preset.outputMediaMode:
+            renderedOtioFile = exportTakeEditToOtio(
+                scene,
+                take,
+                props.renderRootPath,
+                output_filepath=f"{props.getOutputMediaPath('TK_EDIT_IMAGE_SEQ', take, rootPath=props.renderRootPath, insertSeqPrefix=True, provideExtension=False)}.{props.renderSettingsOtio.otioFileType.lower()}",
+                fileListOnly=False,
+                output_media_mode="IMAGE_SEQ",
+            )
+
     preset = None
     if "STILL" == renderMode:
         preset = props.renderSettingsStill
@@ -1037,10 +1055,9 @@ def launchRender(context, renderMode, rootPath, area=None):
         preset = props.renderSettingsPlayblast
         renderDisplayInfo += f"  Rendering with {preset.name}"
     else:
-        _logger.error(f"No valid render preset found")
+        _logger.error("No valid render preset found")
 
     stampInfoSettings = None
-    preset_useStampInfo = False
     useStampInfo = preset.useStampInfo
 
     fileIsReadOnly = False
@@ -1054,7 +1071,6 @@ def launchRender(context, renderMode, rootPath, area=None):
 
     if props.use_project_settings and props.isStampInfoAvailable() and useStampInfo:
         stampInfoSettings = scene.UAS_StampInfo_Settings
-        preset_useStampInfo = useStampInfo
         #       stampInfoSettings.stampInfoUsed = False
         stampInfoSettings.activateStampInfo = True
     elif props.stampInfoUsed() and useStampInfo:
@@ -1080,163 +1096,161 @@ def launchRender(context, renderMode, rootPath, area=None):
     renderDisplayInfo += "\n"
     print(renderDisplayInfo)
 
-    if True:
-        # prepare render settings
-        # camera
-        # range
-        # takes
+    take = props.getCurrentTake()
+    if take is None:
+        print("Shot Manager Rendering: No current take found - Rendering aborted")
+        return False
 
-        take = props.getCurrentTake()
-        if take is None:
-            print("Shot Manager Rendering: No current take found - Rendering aborted")
-            return False
+    context.window_manager.UAS_shot_manager_shots_play_mode = False
+    context.window_manager.UAS_shot_manager_display_overlay_tools = False
 
-        context.window_manager.UAS_shot_manager_shots_play_mode = False
-        context.window_manager.UAS_shot_manager_display_overlay_tools = False
+    # if props.use_project_settings:
+    #     props.applyProjectSettings()
 
-        # if props.use_project_settings:
-        #     props.applyProjectSettings()
+    #     if preset_useStampInfo:  # framed output resolution is used only when StampInfo is used
+    #         if "UAS_PROJECT_RESOLUTIONFRAMED" in os.environ.keys():
+    #             resolution = json.loads(os.environ["UAS_PROJECT_RESOLUTIONFRAMED"])
+    #             scene.render.resolution_x = resolution[0]
+    #             scene.render.resolution_y = resolution[1]
 
-        #     if preset_useStampInfo:  # framed output resolution is used only when StampInfo is used
-        #         if "UAS_PROJECT_RESOLUTIONFRAMED" in os.environ.keys():
-        #             resolution = json.loads(os.environ["UAS_PROJECT_RESOLUTIONFRAMED"])
-        #             scene.render.resolution_x = resolution[0]
-        #             scene.render.resolution_y = resolution[1]
+    # render window
+    if "STILL" == preset.renderMode:
+        _logger.debug("Render Animation")
+        shot = props.getCurrentShot()
 
-        # render window
-        if "STILL" == preset.renderMode:
-            _logger.debug("Render Animation")
-            shot = props.getCurrentShot()
+        # get the list of files to write, delete them is they exists, stop everithing if the delete cannot be done
+        #            shotFileName = shot.
 
-            # get the list of files to write, delete them is they exists, stop everithing if the delete cannot be done
-            #            shotFileName = shot.
+        willBeRenderedFilesDict = launchRenderWithVSEComposite(
+            context,
+            preset,
+            filePath=props.renderRootPath,
+            generateSequenceVideo=False,
+            specificShotList=[shot],
+            specificFrame=scene.frame_current,
+            fileListOnly=True,
+        )
+        # willBeRenderedFilesDict
 
-            willBeRenderedFilesDict = launchRenderWithVSEComposite(
-                context,
-                preset,
-                filePath=props.renderRootPath,
-                generateSequenceVideo=False,
-                specificShotList=[shot],
-                specificFrame=scene.frame_current,
-                fileListOnly=True,
-            )
-            # willBeRenderedFilesDict
+        renderedFilesDict = launchRenderWithVSEComposite(
+            context,
+            preset,
+            filePath=props.renderRootPath,
+            useStampInfo=preset.useStampInfo,
+            generateSequenceVideo=False,
+            specificShotList=[shot],
+            specificFrame=scene.frame_current,
+            area=area,
+        )
+        print(json.dumps(renderedFilesDict, indent=4))
 
+    elif "ANIMATION" == preset.renderMode:
+        _logger.debug("Render Animation")
+        if not fileIsReadOnly:
+            bpy.ops.wm.save_mainfile()
+        shot = props.getCurrentShot()
+
+        renderedFilesDict = launchRenderWithVSEComposite(
+            context,
+            preset,
+            filePath=props.renderRootPath,
+            useStampInfo=preset.useStampInfo,
+            generateSequenceVideo=False,
+            specificShotList=[shot],
+            render_handles=preset.renderHandles if preset.bypass_rendering_project_settings else True,
+            area=area,
+        )
+        print(json.dumps(renderedFilesDict, indent=4))
+
+    elif "ALL" == preset.renderMode:
+        _logger.debug(f"Render All: {str(props.renderSettingsAll.renderAllTakes)}")
+        _logger.debug(f"Render All, preset.renderAllTakes: {preset.renderAllTakes}")
+        if not fileIsReadOnly:
+            bpy.ops.wm.save_mainfile()
+
+        takesToRender = [-1]
+        if preset.renderAllTakes:
+            print("Render All takes")
+            takesToRender = [i for i in range(0, len(props.takes))]
+
+        for takeInd in takesToRender:
             renderedFilesDict = launchRenderWithVSEComposite(
                 context,
                 preset,
-                filePath=props.renderRootPath,
-                useStampInfo=preset.useStampInfo,
-                generateSequenceVideo=False,
-                specificShotList=[shot],
-                specificFrame=scene.frame_current,
-                area=area,
-            )
-            print(json.dumps(renderedFilesDict, indent=4))
-
-        elif "ANIMATION" == preset.renderMode:
-            _logger.debug("Render Animation")
-            if not fileIsReadOnly:
-                bpy.ops.wm.save_mainfile()
-            shot = props.getCurrentShot()
-
-            renderedFilesDict = launchRenderWithVSEComposite(
-                context,
-                preset,
-                filePath=props.renderRootPath,
-                useStampInfo=preset.useStampInfo,
-                generateSequenceVideo=False,
-                specificShotList=[shot],
-                render_handles=preset.renderHandles if preset.bypass_rendering_project_settings else True,
-                area=area,
-            )
-            print(json.dumps(renderedFilesDict, indent=4))
-
-        elif "ALL" == preset.renderMode:
-            _logger.debug(f"Render All: {str(props.renderSettingsAll.renderAllTakes)}")
-            _logger.debug(f"Render All, preset.renderAllTakes: {preset.renderAllTakes}")
-            if not fileIsReadOnly:
-                bpy.ops.wm.save_mainfile()
-
-            takesToRender = [-1]
-            if preset.renderAllTakes:
-                print("Render All takes")
-                takesToRender = [i for i in range(0, len(props.takes))]
-
-            for takeInd in takesToRender:
-                renderedFilesDict = launchRenderWithVSEComposite(
-                    context,
-                    preset,
-                    takeIndex=takeInd,
-                    filePath=props.renderRootPath,
-                    fileListOnly=False,
-                    useStampInfo=preset.useStampInfo,
-                    rerenderExistingShotVideos=preset.rerenderExistingShotVideos,
-                    generateSequenceVideo=preset.generateEditVideo,
-                    renderAlsoDisabled=preset.renderAlsoDisabled,
-                    area=area,
-                )
-
-                if preset.renderOtioFile:
-                    bpy.context.window.scene = scene
-
-                    if module_can_be_imported("shotmanager.otio"):
-                        # from shotmanager.otio.exports import exportShotManagerEditToOtio
-                        from shotmanager.otio.exports import exportShotManagerEditToOtio
-
-                        renderedOtioFile = exportShotManagerEditToOtio(
-                            scene,
-                            takeIndex=takeInd,
-                            filePath=props.renderRootPath,
-                            fileName=f"{props.getCurrentTake().getName_PathCompliant(withPrefix=True)}.{props.renderSettingsOtio.otioFileType.lower()}",
-                            fileListOnly=False,
-                            #  montageCharacteristics=props.get_montage_characteristics(),
-                        )
-                        # renderedFilesDict["edl_files"] = [renderedOtioFile]
-                    else:
-                        _logger.info("Otio module not available - Export failed")
-            print(json.dumps(renderedFilesDict, indent=4))
-
-        elif "PLAYBLAST" == preset.renderMode:
-            _logger.debug("Render Playblast")
-            if not fileIsReadOnly:
-                bpy.ops.wm.save_mainfile()
-
-            if context.space_data.overlay.show_overlays and preset.disableCameraBG:
-                bpy.ops.uas_shots_settings.use_background(useBackground=False)
-
-            renderedFilesDict = launchRenderWithVSEComposite(
-                context,
-                preset,
-                takeIndex=-1,
+                takeIndex=takeInd,
                 filePath=props.renderRootPath,
                 fileListOnly=False,
-                useStampInfo=preset.stampRenderInfo and preset.useStampInfo,
-                rerenderExistingShotVideos=True,
-                generateShotVideos=False,
-                generateSequenceVideo=True,
-                renderAlsoDisabled=False,
-                render_handles=False,
-                renderSound=preset.renderSound,
+                useStampInfo=preset.useStampInfo,
+                rerenderExistingShotVideos=preset.rerenderExistingShotVideos,
+                generateSequenceVideo=preset.generateEditVideo,
+                renderAlsoDisabled=preset.renderAlsoDisabled,
                 area=area,
             )
 
-            # open rendered media in a player
-            if preset.openPlayblastInPlayer:
-                if len(renderedFilesDict["sequence_video_file"]):
-                    utils.openMedia(renderedFilesDict["sequence_video_file"], inExternalPlayer=True)
+            if preset.renderOtioFile:
+                bpy.context.window.scene = scene
 
-            # open rendered media in vse
-            # wkip removed until uas_videotracks works
-            if False and preset.updatePlayblastInVSM:
-                from shotmanager.scripts.rrs.rrs_playblast import rrs_playblast_to_vsm
+                take = props.takes[takeInd]
+                if "VIDEO" in props.renderSettingsAll.outputMediaMode:
+                    _generateEditFiles()
 
-                rrs_playblast_to_vsm(playblastInfo=renderedFilesDict["playblastInfos"])
+                # renderedOtioFile = exportShotManagerEditToOtio(
+                #     scene,
+                #     takeIndex=takeInd,
+                #     filePath=props.renderRootPath,
+                #     fileName=f"{props.getCurrentTake().getName_PathCompliant(withPrefix=True)}.{props.renderSettingsOtio.otioFileType.lower()}",
+                #     fileListOnly=False,
+                #     #  montageCharacteristics=props.get_montage_characteristics(),
+                # )
 
-                pass
+                # renderedFilesDict["edl_files"] = [renderedOtioFile]
 
-        else:
-            print("\n *** preset.renderMode is invalid, cannot render anything... ***\n")
+        print(json.dumps(renderedFilesDict, indent=4))
+
+    elif "OTIO" == renderMode:
+        take = props.getCurrentTake()
+        _generateEditFiles()
+
+    elif "PLAYBLAST" == preset.renderMode:
+        _logger.debug("Render Playblast")
+        if not fileIsReadOnly:
+            bpy.ops.wm.save_mainfile()
+
+        if context.space_data.overlay.show_overlays and preset.disableCameraBG:
+            bpy.ops.uas_shots_settings.use_background(useBackground=False)
+
+        renderedFilesDict = launchRenderWithVSEComposite(
+            context,
+            preset,
+            takeIndex=-1,
+            filePath=props.renderRootPath,
+            fileListOnly=False,
+            useStampInfo=preset.stampRenderInfo and preset.useStampInfo,
+            rerenderExistingShotVideos=True,
+            generateShotVideos=False,
+            generateSequenceVideo=True,
+            renderAlsoDisabled=False,
+            render_handles=False,
+            renderSound=preset.renderSound,
+            area=area,
+        )
+
+        # open rendered media in a player
+        if preset.openPlayblastInPlayer:
+            if len(renderedFilesDict["sequence_video_file"]):
+                utils.openMedia(renderedFilesDict["sequence_video_file"], inExternalPlayer=True)
+
+        # open rendered media in vse
+        # wkip removed until uas_videotracks works
+        if False and preset.updatePlayblastInVSM:
+            from shotmanager.scripts.rrs.rrs_playblast import rrs_playblast_to_vsm
+
+            rrs_playblast_to_vsm(playblastInfo=renderedFilesDict["playblastInfos"])
+
             pass
 
-        print("Render done\n")
+    else:
+        print("\n *** preset.renderMode is invalid, cannot render anything... ***\n")
+        pass
+
+    print("Render done\n")

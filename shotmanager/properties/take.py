@@ -271,9 +271,7 @@ class UAS_ShotManager_Take(SequenceInterface, PropertyGroup):
     #############
 
     showNotes: BoolProperty(
-        name="Show Take Notes",
-        description="Show or hide current take notes",
-        default=False,
+        name="Show Take Notes", description="Show or hide current take notes", default=False,
     )
 
     note01: StringProperty(name="Note 1", description="")

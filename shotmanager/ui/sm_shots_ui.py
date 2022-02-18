@@ -49,6 +49,13 @@ class UAS_UL_ShotManager_Items(bpy.types.UIList):
         cameraIsValid = item.isCameraValid()
         itemHasWarnings = not cameraIsValid
 
+        numSharedCamInTake = 0
+        numSharedCam = props.getNumSharedCamera(item.camera)
+        if 1 < numSharedCam:
+            numSharedCamInTake = 1
+        else:
+            numSharedCamInTake = props.hisThereSharedCameraInTake()
+
         # draw the Duration components
 
         if item.enabled:
@@ -113,6 +120,13 @@ class UAS_UL_ShotManager_Items(bpy.types.UIList):
                         icon = "OUTLINER_OB_GREASEPENCIL"
                 row.operator("uas_shot_manager.greasepencilitem", text="", icon=icon).index = index
                 row.scale_x = 0.9
+
+            if numSharedCamInTake:
+                camrow = row.row(align=True)
+                camrow.scale_x = 0.5
+                camrow.alert = 1 < numSharedCam
+                camrow.operator("uas_shot_manager.list_camera_instances", text=str(numSharedCam)).index = index
+                camrow.scale_x = 0.2
 
             if props.display_color_in_shotlist:
                 row = row.row(align=True)
@@ -273,7 +287,7 @@ class UAS_UL_ShotManager_Items(bpy.types.UIList):
 
             camlistrow = grid_flow.row(align=True)
             # camlistrow.scale_x = 1.0
-            numSharedCam = props.getNumSharedCamera(item.camera)
+            #  numSharedCam = props.getNumSharedCamera(item.camera)
             camlistrow.alert = 1 < numSharedCam
             camlistrow.operator("uas_shot_manager.list_camera_instances", text=str(numSharedCam)).index = index
             if item.camera is None:

@@ -38,12 +38,9 @@ import opentimelineio
 from ..exports import exportShotManagerEditToOtio
 
 from ..imports import createShotsFromOtio
-from ..imports import getSequenceListFromOtioTimeline
 from ..imports import createShotsFromOtioTimelineClass, conformToRefMontage
 
 from ..montage_otio import MontageOtio
-
-from .. import otio_wrapper as ow
 
 from ...config import sm_logging
 
@@ -55,6 +52,8 @@ class UAS_ShotManager_Export_OTIO(Operator):
     bl_label = "Export otio"
     bl_description = "Export otio"
     bl_options = {"INTERNAL"}
+
+    # NOTE: not used anymore
 
     file: StringProperty()
 
@@ -449,7 +448,7 @@ class UAS_ShotManager_OT_Create_Shots_From_OTIO_Adv(Operator):
         description="Import the video and mixed sounds from the animatic into the VSE of the current scene",
         default=True,
     )
-    animaticFile: StringProperty(name="Animatic", default=None)
+    animaticFile: StringProperty(name="Animatic", default="")
 
     importVideoInVSE: BoolProperty(
         name="Import Shot Videos In VSE",

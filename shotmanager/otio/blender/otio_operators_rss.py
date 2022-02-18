@@ -246,7 +246,7 @@ class UAS_ShotManager_OT_Create_Shots_From_OTIO_RRS(Operator):
         description="Import the video and mixed sounds from the animatic into the VSE of the current scene",
         default=True,
     )
-    animaticFile: StringProperty(name="Animatic", default=None)
+    animaticFile: StringProperty(name="Animatic", default="")
 
     importVideoInVSE: BoolProperty(
         name="Import Shot Videos In VSE",

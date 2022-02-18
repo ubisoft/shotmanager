@@ -302,6 +302,7 @@ class UAS_ShotManager_ListCameraInstances(Operator):
     bl_idname = "uas_shot_manager.list_camera_instances"
     bl_label = "Shots Using This Camera "
     bl_description = "Number of shots using this camera in all the takes (this shot included)"
+    # bl_options = {"REGISTER", "UNDO"}
     bl_options = {"INTERNAL"}
 
     index: IntProperty(default=0)
@@ -309,7 +310,8 @@ class UAS_ShotManager_ListCameraInstances(Operator):
     def invoke(self, context, event):
         wm = context.window_manager
         context.scene.UAS_shot_manager_props.setSelectedShotByIndex(self.index)
-        return wm.invoke_props_dialog(self, width=300)
+        # return wm.invoke_props_dialog(self, width=300)
+        return wm.invoke_popup(self, width=300)
 
     def draw(self, context):
         props = context.scene.UAS_shot_manager_props
@@ -321,15 +323,15 @@ class UAS_ShotManager_ListCameraInstances(Operator):
             if 0 < numSharedCam:
                 row.label(text=f"Camera shared with {numSharedCam} other shot(s)")
                 row = layout.row()
-                row.label(text=f"from this take or other ones")
+                row.label(text="from this take or other ones")
                 row = layout.row()
                 row.operator("uas_shot_manager.make_shot_camera_unique").shotName = props.getShotByIndex(
                     self.index
                 ).name
             else:
-                row.label(text=f"Camera used only in this shot, only in this take")
+                row.label(text="Camera used only in this shot, only in this take")
         else:
-            row.label(text=f"No camera defined")
+            row.label(text="No camera defined")
 
     def execute(self, context):
         return {"FINISHED"}
@@ -351,7 +353,7 @@ class UAS_ShotManager_MakeShotCameraUnique(Operator):
         shot = props.getShotByName(self.shotName)
         if shot is not None:
             shot.makeCameraUnique()
-        return {"FINISHED"}
+        return {"INTERFACE"}
 
 
 ########################
@@ -673,7 +675,7 @@ class UAS_ShotManager_ShotAdd(Operator):
         # props.setCurrentShotByIndex(newShotInd)
         # props.setSelectedShotByIndex(newShotInd)
 
-        return {"FINISHED"}
+        return {"INTERFACE"}
 
 
 class UAS_ShotManager_ShotDuplicate(Operator):
@@ -762,7 +764,7 @@ class UAS_ShotManager_ShotDuplicate(Operator):
         props.setCurrentShotByIndex(newShotInd)
         props.setSelectedShotByIndex(newShotInd)
 
-        return {"FINISHED"}
+        return {"INTERFACE"}
 
 
 class UAS_ShotManager_ShotRemove(Operator):
@@ -1106,9 +1108,7 @@ class UAS_ShotManager_DuplicateShotsToOtherTake(Operator):
     )
 
     targetTake: EnumProperty(
-        name="Target Take",
-        description="Take in which the shots will be duplicated",
-        items=(list_target_takes),
+        name="Target Take", description="Take in which the shots will be duplicated", items=(list_target_takes),
     )
 
     insertAfterShot: EnumProperty(

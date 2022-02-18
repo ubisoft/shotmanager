@@ -105,7 +105,7 @@ class UAS_PT_ShotManager_Render(Operator):
         elif "ALL" == properties.renderMode:
             descr = "Render all: shots, takes, edit file..."
         elif "OTIO" == properties.renderMode:
-            descr = "Render the edit file: .otio or .xml (Final Cut)"
+            descr = "Generate the edit file for the current take: .otio or .xml (Final Cut)"
         elif "PLAYBLAST" == properties.renderMode:
             descr = "Fast-render the enabled shots to a single video based on the current viewport settings."
 
@@ -171,7 +171,7 @@ class UAS_PT_ShotManager_Render(Operator):
         #     print("Render aborted before start: " + renderWarnings)
         #     return {"CANCELLED"}
 
-        if "OTIO" == prefs.renderMode:
+        if False and "OTIO" == prefs.renderMode:
             bpy.ops.uas_shot_manager.export_otio()
         else:
             renderRootPath = props.renderRootPath if "" != props.renderRootPath else "//"

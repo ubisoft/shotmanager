@@ -36,3 +36,12 @@ check if available:
     print ("%s: default:%s, state:%s" % (addon_name, default, state) )
     if default == False and state is None:
         print("%s is not installed or not enabled by default" % addon_name)
+
+
+Final cut pro export seq issue: https://github.com/PixarAnimationStudios/OpenTimelineIO/issues/1103
+
+https://opentimelineio.readthedocs.io/en/latest/tutorials/otio-serialized-schema.html  (chercher target_url  /   target_url_base)
+Utiliser ImageSequenceReference
+Voir https://github.com/PixarAnimationStudios/OpenTimelineIO/issues/890
+
+OTIO advanced doc: https://sandflow.github.io/otio-core-specification/

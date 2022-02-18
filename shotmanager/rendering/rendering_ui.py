@@ -106,13 +106,27 @@ class UAS_PT_ShotManagerRenderPanel(Panel):
 def drawHeaderPreset(self, context):
     layout = self.layout
     layout.emboss = "NONE"
+    row = layout.row(align=True)
 
     if config.devDebug:
-        row = layout.row(align=True)
-        row.alert = True
-        row.operator("uas_shot_manager.render_prefs", icon="PREFERENCES", text="")
+        subrow = row.row(align=True)
+        subrow.alert = True
+        subrow.operator("uas_shot_manager.render_prefs", icon="PREFERENCES", text="")
 
-    row = layout.row(align=True)
+    versionStr = utils.addonVersion("Video Tracks")
+    subRow = row.row()
+    subRow.enabled = versionStr is not None
+    subRow.operator(
+        "uas_shot_manager.go_to_video_tracks", text="", icon="SEQ_STRIP_DUPLICATE"
+    ).vseSceneName = "SM_CheckSequence"
+
+    row.separator(factor=0.5)
+    icon = config.icons_col["General_Explorer_32"]
+    row.operator("uas_shot_manager.open_explorer", text="", icon_value=icon.icon_id).path = bpy.path.abspath(
+        bpy.data.filepath
+    )
+
+    row.separator(factor=0.5)
     row.menu("UAS_MT_Shot_Manager_prefs_mainmenu", icon="PREFERENCES", text="")
     row.separator(factor=1.0)
 
@@ -440,7 +454,7 @@ def draw3DRenderPanel(self, context):
     row = layout.row(align=True)
     row.scale_y = 1.3
     row.prop(props, "displayOtioProps", text="", icon="SEQ_STRIP_DUPLICATE")
-    row.operator("uas_shot_manager.render", text="Render Edit File").renderMode = "OTIO"
+    row.operator("uas_shot_manager.render", text="Edit File").renderMode = "OTIO"
 
     # row = layout.row()
     # row = layout.row(align=True)
@@ -602,6 +616,7 @@ def draw3DRenderPanel(self, context):
             col = itemsRow.column()
 
             row = col.row()
+            row.enabled = "VIDEO" in props.renderSettingsAll.outputMediaMode
             split = row.split(factor=0.5)
             split.prop(props.renderSettingsAll, "renderOtioFile")
             subSplit = split.split(factor=0.3)
@@ -623,13 +638,16 @@ def draw3DRenderPanel(self, context):
     # EDIT FILE ###
     elif props.displayOtioProps:
         row = layout.row()
-        row.label(text="Render Edit File:")
+        row.label(text="Generate Edit File:")
 
         box = layout.box()
 
         row = box.row()
-        row.label(text="Generate Edit for:")
-        row.prop(props.renderSettingsOtio, "outputMediaMode", text="")
+        row.label(text="Generate for:")
+        if config.devDebug:
+            row.prop(props.renderSettingsOtio, "outputMediaMode", text="")
+        else:
+            row.label(text="Videos (Only Supported Format)")
 
         row = box.row()
         row.label(text="File Type:")

@@ -280,11 +280,11 @@ class UAS_PT_ShotManager_ShotProperties(Panel):
                 text="<Render Root Path> \\ "
                 + shot.getParentTake().getName_PathCompliant()
                 + " \\ "
-                + shot.getOutputMediaPath(providePath=False)
+                + shot.getOutputMediaPath("SH_VIDEO", providePath=False)
             )
             subRowCam.operator(
                 "uas_shot_manager.open_explorer", emboss=True, icon_value=iconExplorer.icon_id, text=""
-            ).path = shot.getOutputMediaPath()
+            ).path = shot.getOutputMediaPath("SH_VIDEO", providePath=False)
             subRowCam.separator(factor=0.5)  # prevents strange look when panel is narrow
 
             # row.prop ( context.props, "display_duration_in_shotlist", text = "" )
