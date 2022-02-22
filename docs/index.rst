@@ -60,7 +60,6 @@ Then:
    :caption: Getting started
 
    /getting-started/install
-   /getting-started/features
    /getting-started/first-steps
    /getting-started/glossary
    
@@ -71,7 +70,7 @@ Then:
 
    /features/features
    /features/main-panel
-   /features-advanced/panel-features
+   /feature-toggles/feature-toggles-list
    /overlay-tools/overlay-tools
    
 .. toctree::
@@ -89,7 +88,7 @@ Then:
    :caption: How to...
 
    /how-to/how-to
-   /how-to/how-to-advanced
+   /how-to/how-to-toggle-features
    /how-to/use-in-production
    /how-to/tips
 

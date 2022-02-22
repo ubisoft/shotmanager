@@ -16,7 +16,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 """
-To do: module description here.
+Preferences related to a project configuration
 """
 
 import bpy
@@ -52,15 +52,15 @@ class UAS_ShotManager_ProjectSettings_Prefs(Operator):
         box = layout.box()
         box.use_property_decorate = False
         box.enabled = props.use_project_settings
+
+        box.label(text="Project:")
         col = box.column()
         col.use_property_split = True
         col.use_property_decorate = False
-        col.separator(factor=1)
 
         ############
         # naming
         ############
-        col.separator(factor=1)
         col.prop(props, "project_name")
         col.prop(props, "project_default_take_name")
         col.prop(props, "project_shot_format")
@@ -120,18 +120,19 @@ class UAS_ShotManager_ProjectSettings_Prefs(Operator):
         # outputs
         ############
 
-        col.separator(factor=2)
+        box.label(text="Outputs:")
+        col = box.column(align=False)
+        col.use_property_split = True
+        col.use_property_decorate = False
+
+        col.prop(props, "project_output_first_frame", text="Output First Frame Index")
+        col.prop(props, "project_img_name_digits_padding", text="Image Name Digit Padding")
         col.prop(props, "project_output_format", text="Video Output Format")
-
-        col.separator(factor=1)
         col.prop(props, "project_images_output_format", text="Image Output Format")
-
-        col.separator(factor=1)
         col.prop(props, "project_sounds_output_format", text="Sound Output Format")
 
         if config.devDebug:
             # additional settings
-            box.separator()
             box.label(text="Additional Settings:")
             col = box.column()
             col.enabled = props.use_project_settings
@@ -145,10 +146,14 @@ class UAS_ShotManager_ProjectSettings_Prefs(Operator):
         if config.devDebug:
             settingsList = props.applyProjectSettings(settingsListOnly=True)
             box = layout.box()
+            col = box.column()
+            col.scale_y = 0.8
             for prop in settingsList:
-                row = box.row(align=True)
+                split = col.split(factor=0.4, align=True)
+                row = split.row()
+                row.alignment = "RIGHT"
                 row.label(text=prop[0] + ":")
-                row.label(text=str(prop[1]))
+                split.label(text=str(prop[1]))
 
     def execute(self, context):
         print("exec proj settings")

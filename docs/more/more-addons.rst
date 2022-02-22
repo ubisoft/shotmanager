@@ -35,3 +35,11 @@ Asset Bank
     Manage asset banks and import or link 3D objects into Blender scenes.
     |br| `Asset Bank on GitHub <https://github.com/ubisoft/assetbank>`_ 
 
+
+
+Source code on GitHub
+=====================
+
+The source code of the whole add-on as well as some development notes are avalable here:
+|br| `Shot Manager on GitHub <https://github.com/ubisoft/shotmanager>`_ 
+

@@ -96,8 +96,7 @@ class UAS_ShotManager_SetShotStart(Operator):
 
 
 class UAS_ShotManager_SetCurrentShot(Operator):
-    """Set the specifed shot as current
-    """
+    """Set the specifed shot as current"""
 
     bl_idname = "uas_shot_manager.set_current_shot"
     bl_label = "Set Current Shot"
@@ -120,7 +119,7 @@ class UAS_ShotManager_SetCurrentShot(Operator):
         shot = props.getShotByIndex(self.index)
         currentShotChanged = False
 
-        def _updateEditors(zoom_mode=""):
+        def _updateEditors(changeTime=True, zoom_mode=""):
             # change time range to match shot range
             if prefs.current_shot_changes_time_range:
                 if scene.use_preview_range:
@@ -130,7 +129,7 @@ class UAS_ShotManager_SetCurrentShot(Operator):
                     scene.frame_start = shot.start
                     scene.frame_end = shot.end
 
-            if prefs.current_shot_changes_current_time_to_start:
+            if prefs.current_shot_changes_current_time_to_start and changeTime:
                 context.scene.frame_current = shot.start
 
             # zoom to frame shot or edit in anim range
@@ -151,11 +150,13 @@ class UAS_ShotManager_SetCurrentShot(Operator):
         if not event.shift and not event.ctrl:
             if event.alt:
                 props.setCurrentShotByIndex(self.index, changeTime=False, source_area=context.area)
+                props.setSelectedShotByIndex(self.index)
+                _updateEditors(changeTime=False)
             else:
                 props.setCurrentShotByIndex(self.index, source_area=context.area)
-            props.setSelectedShotByIndex(self.index)
+                props.setSelectedShotByIndex(self.index)
+                _updateEditors(changeTime=True)
             currentShotChanged = True
-            _updateEditors()
 
         # disable shot
         elif event.shift and not event.ctrl and not event.alt:
@@ -301,6 +302,7 @@ class UAS_ShotManager_ListCameraInstances(Operator):
     bl_idname = "uas_shot_manager.list_camera_instances"
     bl_label = "Shots Using This Camera "
     bl_description = "Number of shots using this camera in all the takes (this shot included)"
+    # bl_options = {"REGISTER", "UNDO"}
     bl_options = {"INTERNAL"}
 
     index: IntProperty(default=0)
@@ -308,7 +310,8 @@ class UAS_ShotManager_ListCameraInstances(Operator):
     def invoke(self, context, event):
         wm = context.window_manager
         context.scene.UAS_shot_manager_props.setSelectedShotByIndex(self.index)
-        return wm.invoke_props_dialog(self, width=300)
+        # return wm.invoke_props_dialog(self, width=300)
+        return wm.invoke_popup(self, width=300)
 
     def draw(self, context):
         props = context.scene.UAS_shot_manager_props
@@ -320,15 +323,15 @@ class UAS_ShotManager_ListCameraInstances(Operator):
             if 0 < numSharedCam:
                 row.label(text=f"Camera shared with {numSharedCam} other shot(s)")
                 row = layout.row()
-                row.label(text=f"from this take or other ones")
+                row.label(text="from this take or other ones")
                 row = layout.row()
                 row.operator("uas_shot_manager.make_shot_camera_unique").shotName = props.getShotByIndex(
                     self.index
                 ).name
             else:
-                row.label(text=f"Camera used only in this shot, only in this take")
+                row.label(text="Camera used only in this shot, only in this take")
         else:
-            row.label(text=f"No camera defined")
+            row.label(text="No camera defined")
 
     def execute(self, context):
         return {"FINISHED"}
@@ -350,7 +353,7 @@ class UAS_ShotManager_MakeShotCameraUnique(Operator):
         shot = props.getShotByName(self.shotName)
         if shot is not None:
             shot.makeCameraUnique()
-        return {"FINISHED"}
+        return {"INTERFACE"}
 
 
 ########################
@@ -428,7 +431,12 @@ class UAS_ShotManager_ShotAdd(Operator):
         default=(1.0, 1.0, 1.0),
     )
 
-    alignCamToView: BoolProperty(name="Align New Camera to Current View", default=True)
+    alignCamToView: BoolProperty(
+        name="Align New Camera to Current View",
+        description="If checked, the new camera is aligned to the current view."
+        "\nIf not checked then the camera is placed at the cursor location",
+        default=True,
+    )
 
     def invoke(self, context, event):
         wm = context.window_manager
@@ -667,7 +675,7 @@ class UAS_ShotManager_ShotAdd(Operator):
         # props.setCurrentShotByIndex(newShotInd)
         # props.setSelectedShotByIndex(newShotInd)
 
-        return {"FINISHED"}
+        return {"INTERFACE"}
 
 
 class UAS_ShotManager_ShotDuplicate(Operator):
@@ -680,7 +688,7 @@ class UAS_ShotManager_ShotDuplicate(Operator):
     name: StringProperty(name="Name")
     startAtCurrentTime: BoolProperty(name="Start at Current Frame", default=True)
     addToEndOfList: BoolProperty(name="Add at the End of the List")
-    duplicateCam: BoolProperty(name="Duplicate Camera")
+    duplicateCam: BoolProperty(name="Duplicate Camera", default=True)
     camName: StringProperty(name="Camera Name")
 
     @classmethod
@@ -756,7 +764,7 @@ class UAS_ShotManager_ShotDuplicate(Operator):
         props.setCurrentShotByIndex(newShotInd)
         props.setSelectedShotByIndex(newShotInd)
 
-        return {"FINISHED"}
+        return {"INTERFACE"}
 
 
 class UAS_ShotManager_ShotRemove(Operator):
@@ -1072,8 +1080,7 @@ def list_target_takes(self, context):
 
 
 def list_target_take_shots(self, context):
-    """ first index is -1 to define the take start
-    """
+    """first index is -1 to define the take start"""
     props = context.scene.UAS_shot_manager_props
     take = props.getTakeByName(self.targetTake)
     res = list()

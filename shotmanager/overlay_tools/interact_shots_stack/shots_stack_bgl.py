@@ -49,8 +49,15 @@ def draw_shots_stack(context):
     if config.gShotsStackInfos is not None:
         # _logger.debug_ext("Redraw in draw_shots_stack", col="PURPLE")
         #    _logger.debug_colored("Here 82")
-        for clip in config.gShotsStackInfos["clips"]:
-            #        _logger.debug_colored("Here 83")
+        for i, clip in enumerate(config.gShotsStackInfos["clips"]):
+            # _logger.debug_ext(
+            #     f"highlight Shot handle over loop, clip {i}{config.gShotsStackInfos['active_clip_index']} region: {config.gShotsStackInfos['active_clip_region']}",
+            #     col="BLUE",
+            # )
+
+            clip.highlight = i == config.gShotsStackInfos["active_clip_index"]
+            clip.active_region = config.gShotsStackInfos["active_clip_region"]
+            clip.active_clip_over = config.gShotsStackInfos["active_clip_over"]
             clip.draw(context)
             # try:
             #     clip.draw(context)
@@ -59,15 +66,19 @@ def draw_shots_stack(context):
             #     pass
         #    _logger.debug_colored("Here 84")
         if config.gShotsStackInfos["frame_under_mouse"] != -1:
-            #       _logger.debug_colored("Here 85")
             blf.color(0, 0.99, 0.99, 0.99, 1)
             blf.size(0, 11, 72)
             blf.position(
                 0, config.gShotsStackInfos["prev_mouse_x"] + 4, config.gShotsStackInfos["prev_mouse_y"] + 10, 0
             )
-            #      _logger.debug_colored("Here 86")
             blf.draw(0, str(config.gShotsStackInfos["frame_under_mouse"]))
-    #      _logger.debug_colored("Here 87")
+
+        if config.devDebug:
+            blf.color(0, 0.99, 0.1, 0.1, 1)
+            blf.size(0, 35, 72)
+            blf.position(0, 100, 100, 0)
+            # blf.draw(0, "Toto")
+        #  blf.draw(0, f"Last: {config.devDebug_lastRedrawTime}")
 
 
 def clamp_to_region(x, y, region):
@@ -230,7 +241,11 @@ class BL_UI_ShotClip:
         self.height = LANE_HEIGHT
         self.width = 0
         self.lane = lane
+
         self._highlight = False
+        self._active_region = None
+        self._active_clip_over = False
+
         self.clip_mesh = None
         self.contour_mesh = None
         self.contourCurrent_mesh = None
@@ -297,6 +312,22 @@ class BL_UI_ShotClip:
     def highlight(self, value: bool):
         self._highlight = value
 
+    @property
+    def active_region(self):
+        return self._active_region
+
+    @active_region.setter
+    def active_region(self, value):
+        self._active_region = value
+
+    @property
+    def active_clip_over(self):
+        return self._active_clip_over
+
+    @active_clip_over.setter
+    def active_clip_over(self, value: bool):
+        self._active_clip_over = value
+
     def draw(self, context):
         props = context.scene.UAS_shot_manager_props
         shots = props.get_shots()
@@ -312,12 +343,28 @@ class BL_UI_ShotClip:
             color = (0.15, 0.15, 0.15, 0.5)
 
         if self.highlight:
+            _logger.debug_ext(f"highlight Shot in draw", col="RED", tag="SHOTSTACK_EVENT")
             color = (0.9, 0.9, 0.9, 0.5)
         UNIFORM_SHADER_2D.uniform_float("color", color)
         self.clip_mesh.draw(UNIFORM_SHADER_2D, context.region)
 
-        self.start_interaction_mesh.draw(UNIFORM_SHADER_2D, context.region)
-        self.end_interaction_mesh.draw(UNIFORM_SHADER_2D, context.region)
+        # handles highlight
+        if self.active_clip_over and self.highlight and 0 != self.active_region:
+            # left handle
+            if -1 == self.active_region:
+                self.end_interaction_mesh.draw(UNIFORM_SHADER_2D, context.region)
+                color = (0.9, 0.0, 0.0, 0.5)
+                UNIFORM_SHADER_2D.uniform_float("color", color)
+                self.start_interaction_mesh.draw(UNIFORM_SHADER_2D, context.region)
+            # right handle
+            elif 1 == self.active_region:
+                self.start_interaction_mesh.draw(UNIFORM_SHADER_2D, context.region)
+                color = (0.9, 0.0, 0.0, 0.5)
+                UNIFORM_SHADER_2D.uniform_float("color", color)
+                self.end_interaction_mesh.draw(UNIFORM_SHADER_2D, context.region)
+        else:
+            self.start_interaction_mesh.draw(UNIFORM_SHADER_2D, context.region)
+            self.end_interaction_mesh.draw(UNIFORM_SHADER_2D, context.region)
 
         # current_shot = props.getCurrentShot()
         # selected_shot = props.getSelectedShot()

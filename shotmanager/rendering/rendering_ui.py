@@ -23,6 +23,7 @@ from pathlib import Path
 
 import bpy
 from bpy.types import Panel
+import addon_utils
 
 from ..config import config
 from ..utils import utils
@@ -105,17 +106,226 @@ class UAS_PT_ShotManagerRenderPanel(Panel):
 def drawHeaderPreset(self, context):
     layout = self.layout
     layout.emboss = "NONE"
-
     row = layout.row(align=True)
-    # row.menu("UAS_MT_Shot_Manager_prefs_mainmenu", icon="PREFERENCES", text="")
-    row.operator("uas_shot_manager.render_prefs", icon="PREFERENCES", text="")
+
+    if config.devDebug:
+        subrow = row.row(align=True)
+        subrow.alert = True
+        subrow.operator("uas_shot_manager.render_prefs", icon="PREFERENCES", text="")
+
+    versionStr = utils.addonVersion("Video Tracks")
+    subRow = row.row()
+    subRow.enabled = versionStr is not None
+    subRow.operator(
+        "uas_shot_manager.go_to_video_tracks", text="", icon="SEQ_STRIP_DUPLICATE"
+    ).vseSceneName = "SM_CheckSequence"
+
+    row.separator(factor=0.5)
+    icon = config.icons_col["General_Explorer_32"]
+    row.operator("uas_shot_manager.open_explorer", text="", icon_value=icon.icon_id).path = bpy.path.abspath(
+        bpy.data.filepath
+    )
+
+    row.separator(factor=0.5)
+    row.menu("UAS_MT_Shot_Manager_prefs_mainmenu", icon="PREFERENCES", text="")
     row.separator(factor=1.0)
+
+
+def drawRenderInfos(context, layout):
+    scene = context.scene
+    props = context.scene.UAS_shot_manager_props
+    iconExplorer = config.icons_col["General_Explorer_32"]
+
+    # layout.separator(factor=-2.5)
+    col = layout.column()
+    col.scale_y = 0.8
+
+    row = col.row()
+    row.alignment = "CENTER"
+    row.label(text="_____________________")
+
+    sepFactor = 1
+    titleRow = col.row()
+    titleRow.label(text="Output Infos:")
+    if props.use_project_settings:
+        subTitleRow = titleRow.row()
+        if (
+            (props.displayStillProps and props.renderSettingsStill.bypass_rendering_project_settings)
+            or (props.displayAnimationProps and props.renderSettingsAnim.bypass_rendering_project_settings)
+            or (props.displayAllEditsProps and props.renderSettingsAll.bypass_rendering_project_settings)
+        ):
+            subTitleRow.alert = True
+            subTitleRow.label(text="- Bypassing Project Settings -")
+        else:
+            subTitleRow.label(text="- Using Project Settings -")
+        fps = props.project_fps
+    else:
+        fps = scene.render.fps
+
+    row = col.row()
+    row.separator(factor=sepFactor)
+
+    #     infosStr = f"Image Res: {props.project_resolution_x} x {props.project_resolution_y}, "
+    #     infosStr += f"Final Res: {props.project_resolution_framed_x} x {props.project_resolution_framed_y}, "
+    #     infosStr += f"{props.project_fps} fps"
+    # else:
+    #     infosStr = f"Image Res: {scene.render.resolution_x} x {scene.render.resolution_y}, "
+    #     infosStr += f"Final Res: {props.project_resolution_framed_x} x {props.project_resolution_framed_y}, "
+    #     infosStr = f"{scene.render.fps} fps"
+
+    imgRes = props.getRenderResolution()
+    finalRes = props.getRenderResolutionForFinalOutput(resPercentage=100)
+
+    def _getResText(imgRes_x, imgRes_y, finalRes_x, finalRes_y):
+        infosStr = f"Image Res: {imgRes_x} x {imgRes_x},  "
+        infosStr += f"Final Res: {finalRes_x} x {finalRes_y},  "
+        return infosStr
+
+    ### still
+    if props.displayStillProps:
+        if props.renderSettingsStill.bypass_rendering_project_settings:
+            finalRes = props.getRenderResolutionForFinalOutput(
+                resPercentage=100, useStampInfo=props.renderSettingsStill.useStampInfo
+            )
+
+        infosStr = _getResText(imgRes[0], imgRes[1], finalRes[0], finalRes[1])
+        infosStr += f"{fps} fps"
+        row.label(text=infosStr)
+
+        # TODO wkip
+        if 100 != scene.render.resolution_percentage:
+            row = col.row()
+            row.alert = True
+            row.label(text="*** Warning: Resolution Percentage is not 100% ***")
+            infosStr = _getResText(imgRes[0], imgRes[1], finalRes[0], finalRes[1])
+            row = col.row()
+            row.alert = True
+            row.separator(factor=sepFactor)
+            row.label(text=infosStr)
+
+        col.separator()
+        row = col.row()
+        filePath = props.getCurrentShot().getOutputMediaPath("SH_STILL", specificFrame=bpy.context.scene.frame_current)
+        row.separator(factor=sepFactor)
+        row.label(text="Current Image: " + filePath)
+        row.operator("uas_shot_manager.open_explorer", text="", icon_value=iconExplorer.icon_id).path = filePath
+        col.separator()
+
+    ### animation
+    if props.displayAnimationProps:
+        if props.renderSettingsAnim.bypass_rendering_project_settings:
+            finalRes = props.getRenderResolutionForFinalOutput(
+                resPercentage=100, useStampInfo=props.renderSettingsAnim.useStampInfo
+            )
+
+        infosStr = _getResText(imgRes[0], imgRes[1], finalRes[0], finalRes[1])
+        infosStr += f"{fps} fps"
+        row.label(text=infosStr)
+
+        # TODO wkip
+        if 100 != scene.render.resolution_percentage:
+            row = col.row()
+            row.alert = True
+            row.label(text="*** Warning: Resolution Percentage is not 100% ***")
+            infosStr = _getResText(imgRes[0], imgRes[1], finalRes[0], finalRes[1])
+            row = col.row()
+            row.alert = True
+            row.separator(factor=sepFactor)
+            row.label(text=infosStr)
+
+        col.separator()
+        row = col.row()
+        filePath = props.getCurrentShot().getOutputMediaPath("SH_VIDEO", provideName=False)
+        row.separator(factor=sepFactor)
+        row.label(text="Rendered in: " + filePath)
+        row.operator("uas_shot_manager.open_explorer", text="", icon_value=iconExplorer.icon_id).path = filePath
+        col.separator()
+
+    ### all edits
+    elif props.displayAllEditsProps:
+        if props.renderSettingsAll.bypass_rendering_project_settings:
+            finalRes = props.getRenderResolutionForFinalOutput(
+                resPercentage=100, useStampInfo=props.renderSettingsAll.useStampInfo
+            )
+
+        infosStr = _getResText(imgRes[0], imgRes[1], finalRes[0], finalRes[1])
+        infosStr += f"{fps} fps"
+        row.label(text=infosStr)
+
+        # TODO wkip
+        if 100 != scene.render.resolution_percentage:
+            row = col.row()
+            row.alert = True
+            row.label(text="*** Warning: Resolution Percentage is not 100% ***")
+            infosStr = _getResText(imgRes[0], imgRes[1], finalRes[0], finalRes[1])
+            row = col.row()
+            row.alert = True
+            row.separator(factor=sepFactor)
+            row.label(text=infosStr)
+
+        col.separator()
+        row = col.row()
+        filePath = props.getCurrentShot().getOutputMediaPath("SH_VIDEO", provideName=False)
+        row.separator(factor=sepFactor)
+        row.label(text="Rendered in: " + filePath)
+        row.operator("uas_shot_manager.open_explorer", text="", icon_value=iconExplorer.icon_id).path = filePath
+        col.separator()
+
+    ### playblast
+    elif props.displayPlayblastProps:
+        # if props.renderSettingsPlayblast.bypass_rendering_project_settings:
+        finalRes = props.getRenderResolutionForFinalOutput(
+            resPercentage=props.renderSettingsPlayblast.resolutionPercentage,
+            useStampInfo=props.renderSettingsPlayblast.useStampInfo,
+        )
+
+        infosStr = _getResText(imgRes[0], imgRes[1], finalRes[0], finalRes[1])
+        infosStr += f"{fps} fps"
+        row.label(text=infosStr)
+
+        # prefs = context.preferences.addons["shotmanager"].preferences
+        #   filePath = props.renderRootPath + "\\" + prefs.playblastFileName
+        filePath = props.renderRootPath
+        if not filePath.endswith("\\") and not filePath.endswith("/"):
+            filePath += "\\"
+        filePath += f"_playblast_.{props.getOutputFileFormat()}"
+        if not props.isRenderRootPathValid():
+            rowAlert = box.row()
+            rowAlert.alert = True
+            rowAlert.label(text="*** Invalid Root Path ***")
+
+        # TODO wkip
+        if 100 != scene.render.resolution_percentage:
+            row = col.row()
+            row.alert = True
+            row.label(text="*** Warning: Resolution Percentage is not 100% ***")
+            infosStr = _getResText(imgRes[0], imgRes[1], finalRes[0], finalRes[1])
+            row = col.row()
+            row.alert = True
+            row.separator(factor=sepFactor)
+            row.label(text=infosStr)
+
+        col.separator()
+        row = col.row()
+        row.separator(factor=sepFactor)
+        row.label(text="Playblast Video: " + filePath)
+        row.operator("uas_shot_manager.open_explorer", text="", icon_value=iconExplorer.icon_id).path = str(
+            Path(bpy.path.abspath(filePath))
+        )
+        col.separator()
 
 
 def draw3DRenderPanel(self, context):
     scene = context.scene
     props = context.scene.UAS_shot_manager_props
     iconExplorer = config.icons_col["General_Explorer_32"]
+
+    stampInfoAvailable = props.isStampInfoAvailable()
+
+    def _separatorRow(layout):
+        itemsRow = layout.row()
+        itemsRow.scale_y = 0.8
+        itemsRow.separator()
 
     layout = self.layout
     # row = layout.row()
@@ -244,7 +454,7 @@ def draw3DRenderPanel(self, context):
     row = layout.row(align=True)
     row.scale_y = 1.3
     row.prop(props, "displayOtioProps", text="", icon="SEQ_STRIP_DUPLICATE")
-    row.operator("uas_shot_manager.render", text="Render EDL File").renderMode = "OTIO"
+    row.operator("uas_shot_manager.render", text="Edit File").renderMode = "OTIO"
 
     # row = layout.row()
     # row = layout.row(align=True)
@@ -267,6 +477,7 @@ def draw3DRenderPanel(self, context):
     #     row.operator("uas_shot_manager.clear_last_render_results")
 
     display_bypass_options = True
+    subItemSeparator = 3
 
     # STILL ###
     if props.displayStillProps:
@@ -281,20 +492,33 @@ def draw3DRenderPanel(self, context):
                 subSubRow = subRow.row()
                 subSubRow.separator(factor=2)
                 subbox = subRow.box()
-                row = subbox.row()
+                bypassItemsCol = subbox.column()
             else:
                 display_bypass_options = False
         else:
-            row = box.row()
+            bypassItemsCol = box.column_flow(columns=1)
 
         if display_bypass_options:
-            row.prop(props.renderSettingsStill, "writeToDisk")
-            row.prop(props.renderSettingsStill, "useStampInfo")
+            itemsRow = bypassItemsCol.row()
+            col = itemsRow.column()
+            row = col.row()
+            row.prop(props.renderSettingsStill, "writeToDisk", text="Write Image to Disk")
 
-        row = box.row()
-        filePath = props.getCurrentShot().getOutputMediaPath(specificFrame=bpy.context.scene.frame_current)
-        row.label(text="Current Image: " + filePath)
-        row.operator("uas_shot_manager.open_explorer", text="", icon_value=iconExplorer.icon_id).path = filePath
+            _separatorRow(bypassItemsCol)
+
+            itemsRow = bypassItemsCol.row()
+            col = itemsRow.column()
+            col.enabled = stampInfoAvailable
+            row = col.row()
+            row.prop(props.renderSettingsStill, "useStampInfo")
+            if not stampInfoAvailable:
+                row.label(text="*** Add-on not available ***")
+            row = col.row()
+            row.separator(factor=subItemSeparator)
+            row.enabled = props.renderSettingsStill.useStampInfo
+            row.prop(props.renderSettingsStill, "keepIntermediateFiles")
+
+        drawRenderInfos(context, box)
 
     # ANIMATION ###
     elif props.displayAnimationProps:
@@ -309,31 +533,47 @@ def draw3DRenderPanel(self, context):
                 subSubRow = subRow.row()
                 subSubRow.separator(factor=2)
                 subbox = subRow.box()
-                row = subbox.row()
+                bypassItemsCol = subbox.column()
             else:
                 display_bypass_options = False
         else:
-            row = box.row()
+            bypassItemsCol = box.column_flow(columns=1)
 
         if display_bypass_options:
-            row.prop(props.renderSettingsAnim, "renderHandles")
-            row.prop(props.renderSettingsAnim, "useStampInfo")
+            itemsRow = bypassItemsCol.row()
+            col = itemsRow.column()
+            row = col.row()
+            row.label(text="Output Media:")
+            row.prop(props.renderSettingsAnim, "outputMediaMode", text="")
 
-        row = box.row()
-        filePath = props.getCurrentShot().getOutputMediaPath()
-        row.label(text="Current Video: " + filePath)
-        row.operator("uas_shot_manager.open_explorer", text="", icon_value=iconExplorer.icon_id).path = filePath
+            _separatorRow(bypassItemsCol)
+
+            itemsRow = bypassItemsCol.row()
+            col = itemsRow.column()
+            col.enabled = stampInfoAvailable
+            row = col.row()
+            row.prop(props.renderSettingsAnim, "useStampInfo")
+            if not stampInfoAvailable:
+                row.label(text="*** Add-on not available ***")
+            row = col.row()
+            row.separator(factor=subItemSeparator)
+            row.enabled = props.renderSettingsAnim.useStampInfo
+            row.prop(props.renderSettingsAnim, "keepIntermediateFiles")
+
+            _separatorRow(bypassItemsCol)
+
+            itemsRow = bypassItemsCol.row()
+            col = itemsRow.column()
+            row = col.row()
+            row.prop(props.renderSettingsAnim, "renderHandles")
+
+        drawRenderInfos(context, box)
 
     # ALL EDITS ###
     elif props.displayAllEditsProps:
         row = layout.row()
         row.label(text="Render All:")
         box = layout.box()
-
-        row = box.row()
-        row.prop(props.renderSettingsAll, "rerenderExistingShotVideos")
-        row = box.row()
-        row.prop(props.renderSettingsAll, "generateEditVideo")
 
         if props.use_project_settings:
             box.prop(props.renderSettingsAll, "bypass_rendering_project_settings")
@@ -342,37 +582,76 @@ def draw3DRenderPanel(self, context):
                 subSubRow = subRow.row()
                 subSubRow.separator(factor=2)
                 subbox = subRow.box()
-                row = subbox.row()
+                bypassItemsCol = subbox.column()
             else:
                 display_bypass_options = False
         else:
-            row = box.row()
+            bypassItemsCol = box.column_flow(columns=1)
 
         if display_bypass_options:
-            row.prop(props.renderSettingsAll, "renderAlsoDisabled")
+            itemsRow = bypassItemsCol.row()
+            col = itemsRow.column()
+
+            row = col.row()
+            row.label(text="Output Media:")
+            row.prop(props.renderSettingsAll, "outputMediaMode", text="")
+
+            _separatorRow(bypassItemsCol)
+
+            itemsRow = bypassItemsCol.row()
+            col = itemsRow.column()
+            col.enabled = stampInfoAvailable
+            row = col.row()
             row.prop(props.renderSettingsAll, "useStampInfo")
-            if props.use_project_settings:
-                row = subbox.row()
-            else:
-                row = box.row()
-            row.prop(props.renderSettingsAll, "renderAllTakes")
-            row.prop(props.renderSettingsAll, "renderOtioFile")
+            if not stampInfoAvailable:
+                row.label(text="*** Add-on not available ***")
+            row = col.row()
+            row.separator(factor=subItemSeparator)
+            row.enabled = props.renderSettingsAll.useStampInfo
+            row.prop(props.renderSettingsAll, "keepIntermediateFiles")
 
-        row = box.row()
-        # filePath = props.getTakeOutputFilePath()
-        filePath = props.getCurrentShot().getOutputMediaPath(provideName=False, provideExtension=False)
-        row.label(text="Rendering Folder: " + filePath)
-        row.operator("uas_shot_manager.open_explorer", text="", icon_value=iconExplorer.icon_id).path = filePath
+            _separatorRow(bypassItemsCol)
 
-    # EDL ###
+            itemsRow = bypassItemsCol.row()
+            col = itemsRow.column()
+
+            row = col.row()
+            row.enabled = "VIDEO" in props.renderSettingsAll.outputMediaMode
+            split = row.split(factor=0.5)
+            split.prop(props.renderSettingsAll, "renderOtioFile")
+            subSplit = split.split(factor=0.3)
+            subSplit.enabled = props.renderSettingsAll.renderOtioFile
+            subSplit.label(text="Type:")
+            subSplit.prop(props.renderSettingsAll, "otioFileType", text="")
+
+        col = box.column()
+        row = col.row()
+        row.prop(props.renderSettingsAll, "rerenderExistingShotVideos")
+        row.prop(props.renderSettingsAll, "generateEditVideo")
+
+        row = col.row()
+        row.prop(props.renderSettingsAll, "renderAllTakes")
+        row.prop(props.renderSettingsAll, "renderAlsoDisabled")
+
+        drawRenderInfos(context, box)
+
+    # EDIT FILE ###
     elif props.displayOtioProps:
         row = layout.row()
-        row.label(text="Render EDL File:")
+        row.label(text="Generate Edit File:")
 
         box = layout.box()
-        row = box.row()
 
-        row.prop(props.renderSettingsOtio, "otioFileType")
+        row = box.row()
+        row.label(text="Generate for:")
+        if config.devDebug:
+            row.prop(props.renderSettingsOtio, "outputMediaMode", text="")
+        else:
+            row.label(text="Videos (Only Supported Format)")
+
+        row = box.row()
+        row.label(text="File Type:")
+        row.prop(props.renderSettingsOtio, "otioFileType", text="")
 
         row = box.row()
 
@@ -384,10 +663,20 @@ def draw3DRenderPanel(self, context):
             filePath = bpy.path.abspath(filePath)
         if not (filePath.endswith("/") or filePath.endswith("\\")):
             filePath += "\\"
+
         # if addTakeNameToPath:
+
+        # take folder
         filePath += take_name + "\\"
+
         # if "" == fileName:
-        filePath += take_name + ".xml"
+
+        # edit file name
+        filePath += take_name
+
+        # file extension
+        filePath += f".{props.renderSettingsOtio.otioFileType.lower()}"
+        # + ".xml"
         # else:
         #     otioRenderPath += fileName
         #     if Path(fileName).suffix == "":
@@ -413,23 +702,31 @@ def draw3DRenderPanel(self, context):
 
         box = layout.box()
 
-        # prefs = context.preferences.addons["shotmanager"].preferences
-        #   filePath = props.renderRootPath + "\\" + prefs.playblastFileName
-        filePath = props.renderRootPath
-        if not filePath.endswith("\\") and not filePath.endswith("/"):
-            filePath += "\\"
-        filePath += f"_playblast_.{props.getOutputFileFormat()}"
-        if not props.isRenderRootPathValid():
-            rowAlert = box.row()
-            rowAlert.alert = True
-            rowAlert.label(text="*** Invalid Root Path ***")
+        # # prefs = context.preferences.addons["shotmanager"].preferences
+        # #   filePath = props.renderRootPath + "\\" + prefs.playblastFileName
+        # filePath = props.renderRootPath
+        # if not filePath.endswith("\\") and not filePath.endswith("/"):
+        #     filePath += "\\"
+        # filePath += f"_playblast_.{props.getOutputFileFormat()}"
+        # if not props.isRenderRootPathValid():
+        #     rowAlert = box.row()
+        #     rowAlert.alert = True
+        #     rowAlert.label(text="*** Invalid Root Path ***")
 
-        row = box.row()
+        bypassItemsCol = box.column_flow(columns=1)
+
+        itemsRow = bypassItemsCol.row()
+        col = itemsRow.column()
+        row = col.row()
         row.prop(props.renderSettingsPlayblast, "stampRenderInfo")
-        subRow = row.row()
-        subRow.enabled = props.renderSettingsPlayblast.stampRenderInfo
-        subRow.prop(props.renderSettingsPlayblast, "useStampInfo")
-        box.separator(factor=0.3)
+        row = col.row()
+        row.separator(factor=subItemSeparator)
+        row.enabled = stampInfoAvailable and props.renderSettingsPlayblast.stampRenderInfo
+        row.prop(props.renderSettingsAll, "useStampInfo")
+        if not stampInfoAvailable:
+            row.label(text="*** Add-on not available ***")
+
+        _separatorRow(bypassItemsCol)
 
         row = box.row()
         colFlow = row.column_flow(columns=3)
@@ -455,16 +752,12 @@ def draw3DRenderPanel(self, context):
         subRow.prop(props.renderSettingsPlayblast, "openPlayblastInPlayer")
         subRow = row.row()
         subRow.enabled = False
-        subRow.prop(props.renderSettingsPlayblast, "updatePlayblastInVSM", text="Opend in Video Tracks")
+        subRow.prop(props.renderSettingsPlayblast, "updatePlayblastInVSM", text="Open in Video Tracks")
 
         # row = box.row()
         # row.prop(props.renderSettingsPlayblast, "renderCameraBG")
 
-        row = box.row()
-        row.label(text="Playblast Video: " + filePath)
-        row.operator("uas_shot_manager.open_explorer", text="", icon_value=iconExplorer.icon_id).path = str(
-            Path(bpy.path.abspath(filePath))
-        )
+        drawRenderInfos(context, box)
 
     # ------------------------
 
@@ -496,13 +789,15 @@ def draw3DRenderPanel(self, context):
     # row.separator()
     # row.operator("uas_shot_manager.open_explorer", emboss=True, icon='FILEBROWSER', text="")
 
-    if config.devDebug:
-        debugCol = layout.column()
-        debugCol.alert = True
-        debugCol.label(text="Debug Infos:")
+    # ------------------------
 
-        currentRenderResStr = f"SM Render Res: {props.getRenderResolution()}"
-        debugCol.label(text="  " + currentRenderResStr)
+    # if config.devDebug:
+    #     debugCol = layout.column()
+    #     debugCol.alert = True
+    #     debugCol.label(text="Debug Infos:")
+
+    #     currentRenderResStr = f"SM Render Res: {props.getRenderResolution()}"
+    #     debugCol.label(text="  " + currentRenderResStr)
 
     self.layout.separator(factor=1)
 

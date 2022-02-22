@@ -46,23 +46,21 @@ def drawDependencies(context, layout: bpy.types.UILayout, **kwargs):
         subRow = split.row()
         subRow.alert = True
         if (2, 93, 0) < bpy.app.version:
-            if platform.system() != "Windows":
-                subRow.label(text="Module not yet available on Blender 2.93+ for Mac and Linux ")
-            else:
-                col = subRow.column()
-                col.label(text="Module not found - Try to relaunch Blender in Admin mode ")
-
-                row = col.row(align=True)
-                row.label(text="If the issue persists check the Installation Troubles FAQ:")
-                row = col.row(align=True)
-                rowRight = row.row()
-                rowRight.alignment = "RIGHT"
-                rowRight.scale_x = 1.0
-                doc_op = rowRight.operator("shotmanager.open_documentation_url", text="Shot Manager FAQ")
-                doc_op.path = "https://ubisoft-shotmanager.readthedocs.io/en/latest/troubleshoot/faq.html#installation"
-                doc_op.tooltip = "Open online FAQ: " + doc_op.path
-                col.separator(factor=0.3)
-
+            # if platform.system() != "Windows":
+            #     subRow.label(text="Module not yet available on Blender 2.93+ for Mac and Linux ")
+            # else:
+            col = subRow.column()
+            col.label(text="Module not found - Try to relaunch Blender in Admin mode ")
+            row = col.row(align=True)
+            row.label(text="If the issue persists check the Installation Troubles FAQ:")
+            row = col.row(align=True)
+            rowRight = row.row()
+            rowRight.alignment = "RIGHT"
+            rowRight.scale_x = 1.0
+            doc_op = rowRight.operator("shotmanager.open_documentation_url", text="Shot Manager FAQ")
+            doc_op.path = "https://ubisoft-shotmanager.readthedocs.io/en/latest/troubleshoot/faq.html#installation"
+            doc_op.tooltip = "Open online FAQ: " + doc_op.path
+            col.separator(factor=0.3)
         else:
             subRow.label(text="Module not found  - Related features disabled")
 

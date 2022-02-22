@@ -4,7 +4,7 @@ How to retime the edit or the action
 ====================================
 
 .. note::
-    We use here the term "action" do designate what is happening in the scene, this as an analogy
+    We use here the term "action" to designate what is happening in the scene, this as an analogy
     to live shooting. We do not refer here to the "action" entities used by Blender as animation clips
     (which are not supported).
 

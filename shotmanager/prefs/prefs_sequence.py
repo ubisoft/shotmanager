@@ -64,6 +64,7 @@ class UAS_ShotManager_Sequence_Prefs(Operator):
         # row = layout.row()
         # row.label(text="Handles:")
         col.prop(props, "render_shot_prefix")
+
         col.prop(props, "renderSingleFrameShotAsImage")
 
         col.separator()

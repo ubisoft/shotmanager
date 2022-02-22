@@ -125,7 +125,7 @@ class UAS_Retimer_Properties(PropertyGroup):
         modeItem = ([s for s in items if topic == s[0]])[0]
         # print(f"modeItem: {modeItem[1]}")
 
-        docPath = "https://ubisoft-shotmanager.readthedocs.io/en/latest/features-advanced/retimer.html"
+        docPath = "https://ubisoft-shotmanager.readthedocs.io/en/latest/feature-toggles/retimer.html"
         title = modeItem[1]
         text = modeItem[2]
 

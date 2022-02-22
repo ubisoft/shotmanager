@@ -46,9 +46,12 @@ def shotMngHandler_load_post_checkDataVersion(self, context):
         for scn in bpy.data.scenes:
 
             # if "UAS_shot_manager_props" in scn:
-            if getattr(bpy.context.scene, "UAS_shot_manager_props", None) is not None:
+            #  if getattr(bpy.context.scene, "UAS_shot_manager_props", None) is not None:
+            if getattr(scn, "UAS_shot_manager_props", None) is not None:
                 #   print("\n   Shot Manager instance found in scene " + scn.name)
                 props = scn.UAS_shot_manager_props
+
+                _logger.debug_ext(f"Scene: {scn.name}, props.dataVersion: {props.dataVersion}", col="RED")
 
                 # # Dirty hack to avoid accidental move of the cameras
                 # try:
@@ -68,11 +71,12 @@ def shotMngHandler_load_post_checkDataVersion(self, context):
                 # if props.dataVersion <= 0 or props.dataVersion < bpy.context.window_manager.UAS_shot_manager_version:
                 # if props.dataVersion <= 0 or props.dataVersion < props.version()[1]:
 
-                # wkip to remove - quick fix degueu
                 if props.dataVersion <= 0:
-                    return
-
-                if props.dataVersion <= 0 or props.dataVersion < latestVersionToPatch:  # <= ???
+                    props.dataVersion = props.version()[1]
+                    _logger.info(
+                        f"   *** Scene {scn.name}: The version of the Shot Manager data was not set - It has been fixed and is now {utils.convertVersionIntToStr(props.dataVersion)}"
+                    )
+                elif props.dataVersion < latestVersionToPatch:  # <= ???
                     _logger.info(
                         f"   *** Scene {scn.name}: The version of the Shot Manager data is lower than the latest patch version - Need patching ***"
                         f"\n     Data Version: {utils.convertVersionIntToStr(props.dataVersion)}, latest version to patch: {utils.convertVersionIntToStr(latestVersionToPatch)}"
@@ -130,4 +134,3 @@ def shotMngHandler_load_post_checkDataVersion(self, context):
 #             print("\n   Shot Manager instance found in scene, writing data version: " + scn.name)
 #             props.dataVersion = bpy.context.window_manager.UAS_shot_manager_version
 #             print("   props.dataVersion: ", props.dataVersion)
-

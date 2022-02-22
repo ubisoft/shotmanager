@@ -25,11 +25,10 @@ Read this: https://stackoverflow.com/questions/7274732/extending-the-python-logg
 import os
 from pathlib import Path
 
-import sys
 import logging
 from logging import DEBUG, INFO, ERROR
 
-from shotmanager.config import config
+from ..config import config
 
 
 def getLogger(name):
@@ -46,6 +45,10 @@ def getLevelName():
 class SM_Logger(logging.getLoggerClass()):
     def __init__(self, name):
         super(SM_Logger, self).__init__(name)
+
+        self._prefix = "SM"
+        self._defaultColor = "WHITE"
+        self._defaultForm = "STD"
 
         # colors in terminal: https://stackoverflow.com/questions/384076/how-can-i-color-python-logging-output
         self._colors = {
@@ -66,7 +69,7 @@ class SM_Logger(logging.getLoggerClass()):
         }
 
         # self._formatter_standard = Formatter("\33[36m" + "~Basic +++" + " {message:<140}" + "\033[0m", style="{")
-        self._formatter_standard = Formatter("SM - " + " {message:<110}", style="{")
+        self._formatter_standard = Formatter(self._prefix + " - " + " {message:<110}", style="{")
         self._formatter_basic = Formatter("\33[36m" + "~Basic +++" + " {message:<140}" + "\033[0m", style="{")
         self._formatter_other = Formatter("\33[36m" + "S OTHER M+" + " {message:<140}" + "\033[0m", style="{")
         self._formatter = {
@@ -79,7 +82,7 @@ class SM_Logger(logging.getLoggerClass()):
         color = self._colors[col] if col != "" else ""
 
         if "STD" == form:
-            f = Formatter(color + "SM: " + " {message:<120}" + "\033[0m", style="{")
+            f = Formatter(color + self._prefix + "  {message:<120}" + "\033[0m", style="{")
         elif "REG" == form:
             if "" == col:
                 color = self._colors["YELLOW"]
@@ -88,8 +91,8 @@ class SM_Logger(logging.getLoggerClass()):
             if "" == col:
                 color = self._colors["GRAY"]
             f = Formatter(color + "{message:<90}" + "\033[0m", style="{")
-        elif "BASIC" == form:
-            f = Formatter(color + "~Basic +++" + " {message:<140}" + "\033[0m", style="{")
+        elif "ERROR" == form:
+            f = Formatter(color + "Shot Manager: " + " {message:<140}" + "\033[0m", style="{")
         elif "OTHER" == form:
             f = Formatter(color + "~Other +++" + " {message:<140}" + "\033[0m", style="{")
         else:  # "DEFAULT"
@@ -112,8 +115,8 @@ class SM_Logger(logging.getLoggerClass()):
 
     def debug_form(self, col="GREEN", form="DEFAULT"):
         """Set formatter. To use before call to debug()
-            eg: _logger.debug_form(col="GREEN", form="STD")
-                _logger.debug("debug test timer green")
+        eg: _logger.debug_form(col="GREEN", form="STD")
+            _logger.debug("debug test timer green")
         """
         ch = logging.StreamHandler()
         ch.setLevel(logging.DEBUG)
@@ -122,10 +125,19 @@ class SM_Logger(logging.getLoggerClass()):
     def debug_ext(self, msg, extra=None, col="", form="STD", tag=None):
         _logger.handlers[0].setFormatter(self._getFormatter(col, form))
 
-        # accept or silence message display according to tags
+        # accept or silence message display according to tags (if return is enabled then tag is ignored)
         if tag is not None:
             if "TIMELINE_EVENT" == tag:
                 return
+                pass
+            elif "SHOTSTACK_EVENT" == tag:
+                return
+                pass
+            elif "JUMP" == tag:
+                return
+                pass
+            elif "EDIT_IO" == tag:
+                # return
                 pass
 
         # Note: marvellous parameter: stacklevel allows to get the call from the sender, otherwise
@@ -133,7 +145,13 @@ class SM_Logger(logging.getLoggerClass()):
         # cf https://stackoverflow.com/questions/14406347/python-logging-check-location-of-log-files
         # and https://www.py4u.net/discuss/157715
         super(SM_Logger, self).debug(("{}").format(msg), extra=extra, stacklevel=2)
+        _logger.handlers[0].setFormatter(self._getFormatter(self._defaultColor, self._defaultForm))
+
+    def error_ext(self, msg, extra=None, col="RED", form="ERROR"):
         _logger.handlers[0].setFormatter(self._getFormatter(col, form))
+
+        super(SM_Logger, self).error(("{}").format(msg), extra=extra, stacklevel=2)
+        _logger.handlers[0].setFormatter(self._getFormatter(self._defaultColor, self._defaultForm))
 
     # # wkip not working...
     # def debug(self, msg, extra=None, col="GREEN", form="STD"):
@@ -203,7 +221,7 @@ _logger = logging.getLogger(__name__)
 def initialize():
 
     if config.devDebug:
-        print(f"Initializing Logger...")
+        print("Initializing Logger...")
         print(f"len(_logger.handlers): {len(_logger.handlers)}")
 
     _logger.propagate = False

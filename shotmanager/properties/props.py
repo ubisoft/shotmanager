@@ -38,7 +38,7 @@ from bpy.props import (
 )
 
 # from shotmanager.operators import shots
-from shotmanager.rrs_specific.montage.montage_interface import MontageInterface
+from .montage_interface import MontageInterface
 
 # from .media import UAS_ShotManager_Media
 from shotmanager.rendering.rendering_props import UAS_ShotManager_RenderSettings, UAS_ShotManager_RenderGlobalContext
@@ -85,7 +85,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
     )
 
     def initialize_shot_manager(self):
-        print(f"\nInitializing Shot Manager... Scene: {bpy.context.scene.name}")
+        print(f"\nInitializing Shot Manager in the current scene ({bpy.context.scene.name})...")
         # self.parentScene = self.getParentScene()
 
         if self.parentScene is None:
@@ -97,6 +97,9 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         self.createDefaultTake()
         self.createRenderSettings()
 
+        # activate camera hud
+        # bpy.ops.uas_shot_manager.draw_camera_hud_in_viewports("INVOKE_DEFAULT")
+        # bpy.ops.uas_shot_manager.draw_camera_hud_in_pov("INVOKE_DEFAULT")
         self.camera_hud_display_in_viewports = True
         self.camera_hud_display_in_pov = True
 
@@ -234,7 +237,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
                 #     bpy.context.window_manager.UAS_shot_manager_version,
                 # )
 
-                warningList.append(("Debug: Data version is lower than SM version. Save the file.", 50))
+                warningList.append(("Debug: Data version is lower than SM version. Save and reload the file.", 50))
 
         # check if some camera markers bound to cameras are used in the scene
         ###########
@@ -311,7 +314,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         name="File List Only", default=True, options=set(),
     )
     rrs_renderAlsoDisabled: BoolProperty(
-        name="Render Also Disabled", default=False, options=set(),
+        name="Render Also Disabled Shots", default=False, options=set(),
     )
 
     # project settings
@@ -404,6 +407,25 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         name="Sound Output Format", default="", options=set(),
     )
 
+    # add-on preferences overriden by project settings
+    project_output_first_frame: IntProperty(
+        name="Project Output First Frame Index",
+        description="Index of the first frame for rendered image sequences and videos."
+        "\nThis is 0 in most editing applications, sometimes 1."
+        "\nThis setting overrides the related Add-on Preference",
+        min=0,
+        subtype="TIME",
+        default=0,
+    )
+
+    project_img_name_digits_padding: IntProperty(
+        name="Image Name Digit Padding",
+        description="Number of digits to use for the index of an output image in its name."
+        "\nThis setting overrides the related Add-on Preference",
+        min=0,
+        default=5,
+    )
+
     # built-in project settings
     project_images_output_format: StringProperty(
         name="Image Output Format", default="PNG", options=set(),
@@ -435,10 +457,10 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         options=set(),
     )
 
-    # overriden by project settings
+    # shot manager per scene instance properties overriden by project settings
     render_shot_prefix: StringProperty(
         name="Render Shot Prefix",
-        description="Prefix added to the shot names at render time",
+        description="Prefix added to the shot names at render time" "\nExamples: Act01_, MyMovie_...",
         default="",
         options=set(),
     )
@@ -459,7 +481,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         """Return the resolution used by Shot Manager in the current context.
         It is the resolution of the images resulting from the scene rendering, not the one resulting
         from these renderings composited with the Stamp Info frames, which can be bigger.
-        Use getStampInfoResolution() for the final composited images resolution.
+        Use getRenderResolutionForStampInfo() for the final composited images resolution.
 
         This resolution is specified by:
             - the current take resolution if it overrides the scene or project render settings,
@@ -497,7 +519,46 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
             if self.parentScene.render.resolution_y != res[1]:
                 self.parentScene.render.resolution_y = res[1]
 
-    def getStampInfoResolution(self):
+    # FIXME: add support for take custom res
+    def getRenderResolutionForStampInfo(self):
+        """Return the resolution of the images resulting from the compositing of the rendered images and
+        the frames from Stamp Info.
+        If Stamp Info is not used then the returned resolution is the one of the rendered images, which
+        can also be obtained by calling getRenderResolution().
+
+        The scene render resolution percentage is NOT involved here.
+
+        This resolution is specified by:
+            - the current take resolution if it overrides the scene or project render settings,
+            - the project, if project settings are used,
+            - or by the current scene if none of the specifications above
+
+        Returns:
+            tupple with the render resolution x and y of the take
+        """
+        scene = self.parentScene
+
+        if getattr(scene, "UAS_StampInfo_Settings", None) is None:
+            return self.getRenderResolution()
+
+        stampInfoSettings = scene.UAS_StampInfo_Settings
+        if not stampInfoSettings.stampInfoUsed:
+            return self.getRenderResolution()
+
+        if self.use_project_settings:
+            if not self.project_use_stampinfo:
+                return self.getRenderResolution()
+
+            renderResolutionFramedFull = [self.project_resolution_framed_x, self.project_resolution_framed_y]
+            return (renderResolutionFramedFull[0], renderResolutionFramedFull[1])
+        else:
+            # wkipwkipwkip use this instead:
+            # renderResolutionFramedFull = stampInfoSettings.evaluateRenderResolutionForStampInfo(renderMode=stampInfoSettings.stampInfoRenderMode, imageRes=
+            renderResolutionFramedFull = stampInfoSettings.getRenderResolutionForStampInfo(scene)
+            return (renderResolutionFramedFull[0], renderResolutionFramedFull[1])
+
+    # FIXME: add support for take custom res
+    def getRenderResolutionForFinalOutput(self, resPercentage=100, useStampInfo=None):
         """Return the resolution of the images resulting from the compositing of the rendered images and
         the frames from Stamp Info.
         If Stamp Info is not used then the returned resolution is the one of the rendered images, which
@@ -508,16 +569,38 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
             - the project, if project settings are used,
             - or by the current scene if none of the specifications above
 
+        Args:
+            resPercentage: use the scene render property named resolutionPercentage, or 100 to ignore it
+            useStampInfo: if None then uses the context to define if used or not, if True then integrates it in the computation
+            and if False then don't take it in account. This is required by the Project Bypass property in the SM Render Settings.
+
         Returns:
             tupple with the render resolution x and y of the take
         """
-        # TODO
-        pass
+        if useStampInfo is None:
+            renderResolutionFramedFull = self.getRenderResolutionForStampInfo()
+        elif useStampInfo:
+            scene = self.parentScene
+            if getattr(scene, "UAS_StampInfo_Settings", None) is None:
+                renderResolutionFramedFull = self.getRenderResolution()
+            else:
+                stampInfoSettings = scene.UAS_StampInfo_Settings
+                renderResolutionFramedFull = stampInfoSettings.getRenderResolutionForStampInfo(scene)
+        else:
+            renderResolutionFramedFull = self.getRenderResolution()
+
+        if 100 != resPercentage:
+            finalRenderResolutionFramed = []
+            finalRenderResolutionFramed.append(int(renderResolutionFramedFull[0] * resPercentage / 100))
+            finalRenderResolutionFramed.append(int(renderResolutionFramedFull[1] * resPercentage / 100))
+            return (finalRenderResolutionFramed[0], finalRenderResolutionFramed[1])
+        else:
+            return (renderResolutionFramedFull[0], renderResolutionFramedFull[1])
 
     def areShotHandlesUsed(self):
         """Return true if the shot handles are used by Shot Manager in the current context. This value is specified by:
-            - the project, if project settings are used,
-            - the settings of the current instance of Shot Manager otherwise
+        - the project, if project settings are used,
+        - the settings of the current instance of Shot Manager otherwise
         """
         return self.project_use_shot_handles if self.use_project_settings else self.use_handles
 
@@ -571,12 +654,10 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
 
     display_enabled_in_shotlist: BoolProperty(name="Display Enabled State in Shot List", default=True, options=set())
 
-    # ** Experimental **
-    display_cameraBG_in_shotlist: BoolProperty(
-        name="** Experimental ** Display Camera BG in Shot List", default=False, options=set()
-    )
+    display_cameraBG_in_shotlist: BoolProperty(name="Display Camera BG in Shot List", default=False, options=set())
+
     display_greasepencil_in_shotlist: BoolProperty(
-        name="** Experimental ** Display Grease Pencil in Shot List", default=False, options=set()
+        name="Display Grease Pencil in Shot List", default=False, options=set()
     )
 
     display_getsetcurrentframe_in_shotlist: BoolProperty(
@@ -1155,9 +1236,8 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         currentTakeName = self.current_take_name
         return currentTakeName
 
-    # wkip deprecated
     def getTakeName_PathCompliant(self, takeIndex=-1):
-        """Return the name of the specified take with spaces replaced by "_" """
+        """Return the name of the current take with spaces replaced by a non-space separator """
         takeInd = (
             self.getCurrentTakeIndex()
             if -1 == takeIndex
@@ -1312,7 +1392,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
     def isStampInfoAllowed(self):
         """Return True if the add-on UAS Stamp Info is available and allowed to be used"""
         allowed = self.isStampInfoAvailable()
-        # wkip temp while fixing stamp info...
+        # wkipwkipwkip temp while fixing stamp info...
         allowed = allowed and False
         return allowed
 
@@ -2081,8 +2161,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         return self.selected_shot_index
 
     def getSelectedShot(self):
-        """Return the shot currently selected in the current take, None otherwise
-        """
+        """Return the shot currently selected in the current take, None otherwise"""
         selectedShotInd = self.getSelectedShotIndex()
         selectedShot = None
         if -1 != selectedShotInd:
@@ -2360,6 +2439,22 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
             numSharedCams += len(sharedCams[k])
 
         return (numSharedCams, len(sharedCams))
+
+    def hisThereSharedCameraInTake(self, ignoreDisabled=False, takeIndex=-1, inAllTakes=True):
+        """Return True if there is at least 1 camera shared in the specified take, False otherwise"""
+        takeInd = (
+            self.getCurrentTakeIndex()
+            if -1 == takeIndex
+            else (takeIndex if 0 <= takeIndex and takeIndex < len(self.getTakes()) else -1)
+        )
+        if -1 == takeInd:
+            return -1
+
+        for shot in self.takes[takeInd].shots:
+            if ignoreDisabled or shot.enabled:
+                if 1 < self.getNumSharedCamera(shot.camera, ignoreDisabled=ignoreDisabled, takeIndex=takeInd):
+                    return True
+        return False
 
     def getNumSharedCamera(self, cam, ignoreDisabled=False, takeIndex=-1, inAllTakes=True):
         """Return the number of times the specified camera is used by the shots of the specified takes
@@ -2908,17 +3003,34 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
 
     ##############################
 
-    def renderShotPrefix(self):
+    def getFramePadding(self, frame=None):
+        """Return a string with the specified frame index formated with the preferences or project padding
+        Args: frame:    If provided then the result is a string of zeros followed by this value
+                        If not provided then the returned string is made of #
+        """
+        prefs = bpy.context.preferences.addons["shotmanager"].preferences
+        formatedFrame = ""
+        padding = self.project_img_name_digits_padding if self.use_project_settings else prefs.img_name_digits_padding
+
+        if frame is None:
+            formatedFrame = formatedFrame.rjust(padding, "#")
+        else:
+            formatedFrame = str(frame).rjust(padding, "0")
+
+        return formatedFrame
+
+    def getRenderShotPrefix(self):
         shotPrefix = ""
 
         if self.use_project_settings:
-            # wkip wkip wkip to improve with project_shot_format!!!
+            # wkipwkipwkip to improve with project_shot_format!!!
             # scene name is used but it may be weak. Replace by take name??
             # shotPrefix = self.getParentScene().name
             shotPrefix = self.parentScene.name
         else:
             shotPrefix = self.render_shot_prefix
 
+        shotPrefix += self.sequence_name + "_"
         return shotPrefix
 
     def getOutputFileFormat(self, isVideo=True):
@@ -2949,64 +3061,12 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
                 outputFileFormat = "png"
         return outputFileFormat
 
-    def getTakeOutputFilePath(self, rootFilePath="", takeIndex=-1):
-        takeInd = (
-            self.getCurrentTakeIndex()
-            if -1 == takeIndex
-            else (takeIndex if 0 <= takeIndex and takeIndex < len(self.getTakes()) else -1)
-        )
-        filePath = ""
-        if -1 == takeInd:
-            return filePath
-
-        if "" == rootFilePath:
-            #  head, tail = os.path.split(bpy.path.abspath(bpy.data.filepath))
-            # wkip we assume renderRootPath is valid...
-            head, tail = os.path.split(bpy.path.abspath(self.renderRootPath))
-            filePath = head + "\\"
-        else:
-            # wkip tester le chemin
-            filePath = rootFilePath
-            if not filePath.endswith("\\"):
-                filePath += "\\"
-
-        filePath += f"{self.getTakeName_PathCompliant(takeIndex=takeInd)}" + "\\"
-
-        return filePath
-
-    # def getShotOutputFileNameFromIndex(
-    #     self,
-    #     shotIndex=-1,
-    #     takeIndex=-1,
-    #     rootFilePath="",
-    #     fullPath=False,
-    #     fullPathOnly=False,
-    #     specificFrame=None,
-    #     noExtension=False,
-    # ):
-    #     shot = self.getShotByIndex(shotIndex=shotIndex, takeIndex=takeIndex)
-
-    #     fileName = ""
-    #     if shot is None:
-    #         return fileName
-
-    #     fileName = self.getShotOutputFileName(
-    #         shot,
-    #         rootFilePath=rootFilePath,
-    #         fullPath=fullPath,
-    #         fullPathOnly=fullPathOnly,
-    #         specificFrame=specificFrame,
-    #         noExtension=False,
-    #     )
-
-    #     return fileName
-
-    def getShotOutputMediaPath(
-        # self, shot, rootFilePath=None, fullPath=False, fullPathOnly=False, specificFrame=None, noExtension=False
+    def getOutputMediaPath(
         self,
-        shot,
+        outputMedia,
+        entity,
         rootPath=None,
-        insertTakeName=True,
+        insertSeqPrefix=False,
         providePath=True,
         provideName=True,
         provideExtension=True,
@@ -3014,21 +3074,46 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         genericFrame=False,
     ):
         """
-        Return the shot path. It is made of: <root path>/<shot take name>/<prefix>_<shot name>[_<specific frame index (if specified)].<extention>
-        rootPath: start of the path, if specified. Otherwise the current file folder is used
-        providePath: if True then the returned file name starts with the full path
-        provideName: if True then the returned file name contains the name
-        provideExtension: if True then the returned file name ends with the file extention
+        Return the path of the media that is generated for the specified shot.
+        It is made of: <root path>/<shot take name>/<prefix>_<shot name>[_<specific frame index (if specified)].<extention>
 
-        if providePath is True:
-            if rootPath is provided then the start of the path is the root, otherwise props.renderRootPath is used
-            if insertTakeName is True then the name of the take is added to the path
+        Args:
+            outputMedia: can be:
+                - for an entity shot:
+                    SH_STILL:
+                    SH_IMAGE_SEQ:
+                    SH_VIDEO:
+                    SH_AUDIO:
+                    SH_INTERM_IMAGE_SEQ:
+                    SH_INTERM_STAMPINFO_SEQ:
+                - for an entity take:
+                    TK_IMAGE_SEQ:
+                    TK_VIDEO:
+                    TK_EDIT_IMAGE_SEQ:
+                    TK_EDIT_VIDEO:
+                - for an entity sequence (or montage):
+                    SEQ_ROOT: root to the sequence files and folders
 
-        if genericFrame is True then #### is used instead of the specific frame index
+            entity: can be a shot, a take or a sequence (ie the montage)
+
+            rootPath: start of the path, if specified. Otherwise the current file folder is used
+
+            providePath: if True then the returned file name starts with the full path
+                if providePath is True:
+                    if rootPath is provided then the start of the path is the root, otherwise props.renderRootPath is used
+                    if insertTakeName is True then the name of the take is added to the path
+                    if provideName is False then the returned path ends with '\\'
+            provideName: if True then the returned file name contains the name
+            provideExtension: if True then the returned file name ends with the file extention
+
+            genericFrame: if genericFrame is True then #### is used instead of the specific frame index
         """
 
-        # file path
         filePath = ""
+        fileName = ""
+        fileExtension = ""
+
+        # file path
         if providePath:
             if rootPath is not None:
                 filePath += bpy.path.abspath(rootPath)
@@ -3039,26 +3124,91 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
             if not (filePath.endswith("/") or filePath.endswith("\\")):
                 filePath += "\\"
 
-            if insertTakeName:
-                takeName = shot.getParentTake().getName_PathCompliant()
-                filePath += takeName + "\\"
+            # if insertTakeName or insertShotFolder or insertTempFolder or insertStampInfoPrefix:
+            #     filePath += shot.getParentTake().getName_PathCompliant() + "\\"
+
+            if "SH_" == outputMedia[0:3]:
+                # entity is a shot
+                filePath += entity.getParentTake().getName_PathCompliant() + "\\"
+
+                if "SH_VIDEO" != outputMedia:
+                    filePath += f"{entity.getName_PathCompliant()}"
+
+                    if "INTERM_" == outputMedia[3:10]:
+                        filePath += "_Intermediate"
+                    if "AUDIO" == outputMedia[3:8]:
+                        filePath += "_Intermediate"
+
+                    filePath += "\\"
+
+            # if insertShotFolder or insertTempFolder:
+            #     filePath += f"{shot.getName_PathCompliant()}"
+            #     if insertTempFolder:
+            #         filePath += "_Intermediate"
+            #     filePath += "\\"
+
+            elif "TK_" == outputMedia[0:3]:
+                # entity is a take
+                filePath += entity.getName_PathCompliant() + "\\"
+            # elif "EDIT_" == outputMedia[0:5]:
 
         # file name
-        fileName = ""
         if provideName:
-            shotPrefix = self.renderShotPrefix()
-            if "" != shotPrefix:
-                fileName += shotPrefix + "_"
-            fileName += shot.getName_PathCompliant()
-            if genericFrame:
-                fileName += "_" + "####"
-            elif specificFrame is not None:
-                fileName += "_" + f"{specificFrame:04d}"
+            if "SH_" == outputMedia[0:3]:
+                if "SH_INTERM_STAMPINFO_SEQ" == outputMedia:
+                    fileName += "_tmp_StampInfo_"
 
-        # file extension
-        fileExtension = ""
-        if provideExtension:
-            fileExtension += "." + self.getOutputFileFormat(isVideo=specificFrame is None and not genericFrame)
+                # entity is a shot
+                fileName += entity.getName_PathCompliant(withPrefix=insertSeqPrefix)
+
+                # wkip hack degueu
+                if "SH_IMAGE_SEQ" == outputMedia and not genericFrame and specificFrame is None:
+                    # required by the OTIO edit file for img seq generation
+                    fileName += "_" + self.getFramePadding(frame=0)
+                else:
+                    if genericFrame:
+                        fileName += "_"
+                        # we add "#####"
+                        fileName += self.getFramePadding()
+                    elif specificFrame is not None:
+                        fileName += "_" + self.getFramePadding(frame=specificFrame)
+
+            elif "TK_" == outputMedia[0:3]:
+                # entity is a take
+                fileName += entity.getName_PathCompliant(withPrefix=insertSeqPrefix)
+
+                if "TK_EDIT_IMAGE_SEQ" == outputMedia:
+                    fileName += "_ImgSq"
+
+            # file extension
+            if provideExtension:
+                if "SH_" == outputMedia[0:3]:
+                    if "SH_INTERM_STAMPINFO_SEQ" == outputMedia:
+                        fileExtension += ".png"
+                    elif "SH_IMAGE_SEQ" == outputMedia or "SH_INTERM_IMAGE_SEQ" == outputMedia:
+                        # wkipwkipwkip
+                        if self.use_project_settings:
+                            fileExtension += ".png"
+                        else:
+                            fileExtension += "."
+                            sceneFileFormat = self.parentScene.render.image_settings.file_format.lower()
+                            if "jpg" == sceneFileFormat:
+                                fileExtension += "jpg"
+                            elif "png" == sceneFileFormat:
+                                fileExtension += "png"
+                            elif "open_exr" == sceneFileFormat:
+                                fileExtension += "exr"
+                            else:
+                                # output file is PNG otherwise
+                                fileExtension += "png"
+                    else:
+                        fileExtension += "." + self.getOutputFileFormat(
+                            isVideo=specificFrame is None and not genericFrame
+                        )
+
+                elif "TK_" == outputMedia[0:3]:
+                    if "TK_EDIT_" == outputMedia[3:8]:
+                        fileExtension += "." + "xml"
 
         # result
         resultStr = filePath + fileName + fileExtension
@@ -3066,64 +3216,6 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
 
         #   _logger.debug(f" ** resultStr: {resultStr}")
 
-        return resultStr
-
-    def getShotOutputFileName(
-        self, shot, rootFilePath="", fullPath=False, fullPathOnly=False, specificFrame=None, noExtension=False
-    ):
-        """
-        Return the shot path
-        """
-        resultStr = ""
-
-        # file
-        fileName = shot.getName_PathCompliant()
-        shotPrefix = self.renderShotPrefix()
-        if "" != shotPrefix:
-            fileName = shotPrefix + "_" + fileName
-
-        # fileName + frame index + extension
-        fileFullName = fileName
-        if specificFrame is not None:
-            fileFullName += "_" + f"{(specificFrame):04d}"
-
-        filePath = ""
-        if fullPath or fullPathOnly:
-
-            if "" == rootFilePath:
-                #  head, tail = os.path.split(bpy.path.abspath(bpy.data.filepath))
-                # wkip we assume renderRootPath is valid...
-                head, tail = os.path.split(bpy.path.abspath(self.renderRootPath))
-                filePath = head + "\\"
-            else:
-                # wkip tester le chemin
-                filePath = rootFilePath
-                if not filePath.endswith("\\"):
-                    filePath += "\\"
-
-            filePath += f"{self.getTakeName_PathCompliant(takeIndex = shot.getParentTakeIndex())}" + "\\"
-            filePath += f"{shot.getName_PathCompliant()}" + "\\"
-
-        #   filePath += f"//{fileName}"
-
-        # path is absolute and ends with a /
-        if fullPathOnly:
-            # _logger.debug(" ** fullPathOnly")
-            resultStr = filePath
-        elif fullPath:
-            #            _logger.debug(" ** fullpath")
-            resultStr = filePath + fileFullName
-            if not noExtension:
-                resultStr += "." + self.getOutputFileFormat(isVideo=specificFrame is None)
-        else:
-            #           _logger.debug(" ** else")
-            resultStr = fileFullName
-            #          _logger.debug(f" ** resultStr 1:  {resultStr}")
-            if not noExtension:
-                resultStr += "." + self.getOutputFileFormat(isVideo=specificFrame is None)
-        #         _logger.debug(f" ** resultStr 2:  {resultStr}")
-
-        _logger.debug(f" ** resultStr: {resultStr}")
         return resultStr
 
     def getSceneCameras(self):
@@ -3177,50 +3269,6 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
 
         #   print("    filename: " + filename)
         return filename
-
-    # returns the path of the info image corresponding to the specified frame
-    # path of temp info files is the same as the render output files
-    #   def getInfoFileFullPath(self, renderFrameInd):
-    #      pass
-    # #    print("\n getInfoFileFullPath ")
-    # #  filepath = bpy.data.filepath                               # get current .blend file path and name
-    #     filepath = scene.render.filepath                               # get current .blend file path and name
-    # #    print("    Temp Info Filepath: ", filepath)
-
-    #     filePathIsValid = False
-
-    #     # if path is relative then get the full path
-    #     if '//' == filepath[0:2]:                        #and bpy.data.is_saved:
-    #         # print("Rendering path is relative")
-    #         filepath = bpy.path.abspath(filepath)
-
-    #     filepath = bpy.path.abspath(filepath)
-    # #    print("    Temp Info Filepath 02: ", filepath)
-
-    #     # filename is parsed in order to remove the last block in case it doesn't finish with \ or / (otherwise it is
-    #     # the name of the file)
-    #     lastOccSeparator = filepath.rfind("\\")
-    #     if -1 != lastOccSeparator:
-    #         filepath = filepath[0:lastOccSeparator + 1]
-    # #        print("    Temp Info Filepath 03: ", filepath)
-
-    #     if os.path.exists(filepath):
-    # #        print("  Rendering path is valid")
-    #         filePathIsValid = True
-
-    #     renderPath              = None
-    #     renderedInfoFileName    = None
-    #     if filePathIsValid:
-    #         renderPath = os.path.dirname(filepath)               # get only .blend path
-
-    #     #  renderPath = r"Z:\EvalSofts\Blender\DevPython_Data\UAS_StampInfo_Data\Outputs"
-    # #        print("renderPath**: ", renderPath)
-    #         renderedInfoFileName = "\\" + getRenderFileName(scene)
-    #         renderedInfoFileName += r"_tmp_StampInfo." + '{:04d}'.format(renderFrameInd) + ".png"
-
-    # #       renderedInfoFileName = r"\_tmp_StampInfo." + '{:04d}'.format(renderFrameInd) + ".png"
-
-    #     return (renderPath, renderedInfoFileName)
 
     ##############################
 
@@ -3298,7 +3346,6 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         settingsList.append(["Project Color Space", str(self.project_color_space)])
         settingsList.append(["Project Asset Name", str(self.project_asset_name)])
         settingsList.append(["new_shot_prefix", str(self.new_shot_prefix)])
-        # settingsList.append(["render_shot_prefix", str(self.render_shot_prefix)])
 
         #################
         # applying project settings to parent scene
@@ -3394,7 +3441,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
     def get_montage_characteristics(self):
         """
         Return a dictionary with the characterisitics of the montage.
-        This is required to export it as xml EDL.
+        This is required to export it as xml edit file.
         """
         # dict cannot be set as a property for Props :S
         characteristics = dict()
@@ -3403,7 +3450,8 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
             characteristics["resolution_x"] = self.project_resolution_framed_x  # width
             characteristics["resolution_y"] = self.project_resolution_framed_y  # height
         else:
-            characteristics["resolution_x"] = self.parentScene.render.resolution_y  # width
+            # wkipwkipwkip export issue
+            characteristics["resolution_x"] = self.parentScene.render.resolution_x  # width
             characteristics["resolution_y"] = self.parentScene.render.resolution_y  # height
         characteristics["framerate"] = self.get_fps()
         characteristics["duration"] = self.get_frame_duration()

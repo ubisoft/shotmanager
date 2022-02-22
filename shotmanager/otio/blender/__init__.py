@@ -16,25 +16,25 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 """
-Settings panel for the camera HUD tool
+OTIO files dedicated to Blender
 """
 
 
-def draw_settings(context, layout):
-    """Used in Shot Manager Feature Toggles panel
-    """
-    props = context.scene.UAS_shot_manager_props
-    prefs = context.preferences.addons["shotmanager"].preferences
+def register():
+    from . import otio_operators
 
-    leftCol = layout.column()
+    otio_operators.register()
 
-    # empty spacer column
-    row = leftCol.row()
-    col = row.column()
-    col.scale_x = 0.25
-    col.label(text=" ")
-    col = row.column(align=True)
+    # from . import otio_operators_rss
 
-    col.prop(props, "camera_hud_display_in_viewports", text="Display Shot name in 3D Viewport")
-    col.prop(props, "camera_hud_display_in_pov", text="Display HUD in 3D Viewport")
+    # otio_operators_rss.register()
 
+
+def unregister():
+    from . import otio_operators
+
+    otio_operators.unregister()
+
+    # from . import otio_operators_rss
+
+    # otio_operators_rss.unregister()

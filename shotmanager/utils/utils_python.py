@@ -16,7 +16,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 """
-To do: module description here.
+Functions useful in a generic context
 """
 
 
@@ -25,3 +25,4 @@ def copyString(str1):
     for c in str1:
         resStr += c
     return resStr
+

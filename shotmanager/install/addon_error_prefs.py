@@ -132,18 +132,14 @@ _classes = (UAS_ShotManager_AddonErrorPrefs,)
 
 
 def register():
-    prefs_addon = bpy.context.preferences.addons["shotmanager"].preferences
-    if prefs_addon.verbose:
-        _logger.debug_ext("       - Registering Add-on Installation Error Preferences", form="REG")
+    _logger.debug_ext("       - Registering Add-on Installation Error Preferences", form="REG")
 
     for cls in _classes:
         bpy.utils.register_class(cls)
 
 
 def unregister():
-    prefs_addon = bpy.context.preferences.addons["shotmanager"].preferences
-    if prefs_addon.verbose:
-        _logger.debug_ext("       - Unregistering Add-on Installation Error Preferences", form="UNREG")
+    _logger.debug_ext("       - Unregistering Add-on Installation Error Preferences", form="UNREG")
 
     for cls in reversed(_classes):
         bpy.utils.unregister_class(cls)

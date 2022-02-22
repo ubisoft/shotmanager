@@ -27,6 +27,7 @@ from bpy.props import BoolProperty, IntProperty, FloatProperty, EnumProperty
 
 from .config import config
 
+
 from . import handlers
 from .handlers.sm_overlay_tools_handlers import install_handler_for_shot, toggle_overlay_tools_display
 from .overlay_tools.workspace_info.workspace_info import toggle_workspace_info_display
@@ -78,11 +79,11 @@ _logger = sm_logging.getLogger(__name__)
 bl_info = {
     "name": "Shot Manager",
     "author": "Ubisoft - Julien Blervaque (aka Werwack), Romain Carriquiry Borchiari",
-    "description": "Manage a sequence of shots and cameras in the 3D View - Ubisoft Animation Studio",
+    "description": "Easily manage shots and cameras in the 3D View and see the resulting edit in real-time",
     "blender": (2, 93, 0),
-    "version": (1, 6, 9),
+    "version": (1, 7, 1),
     "location": "View3D > Shot Manager",
-    "wiki_url": "https://ubisoft-shotmanager.readthedocs.io",
+    "doc_url": "https://ubisoft-shotmanager.readthedocs.io",
     # "warning": "BETA Version",
     "category": "Ubisoft",
 }
@@ -105,9 +106,6 @@ def register():
 
     logger_level = f"Logger level: {sm_logging.getLevelName()}"
     versionTupple = utils.display_addon_registered_version("Shot Manager", more_info=logger_level)
-
-    # _logger.info_green(f"my test")
-    # _logger.debug_colored(f"my test")
 
     from .overlay_tools.workspace_info import workspace_info
 
@@ -208,10 +206,11 @@ def register():
     # except ModuleNotFoundError:
     #     print("       *** OTIO Package import failed ****")
 
-    try:
-        utils_vse_render.register()
-    except Exception:
-        print("*** Paf for utils_vse_render.register")
+    utils_vse_render.register()
+    # try:
+    #     utils_vse_render.register()
+    # except Exception:
+    #     print("*** Paf for utils_vse_render.register")
 
     utils_render.register()
     general.register()
@@ -231,7 +230,8 @@ def register():
     # call in the code by context.window_manager.UAS_shot_manager_shots_play_mode etc
 
     def _update_UAS_shot_manager_shots_play_mode(self, context):
-        install_handler_for_shot(self, context)
+        if self.UAS_shot_manager_shots_play_mode:
+            install_handler_for_shot(self, context)
 
     bpy.types.WindowManager.UAS_shot_manager_shots_play_mode = BoolProperty(
         name="Enable Shot Play Mode",
@@ -347,10 +347,11 @@ def unregister():
     interact_shots_stack.unregister()
     general.unregister()
     utils_render.unregister()
-    try:
-        utils_vse_render.unregister()
-    except Exception:
-        print("*** Paf for utils_vse_render.unregister")
+    utils_vse_render.unregister()
+    # try:
+    #     utils_vse_render.unregister()
+    # except Exception:
+    #     print("*** Paf for utils_vse_render.unregister")
 
     rendering_ui.unregister()
     retimer_ui.unregister()

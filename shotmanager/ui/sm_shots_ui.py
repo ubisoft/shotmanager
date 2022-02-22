@@ -49,6 +49,13 @@ class UAS_UL_ShotManager_Items(bpy.types.UIList):
         cameraIsValid = item.isCameraValid()
         itemHasWarnings = not cameraIsValid
 
+        numSharedCamInTake = 0
+        numSharedCam = props.getNumSharedCamera(item.camera)
+        if 1 < numSharedCam:
+            numSharedCamInTake = 1
+        else:
+            numSharedCamInTake = props.hisThereSharedCameraInTake()
+
         # draw the Duration components
 
         if item.enabled:
@@ -102,9 +109,24 @@ class UAS_UL_ShotManager_Items(bpy.types.UIList):
             if props.display_greasepencil_in_shotlist:
                 row = row.row(align=True)
                 row.scale_x = 1.0
-                icon = "OUTLINER_OB_GREASEPENCIL" if item.hasGreasePencil() else "BLANK1"
+                icon = "BLANK1"
+                gp = item.getGreasePencil()
+                if gp is not None:
+                    # if gp == context.active_object and context.active_object.mode == "PAINT_GPENCIL":
+                    if gp.mode == "PAINT_GPENCIL":
+                        icon = "GREASEPENCIL"
+                        row.alert = True
+                    else:
+                        icon = "OUTLINER_OB_GREASEPENCIL"
                 row.operator("uas_shot_manager.greasepencilitem", text="", icon=icon).index = index
                 row.scale_x = 0.9
+
+            if numSharedCamInTake:
+                camrow = row.row(align=True)
+                camrow.scale_x = 0.5
+                camrow.alert = 1 < numSharedCam
+                camrow.operator("uas_shot_manager.list_camera_instances", text=str(numSharedCam)).index = index
+                camrow.scale_x = 0.2
 
             if props.display_color_in_shotlist:
                 row = row.row(align=True)
@@ -265,7 +287,7 @@ class UAS_UL_ShotManager_Items(bpy.types.UIList):
 
             camlistrow = grid_flow.row(align=True)
             # camlistrow.scale_x = 1.0
-            numSharedCam = props.getNumSharedCamera(item.camera)
+            #  numSharedCam = props.getNumSharedCamera(item.camera)
             camlistrow.alert = 1 < numSharedCam
             camlistrow.operator("uas_shot_manager.list_camera_instances", text=str(numSharedCam)).index = index
             if item.camera is None:
@@ -337,16 +359,36 @@ class UAS_MT_ShotManager_Shots_ToolsMenu(Menu):
         row.operator("uas_shot_manager.shots_removecamera", text="   Remove Camera From All Shots...")
 
         #############
-        # import EDL
+        # import edit file
         #############
         if module_can_be_imported("shotmanager.otio"):
             layout.separator()
             row = layout.row(align=True)
-            row.label(text="EDL / XML / OTIO:")
+            row.label(text="Tools For Edit (OTIO, XML):")
+
+            if config.devDebug:
+                row = layout.row(align=True)
+                row.operator_context = "INVOKE_DEFAULT"
+                row.operator(
+                    "uasotio.openfilebrowser", text="   Create / Update Shots From Edit File - Simple Mode..."
+                ).importMode = "CREATE_SHOTS_SIMPLE"
 
             row = layout.row(align=True)
             row.operator_context = "INVOKE_DEFAULT"
-            row.operator("uasotio.openfilebrowser", text="   Create Shots From EDL...").importMode = "CREATE_SHOTS"
+            row.operator(
+                "uasotio.openfilebrowser", text="   Create / Update Shots From Edit File..."
+            ).importMode = "CREATE_SHOTS"
+
+            if config.devDebug:
+                row = layout.row(align=True)
+                row.operator_context = "INVOKE_DEFAULT"
+                op = row.operator(
+                    "uasotio.openfilebrowser", text="   Import Shots From Edit File - RRS..."
+                ).importMode = "IMPORT_EDIT"
+
+                row = layout.row(align=True)
+                row.operator_context = "INVOKE_DEFAULT"
+                op = row.operator("uasotio.openfilebrowser", text="   Parse File - RRS...").importMode = "PARSE_EDIT"
 
         layout.separator()
 
@@ -401,4 +443,3 @@ def register():
 def unregister():
     for cls in reversed(classes):
         bpy.utils.unregister_class(cls)
-

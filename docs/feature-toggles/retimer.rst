@@ -15,15 +15,15 @@ having to creaste a set of chots.**
 The Retimer panel
 -----------------
 
-To display the Retimer panel open the :ref:`Features dialog box <advanced-features>` and click on *Retimer*.
+To display the Retimer panel open the :ref:`Feature Toggles panel <feature-toggles-panel>` and click on *Retimer*.
 
-..  image:: /img/features-advanced/SM_Features_Retimer.png
+..  image:: /img/feature-toggles/SM_Features_Retimer.png
     :align: center
     :scale: 100%
 
 The panel then appears below the Shot Manager main panel.
 
-..  image:: /img/features-advanced/SM_Retimer_Panel.png
+..  image:: /img/feature-toggles/SM_Retimer_Panel.png
     :align: center
     :scale: 80%
 
@@ -80,6 +80,6 @@ Limitations
 
 .. warning::
     - **Actions are not supported:** Changing time in the scene will not affect the Blender animation clips named "actions", if the scene contains some.
-    This is because retiming these entities (as well as VSE clips by the way) is a difficult paradygm. It raises a lot of questions
-    that we haven't tackled.
+      This is because retiming these entities (as well as VSE clips by the way) is a difficult paradigm. It raises a lot of questions
+      that we haven't tackled.
 

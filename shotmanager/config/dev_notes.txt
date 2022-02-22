@@ -10,3 +10,38 @@ Dialog windows width:   360
 
 
 invoke_popup width:     250
+
+
+To do V1.7.1 +:
+    - bug ds le Comparaison à l'import d'un edit: reorder pas pris en compte
+    - mettre le nombre de cameras partagees
+    - reduire les entrees dans la liste de github
+    - mettre le lien wiki
+    - voir ce qui se passe qd stamp info n'est pas la ds render panel
+
+Flake8:
+    voir longueur des lignes
+
+addon_utils: to check if an addon is installed:
+https://blender.stackexchange.com/questions/15638/how-to-distinguish-between-addon-is-not-installed-and-addon-is-not-enabled
+
+check if installed:
+    addon_name = "myaddon"
+    if addon_name not in addon_utils.addons_fake_modules:
+        print("%s: Addon not installed." % addon_name)
+
+check if available:
+    addon_name="myaddon"
+    default, state = addon_utils.check(addon_name)
+    print ("%s: default:%s, state:%s" % (addon_name, default, state) )
+    if default == False and state is None:
+        print("%s is not installed or not enabled by default" % addon_name)
+
+
+Final cut pro export seq issue: https://github.com/PixarAnimationStudios/OpenTimelineIO/issues/1103
+
+https://opentimelineio.readthedocs.io/en/latest/tutorials/otio-serialized-schema.html  (chercher target_url  /   target_url_base)
+Utiliser ImageSequenceReference
+Voir https://github.com/PixarAnimationStudios/OpenTimelineIO/issues/890
+
+OTIO advanced doc: https://sandflow.github.io/otio-core-specification/

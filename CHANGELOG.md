@@ -1,3 +1,37 @@
+# 1.7.1 (2022-02-11)
+
+Fixed:
+   image output were left in the rendering folder
+   Added a checkbox in the render panel to choose to keep the intermediate rendered images
+
+To do:
+   zoom time range after import edl
+   move grease pencil button
+
+
+Edit Files and OpenTimelineIO:
+Fixed several bugs in Edit List File import and export
+Improved the Import dialog window
+   Imported edit framerate and resolution can now be used to update the scene
+
+Grease Pencil:
+Fixed bug when painting on hidden objects
+
+
+Added button to take range
+added information for output render
+
+fixed res ouput for sep video and for playblast
+
+UI:
+   Add the items menu in the Render Panel
+
+Refactor code foir output media
+   warning: temp dirs have changed
+
+Added a global and project value to control the index of the first frame
+Added a global and project value to control the number of digits in the output file names
+
 # 1.6.9 (2021-12-04)
 
 ## UX

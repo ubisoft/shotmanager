@@ -34,7 +34,7 @@ def get_media_path(out_path, take_name, shot_name):
 
     if out_path.startswith("//"):
         out_path = str(Path(bpy.data.filepath).parent.absolute()) + out_path[1:]
-    return f"{out_path}/{take_name}/{bpy.context.scene.UAS_shot_manager_props.renderShotPrefix()}_{shot_name}.mp4"
+    return f"{out_path}/{take_name}/{bpy.context.scene.UAS_shot_manager_props.getRenderShotPrefix()}_{shot_name}.mp4"
 
 
 ##########
@@ -103,9 +103,9 @@ class UAS_PT_ShotManager_Render(Operator):
         elif "ANIMATION" == properties.renderMode:
             descr = "Render the current shot"
         elif "ALL" == properties.renderMode:
-            descr = "Render all: shots, takes, EDL..."
+            descr = "Render all: shots, takes, edit file..."
         elif "OTIO" == properties.renderMode:
-            descr = "Render the EDL"
+            descr = "Generate the edit file for the current take: .otio or .xml (Final Cut)"
         elif "PLAYBLAST" == properties.renderMode:
             descr = "Fast-render the enabled shots to a single video based on the current viewport settings."
 
@@ -171,7 +171,7 @@ class UAS_PT_ShotManager_Render(Operator):
         #     print("Render aborted before start: " + renderWarnings)
         #     return {"CANCELLED"}
 
-        if "OTIO" == prefs.renderMode:
+        if False and "OTIO" == prefs.renderMode:
             bpy.ops.uas_shot_manager.export_otio()
         else:
             renderRootPath = props.renderRootPath if "" != props.renderRootPath else "//"
@@ -190,115 +190,6 @@ class UAS_PT_ShotManager_Render(Operator):
 
         #   return {"RUNNING_MODAL"}
         return {"FINISHED"}
-
-
-###############
-# wkip clean: doesn't seem to be used anymore...
-
-# class UAS_PT_ShotManager_RenderDialog(Operator):
-#     bl_idname = "uas_shot_manager.renderdialog"
-#     bl_label = "Render"
-#     bl_description = "Render"
-#     bl_options = {"INTERNAL"}
-
-#     only_active: BoolProperty(name="Render Only Active", default=False)
-
-#     renderer: EnumProperty(
-#         items=(("BLENDER_EEVEE", "Eevee", ""), ("CYCLES", "Cycles", ""), ("OPENGL", "OpenGL", "")),
-#         default="BLENDER_EEVEE",
-#     )
-
-#     def execute(self, context):
-
-#         print("*** uas_shot_manager.renderDialog ***")
-
-#         scene = context.scene
-#         context.space_data.region_3d.view_perspective = "CAMERA"
-#         handles = context.scene.UAS_shot_manager_props.handles
-#         props = scene.UAS_shot_manager_props
-
-#         with utils.PropertyRestoreCtx(
-#             (scene.render, "filepath"),
-#             (scene, "frame_start"),
-#             (scene, "frame_end"),
-#             (scene.render.image_settings, "file_format"),
-#             (scene.render.ffmpeg, "format"),
-#             (scene.render, "engine"),
-#             (scene.render, "resolution_x"),
-#             (scene.render, "resolution_y"),
-#         ):
-
-#             scene.render.image_settings.file_format = "FFMPEG"
-#             scene.render.ffmpeg.format = "MPEG4"
-
-#             if self.renderer != "OPENGL":
-#                 scene.render.engine = self.renderer
-
-#             context.window_manager.UAS_shot_manager_shots_play_mode = False
-#             context.window_manager.UAS_shot_manager_display_overlay_tools = False
-
-#             out_path = scene.render.filepath
-#             shots = props.get_shots()
-#             take = props.getCurrentTake()
-#             if take is None:
-#                 take_name = ""
-#             else:
-#                 take_name = take.name
-
-#             if self.only_active:
-#                 shot = scene.UAS_shot_manager_props.getCurrentShot()
-#                 if shot is None:
-#                     return {"CANCELLED"}
-#                 scene.frame_start = shot.start - handles
-#                 scene.frame_end = shot.end + handles
-#                 scene.render.filepath = get_media_path(out_path, take_name, shot.name)
-#                 print("      scene.render.filepath: ", scene.render.filepath)
-
-#                 scene.camera = shot.camera
-
-#                 if getattr(scene, "UAS_StampInfo_Settings", None) is not None:
-#                     RRS_StampInfo.setRRS_StampInfoSettings(scene)
-
-#                 if self.renderer == "OPENGL":
-#                     bpy.ops.render.opengl(animation=True)
-#                 else:
-#                     bpy.ops.render.render(animation=True)
-
-#                 if getattr(scene, "UAS_StampInfo_Settings", None) is not None:
-#                     scene.UAS_StampInfo_Settings.stampInfoUsed = False
-#             else:
-#                 for shot in shots:
-#                     if shot.enabled:
-#                         scene.frame_start = shot.start - handles
-#                         scene.frame_end = shot.end + handles
-#                         scene.render.filepath = get_media_path(out_path, take_name, shot.name)
-#                         scene.camera = shot.camera
-#                         if getattr(scene, "UAS_StampInfo_Settings", None) is not None:
-#                             scene.UAS_StampInfo_Settings.stampInfoUsed = True
-#                             scene.UAS_StampInfo_Settings.shotName = shot.name
-
-#                         if self.renderer == "OPENGL":
-#                             bpy.ops.render.opengl(animation=True)
-#                         else:
-#                             bpy.ops.render.render(animation=True)
-
-#                         if getattr(scene, "UAS_StampInfo_Settings", None) is not None:
-#                             scene.UAS_StampInfo_Settings.stampInfoUsed = False
-
-#             scene.UAS_StampInfo_Settings.restorePreviousValues(scene)
-#             print(" --- RRS Settings Restored ---")
-#         # return {"RUNNING_MODAL"}
-
-#         return {"FINISHED"}
-
-#     def draw(self, context):
-#         l = self.layout
-#         row = l.row()
-#         row.prop(self, "renderer")
-
-# def invoke ( self, context, event ):
-#     wm = context.window_manager
-#     return wm.invoke_props_dialog ( self )
 
 
 ###########
@@ -341,7 +232,6 @@ class UAS_ShotManager_Render_ClearLastRenderResults(Operator):
 
 _classes = (
     UAS_PT_ShotManager_Render,
-    # UAS_PT_ShotManager_RenderDialog,
     UAS_OT_OpenPathBrowser,
     UAS_ShotManager_Render_RestoreProjectSettings,
     UAS_ShotManager_Render_OpenLastRenderResults,

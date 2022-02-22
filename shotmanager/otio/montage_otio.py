@@ -16,19 +16,23 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 """
-To do: module description here.
+Montage class inheriting from MontageInterface and used to host the content of an edit returned by otio
 """
 
 import os
 from pathlib import Path
 
-from shotmanager.config import config
-from shotmanager.utils import utils, utils_xml
-from .montage_interface import MontageInterface, SequenceInterface, ShotInterface
-from shotmanager.otio import otio_wrapper as ow
+# paths are relative in order to make the package not dependent on an add-on name
+from ..config import config
+from ..utils.utils import file_path_from_url
+from ..utils import utils_xml
+from ..properties.montage_interface import MontageInterface, SequenceInterface, ShotInterface
+
+# from ..otio import otio_wrapper as ow
+from . import otio_wrapper as ow
 import opentimelineio
 
-from shotmanager.config import sm_logging
+from ..config import sm_logging
 
 _logger = sm_logging.getLogger(__name__)
 
@@ -60,9 +64,9 @@ class MontageOtio(MontageInterface):
     def get_montage_characteristics(self):
         """
             Return a dictionary with the characterisitics of the montage.
-            This is required to export it as xml EDL.
+            This is required to export it as xml edit file.
         """
-        print(f"-++ self.timeline: {self.timeline}")
+        # print(f"-++ self.timeline: {self.timeline}")
         self._characteristics["framerate"] = self.get_fps()
         self._characteristics["duration"] = self.get_frame_duration()
 
@@ -83,6 +87,12 @@ class MontageOtio(MontageInterface):
         time = self.timeline.duration()
         rate = int(time.rate)
         return rate
+
+    def get_resolution(self):
+        if self._characteristics is None:
+            return None
+        else:
+            return (self._characteristics["resolution_x"], self._characteristics["resolution_y"])
 
     def get_frame_duration(self):
         time = self.timeline.duration()
@@ -111,7 +121,7 @@ class MontageOtio(MontageInterface):
             self.initialize(otioFile)
 
         print(f"\n\n   fillMontageInfoFromOtioFile:")
-        print(f"      EDL: {self.otioFile} \n")
+        print(f"      Edit file: {self.otioFile} \n")
 
         if self.timeline is None:
             _logger.error("fillMontageInfoFromOtioFile: self.timeline is None!")
@@ -264,7 +274,7 @@ class MontageOtio(MontageInterface):
                         if clip.media_reference.is_missing_reference:
                             print(f"Missing Media Reference for Clip: {clip.name}")
                             continue
-                        media_path = Path(utils.file_path_from_url(clip.media_reference.target_url))
+                        media_path = Path(file_path_from_url(clip.media_reference.target_url))
                         # if config.devDebug:
                         #     print(f"\n** clip: {clip.name}")
                         # print(f"** clip.media_reference: {clip.media_reference}")
@@ -280,7 +290,9 @@ class MontageOtio(MontageInterface):
                         seq_pattern = "_seq"
                         #  print(f"  Clip name 03: {clip.name}")
 
-                        if seq_pattern in media_name_lower:
+                        # wkipwkipwkip
+                        # if seq_pattern in media_name_lower:
+                        if True:
                             #       print(f"media_name: {media_name}")
 
                             media_name_splited = media_name_lower.split("_")
@@ -326,6 +338,8 @@ class MontageOtio(MontageInterface):
                                 newClip = newSeq.newShot(clip)
                                 newClip.name = stackName
                                 # newClip.set_name_from_xml_clip_name(xmlClipNames)
+                        # else:
+                        # wkip debug otio import
 
         # for seq in self.sequencesList:
         #     # get the start and end of every seq
@@ -552,7 +566,7 @@ class ShotOtio(ShotInterface):
                         if clip.media_reference.is_missing_reference:
                             print(f"Missing Media Reference for Clip: {clip.name}")
                             continue
-                        media_path = Path(utils.file_path_from_url(clip.media_reference.target_url))
+                        media_path = Path(file_path_from_url(clip.media_reference.target_url))
                         # if config.devDebug:
                         #     print(f"\n** clip: {clip.name}")
                         # print(f"** clip.media_reference: {clip.media_reference}")

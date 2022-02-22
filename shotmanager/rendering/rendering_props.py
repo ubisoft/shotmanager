@@ -316,7 +316,7 @@ class UAS_ShotManager_RenderSettings(PropertyGroup):
 
     renderAllShots: BoolProperty(name="Render All Shots", default=True)
 
-    renderAlsoDisabled: BoolProperty(name="Render Also Disabled", default=False)
+    renderAlsoDisabled: BoolProperty(name="Render Also Disabled Shots", default=False)
 
     renderHandles: BoolProperty(name="Render With Handles", default=False)
 
@@ -330,9 +330,15 @@ class UAS_ShotManager_RenderSettings(PropertyGroup):
         default=True,
     )
 
+    # only used by STILL
     writeToDisk: BoolProperty(name="Write to Disk", default=False)
 
-    renderOtioFile: BoolProperty(name="Render EDL File", default=False)
+    # used by EDIT, ANIMATION and ALL
+    renderOtioFile: BoolProperty(
+        name="Generate Edit File",
+        description="Generate edit file for the current take." "\nOnly videos are supported at the moment",
+        default=False,
+    )
 
     useStampInfo: BoolProperty(name="Use Stamp Info", default=True)
 
@@ -345,6 +351,43 @@ class UAS_ShotManager_RenderSettings(PropertyGroup):
         options=set(),
     )
 
+    # used by ANIMATION and ALL
+    # wkipwkipwkip not used!!!
+    generateImageSequence: BoolProperty(
+        name="Generate Image Sequence", description="Generate an image sequence per rendered shot", default=False,
+    )
+
+    outputMediaMode: EnumProperty(
+        name="Output Media Format",
+        description="Output media to generate during the rendering process",
+        items=(
+            ("IMAGE_SEQ", "Image Sequences", ""),
+            ("VIDEO", "Videos", ""),
+            ("IMAGE_SEQ_AND_VIDEO", "Image Sequences and Videos", ""),
+        ),
+        default="VIDEO",
+    )
+
+    # used by ANIMATION and ALL
+    keepIntermediateFiles: BoolProperty(
+        name="Keep Intermediate Rendering Images",
+        description="Keep the rendered and Stamp Info temporary image files when the composited output is generated."
+        "\nIf set to True these files are kept on disk up to the next rendering of the shot",
+        default=False,
+    )
+    # deleteIntermediateFiles: BoolProperty(
+    #     name="Delete Intermediate Image Files",
+    #     description="Delete the rendered and Stamp Info temporary image files when the composited output is generated."
+    #     "\nIf set to False these files are kept on disk up to the next rendering of the shot",
+    #     default=True,
+    # )
+
+    # only used by ANIMATION
+    generateShotVideo: BoolProperty(
+        name="Generate Shot Video", description="Generate the video of the rendered shot", default=True,
+    )
+
+    # only used by ALL
     generateEditVideo: BoolProperty(
         name="Generate Edit Video(s)",
         description="Generate the edit video of the take with all the specified shot videos",
@@ -353,8 +396,8 @@ class UAS_ShotManager_RenderSettings(PropertyGroup):
 
     otioFileType: EnumProperty(
         name="File Type",
-        description="Export the edit either in an OpenTimelineIO file format or a standard XML",
-        items=(("OTIO", "Otio", ""), ("XML", "Xml", "")),
+        description="Export the edit either in an OpenTimelineIO file format or a Final Cut XML",
+        items=(("OTIO", "Otio", ""), ("XML", "Xml (Final Cut)", "")),
         default="XML",
     )
 

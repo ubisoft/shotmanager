@@ -16,7 +16,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 """
-OTIO
+OTIO package and everything related to it
 """
 
 import os
@@ -32,7 +32,7 @@ import bpy
 import sys
 from pathlib import Path
 
-from shotmanager.config import sm_logging
+from ..config import sm_logging
 
 _logger = sm_logging.getLogger(__name__)
 
@@ -61,68 +61,70 @@ if (2, 93, 0) <= bpy.app.version:
         except ModuleNotFoundError:
             _logger.error("*** Error - OpenTimelineIO import failed - Installing provided version")
 
-            # we use the provided wheel
-            pyExeFile = sys.executable
-            localPyDir = str(Path(pyExeFile).parent) + "\\lib\\site-packages\\"
+            # # we use the provided wheel
+            # pyExeFile = sys.executable
+            # localPyDir = str(Path(pyExeFile).parent) + "\\lib\\site-packages\\"
 
-            try:
-                print("  installing OpenTimelineIO 0.13 for Python 3.9 for Ubisoft Shot Manager...")
-                subprocess.run(
-                    [
-                        pyExeFile,
-                        "-m",
-                        "pip",
-                        "install",
-                        os.path.join(os.path.dirname(__file__), "OpenTimelineIO-0.13.0_Ubi0.2-py3-none-any.whl"),
-                    ]
-                )
-                import opentimelineio as opentimelineio
-            except ModuleNotFoundError:
-                _logger.error("*** Error - OpenTimelineIO instal from provided version 0.013 failed")
+            # try:
+            #     print("  installing OpenTimelineIO 0.13 for Python 3.9 for Ubisoft Shot Manager...")
+            #     subprocess.run(
+            #         [
+            #             pyExeFile,
+            #             "-m",
+            #             "pip",
+            #             "install",
+            #             os.path.join(os.path.dirname(__file__), "OpenTimelineIO-0.13.0_Ubi0.2-py3-none-any.whl"),
+            #         ]
+            #     )
+            #     import opentimelineio as opentimelineio
+            # except ModuleNotFoundError:
+            #     _logger.error("*** Error - OpenTimelineIO instal from provided version 0.013 failed")
 
 
 # for versions of Blender before 2.93:
 else:
-    pyExeFile = sys.executable
-    localPyDir = str(Path(pyExeFile).parent) + "\\lib\\site-packages\\"
+    print("OpentimelineIO not available for Blender before 2.93")
 
-    try:
-        import opentimelineio
+    # pyExeFile = sys.executable
+    # localPyDir = str(Path(pyExeFile).parent) + "\\lib\\site-packages\\"
 
-        # wkip type de comparaison qui ne marche pas tout le temps!!! ex: "2.12.1"<"11.12.1"  is False !!!
-        if opentimelineio.__version__ < "0.12.1" and platform.system() == "Windows":
-            print("Upgrading OpentimelineIO to 0.12.1")
-            subprocess.run(
-                [
-                    pyExeFile,
-                    "-m",
-                    "pip",
-                    "install",
-                    os.path.join(os.path.dirname(__file__), "OpenTimelineIO-0.12.1-cp37-cp37m-win_amd64.whl"),
-                ]
-            )
-            importlib.reload(opentimelineio)  # Need to be tested.
-    except ModuleNotFoundError:
-        _logger.error("*** Error - OpenTimelineIO import failed - using provided version")
-        if platform.system() == "Windows":
-            _logger.error("Plateform: Windows")
-            try:
-                subprocess.run(
-                    [
-                        pyExeFile,
-                        "-m",
-                        "pip",
-                        "install",
-                        os.path.join(os.path.dirname(__file__), "OpenTimelineIO-0.12.1-cp37-cp37m-win_amd64.whl"),
-                    ]
-                )
-                import opentimelineio as opentimelineio
-            except ModuleNotFoundError:
-                _logger.error("*** Error - OpenTimelineIO instal from provided version failed")
-        else:
-            subprocess.run([pyExeFile, "-m", "pip", "install", "opentimelineio"])
-            import opentimelineio as opentimelineio
-        # import opentimelineio as opentimelineio
+    # try:
+    #     import opentimelineio
+
+    #     # wkip type de comparaison qui ne marche pas tout le temps!!! ex: "2.12.1"<"11.12.1"  is False !!!
+    #     if opentimelineio.__version__ < "0.12.1" and platform.system() == "Windows":
+    #         print("Upgrading OpentimelineIO to 0.12.1")
+    #         subprocess.run(
+    #             [
+    #                 pyExeFile,
+    #                 "-m",
+    #                 "pip",
+    #                 "install",
+    #                 os.path.join(os.path.dirname(__file__), "OpenTimelineIO-0.12.1-cp37-cp37m-win_amd64.whl"),
+    #             ]
+    #         )
+    #         importlib.reload(opentimelineio)  # Need to be tested.
+    # except ModuleNotFoundError:
+    #     _logger.error("*** Error - OpenTimelineIO import failed - using provided version")
+    #     if platform.system() == "Windows":
+    #         _logger.error("Plateform: Windows")
+    #         try:
+    #             subprocess.run(
+    #                 [
+    #                     pyExeFile,
+    #                     "-m",
+    #                     "pip",
+    #                     "install",
+    #                     os.path.join(os.path.dirname(__file__), "OpenTimelineIO-0.12.1-cp37-cp37m-win_amd64.whl"),
+    #                 ]
+    #             )
+    #             import opentimelineio as opentimelineio
+    #         except ModuleNotFoundError:
+    #             _logger.error("*** Error - OpenTimelineIO instal from provided version failed")
+    #     else:
+    #         subprocess.run([pyExeFile, "-m", "pip", "install", "opentimelineio"])
+    #         import opentimelineio as opentimelineio
+    # import opentimelineio as opentimelineio
 
 # try:
 #     import opentimelineio as opentimelineio
@@ -134,7 +136,11 @@ else:
 
 
 def register():
-    from . import operators
+    from . import blender
+
+    # custom version used to track this package if used in several add-ons
+    package_version = "1.0.1"
+    package_last_update = "2022/01/19"
 
     try:
         import opentimelineio as otio
@@ -144,14 +150,16 @@ def register():
     except Exception:
         otioVersionStr = " - OpenTimelineIO not available"
 
-    _logger.debug_ext("       - Registering OTIO Package" + otioVersionStr, form="REG")
+    _logger.debug_ext(
+        f"       - Registering OTIO Package (V. {package_version}, {package_last_update})" + otioVersionStr, form="REG"
+    )
 
-    operators.register()
+    blender.register()
 
 
 def unregister():
-    from . import operators
+    from . import blender
 
     _logger.debug_ext("       - Unregistering OTIO Package", form="UNREG")
 
-    operators.unregister()
+    blender.unregister()

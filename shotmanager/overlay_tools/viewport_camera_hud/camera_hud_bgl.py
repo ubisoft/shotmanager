@@ -30,7 +30,6 @@ import mathutils
 import gpu
 import bgl, blf
 import bpy
-from gpu_extras.batch import batch_for_shader
 from bpy_extras.view3d_utils import location_3d_to_region_2d
 
 
@@ -41,7 +40,6 @@ from shotmanager.utils.utils_ogl import get_region_at_xy, Square
 
 def draw_shots_names(context):
     scn = context.scene
-    props = context.scene.UAS_shot_manager_props
 
     # For all camera which have a shot draw on the ui a list of shots associated with it.
     for obj in scn.objects:
@@ -170,4 +168,3 @@ def view3d_camera_border(context):
 
     frame_px = [location_3d_to_region_2d(context.region, context.space_data.region_3d, v) for v in frame]
     return frame_px
-

@@ -28,7 +28,7 @@ from bpy.props import StringProperty, BoolProperty, EnumProperty
 from shotmanager.config import config
 from shotmanager.utils import utils
 
-from shotmanager.rrs_specific.montage.montage_otio import MontageOtio
+from shotmanager.otio.montage_otio import MontageOtio
 from shotmanager.scripts.rrs import utils_rrs
 
 from shotmanager.scripts.rrs.rrs_playblast import (
@@ -206,7 +206,7 @@ class UAS_VideoShotManager_OT_RRS_ExportShotsFromEdit(Operator):
         if "" == self.otioFile or not Path(self.otioFile).exists():
             row = box.row()
             row.alert = True
-            row.label(text="Specified EDL file not found! - Verify your local depot")  # wkip rrs specific
+            row.label(text="Specified edit file not found! - Verify your local depot")  # wkip rrs specific
             row.alert = False
 
         box.prop(self, "useOverlayFrame")
@@ -360,7 +360,7 @@ class UAS_VideoShotManager_OT_SM_CheckSequence(Operator):
         if "" == self.otioFile or not Path(self.otioFile).exists():
             row = box.row()
             row.alert = True
-            row.label(text="Specified EDL file not found! - Verify your local depot")  # wkip rrs specific
+            row.label(text="Specified edit file not found! - Verify your local depot")  # wkip rrs specific
             row.alert = False
 
         # box.prop(self, "useOverlayFrame")
@@ -450,7 +450,7 @@ def list_sequences_from_markers(self, context):
     res = config.gSeqEnumList
     # res = list()
     nothingList = list()
-    nothingList.append(("NO_SEQ", "No Sequence Found", "No sequence found in the specified EDL file", 0))
+    nothingList.append(("NO_SEQ", "No Sequence Found", "No sequence found in the specified edit file", 0))
 
     # seqList = getSequenceListFromOtioTimeline(config.gMontageOtio)
     # for i, item in enumerate(seqList):

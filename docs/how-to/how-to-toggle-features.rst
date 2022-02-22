@@ -1,7 +1,7 @@
-.. _howto-advanced:
+.. _howto-toggle-features:
 
-How to get into advanced features
-=================================
+How to toggle advanced features
+===============================
 
 Manage cameras
 --------------

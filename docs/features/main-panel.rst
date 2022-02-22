@@ -10,5 +10,5 @@ Main panel
     :width: 100%
 
 
-- :ref:`Panel features <panel-features>`
+- :ref:`Feature Toggles panel <feature-toggles-panel>`
 

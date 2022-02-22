@@ -53,6 +53,24 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
     # ****** settings exposed to the user in the prefs panel:
     # ------------------------------
 
+    output_first_frame: IntProperty(
+        name="Output First Frame Index",
+        description="Index of the first frame for rendered image sequences and videos."
+        "\nThis is 0 in most editing applications, sometimes 1."
+        "\nIf the Project Settings are active then the value provided there is used instead",
+        min=0,
+        subtype="TIME",
+        default=0,
+    )
+
+    img_name_digits_padding: IntProperty(
+        name="Image Name Digit Padding",
+        description="Number of digits to use for the index of an output image in its name."
+        "\nIf the Project Settings are active then the value provided there is used instead",
+        min=1,
+        default=5,
+    )
+
     new_shot_duration: IntProperty(
         name="Default Shot Duration",
         description="Default duration for new shots, in frames",
@@ -197,13 +215,6 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
         default=True,
     )
 
-    deleteIntermediateFiles: BoolProperty(
-        name="Delete Intermediate Image Files",
-        description="Delete the rendered and Stamp Info temporary image files when the composited output is generated."
-        "\nIf set to False these files are kept on disk up to the next rendering of the shot",
-        default=True,
-    )
-
     # ****** hidden settings:
     # ------------------------------
 
@@ -278,9 +289,24 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
     ###################################
 
     # displayed when toggle overlays button is on
+    def _update_toggle_overlays_turnOn_sequenceTimeline(self, context):
+        _logger.debug_ext("_update_toggle_overlays_turnOn_sequenceTimeline")
+
+        ## toggle on or off the overlay tools mode
+        if self.toggle_overlays_turnOn_sequenceTimeline:
+            if not context.window_manager.UAS_shot_manager_display_overlay_tools:
+                context.window_manager.UAS_shot_manager_display_overlay_tools = True
+            else:
+                bpy.ops.uas_shot_manager.sequence_timeline("INVOKE_DEFAULT")
+        else:
+            if context.window_manager.UAS_shot_manager_display_overlay_tools:
+                pass
+
+    # displayed when toggle overlays button is on
     toggle_overlays_turnOn_sequenceTimeline: BoolProperty(
         name="Turn On Sequence Timeline",
         description="Display Sequence Timeline in the 3d viewport when Toggle Overlay Tools button is pressed",
+        update=_update_toggle_overlays_turnOn_sequenceTimeline,
         default=True,
     )
 
