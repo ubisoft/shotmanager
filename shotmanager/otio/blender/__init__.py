@@ -21,7 +21,6 @@ OTIO files dedicated to Blender
 
 
 def register():
-    print("totototo")
     from . import otio_operators
 
     otio_operators.register()
