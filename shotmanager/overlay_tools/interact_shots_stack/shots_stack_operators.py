@@ -65,7 +65,7 @@ def initialize_gShotsStackInfos():
 
 
 def display_state_changed_intShStack(context):
-    # wkip could be removed, not used as such
+    # wkipwkipwkip could be removed, not used as such
     print("display_state_changed_intShStack - to remove")
     prefs = context.preferences.addons["shotmanager"].preferences
     # if (
