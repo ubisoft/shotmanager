@@ -111,14 +111,14 @@ def set_StampInfoSettings(scene):
                 projProp_resolution_y = props.project_resolution_y
                 projProp_resolutionFramed = [props.project_resolution_framed_x, props.project_resolution_framed_y]
 
-                stampInfoSettings.tmp_stampInfoRenderMode = stampInfoSettings.stampInfoRenderMode
                 stampInfoSettings.stampInfoRenderMode = "OUTSIDE"
                 stampInfoSettings.stampRenderResYOutside_percentage = (
                     float(projProp_resolutionFramed[1]) / projProp_resolution_y
                 ) * 100.0 - 100.0
 
                 stampInfoSettings.stampInfoRenderMode = "OVER"
-                stampInfoSettings.stampRenderResOver_percentage = 86.0
+                # wkipwkipwkip we should use outside mode when framed_y > y
+                stampInfoSettings.stampRenderResOver_percentage = projProp_resolution_y / float(projProp_resolutionFramed[1]) * 100.0
 
                 stampInfoSettings.automaticTextSize = False
                 stampInfoSettings.extPaddingNorm = 0.020
