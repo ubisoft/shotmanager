@@ -170,7 +170,10 @@ class UAS_compositeVideoInVSE(Operator):
 class ShotManager_Vse_Render(PropertyGroup):
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
+=======
+>>>>>>> Fix: same as previous
 
 >>>>>>> Fix: same as previous
 =======
@@ -208,6 +211,10 @@ class ShotManager_Vse_Render(PropertyGroup):
 
     outputMediaPath: StringProperty(name="Output Media Path", default="")
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> Fix: same as previous
     def printMedia(self):
         mediaStr = "\nShot Manager: VSE_Render current media:\n"
         mediaStr += f"   - inputOverMediaPath:  '{self.inputOverMediaPath}'\n"
@@ -228,8 +235,13 @@ class ShotManager_Vse_Render(PropertyGroup):
         mediaStr += f"   - outputMediaPath:     '{self.outputMediaPath}'\n"
         # mediaStr += "\n"
 
+<<<<<<< HEAD
         _YELLOW = "\33[33m"
         _ENDCOLOR = "\033[0m"
+=======
+        _YELLOW = '\33[33m'
+        _ENDCOLOR = '\033[0m'
+>>>>>>> Fix: same as previous
         print(f"{_YELLOW}{mediaStr}{_ENDCOLOR}")
 
         # if bg_file is not None:
@@ -574,10 +586,17 @@ class ShotManager_Vse_Render(PropertyGroup):
 
         if "UNKNOWN" != mediaType:
             mediaInfo = f"   - createNewClip(): Name: {newClip.name}, Media Type: {mediaType}, path: {mediaPath}"
+<<<<<<< HEAD
 
             if config.devDebug:
                 print(mediaInfo)
 
+=======
+            
+            if config.devDebug:
+                print(mediaInfo)
+        
+>>>>>>> Fix: same as previous
         # print(
         #     f"           frame_offset_start: {newClip.frame_offset_start}, frame_offset_end: {newClip.frame_offset_end}, frame_final_duration: {newClip.frame_final_duration}"
         # )
@@ -1079,7 +1098,11 @@ class ShotManager_Vse_Render(PropertyGroup):
                     print(f"specificFrame: {specificFrame}")
 
                 # remove the end digits if there are some
+<<<<<<< HEAD
                 # fileNoExt = fileNoExt.rstrip("0123456789")
+=======
+                #fileNoExt = fileNoExt.rstrip("0123456789")
+>>>>>>> Fix: same as previous
 
                 self.outputMediaPath = filePathOnly + output_file_prefix + fileNoExt + frameIndStr + ".png"
                 vse_scene.render.filepath = self.outputMediaPath
@@ -1112,9 +1135,13 @@ class ShotManager_Vse_Render(PropertyGroup):
                     vse_scene.render.image_settings.file_format = "PNG"
                     ext = ".png"
 
+<<<<<<< HEAD
                 self.outputMediaPath = (
                     filePathOnly + fileNoExt + "\\" + output_file_prefix + fileNoExt + frameIndStr + ext
                 )
+=======
+                self.outputMediaPath = filePathOnly + fileNoExt + "\\" + output_file_prefix + fileNoExt + frameIndStr + ext
+>>>>>>> Fix: same as previous
                 vse_scene.render.filepath = self.outputMediaPath
 
                 # since Blender starts the render indices at 1 and not 0 we have to rename the sequence
