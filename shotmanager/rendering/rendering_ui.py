@@ -191,7 +191,7 @@ def drawRenderInfos(context, layout):
     finalRes = props.getRenderResolutionForFinalOutput(resPercentage=100)
 
     def _getResText(imgRes_x, imgRes_y, finalRes_x, finalRes_y):
-        infosStr = f"Image Res: {imgRes_x} x {imgRes_x},  "
+        infosStr = f"Image Res: {imgRes_x} x {imgRes_y},  "
         infosStr += f"Final Res: {finalRes_x} x {finalRes_y},  "
         return infosStr
 
@@ -467,13 +467,13 @@ def draw3DRenderPanel(self, context):
     layout.separator(factor=0.3)
     row = layout.row(align=True)
     row.scale_y = 1.3
+    row.scale_x = 1.2
     row.prop(props, "displayOtioProps", text="", icon="SEQ_STRIP_DUPLICATE")
     row.operator("uas_shot_manager.render", text="Edit File").renderMode = "OTIO"
 
     # row = layout.row()
     # row = layout.row(align=True)
     row.separator(factor=2)
-    # row.scale_x = 1.2
     row.prop(props, "displayPlayblastProps", text="", icon="FILE_MOVIE")  # AUTO
     row.operator("uas_shot_manager.render", text="Playblast").renderMode = "PLAYBLAST"
 

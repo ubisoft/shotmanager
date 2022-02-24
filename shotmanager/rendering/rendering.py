@@ -49,7 +49,6 @@ def launchRenderWithVSEComposite(
     useStampInfo=True,
     stampInfoCustomSettingsDict=None,
     rerenderExistingShotVideos=True,
-    fileListOnly=False,
     generateSequenceVideo=True,
     generateShotVideos=True,
     specificShotList=None,
@@ -59,11 +58,18 @@ def launchRenderWithVSEComposite(
     renderAlsoDisabled=False,
     area=None,
     override_all_viewports=False,
+    fileListOnly=False,
 ):
-    """Generate the media for the specified take
-    Return a dictionary with a list of all the created files and a list of failed ones
-    filesDict = {"rendered_files": newMediaFiles, "failed_files": failedFiles}
-    specificFrame: When specified, only this frame is rendered. Handles are ignored and the resulting media in an image, not a video
+    """Generate the media for the specified takes
+    Return a dictionary with a list of all the created files and a list of failed ones.
+    Previous rendered files are deleted before the new rendering occurs. It this cleaning fails the rendering gets aborted.
+    Use fileListOnly to get only the list of the media that will be created during the rendering process.
+
+    Args:
+        filesDict (dict)= {"rendered_files": newMediaFiles, "failed_files": failedFiles}
+        specificFrame (int): When specified, only this frame is rendered. Handles are ignored and the resulting media in an image, not a video
+        fileListOnly (bool):    When set to True, no rendering nor change in the scene are done, the function just
+                                returns the list of the files to generate
     """
 
     def _deleteTempFiles(dirPath):
@@ -746,7 +752,7 @@ def launchRenderWithVSEComposite(
             #######################
             # render sequence video based on shot image sequences
             #######################
-            # wkip tmp
+            # wkipwkipwkip tmp
             sequenceOutputFullPath = f"{rootPath}\\_playblast_.{props.getOutputFileFormat()}"
             # sequenceOutputFullPath = (
             #     f"{rootPath}{takeName}\\_playblast_{sequenceFileName}.{props.getOutputFileFormat()}"
@@ -842,7 +848,8 @@ def renderStampedInfoForShot(
     _logger.debug("\n - * - *renderStampedInfoForShot *** ")
     props = shotManagerProps
     scene = props.parentScene
-    verbose = True
+    verbose = verbose or config.devDebug
+
     if stampInfoCustomSettingsDict is not None:
         print(f"*** customFileFullPath: {stampInfoCustomSettingsDict['customFileFullPath']}")
         if "customFileFullPath" in stampInfoCustomSettingsDict:
@@ -1118,19 +1125,8 @@ def launchRender(context, renderMode, rootPath, area=None):
         _logger.debug("Render Animation")
         shot = props.getCurrentShot()
 
-        # get the list of files to write, delete them is they exists, stop everithing if the delete cannot be done
+        # get the list of files to write, delete them is they exists, stop everything if the delete cannot be done
         #            shotFileName = shot.
-
-        willBeRenderedFilesDict = launchRenderWithVSEComposite(
-            context,
-            preset,
-            filePath=props.renderRootPath,
-            generateSequenceVideo=False,
-            specificShotList=[shot],
-            specificFrame=scene.frame_current,
-            fileListOnly=True,
-        )
-        # willBeRenderedFilesDict
 
         renderedFilesDict = launchRenderWithVSEComposite(
             context,
@@ -1142,7 +1138,6 @@ def launchRender(context, renderMode, rootPath, area=None):
             specificFrame=scene.frame_current,
             area=area,
         )
-        print(json.dumps(renderedFilesDict, indent=4))
 
     elif "ANIMATION" == preset.renderMode:
         _logger.debug("Render Animation")
@@ -1160,7 +1155,6 @@ def launchRender(context, renderMode, rootPath, area=None):
             render_handles=preset.renderHandles if preset.bypass_rendering_project_settings else True,
             area=area,
         )
-        print(json.dumps(renderedFilesDict, indent=4))
 
     elif "ALL" == preset.renderMode:
         _logger.debug(f"Render All: {str(props.renderSettingsAll.renderAllTakes)}")
@@ -1205,8 +1199,6 @@ def launchRender(context, renderMode, rootPath, area=None):
 
                 # renderedFilesDict["edl_files"] = [renderedOtioFile]
 
-        print(json.dumps(renderedFilesDict, indent=4))
-
     elif "OTIO" == renderMode:
         take = props.getCurrentTake()
         _generateEditFiles()
@@ -1247,10 +1239,11 @@ def launchRender(context, renderMode, rootPath, area=None):
 
             rrs_playblast_to_vsm(playblastInfo=renderedFilesDict["playblastInfos"])
 
-            pass
-
     else:
         print("\n *** preset.renderMode is invalid, cannot render anything... ***\n")
-        pass
 
-    print("Render done\n")
+    if renderedFilesDict is not None:
+        # TODO: improve rendering log display
+        print(json.dumps(renderedFilesDict, indent=4))
+
+    print("Shot Manager rendering done\n")

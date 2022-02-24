@@ -35,7 +35,7 @@ def initGlobalVariables():
     if "devDebug" in os.environ.keys():
         devDebug = bool(int(os.environ["devDebug"]))
     else:
-        devDebug = True
+        devDebug = False
 
     # change this value to force debug at start time
     devDebug = True
