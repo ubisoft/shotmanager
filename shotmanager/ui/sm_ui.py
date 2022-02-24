@@ -53,7 +53,7 @@ class UAS_PT_ShotManager(Panel):
 
     @classmethod
     def poll(cls, context):
-        props = context.scene.UAS_shot_manager_props
+        # props = context.scene.UAS_shot_manager_props
         # hide the whole panel if used
         # return not props.dontRefreshUI()
         return True
@@ -560,7 +560,7 @@ class UAS_PT_ShotManager(Panel):
             # numEnabledShots = len(props.getShotsList(ignoreDisabled=True))
             numShots = props.getNumShots()
             numEnabledShots = props.getNumShots(ignoreDisabled=True)
-            display_adv_features = props.display_greasepencil_in_properties or props.display_camerabgtools_in_properties
+            display_adv_features = props.display_greasepencil_in_properties or props.display_cameraBG_in_properties
 
             box = layout.box()
             shotsrow = box.row()
@@ -650,7 +650,7 @@ class UAS_PT_ShotManager(Panel):
                         "uas_shot_manager.enabledisablegreasepencil", text="", icon_value=icon.icon_id, emboss=False
                     )
 
-                if props.display_camerabgtools_in_properties:
+                if props.display_cameraBG_in_properties:
                     icon = (
                         config.icons_col["ShotManager_CamBGVisible_32"]
                         # config.icons_col["ShotManager_Image_32"]
@@ -718,6 +718,14 @@ class UAS_PT_ShotManager(Panel):
             col.operator("uas_shot_manager.shot_move", icon="TRIA_DOWN", text="").action = "DOWN"
             col.separator()
         #   col.menu("UAS_MT_Shot_Manager_shots_toolsmenu", icon="TOOL_SETTINGS", text="")
+
+            row = layout.row()
+
+        if 0 < numShots:
+            shot = None
+            shot = props.getCurrentShot()
+            if shot is not None:
+                sm_shot_settings_ui.drawShotPropertiesToolbar(layout, context)
 
         # layout.separator ( factor = 1 )
 

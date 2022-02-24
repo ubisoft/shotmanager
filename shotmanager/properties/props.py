@@ -654,10 +654,10 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
 
     display_enabled_in_shotlist: BoolProperty(name="Display Enabled State in Shot List", default=True, options=set())
 
-    display_cameraBG_in_shotlist: BoolProperty(name="Display Camera BG in Shot List", default=False, options=set())
+    display_cameraBG_in_shotlist: BoolProperty(name="Display Camera BG in Shot List", default=True, options=set())
 
     display_greasepencil_in_shotlist: BoolProperty(
-        name="Display Grease Pencil in Shot List", default=False, options=set()
+        name="Display Grease Pencil in Shot List", default=True, options=set()
     )
 
     display_getsetcurrentframe_in_shotlist: BoolProperty(
@@ -807,11 +807,28 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
     # Features
     #############
 
-    display_camerabgtools_in_properties: BoolProperty(
-        # name="Display Camera Background Image Tools in Shot Properties",
-        description="Display the Camera Background Image Tools in the Shot Properties panel",
+    # hidden UI parameter
+    def _get_expand_shot_properties(self):
+        val = self.get("expand_shot_properties", False)
+        return val
+
+    def _set_expand_shot_properties(self, value):
+        self["expand_shot_properties"] = value
+
+    def _update_expand_shot_properties(self, context):
+       # print("\n*** expand_shot_properties updated. New state: ", self.expand_shot_properties)
+        if self.expand_shot_properties:
+            self.expand_notes_properties = False
+            self.expand_cameraBG_properties = False
+            self.expand_greasepencil_properties = False
+
+    expand_shot_properties: BoolProperty(
+        name="Properties  ",
+        description="Expand shot properties",
         default=False,
-        options=set(),
+        get=_get_expand_shot_properties,
+        set=_set_expand_shot_properties,
+        update=_update_expand_shot_properties,
     )
 
     display_notes_in_properties: BoolProperty(
@@ -821,11 +838,88 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         options=set(),
     )
 
-    display_greasepencil_in_properties: BoolProperty(
-        # name="Display Grease Pencil in Shot Properties",
-        description="Display Grease Pencil in the Shot Properties panels",
+    # hidden UI parameter
+    def _get_expand_notes_properties(self):
+        val = self.get("expand_notes_properties", False)
+        return val
+
+    def _set_expand_notes_properties(self, value):
+        self["expand_notes_properties"] = value
+
+    def _update_expand_notes_properties(self, context):
+    #    print("\n*** expand_notes_properties updated. New state: ", self.expand_notes_properties)
+        if self.expand_notes_properties:
+            self.expand_shot_properties = False
+            self.expand_cameraBG_properties = False
+            self.expand_greasepencil_properties = False
+
+    expand_notes_properties: BoolProperty(
+        name="Notes",
+        description="Expand the shot Notes properties",
+        default=False,
+        get=_get_expand_notes_properties,
+        set=_set_expand_notes_properties,
+        update=_update_expand_notes_properties,
+    )
+
+    display_cameraBG_in_properties: BoolProperty(
+        # name="Display Camera Background Image Tools in Shot Properties",
+        description="Display the Camera Background Image tools in the Shot Properties panel",
         default=False,
         options=set(),
+    )
+    # hidden UI parameter
+    def _get_expand_cameraBG_properties(self):
+        val = self.get("expand_cameraBG_properties", False)
+        return val
+
+    def _set_expand_cameraBG_properties(self, value):
+        self["expand_cameraBG_properties"] = value
+
+    def _update_expand_cameraBG_properties(self, context):
+    #    print("\n*** expand_cameraBG_properties updated. New state: ", self.expand_cameraBG_properties)
+        if self.expand_cameraBG_properties:
+            self.expand_shot_properties = False
+            self.expand_notes_properties = False
+            self.expand_greasepencil_properties = False
+
+    expand_cameraBG_properties: BoolProperty(
+        name="Camera BG",
+        description="Expand the shot Camera Background properties",
+        default=False,
+        get=_get_expand_cameraBG_properties,
+        set=_set_expand_cameraBG_properties,
+        update=_update_expand_cameraBG_properties,
+    )
+
+    display_greasepencil_in_properties: BoolProperty(
+        # name="Display Grease Pencil in Shot Properties",
+        description="Display Grease Pencil in the Shot properties panels",
+        default=False,
+        options=set(),
+    )
+    # hidden UI parameter
+    def _get_expand_greasepencil_properties(self):
+        val = self.get("expand_greasepencil_properties", False)
+        return val
+
+    def _set_expand_greasepencil_properties(self, value):
+        self["expand_greasepencil_properties"] = value
+
+    def _update_expand_greasepencil_properties(self, context):
+    #    print("\n*** expand_greasepencil_properties updated. New state: ", self.expand_greasepencil_properties)
+        if self.expand_greasepencil_properties:
+            self.expand_shot_properties = False
+            self.expand_notes_properties = False
+            self.expand_cameraBG_properties = False
+
+    expand_greasepencil_properties: BoolProperty(
+        name="Grease Pencil",
+        description="Expand the shot Grease Pencil properties",
+        default=False,
+        get=_get_expand_greasepencil_properties,
+        set=_set_expand_greasepencil_properties,
+        update=_update_expand_greasepencil_properties,
     )
 
     display_editmode_in_properties: BoolProperty(

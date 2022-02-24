@@ -14,10 +14,11 @@ invoke_popup width:     250
 
 To do V1.7.1 +:
     - bug ds le Comparaison à l'import d'un edit: reorder pas pris en compte
-    - mettre le nombre de cameras partagees
     - reduire les entrees dans la liste de github
     - mettre le lien wiki
     - voir ce qui se passe qd stamp info n'est pas la ds render panel
+    - remove set et get pour l'expand des panels de shot properties
+    - remove shot_notes_expanded
 
 Flake8:
     voir longueur des lignes

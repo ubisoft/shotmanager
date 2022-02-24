@@ -58,7 +58,8 @@ def get_grease_pencil_layer(
         gpencil_layer = gpencil.data.layers[gpencil_layer_name]
     else:
         if create_layer:
-            gpencil_layer = gpencil.data.layers.new(gpencil_layer_name, set_active=True)
+            # gpencil_layer = gpencil.data.layers.new(gpencil_layer_name, set_active=True)
+            add_grease_pencil_layer(gpencil, gpencil_layer_name=gpencil_layer_name)
 
     if clear_layer:
         gpencil_layer.clear()  # clear all previous layer data
@@ -94,6 +95,7 @@ def add_grease_pencil_layer(
         while 0 < gpencil.data.layers.find(gpencil_layer_name):
             gpencil.data.layers.move(gpencil_layer, "DOWN")
 
+    #bpy.ops.gpencil.blank_frame_add()
     gp_frame = gpencil_layer.frames.new(0)
 
     # bpy.ops.gpencil.paintmode_toggle()  # need to trigger otherwise there is no frame

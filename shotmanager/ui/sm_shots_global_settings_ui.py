@@ -34,24 +34,28 @@ _logger = sm_logging.getLogger(__name__)
 
 
 class UAS_PT_ShotManager_ShotsGlobalSettings(Panel):
-    bl_label = "Shots Global Control"  # "Current Shot Properties" # keep the space !!
+    bl_label = " "  # "Shots Global Control" # keep the space !! # Note: text is drawn in gray, not white
     bl_idname = "UAS_PT_Shot_Manager_Shots_GlobalSettings"
     bl_space_type = "VIEW_3D"
     bl_region_type = "UI"
     bl_category = "Shot Mng"
-    bl_options = {"DEFAULT_CLOSED"}
+    bl_options = {"DEFAULT_CLOSED", "HIDE_HEADER"}
     bl_parent_id = "UAS_PT_Shot_Manager"
 
     @classmethod
     def poll(cls, context):
         props = context.scene.UAS_shot_manager_props
         val = (
-            (props.display_camerabgtools_in_properties or props.display_greasepencil_in_properties)
+            (props.display_cameraBG_in_properties or props.display_greasepencil_in_properties)
             and len(props.getTakes())
             and len(props.get_shots())
         )
         val = val and not props.dontRefreshUI()
+        val = val and (props.expand_cameraBG_properties or props.expand_greasepencil_properties)
         return val
+
+    def draw_header(self, context):
+        self.layout.label(text="Shots Global Control")
 
     def draw(self, context):
         scene = context.scene
@@ -59,12 +63,16 @@ class UAS_PT_ShotManager_ShotsGlobalSettings(Panel):
 
         layout = self.layout
         box = layout.box()
-        box.prop(props.shotsGlobalSettings, "alsoApplyToDisabledShots")
+        row = box.row()
+        row.label(text="Shots Global Control:")
+        subrow = row.row()
+        subrow.alignment = "RIGHT"
+        subrow.prop(props.shotsGlobalSettings, "alsoApplyToDisabledShots")
 
         # Camera background images
         ######################
 
-        if props.display_camerabgtools_in_properties:
+        if props.display_cameraBG_in_properties and props.expand_cameraBG_properties:
 
             # box.label(text="Camera Background Images:")
 
@@ -112,7 +120,7 @@ class UAS_PT_ShotManager_ShotsGlobalSettings(Panel):
         # Shot grease pencil
         ######################
 
-        if props.display_greasepencil_in_properties:
+        if props.display_greasepencil_in_properties and props.expand_greasepencil_properties:
 
             # box.label(text="Camera Background Images:")
 
