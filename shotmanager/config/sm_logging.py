@@ -51,6 +51,11 @@ class SM_Logger(logging.getLoggerClass()):
         self._defaultForm = "STD"
 
         # colors in terminal: https://stackoverflow.com/questions/384076/how-can-i-color-python-logging-output
+        # Eg:
+        # _YELLOW = '\33[33m'
+        # _ENDCOLOR = '\033[0m'
+        # print(f"{_YELLOW}text{_ENDCOLOR}")
+
         self._colors = {
             "BLUE": "\33[34m",
             "BLUE_LIGHT": "\33[1;34m",

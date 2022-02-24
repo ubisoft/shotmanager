@@ -168,38 +168,6 @@ class UAS_compositeVideoInVSE(Operator):
 
 
 class ShotManager_Vse_Render(PropertyGroup):
-    def printMedia(self):
-        mediaStr = "ShotManager VSE_Render"
-        mediaStr += f"VSE_Render.inputOverMediaPath:  '{self.inputOverMediaPath}'\n"
-        mediaStr += "VSE_Render.inputOverResolution: "
-        mediaStr += (
-            "None"
-            if self.inputOverResolution is None
-            else f"{self.inputOverResolution[0]} x {self.inputOverResolution[1]}"
-        ) + f"  {self.inputOverResolution}\n"
-
-        mediaStr += f"VSE_Render.inputBGMediaPath:    '{self.inputBGMediaPath}'\n"
-        mediaStr += "VSE_Render.inputBGResolution:   "
-        mediaStr += (
-            "None" if self.inputBGResolution is None else f"{self.inputBGResolution[0]} x {self.inputBGResolution[1]}"
-        ) + f"  {self.inputBGResolution}\n"
-
-        mediaStr += f"VSE_Render.inputAudioMediaPath: '{self.inputAudioMediaPath}'\n"
-        mediaStr += "\n"
-
-        print(mediaStr)
-        # if bg_file is not None:
-        #     self.inputBGMediaPath = bg_file
-        # if bg_res is not None:
-        #     self.inputBGResolution = bg_res
-
-        # if fg_file is not None:
-        #     self.inputOverMediaPath = fg_file
-        # if fg_res is not None:
-        #     self.inputOverResolution = fg_res
-
-        # if audio_file is not None:
-        #     self.inputAudioMediaPath = audio_file
 
     def get_inputOverMediaPath(self):
         val = self.get("inputOverMediaPath", "")
@@ -231,6 +199,46 @@ class ShotManager_Vse_Render(PropertyGroup):
 
     # resolution of the output media (usually the Over media res since it can be bigger when using StampInfo)
     outputResolution: IntVectorProperty(size=2, default=(1280, 720))
+
+    outputMediaPath: StringProperty(name="Output Media Path", default="")
+
+
+    def printMedia(self):
+        mediaStr = "\nShot Manager: VSE_Render current media:\n"
+        mediaStr += f"   - inputOverMediaPath:  '{self.inputOverMediaPath}'\n"
+        mediaStr += "   - inputOverResolution: "
+        mediaStr += (
+            "None"
+            if self.inputOverResolution is None
+            else f"{self.inputOverResolution[0]} x {self.inputOverResolution[1]}"
+        ) + f"  {self.inputOverResolution}\n"
+
+        mediaStr += f"   - inputBGMediaPath:    '{self.inputBGMediaPath}'\n"
+        mediaStr += "   - inputBGResolution:   "
+        mediaStr += (
+            "None" if self.inputBGResolution is None else f"{self.inputBGResolution[0]} x {self.inputBGResolution[1]}"
+        ) + f"  {self.inputBGResolution}\n"
+
+        mediaStr += f"   - inputAudioMediaPath: '{self.inputAudioMediaPath}'\n"
+        mediaStr += f"   - outputMediaPath:     '{self.outputMediaPath}'\n"
+        # mediaStr += "\n"
+
+        _YELLOW = '\33[33m'
+        _ENDCOLOR = '\033[0m'
+        print(f"{_YELLOW}{mediaStr}{_ENDCOLOR}")
+
+        # if bg_file is not None:
+        #     self.inputBGMediaPath = bg_file
+        # if bg_res is not None:
+        #     self.inputBGResolution = bg_res
+
+        # if fg_file is not None:
+        #     self.inputOverMediaPath = fg_file
+        # if fg_res is not None:
+        #     self.inputOverResolution = fg_res
+
+        # if audio_file is not None:
+        #     self.inputAudioMediaPath = audio_file
 
     def clearMedia(self):
         self.inputOverMediaPath = ""
@@ -560,8 +568,11 @@ class ShotManager_Vse_Render(PropertyGroup):
             pass
 
         if "UNKNOWN" != mediaType:
-            mediaInfo = f"   - Name: {newClip.name}, Media Type: {mediaType}, path: {mediaPath}"
-            print(mediaInfo)
+            mediaInfo = f"   - createNewClip(): Name: {newClip.name}, Media Type: {mediaType}, path: {mediaPath}"
+            
+            if config.devDebug:
+                print(mediaInfo)
+        
         # print(
         #     f"           frame_offset_start: {newClip.frame_offset_start}, frame_offset_end: {newClip.frame_offset_end}, frame_final_duration: {newClip.frame_final_duration}"
         # )
@@ -1058,11 +1069,15 @@ class ShotManager_Vse_Render(PropertyGroup):
             # case where specificFrame is NOT none
             if "IMAGE" == output_media_type:
                 vse_scene.render.image_settings.file_format = "PNG"  # wkipwkipwkip mettre project info
-                print(f"specificFrame: {specificFrame}")
-                # remove the end digits if there are some
-                fileNoExt = fileNoExt.rstrip("0123456789")
 
-                vse_scene.render.filepath = filePathOnly + output_file_prefix + fileNoExt + frameIndStr + ".png"
+                if config.devDebug:
+                    print(f"specificFrame: {specificFrame}")
+
+                # remove the end digits if there are some
+                #fileNoExt = fileNoExt.rstrip("0123456789")
+
+                self.outputMediaPath = filePathOnly + output_file_prefix + fileNoExt + frameIndStr + ".png"
+                vse_scene.render.filepath = self.outputMediaPath
 
                 # vse_scene.frame_set(specificFrame)
                 vse_scene.frame_set(importAtFrame)
@@ -1092,9 +1107,8 @@ class ShotManager_Vse_Render(PropertyGroup):
                     vse_scene.render.image_settings.file_format = "PNG"
                     ext = ".png"
 
-                vse_scene.render.filepath = (
-                    filePathOnly + fileNoExt + "\\" + output_file_prefix + fileNoExt + frameIndStr + ext
-                )
+                self.outputMediaPath = filePathOnly + fileNoExt + "\\" + output_file_prefix + fileNoExt + frameIndStr + ext
+                vse_scene.render.filepath = self.outputMediaPath
 
                 # since Blender starts the render indices at 1 and not 0 we have to rename the sequence
                 # another approach than renaming is to render still images
@@ -1112,14 +1126,18 @@ class ShotManager_Vse_Render(PropertyGroup):
                 vse_scene.render.ffmpeg.constant_rate_factor = "PERC_LOSSLESS"  # "PERC_LOSSLESS"
                 vse_scene.render.ffmpeg.gopsize = 5  # keyframe interval
                 vse_scene.render.ffmpeg.audio_codec = "AAC"
-                vse_scene.render.filepath = filePathOnly + output_file_prefix + fileNoExt + ".mp4"
+
+                self.outputMediaPath = filePathOnly + output_file_prefix + fileNoExt + ".mp4"
+                vse_scene.render.filepath = self.outputMediaPath
 
                 vse_scene.render.use_file_extension = False
                 bpy.ops.render.opengl(animation=True, sequencer=True)
 
             return
 
-        self.printMedia()
+        # if config.devDebug:
+        #     self.printMedia()
+
         mediaStr = "VSE_Render  output_resolution:   "
         mediaStr += (
             "None" if output_resolution is None else f"{output_resolution[0]} x {output_resolution[1]}"
@@ -1253,6 +1271,9 @@ class ShotManager_Vse_Render(PropertyGroup):
                 _setOutputMediaAndRender("VIDEO")
         else:
             _setOutputMediaAndRender("IMAGE")
+
+        if config.devDebug:
+            self.printMedia()
 
         if not config.devDebug_keepVSEContent:
             bpy.ops.scene.delete()
