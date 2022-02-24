@@ -47,7 +47,7 @@ them in order to record the right segment of time.
 This is very convenient for previz and 3D layout.
 
 <br />
-<img src="doc/images/ShotManager_screen.png" alt="ShotManager Screen" width="70%"/>
+<img src="docs/img/ShotManager_screen.jpg" alt="ShotManager Screen" width="70%"/>
 <br />
 
 For installation, features, FAQ, user help please check the documentation here: [https://ubisoft-shotmanager.readthedocs.io](https://ubisoft-shotmanager.readthedocs.io)
