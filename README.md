@@ -18,6 +18,10 @@
   <a href="https://github.com/ubisoft/shotmanager/issues" title="Report and follow issues">
   <img src="doc/images/Issues.png" width="160" />
   </a>
+  &nbsp;&nbsp;&nbsp;
+  <a href="https://github.com/ubisoft/shotmanager/wiki" title="Follow the development">
+  <img src="doc/images/Diary.png" width="160" />
+  </a>
 </p>
 
 
@@ -43,7 +47,7 @@ them in order to record the right segment of time.
 This is very convenient for previz and 3D layout.
 
 <br />
-<img src="docs/img/ShotManager_screen.png" alt="ShotManager Screen" width="70%"/>
+<img src="doc/images/ShotManager_screen.png" alt="ShotManager Screen" width="70%"/>
 <br />
 
 For installation, features, FAQ, user help please check the documentation here: [https://ubisoft-shotmanager.readthedocs.io](https://ubisoft-shotmanager.readthedocs.io)
@@ -64,6 +68,6 @@ The active support repository is on the [Shot Manager Github repository](https:/
 
 # License and copyright
 
-The original code is Copyright (C) 2021 Ubisoft.
+The original code is Copyright (C) 2022 Ubisoft.
 
 All code of the `shotmanager` package is under the GPLv3 license.
