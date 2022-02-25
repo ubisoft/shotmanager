@@ -16,12 +16,8 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 """
-To do: module description here.
+Grease pencil UI
 """
-
-import bpy
-from bpy.types import Operator
-from bpy.props import EnumProperty, BoolProperty, StringProperty
 
 from shotmanager.utils import utils
 from shotmanager.utils import utils_greasepencil
@@ -31,31 +27,55 @@ def draw_greasepencil_shot_properties(sm_ui, context, shot):
     layout = sm_ui.layout
     props = context.scene.UAS_shot_manager_props
     prefs = context.preferences.addons["shotmanager"].preferences
-    scene = context.scene
+
+    if shot is None:
+        return
+
+    propertiesModeStr = "Selected " if "SELECTED" == props.current_shot_properties_mode else "Current "
 
     gp_child = None
-    if shot is not None:
-        shotIndex = props.getShotIndex(shot)
+    cameraIsValid = shot.isCameraValid()
+    if not cameraIsValid:
+        box = layout.box()
+        row = box.row()
+        row.label(text=propertiesModeStr + "Shot Grease Pencil:")
+        row.alert = True
         if shot.camera is None:
-            pass
+            row.label(text="*** Camera not defined ! ***")
         else:
-            gp_child = utils.get_greasepencil_child(shot.camera)
+            row.scale_x = 1.1
+            row.label(text="*** Referenced camera not in scene ! ***")
+        return
 
-    panelIcon = "TRIA_DOWN" if prefs.shot_greasepencil_expanded and gp_child is not None else "TRIA_RIGHT"
+    shotIndex = props.getShotIndex(shot)
 
     box = layout.box()
     box.use_property_decorate = False
     row = box.row()
-    extendSubRow = row.row(align=True)
-    extendSubRow.prop(prefs, "shot_greasepencil_expanded", text="", icon=panelIcon, emboss=False)
+
+    gp_child = utils.get_greasepencil_child(shot.camera)
+    if gp_child is None:
+        row.operator(
+            "uas_shot_manager.add_grease_pencil", text="", icon="OUTLINER_OB_GREASEPENCIL"
+        ).cameraGpName = shot.camera.name
+    else:
+        row.operator("uas_shot_manager.draw_on_grease_pencil", text="", icon="GP_SELECT_STROKES")
+
+    extendSubRow = row.row(align=False)
+    subrowleft = extendSubRow.row()
+    subrowleft.scale_x = 0.8
+    subrowleft.label(text=propertiesModeStr + "Shot GP:")
+
+    # panelIcon = "TRIA_DOWN" if prefs.shot_greasepencil_expanded and gp_child is not None else "TRIA_RIGHT"
+    # extendSubRow.prop(prefs, "shot_greasepencil_expanded", text="", icon=panelIcon, emboss=False)
     # row.separator(factor=1.0)
 
-    subRow = row.row(align=False)
+    # subRow = row.row(align=False)
     # subRow.scale_x = 0.6
-    subRow.label(text="Grease Pencil:")
+    # subRow.label(text="Grease Pencil:")
 
     if gp_child is None:
-        extendSubRow.enabled = False
+        # extendSubRow.enabled = False
         row.operator(
             "uas_shot_manager.add_grease_pencil", text="", icon="ADD", emboss=True
         ).cameraGpName = shot.camera.name
@@ -65,6 +85,7 @@ def draw_greasepencil_shot_properties(sm_ui, context, shot):
         # subSubRow.separator(factor=0.5)  # prevents stange look when panel is narrow
 
     else:
+        subRow = extendSubRow.row(align=True)
         subRow.label(text=gp_child.name)
         subRow.operator("uas_shot_manager.select_grease_pencil", text="", icon="RESTRICT_SELECT_OFF").index = shotIndex
         subSubRow = subRow.row(align=True)
@@ -77,7 +98,7 @@ def draw_greasepencil_shot_properties(sm_ui, context, shot):
         subRow.separator()
         subRow.prop(props, "display_greasepencil_in_shotlist", text="")
 
-        if prefs.shot_greasepencil_expanded:
+        if True or prefs.shot_greasepencil_expanded:
             row = box.row()
             row.prop(gp_child, "location")
 
@@ -97,3 +118,34 @@ def draw_greasepencil_shot_properties(sm_ui, context, shot):
         # row = box.row()
         # row.operator("uas_shot_manager.change_grease_pencil_opacity").gpObjectName = gp_child
 
+
+def draw_greasepencil_global_properties(sm_ui, context):
+    layout = sm_ui.layout
+    props = context.scene.UAS_shot_manager_props
+
+    box = layout.box()
+    row = box.row()
+    row.label(text="Shots Global Control:")
+    rightRow = row.row()
+    rightRow.alignment = "RIGHT"
+    rightRow.prop(props.shotsGlobalSettings, "alsoApplyToDisabledShots")
+
+    # Grease pencil
+    # ######################
+
+    row = box.row()
+    row.use_property_decorate = False
+    row.separator()
+
+    col = row.column()
+    subRow = col.row()
+
+    grid_flow = subRow.grid_flow(align=False, columns=4, even_columns=False)
+    grid_flow.label(text="Grease Pencil:")
+    grid_flow.operator("uas_shots_settings.use_greasepencil", text="Turn On").useGreasepencil = True
+    grid_flow.operator("uas_shots_settings.use_greasepencil", text="Turn Off").useGreasepencil = False
+    grid_flow.prop(props.shotsGlobalSettings, "greasepencilAlpha", text="Alpha")
+    c = row.column()
+    c.operator("uas_shot_manager.remove_grease_pencil", text="", icon="PANEL_CLOSE")
+
+    col.separator(factor=0.5)

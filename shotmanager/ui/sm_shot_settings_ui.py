@@ -16,18 +16,18 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 """
-To do: module description here.
+Shot settings UI
 """
 
 import bpy
-from bpy.types import Panel, Operator, Menu
+from bpy.types import Panel
 from bpy.props import StringProperty
 
 from shotmanager.config import config
 from shotmanager.utils import utils
 
+# from shotmanager.features.soundBG import soundBG_ui as sBG
 from shotmanager.features.cameraBG import cameraBG_ui as cBG
-from shotmanager.features.soundBG import soundBG_ui as sBG
 from shotmanager.features.greasepencil import greasepencil_ui as gp
 
 from shotmanager.config import sm_logging
@@ -39,16 +39,17 @@ _logger = sm_logging.getLogger(__name__)
 # shot properties
 ##################
 
-def drawShotPropertiesToolbar(layout, context):
+
+def drawShotPropertiesToolbar(layout, context, shot):
     props = context.scene.UAS_shot_manager_props
-    scene = context.scene
-    # layout = self.layout
     row = layout.row(align=False)
 
-    #if props.display_notes_in_properties or props.display_cameraBG_in_properties or props.display_greasepencil_in_properties:
+    cameraIsValid = shot.isCameraValid()
+
+    # if props.display_notes_in_properties or props.display_cameraBG_in_properties or props.display_greasepencil_in_properties:
     if True:
-        leftrow = row.row(align=True)
-        leftrow.alignment = "LEFT"
+        # leftrow = row.row(align=False)
+        # leftrow.alignment = "LEFT"
 
         # propertiesModeStr = "Current Shot:  "
         # if "SELECTED" == scene.UAS_shot_manager_props.current_shot_properties_mode:
@@ -57,8 +58,10 @@ def drawShotPropertiesToolbar(layout, context):
 
         buttonsrow = row.row(align=True)
         buttonsrow.alignment = "LEFT"
+        buttonsrow.separator()
 
         subrow = buttonsrow.row()
+        subrow.alert = not cameraIsValid
         subrow.scale_x = 0.9
         panelIcon = "TRIA_DOWN" if props.expand_shot_properties else "TRIA_RIGHT"
         subrow.prop(props, "expand_shot_properties", toggle=True, icon=panelIcon)
@@ -81,9 +84,9 @@ def drawShotPropertiesToolbar(layout, context):
 
         buttonsrow.separator()
     else:
-        propertiesModeStr = "Current Shot Properties"
-        if "SELECTED" == scene.UAS_shot_manager_props.current_shot_properties_mode:
-            propertiesModeStr = "Selected Shot Properties"
+        propertiesModeStr = (
+            "Selected Shot Notes:" if "SELECTED" == props.current_shot_properties_mode else "Current Shot Notes:"
+        )
         row.label(text=propertiesModeStr)
 
 
@@ -107,16 +110,21 @@ class UAS_PT_ShotManager_ShotProperties(Panel):
             shot = props.getShotByIndex(props.selected_shot_index)
         val = len(context.scene.UAS_shot_manager_props.getTakes()) and shot
         val = val and not props.dontRefreshUI()
-        val = val and (props.expand_shot_properties or props.expand_notes_properties or props.expand_cameraBG_properties or props.expand_greasepencil_properties)
+        val = val and (
+            props.expand_shot_properties
+            or props.expand_notes_properties
+            or props.expand_cameraBG_properties
+            or props.expand_greasepencil_properties
+        )
         return val
 
     def draw_header(self, context):
-        scene = context.scene
+        props = context.scene.UAS_shot_manager_props
         layout = self.layout
         # layout.emboss = "NONE"
-        propertiesModeStr = "Current Shot Properties"
-        if "SELECTED" == scene.UAS_shot_manager_props.current_shot_properties_mode:
-            propertiesModeStr = "Selected Shot Properties"
+        propertiesModeStr = (
+            "Selected Shot Notes:" if "SELECTED" == props.current_shot_properties_mode else "Current Shot Notes:"
+        )
         layout.label(text=propertiesModeStr)
 
     def draw_header_preset(self, context):
@@ -138,29 +146,10 @@ class UAS_PT_ShotManager_ShotProperties(Panel):
             layout.alignment = "RIGHT"
             row.alignment = "RIGHT"
             row.alert = True
-            row.label(text="*** Warning: Camera not in scene !***")
-
-        if config.devDebug and props.display_greasepencil_in_properties:
-            shot = None
-            if not ("SELECTED" == props.current_shot_properties_mode):
-                shot = props.getCurrentShot()
+            if shot.camera is None:
+                row.label(text="*** Camera not defined ! ***")
             else:
-                shot = props.getShotByIndex(props.selected_shot_index)
-
-            if shot is not None:
-                if shot.camera is None:
-                    row = layout.row()
-                    row.enabled = False
-                    row.operator("uas_shot_manager.add_grease_pencil", text="", icon="OUTLINER_OB_GREASEPENCIL")
-                else:
-                    gp_child = utils.get_greasepencil_child(shot.camera)
-                    if gp_child is not None:
-                        layout.operator("uas_shot_manager.draw_on_grease_pencil", text="", icon="GP_SELECT_STROKES")
-
-                    # else:
-                    #     layout.operator(
-                    #         "uas_shot_manager.add_grease_pencil", text="", icon="OUTLINER_OB_GREASEPENCIL"
-                    #     ).cameraGpName = shot.camera.name
+                row.label(text="*** Referenced camera not in scene ! ***")
 
         versionStr = utils.addonVersion("Video Tracks")
         row = layout.row()
@@ -179,13 +168,18 @@ class UAS_PT_ShotManager_ShotProperties(Panel):
 
         shot = None
         # if shotPropertiesModeIsCurrent is true then the displayed shot properties are taken from the CURRENT shot, else from the SELECTED one
-        if not ("SELECTED" == props.current_shot_properties_mode):
-            shot = props.getCurrentShot()
-        else:
+        if "SELECTED" == props.current_shot_properties_mode:
             shot = props.getShotByIndex(props.selected_shot_index)
+            propertiesModeStr = "Selected "
+        else:
+            shot = props.getCurrentShot()
+            propertiesModeStr = "Current "
 
         if shot is None:
             return
+
+        cameraIsValid = shot.isCameraValid()
+        itemHasWarnings = not cameraIsValid
 
         layout = self.layout
         layout.use_property_decorate = False
@@ -193,14 +187,29 @@ class UAS_PT_ShotManager_ShotProperties(Panel):
         ######################
         # shot properties
         ######################
-        if not (props.display_notes_in_properties or props.display_cameraBG_in_properties or props.display_greasepencil_in_properties) or props.expand_shot_properties:
+        if (
+            not (
+                props.display_notes_in_properties
+                or props.display_cameraBG_in_properties
+                or props.display_greasepencil_in_properties
+            )
+            or props.expand_shot_properties
+        ):
             box = layout.box()
             box.use_property_decorate = False
+            row = box.row()
+            extendSubRow = row.row(align=False)
+            subrowleft = extendSubRow.row()
+            subrowleft.scale_x = 0.75
+            subrowleft.label(text=propertiesModeStr + "Shot Properties:")
 
-            propertiesModeStr = "Current Shot Properties:"
-            if "SELECTED" == scene.UAS_shot_manager_props.current_shot_properties_mode:
-                propertiesModeStr = "Selected Shot Properties:"
-            box.label(text=propertiesModeStr)
+            if itemHasWarnings:
+                subrowleft.alert = True
+                if shot.camera is None:
+                    subrowleft.label(text="*** Camera not defined ! ***")
+                else:
+                    subrowleft.scale_x = 1.1
+                    subrowleft.label(text="*** Referenced camera not in scene ! ***")
 
             currentTakeInd = props.getCurrentTakeIndex()
             if config.devDebug:
@@ -270,7 +279,6 @@ class UAS_PT_ShotManager_ShotProperties(Panel):
 
             ####################
             # camera and lens
-            cameraIsValid = shot.isCameraValid()
 
             row = box.row()
             row.separator(factor=0.5)
@@ -363,15 +371,15 @@ class UAS_PT_ShotManager_ShotProperties(Panel):
             subrow = c.row()
             # subrow.label(text="Shot Notes:")
 
-            propertiesModeStr = "Current Shot Notes:"
-            if "SELECTED" == scene.UAS_shot_manager_props.current_shot_properties_mode:
-                propertiesModeStr = "Selected Shot Notes:"
+            propertiesModeStr = (
+                "Selected Shot Notes:" if "SELECTED" == props.current_shot_properties_mode else "Current Shot Notes:"
+            )
             subrow.label(text=propertiesModeStr)
 
             subrow.prop(props, "display_notes_in_shotlist", text="")
             #    subrow.separator(factor=0.5)
 
-           # if prefs.shot_notes_expanded:
+            # if prefs.shot_notes_expanded:
             row = box.row()
             row.separator(factor=1.0)
             col = row.column()
@@ -386,15 +394,15 @@ class UAS_PT_ShotManager_ShotProperties(Panel):
         # Camera background images
         ######################
         if props.display_cameraBG_in_properties and props.expand_cameraBG_properties:
-            if shot.camera is not None:
-                cBG.draw_cameraBG_shot_properties(self, context, shot)
+            cBG.draw_cameraBG_shot_properties(self, context, shot)
+            cBG.draw_cameraBG_global_properties(self, context)
 
         ######################
         # Grease pencil
         ######################
         if props.display_greasepencil_in_properties and props.expand_greasepencil_properties:
-            if shot.camera is not None:
-                gp.draw_greasepencil_shot_properties(self, context, shot)
+            gp.draw_greasepencil_shot_properties(self, context, shot)
+            gp.draw_greasepencil_global_properties(self, context)
 
 
 classes = (UAS_PT_ShotManager_ShotProperties,)

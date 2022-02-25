@@ -97,28 +97,39 @@ class UAS_UL_ShotManager_Items(bpy.types.UIList):
                     # row.operator(
                     #     "uas_shot_manager.shots_shownotes", text="", icon_value=emptyIcon.icon_id
                     # ).index = index
-                row.scale_x = 0.9
+                row.scale_x = 1.0
 
             if props.display_cameraBG_in_properties and props.display_cameraBG_in_shotlist:
                 row = row.row(align=True)
-                row.scale_x = 1.0
-                icon = "VIEW_CAMERA" if item.hasBGImage() else "BLANK1"
-                row.operator("uas_shot_manager.cambgitem", text="", icon=icon).index = index
                 row.scale_x = 0.9
+                # icon = "VIEW_CAMERA" if item.hasBGImage() else "BLANK1"
+                icon = (
+                    config.icons_col["ShotManager_CamBGShot_32"]
+                    if item.hasBGImage()
+                    else config.icons_col["ShotManager_CamBGNoShot_32"]
+                )
+                row.operator("uas_shot_manager.cambgitem", text="", icon_value=icon.icon_id).index = index
+                row.scale_x = 1
 
             if props.display_greasepencil_in_properties and props.display_greasepencil_in_shotlist:
                 row = row.row(align=True)
                 row.scale_x = 1.0
-                icon = "BLANK1"
+
                 gp = item.getGreasePencil()
-                if gp is not None:
+                if gp is None:
+                    icon = config.icons_col["ShotManager_CamGPNoShot_32"]
+                    row.operator("uas_shot_manager.greasepencilitem", text="", icon_value=icon.icon_id).index = index
+                else:
                     # if gp == context.active_object and context.active_object.mode == "PAINT_GPENCIL":
                     if gp.mode == "PAINT_GPENCIL":
                         icon = "GREASEPENCIL"
                         row.alert = True
+                        row.operator("uas_shot_manager.greasepencilitem", text="", icon=icon).index = index
                     else:
-                        icon = "OUTLINER_OB_GREASEPENCIL"
-                row.operator("uas_shot_manager.greasepencilitem", text="", icon=icon).index = index
+                        icon = config.icons_col["ShotManager_CamGPShot_32"]
+                        row.operator(
+                            "uas_shot_manager.greasepencilitem", text="", icon_value=icon.icon_id
+                        ).index = index
                 row.scale_x = 0.9
 
             if numSharedCamInTake:

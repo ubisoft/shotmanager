@@ -816,7 +816,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         self["expand_shot_properties"] = value
 
     def _update_expand_shot_properties(self, context):
-       # print("\n*** expand_shot_properties updated. New state: ", self.expand_shot_properties)
+        # print("\n*** expand_shot_properties updated. New state: ", self.expand_shot_properties)
         if self.expand_shot_properties:
             self.expand_notes_properties = False
             self.expand_cameraBG_properties = False
@@ -847,7 +847,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         self["expand_notes_properties"] = value
 
     def _update_expand_notes_properties(self, context):
-    #    print("\n*** expand_notes_properties updated. New state: ", self.expand_notes_properties)
+        #    print("\n*** expand_notes_properties updated. New state: ", self.expand_notes_properties)
         if self.expand_notes_properties:
             self.expand_shot_properties = False
             self.expand_cameraBG_properties = False
@@ -877,7 +877,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         self["expand_cameraBG_properties"] = value
 
     def _update_expand_cameraBG_properties(self, context):
-    #    print("\n*** expand_cameraBG_properties updated. New state: ", self.expand_cameraBG_properties)
+        #    print("\n*** expand_cameraBG_properties updated. New state: ", self.expand_cameraBG_properties)
         if self.expand_cameraBG_properties:
             self.expand_shot_properties = False
             self.expand_notes_properties = False
@@ -907,7 +907,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         self["expand_greasepencil_properties"] = value
 
     def _update_expand_greasepencil_properties(self, context):
-    #    print("\n*** expand_greasepencil_properties updated. New state: ", self.expand_greasepencil_properties)
+        #    print("\n*** expand_greasepencil_properties updated. New state: ", self.expand_greasepencil_properties)
         if self.expand_greasepencil_properties:
             self.expand_shot_properties = False
             self.expand_notes_properties = False
@@ -3326,7 +3326,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         shot = self.getShotByIndex(shotIndex)
         if shot is not None:
             bpy.ops.object.select_all(action="DESELECT")
-            if shot.camera is not None:
+            if shot.camera is not None and shot.isCameraValid():
                 if bpy.context.active_object is not None and bpy.context.active_object.mode != "OBJECT":
                     bpy.ops.object.mode_set(mode="OBJECT")
                     # if bpy.context.active_object is None or bpy.context.active_object.mode == "OBJECT":

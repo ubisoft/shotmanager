@@ -1318,7 +1318,7 @@ class UAS_ShotManager_Shots_SelectCamera(Operator):
         if context.active_object is not None and context.active_object.mode != "OBJECT":
             bpy.ops.object.mode_set(mode="OBJECT")
         context.scene.UAS_shot_manager_props.selectCamera(self.index)
-        return {"FINISHED"}
+        return {"INTERFACE"}
 
 
 class UAS_ShotManager_Shots_RemoveCamera(Operator):

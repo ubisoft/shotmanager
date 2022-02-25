@@ -31,7 +31,6 @@ from shotmanager.utils import utils
 from . import sm_shots_ui
 from . import sm_takes_ui
 from . import sm_shot_settings_ui
-from . import sm_shots_global_settings_ui
 from .warnings_ui import drawWarnings
 
 from shotmanager.config import sm_logging
@@ -612,7 +611,7 @@ class UAS_PT_ShotManager(Panel):
                 subrowedit.prop(
                     props,
                     "display_edit_times_in_shotlist",
-                    text="" if display_adv_features else "Edit Times",
+                    text="" if False and display_adv_features else "Edit Times",
                     toggle=True,
                     icon="SEQ_STRIP_DUPLICATE",
                 )
@@ -717,15 +716,18 @@ class UAS_PT_ShotManager(Panel):
             col.operator("uas_shot_manager.shot_move", icon="TRIA_UP", text="").action = "UP"
             col.operator("uas_shot_manager.shot_move", icon="TRIA_DOWN", text="").action = "DOWN"
             col.separator()
-        #   col.menu("UAS_MT_Shot_Manager_shots_toolsmenu", icon="TOOL_SETTINGS", text="")
+            #   col.menu("UAS_MT_Shot_Manager_shots_toolsmenu", icon="TOOL_SETTINGS", text="")
 
             row = layout.row()
 
         if 0 < numShots:
             shot = None
-            shot = props.getCurrentShot()
+            if "SELECTED" == props.current_shot_properties_mode:
+                shot = props.getSelectedShot()
+            else:
+                shot = props.getCurrentShot()
             if shot is not None:
-                sm_shot_settings_ui.drawShotPropertiesToolbar(layout, context)
+                sm_shot_settings_ui.drawShotPropertiesToolbar(layout, context, shot)
 
         # layout.separator ( factor = 1 )
 
@@ -761,11 +763,9 @@ def register():
     sm_takes_ui.register()
     sm_shots_ui.register()
     sm_shot_settings_ui.register()
-    sm_shots_global_settings_ui.register()
 
 
 def unregister():
-    sm_shots_global_settings_ui.unregister()
     sm_shot_settings_ui.unregister()
     sm_shots_ui.unregister()
     sm_takes_ui.unregister()
