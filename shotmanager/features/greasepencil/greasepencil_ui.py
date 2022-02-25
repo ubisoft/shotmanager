@@ -51,18 +51,14 @@ def draw_greasepencil_shot_properties(sm_ui, context, shot):
 
     box = layout.box()
     box.use_property_decorate = False
-    row = box.row()
+    row = box.row(align=True)
 
     gp_child = utils.get_greasepencil_child(shot.camera)
-    if gp_child is None:
-        row.operator(
-            "uas_shot_manager.add_grease_pencil", text="", icon="OUTLINER_OB_GREASEPENCIL"
-        ).cameraGpName = shot.camera.name
-    else:
-        row.operator("uas_shot_manager.draw_on_grease_pencil", text="", icon="GP_SELECT_STROKES")
 
-    extendSubRow = row.row(align=False)
+    extendSubRow = row.row(align=True)
+    # extendSubRow.alignment = "RIGHT"
     subrowleft = extendSubRow.row()
+    subrowleft.alignment = "EXPAND"
     subrowleft.scale_x = 0.8
     subrowleft.label(text=propertiesModeStr + "Shot GP:")
 
@@ -79,30 +75,45 @@ def draw_greasepencil_shot_properties(sm_ui, context, shot):
         row.operator(
             "uas_shot_manager.add_grease_pencil", text="", icon="ADD", emboss=True
         ).cameraGpName = shot.camera.name
-
         # subSubRow.separator(factor=1.0)
         row.prop(props, "display_greasepencil_in_shotlist", text="")
         # subSubRow.separator(factor=0.5)  # prevents stange look when panel is narrow
 
     else:
-        subRow = extendSubRow.row(align=True)
-        subRow.label(text=gp_child.name)
-        subRow.operator("uas_shot_manager.select_grease_pencil", text="", icon="RESTRICT_SELECT_OFF").index = shotIndex
+        extendSubRow.alignment = "EXPAND"
+        subRow = extendSubRow.row(align=False)
+        # subRow.scale_x = 0.8
+        selSubRow = subRow.row(align=True)
+        selSubRow.label(text=gp_child.name)
+        selSubRow.operator(
+            "uas_shot_manager.select_grease_pencil", text="", icon="RESTRICT_SELECT_OFF"
+        ).index = shotIndex
+        selSubRow.operator("uas_shot_manager.draw_on_grease_pencil", text="", icon="GP_SELECT_STROKES")
+
         subSubRow = subRow.row(align=True)
         subSubRow.prop(gp_child, "hide_select", text="")
         subSubRow.prop(gp_child, "hide_viewport", text="")
         subSubRow.prop(gp_child, "hide_render", text="")
 
         subRow = row.row(align=True)
+        # subRow.alignment = "RIGHT"
+        subRow.separator(factor=0.9)
         subRow.operator("uas_shot_manager.remove_grease_pencil", text="", icon="PANEL_CLOSE").shotIndex = shotIndex
         subRow.separator()
         subRow.prop(props, "display_greasepencil_in_shotlist", text="")
 
-        if True or prefs.shot_greasepencil_expanded:
-            row = box.row()
-            row.prop(gp_child, "location")
+        mainRow = extendSubRow.row()
+        sepRow = mainRow.row()
+        sepRow.separator(factor=0.5)
 
-        row = box.row()
+        mainRow = box.row()
+        mainRow.separator(factor=0.5)
+        col = mainRow.column()
+        if True or prefs.shot_greasepencil_expanded:
+            subRow = col.row()
+            subRow.prop(gp_child, "location")
+
+        row = col.row()
         row.label(text="Canvas: ")
 
         canvasLayer = utils_greasepencil.get_grease_pencil_layer(

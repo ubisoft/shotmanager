@@ -180,6 +180,7 @@ class UAS_PT_ShotManager_ShotProperties(Panel):
 
         cameraIsValid = shot.isCameraValid()
         itemHasWarnings = not cameraIsValid
+        currentTakeInd = props.getCurrentTakeIndex()
 
         layout = self.layout
         layout.use_property_decorate = False
@@ -197,9 +198,10 @@ class UAS_PT_ShotManager_ShotProperties(Panel):
         ):
             box = layout.box()
             box.use_property_decorate = False
-            row = box.row()
-            extendSubRow = row.row(align=False)
-            subrowleft = extendSubRow.row()
+            mainCol = box.column()
+            row = mainCol.row()
+            # extendSubRow = row.row(align=False)
+            subrowleft = row.row()
             subrowleft.scale_x = 0.75
             subrowleft.label(text=propertiesModeStr + "Shot Properties:")
 
@@ -211,10 +213,16 @@ class UAS_PT_ShotManager_ShotProperties(Panel):
                     subrowleft.scale_x = 1.1
                     subrowleft.label(text="*** Referenced camera not in scene ! ***")
 
-            currentTakeInd = props.getCurrentTakeIndex()
+            sepRow = mainCol.row()
+            sepRow.separator(factor=0.5)
+            col = row.column()
+
+            ####################
+            # debug infos
+
+            debugRow = col.row()
             if config.devDebug:
-                row = box.row()
-                row.label(
+                debugRow.label(
                     text=(
                         f"Current Take Ind: {currentTakeInd}, shot.getParentTakeIndex(): {shot.getParentTakeIndex()}      -       shot.parentScene: {shot.parentScene}"
                         # f"Current Take Ind: {currentTakeInd}, Shot Parent Take Ind: {shot.parentTakeIndex}, shot.getParentTakeIndex(): {shot.getParentTakeIndex()}"
@@ -231,9 +239,9 @@ class UAS_PT_ShotManager_ShotProperties(Panel):
 
             ####################
             # name and color
-            row = box.row()
-            row.separator(factor=0.5)
-            grid_flow = row.grid_flow(align=False, columns=4, even_columns=False)
+
+            nameRow = col.row()
+            grid_flow = nameRow.grid_flow(align=False, columns=4, even_columns=False)
             rowCam = grid_flow.row(align=False)
             subRowCam = rowCam.row(align=False)
 
@@ -251,9 +259,9 @@ class UAS_PT_ShotManager_ShotProperties(Panel):
 
             ####################
             # Duration
-            row = box.row()
-            row.separator(factor=0.5)
-            grid_flow = row.grid_flow(align=True, columns=4, even_columns=False)
+
+            durationRow = col.row()
+            grid_flow = durationRow.grid_flow(align=True, columns=4, even_columns=False)
             # row.label ( text = r"Duration: " + str(shot.getDuration()) + " frames" )
 
             rowCam = grid_flow.row(align=False)
@@ -280,9 +288,8 @@ class UAS_PT_ShotManager_ShotProperties(Panel):
             ####################
             # camera and lens
 
-            row = box.row()
-            row.separator(factor=0.5)
-            grid_flow = row.grid_flow(align=False, columns=4, even_columns=False)
+            camRow = col.row()
+            grid_flow = camRow.grid_flow(align=False, columns=4, even_columns=False)
 
             if not cameraIsValid:
                 grid_flow.alert = True
@@ -330,13 +337,14 @@ class UAS_PT_ShotManager_ShotProperties(Panel):
             subRowCam.separator(factor=0.5)  # prevents strange look when panel is narrow
             # row.separator(factor=0.5)  # prevents strange look when panel is narrow
 
-            box.separator(factor=0.5)
-
             ####################
             # Output
-            row = box.row()
-            row.separator(factor=1.0)
-            grid_flow = row.grid_flow(align=False, columns=3, even_columns=False)
+
+            sepRow = col.row()
+            sepRow.scale_y = 0.8
+            sepRow.separator()
+            outputRow = col.row()
+            grid_flow = outputRow.grid_flow(align=False, columns=3, even_columns=False)
             rowCam = grid_flow.row(align=False)
             subRowCam = rowCam.row(align=True)
 
