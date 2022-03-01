@@ -18,7 +18,7 @@
     "python.linting.flake8Enabled": true,
     "python.linting.flake8Args": [
         "--max-line-length=120",
-        "--ignore=E402,E203,E501,W503,F722,F821",
+        "--ignore=E402,E203,E501,E266,W503,F722,F821",
         "--exclude=.git,.history,.venv,.vscode,__pycache__"
     ],
     "python.linting.enabled": true,

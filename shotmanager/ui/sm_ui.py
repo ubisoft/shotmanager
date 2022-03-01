@@ -20,7 +20,7 @@ To do: module description here.
 """
 
 import bpy
-from bpy.types import Panel, Operator
+from bpy.types import Panel, Operator, EnumProperty
 
 from shotmanager.config import config
 
@@ -32,6 +32,8 @@ from . import sm_shots_ui
 from . import sm_takes_ui
 from . import sm_shot_settings_ui
 from .warnings_ui import drawWarnings
+
+from shotmanager.features.greasepencil import greasepencil_ui as gp
 
 from shotmanager.config import sm_logging
 
@@ -119,6 +121,12 @@ class UAS_PT_ShotManager(Panel):
         prefs = context.preferences.addons["shotmanager"].preferences
         currentTake = props.getCurrentTake()
         currentTakeInd = props.getCurrentTakeIndex()
+
+        shot = None
+        if "SELECTED" == props.current_shot_properties_mode:
+            shot = props.getSelectedShot()
+        else:
+            shot = props.getCurrentShot()
 
         enlargeButs = 1.15
 
@@ -291,6 +299,12 @@ class UAS_PT_ShotManager(Panel):
         ################
         if props.dontRefreshUI():
             return None
+
+        # grease pencil
+        ################
+
+        if props.display_greasepencil_in_properties:  # and props.expand_greasepencil_properties:
+            gp.draw_greasepencil_play_tools(layout, context, shot, layersListDropdown=prefs.layersListDropdown)
 
         # sequence name
         ################
@@ -721,11 +735,6 @@ class UAS_PT_ShotManager(Panel):
             row = layout.row()
 
         if 0 < numShots:
-            shot = None
-            if "SELECTED" == props.current_shot_properties_mode:
-                shot = props.getSelectedShot()
-            else:
-                shot = props.getCurrentShot()
             if shot is not None:
                 sm_shot_settings_ui.drawShotPropertiesToolbar(layout, context, shot)
 

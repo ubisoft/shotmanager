@@ -959,6 +959,23 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         options=set(),
     )
 
+    def list_greasepencil_layer_modes(self, context):
+        res = list()
+        res.append(("ALL", "All", "", 0))
+        res.append(("ACTIVE", "Active", "", 1))
+
+        if context.object is not None and "GPENCIL" == context.object.type:
+            if len(context.object.data.layers):
+                for i, layer in enumerate(context.object.data.layers):
+                    res.append((layer.info, layer.info, "", i + 2))
+            else:
+                res = (("NOLAYER", "No Layer", "", 0),)
+        return res
+
+    greasePencil_layersMode: EnumProperty(
+        name="Apply to:", items=(list_greasepencil_layer_modes), default=0,
+    )
+
     def _get_useLockCameraView(self):
         # Can also use area.spaces.active to get the space assoc. with the area
         for area in bpy.context.screen.areas:
@@ -2250,7 +2267,11 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         Use this function instead of a direct call to self.selected_shot_index
         """
         if 0 >= len(self.takes) or 0 >= len(self.get_shots()):
-            self.selected_shot_index = -1
+            try:
+                self.selected_shot_index = -1
+            except Exception:
+                pass
+            return -1
 
         return self.selected_shot_index
 

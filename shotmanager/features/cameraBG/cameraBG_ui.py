@@ -23,8 +23,7 @@ Camera BG UI
 from shotmanager.config import config
 
 
-def draw_cameraBG_shot_properties(sm_ui, context, shot):
-    layout = sm_ui.layout
+def draw_cameraBG_shot_properties(layout, context, shot):
     props = context.scene.UAS_shot_manager_props
     prefs = context.preferences.addons["shotmanager"].preferences
 
@@ -116,8 +115,7 @@ def draw_cameraBG_shot_properties(sm_ui, context, shot):
                 row.label(text=bgSoundStr)
 
 
-def draw_cameraBG_global_properties(sm_ui, context):
-    layout = sm_ui.layout
+def draw_cameraBG_global_properties(layout, context):
     props = context.scene.UAS_shot_manager_props
 
     box = layout.box()

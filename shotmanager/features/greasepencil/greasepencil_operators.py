@@ -48,9 +48,9 @@ class UAS_ShotManager_OT_AddGreasePencil(Operator):
         return {"FINISHED"}
 
 
-class UAS_ShotManager_OT_SelectGreasePencil(Operator):
-    bl_idname = "uas_shot_manager.select_grease_pencil"
-    bl_label = "Select Grease Pencil"
+class UAS_ShotManager_OT_SelectShotGreasePencil(Operator):
+    bl_idname = "uas_shot_manager.select_shot_grease_pencil"
+    bl_label = "Select Shot Grease Pencil"
     bl_description = "Select Grease Pencil object from the specified shot"
     bl_options = {"INTERNAL", "UNDO"}
 
@@ -77,6 +77,33 @@ class UAS_ShotManager_OT_SelectGreasePencil(Operator):
                     bpy.ops.object.select_all(action="DESELECT")
                     bpy.context.view_layer.objects.active = gp_child
                     gp_child.select_set(True)
+
+        return {"FINISHED"}
+
+
+class UAS_ShotManager_OT_SelectGreasePencilObject(Operator):
+    bl_idname = "uas_shot_manager.select_grease_pencil_object"
+    bl_label = "Select Grease Pencil"
+    bl_description = "Select Grease Pencil object"
+    bl_options = {"INTERNAL", "UNDO"}
+
+    # @classmethod
+    # def poll(self, context):
+    #     selectionIsPossible = context.active_object is None or context.active_object.mode == "OBJECT"
+    #     return selectionIsPossible
+
+    def execute(self, context):
+        # bpy.ops.outliner.item_activate(extend=True, deselect_all=True)
+
+        # bpy.ops.object.select_all(action="DESELECT")
+        if context.object is None:
+            bpy.ops.object.select_all(action="DESELECT")
+        else:
+            # bpy.data.objects["Cube"].select_get()
+            for obj in context.selected_objects:
+                obj.select_set(False)
+            bpy.context.view_layer.objects.active = context.object
+            bpy.data.objects[context.object.name].select_set(True)
 
         return {"FINISHED"}
 
@@ -131,6 +158,31 @@ class UAS_ShotManager_OT_AddCanvasToGreasePencil(Operator):
 #         return {"FINISHED"}
 
 
+class UAS_ShotManager_OT_ToggleGreasePencilDrawMode(Operator):
+    bl_idname = "uas_shot_manager.toggle_grease_pencil_draw_mode"
+    bl_label = "Toggle Grease Pencil Draw Mode"
+    bl_description = "Toggle Grease Pencil Draw Mode"
+    bl_options = {"INTERNAL", "UNDO"}
+
+    gpObjectName: StringProperty(default="")
+
+    def execute(self, context):
+        scene = context.scene
+        props = scene.UAS_shot_manager_props
+
+        if context.active_object is not None:
+            if context.active_object.mode == "PAINT_GPENCIL":
+                bpy.ops.object.mode_set(mode="OBJECT")
+            else:
+                bpy.ops.object.mode_set(mode="PAINT_GPENCIL")
+            # bpy.ops.object.select_all(action="DESELECT")
+            # bpy.context.view_layer.objects.active = gp_child
+            # gp_child.select_set(True)
+            # bpy.ops.gpencil.paintmode_toggle()
+
+        return {"FINISHED"}
+
+
 class UAS_ShotManager_OT_DrawOnGreasePencil(Operator):
     bl_idname = "uas_shot_manager.draw_on_grease_pencil"
     bl_label = "Draw on Grease Pencil"
@@ -149,12 +201,7 @@ class UAS_ShotManager_OT_DrawOnGreasePencil(Operator):
             shot = props.getShotByIndex(props.selected_shot_index)
 
         if shot is not None:
-            if shot.camera is None:
-                row = layout.row()
-                row.enabled = False
-                row.operator("uas_shot_manager.add_grease_pencil", text="", icon="OUTLINER_OB_GREASEPENCIL")
-            else:
-                gp_child = utils.get_greasepencil_child(shot.camera)
+            gp_child = utils.get_greasepencil_child(shot.camera)
 
         props.setCurrentShotByIndex(props.selected_shot_index)
 
@@ -277,12 +324,18 @@ class UAS_ShotManager_GreasePencilItem(Operator):
         props.setSelectedShotByIndex(self.index)
         shot = props.getShotByIndex(self.index)
         gpChild = shot.getGreasePencil()
+
+        try:
+            bpy.ops.object.select_all(action="DESELECT")
+        except Exception:
+            pass
         if gpChild is not None:
             if not event.shift or event.alt:
                 if context.active_object is not None and context.active_object.mode != "OBJECT":
                     bpy.ops.object.mode_set(mode="OBJECT")
-                bpy.ops.object.select_all(action="DESELECT")
+            bpy.ops.object.select_all(action="DESELECT")
             gpChild.select_set(True)
+            bpy.context.view_layer.objects.active = gpChild
             if event.alt:
                 props.setCurrentShotByIndex(self.index)
                 utils_greasepencil.switchToDrawMode(gpChild)
@@ -290,14 +343,177 @@ class UAS_ShotManager_GreasePencilItem(Operator):
         return {"FINISHED"}
 
 
+class UAS_ShotManager_GreasePencil_PreviousKey(Operator):
+    bl_idname = "uas_shot_manager.greasepencil_previouskey"
+    bl_label = "Previous"
+    bl_description = "Go to the previous key of the specified layer"
+    bl_options = {"INTERNAL", "UNDO"}
+
+    def invoke(self, context, event):
+        print("GP previous key")
+
+        def _getPrevFrame(gpLayer, frame):
+            for f in reversed(gpLayer.frames):
+                if f.frame_number < frame:
+                    return f.frame_number
+            return frame
+
+        gp = context.active_object
+        if gp is not None:
+            currentFrame = context.scene.frame_current
+            props = context.scene.UAS_shot_manager_props
+            if "" == props.greasePencil_layersMode:
+                if len(gp.data.layers):
+                    props.greasePencil_layersMode = "ACTIVE"
+                else:
+                    props.greasePencil_layersMode = "NOLAYER"
+
+            if "NOLAYER" == props.greasePencil_layersMode:
+                return {"FINISHED"}
+
+            if "ALL" == props.greasePencil_layersMode:
+                mins = list()
+                for layer in gp.data.layers:
+                    prevKeyFrame = _getPrevFrame(layer, currentFrame)
+                    if prevKeyFrame < currentFrame:
+                        mins.append(prevKeyFrame)
+                if len(mins):
+                    context.scene.frame_current = max(mins)
+            elif "ACTIVE" == props.greasePencil_layersMode:
+                gpLayer = gp.data.layers.active
+                context.scene.frame_current = _getPrevFrame(gpLayer, currentFrame)
+            else:
+                gpLayer = gp.data.layers[props.greasePencil_layersMode]
+                context.scene.frame_current = _getPrevFrame(gpLayer, currentFrame)
+
+        return {"FINISHED"}
+
+
+# https://blender.stackexchange.com/questions/142190/how-do-i-access-grease-pencil-data
+
+
+class UAS_ShotManager_GreasePencil_NextKey(Operator):
+    bl_idname = "uas_shot_manager.greasepencil_nextkey"
+    bl_label = "Next"
+    bl_description = "Go to the next key of the specified layer"
+    bl_options = {"INTERNAL", "UNDO"}
+
+    def invoke(self, context, event):
+        print("GP next key")
+
+        def _getNextFrame(gpLayer, frame):
+            for f in gpLayer.frames:
+                if f.frame_number > frame:
+                    return f.frame_number
+            return frame
+
+        gp = context.active_object
+
+        if gp is not None:
+            currentFrame = context.scene.frame_current
+            props = context.scene.UAS_shot_manager_props
+            if "" == props.greasePencil_layersMode:
+                if len(gp.data.layers):
+                    props.greasePencil_layersMode = "ACTIVE"
+                else:
+                    props.greasePencil_layersMode = "NOLAYER"
+
+            if "NOLAYER" == props.greasePencil_layersMode:
+                return {"FINISHED"}
+
+            if "ALL" == props.greasePencil_layersMode:
+                maxs = list()
+                for layer in gp.data.layers:
+                    nextKeyFrame = _getNextFrame(layer, currentFrame)
+                    if currentFrame < nextKeyFrame:
+                        maxs.append(nextKeyFrame)
+                if len(maxs):
+                    context.scene.frame_current = min(maxs)
+            elif "ACTIVE" == props.greasePencil_layersMode:
+                gpLayer = gp.data.layers.active
+                context.scene.frame_current = _getNextFrame(gpLayer, currentFrame)
+            else:
+                gpLayer = gp.data.layers[props.greasePencil_layersMode]
+                context.scene.frame_current = _getNextFrame(gpLayer, currentFrame)
+
+        return {"FINISHED"}
+
+
+class UAS_ShotManager_GreasePencil_AddNewKey(Operator):
+    bl_idname = "uas_shot_manager.greasepencil_addnewkey"
+    bl_label = "Add"
+    bl_description = (
+        "Select Shot Grease Pencil"
+        # "\n+ Ctrl: Disable all shots"
+        # "\n+ Ctrl + Shift: Invert shots state"
+        "\n+ Shift: Add Grease Pencil to the current selection"
+        "\n+ Alt: Select Grease Pencil and switch to Draw mode"
+    )
+    bl_options = {"INTERNAL", "UNDO"}
+
+    def invoke(self, context, event):
+        print("GP Add key")
+
+        def _isCurrentFrameOnFrame(gpLayer, frame):
+            for f in gpLayer.frames:
+                if f.frame_number == frame:
+                    return True
+            return False
+
+        gp = context.active_object
+
+        if gp is not None:
+
+            currentFrame = context.scene.frame_current
+            props = context.scene.UAS_shot_manager_props
+            if "" == props.greasePencil_layersMode:
+                if len(gp.data.layers):
+                    props.greasePencil_layersMode = "ACTIVE"
+                else:
+                    props.greasePencil_layersMode = "NOLAYER"
+
+            if "NOLAYER" == props.greasePencil_layersMode:
+                return {"FINISHED"}
+
+            if "ALL" == props.greasePencil_layersMode:
+                # mins = list()
+                # for layer in gp.data.layers:
+                #     prevKeyFrame = _getPrevFrame(layer, currentFrame)
+                #     if prevKeyFrame < currentFrame:
+                #         mins.append(prevKeyFrame)
+                # if len(mins):
+                #     context.scene.frame_current = max(mins)
+                bpy.ops.gpencil.blank_frame_add(all_layers=True)
+            elif "ACTIVE" == props.greasePencil_layersMode:
+                gpLayer = gp.data.layers.active
+                isOncurrentFrame = _isCurrentFrameOnFrame(gpLayer, currentFrame)
+                if not isOncurrentFrame:
+                    bpy.ops.gpencil.blank_frame_add(all_layers=False)
+            else:
+                gpLayer = gp.data.layers[props.greasePencil_layersMode]
+                isOncurrentFrame = _isCurrentFrameOnFrame(gpLayer, currentFrame)
+                if not isOncurrentFrame:
+                    prevActiveLayer = gp.data.layers.active
+                    gp.data.layers.active = gpLayer
+                    bpy.ops.gpencil.blank_frame_add(all_layers=False)
+                    gp.data.layers.active = prevActiveLayer
+
+        return {"FINISHED"}
+
+
 _classes = (
     UAS_ShotManager_OT_AddGreasePencil,
-    UAS_ShotManager_OT_SelectGreasePencil,
+    UAS_ShotManager_OT_SelectShotGreasePencil,
+    UAS_ShotManager_OT_SelectGreasePencilObject,
     UAS_ShotManager_OT_AddCanvasToGreasePencil,
+    UAS_ShotManager_OT_ToggleGreasePencilDrawMode,
     UAS_ShotManager_OT_DrawOnGreasePencil,
     UAS_ShotManager_OT_RemoveGreasePencil,
     UAS_ShotManager_OT_EnableDisableGreasePencil,
     UAS_ShotManager_GreasePencilItem,
+    UAS_ShotManager_GreasePencil_NextKey,
+    UAS_ShotManager_GreasePencil_PreviousKey,
+    UAS_ShotManager_GreasePencil_AddNewKey,
     #   UAS_ShotManager_OT_ChangeGreasePencilOpacity,
 )
 

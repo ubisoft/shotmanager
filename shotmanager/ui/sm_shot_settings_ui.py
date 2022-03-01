@@ -108,7 +108,7 @@ class UAS_PT_ShotManager_ShotProperties(Panel):
             shot = props.getCurrentShot()
         else:
             shot = props.getShotByIndex(props.selected_shot_index)
-        val = len(context.scene.UAS_shot_manager_props.getTakes()) and shot
+        val = len(context.scene.UAS_shot_manager_props.getTakes()) and shot is not None
         val = val and not props.dontRefreshUI()
         val = val and (
             props.expand_shot_properties
@@ -402,15 +402,15 @@ class UAS_PT_ShotManager_ShotProperties(Panel):
         # Camera background images
         ######################
         if props.display_cameraBG_in_properties and props.expand_cameraBG_properties:
-            cBG.draw_cameraBG_shot_properties(self, context, shot)
-            cBG.draw_cameraBG_global_properties(self, context)
+            cBG.draw_cameraBG_shot_properties(self.layout, context, shot)
+            cBG.draw_cameraBG_global_properties(self.layout, context)
 
         ######################
         # Grease pencil
         ######################
         if props.display_greasepencil_in_properties and props.expand_greasepencil_properties:
-            gp.draw_greasepencil_shot_properties(self, context, shot)
-            gp.draw_greasepencil_global_properties(self, context)
+            gp.draw_greasepencil_shot_properties(self.layout, context, shot)
+            gp.draw_greasepencil_global_properties(self.layout, context)
 
 
 classes = (UAS_PT_ShotManager_ShotProperties,)

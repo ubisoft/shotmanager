@@ -27,6 +27,7 @@ import addon_utils
 
 from ..config import config
 from ..utils import utils
+from ..utils import utils_ui
 
 from shotmanager.ui.warnings_ui import drawWarnings
 
@@ -65,7 +66,6 @@ class UAS_PT_ShotManagerRenderPanelStdalone(Panel):
                 row.alert = False
             else:
                 row.label(text=props.project_name)
-
 
     def draw_header_preset(self, context):
         drawHeaderPreset(self, context)
@@ -108,7 +108,6 @@ class UAS_PT_ShotManagerRenderPanel(Panel):
         # icon = config.icons_col["ShotManager_Retimer_32"]
         # row.label(icon=icon.icon_id)
         row.label(icon="RENDER_ANIMATION")
-
 
     def draw_header_preset(self, context):
         drawHeaderPreset(self, context)
@@ -154,9 +153,7 @@ def drawRenderInfos(context, layout):
     col = layout.column()
     col.scale_y = 0.8
 
-    row = col.row()
-    row.alignment = "CENTER"
-    row.label(text="_____________________")
+    utils_ui.drawSeparatorLine(col)
 
     sepFactor = 1
     titleRow = col.row()

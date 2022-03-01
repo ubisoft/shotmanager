@@ -20,11 +20,13 @@ Grease pencil UI
 """
 
 from shotmanager.utils import utils
+from shotmanager.utils import utils_ui
 from shotmanager.utils import utils_greasepencil
 
+from shotmanager.config import config
 
-def draw_greasepencil_shot_properties(sm_ui, context, shot):
-    layout = sm_ui.layout
+
+def draw_greasepencil_shot_properties(layout, context, shot):
     props = context.scene.UAS_shot_manager_props
     prefs = context.preferences.addons["shotmanager"].preferences
 
@@ -86,7 +88,7 @@ def draw_greasepencil_shot_properties(sm_ui, context, shot):
         selSubRow = subRow.row(align=True)
         selSubRow.label(text=gp_child.name)
         selSubRow.operator(
-            "uas_shot_manager.select_grease_pencil", text="", icon="RESTRICT_SELECT_OFF"
+            "uas_shot_manager.select_shot_grease_pencil", text="", icon="RESTRICT_SELECT_OFF"
         ).index = shotIndex
         selSubRow.operator("uas_shot_manager.draw_on_grease_pencil", text="", icon="GP_SELECT_STROKES")
 
@@ -126,12 +128,13 @@ def draw_greasepencil_shot_properties(sm_ui, context, shot):
             row.prop(canvasLayer, "hide", text="")
             row.prop(canvasLayer, "opacity", text="")
 
+        row = col.row()
+        row.separator(factor=0.5)
         # row = box.row()
         # row.operator("uas_shot_manager.change_grease_pencil_opacity").gpObjectName = gp_child
 
 
-def draw_greasepencil_global_properties(sm_ui, context):
-    layout = sm_ui.layout
+def draw_greasepencil_global_properties(layout, context):
     props = context.scene.UAS_shot_manager_props
 
     box = layout.box()
@@ -160,3 +163,96 @@ def draw_greasepencil_global_properties(sm_ui, context):
     c.operator("uas_shot_manager.remove_grease_pencil", text="", icon="PANEL_CLOSE")
 
     col.separator(factor=0.5)
+
+
+def draw_greasepencil_play_tools(layout, context, shot, layersListDropdown=None):
+    props = context.scene.UAS_shot_manager_props
+    # prefs = context.preferences.addons["shotmanager"].preferences
+
+    if shot is None:
+        return
+
+    utils_ui.drawSeparatorLine(layout)
+
+    box = layout.box()
+    #    row = box.row()
+    mainRow = box.row(align=False)
+
+    objIsGP = False
+    selObjName = "-"
+    if context.object is not None:
+        selObjName = context.object.name
+        objIsGP = "GPENCIL" == context.object.type
+        if objIsGP:
+            gp = context.object
+    # mainRow.label(text=f"Sel: {selObjName}, GP: {objIsGP}")
+    mainRow.label(text=f"GP:  {gp.name if objIsGP else '-'}")
+
+    icon = "GP_SELECT_STROKES"
+
+    if objIsGP:
+        layersRow = mainRow.row(align=True)
+        layersRow.alignment = "RIGHT"
+        # layersRow.prop(gp.data, "layers")
+        layersRow.label(text="Layer:")
+        # layersRow.prop(prefs, "layersListDropdown", text="Layers")
+
+        # Grease pencil layer.
+        gpl = context.active_gpencil_layer
+        if gpl and gpl.info is not None:
+            text = gpl.info
+            maxw = 25
+            if len(text) > maxw:
+                text = text[: maxw - 5] + ".." + text[-3:]
+        else:
+            text = ""
+
+        # layout.label(text="Layer:")
+        sub = layersRow.row()
+        # sub.scale_x = 0.8
+        sub.ui_units_x = 6
+        sub.popover(
+            panel="TOPBAR_PT_gpencil_layers", text=text,
+        )
+
+        rightRow = mainRow.row(align=True)
+        if gp.mode == "PAINT_GPENCIL":
+            rightRow.operator("uas_shot_manager.select_grease_pencil_object", text="", icon="RESTRICT_SELECT_OFF")
+
+            icon = "GREASEPENCIL"
+            rightRow.alert = True
+            # row.operator("uas_shot_manager.greasepencilitem", text="", icon=icon).index = index
+
+            rightRow.operator("uas_shot_manager.toggle_grease_pencil_draw_mode", text="", icon=icon)
+            # bpy.ops.gpencil.paintmode_toggle()
+        else:
+
+            rightRow.operator("uas_shot_manager.select_grease_pencil_object", text="", icon="RESTRICT_SELECT_OFF")
+            icon = config.icons_col["ShotManager_CamGPShot_32"]
+            rightRow.operator("uas_shot_manager.toggle_grease_pencil_draw_mode", text="", icon_value=icon.icon_id)
+            # mainRow.operator("uas_shot_manager.draw_on_grease_pencil", text="", icon_value=icon.icon_id)
+            # row.operator("uas_shot_manager.greasepencilitem", text="", icon_value=icon.icon_id).index = index
+
+    mainRow = box.row(align=False)
+    keysRow = mainRow.row(align=True)
+    keysRow.scale_x = 1.2
+    keysRow.alignment = "CENTER"
+    keysRow.enabled = objIsGP
+    keysRow.operator("uas_shot_manager.greasepencil_previouskey", icon="PREV_KEYFRAME", text="")
+    keysRow.operator("uas_shot_manager.greasepencil_addnewkey", icon="KEYTYPE_MOVING_HOLD_VEC", text="")
+    keysRow.operator("uas_shot_manager.greasepencil_nextkey", icon="NEXT_KEYFRAME", text="")
+
+    # subRow = mainRow.row(align=False)
+    # subRow.scale_x = 1.5
+    # subRow.alignment = "RIGHT"
+    # mainRow.scale_x = 2
+    subsubRow = mainRow.row(align=True)
+    # subsubRow.label(text="Apply to:")
+    subsubRow.scale_x = 0.9
+    # subRow.ui_units_x = 14
+    subsubRow.alignment = "LEFT"
+    subsubRow.prop(props, "greasePencil_layersMode", text="Apply to")
+
+    utils_ui.drawSeparatorLine(layout, lower_height=0.6)
+
+    # box.operator("uas_shot_manager.draw_on_grease_pencil", text="", icon="GP_SELECT_STROKES")
