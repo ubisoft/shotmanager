@@ -58,6 +58,8 @@ class UAS_PT_ShotManager_RRS_Debug(Panel):
         )
         row.alert = False
 
+        row = layout.row()
+        row.operator("uas_shot_manager.fix_entities_parent")
         # if config.devDebug:
         #     row = layout.row(align=False)
         #     # row.enabled = False
