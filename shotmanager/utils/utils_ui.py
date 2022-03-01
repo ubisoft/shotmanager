@@ -154,7 +154,67 @@ class UAS_ShotManager_OpenFileBrowser(Operator, ImportHelper):
         return {"FINISHED"}
 
 
-_classes = (UAS_ShotManager_OpenExplorer, UAS_SM_Open_Documentation_Url, UAS_ShotManager_OpenFileBrowser)
+# TODO: Cleaning
+# Dev note: This function has to be here for the moment cause it is passed
+# in stampinfo code to a call to uas_stamp_info.querybox
+def reset_render_properties():
+    print("reset_render_properties")
+    props = bpy.context.scene.UAS_shot_manager_props
+    props.reset_render_properties()
+
+
+class UAS_ShotManager_OT_Querybox(Operator):
+    """Display a query dialog box
+
+    A message can be drawn on several lines when containing the separator \n
+    """
+
+    bl_idname = "uas_shotmanager.querybox"
+    bl_label = "Please confirm:"
+    # bl_description = "..."
+    bl_options = {"INTERNAL"}
+
+    width: bpy.props.IntProperty(default=400)
+    message: bpy.props.StringProperty(default="Do you confirm the operation?")
+    function_name: bpy.props.StringProperty(default="")
+
+    def invoke(self, context, event):
+        return context.window_manager.invoke_props_dialog(self, width=self.width)
+
+    def draw(self, context):
+
+        messages = self.message.split("\n")
+
+        layout = self.layout
+        layout.separator(factor=1)
+
+        for s in messages:
+            layout.label(text=s)
+
+        # row = layout.row()
+        # row.separator(factor=2)
+        # row.label(text=self.message)
+
+        layout.separator()
+
+    def execute(self, context):
+        eval(self.function_name + "()")
+        # try:
+        #     eval(self.function_name + "()")
+        # except Exception:
+        #     print(f"*** Function {self.function_name} not found ***")
+
+        return {"FINISHED"}
+
+
+####################################################################
+
+_classes = (
+    UAS_ShotManager_OpenExplorer,
+    UAS_SM_Open_Documentation_Url,
+    UAS_ShotManager_OpenFileBrowser,
+    UAS_ShotManager_OT_Querybox,
+)
 
 
 def register():
