@@ -140,7 +140,7 @@ def drawHeaderPreset(self, context):
     )
 
     row.separator(factor=0.5)
-    row.menu("UAS_MT_Shot_Manager_prefs_mainmenu", icon="PREFERENCES", text="")
+    row.menu("UAS_MT_Shot_Manager_prefs_rendermenu", icon="PREFERENCES", text="")
     row.separator(factor=1.0)
 
 

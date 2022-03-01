@@ -1479,6 +1479,20 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
     ############
     # render properties for UI
 
+    def reset_render_properties(self):
+        from ..utils.utils_inspectors import resetAttrs
+
+        # print("stampInfo_resetProperties...")
+        # print(f"Scene name: {bpy.context.scene.name}")
+
+        # resetAttrs(self.renderSettingsStill)
+        # resetAttrs(self.renderSettingsAnim)
+        # resetAttrs(self.renderSettingsAll)
+        # resetAttrs(self.renderSettingsOtio)
+        # resetAttrs(self.renderSettingsPlayblast)
+
+        self.createRenderSettings()
+
     renderRootPath: StringProperty(
         name="Render Root Path",
         description="Directory where the rendered files will be placed.\n"
@@ -3492,6 +3506,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         return settingsList
 
     def createRenderSettings(self):
+        _logger.debug_ext("createRenderSettings", col="GREEN")
 
         # Still
         self.renderSettingsStill.name = "Still Preset"
@@ -3501,8 +3516,8 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         self.renderSettingsAnim.name = "Animation Preset"
         self.renderSettingsAnim.renderMode = "ANIMATION"
 
-        # Project
-        self.renderSettingsAll.name = "All Edits Preset"
+        # All shots
+        self.renderSettingsAll.name = "All Shots Preset"
         self.renderSettingsAll.renderMode = "ALL"
 
         self.renderSettingsAll.renderAllTakes = False
