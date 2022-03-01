@@ -1,7 +1,25 @@
+<<<<<<< HEAD
 # 1.7.10 (2022-03-03)
 ## Fixed:
 - Popup property panels appearing for several operators
 - Shots Play Mode was wrong in Blender 3.x
+=======
+# 1.7.1 (2022-02-11)
+
+Fixed:
+   image output were left in the rendering folder
+   Added a checkbox in the render panel to choose to keep the intermediate rendered images
+
+To do:
+   zoom time range after import edl
+   move grease pencil button
+- Added a Reset Render Properties function
+
+Edit Files and OpenTimelineIO:
+Fixed several bugs in Edit List File import and export
+Improved the Import dialog window
+   Imported edit framerate and resolution can now be used to update the scene
+>>>>>>> Added Reset Render properties
 
 # 1.7.1 (2022-02-11)
 
