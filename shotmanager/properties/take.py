@@ -255,7 +255,8 @@ class UAS_ShotManager_Take(SequenceInterface, PropertyGroup):
         Returns:
             tupple with the render resolution x and y of the take
         """
-        props = self.parentScene.UAS_shot_manager_props
+        # props = self.parentScene.UAS_shot_manager_props
+        props = bpy.context.scene.UAS_shot_manager_props
         res = None
         if self.overrideRenderSettings:
             res = (self.outputParams_Resolution.resolution_x, self.outputParams_Resolution.resolution_y)

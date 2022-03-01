@@ -26,12 +26,13 @@ To do: module description here.
 import bpy
 
 from .ui_rrs import UAS_PT_ShotManager_RRS_Debug
-from .operators_rrs import UAS_InitializeRRSProject, UAS_LaunchRRSRender
+from .operators_rrs import UAS_InitializeRRSProject, UAS_LaunchRRSRender, UAS_FixEntitiesParent
 
 _classes = (
     UAS_InitializeRRSProject,
     UAS_LaunchRRSRender,
     UAS_PT_ShotManager_RRS_Debug,
+    UAS_FixEntitiesParent,
 )
 
 
