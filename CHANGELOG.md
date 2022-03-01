@@ -7,7 +7,7 @@ Fixed:
 To do:
    zoom time range after import edl
    move grease pencil button
-
+- Added a Reset Render Properties function
 
 Edit Files and OpenTimelineIO:
 Fixed several bugs in Edit List File import and export
