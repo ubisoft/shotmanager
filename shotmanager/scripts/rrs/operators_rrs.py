@@ -25,6 +25,21 @@ from bpy.props import BoolProperty, StringProperty, IntProperty
 
 from . import publish_rrs
 
+# To call the operator:
+# bpy.ops.uas_shot_manager.initialize_rrs_project(override_existing = True, verbose = True)
+# Fix old data by filling the entities parents
+class UAS_FixEntitiesParent(Operator):
+    bl_idname = "uas_shot_manager.fix_entities_parent"
+    bl_label = "Fix Parents"
+    bl_description = "Initialize scene for RRS project"
+
+    def execute(self, context):
+        props = context.scene.UAS_shot_manager_props
+        props.getParentScene()
+        for t in props.takes:
+            t.getParentScene()
+        return {"FINISHED"}
+
 
 # To call the operator:
 # bpy.ops.uas_shot_manager.initialize_rrs_project(override_existing = True, verbose = True)
