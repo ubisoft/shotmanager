@@ -1064,7 +1064,7 @@ class UAS_ShotManager_CreateNShots(Operator):
         props.setCurrentShotByIndex(newShotInd - 1)
         props.setSelectedShotByIndex(newShotInd - 1)
         bpy.ops.ed.undo_push()
-        return {"FINISHED"}
+        return {"INTERFACE"}
 
 
 def list_target_takes(self, context):
@@ -1199,7 +1199,7 @@ class UAS_ShotManager_DuplicateShotsToOtherTake(Operator):
                 print(f"shot to remove: {shot.name}, {shot.parentScene}, i:{i}")
                 props.removeShot(shot)
 
-        return {"FINISHED"}
+        return {"INTERFACE"}
 
 
 class UAS_ShotManager_ShotRemoveMultiple(Operator):
@@ -1297,7 +1297,7 @@ class UAS_ShotManager_ShotRemoveMultiple(Operator):
 
         #  print(" ** removed shots, len(props.get_shots()): ", len(props.get_shots()))
 
-        return {"FINISHED"}
+        return {"INTERFACE"}
 
 
 class UAS_ShotManager_Shots_SelectCamera(Operator):
@@ -1368,7 +1368,7 @@ class UAS_ShotManager_Shots_RemoveCamera(Operator):
                     if s.camera == cam:
                         s.camera = None
 
-        return {"FINISHED"}
+        return {"INTERFACE"}
 
 
 class UAS_ShotManager_UniqueCameras(Operator):
@@ -1414,7 +1414,7 @@ class UAS_ShotManager_UniqueCameras(Operator):
                 new_cam_from_shots[shot.name] = shot.camera
                 existing_cameras.add(camName)
 
-        return {"FINISHED"}
+        return {"INTERFACE"}
 
 
 _classes = (
