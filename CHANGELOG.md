@@ -50,11 +50,16 @@ fixed res ouput for sep video and for playblast
 fixed shots play mode issues on version 3
 >>>>>>> Fix: Shots Play Mode issues on Blender V 3.x
 
+<<<<<<< HEAD
 ## UI:
 
 - Added button to take range
 - Added information for output render
 - Added the main panel items menu in the Render Panel
+=======
+fixed res ouput for sep video and for playblast
+fixed shots play mode issues on version 3
+>>>>>>> Fix: Shots Play Mode issues on Blender V 3.x
 
 ## Code:
 
@@ -64,6 +69,9 @@ fixed shots play mode issues on version 3
 
 ## Debug
 - Added debug function to fix entities parent in old blender files
+
+Debug
+Added debug function to fix entities parent in old blender files
 
 Debug
 Added debug function to fix entities parent in old blender files
