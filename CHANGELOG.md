@@ -1,36 +1,37 @@
+# 1.7.10 (2022-03-03)
+## Fixed:
+- Popup property panels appearing for several operators
+- Shots Play Mode was wrong in Blender 3.x
+
 # 1.7.1 (2022-02-11)
 
-Fixed:
-   image output were left in the rendering folder
-   Added a checkbox in the render panel to choose to keep the intermediate rendered images
+## Fixed:
+- Image output were left in the rendering folder
 
-To do:
-   zoom time range after import edl
-   move grease pencil button
+## Edit Files and OpenTimelineIO:
+- Fixed several bugs in Edit List File import and export
+- Improved the Import dialog window
+- Imported edit framerate and resolution can now be used to update the scene
+- Added a global and project value to control the index of the first frame in the output file names
+- Added a global and project value to control the number of digits in the output file names
 
+## Rendering:
+- Added the ability to render image sequences for shots instead or in addition to the videos
+- Added a checkbox in the render panel to choose to keep the intermediate rendered images
 
-Edit Files and OpenTimelineIO:
-Fixed several bugs in Edit List File import and export
-Improved the Import dialog window
-   Imported edit framerate and resolution can now be used to update the scene
+## Grease Pencil:
+- Fixed bug when painting on hidden objects
 
-Grease Pencil:
-Fixed bug when painting on hidden objects
+## UI:
+- Added button to take range
+- Added information for output render
+- Added the main panel items menu in the Render Panel
 
+## Code:
+- Code cleaning to match Flake8 rules
+- Refactor code for output media
+***Warning: temp directory names have changed ***
 
-Added button to take range
-added information for output render
-
-fixed res ouput for sep video and for playblast
-
-UI:
-   Add the items menu in the Render Panel
-
-Refactor code foir output media
-   warning: temp dirs have changed
-
-Added a global and project value to control the index of the first frame
-Added a global and project value to control the number of digits in the output file names
 
 # 1.6.9 (2021-12-04)
 
@@ -63,7 +64,7 @@ Added a global and project value to control the number of digits in the output f
 
 ## UI
 
-- Rewampped all the Settings panels
+- Rewamped all the Settings panels
 
 - Added a viewport target to specify which view will receive the camera and sequence timeline
 - Added a nodesheet target to specify which timeline or node sheet editor will receive the interactive
