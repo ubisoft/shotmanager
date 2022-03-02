@@ -22,6 +22,7 @@ Added button to take range
 added information for output render
 
 fixed res ouput for sep video and for playblast
+fixed shots play mode issues on version 3
 
 UI:
    Add the items menu in the Render Panel
@@ -31,6 +32,9 @@ Refactor code foir output media
 
 Added a global and project value to control the index of the first frame
 Added a global and project value to control the number of digits in the output file names
+
+Debug
+Added debug function to fix entities parent in old blender files
 
 # 1.6.9 (2021-12-04)
 

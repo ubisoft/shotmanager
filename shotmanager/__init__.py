@@ -230,8 +230,8 @@ def register():
     # call in the code by context.window_manager.UAS_shot_manager_shots_play_mode etc
 
     def _update_UAS_shot_manager_shots_play_mode(self, context):
-        if self.UAS_shot_manager_shots_play_mode:
-            install_handler_for_shot(self, context)
+        # if self.UAS_shot_manager_shots_play_mode:
+        install_handler_for_shot(self, context)
 
     bpy.types.WindowManager.UAS_shot_manager_shots_play_mode = BoolProperty(
         name="Enable Shot Play Mode",
