@@ -20,9 +20,7 @@ Handlers specific to overlay tools
 """
 
 import bpy
-from bpy.app.handlers import persistent
 
-from shotmanager.utils import utils
 from shotmanager.utils import utils_handlers
 
 from shotmanager.config import sm_logging
@@ -186,7 +184,7 @@ def shotMngHandler_frame_change_pre_jumpToShot(scene):
     if not bpy.context.screen.is_animation_playing:
         return
 
-    if bpy.app.version[1] >= 90:
+    if (2, 90, 0) <= bpy.app.version:
         scrubbing = bpy.context.screen.is_scrubbing
     else:
         scrubbing = not bpy.context.screen.is_animation_playing
@@ -197,6 +195,8 @@ def shotMngHandler_frame_change_pre_jumpToShot(scene):
     if not scrubbing:
         # Order of if clauses is very important.
 
+        #   _logger.debug_ext("*** Not Scrubbing:", col="RED", tag="SHOTS_PLAY_MODE")
+
         # messages for range start and end
         inforStr = ""
         if _get_range_start() == current_frame:
@@ -204,14 +204,18 @@ def shotMngHandler_frame_change_pre_jumpToShot(scene):
         if _get_range_end() == current_frame:
             inforStr = "  ** Range End **"
 
-        _logger.debug_ext(f"current_frame: {current_frame}  {inforStr}", col="YELLOW", tag="JUMP")
+        _logger.debug_ext(f"current_frame: {current_frame}  {inforStr}", col="YELLOW", tag="SHOTS_PLAY_MODE")
 
         if current_frame == current_shot.start:
             _logger.debug_ext(
-                f"   current frame is at start of current shot: {current_shot.name}", col="GREEN_LIGHT", tag="JUMP"
+                f"   current frame is at start of current shot: {current_shot.name}",
+                col="GREEN_LIGHT",
+                tag="SHOTS_PLAY_MODE",
             )
         elif current_frame == current_shot.end:
-            _logger.debug_ext(f"   current frame is at end of current shot: {current_frame}", col="ORANGE", tag="JUMP")
+            _logger.debug_ext(
+                f"   current frame is at end of current shot: {current_frame}", col="ORANGE", tag="SHOTS_PLAY_MODE"
+            )
 
         if current_frame == _get_range_start():
             # we are here when the play head reached the anim range end and has been put back by Blender
@@ -223,7 +227,7 @@ def shotMngHandler_frame_change_pre_jumpToShot(scene):
                 _logger.debug_ext(
                     f"1 current_frame == range start and current_frame == current_shot.start, current shot: {current_shot.name}",
                     col="GREEN",
-                    tag="JUMP",
+                    tag="SHOTS_PLAY_MODE",
                 )
                 pass
             else:
@@ -236,7 +240,7 @@ def shotMngHandler_frame_change_pre_jumpToShot(scene):
                         _logger.debug_ext(
                             f"2 current_frame == range start, current shot: {current_shot.name}, next_shot: {next_shot.name}",
                             col="GREEN",
-                            tag="JUMP",
+                            tag="SHOTS_PLAY_MODE",
                         )
 
                         props.setCurrentShot(next_shot, changeTime=False)
@@ -250,7 +254,7 @@ def shotMngHandler_frame_change_pre_jumpToShot(scene):
                     _logger.debug_ext(
                         f"3 current_frame == range start, current shot: {current_shot.name}, first conti: {shotList[firstShotInd].name}",
                         col="GREEN",
-                        tag="JUMP",
+                        tag="SHOTS_PLAY_MODE",
                     )
                     firstFrame = _get_max_start_frame(shotList[firstShotInd])
                     if current_shot_index != firstShotInd:
@@ -261,7 +265,7 @@ def shotMngHandler_frame_change_pre_jumpToShot(scene):
         elif (
             current_frame == _get_range_end() and _get_previous_shot(shotList, current_shot_index) is None
         ):  # While backward playing if we hit the last frame and we are playing the first shot jump to the last shot.
-            _logger.debug_ext("current_frame == _get_range_end()", col="PURPLE", tag="JUMP")
+            _logger.debug_ext("current_frame == _get_range_end()", col="PURPLE", tag="SHOTS_PLAY_MODE")
             firstShotInd = _get_first_continuous_shot_index(shotList, current_shot_index)
             firstFrame = _get_max_start_frame(shotList[firstShotInd])
             if current_shot_index != firstShotInd:
@@ -274,12 +278,13 @@ def shotMngHandler_frame_change_pre_jumpToShot(scene):
             # props.setCurrentShot(last_enabled, changeTime=False)
             # scene.frame_current = last_enabled.end
         elif current_frame > current_shot_end:
-            _logger.debug_ext("current_frame > current_shot_end", col="PURPLE")
+            _logger.debug_ext("current_frame > current_shot_end", col="PURPLE", tag="SHOTS_PLAY_MODE")
             disp = current_frame - current_shot_end
             next_shot = _get_next_shot(shotList, current_shot_index)
 
             if next_shot is None:
-                print("next shot is none")
+                _logger.debug_ext("next shot is none", col="PURPLE", tag="SHOTS_PLAY_MODE")
+
                 firstShotInd = _get_first_continuous_shot_index(shotList, current_shot_index)
                 firstFrame = _get_max_start_frame(shotList[firstShotInd])
                 if current_shot_index != firstShotInd:
@@ -288,11 +293,11 @@ def shotMngHandler_frame_change_pre_jumpToShot(scene):
                 # if firstFrame != current_frame:
                 scene.frame_current = firstFrame
             else:
-                print("next shot is NOT none")
+                _logger.debug_ext("next shot is NOT none", col="PURPLE", tag="SHOTS_PLAY_MODE")
                 if current_shot != next_shot:
-                    print("   next shot is NOT none 01")
+                    _logger.debug_ext("   next shot is NOT none 01", col="PURPLE", tag="SHOTS_PLAY_MODE")
                     props.setCurrentShot(next_shot, changeTime=False)
-                print(f"   next shot is {next_shot.name}")
+                _logger.debug_ext(f"   next shot is {next_shot.name}", col="PURPLE", tag="SHOTS_PLAY_MODE")
                 scene.frame_current = next_shot.start
 
             # while next_shot is not None:
@@ -335,6 +340,8 @@ def shotMngHandler_frame_change_pre_jumpToShot(scene):
     ## user is scrubbing
     #########################################
     else:
+        #   _logger.debug_ext("--- Scrubbing:", col="BLUE", tag="SHOTS_PLAY_MODE")
+
         # User is scrubbing in the timeline so try to guess a shot in the range of the timeline.
         if not (current_shot.start <= current_frame <= current_shot.end):
             candidates = list()
@@ -363,5 +370,4 @@ def shotMngHandler_frame_change_pre_jumpToShot(scene):
                     else:
                         # paf what to do?
                         # props.setCurrentShot(candidates[0][1], changeTime=False)
-                        logger.error("SM: Paf in shotMngHandler_frame_change_pre_jumpToShot: No valid shot found")
-
+                        _logger.error("SM: Paf in shotMngHandler_frame_change_pre_jumpToShot: No valid shot found")

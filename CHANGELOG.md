@@ -19,8 +19,13 @@
 - Added the ability to render image sequences for shots instead or in addition to the videos
 - Added a checkbox in the render panel to choose to keep the intermediate rendered images
 
+<<<<<<< HEAD
 ## Grease Pencil:
 - Fixed bug when painting on hidden objects
+=======
+fixed res ouput for sep video and for playblast
+fixed shots play mode issues on version 3
+>>>>>>> Fix: Shots Play Mode issues on Blender V 3.x
 
 ## UI:
 - Added button to take range
@@ -32,6 +37,9 @@
 - Refactor code for output media
 ***Warning: temp directory names have changed ***
 
+
+Debug
+Added debug function to fix entities parent in old blender files
 
 # 1.6.9 (2021-12-04)
 

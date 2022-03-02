@@ -252,9 +252,8 @@ class UAS_ShotManager_InteractiveShotsStack(Operator):
                     config.gShotsStackInfos["active_clip_region"] = None
 
             elif event.type == "MOUSEMOVE":
-                print("I move")
+                _logger.debug_ext(f"I move", col="BLUE", tag="SHOTSTACK_EVENT")
 
-                print("I move no clic")
                 # mouse over handles?
                 config.gShotsStackInfos["active_clip_over"] = False
                 for i, clip in enumerate(config.gShotsStackInfos["clips"]):
@@ -273,7 +272,7 @@ class UAS_ShotManager_InteractiveShotsStack(Operator):
                     # clip.highlight = False
 
                 if event.value == "PRESS":
-                    print("I move pressed")
+                    _logger.debug_ext(f"   key pressed", col="BLUE", tag="SHOTSTACK_EVENT")
                     if self.active_clip:
                         mouse_frame = int(region.view2d.region_to_view(event.mouse_x - region.x, 0)[0])
                         prev_mouse_frame = int(region.view2d.region_to_view(self.prev_mouse_x, 0)[0])
@@ -286,7 +285,7 @@ class UAS_ShotManager_InteractiveShotsStack(Operator):
                             config.gShotsStackInfos["frame_under_mouse"] = mouse_frame
                         event_handled = True
                 elif event.value == "RELEASE":
-                    print("I move Release")
+                    _logger.debug_ext(f"   key released", col="BLUE", tag="SHOTSTACK_EVENT")
                     if self.active_clip:
                         self.active_clip.highlight = False
                         self.active_clip = None
@@ -306,7 +305,8 @@ class UAS_ShotManager_InteractiveShotsStack(Operator):
             config.gShotsStackInfos["prev_mouse_y"] = self.prev_mouse_y
         else:
             _logger.debug(
-                "Should I be here ? - config.gShotsStackInfos Clips len: " + str(len(config.gShotsStackInfos["clips"]))
+                "Should I be here ? - config.gShotsStackInfos Clips len: "
+                + str(len(config.gShotsStackInfos["clips"]), col="RED")
             )
             # self.build_clips()  # Assume that when the mouse got out of the region shots may be edited
             # self.active_clip = None
