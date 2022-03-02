@@ -16,7 +16,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 """
-To do: module description here.
+UI for the shots in the shots list component
 """
 
 import bpy
@@ -384,13 +384,13 @@ class UAS_MT_ShotManager_Shots_ToolsMenu(Menu):
             if config.devDebug:
                 row = layout.row(align=True)
                 row.operator_context = "INVOKE_DEFAULT"
-                op = row.operator(
+                row.operator(
                     "uasotio.openfilebrowser", text="   Import Shots From Edit File - RRS..."
                 ).importMode = "IMPORT_EDIT"
 
                 row = layout.row(align=True)
                 row.operator_context = "INVOKE_DEFAULT"
-                op = row.operator("uasotio.openfilebrowser", text="   Parse File - RRS...").importMode = "PARSE_EDIT"
+                row.operator("uasotio.openfilebrowser", text="   Parse File - RRS...").importMode = "PARSE_EDIT"
 
         layout.separator()
 
