@@ -138,7 +138,7 @@ class SM_Logger(logging.getLoggerClass()):
             elif "SHOTSTACK_EVENT" == tag:
                 return
                 pass
-            elif "JUMP" == tag:
+            elif "SHOTS_PLAY_MODE" == tag:
                 return
                 pass
             elif "EDIT_IO" == tag:
