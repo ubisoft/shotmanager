@@ -19,11 +19,9 @@
 Shot Manager initialization
 """
 
-import os
-
 import bpy
 
-from bpy.props import BoolProperty, IntProperty, FloatProperty, EnumProperty
+from bpy.props import BoolProperty, IntProperty, FloatProperty
 
 from .config import config
 

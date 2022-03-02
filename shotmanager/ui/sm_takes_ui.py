@@ -16,16 +16,13 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 """
-To do: module description here.
+UI for takes
 """
 
 import bpy
-from bpy.types import Panel, Operator, Menu
-from bpy.props import StringProperty
+from bpy.types import Menu
 
-from shotmanager.config import config
-from shotmanager.utils import utils
-
+# from shotmanager.config import config
 from shotmanager.config import sm_logging
 
 _logger = sm_logging.getLogger(__name__)

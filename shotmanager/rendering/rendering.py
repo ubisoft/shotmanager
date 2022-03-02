@@ -85,7 +85,7 @@ def launchRenderWithVSEComposite(
                 path_to_file = os.path.join(dirPath, file)
                 try:
                     os.remove(path_to_file)
-                except Exception as e:
+                except Exception:
                     _logger.exception(f"\n*** File locked (by system?): {path_to_file}")
                     print(f"\n*** File locked (by system?): {path_to_file}")
             try:
@@ -94,7 +94,7 @@ def launchRenderWithVSEComposite(
                 print("Cannot delete Dir: ", dirPath)
 
         if config.devDebug:
-            print(f"Cleaning temp scenes")
+            print("Cleaning temp scenes")
 
         scenesToDelete = [
             s
@@ -316,8 +316,8 @@ def launchRenderWithVSEComposite(
 
     renderedShotSequencesArr = []
 
-    previousTakeRenderTime = time.monotonic()
-    currentTakeRenderTime = previousTakeRenderTime
+    # previousTakeRenderTime = time.monotonic()
+    # currentTakeRenderTime = previousTakeRenderTime
 
     startRenderTime = time.monotonic()
     allRenderTimes = dict()
@@ -560,7 +560,7 @@ def launchRenderWithVSEComposite(
                         os.remove(audioFilePath)
                         if Path(audioFilePath).exists():
                             print(f"\n*** File locked (by system?): {audioFilePath}")
-                    except Exception as e:
+                    except Exception:
                         _logger.exception(f"\n*** File locked (by system?): {audioFilePath}")
                         print(f"\n*** Exception : File locked (by system?): {audioFilePath}")
                         audioFilePath = (
@@ -1019,31 +1019,39 @@ def launchRender(context, renderMode, rootPath, area=None):
     renderDisplayInfo += "\n                                 *** Shot Manager V " + props.version()[0] + " - "
 
     def _generateEditFiles():
+        """renderedFilesDict is also updated
+        """
         if not module_can_be_imported("shotmanager.otio"):
             _logger.info("Otio module not available - Export failed")
             return
 
         from shotmanager.otio.exports import exportTakeEditToOtio
 
+        renderedFilesDict["edit_files"] = []
+
         if "VIDEO" in preset.outputMediaMode or not config.devDebug:
+            output_filepath = f"{props.getOutputMediaPath('TK_EDIT_VIDEO', take, rootPath=props.renderRootPath, insertSeqPrefix=True, provideExtension=False)}.{props.renderSettingsOtio.otioFileType.lower()}"
             renderedOtioFile = exportTakeEditToOtio(
                 scene,
                 take,
                 props.renderRootPath,
-                output_filepath=f"{props.getOutputMediaPath('TK_EDIT_VIDEO', take, rootPath=props.renderRootPath, insertSeqPrefix=True, provideExtension=False)}.{props.renderSettingsOtio.otioFileType.lower()}",
+                output_filepath=output_filepath,
                 fileListOnly=False,
                 output_media_mode="VIDEO",
             )
+            renderedFilesDict["edit_files"].append(output_filepath)
 
         if config.devDebug and "IMAGE_SEQ" in preset.outputMediaMode:
+            output_filepath = f"{props.getOutputMediaPath('TK_EDIT_IMAGE_SEQ', take, rootPath=props.renderRootPath, insertSeqPrefix=True, provideExtension=False)}.{props.renderSettingsOtio.otioFileType.lower()}"
             renderedOtioFile = exportTakeEditToOtio(
                 scene,
                 take,
                 props.renderRootPath,
-                output_filepath=f"{props.getOutputMediaPath('TK_EDIT_IMAGE_SEQ', take, rootPath=props.renderRootPath, insertSeqPrefix=True, provideExtension=False)}.{props.renderSettingsOtio.otioFileType.lower()}",
+                output_filepath=output_filepath,
                 fileListOnly=False,
                 output_media_mode="IMAGE_SEQ",
             )
+            renderedFilesDict["edit_files"].append(output_filepath)
 
     preset = None
     if "STILL" == renderMode:
@@ -1201,6 +1209,7 @@ def launchRender(context, renderMode, rootPath, area=None):
 
     elif "OTIO" == renderMode:
         take = props.getCurrentTake()
+        renderedFilesDict = dict()
         _generateEditFiles()
 
     elif "PLAYBLAST" == preset.renderMode:

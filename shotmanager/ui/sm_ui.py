@@ -16,7 +16,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 """
-To do: module description here.
+Shot Manager main panel UI
 """
 
 import bpy
@@ -53,7 +53,7 @@ class UAS_PT_ShotManager(Panel):
 
     @classmethod
     def poll(cls, context):
-        props = context.scene.UAS_shot_manager_props
+        # props = context.scene.UAS_shot_manager_props
         # hide the whole panel if used
         # return not props.dontRefreshUI()
         return True

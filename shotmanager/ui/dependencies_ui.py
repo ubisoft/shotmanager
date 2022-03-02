@@ -21,7 +21,8 @@ Draw the names of the libraries and add-ons required by this add-on
 
 import bpy
 from ..utils import utils
-import platform
+
+# import platform
 
 
 def drawDependencies(context, layout: bpy.types.UILayout, **kwargs):

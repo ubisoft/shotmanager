@@ -20,14 +20,14 @@ To do: module description here.
 """
 
 import bpy
-from bpy.types import Panel, Operator, Menu
+from bpy.types import Panel
 from bpy.props import StringProperty
 
 from shotmanager.config import config
 from shotmanager.utils import utils
 
+# from shotmanager.features.soundBG import soundBG_ui as sBG
 from shotmanager.features.cameraBG import cameraBG_ui as cBG
-from shotmanager.features.soundBG import soundBG_ui as sBG
 from shotmanager.features.greasepencil import greasepencil_ui as gp
 
 from shotmanager.config import sm_logging
@@ -346,4 +346,3 @@ def register():
 def unregister():
     for cls in reversed(classes):
         bpy.utils.unregister_class(cls)
-
