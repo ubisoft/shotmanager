@@ -48,13 +48,19 @@ Improved the Import dialog window
 =======
 fixed res ouput for sep video and for playblast
 fixed shots play mode issues on version 3
+<<<<<<< HEAD
 >>>>>>> Fix: Shots Play Mode issues on Blender V 3.x
 
 ## Code:
 - Code cleaning to match Flake8 rules
 - Refactor code for output media
 ***Warning: temp directory names have changed ***
+=======
+>>>>>>> Fix: Shots Play Mode issues on Blender V 3.x
 
+
+Debug
+Added debug function to fix entities parent in old blender files
 
 Debug
 Added debug function to fix entities parent in old blender files
