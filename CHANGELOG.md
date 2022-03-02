@@ -58,8 +58,13 @@
 - Added a checkbox in the render panel to choose to keep the intermediate rendered images
 - Added a Reset Render Properties button
 
+<<<<<<< HEAD
 ## Grease Pencil:
 - Fixed bug when painting on hidden objects
+=======
+fixed res ouput for sep video and for playblast
+fixed shots play mode issues on version 3
+>>>>>>> Fix: Shots Play Mode issues on Blender V 3.x
 
 <<<<<<< HEAD
 ## UI:
@@ -86,6 +91,9 @@ fixed shots play mode issues on version 3
 
 ## Debug
 - Added debug function to fix entities parent in old blender files
+
+Debug
+Added debug function to fix entities parent in old blender files
 
 Debug
 Added debug function to fix entities parent in old blender files
