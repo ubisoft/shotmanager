@@ -294,12 +294,12 @@ class UAS_ShotManager_Shot(ShotInterface, PropertyGroup):
         Return True if the camera is really there, False otherwise
         Note: This doesn't change the camera attribute of the shot
         """
-        cameraIsInvalid = not self.camera is None
+        cameraIsInvalid = self.camera is not None
         if self.camera is not None:
             try:
                 if bpy.context.scene.objects[self.camera.name] is None:
                     self.camera = None
-            except Exception as e:
+            except Exception:
                 # item.camera = None     # not working, often invalid context to write in
                 cameraIsInvalid = False
             # _logger.error(f"Error: Shot {self.name} uses a camera {self.camera.name} not found in the scene")
@@ -320,7 +320,7 @@ class UAS_ShotManager_Shot(ShotInterface, PropertyGroup):
         print
         try:
             props = self.parentScene.UAS_shot_manager_props
-        except Exception as ex:
+        except Exception:
             print(f"_get_color: self: {self}, self.parentScene:{self.parentScene}")
             if self.parentScene is None:
                 self.parentScene = self.getParentScene()

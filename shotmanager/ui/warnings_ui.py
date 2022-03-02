@@ -19,8 +19,6 @@
 Draw the warnings component
 """
 
-import bpy
-
 
 def drawWarnings(context, ui_component, warningsList, panelType=None):
     """panelType can be "MAIN" or "RENDERING"

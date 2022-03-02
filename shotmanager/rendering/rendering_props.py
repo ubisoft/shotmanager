@@ -19,7 +19,6 @@
 Render properties
 """
 
-import bpy
 from bpy.types import PropertyGroup
 from bpy.props import StringProperty, BoolProperty, EnumProperty, IntProperty
 
@@ -145,8 +144,8 @@ class UAS_ShotManager_RenderGlobalContext(PropertyGroup):
         if renderQuality is None:
             renderQuality = self.renderQuality
 
-        props = context.scene.UAS_shot_manager_props
-        #  bpy.context.space_data.overlay.show_overlays = props.useOverlays
+        # props = context.scene.UAS_shot_manager_props
+        # bpy.context.space_data.overlay.show_overlays = props.useOverlays
 
         if "VERY_LOW" == renderQuality:
             # eevee
@@ -217,8 +216,8 @@ class UAS_ShotManager_RenderGlobalContext(PropertyGroup):
         if renderQuality is None:
             renderQuality = self.renderQualityOpengl
 
-        props = context.scene.UAS_shot_manager_props
-        #  bpy.context.space_data.overlay.show_overlays = props.useOverlays
+        # props = context.scene.UAS_shot_manager_props
+        # bpy.context.space_data.overlay.show_overlays = props.useOverlays
 
         if "VERY_LOW" == renderQuality:
             # eevee

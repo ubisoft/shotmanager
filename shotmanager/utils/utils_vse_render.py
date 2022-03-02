@@ -168,7 +168,6 @@ class UAS_compositeVideoInVSE(Operator):
 
 
 class ShotManager_Vse_Render(PropertyGroup):
-
     def get_inputOverMediaPath(self):
         val = self.get("inputOverMediaPath", "")
         return val
@@ -202,7 +201,6 @@ class ShotManager_Vse_Render(PropertyGroup):
 
     outputMediaPath: StringProperty(name="Output Media Path", default="")
 
-
     def printMedia(self):
         mediaStr = "\nShot Manager: VSE_Render current media:\n"
         mediaStr += f"   - inputOverMediaPath:  '{self.inputOverMediaPath}'\n"
@@ -223,8 +221,8 @@ class ShotManager_Vse_Render(PropertyGroup):
         mediaStr += f"   - outputMediaPath:     '{self.outputMediaPath}'\n"
         # mediaStr += "\n"
 
-        _YELLOW = '\33[33m'
-        _ENDCOLOR = '\033[0m'
+        _YELLOW = "\33[33m"
+        _ENDCOLOR = "\033[0m"
         print(f"{_YELLOW}{mediaStr}{_ENDCOLOR}")
 
         # if bg_file is not None:
@@ -569,10 +567,10 @@ class ShotManager_Vse_Render(PropertyGroup):
 
         if "UNKNOWN" != mediaType:
             mediaInfo = f"   - createNewClip(): Name: {newClip.name}, Media Type: {mediaType}, path: {mediaPath}"
-            
+
             if config.devDebug:
                 print(mediaInfo)
-        
+
         # print(
         #     f"           frame_offset_start: {newClip.frame_offset_start}, frame_offset_end: {newClip.frame_offset_end}, frame_final_duration: {newClip.frame_final_duration}"
         # )
@@ -1074,7 +1072,7 @@ class ShotManager_Vse_Render(PropertyGroup):
                     print(f"specificFrame: {specificFrame}")
 
                 # remove the end digits if there are some
-                #fileNoExt = fileNoExt.rstrip("0123456789")
+                # fileNoExt = fileNoExt.rstrip("0123456789")
 
                 self.outputMediaPath = filePathOnly + output_file_prefix + fileNoExt + frameIndStr + ".png"
                 vse_scene.render.filepath = self.outputMediaPath
@@ -1107,7 +1105,9 @@ class ShotManager_Vse_Render(PropertyGroup):
                     vse_scene.render.image_settings.file_format = "PNG"
                     ext = ".png"
 
-                self.outputMediaPath = filePathOnly + fileNoExt + "\\" + output_file_prefix + fileNoExt + frameIndStr + ext
+                self.outputMediaPath = (
+                    filePathOnly + fileNoExt + "\\" + output_file_prefix + fileNoExt + frameIndStr + ext
+                )
                 vse_scene.render.filepath = self.outputMediaPath
 
                 # since Blender starts the render indices at 1 and not 0 we have to rename the sequence

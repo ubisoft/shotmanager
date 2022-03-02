@@ -23,7 +23,6 @@ from pathlib import Path
 
 import bpy
 from bpy.types import Panel
-import addon_utils
 
 from ..config import config
 from ..utils import utils
@@ -88,7 +87,6 @@ class UAS_PT_ShotManagerRenderPanel(Panel):
     def poll(cls, context):
         props = context.scene.UAS_shot_manager_props
         prefs = context.preferences.addons["shotmanager"].preferences
-        displayPanel = context.preferences.addons["shotmanager"].preferences.separatedRenderPanel
         val = not props.dontRefreshUI() and len(props.takes) and len(props.get_shots())
         val = val and not context.preferences.addons["shotmanager"].preferences.separatedRenderPanel
         return val and prefs.display_render_in_properties

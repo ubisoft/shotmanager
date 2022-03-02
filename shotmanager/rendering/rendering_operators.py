@@ -23,7 +23,7 @@ from pathlib import Path
 
 import bpy
 from bpy.types import Operator
-from bpy.props import EnumProperty, BoolProperty, StringProperty
+from bpy.props import EnumProperty, StringProperty
 
 from .rendering import launchRender
 

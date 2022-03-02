@@ -19,10 +19,7 @@
 Prefs for Shot Manager render panel
 """
 
-import bpy
-from bpy.types import Panel, Operator, Menu
-
-from ..config import config
+from bpy.types import Operator
 
 
 #############
@@ -40,10 +37,8 @@ class UAS_ShotManager_Render_Prefs(Operator):
         return context.window_manager.invoke_props_dialog(self, width=480)
 
     def draw(self, context):
-        props = context.scene.UAS_shot_manager_props
-        prefs = bpy.context.preferences.addons["shotmanager"].preferences
-
         layout = self.layout
+
         layout.alert = True
         layout.label(text="Any change is effective immediately")
         layout.alert = False
@@ -101,4 +96,3 @@ class UAS_ShotManager_Render_Prefs(Operator):
 
     def execute(self, context):
         return {"FINISHED"}
-

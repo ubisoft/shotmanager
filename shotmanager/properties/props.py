@@ -274,8 +274,6 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
             renderWarnings = "*** No shots in the current take ***"
 
         if "" != renderWarnings:
-            from shotmanager.utils.utils import ShowMessageBox
-
             utils.ShowMessageBox(renderWarnings, "Render Aborted", "ERROR")
             print("Render aborted before start: " + renderWarnings)
             return False
@@ -1480,7 +1478,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
     # render properties for UI
 
     def reset_render_properties(self):
-        from ..utils.utils_inspectors import resetAttrs
+        # from ..utils.utils_inspectors import resetAttrs
 
         # print("stampInfo_resetProperties...")
         # print(f"Scene name: {bpy.context.scene.name}")
@@ -2019,7 +2017,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
 
         takeInd = shot.getParentTakeIndex()
         shots = self.get_shots(takeIndex=takeInd)
-        currentShotInd = self.getCurrentShotIndex()
+        # currentShotInd = self.getCurrentShotIndex()
         # selectedShotInd = self.getSelectedShotIndex()
         shotInd = self.getShotIndex(shot)
         newInd = max(0, newIndex)
@@ -2230,7 +2228,6 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
                 - False: current time is not changed
         """
         scene = bpy.context.scene
-        props = scene.UAS_shot_manager_props
 
         target_area_index = self.getTargetViewportIndex(bpy.context, only_valid=True)
         target_area = utils.getAreaFromIndex(bpy.context, target_area_index, "VIEW_3D")
@@ -2771,7 +2768,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
 
     def removeBGSoundFromShot(self, shot):
         context = bpy.context
-        scene = self.parentScene
+        # scene = self.parentScene
         metaSeq = self.getBGSoundsMetaContainingClip(shot.bgSoundClipName)
         if metaSeq is not None:
             self.openMetaStrip(context, metaSeq)
