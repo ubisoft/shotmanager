@@ -151,9 +151,12 @@ class UAS_VSE_OpenFileBrowser(Operator):  # from bpy_extras.io_utils import Impo
 
 class ShotManager_Vse_Render(PropertyGroup):
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 
 >>>>>>> Fix: same as previous
+=======
+>>>>>>> Code cleaning
     def get_inputOverMediaPath(self):
         val = self.get("inputOverMediaPath", "")
         return val
