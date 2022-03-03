@@ -25,7 +25,6 @@ from bpy.props import BoolProperty, IntProperty, FloatProperty
 
 from .config import config
 
-
 from . import handlers
 from .handlers.sm_overlay_tools_handlers import install_handler_for_shot, toggle_overlay_tools_display
 from .overlay_tools.workspace_info.workspace_info import toggle_workspace_info_display
@@ -67,7 +66,7 @@ from .scripts import rrs
 
 from . import keymaps
 
-from .debug import sm_debug
+from . import debug as sm_debug
 
 from shotmanager.config import sm_logging
 
@@ -79,7 +78,7 @@ bl_info = {
     "author": "Ubisoft - Julien Blervaque (aka Werwack), Romain Carriquiry Borchiari",
     "description": "Easily manage shots and cameras in the 3D View and see the resulting edit in real-time",
     "blender": (2, 93, 0),
-    "version": (1, 7, 10),
+    "version": (1, 7, 9),
     "location": "View3D > Shot Manager",
     "doc_url": "https://ubisoft-shotmanager.readthedocs.io",
     # "warning": "BETA Version",

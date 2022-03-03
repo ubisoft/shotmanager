@@ -149,24 +149,6 @@ class UAS_VSE_OpenFileBrowser(Operator):  # from bpy_extras.io_utils import Impo
         return {"RUNNING_MODAL"}
 
 
-class UAS_compositeVideoInVSE(Operator):
-    bl_idname = "vse.compositevideoinvse"
-    bl_label = "CreateSceneAndAddClips"
-    bl_description = ""
-
-    def execute(self, context):
-        """UAS_VSETruc"""
-        print("Op compositeVideoInVSE")
-        #   vse_render = context.window_manager.UAS_vse_render
-        #   scene = context.scene
-
-        context.window_manager.UAS_vse_render.compositeVideoInVSE(
-            bpy.context.scene.render.fps, 1, 20, "c:\\tmp\\MyVSEOutput.mp4"
-        )
-
-        return {"FINISHED"}
-
-
 class ShotManager_Vse_Render(PropertyGroup):
     def get_inputOverMediaPath(self):
         val = self.get("inputOverMediaPath", "")
@@ -1318,7 +1300,6 @@ _classes = (
     # UAS_PT_VSERender,
     UAS_VSE_OpenFileBrowser,
     ShotManager_Vse_Render,
-    UAS_compositeVideoInVSE,
 )
 
 
