@@ -3,12 +3,21 @@
 - Popup property panels appearing for several operators
 - Shots Play Mode was wrong in Blender 3.x
 
+# 1.7.08 (2022-03-04)
+
+## Code:
+
+- Cleaned the debug folder to make it a well-integrated package
+
+
 # 1.7.1 (2022-02-11)
 
 ## Fixed:
+
 - Image output were left in the rendering folder
 
 ## Edit Files and OpenTimelineIO:
+
 - Fixed several bugs in Edit List File import and export
 - Improved the Import dialog window
 - Imported edit framerate and resolution can now be used to update the scene
@@ -16,6 +25,7 @@
 - Added a global and project value to control the number of digits in the output file names
 
 ## Rendering:
+
 - Added the ability to render image sequences for shots instead or in addition to the videos
 - Added a checkbox in the render panel to choose to keep the intermediate rendered images
 - Added a Reset Render Properties button
@@ -24,10 +34,13 @@
 - Fixed bug when painting on hidden objects
 
 ## UI:
+
 - Added button to take range
 - Added information for output render
 - Added the main panel items menu in the Render Panel
+
 ## Code:
+
 - Code cleaning to match Flake8 rules
 - Refactor code for output media
 ***Warning: temp directory names have changed ***
