@@ -1,27 +1,9 @@
-<<<<<<< HEAD
 # 1.7.10 (2022-03-03)
 
 ## Fixed:
 
 - Popup property panels appearing for several operators
 - Shots Play Mode was wrong in Blender 3.x
-=======
-# 1.7.1 (2022-02-11)
-
-Fixed:
-   image output were left in the rendering folder
-   Added a checkbox in the render panel to choose to keep the intermediate rendered images
-
-To do:
-   zoom time range after import edl
-   move grease pencil button
-- Added a Reset Render Properties function
-
-Edit Files and OpenTimelineIO:
-Fixed several bugs in Edit List File import and export
-Improved the Import dialog window
-   Imported edit framerate and resolution can now be used to update the scene
->>>>>>> Added Reset Render properties
 
 
 # 1.7.08 (2022-03-04)
@@ -38,6 +20,13 @@ Improved the Import dialog window
 
 - Cleaned the debug folder to make it a well-integrated package
 - render_sequence_prefix renamed to render_sequence_prefix
+
+
+# 1.7.08 (2022-03-04)
+
+## Code:
+
+- Cleaned the debug folder to make it a well-integrated package
 
 
 # 1.7.1 (2022-02-11)
@@ -60,13 +49,8 @@ Improved the Import dialog window
 - Added a checkbox in the render panel to choose to keep the intermediate rendered images
 - Added a Reset Render Properties button
 
-<<<<<<< HEAD
 ## Grease Pencil:
 - Fixed bug when painting on hidden objects
-=======
-fixed res ouput for sep video and for playblast
-fixed shots play mode issues on version 3
->>>>>>> Fix: Shots Play Mode issues on Blender V 3.x
 
 <<<<<<< HEAD
 ## UI:
@@ -74,11 +58,14 @@ fixed shots play mode issues on version 3
 - Added button to take range
 - Added information for output render
 - Added the main panel items menu in the Render Panel
+<<<<<<< HEAD
 =======
 fixed res ouput for sep video and for playblast
 fixed shots play mode issues on version 3
 <<<<<<< HEAD
 >>>>>>> Fix: Shots Play Mode issues on Blender V 3.x
+=======
+>>>>>>> Debug folder as a real package
 
 ## Code:
 
