@@ -1478,15 +1478,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
     # render properties for UI
 
     def reset_render_properties(self):
-<<<<<<< HEAD
-<<<<<<< HEAD
         # from ..utils.utils_inspectors import resetAttrs
-=======
-        from ..utils.utils_inspectors import resetAttrs
->>>>>>> Added Reset Render properties
-=======
-        # from ..utils.utils_inspectors import resetAttrs
->>>>>>> Code cleaning
 
         # print("stampInfo_resetProperties...")
         # print(f"Scene name: {bpy.context.scene.name}")
