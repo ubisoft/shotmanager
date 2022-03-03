@@ -1,9 +1,16 @@
 # 1.7.10 (2022-03-03)
+
 ## Fixed:
+
 - Popup property panels appearing for several operators
 - Shots Play Mode was wrong in Blender 3.x
 
+
 # 1.7.08 (2022-03-04)
+
+## Rendering:
+
+- Fixed rendering in Playblast mode
 
 ## UI:
 
@@ -13,6 +20,7 @@
 
 - Cleaned the debug folder to make it a well-integrated package
 - render_sequence_prefix renamed to render_sequence_prefix
+
 
 # 1.7.1 (2022-02-11)
 

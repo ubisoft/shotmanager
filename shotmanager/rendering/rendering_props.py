@@ -404,9 +404,7 @@ class UAS_ShotManager_RenderSettings(PropertyGroup):
     # image_settings_file_format = 'FFMPEG'
     # scene.render.ffmpeg.format = 'MPEG4'
 
-    ##################
-    # used only by PLAYBLAST
-    ##################
+    # only used by PLAYBLAST
     resolutionPercentage: IntProperty(
         name="Resolution Percentage", min=10, soft_max=100, max=300, subtype="PERCENTAGE", default=100
     )

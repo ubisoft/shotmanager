@@ -179,7 +179,7 @@ def drawRenderInfos(context, layout):
         infosStr += f"Final Res: {finalRes_x} x {finalRes_y},  "
         return infosStr
 
-    ### still
+    # STILL ###
     if props.displayStillProps:
         if props.renderSettingsStill.bypass_rendering_project_settings:
             finalRes = props.getRenderResolutionForFinalOutput(
@@ -209,7 +209,7 @@ def drawRenderInfos(context, layout):
         row.operator("uas_shot_manager.open_explorer", text="", icon_value=iconExplorer.icon_id).path = filePath
         col.separator()
 
-    ### animation
+    # ANIMATION ###
     if props.displayAnimationProps:
         if props.renderSettingsAnim.bypass_rendering_project_settings:
             finalRes = props.getRenderResolutionForFinalOutput(
@@ -239,7 +239,7 @@ def drawRenderInfos(context, layout):
         row.operator("uas_shot_manager.open_explorer", text="", icon_value=iconExplorer.icon_id).path = filePath
         col.separator()
 
-    ### all edits
+    # ALL SHOTS ###
     elif props.displayAllEditsProps:
         if props.renderSettingsAll.bypass_rendering_project_settings:
             finalRes = props.getRenderResolutionForFinalOutput(
@@ -269,7 +269,7 @@ def drawRenderInfos(context, layout):
         row.operator("uas_shot_manager.open_explorer", text="", icon_value=iconExplorer.icon_id).path = filePath
         col.separator()
 
-    ### playblast
+    # PLAYBLAST ###
     elif props.displayPlayblastProps:
         # if props.renderSettingsPlayblast.bypass_rendering_project_settings:
         finalRes = props.getRenderResolutionForFinalOutput(
@@ -283,14 +283,17 @@ def drawRenderInfos(context, layout):
 
         # prefs = context.preferences.addons["shotmanager"].preferences
         #   filePath = props.renderRootPath + "\\" + prefs.playblastFileName
-        filePath = props.renderRootPath
-        if not filePath.endswith("\\") and not filePath.endswith("/"):
-            filePath += "\\"
-        filePath += f"_playblast_.{props.getOutputFileFormat()}"
-        if not props.isRenderRootPathValid():
-            rowAlert = box.row()
-            rowAlert.alert = True
-            rowAlert.label(text="*** Invalid Root Path ***")
+        # filePath = props.renderRootPath
+        # if not filePath.endswith("\\") and not filePath.endswith("/"):
+        #     filePath += "\\"
+        # filePath += f"_playblast_.{props.getOutputFileFormat()}"
+        # if not props.isRenderRootPathValid():
+        #     rowAlert = layout.row()
+        #     rowAlert.alert = True
+        #     rowAlert.label(text="*** Invalid Root Path ***")
+
+        take = props.getCurrentTake()
+        filePath = props.getOutputMediaPath("TK_PLAYBLAST", take, rootPath=props.renderRootPath)
 
         # TODO wkip
         if 100 != scene.render.resolution_percentage:
@@ -654,31 +657,10 @@ def draw3DRenderPanel(self, context):
         row = box.row()
 
         take = props.getCurrentTake()
-        take_name = take.getName_PathCompliant()
-
-        filePath = props.renderRootPath
-        if filePath.startswith("//"):
-            filePath = bpy.path.abspath(filePath)
-        if not (filePath.endswith("/") or filePath.endswith("\\")):
-            filePath += "\\"
-
-        # if addTakeNameToPath:
-
-        # take folder
-        filePath += take_name + "\\"
-
-        # if "" == fileName:
-
-        # edit file name
-        filePath += take_name
-
-        # file extension
-        filePath += f".{props.renderSettingsOtio.otioFileType.lower()}"
-        # + ".xml"
-        # else:
-        #     otioRenderPath += fileName
-        #     if Path(fileName).suffix == "":
-        #         otioRenderPath += ".otio"
+        filePath = (
+            props.getOutputMediaPath("TK_EDIT_VIDEO", take, rootPath=props.renderRootPath, provideExtension=False)
+            + f".{props.renderSettingsOtio.otioFileType.lower()}"
+        )
 
         row.label(text="Current Take Edit: " + filePath)
         row.operator("uas_shot_manager.open_explorer", text="", icon_value=iconExplorer.icon_id).path = filePath
@@ -700,17 +682,6 @@ def draw3DRenderPanel(self, context):
 
         box = layout.box()
 
-        # # prefs = context.preferences.addons["shotmanager"].preferences
-        # #   filePath = props.renderRootPath + "\\" + prefs.playblastFileName
-        # filePath = props.renderRootPath
-        # if not filePath.endswith("\\") and not filePath.endswith("/"):
-        #     filePath += "\\"
-        # filePath += f"_playblast_.{props.getOutputFileFormat()}"
-        # if not props.isRenderRootPathValid():
-        #     rowAlert = box.row()
-        #     rowAlert.alert = True
-        #     rowAlert.label(text="*** Invalid Root Path ***")
-
         bypassItemsCol = box.column_flow(columns=1)
 
         itemsRow = bypassItemsCol.row()
@@ -720,7 +691,7 @@ def draw3DRenderPanel(self, context):
         row = col.row()
         row.separator(factor=subItemSeparator)
         row.enabled = stampInfoAvailable and props.renderSettingsPlayblast.stampRenderInfo
-        row.prop(props.renderSettingsAll, "useStampInfo")
+        row.prop(props.renderSettingsPlayblast, "useStampInfo")
         if not stampInfoAvailable:
             row.label(text="*** Add-on not available ***")
 
@@ -738,11 +709,6 @@ def draw3DRenderPanel(self, context):
         # row.use_property_split = False
 
         row = box.row()
-        # # if config.devDebug:
-        # row.label(text="After Rendering:")
-
-        # row = box.row()
-        # row.separator(factor=1)
         row.label(text="After Rendering:")
         row = box.row()
         row.separator(factor=2)
@@ -751,9 +717,6 @@ def draw3DRenderPanel(self, context):
         subRow = row.row()
         subRow.enabled = False
         subRow.prop(props.renderSettingsPlayblast, "updatePlayblastInVSM", text="Open in Video Tracks")
-
-        # row = box.row()
-        # row.prop(props.renderSettingsPlayblast, "renderCameraBG")
 
         drawRenderInfos(context, box)
 

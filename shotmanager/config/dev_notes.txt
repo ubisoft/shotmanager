@@ -18,6 +18,10 @@ To do V1.7.2 +:
     - bug ds le Comparaison à l'import d'un edit: reorder pas pris en compte
     - voir ce qui se passe qd stamp info n'est pas la ds render panel
 
+    - faire un playblast qui marche pour un time range quelconque
+    - cleaner preset_useStampInfo dans launchRenderWithVSEComposite
+
+    
 
 addon_utils: to check if an addon is installed:
 https://blender.stackexchange.com/questions/15638/how-to-distinguish-between-addon-is-not-installed-and-addon-is-not-enabled

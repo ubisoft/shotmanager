@@ -794,10 +794,12 @@ class ShotManager_Vse_Render(PropertyGroup):
                 print(f"  frametopaste: {frameToPaste}")
 
                 bgClip = None
+                shotDuration = 0
                 if "bg" in mediaDict and mediaDict["bg"] is not None:
                     try:
                         print(f"self.inputBGMediaPath: {mediaDict['bg']}")
                         bgClip = self.createNewClip(sequenceScene, mediaDict["bg"], 2, atFrame)
+                        shotDuration = bgClip.frame_final_duration
                     except Exception:
                         print(f" *** Rendered shot not found: {mediaDict['bg']}")
 
@@ -809,7 +811,6 @@ class ShotManager_Vse_Render(PropertyGroup):
 
                 #    print(f"self.inputBGMediaPath: {self.inputOverMediaPath}")
 
-                shotDuration = 0
                 if "fg_sequence" in mediaDict and mediaDict["fg_sequence"] is not None:
                     overClip = None
                     try:
