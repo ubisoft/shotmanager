@@ -25,7 +25,6 @@ from bpy.props import BoolProperty, IntProperty, FloatProperty
 
 from .config import config
 
-
 from . import handlers
 from .handlers.sm_overlay_tools_handlers import install_handler_for_shot, toggle_overlay_tools_display
 from .overlay_tools.workspace_info.workspace_info import toggle_workspace_info_display
@@ -67,7 +66,7 @@ from .scripts import rrs
 
 from . import keymaps
 
-from .debug import sm_debug
+from . import debug as sm_debug
 
 from shotmanager.config import sm_logging
 

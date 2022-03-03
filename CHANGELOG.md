@@ -1,37 +1,64 @@
+# 1.7.10 (2022-03-03)
+
+## Fixed:
+
+- Popup property panels appearing for several operators
+- Shots Play Mode was wrong in Blender 3.x
+
+
+# 1.7.08 (2022-03-04)
+
+## Rendering:
+
+- Fixed rendering in Playblast mode
+
+## UI:
+
+- "Render Shot Prefix" parameter was renamed Render Sequence Prefix
+
+## Code:
+
+- Cleaned the debug folder to make it a well-integrated package
+- render_sequence_prefix renamed to render_sequence_prefix
+
+
 # 1.7.1 (2022-02-11)
 
-Fixed:
-   image output were left in the rendering folder
-   Added a checkbox in the render panel to choose to keep the intermediate rendered images
+## Fixed:
 
-To do:
-   zoom time range after import edl
-   move grease pencil button
-- Added a Reset Render Properties function
+- Image output were left in the rendering folder
 
-Edit Files and OpenTimelineIO:
-Fixed several bugs in Edit List File import and export
-Improved the Import dialog window
-   Imported edit framerate and resolution can now be used to update the scene
+## Edit Files and OpenTimelineIO:
 
-Grease Pencil:
-Fixed bug when painting on hidden objects
+- Fixed several bugs in Edit List File import and export
+- Improved the Import dialog window
+- Imported edit framerate and resolution can now be used to update the scene
+- Added a global and project value to control the index of the first frame in the output file names
+- Added a global and project value to control the number of digits in the output file names
 
+## Rendering:
 
-Added button to take range
-added information for output render
+- Added the ability to render image sequences for shots instead or in addition to the videos
+- Added a checkbox in the render panel to choose to keep the intermediate rendered images
+- Added a Reset Render Properties button
 
-fixed res ouput for sep video and for playblast
-fixed shots play mode issues on version 3
+## Grease Pencil:
+- Fixed bug when painting on hidden objects
 
-UI:
-   Add the items menu in the Render Panel
+## UI:
 
-Refactor code foir output media
-   warning: temp dirs have changed
+- Added button to take range
+- Added information for output render
+- Added the main panel items menu in the Render Panel
 
-Added a global and project value to control the index of the first frame
-Added a global and project value to control the number of digits in the output file names
+## Code:
+
+- Code cleaning to match Flake8 rules
+- Refactor code for output media
+***Warning: temp directory names have changed ***
+
+## Debug
+- Added debug function to fix entities parent in old blender files
 
 Debug
 Added debug function to fix entities parent in old blender files
@@ -67,7 +94,7 @@ Added debug function to fix entities parent in old blender files
 
 ## UI
 
-- Rewampped all the Settings panels
+- Rewamped all the Settings panels
 
 - Added a viewport target to specify which view will receive the camera and sequence timeline
 - Added a nodesheet target to specify which timeline or node sheet editor will receive the interactive

@@ -149,24 +149,6 @@ class UAS_VSE_OpenFileBrowser(Operator):  # from bpy_extras.io_utils import Impo
         return {"RUNNING_MODAL"}
 
 
-class UAS_compositeVideoInVSE(Operator):
-    bl_idname = "vse.compositevideoinvse"
-    bl_label = "CreateSceneAndAddClips"
-    bl_description = ""
-
-    def execute(self, context):
-        """UAS_VSETruc"""
-        print("Op compositeVideoInVSE")
-        #   vse_render = context.window_manager.UAS_vse_render
-        #   scene = context.scene
-
-        context.window_manager.UAS_vse_render.compositeVideoInVSE(
-            bpy.context.scene.render.fps, 1, 20, "c:\\tmp\\MyVSEOutput.mp4"
-        )
-
-        return {"FINISHED"}
-
-
 class ShotManager_Vse_Render(PropertyGroup):
     def get_inputOverMediaPath(self):
         val = self.get("inputOverMediaPath", "")
@@ -812,10 +794,12 @@ class ShotManager_Vse_Render(PropertyGroup):
                 print(f"  frametopaste: {frameToPaste}")
 
                 bgClip = None
+                shotDuration = 0
                 if "bg" in mediaDict and mediaDict["bg"] is not None:
                     try:
                         print(f"self.inputBGMediaPath: {mediaDict['bg']}")
                         bgClip = self.createNewClip(sequenceScene, mediaDict["bg"], 2, atFrame)
+                        shotDuration = bgClip.frame_final_duration
                     except Exception:
                         print(f" *** Rendered shot not found: {mediaDict['bg']}")
 
@@ -827,7 +811,6 @@ class ShotManager_Vse_Render(PropertyGroup):
 
                 #    print(f"self.inputBGMediaPath: {self.inputOverMediaPath}")
 
-                shotDuration = 0
                 if "fg_sequence" in mediaDict and mediaDict["fg_sequence"] is not None:
                     overClip = None
                     try:
@@ -1105,9 +1088,15 @@ class ShotManager_Vse_Render(PropertyGroup):
                     vse_scene.render.image_settings.file_format = "PNG"
                     ext = ".png"
 
+                # self.outputMediaPath = (
+                #     filePathOnly + fileNoExt + "\\" + output_file_prefix + fileNoExt + frameIndStr + ext
+                # )
+                # wkipwkipwkipmerge
                 self.outputMediaPath = (
                     filePathOnly + fileNoExt + "\\" + output_file_prefix + fileNoExt + frameIndStr + ext
                 )
+                vse_scene.render.filepath = self.outputMediaPath
+
                 vse_scene.render.filepath = self.outputMediaPath
 
                 # since Blender starts the render indices at 1 and not 0 we have to rename the sequence
@@ -1204,7 +1193,7 @@ class ShotManager_Vse_Render(PropertyGroup):
                 #    print(f"self.inputBGMediaPath: {self.inputBGMediaPath}")
                 bgClip = self.createNewClip(vse_scene, self.inputBGMediaPath, 1, atFrame=importAtFrame)
             #    print("BG Media OK")
-            except Exception as e:
+            except Exception:
                 print(f" *** Rendered shot not found: {self.inputBGMediaPath}")
 
             # bgClip = None
@@ -1228,7 +1217,7 @@ class ShotManager_Vse_Render(PropertyGroup):
             try:
                 overClip = self.createNewClip(vse_scene, self.inputOverMediaPath, 2, atFrame=importAtFrame)
             #    print("Over Media OK")
-            except Exception as e:
+            except Exception:
                 print(f" *** Rendered shot not found: {self.inputOverMediaPath}")
             # overClip = None
             # if os.path.exists(self.inputOverMediaPath):
@@ -1313,7 +1302,6 @@ _classes = (
     # UAS_PT_VSERender,
     UAS_VSE_OpenFileBrowser,
     ShotManager_Vse_Render,
-    UAS_compositeVideoInVSE,
 )
 
 

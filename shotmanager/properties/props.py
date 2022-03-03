@@ -405,6 +405,13 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         name="Sound Output Format", default="", options=set(),
     )
 
+    project_renderSingleFrameShotAsImage: BoolProperty(
+        name="Project Render Single Frame Shot as Image",
+        description="Render single frame shot as an image, not as a video",
+        default=True,
+        options=set(),
+    )
+
     # add-on preferences overriden by project settings
     project_output_first_frame: IntProperty(
         name="Project Output First Frame Index",
@@ -456,17 +463,11 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
     )
 
     # shot manager per scene instance properties overriden by project settings
-    render_shot_prefix: StringProperty(
-        name="Render Shot Prefix",
-        description="Prefix added to the shot names at render time" "\nExamples: Act01_, MyMovie_...",
+    render_sequence_prefix: StringProperty(
+        name="Render Sequence Prefix",
+        description="Prefix added to the very beginning of the shot names, before the sequence name, at render time"
+        "\nExamples: Act01_, MyMovie_...",
         default="",
-        options=set(),
-    )
-
-    project_renderSingleFrameShotAsImage: BoolProperty(
-        name="Project Render Single Frame Shot as Image",
-        description="Render single frame shot as an image, not as a video",
-        default=True,
         options=set(),
     )
 
@@ -3039,7 +3040,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
             # shotPrefix = self.getParentScene().name
             shotPrefix = self.parentScene.name
         else:
-            shotPrefix = self.render_shot_prefix
+            shotPrefix = self.render_sequence_prefix
 
         shotPrefix += self.sequence_name + "_"
         return shotPrefix
@@ -3102,6 +3103,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
                     TK_VIDEO:
                     TK_EDIT_IMAGE_SEQ:
                     TK_EDIT_VIDEO:
+                    TK_PLAYBLAST:
                 - for an entity sequence (or montage):
                     SEQ_ROOT: root to the sequence files and folders
 
@@ -3185,6 +3187,9 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
                         fileName += "_" + self.getFramePadding(frame=specificFrame)
 
             elif "TK_" == outputMedia[0:3]:
+                if "TK_PLAYBLAST" == outputMedia:
+                    fileName += "_playblast_"
+
                 # entity is a take
                 fileName += entity.getName_PathCompliant(withPrefix=insertSeqPrefix)
 
@@ -3220,6 +3225,8 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
                 elif "TK_" == outputMedia[0:3]:
                     if "TK_EDIT_" == outputMedia[3:8]:
                         fileExtension += "." + "xml"
+                    elif "TK_PLAYBLAST" == outputMedia:
+                        fileExtension += "." + "mp4"
 
         # result
         resultStr = filePath + fileName + fileExtension
