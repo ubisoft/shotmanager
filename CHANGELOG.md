@@ -60,6 +60,9 @@
 ## Debug
 - Added debug function to fix entities parent in old blender files
 
+Debug
+Added debug function to fix entities parent in old blender files
+
 # 1.6.9 (2021-12-04)
 
 ## UX

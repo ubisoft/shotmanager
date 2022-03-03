@@ -1095,6 +1095,7 @@ class ShotManager_Vse_Render(PropertyGroup):
                 self.outputMediaPath = (
                     filePathOnly + fileNoExt + "\\" + output_file_prefix + fileNoExt + frameIndStr + ext
                 )
+                vse_scene.render.filepath = self.outputMediaPath
 
                 vse_scene.render.filepath = self.outputMediaPath
 
