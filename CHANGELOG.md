@@ -24,6 +24,10 @@
 
 # 1.7.08 (2022-03-04)
 
+## Rendering:
+
+- Fixed rendering in Playblast mode
+
 ## UI:
 
 - "Render Shot Prefix" parameter was renamed Render Sequence Prefix
@@ -32,6 +36,7 @@
 
 - Cleaned the debug folder to make it a well-integrated package
 - render_sequence_prefix renamed to render_sequence_prefix
+
 
 # 1.7.1 (2022-02-11)
 
