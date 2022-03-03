@@ -3218,6 +3218,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
                     TK_VIDEO:
                     TK_EDIT_IMAGE_SEQ:
                     TK_EDIT_VIDEO:
+                    TK_PLAYBLAST:
                 - for an entity sequence (or montage):
                     SEQ_ROOT: root to the sequence files and folders
 
@@ -3301,6 +3302,9 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
                         fileName += "_" + self.getFramePadding(frame=specificFrame)
 
             elif "TK_" == outputMedia[0:3]:
+                if "TK_PLAYBLAST" == outputMedia:
+                    fileName += "_playblast_"
+
                 # entity is a take
                 fileName += entity.getName_PathCompliant(withPrefix=insertSeqPrefix)
 
@@ -3336,6 +3340,8 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
                 elif "TK_" == outputMedia[0:3]:
                     if "TK_EDIT_" == outputMedia[3:8]:
                         fileExtension += "." + "xml"
+                    elif "TK_PLAYBLAST" == outputMedia:
+                        fileExtension += "." + "mp4"
 
         # result
         resultStr = filePath + fileName + fileExtension

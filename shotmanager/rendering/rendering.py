@@ -703,7 +703,9 @@ def launchRenderWithVSEComposite(
 
                 renderedShotSequencesArr.append(videoAndSound)
 
-            print(f"** renderedShotSequencesArr: {renderedShotSequencesArr}")
+            print("\n** renderedShotSequencesArr:")
+            for item in renderedShotSequencesArr:
+                print(f"\n    {item}")
 
             # print render time
             #######################
@@ -731,6 +733,7 @@ def launchRenderWithVSEComposite(
             # render sequence video based on shot videos
             #######################
 
+            print(" --- In generateShotVideos")
             sequenceOutputFullPath = f"{rootPath}{takeName}\\{sequenceFileName}.{props.getOutputFileFormat()}"
             print(f"  Rendered sequence from shot videos: {sequenceOutputFullPath}")
 
@@ -749,11 +752,16 @@ def launchRenderWithVSEComposite(
             newMediaFiles.append(sequenceOutputFullPath)
 
         else:
+            print(" --- In else that generateShotVideos")
             #######################
             # render sequence video based on shot image sequences
             #######################
             # wkipwkipwkip tmp
-            sequenceOutputFullPath = f"{rootPath}\\_playblast_.{props.getOutputFileFormat()}"
+
+            # if "PLAYBLAST" == renderMode
+            #    sequenceOutputFullPath = f"{rootPath}\\_playblast_.{props.getOutputFileFormat()}"
+            sequenceOutputFullPath = props.getOutputMediaPath("TK_PLAYBLAST", take, rootPath=props.renderRootPath)
+
             # sequenceOutputFullPath = (
             #     f"{rootPath}{takeName}\\_playblast_{sequenceFileName}.{props.getOutputFileFormat()}"
             # )
@@ -766,8 +774,9 @@ def launchRenderWithVSEComposite(
 
             deleteTempFiles = not config.devDebug_keepVSEContent and not renderPreset.keepIntermediateFiles
             if deleteTempFiles:
+                # _deleteTempFiles(newTempRenderPath)
                 for i in range(len(renderedShotSequencesArr)):
-                    _deleteTempFiles(str(Path(renderedShotSequencesArr[i]["fg_sequence"]).parent))
+                    _deleteTempFiles(str(Path(renderedShotSequencesArr[i]["bg"]).parent))
 
         renderInfo["scene"] = scene.name
         renderInfo["outputFullPath"] = sequenceOutputFullPath
@@ -1074,6 +1083,8 @@ def launchRender(context, renderMode, rootPath, area=None):
 
     stampInfoSettings = None
     useStampInfo = preset.useStampInfo
+    if "PLAYBLAST" == renderMode:
+        useStampInfo = useStampInfo and preset.stampRenderInfo
 
     fileIsReadOnly = False
     currentFilePath = bpy.path.abspath(bpy.data.filepath)
@@ -1105,6 +1116,7 @@ def launchRender(context, renderMode, rootPath, area=None):
     renderDisplayInfo += f"{'   - File: ': <20}{bpy.data.filepath}\n"
     renderDisplayInfo += f"{'   - Scene: ': <20}{scene.name}\n"
     renderDisplayInfo += f"{'   - RootPath: ': <20}{rootPath}\n"
+    renderDisplayInfo += f"{'   - Stamp Info: ': <20}{useStampInfo}\n"
     if config.devDebug:
         renderDisplayInfo += f"{'   - Debug Mode: ': <20}{config.devDebug}\n"
 
