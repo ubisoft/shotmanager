@@ -554,17 +554,13 @@ class UAS_PT_ShotManager(Panel):
             if prefs.take_notes_expanded:
                 row = subBox.row()
                 row.separator(factor=1.0)
-                row.prop(currentTake, "note01", text="")
+                col = row.column()
+                col.scale_y = 0.95
+                col.prop(currentTake, "note01", text="")
+                col.prop(currentTake, "note02", text="")
+                col.prop(currentTake, "note03", text="")
                 row.separator(factor=1.0)
-                row = subBox.row()
-                row.separator(factor=1.0)
-                row.prop(currentTake, "note02", text="")
-                row.separator(factor=1.0)
-                row = subBox.row()
-                row.separator(factor=1.0)
-                row.prop(currentTake, "note03", text="")
-                row.separator(factor=1.0)
-                box.separator(factor=0.1)
+                subBox.separator(factor=0.1)
 
         # shots
         ################
