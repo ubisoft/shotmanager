@@ -405,6 +405,13 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         name="Sound Output Format", default="", options=set(),
     )
 
+    project_renderSingleFrameShotAsImage: BoolProperty(
+        name="Project Render Single Frame Shot as Image",
+        description="Render single frame shot as an image, not as a video",
+        default=True,
+        options=set(),
+    )
+
     # add-on preferences overriden by project settings
     project_output_first_frame: IntProperty(
         name="Project Output First Frame Index",
@@ -456,17 +463,11 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
     )
 
     # shot manager per scene instance properties overriden by project settings
-    render_shot_prefix: StringProperty(
-        name="Render Shot Prefix",
-        description="Prefix added to the shot names at render time" "\nExamples: Act01_, MyMovie_...",
+    render_sequence_prefix: StringProperty(
+        name="Render Sequence Prefix",
+        description="Prefix added to the very beginning of the shot names, before the sequence name, at render time"
+        "\nExamples: Act01_, MyMovie_...",
         default="",
-        options=set(),
-    )
-
-    project_renderSingleFrameShotAsImage: BoolProperty(
-        name="Project Render Single Frame Shot as Image",
-        description="Render single frame shot as an image, not as a video",
-        default=True,
         options=set(),
     )
 
@@ -3154,7 +3155,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
             # shotPrefix = self.getParentScene().name
             shotPrefix = self.parentScene.name
         else:
-            shotPrefix = self.render_shot_prefix
+            shotPrefix = self.render_sequence_prefix
 
         shotPrefix += self.sequence_name + "_"
         return shotPrefix

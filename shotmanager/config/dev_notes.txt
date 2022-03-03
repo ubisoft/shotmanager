@@ -12,16 +12,14 @@ Dialog windows width:   360
 invoke_popup width:     250
 
 
-To do V1.7.1 +:
+To do V1.7.2 +:
+
+    - cleaner notion de projet, les noms donnés aux shots en particulier
     - bug ds le Comparaison à l'import d'un edit: reorder pas pris en compte
-    - reduire les entrees dans la liste de github
-    - mettre le lien wiki
     - voir ce qui se passe qd stamp info n'est pas la ds render panel
     - remove set et get pour l'expand des panels de shot properties
     - remove shot_notes_expanded
 
-Flake8:
-    voir longueur des lignes
 
 addon_utils: to check if an addon is installed:
 https://blender.stackexchange.com/questions/15638/how-to-distinguish-between-addon-is-not-installed-and-addon-is-not-enabled

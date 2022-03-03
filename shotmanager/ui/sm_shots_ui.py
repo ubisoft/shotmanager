@@ -379,13 +379,6 @@ class UAS_MT_ShotManager_Shots_ToolsMenu(Menu):
             row = layout.row(align=True)
             row.label(text="Tools For Edit (OTIO, XML):")
 
-            if config.devDebug:
-                row = layout.row(align=True)
-                row.operator_context = "INVOKE_DEFAULT"
-                row.operator(
-                    "uasotio.openfilebrowser", text="   Create / Update Shots From Edit File - Simple Mode..."
-                ).importMode = "CREATE_SHOTS_SIMPLE"
-
             row = layout.row(align=True)
             row.operator_context = "INVOKE_DEFAULT"
             row.operator(
@@ -393,6 +386,17 @@ class UAS_MT_ShotManager_Shots_ToolsMenu(Menu):
             ).importMode = "CREATE_SHOTS"
 
             if config.devDebug:
+                layout.separator()
+
+                row = layout.row(align=True)
+                row.label(text="Tools For Edit -- Debug:")
+
+                row = layout.row(align=True)
+                row.operator_context = "INVOKE_DEFAULT"
+                row.operator(
+                    "uasotio.openfilebrowser", text="   Create / Update Shots From Edit File - Simple Mode..."
+                ).importMode = "CREATE_SHOTS_SIMPLE"
+
                 row = layout.row(align=True)
                 row.operator_context = "INVOKE_DEFAULT"
                 row.operator(

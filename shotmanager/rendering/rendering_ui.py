@@ -793,7 +793,7 @@ def draw3DRenderPanel(self, context):
     # box = self.layout.box()
     # row = box.row()
     # # enabled=False
-    # row.prop(props, "render_shot_prefix")
+    # row.prop(props, "render_sequence_prefix")
 
     # row.separator()
     # row.operator("uas_shot_manager.open_explorer", emboss=True, icon='FILEBROWSER', text="")
