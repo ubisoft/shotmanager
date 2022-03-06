@@ -215,7 +215,7 @@ class UAS_PT_ShotManager_ShotProperties(Panel):
 
             sepRow = mainCol.row()
             sepRow.separator(factor=0.5)
-            col = row.column()
+            col = mainCol.column()
 
             ####################
             # debug infos
@@ -336,6 +336,17 @@ class UAS_PT_ShotManager_ShotProperties(Panel):
             subRowCam.prop(props, "display_lens_in_shotlist", text="")
             subRowCam.separator(factor=0.5)  # prevents strange look when panel is narrow
             # row.separator(factor=0.5)  # prevents strange look when panel is narrow
+
+            camRow = col.row()
+            # camRow.scale_x = 0.8
+            camRow.alignment = "RIGHT"
+            if not cameraIsValid:
+                camRow.alert = True
+                camRow.operator("uas_shot_manager.nodisplaysize", text="No Size")
+                camRow.alert = False
+            else:
+                camRow.prop(shot.camera.data, "display_size", text="Frustum Size")
+            camRow.separator(factor=2.8)
 
             ####################
             # Output

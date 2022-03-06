@@ -610,76 +610,6 @@ def duplicateObject(sourceObject, newName=None):
 
 
 ###################
-# Grease Pencil
-###################
-
-
-def create_new_greasepencil(gp_name, parent_object=None, location=None, locate_on_cursor=False):
-    new_gp_data = bpy.data.grease_pencils.new(gp_name)
-    new_gp_obj = bpy.data.objects.new(new_gp_data.name, new_gp_data)
-    new_gp_obj.name = new_gp_data.name
-
-    # add to main collection
-    # bpy.context.collection.objects.link(new_gp_obj)
-
-    # add to a collection named "Cameras"
-    gpCollName = "GreasePencil"
-    cpColl = None
-    if gpCollName not in bpy.context.scene.collection.children:
-        cpColl = bpy.data.collections.new(name=gpCollName)
-        bpy.context.scene.collection.children.link(cpColl)
-    else:
-        cpColl = bpy.context.scene.collection.children[gpCollName]
-    cpColl.objects.link(new_gp_obj)
-
-    if parent_object is not None:
-        new_gp_obj.parent = parent_object
-
-    if location is None:
-        new_gp_obj.location = [0, 0, 0]
-    else:
-        new_gp_obj.location = location
-
-    if locate_on_cursor:
-        new_gp_obj.location = bpy.context.scene.cursor.location
-
-    from math import radians
-
-    new_gp_obj.rotation_euler = (radians(90), 0.0, radians(90))
-
-    # import math
-    # import mathutils
-
-    # eul = mathutils.Euler((math.radians(90.0), 0.0, 0.0), "XYZ")
-
-    # if new_gp_obj.rotation_mode == "QUATERNION":
-    #     new_gp_obj.rotation_quaternion = eul.to_quaternion()
-    # elif new_gp_obj.rotation_mode == "AXIS_ANGLE":
-    #     q = eul.to_quaternion()
-    #     new_gp_obj.rotation_axis_angle[0] = q.angle
-    #     new_gp_obj.rotation_axis_angle[1:] = q.axis
-    # else:
-    #     new_gp_obj.rotation_euler = (
-    #         eul if eul.order == new_gp_obj.rotation_mode else (eul.to_quaternion().to_euler(new_gp_obj.rotation_mode))
-    #     )
-
-    return new_gp_obj
-
-
-def get_greasepencil_child(obj, name_filter=""):
-    """Return the first child of the specifed object that is of type GPENCIL
-    """
-    gpChild = None
-
-    if obj is not None:
-        if len(obj.children):
-            for c in obj.children:
-                if "GPENCIL" == c.type:
-                    return c
-    return gpChild
-
-
-###################
 # Cameras
 ###################
 
@@ -981,9 +911,25 @@ def clear_selection():
         bpy.context.view_layer.objects.active = obj
 
 
-def add_to_selection(obj):
+def select_object(obj: bpy.types.Object, clear_sel=True):
+    if clear_sel:
+        clear_selection()
+    obj.select_set(True)
+    bpy.context.view_layer.objects.active = obj
+
+
+    # if context.active_object is not None and context.active_object.mode != "OBJECT":
+    #     bpy.ops.object.mode_set(mode="OBJECT")
+    # bpy.ops.object.select_all(action="DESELECT")
+    # bpy.context.view_layer.objects.active = gp_child
+    # gp_child.select_set(True)
+    # gp_child.hide_select = False
+    # gp_child.hide_viewport = False
+    # gp_child.hide_render = False
+
+
+def add_to_selection(obj: bpy.types.Object):
     # bpy.data.objects[obj.name].select_set(True)
-    # bpy.context.view_layer.objects.active = bpy.data.objects['Sphere']
     obj.select_set(True)
     # to set the active object
     bpy.context.view_layer.objects.active = obj

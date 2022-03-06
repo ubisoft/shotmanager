@@ -16,12 +16,14 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 """
-To do: module description here.
+Shot Manager grease pencil operators
 """
 
 import bpy
 from bpy.types import Operator
 from bpy.props import StringProperty, IntProperty
+
+from .greasepencil import setInkLayerReadyToDraw
 
 from shotmanager.utils import utils
 from shotmanager.utils import utils_greasepencil
@@ -43,7 +45,12 @@ class UAS_ShotManager_OT_AddGreasePencil(Operator):
             return {"CANCELLED"}
         else:
             cam = scene.objects[self.cameraGpName]
-            utils.create_new_greasepencil(cam.name + "_GP", parent_object=cam, location=[0, 0, -0.2])
+            gpName = cam.name + "_GP"
+            gpObj = utils_greasepencil.create_new_greasepencil(gpName, parent_object=cam, location=[0, 0, -0.5])
+
+            utils_greasepencil.add_grease_pencil_canvas_layer(gpObj, "GP_Canvas", order="BOTTOM", camera=cam)
+
+            utils.select_object(gpObj)
 
         return {"FINISHED"}
 
@@ -72,7 +79,7 @@ class UAS_ShotManager_OT_SelectShotGreasePencil(Operator):
         shot = props.getShotByIndex(props.selected_shot_index)
         if shot is not None:
             if shot.camera is not None:
-                gp_child = utils.get_greasepencil_child(shot.camera)
+                gp_child = utils_greasepencil.get_greasepencil_child(shot.camera)
                 if gp_child is not None:
                     bpy.ops.object.select_all(action="DESELECT")
                     bpy.context.view_layer.objects.active = gp_child
@@ -124,7 +131,9 @@ class UAS_ShotManager_OT_AddCanvasToGreasePencil(Operator):
     def execute(self, context):
         gpObj = context.scene.objects[self.gpName]
 
-        utils_greasepencil.add_grease_pencil_canvas_layer(gpObj, "GP_Canvas", order="BOTTOM")
+        # get camera parent
+        parentCam = gpObj.parent
+        utils_greasepencil.add_grease_pencil_canvas_layer(gpObj, "GP_Canvas", order="BOTTOM", camera=parentCam)
 
         return {"FINISHED"}
 
@@ -201,7 +210,7 @@ class UAS_ShotManager_OT_DrawOnGreasePencil(Operator):
             shot = props.getShotByIndex(props.selected_shot_index)
 
         if shot is not None:
-            gp_child = utils.get_greasepencil_child(shot.camera)
+            gp_child = utils_greasepencil.get_greasepencil_child(shot.camera)
 
         props.setCurrentShotByIndex(props.selected_shot_index)
 
@@ -224,6 +233,9 @@ class UAS_ShotManager_OT_DrawOnGreasePencil(Operator):
             gp_child.hide_select = False
             gp_child.hide_viewport = False
             gp_child.hide_render = False
+
+            # set ink layer, else topmost layer
+            setInkLayerReadyToDraw(gp_child)
 
             bpy.ops.gpencil.paintmode_toggle()
 
@@ -254,7 +266,7 @@ class UAS_ShotManager_OT_RemoveGreasePencil(Operator):
         for shot in shotList:
             #    print("   shot name: ", shot.name)
             if shot.camera is not None:
-                gp_child = utils.get_greasepencil_child(shot.camera)
+                gp_child = utils_greasepencil.get_greasepencil_child(shot.camera)
                 if gp_child is not None:
                     bpy.data.objects.remove(gp_child, do_unlink=True)
 
@@ -321,6 +333,7 @@ class UAS_ShotManager_GreasePencilItem(Operator):
 
     def invoke(self, context, event):
         props = context.scene.UAS_shot_manager_props
+        scene = context.scene
         props.setSelectedShotByIndex(self.index)
         shot = props.getShotByIndex(self.index)
         gpChild = shot.getGreasePencil()
@@ -329,6 +342,18 @@ class UAS_ShotManager_GreasePencilItem(Operator):
             bpy.ops.object.select_all(action="DESELECT")
         except Exception:
             pass
+
+        if gpChild is None and event.alt and not event.ctrl and not event.shift:
+
+            if shot.camera is None or shot.camera.name not in scene.objects or scene.objects[shot.camera.name] is None:
+                print("Camera is invalid for grease pencil parenting - Cancelling...")
+                return {"CANCELLED"}
+
+            utils_greasepencil.create_new_greasepencil(
+                shot.camera.name + "_GP", parent_object=shot.camera, location=[0, 0, 0]
+            )
+            gpChild = shot.getGreasePencil()
+
         if gpChild is not None:
             if not event.shift or event.alt:
                 if context.active_object is not None and context.active_object.mode != "OBJECT":

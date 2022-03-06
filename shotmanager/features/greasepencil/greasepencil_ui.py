@@ -55,7 +55,7 @@ def draw_greasepencil_shot_properties(layout, context, shot):
     box.use_property_decorate = False
     row = box.row(align=True)
 
-    gp_child = utils.get_greasepencil_child(shot.camera)
+    gp_child = utils_greasepencil.get_greasepencil_child(shot.camera)
 
     extendSubRow = row.row(align=True)
     # extendSubRow.alignment = "RIGHT"
@@ -77,7 +77,7 @@ def draw_greasepencil_shot_properties(layout, context, shot):
         row.operator(
             "uas_shot_manager.add_grease_pencil", text="", icon="ADD", emboss=True
         ).cameraGpName = shot.camera.name
-        # subSubRow.separator(factor=1.0)
+        row.separator(factor=1.4)
         row.prop(props, "display_greasepencil_in_shotlist", text="")
         # subSubRow.separator(factor=0.5)  # prevents stange look when panel is narrow
 
@@ -111,9 +111,14 @@ def draw_greasepencil_shot_properties(layout, context, shot):
         mainRow = box.row()
         mainRow.separator(factor=0.5)
         col = mainRow.column()
-        if True or prefs.shot_greasepencil_expanded:
+        if config.devDebug:
+            # or prefs.shot_greasepencil_expanded:
             subRow = col.row()
             subRow.prop(gp_child, "location")
+
+        subRow = col.row()
+        # subRow.prop(shot.gpStoryboard, "distance")
+        subRow.prop(shot, "gpDistance")
 
         row = col.row()
         row.label(text="Canvas: ")

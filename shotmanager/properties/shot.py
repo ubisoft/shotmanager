@@ -25,9 +25,12 @@ from bpy.types import Scene
 
 # from bpy.types import SoundSequence
 from bpy.types import PropertyGroup
-from bpy.props import StringProperty, IntProperty, BoolProperty, PointerProperty, FloatVectorProperty
+from bpy.props import StringProperty, IntProperty, BoolProperty, PointerProperty, FloatVectorProperty, FloatProperty
+
+from shotmanager.features.greasepencil.greasepencil_properties import GreasePencilStoryboard
 
 from shotmanager.utils import utils
+from shotmanager.utils import utils_greasepencil
 from .montage_interface import ShotInterface
 
 from shotmanager.config import sm_logging
@@ -50,6 +53,7 @@ class UAS_ShotManager_Shot(ShotInterface, PropertyGroup):
 
     # parentScene: PointerProperty(type=Scene, get=_get_parentScene, set=_set_parentScene)
     parentScene: PointerProperty(type=Scene)
+
     # parentTakeIndex: IntProperty(name="Parent Take Index", default=-1)
 
     def getParentTakeIndex(self):
@@ -76,6 +80,24 @@ class UAS_ShotManager_Shot(ShotInterface, PropertyGroup):
                             self.parentScene = scn
                             return scn
         return None
+
+    #    gpStoryboard: PointerProperty(type=GreasePencilStoryboard)
+
+    def _update_gpDistance(self, context):
+        # print("gpDistance")
+        utils_greasepencil.fitGreasePencilToFrustum(self.camera, self.gpDistance)
+
+    gpDistance: FloatProperty(
+        name="Distance",
+        description="Distance",
+        soft_min=0.0,
+        min=0.0,
+        soft_max=10.0,
+        # max=1.0,
+        step=0.1,
+        update=_update_gpDistance,
+        default=0.9,
+    )
 
     def getOutputMediaPath(
         self,
@@ -533,7 +555,7 @@ class UAS_ShotManager_Shot(ShotInterface, PropertyGroup):
 
     def hasGreasePencil(self):
         if self.camera is not None:
-            gp_child = utils.get_greasepencil_child(self.camera)
+            gp_child = utils_greasepencil.get_greasepencil_child(self.camera)
             return gp_child is not None
         else:
             return False
@@ -541,7 +563,7 @@ class UAS_ShotManager_Shot(ShotInterface, PropertyGroup):
     def getGreasePencil(self):
         gp_child = None
         if self.camera is not None:
-            gp_child = utils.get_greasepencil_child(self.camera)
+            gp_child = utils_greasepencil.get_greasepencil_child(self.camera)
         return gp_child
 
     #############

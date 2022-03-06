@@ -251,6 +251,15 @@ class UAS_ShotManager_NoLens(Operator):
     index: IntProperty(default=0)
 
 
+class UAS_ShotManager_NoDisplaySize(Operator):
+    bl_idname = "uas_shot_manager.nodisplaysize"
+    bl_label = "No Size"
+    bl_description = "No Size"
+    bl_options = {"INTERNAL"}
+
+    index: IntProperty(default=0)
+
+
 class UAS_ShotManager_ShotTimeInEdit(Operator):
     bl_idname = "uas_shot_manager.shottimeinedit"
     bl_label = "Toggle Edit Times"
@@ -1425,6 +1434,7 @@ _classes = (
     UAS_ShotManager_ShotDuration,
     UAS_ShotManager_GetSetCurrentFrame,
     UAS_ShotManager_NoLens,
+    UAS_ShotManager_NoDisplaySize,
     UAS_ShotManager_ShotTimeInEdit,
     UAS_ShotManager_ShowNotes,
     UAS_ShotManager_ListCameraInstances,
