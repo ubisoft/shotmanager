@@ -90,7 +90,15 @@ def draw_greasepencil_shot_properties(layout, context, shot):
         selSubRow.operator(
             "uas_shot_manager.select_shot_grease_pencil", text="", icon="RESTRICT_SELECT_OFF"
         ).index = shotIndex
-        selSubRow.operator("uas_shot_manager.draw_on_grease_pencil", text="", icon="GP_SELECT_STROKES")
+
+        if gp_child.mode == "PAINT_GPENCIL":
+            icon = "GREASEPENCIL"
+            selSubRow.alert = True
+            selSubRow.operator("uas_shot_manager.toggle_grease_pencil_draw_mode", text="", icon=icon)
+            selSubRow.alert = False
+            # bpy.ops.gpencil.paintmode_toggle()
+        else:
+            selSubRow.operator("uas_shot_manager.draw_on_grease_pencil", text="", icon="OUTLINER_OB_GREASEPENCIL")
 
         subSubRow = subRow.row(align=True)
         subSubRow.prop(gp_child, "hide_select", text="")
@@ -244,7 +252,13 @@ def draw_greasepencil_play_tools(layout, context, shot, layersListDropdown=None)
     keysRow.alignment = "CENTER"
     keysRow.enabled = objIsGP
     keysRow.operator("uas_shot_manager.greasepencil_previouskey", icon="PREV_KEYFRAME", text="")
-    keysRow.operator("uas_shot_manager.greasepencil_addnewkey", icon="KEYTYPE_MOVING_HOLD_VEC", text="")
+
+    isCurrentFrameOnGPFrame = isCurrentFrameOnGPFrame()
+    if isCurrentFrameOnGPFrame:
+        iconFrame = "HANDLETYPE_FREE_VEC"
+    else:
+        iconFrame = "KEYTYPE_MOVING_HOLD_VEC"
+    keysRow.operator("uas_shot_manager.greasepencil_addnewframe", icon=iconFrame, text="")
     keysRow.operator("uas_shot_manager.greasepencil_nextkey", icon="NEXT_KEYFRAME", text="")
 
     # subRow = mainRow.row(align=False)
