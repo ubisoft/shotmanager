@@ -19,6 +19,7 @@
 Shot Manager grease pencil operators
 """
 
+from inspect import currentframe
 import bpy
 from bpy.types import Operator
 from bpy.props import StringProperty, IntProperty
@@ -390,42 +391,6 @@ class UAS_ShotManager_GreasePencil_PreviousKey(Operator):
                 gp, currentFrame, props.greasePencil_layersMode
             )
 
-        # print("GP previous key")
-
-        # def _getPrevFrame(gpLayer, frame):
-        #     for f in reversed(gpLayer.frames):
-        #         if f.frame_number < frame:
-        #             return f.frame_number
-        #     return frame
-
-        # gp = context.active_object
-        # if gp is not None:
-        #     currentFrame = context.scene.frame_current
-        #     props = context.scene.UAS_shot_manager_props
-        #     if "" == props.greasePencil_layersMode:
-        #         if len(gp.data.layers):
-        #             props.greasePencil_layersMode = "ACTIVE"
-        #         else:
-        #             props.greasePencil_layersMode = "NOLAYER"
-
-        #     if "NOLAYER" == props.greasePencil_layersMode:
-        #         return {"FINISHED"}
-
-        #     if "ALL" == props.greasePencil_layersMode:
-        #         mins = list()
-        #         for layer in gp.data.layers:
-        #             prevKeyFrame = _getPrevFrame(layer, currentFrame)
-        #             if prevKeyFrame < currentFrame:
-        #                 mins.append(prevKeyFrame)
-        #         if len(mins):
-        #             context.scene.frame_current = max(mins)
-        #     elif "ACTIVE" == props.greasePencil_layersMode:
-        #         gpLayer = gp.data.layers.active
-        #         context.scene.frame_current = _getPrevFrame(gpLayer, currentFrame)
-        #     else:
-        #         gpLayer = gp.data.layers[props.greasePencil_layersMode]
-        #         context.scene.frame_current = _getPrevFrame(gpLayer, currentFrame)
-
         return {"FINISHED"}
 
 
@@ -439,18 +404,8 @@ class UAS_ShotManager_GreasePencil_NextKey(Operator):
     bl_options = {"INTERNAL", "UNDO"}
 
     def invoke(self, context, event):
-        print("GP next key")
-
-        def _getNextFrame(gpLayer, frame):
-            for f in gpLayer.frames:
-                if f.frame_number > frame:
-                    return f.frame_number
-            return frame
-
         gp = context.active_object
-
         if gp is not None:
-            currentFrame = context.scene.frame_current
             props = context.scene.UAS_shot_manager_props
             if "" == props.greasePencil_layersMode:
                 if len(gp.data.layers):
@@ -461,20 +416,10 @@ class UAS_ShotManager_GreasePencil_NextKey(Operator):
             if "NOLAYER" == props.greasePencil_layersMode:
                 return {"FINISHED"}
 
-            if "ALL" == props.greasePencil_layersMode:
-                maxs = list()
-                for layer in gp.data.layers:
-                    nextKeyFrame = _getNextFrame(layer, currentFrame)
-                    if currentFrame < nextKeyFrame:
-                        maxs.append(nextKeyFrame)
-                if len(maxs):
-                    context.scene.frame_current = min(maxs)
-            elif "ACTIVE" == props.greasePencil_layersMode:
-                gpLayer = gp.data.layers.active
-                context.scene.frame_current = _getNextFrame(gpLayer, currentFrame)
-            else:
-                gpLayer = gp.data.layers[props.greasePencil_layersMode]
-                context.scene.frame_current = _getNextFrame(gpLayer, currentFrame)
+            currentFrame = context.scene.frame_current
+            context.scene.frame_current = utils_greasepencil.getLayerNextFrame(
+                gp, currentFrame, props.greasePencil_layersMode
+            )
 
         return {"FINISHED"}
 
@@ -486,19 +431,8 @@ class UAS_ShotManager_GreasePencil_AddNewFrame(Operator):
     bl_options = {"INTERNAL", "UNDO"}
 
     def invoke(self, context, event):
-        print("GP Add Frame")
-
-        def _isCurrentFrameOnFrame(gpLayer, frame):
-            for f in gpLayer.frames:
-                if f.frame_number == frame:
-                    return True
-            return False
-
         gp = context.active_object
-
         if gp is not None:
-
-            currentFrame = context.scene.frame_current
             props = context.scene.UAS_shot_manager_props
             if "" == props.greasePencil_layersMode:
                 if len(gp.data.layers):
@@ -506,32 +440,10 @@ class UAS_ShotManager_GreasePencil_AddNewFrame(Operator):
                 else:
                     props.greasePencil_layersMode = "NOLAYER"
 
-            if "NOLAYER" == props.greasePencil_layersMode:
-                return {"FINISHED"}
-
-            if "ALL" == props.greasePencil_layersMode:
-                # mins = list()
-                # for layer in gp.data.layers:
-                #     prevKeyFrame = _getPrevFrame(layer, currentFrame)
-                #     if prevKeyFrame < currentFrame:
-                #         mins.append(prevKeyFrame)
-                # if len(mins):
-                #     context.scene.frame_current = max(mins)
-                bpy.ops.gpencil.blank_frame_add(all_layers=True)
-            elif "ACTIVE" == props.greasePencil_layersMode:
-                gpLayer = gp.data.layers.active
-                isOncurrentFrame = _isCurrentFrameOnFrame(gpLayer, currentFrame)
-                if not isOncurrentFrame:
-                    bpy.ops.gpencil.blank_frame_add(all_layers=False)
-            else:
-                gpLayer = gp.data.layers[props.greasePencil_layersMode]
-                isOncurrentFrame = _isCurrentFrameOnFrame(gpLayer, currentFrame)
-                if not isOncurrentFrame:
-                    prevActiveLayer = gp.data.layers.active
-                    gp.data.layers.active = gpLayer
-                    bpy.ops.gpencil.blank_frame_add(all_layers=False)
-                    gp.data.layers.active = prevActiveLayer
-
+        print(
+            f"On a frame for mode {props.greasePencil_layersMode}: {utils_greasepencil.isCurrentFrameOnLayerFrame(gp, context.scene.frame_current, props.greasePencil_layersMode)}"
+        )
+        utils_greasepencil.addFrameToLayer(gp, context.scene.frame_current, props.greasePencil_layersMode)
         return {"FINISHED"}
 
 

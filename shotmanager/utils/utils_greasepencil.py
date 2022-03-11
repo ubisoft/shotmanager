@@ -281,34 +281,63 @@ def add_grease_pencil_canvas_layer(
 
 def fitGreasePencilToFrustum(camera, distance=None):
     gpencil = get_greasepencil_child(camera)
+
+    gpencil.location[2] = -1.0 * distance
     canvas_bg_stroke = get_grease_pencil_canvas_stroke(gpencil)
-    fitCanvasToFrustum(canvas_bg_stroke, camera, distance)
+    applied_scale_factor = fitCanvasToFrustum(canvas_bg_stroke, camera, distance, zOffset=gpencil.location[2])
+    fitLayersToFrustum(gpencil, applied_scale_factor)
 
 
-def fitCanvasToFrustum(gpStroke: bpy.types.GPencilStroke, camera, distance=None):
+def fitLayersToFrustum(gpencil, factor):
+    for layer in gpencil.data.layers:
+        if layer.info != "GP_Canvas":
+            layer.scale[0] = factor
+            layer.scale[1] = factor
+            layer.scale[2] = factor
+
+
+def fitCanvasToFrustum(gpStroke: bpy.types.GPencilStroke, camera, distance=None, zOffset=0.0):
     if camera is None:
         return
 
-    top_left = gpStroke.points[0].co
-    bottom_right = gpStroke.points[2].co
+    top_left_previous_x = gpStroke.points[0].co[0]
+    bottom_right_previous = gpStroke.points[2].co
 
-    corners = getCameraCorners(bpy.context, camera, distance)
+    corners = getCameraCorners(bpy.context, camera, -1.0 * distance)
 
     top_left = corners[0]
+    top_left[2] -= zOffset
     bottom_right = corners[2]
+    bottom_right[2] -= zOffset
 
     gpStroke.points[0].co = top_left
     gpStroke.points[1].co = (bottom_right[0], top_left[1], top_left[2])
     gpStroke.points[2].co = bottom_right
     gpStroke.points[3].co = (top_left[0], bottom_right[1], bottom_right[2])
 
-    return
+    # wkipwkipwkip to fix
+    applied_scale_factor = top_left_previous_x / top_left[0]
+
+    return applied_scale_factor
 
 
 def getCameraCorners(context, camera, distance=None):
     mw = camera.matrix_world
 
-    f = 1 if camera.type == "ORTHO" else distance if distance is not None else camera.data.display_size
+    # sizeRef is an arbitrary ref for the frustum width of the camera
+    sizeRef = 1.0
+    # point of the frustum when width is 1
+    distRef = camera.data.view_frame(scene=context.scene)[0][2]
+
+    # camera.data.display_size is the width of the frustum for a given lens
+    # f = 1 if camera.type == "ORTHO" else distance if distance is not None else camera.data.display_size
+    f = (
+        1
+        if camera.type == "ORTHO"
+        else distance * sizeRef / distRef
+        if distance is not None
+        else camera.data.display_size
+    )
 
     corners = [(f * p) for p in camera.data.view_frame(scene=context.scene)]
     # corners = [mw @ (f * p) for p in camera.data.view_frame(scene=context.scene)]
@@ -372,7 +401,7 @@ def draw_canvas_rect(gp_frame, top_left: tuple, bottom_right: tuple) -> bpy.type
     return gpStroke
 
 
-def switchToDrawMode(gp_obj):
+def switchToDrawMode(gpencil: bpy.types.GreasePencil):
     # if another object is edited it is switched to OBJECT mode
     if bpy.context.active_object is not None and bpy.context.active_object.mode != "OBJECT":
         bpy.ops.object.mode_set(mode="OBJECT")
@@ -380,10 +409,145 @@ def switchToDrawMode(gp_obj):
     # clear selection
     bpy.ops.object.select_all(action="DESELECT")
 
-    bpy.context.view_layer.objects.active = gp_obj
-    gp_obj.select_set(True)
-    gp_obj.hide_select = False
-    gp_obj.hide_viewport = False
+    bpy.context.view_layer.objects.active = gpencil
+    gpencil.select_set(True)
+    gpencil.hide_select = False
+    gpencil.hide_viewport = False
 
-    if "GPENCIL" == gp_obj.type:
+    if "GPENCIL" == gpencil.type:
         bpy.ops.gpencil.paintmode_toggle()
+
+
+def getLayerPreviousFrame(gpencil: bpy.types.GreasePencil, currentFrame, layerMode):
+    """ Return the previous key of the specified layer
+    Args:
+        layerMode: Can be "NOLAYER", "ACTIVE", "ALL" or the name of the layer
+        Usually comes from props.greasePencil_layersMode
+    """
+
+    def _getPrevFrame(gpLayer, frame):
+        for f in reversed(gpLayer.frames):
+            if f.frame_number < frame:
+                return f.frame_number
+        return frame
+
+    gpFrame = currentFrame
+    if "NOLAYER" == layerMode:
+        pass
+    elif "ALL" == layerMode:
+        mins = list()
+        for layer in gpencil.data.layers:
+            prevKeyFrame = _getPrevFrame(layer, currentFrame)
+            if prevKeyFrame < currentFrame:
+                mins.append(prevKeyFrame)
+        if len(mins):
+            gpFrame = max(mins)
+    elif "ACTIVE" == layerMode:
+        gpLayer = gpencil.data.layers.active
+        gpFrame = _getPrevFrame(gpLayer, currentFrame)
+    else:
+        gpLayer = gpencil.data.layers[layerMode]
+        gpFrame = _getPrevFrame(gpLayer, currentFrame)
+
+    return gpFrame
+
+
+def getLayerNextFrame(gpencil: bpy.types.GreasePencil, currentFrame, layerMode):
+    """ Return the next key of the specified layer
+    Args:
+        layerMode: Can be "NOLAYER", "ACTIVE", "ALL" or the name of the layer
+        Usually comes from props.greasePencil_layersMode
+    """
+
+    def _getNextFrame(gpLayer, frame):
+        for f in gpLayer.frames:
+            if f.frame_number > frame:
+                return f.frame_number
+        return frame
+
+    gpFrame = currentFrame
+    if "NOLAYER" == layerMode:
+        pass
+    elif "ALL" == layerMode:
+        maxs = list()
+        for layer in gpencil.data.layers:
+            nextKeyFrame = _getNextFrame(layer, currentFrame)
+            if currentFrame < nextKeyFrame:
+                maxs.append(nextKeyFrame)
+        if len(maxs):
+            gpFrame = min(maxs)
+    elif "ACTIVE" == layerMode:
+        gpLayer = gpencil.data.layers.active
+        gpFrame = _getNextFrame(gpLayer, currentFrame)
+    else:
+        gpLayer = gpencil.data.layers[layerMode]
+        gpFrame = _getNextFrame(gpLayer, currentFrame)
+
+    return gpFrame
+
+
+def isCurrentFrameOnLayerFrame(gpencil: bpy.types.GreasePencil, currentFrame, layerMode):
+    """ Return True if the specifed layer has a key at the specified frame
+    Args:
+        layerMode: Can be "NOLAYER", "ACTIVE", "ALL" or the name of the layer
+        Usually comes from props.greasePencil_layersMode
+    """
+
+    def _isCurrentFrameOnFrame(gpLayer, frame):
+        for f in gpLayer.frames:
+            if f.frame_number == frame:
+                return True
+        return False
+
+    currentFrameIsOnGPFrame = False
+    if "NOLAYER" == layerMode:
+        pass
+    elif "ALL" == layerMode:
+        for layer in gpencil.data.layers:
+            if _isCurrentFrameOnFrame(layer, currentFrame):
+                currentFrameIsOnGPFrame = True
+                continue
+    elif "ACTIVE" == layerMode:
+        gpLayer = gpencil.data.layers.active
+        currentFrameIsOnGPFrame = _isCurrentFrameOnFrame(gpLayer, currentFrame)
+    else:
+        gpLayer = gpencil.data.layers[layerMode]
+        currentFrameIsOnGPFrame = _isCurrentFrameOnFrame(gpLayer, currentFrame)
+
+    return currentFrameIsOnGPFrame
+
+
+def addFrameToLayer(gpencil: bpy.types.GreasePencil, currentFrame, layerMode):
+    """ Add a new key to the specified layer at the specified frame
+    Args:
+        layerMode: Can be "NOLAYER", "ACTIVE", "ALL" or the name of the layer
+        Usually comes from props.greasePencil_layersMode
+    """
+
+    if "NOLAYER" == layerMode:
+        return
+    elif "ALL" == layerMode:
+        for layer in gpencil.data.layers:
+            if not layer.lock:
+                if not isCurrentFrameOnLayerFrame(gpencil, currentFrame, layer.info):
+                    layer.frames.new(currentFrame)
+
+        # not working: it duplicates existing frames
+        # bpy.ops.gpencil.blank_frame_add(all_layers=True)
+    elif "ACTIVE" == layerMode:
+        currentFrameIsOnGPFrame = isCurrentFrameOnLayerFrame(gpencil, currentFrame, "ACTIVE")
+        if not currentFrameIsOnGPFrame and not gpencil.data.layers.active.lock:
+            # bpy.ops.gpencil.blank_frame_add(all_layers=False)
+            gpencil.data.layers.active.frames.new(currentFrame)
+    else:
+        gpLayer = gpencil.data.layers[layerMode]
+        currentFrameIsOnGPFrame = isCurrentFrameOnLayerFrame(gpencil, currentFrame, layerMode)
+        if not currentFrameIsOnGPFrame and not gpLayer.lock:
+            # prevActiveLayer = gpencil.data.layers.active
+            # gpencil.data.layers.active = gpLayer
+            # bpy.ops.gpencil.blank_frame_add(all_layers=False)
+            gpLayer.frames.new(currentFrame)
+            # gpencil.data.layers.active = prevActiveLayer
+
+    return
+

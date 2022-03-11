@@ -33,4 +33,6 @@ def setInkLayerReadyToDraw(gpencil: bpy.types.GreasePencil):
     gpencil.data.layers.active = inkLayer
 
     # create frame
-    bpy.ops.gpencil.blank_frame_add(all_layers=False)
+
+# bpy.ops.gpencil.blank_frame_add(all_layers=False)
+

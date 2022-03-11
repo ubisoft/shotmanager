@@ -965,7 +965,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
 
         if context.object is not None and "GPENCIL" == context.object.type:
             if len(context.object.data.layers):
-                for i, layer in enumerate(context.object.data.layers):
+                for i, layer in reversed(list(enumerate(context.object.data.layers))):
                     res.append((layer.info, layer.info, "", i + 2))
             else:
                 res = (("NOLAYER", "No Layer", "", 0),)
