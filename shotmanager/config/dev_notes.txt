@@ -48,3 +48,13 @@ Utiliser ImageSequenceReference
 Voir https://github.com/PixarAnimationStudios/OpenTimelineIO/issues/890
 
 OTIO advanced doc: https://sandflow.github.io/otio-core-specification/
+
+
+
+Grease Pencil for boarding:
+    - focale animée sur cam: conséquences?
+    - déplacement du start et end du shot:
+        - pouvoir linker l'anim du gp au start
+        
+
+

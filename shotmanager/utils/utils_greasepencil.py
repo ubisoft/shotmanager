@@ -23,7 +23,10 @@ Useful functions related to the use of Grease Pencil
 
 import bpy
 
+import mathutils
+
 from . import utils
+
 
 ###################
 # Grease Pencil
@@ -282,10 +285,30 @@ def add_grease_pencil_canvas_layer(
 def fitGreasePencilToFrustum(camera, distance=None):
     gpencil = get_greasepencil_child(camera)
 
+    # method with canvas points modification ###
+    # gpencil.location[2] = -1.0 * distance
+    # canvas_bg_stroke = get_grease_pencil_canvas_stroke(gpencil)
+    # applied_scale_factor = fitCanvasToFrustum(canvas_bg_stroke, camera, distance, zOffset=gpencil.location[2])
+    # fitLayersToFrustum(gpencil, applied_scale_factor)
+
+    # method with gpencil scaling ###
     gpencil.location[2] = -1.0 * distance
-    canvas_bg_stroke = get_grease_pencil_canvas_stroke(gpencil)
-    applied_scale_factor = fitCanvasToFrustum(canvas_bg_stroke, camera, distance, zOffset=gpencil.location[2])
-    fitLayersToFrustum(gpencil, applied_scale_factor)
+    distRef = getDistRef(camera)
+    gpWidth = distance / distRef
+
+    vec = mathutils.Vector((gpWidth, gpWidth, gpWidth))
+    gpencil.scale = vec
+
+    # gpencil.scale =
+
+
+def getDistRef(camera):
+    f = 1.0 if camera.type == "ORTHO" else 1.0
+    corners = [(f * p) for p in camera.data.view_frame(scene=bpy.context.scene)]
+    width = corners[0][0] - corners[2][0]
+    dist = -1.0 * corners[2][2]
+    print(f"getDistRef: width:{width}, dist:{dist}")
+    return dist
 
 
 def fitLayersToFrustum(gpencil, factor):
@@ -303,7 +326,10 @@ def fitCanvasToFrustum(gpStroke: bpy.types.GPencilStroke, camera, distance=None,
     top_left_previous_x = gpStroke.points[0].co[0]
     bottom_right_previous = gpStroke.points[2].co
 
-    corners = getCameraCorners(bpy.context, camera, -1.0 * distance)
+    if distance is not None:
+        corners = getCameraCorners(bpy.context, camera, -1.0 * distance)
+    else:
+        corners = getCameraCorners(bpy.context, camera)
 
     top_left = corners[0]
     top_left[2] -= zOffset

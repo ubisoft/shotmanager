@@ -97,6 +97,7 @@ class UAS_ShotManager_Shot(ShotInterface, PropertyGroup):
         step=0.1,
         update=_update_gpDistance,
         default=0.9,
+        options=set(),
     )
 
     def getOutputMediaPath(

@@ -123,10 +123,12 @@ def draw_greasepencil_shot_properties(layout, context, shot):
             # or prefs.shot_greasepencil_expanded:
             subRow = col.row()
             subRow.prop(gp_child, "location")
+            subRow = col.row()
+            subRow.prop(gp_child, "scale")
 
         subRow = col.row()
         # subRow.prop(shot.gpStoryboard, "distance")
-        subRow.prop(shot, "gpDistance")
+        subRow.prop(shot, "gpDistance", slider=True)
 
         row = col.row()
         row.label(text="Canvas: ")
@@ -259,20 +261,24 @@ def draw_greasepencil_play_tools(layout, context, shot, layersListDropdown=None)
     keysRow.enabled = objIsGP
     keysRow.operator("uas_shot_manager.greasepencil_previouskey", icon="PREV_KEYFRAME", text="")
 
-    isCurrentFrameOnGPFrame = utils_greasepencil.isCurrentFrameOnLayerFrame(
-        gp, context.scene.frame_current, props.greasePencil_layersMode
-    )
+    isCurrentFrameOnGPFrame = False
+    if objIsGP:
+        isCurrentFrameOnGPFrame = utils_greasepencil.isCurrentFrameOnLayerFrame(
+            gp, context.scene.frame_current, props.greasePencil_layersMode
+        )
+    else:
+        keysRow.enabled = False
+
     if isCurrentFrameOnGPFrame:
         # iconFrame = "HANDLETYPE_FREE_VEC"
         iconFrame = "ADD"
         iconFrame = "KEYFRAME_HLT"
-        keysRow.enabled = False
     else:
         iconFrame = "KEYTYPE_MOVING_HOLD_VEC"
         iconFrame = "KEYFRAME"
     # iconFrame = "ADD"
     keysRow.operator("uas_shot_manager.greasepencil_addnewframe", icon=iconFrame, text="")
-    keysRow.enabled = True
+    # keysRow.enabled = True
     keysRow.operator("uas_shot_manager.greasepencil_nextkey", icon="NEXT_KEYFRAME", text="")
 
     # subRow = mainRow.row(align=False)
@@ -288,10 +294,13 @@ def draw_greasepencil_play_tools(layout, context, shot, layersListDropdown=None)
 
     mainRow.label(text="Drawing on GP frame: ")
     subsubRow = mainRow.row(align=True)
-    gpFrameStr = "Current"
-    if not isCurrentFrameOnGPFrame:
-        subsubRow.alert = True
-        gpFrameStr = str(utils_greasepencil.getLayerPreviousFrame(gp, context.scene.frame_current, "ACTIVE"))
+    gpFrameStr = "-"
+    if objIsGP:
+        if isCurrentFrameOnGPFrame:
+            gpFrameStr = "Current"
+        else:
+            subsubRow.alert = True
+            gpFrameStr = str(utils_greasepencil.getLayerPreviousFrame(gp, context.scene.frame_current, "ACTIVE"))
     subsubRow.label(text=gpFrameStr)
 
     utils_ui.drawSeparatorLine(layout, lower_height=0.6)
