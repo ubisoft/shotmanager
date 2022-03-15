@@ -25,9 +25,16 @@ from bpy.types import Scene
 
 # from bpy.types import SoundSequence
 from bpy.types import PropertyGroup
-from bpy.props import StringProperty, IntProperty, BoolProperty, PointerProperty, FloatVectorProperty, FloatProperty
+from bpy.props import (
+    StringProperty,
+    IntProperty,
+    BoolProperty,
+    PointerProperty,
+    FloatVectorProperty,
+    CollectionProperty,
+)
 
-from shotmanager.features.greasepencil.greasepencil_properties import GreasePencilStoryboard
+from shotmanager.features.greasepencil.greasepencil_properties import GreasePencilProperties
 
 from shotmanager.utils import utils
 from shotmanager.utils import utils_greasepencil
@@ -81,24 +88,7 @@ class UAS_ShotManager_Shot(ShotInterface, PropertyGroup):
                             return scn
         return None
 
-    #    gpStoryboard: PointerProperty(type=GreasePencilStoryboard)
-
-    def _update_gpDistance(self, context):
-        # print("gpDistance")
-        utils_greasepencil.fitGreasePencilToFrustum(self.camera, self.gpDistance)
-
-    gpDistance: FloatProperty(
-        name="Distance",
-        description="Distance",
-        soft_min=0.0,
-        min=0.0,
-        soft_max=10.0,
-        # max=1.0,
-        step=0.1,
-        update=_update_gpDistance,
-        default=0.9,
-        options=set(),
-    )
+    # gpStoryboard: PointerProperty(type=GreasePencilStoryboard)
 
     def getOutputMediaPath(
         self,
@@ -554,6 +544,8 @@ class UAS_ShotManager_Shot(ShotInterface, PropertyGroup):
     # grease pencil
     #############
 
+    greasePencils: CollectionProperty(type=GreasePencilProperties)
+
     def hasGreasePencil(self):
         if self.camera is not None:
             gp_child = utils_greasepencil.get_greasepencil_child(self.camera)
@@ -561,11 +553,16 @@ class UAS_ShotManager_Shot(ShotInterface, PropertyGroup):
         else:
             return False
 
+    # wkip to update with the gp list
     def getGreasePencil(self):
         gp_child = None
         if self.camera is not None:
             gp_child = utils_greasepencil.get_greasepencil_child(self.camera)
         return gp_child
+
+    def updateGreasePencils(self):
+        for gp in self.greasePencils:
+            gp.updateGreasePencilToFrustum()
 
     #############
     # notes #####

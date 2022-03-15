@@ -414,7 +414,7 @@ def createShotsFromOtio(
     from math import radians
 
     props = scene.UAS_shot_manager_props
-    if len(props.getCurrentTake().getShotList()) != 0:
+    if len(props.getCurrentTake().getShotsList()) != 0:
         bpy.ops.uas_shot_manager.take_add(name=Path(otioFile).stem)
 
     handlesDuration = 0
@@ -552,7 +552,7 @@ def createShotsFromOtioTimelineClass(
 
     # wkip temp - to remove! Shots are added to another take!
     props = scene.UAS_shot_manager_props
-    if len(props.getCurrentTake().getShotList()) != 0:
+    if len(props.getCurrentTake().getShotsList()) != 0:
         bpy.ops.uas_shot_manager.take_add(name=Path(montageOtio.otioFile).stem)
 
     handlesDuration = 0

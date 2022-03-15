@@ -972,7 +972,34 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         return res
 
     greasePencil_layersMode: EnumProperty(
-        name="Apply to:", items=(list_greasepencil_layer_modes), default=0,
+        name="Apply to:", items=(list_greasepencil_layer_modes), default=1,
+    )
+
+    def list_greasepencil_materials(self, context):
+        res = list()
+
+        if context.object is not None and "GPENCIL" == context.object.type:
+            if len(context.object.data.layers):
+                for i, mat in list(enumerate(context.object.material_slots)):
+                    res.append((mat.name, mat.name, "", i))
+            else:
+                res = (("NOMAT", "No Material", "", 0),)
+        return res
+
+    def _update_greasePencil_activeMaterial(self, context):
+        if self.greasePencil_activeMaterial != "NOMAT":
+            if context.object is not None and "GPENCIL" == context.object.type:
+                # Create a lookup-dict for the object materials:
+                # mat_dict = {mat.name: i for i, mat in enumerate(context.object.data.materials)}
+                mat_dict = {mat.name: i for i, mat in enumerate(context.object.material_slots)}
+                # then map names to indices:
+                context.object.active_material_index = mat_dict[self.greasePencil_activeMaterial]
+
+    greasePencil_activeMaterial: EnumProperty(
+        name="Active Material",
+        items=(list_greasepencil_materials),
+        update=_update_greasePencil_activeMaterial,
+        default=0,
     )
 
     def _get_useLockCameraView(self):
@@ -3753,6 +3780,11 @@ def register():
     for cls in _classes:
         bpy.utils.register_class(cls)
     bpy.types.Scene.UAS_shot_manager_props = PointerProperty(type=UAS_ShotManager_Props)
+
+    # # if not hasattr(shot, "greasePencils"):
+    # from shotmanager.features.greasepencil.greasepencil_properties import GreasePencilProperties
+
+    # UAS_ShotManager_Shot.greasePencils = CollectionProperty(type=GreasePencilProperties)
 
 
 def unregister():

@@ -16,13 +16,20 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 """
-To do: module description here.
+Shot Manager API
+
+Use in a Blender scene:
+
+from shotmanager.api import shot_manager as sm
+sm_props = sm.get_shot_manager()
 """
 
 import bpy
 
 
-def get_shot_manager(scene):
+def get_shot_manager(scene=None):
+    if scene is None:
+        scene = bpy.context.scene
     return scene.UAS_shot_manager_props
 
 

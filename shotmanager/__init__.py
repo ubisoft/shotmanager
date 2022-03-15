@@ -170,7 +170,6 @@ def register():
     # markers_nav_bar_addon_prefs.register()
     cameraBG.register()
     soundBG.register()
-    greasepencil.register()
     frame_range.register()
     rendering.register()
     takes.register()
@@ -179,7 +178,17 @@ def register():
     precut_tools.register()
     playbar.register()
     retimer.register()
+    greasepencil.register()
     props.register()
+
+    # if not hasattr(shot, "greasePencils"):
+    # from shotmanager.properties.shot import UAS_ShotManager_Shot
+    # from shotmanager.features.greasepencil.greasepencil_properties import GreasePencilProperties
+
+    # from bpy.props import CollectionProperty
+
+    # UAS_ShotManager_Shot.greasePencils = CollectionProperty(type=GreasePencilProperties)
+
     shots_toolbar.register()
 
     # ui

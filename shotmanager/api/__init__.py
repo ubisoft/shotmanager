@@ -16,24 +16,17 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 """
-Grease pencil functions specific to Shot Manager
+Shot Manager API package
+
+Use in a Blender scene:
+
+from shotmanager.api import shot_manager as sm
+sm_props = sm.get_shot_manager()
 """
 
-import bpy
-
-from shotmanager.utils import utils
-from shotmanager.utils import utils_greasepencil
-
-
-def setInkLayerReadyToDraw(gpencil: bpy.types.GreasePencil):
-    inkLayer = None
-    if gpencil.data.layers["Lines"] is not None:
-        inkLayer = gpencil.data.layers["Lines"]
-
-    gpencil.data.layers.active = inkLayer
-
-    # create frame
-
-
-# bpy.ops.gpencil.blank_frame_add(all_layers=False)
+from . import shot_manager
+from . import shot
+from . import take
+from . import otio
+from . import rrs
 

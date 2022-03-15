@@ -56,5 +56,15 @@ Grease Pencil for boarding:
     - déplacement du start et end du shot:
         - pouvoir linker l'anim du gp au start
         
+Camera sel:
+    - ajouter Shift pour ajout a la sel
+    voir desel
+    - ajouter ctrl pour la selection de data de la cam
+    - faire pareil pour gp
+
+    - animer le zoom en cas de changement animé de focale:
+    https://www.codegrepper.com/code-examples/python/blender+change+text+during+animation
+    
+    
 
 

@@ -238,7 +238,7 @@ def exportTakeEditToOtio(
     sceneFps = fps if fps != -1 else scene.render.fps
     #   import opentimelineio as opentimelineio
 
-    shotList = take.getShotList(ignoreDisabled=True)
+    shotList = take.getShotsList(ignoreDisabled=True)
     take_name = take.getName_PathCompliant()
 
     print("\n--- --- --- --- --- --- --- --- --- ---")
@@ -372,7 +372,7 @@ def exportShotManagerEditToOtio(
     montageCharacteristics = props.get_montage_characteristics()
 
     take = props.getCurrentTake() if -1 == takeIndex else props.getTakeByIndex(takeIndex)
-    shotList = take.getShotList(ignoreDisabled=True)
+    shotList = take.getShotsList(ignoreDisabled=True)
     take_name = take.getName_PathCompliant()
 
     renderPath = filePath if "" != filePath else props.renderRootPath

@@ -21,30 +21,47 @@ Grease pencil shot class
 
 import bpy
 from bpy.types import PropertyGroup
-from bpy.props import FloatProperty
+from bpy.props import PointerProperty, FloatProperty
+
+# from shotmanager.properties.shot import UAS_ShotManager_Shot
 
 from shotmanager.utils import utils
 from shotmanager.utils import utils_greasepencil
 
 
-class GreasePencilStoryboard(PropertyGroup):
+class GreasePencilProperties(PropertyGroup):
     """ Contains the grease pencil related to the shot
     """
 
-    # def _update_distance():
-    #     fitCanvasToFrustum(gpStroke, camera)
+    # parentShot: PointerProperty(type=UAS_ShotManager_Shot)
+    parentCamera: PointerProperty(
+        name="Camera", description="Camera parent of the grease pencil object", type=bpy.types.Object
+    )
 
-    distance: FloatProperty(
+    def initialize(self, parentShot):
+        print(f"\nInitializing new Grease Pencil Properties for shot {parentShot.name}...")
+
+        self.parentCamera = parentShot.camera
+
+    def _update_gpDistance(self, context):
+        # print("gpDistance")
+        utils_greasepencil.fitGreasePencilToFrustum(self.parentCamera, self.gpDistance)
+
+    gpDistance: FloatProperty(
         name="Distance",
         description="Distance",
         soft_min=0.0,
         min=0.0,
-        soft_max=1.0,
-        max=1.0,
+        soft_max=10.0,
+        # max=1.0,
         step=0.1,
-        # update=_update_distance,
+        update=_update_gpDistance,
         default=0.9,
+        options=set(),
     )
+
+    def updateGreasePencilToFrustum(self):
+        utils_greasepencil.fitGreasePencilToFrustum(self.parentCamera, self.gpDistance)
 
     # def __init__(self, parent, shot):
     #     self._distance = 0
@@ -61,7 +78,7 @@ class GreasePencilStoryboard(PropertyGroup):
     #     return utils_greasepencil
 
 
-_classes = (GreasePencilStoryboard,)
+_classes = (GreasePencilProperties,)
 
 
 def register():

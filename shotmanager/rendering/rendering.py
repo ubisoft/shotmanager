@@ -139,7 +139,7 @@ def launchRenderWithVSEComposite(
     take = props.getCurrentTake() if -1 == takeIndex else props.getTakeByIndex(takeIndex)
     takeName = take.getName_PathCompliant()
     shotListTmp = (
-        take.getShotList(ignoreDisabled=not renderAlsoDisabled) if specificShotList is None else specificShotList
+        take.getShotsList(ignoreDisabled=not renderAlsoDisabled) if specificShotList is None else specificShotList
     )
 
     # remove shots ending with "_removed" and not enabled

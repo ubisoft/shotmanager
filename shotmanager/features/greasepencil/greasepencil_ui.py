@@ -50,6 +50,10 @@ def draw_greasepencil_shot_properties(layout, context, shot):
         return
 
     shotIndex = props.getShotIndex(shot)
+    #    gpProperties = shot.gpStoryboard if hasattr(shot, "gpStoryboard") else None
+    gpProperties = None
+    if len(shot.greasePencils):
+        gpProperties = shot.greasePencils[0]
 
     box = layout.box()
     box.use_property_decorate = False
@@ -74,12 +78,17 @@ def draw_greasepencil_shot_properties(layout, context, shot):
 
     if gp_child is None:
         # extendSubRow.enabled = False
-        row.operator(
-            "uas_shot_manager.add_grease_pencil", text="", icon="ADD", emboss=True
-        ).cameraGpName = shot.camera.name
+        row.operator("uas_shot_manager.add_grease_pencil", text="", icon="ADD", emboss=True).shotName = shot.name
         row.separator(factor=1.4)
         row.prop(props, "display_greasepencil_in_shotlist", text="")
         # subSubRow.separator(factor=0.5)  # prevents stange look when panel is narrow
+
+    elif gpProperties is None:
+        subRow = extendSubRow.row(align=False)
+        subRow.alert = True
+        subRow.label(text="*** No gpStoryboard property on shot ***")
+        subRow = extendSubRow.row(align=False)
+        subRow.operator("uas_shot_manager.add_grease_pencil", text="", icon="ADD", emboss=True).shotName = shot.name
 
     else:
         extendSubRow.alignment = "EXPAND"
@@ -90,6 +99,7 @@ def draw_greasepencil_shot_properties(layout, context, shot):
         selSubRow.operator(
             "uas_shot_manager.select_shot_grease_pencil", text="", icon="RESTRICT_SELECT_OFF"
         ).index = shotIndex
+        selSubRow.operator("uas_shot_manager.update_grease_pencil", text="", icon="FILE_REFRESH").shotIndex = shotIndex
 
         if gp_child.mode == "PAINT_GPENCIL":
             icon = "GREASEPENCIL"
@@ -128,7 +138,7 @@ def draw_greasepencil_shot_properties(layout, context, shot):
 
         subRow = col.row()
         # subRow.prop(shot.gpStoryboard, "distance")
-        subRow.prop(shot, "gpDistance", slider=True)
+        subRow.prop(gpProperties, "gpDistance", slider=True)
 
         row = col.row()
         row.label(text="Canvas: ")
@@ -191,6 +201,10 @@ def draw_greasepencil_play_tools(layout, context, shot, layersListDropdown=None)
 
     box = layout.box()
     #    row = box.row()
+
+    # Object and layers ###
+    ###################
+
     mainRow = box.row(align=False)
 
     objIsGP = False
@@ -237,9 +251,9 @@ def draw_greasepencil_play_tools(layout, context, shot, layersListDropdown=None)
             sub.label(text="", icon="LOCKED")
 
         rightRow = mainRow.row(align=True)
-        if gp.mode == "PAINT_GPENCIL":
-            rightRow.operator("uas_shot_manager.select_grease_pencil_object", text="", icon="RESTRICT_SELECT_OFF")
+        rightRow.operator("uas_shot_manager.select_grease_pencil_object", text="", icon="RESTRICT_SELECT_OFF")
 
+        if gp.mode == "PAINT_GPENCIL":
             icon = "GREASEPENCIL"
             rightRow.alert = True
             # row.operator("uas_shot_manager.greasepencilitem", text="", icon=icon).index = index
@@ -247,12 +261,24 @@ def draw_greasepencil_play_tools(layout, context, shot, layersListDropdown=None)
             rightRow.operator("uas_shot_manager.toggle_grease_pencil_draw_mode", text="", icon=icon)
             # bpy.ops.gpencil.paintmode_toggle()
         else:
-
-            rightRow.operator("uas_shot_manager.select_grease_pencil_object", text="", icon="RESTRICT_SELECT_OFF")
             icon = config.icons_col["ShotManager_CamGPShot_32"]
             rightRow.operator("uas_shot_manager.toggle_grease_pencil_draw_mode", text="", icon_value=icon.icon_id)
             # mainRow.operator("uas_shot_manager.draw_on_grease_pencil", text="", icon_value=icon.icon_id)
             # row.operator("uas_shot_manager.greasepencilitem", text="", icon_value=icon.icon_id).index = index
+
+        mainRow.operator("uas_shot_manager.clear_layer", text="", icon="MESH_PLANE")
+
+    # Active material ###
+    ###################
+
+    materialsRow = box.row(align=True)
+    if objIsGP:
+        materialsRow.label(text="Material:")
+        # materialsRow.prop(gp, "material_slots")
+        materialsRow.prop(props, "greasePencil_activeMaterial", text="")
+
+    # current frame ###
+    ###################
 
     mainRow = box.row(align=False)
     keysRow = mainRow.row(align=True)
