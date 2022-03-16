@@ -56,7 +56,7 @@ class GreasePencilProperties(PropertyGroup):
         # max=1.0,
         step=0.1,
         update=_update_gpDistance,
-        default=0.9,
+        default=0.5,
         options=set(),
     )
 

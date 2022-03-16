@@ -21,9 +21,9 @@ Shots functions and operators
 
 import bpy
 from bpy.types import Operator
-from bpy.props import IntProperty, StringProperty, EnumProperty, BoolProperty, FloatVectorProperty, PointerProperty
+from bpy.props import IntProperty, StringProperty, EnumProperty, BoolProperty, FloatVectorProperty
 
-from shotmanager.properties.shot import UAS_ShotManager_Shot
+# from shotmanager.properties.shot import UAS_ShotManager_Shot
 
 from random import uniform
 import json
@@ -447,6 +447,12 @@ class UAS_ShotManager_ShotAdd(Operator):
         default=True,
     )
 
+    addStoryboardGP: BoolProperty(
+        name="Add Storyboard Grease Pencil",
+        description="If checked, a grease pencil storyboard vignette is created and parented to the specified camera",
+        default=False,
+    )
+
     def invoke(self, context, event):
         wm = context.window_manager
         scene = context.scene
@@ -488,7 +494,10 @@ class UAS_ShotManager_ShotAdd(Operator):
         #     elif 0 < len(cameras):
         #         self.cameraName = cameras[0].name
 
-        return wm.invoke_props_dialog(self, width=300)
+        self.alignCamToView = not props.display_greasepencil_in_properties
+        self.addStoryboardGP = props.display_greasepencil_in_properties
+
+        return wm.invoke_props_dialog(self, width=360)
 
     def draw(self, context):
         # scene = context.scene
@@ -570,7 +579,7 @@ class UAS_ShotManager_ShotAdd(Operator):
         subrow.label(text="Camera:")
         mainRowSplit.prop(self, "cameraName", text="")
 
-        # row camera color #########################
+        # row camera color ##########################################
         if props.use_camera_color:
             if "NEW_CAMERA" == self.cameraName:
                 row = doubleRow.row(align=False)
@@ -602,7 +611,7 @@ class UAS_ShotManager_ShotAdd(Operator):
                     usedStr = "Not yet used by any shot"
                 subrow.label(text=usedStr)
 
-                # row camera color ###############
+                # row camera color ##################################
                 row = doubleRow.row(align=False)
                 mainRowSplit = row.split(factor=splitFactor)
                 subrow = mainRowSplit.row()
@@ -619,7 +628,7 @@ class UAS_ShotManager_ShotAdd(Operator):
                 self.colorFromExistingCam = cam.color[0:3]
                 mainRowSplit.prop(self, "colorFromExistingCam", text="")
 
-        # row camera position #########################
+        # row camera position #######################################
         if "NEW_CAMERA" == self.cameraName:
             row = doubleRow.row(align=False)
             mainRowSplit = row.split(factor=splitFactor)
@@ -627,6 +636,16 @@ class UAS_ShotManager_ShotAdd(Operator):
             subrow.alignment = "RIGHT"
             subrow.label(text=" ")
             mainRowSplit.prop(self, "alignCamToView", text="Align New Camera to View")
+
+        if props.display_greasepencil_in_properties:
+            col.separator(factor=0.1)
+            row = col.row(align=True)
+            mainRowSplit = row.split(factor=splitFactor)
+            subrow = mainRowSplit.row()
+            subrow.alignment = "RIGHT"
+            subrow.label(text="Storyboard:")
+            subrow = mainRowSplit.row()
+            subrow.prop(self, "addStoryboardGP")
 
         layout.separator()
 
@@ -671,6 +690,10 @@ class UAS_ShotManager_ShotAdd(Operator):
         if "NEW_CAMERA" == self.cameraName and newShot.name != self.name:
             cam.name = "Cam_" + newShot.name
             cam.data.name = cam.name
+
+        # create storyboard grease pencil
+        if self.addStoryboardGP:
+            newShot.addGreasePencil(type="STORYBOARD")
 
         utils.clear_selection()
         utils.add_to_selection(cam)
@@ -958,7 +981,7 @@ class UAS_ShotManager_CreateNShots(Operator):
     duration: IntProperty(name="Duration", min=1)
     offsetFromPrevious: IntProperty(
         name="Offset From previous Shot",
-        description="Number of frames from which the start of a whot will be offset from the end of the one preceding it",
+        description="Number of frames from which the start of a shot will be offset from the end of the one preceding it",
         default=1,
     )
     count: IntProperty(name="Number of Shots to Create", min=1, default=4)
@@ -991,7 +1014,7 @@ class UAS_ShotManager_CreateNShots(Operator):
 
         self.color = (uniform(0, 1), uniform(0, 1), uniform(0, 1))
 
-        return wm.invoke_props_dialog(self)
+        return wm.invoke_props_dialog(self, width=360)
 
     def draw(self, context):
         layout = self.layout

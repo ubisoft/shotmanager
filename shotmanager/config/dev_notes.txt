@@ -1,7 +1,7 @@
 
-Dialog windows width:   360
+Dialog windows width:   300
                         350
-                        300
+                        360
                         500
                         400
                         450
@@ -64,7 +64,7 @@ Camera sel:
 
     - animer le zoom en cas de changement animé de focale:
     https://www.codegrepper.com/code-examples/python/blender+change+text+during+animation
-    
+
     
 
 

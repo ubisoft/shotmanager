@@ -546,6 +546,26 @@ class UAS_ShotManager_Shot(ShotInterface, PropertyGroup):
 
     greasePencils: CollectionProperty(type=GreasePencilProperties)
 
+    def addGreasePencil(self, type="STORYBOARD"):
+        """Create a Grease Pencil object parented to the camera of the shot.
+        Return a tupple with the grease pencil properties and the created object.
+        """
+
+        if len(self.greasePencils):
+            gpProps = self.greasePencils[0]
+        else:
+            gpProps = self.greasePencils.add()
+            gpProps.initialize(self)
+
+            gpName = self.camera.name + "_GP"
+            gpObj = utils_greasepencil.create_new_greasepencil(gpName, parent_object=self.camera, location=[0, 0, -0.5])
+
+            utils_greasepencil.add_grease_pencil_canvas_layer(gpObj, "GP_Canvas", order="BOTTOM", camera=self.camera)
+
+            gpProps.updateGreasePencilToFrustum()
+
+        return (gpProps, gpObj)
+
     def hasGreasePencil(self):
         if self.camera is not None:
             gp_child = utils_greasepencil.get_greasepencil_child(self.camera)

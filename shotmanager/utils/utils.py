@@ -778,9 +778,9 @@ def setCurrentCameraToViewport(context, area=None):
 def create_new_camera(camera_name, location=[0, 0, 0], locate_on_cursor=False):
     """A unique name will be automatically given to the new camera
     """
-    cam = bpy.data.cameras.new(camera_name)
-    cam_ob = bpy.data.objects.new(cam.name, cam)
-    cam_ob.name = cam.name
+    cam_data = bpy.data.cameras.new(camera_name)
+    cam_ob = bpy.data.objects.new(cam_data.name, cam_data)
+    cam_ob.name = cam_data.name
 
     # add to main collection
     # bpy.context.collection.objects.link(cam_ob)
@@ -795,7 +795,9 @@ def create_new_camera(camera_name, location=[0, 0, 0], locate_on_cursor=False):
         camColl = bpy.context.scene.collection.children[camCollName]
     camColl.objects.link(cam_ob)
 
-    bpy.data.cameras[cam.name].lens = 40
+    # bpy.data.cameras[cam_data.name].lens = 40
+    cam_data.lens = 40
+    cam_data.clip_start = 0.01
 
     cam_ob.location = location
     if locate_on_cursor:
@@ -803,7 +805,9 @@ def create_new_camera(camera_name, location=[0, 0, 0], locate_on_cursor=False):
 
     from math import radians
 
-    cam_ob.rotation_euler = (radians(90), 0.0, radians(90))
+    # align along the Y axis, as in Front view
+    # cam_ob.rotation_euler = (radians(90), 0.0, radians(90))
+    cam_ob.rotation_euler = (radians(90), 0.0, 0.0)
 
     # import math
     # import mathutils
@@ -916,7 +920,6 @@ def select_object(obj: bpy.types.Object, clear_sel=True):
         clear_selection()
     obj.select_set(True)
     bpy.context.view_layer.objects.active = obj
-
 
     # if context.active_object is not None and context.active_object.mode != "OBJECT":
     #     bpy.ops.object.mode_set(mode="OBJECT")

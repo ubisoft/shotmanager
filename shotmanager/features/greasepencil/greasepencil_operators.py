@@ -72,14 +72,13 @@ class UAS_ShotManager_OT_AddGreasePencil(Operator):
         # newShot = GreasePencilProperties()
         # newShot = GreasePencilProperties()
 
-        gpProperties = shot.greasePencils.add()
-        # gpProperties = shot.greasePencils.append(newShot)
-        gpProperties.initialize(shot)
+        gpProperties, gpObj = shot.addGreasePencil(type="STORYBOARD")
+        # gpProperties.initialize(shot)
 
-        gpName = shot.camera.name + "_GP"
-        gpObj = utils_greasepencil.create_new_greasepencil(gpName, parent_object=shot.camera, location=[0, 0, -0.5])
+        # gpName = shot.camera.name + "_GP"
+        # gpObj = utils_greasepencil.create_new_greasepencil(gpName, parent_object=shot.camera, location=[0, 0, -0.5])
 
-        utils_greasepencil.add_grease_pencil_canvas_layer(gpObj, "GP_Canvas", order="BOTTOM", camera=shot.camera)
+        # utils_greasepencil.add_grease_pencil_canvas_layer(gpObj, "GP_Canvas", order="BOTTOM", camera=shot.camera)
 
         gpProperties.updateGreasePencilToFrustum()
 

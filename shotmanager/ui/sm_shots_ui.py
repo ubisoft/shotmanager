@@ -327,7 +327,7 @@ class UAS_MT_ShotManager_Shots_ToolsMenu(Menu):
     # bl_description = "Shots Tools"
 
     def draw(self, context):
-        # props = context.scene.UAS_shot_manager_props
+        props = context.scene.UAS_shot_manager_props
 
         # Copy menu entries[ ---
         layout = self.layout
@@ -357,9 +357,24 @@ class UAS_MT_ShotManager_Shots_ToolsMenu(Menu):
         row.operator_context = "INVOKE_DEFAULT"
         row.operator("uas_shot_manager.remove_multiple_shots", text="Remove All Shots...", icon="REMOVE").action = "ALL"
 
-        layout.separator()
+        #############
+        # tools for storyboard
+        #############
+        if props.display_greasepencil_in_properties:
+            layout.separator()
+            row = layout.row(align=True)
+            row.label(text="Tools for Storyboard:")
 
-        # tools for shots ###
+            row = layout.row(align=True)
+            row.operator_context = "INVOKE_DEFAULT"
+            row.operator(
+                "uas_shot_manager.create_n_vignettes", text="   Create Specifed Number of Vignettes...", icon="ADD"
+            )
+
+        #############
+        # tools for shots
+        #############
+        layout.separator()
         row = layout.row(align=True)
         row.label(text="Tools for Shots:")
 
