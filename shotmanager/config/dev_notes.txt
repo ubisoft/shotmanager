@@ -55,7 +55,14 @@ Grease Pencil for boarding:
     - focale animée sur cam: conséquences?
     - déplacement du start et end du shot:
         - pouvoir linker l'anim du gp au start
+    
+    - idées:
+        - action pour tout ranger en array
+        - pdf export
+        - step render mode
+        - representative image per shot
         
+
 Camera sel:
     - ajouter Shift pour ajout a la sel
     voir desel
@@ -70,3 +77,19 @@ Preferences:
 
 
 - Pb d'undo dans les delete all shots
+
+vignette    no
+panel
+frame
+thumbnail
+image
+canvas
+area
+drawing
+picture
+
+
+
+
+
+

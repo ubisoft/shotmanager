@@ -25,7 +25,7 @@ from bpy.props import PointerProperty, FloatProperty
 
 # from shotmanager.properties.shot import UAS_ShotManager_Shot
 
-from shotmanager.utils import utils_greasepencil
+from shotmanager.utils import utils_greasepencil, utils
 
 
 class GreasePencilProperties(PropertyGroup):
@@ -50,7 +50,7 @@ class GreasePencilProperties(PropertyGroup):
 
     gpDistance: FloatProperty(
         name="Distance",
-        description="Distance between the vignette and the parent camera",
+        description="Distance between the storyboard frame and the parent camera",
         subtype="DISTANCE",
         soft_min=0.02,
         min=0.001,
@@ -59,6 +59,26 @@ class GreasePencilProperties(PropertyGroup):
         step=0.1,
         update=_update_gpDistance,
         default=0.5,
+        options=set(),
+    )
+
+    def _update_gpCanvasOpacity(self, context):
+        # print("gpCanvasOpacity")
+        gp_child = utils_greasepencil.get_greasepencil_child(self.parentCamera)
+        canvasLayer = utils_greasepencil.get_grease_pencil_layer(
+            gp_child, gpencil_layer_name="GP_Canvas", create_layer=False
+        )
+        if canvasLayer is not None:
+            canvasLayer.opacity = utils.to_sRGB(self.gpCanvasOpacity)
+
+    gpCanvasOpacity: FloatProperty(
+        name="Canvas Opacity",
+        description="Opacity of the Canvas layer",
+        min=0.0,
+        max=1.0,
+        step=0.01,
+        update=_update_gpCanvasOpacity,
+        default=1.0,
         options=set(),
     )
 

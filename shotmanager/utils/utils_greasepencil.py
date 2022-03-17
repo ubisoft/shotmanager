@@ -24,19 +24,23 @@ Useful functions related to the use of Grease Pencil
 import bpy
 
 import mathutils
-
-from . import utils
-
+from shotmanager.utils import utils
 
 ###################
 # Grease Pencil
 ###################
 
 
-def create_new_greasepencil(gp_name, parent_object=None, location=None, locate_on_cursor=False):
+def create_new_greasepencil(gp_name, parentCamera=None, location=None, locate_on_cursor=False):
+    """Create a new grease pencil object that will be used as a storyboard frame
+    Return this object
+    Args:   parentCamera: the camera to parent to
+    """
     new_gp_data = bpy.data.grease_pencils.new(gp_name)
     new_gp_obj = bpy.data.objects.new(new_gp_data.name, new_gp_data)
     new_gp_obj.name = new_gp_data.name
+
+    new_gp_obj.use_grease_pencil_lights = False
 
     # add to main collection
     # bpy.context.collection.objects.link(new_gp_obj)
@@ -51,8 +55,8 @@ def create_new_greasepencil(gp_name, parent_object=None, location=None, locate_o
         cpColl = bpy.context.scene.collection.children[gpCollName]
     cpColl.objects.link(new_gp_obj)
 
-    if parent_object is not None:
-        new_gp_obj.parent = parent_object
+    if parentCamera is not None:
+        new_gp_obj.parent = parentCamera
 
     if location is None:
         new_gp_obj.location = [0, 0, 0]
@@ -70,26 +74,13 @@ def create_new_greasepencil(gp_name, parent_object=None, location=None, locate_o
     # align gp with camera axes
     new_gp_obj.rotation_euler = (radians(0.0), 0.0, radians(0.0))
 
-    # import math
-    # import mathutils
-
-    # eul = mathutils.Euler((math.radians(90.0), 0.0, 0.0), "XYZ")
-
-    # if new_gp_obj.rotation_mode == "QUATERNION":
-    #     new_gp_obj.rotation_quaternion = eul.to_quaternion()
-    # elif new_gp_obj.rotation_mode == "AXIS_ANGLE":
-    #     q = eul.to_quaternion()
-    #     new_gp_obj.rotation_axis_angle[0] = q.angle
-    #     new_gp_obj.rotation_axis_angle[1:] = q.axis
-    # else:
-    #     new_gp_obj.rotation_euler = (
-    #         eul if eul.order == new_gp_obj.rotation_mode else (eul.to_quaternion().to_euler(new_gp_obj.rotation_mode))
-    #     )
-
     add_grease_pencil_draw_layers(new_gp_obj)
-
     create_grease_pencil_material(new_gp_obj, "LINES")
     create_grease_pencil_material(new_gp_obj, "FILLS")
+
+    add_grease_pencil_canvas_layer(new_gp_obj, "GP_Canvas", order="BOTTOM", camera=parentCamera)
+
+    new_gp_obj.data.layers.active = new_gp_obj.data.layers["Lines"]
 
     return new_gp_obj
 
@@ -203,29 +194,6 @@ def get_grease_pencil_material(mat_name):
 def create_grease_pencil_material(gpencil, mat_type="CANVAS"):
     """Create - or get if it already exists - the specified material type and assign it to the specified grease pencil object"""
     gp_mat = None
-    if "CANVAS" == mat_type:
-        if "Canvas Mat" in bpy.data.materials.keys():
-            gp_mat = bpy.data.materials["Canvas Mat"]
-        else:
-            gp_mat = bpy.data.materials.new("Canvas Mat")
-
-        if True or not gp_mat.is_grease_pencil:
-            bpy.data.materials.create_gpencil_data(gp_mat)
-            gp_mat.grease_pencil.show_fill = True
-            gp_mat.grease_pencil.fill_color = (1, 1, 1, 1)
-            gp_mat.grease_pencil.show_stroke = False
-
-    if "FILLS" == mat_type:
-        if "Fills Mat" in bpy.data.materials.keys():
-            gp_mat = bpy.data.materials["Fills Mat"]
-        else:
-            gp_mat = bpy.data.materials.new("Fills Mat")
-
-        if not gp_mat.is_grease_pencil:
-            bpy.data.materials.create_gpencil_data(gp_mat)
-            gp_mat.grease_pencil.show_fill = True
-            gp_mat.grease_pencil.fill_color = (0.3, 0.3, 0.3, 1)
-            gp_mat.grease_pencil.show_stroke = False
 
     if "LINES" == mat_type:
         if "Lines Mat" in bpy.data.materials.keys():
@@ -237,7 +205,31 @@ def create_grease_pencil_material(gpencil, mat_type="CANVAS"):
             bpy.data.materials.create_gpencil_data(gp_mat)
             gp_mat.grease_pencil.show_fill = False
             gp_mat.grease_pencil.show_stroke = True
-            gp_mat.grease_pencil.color = (1, 0, 0, 1)
+            gp_mat.grease_pencil.color = utils.sRGBColor((0.1, 0.1, 0.1, 1))
+
+    elif "FILLS" == mat_type:
+        if "Fills Mat" in bpy.data.materials.keys():
+            gp_mat = bpy.data.materials["Fills Mat"]
+        else:
+            gp_mat = bpy.data.materials.new("Fills Mat")
+
+        if not gp_mat.is_grease_pencil:
+            bpy.data.materials.create_gpencil_data(gp_mat)
+            gp_mat.grease_pencil.show_fill = True
+            gp_mat.grease_pencil.fill_color = utils.sRGBColor((0.3, 0.3, 0.3, 1))
+            gp_mat.grease_pencil.show_stroke = False
+
+    elif "CANVAS" == mat_type:
+        if "Canvas Mat" in bpy.data.materials.keys():
+            gp_mat = bpy.data.materials["Canvas Mat"]
+        else:
+            gp_mat = bpy.data.materials.new("Canvas Mat")
+
+        if True or not gp_mat.is_grease_pencil:
+            bpy.data.materials.create_gpencil_data(gp_mat)
+            gp_mat.grease_pencil.show_fill = True
+            gp_mat.grease_pencil.fill_color = (1, 1, 1, 1)
+            gp_mat.grease_pencil.show_stroke = False
 
     # Assign the material to the grease pencil for drawing
     if gp_mat is not None:

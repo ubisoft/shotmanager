@@ -28,10 +28,10 @@ from random import uniform
 from shotmanager.utils import utils
 
 
-class UAS_ShotManager_CreateNvignettes(Operator):
-    bl_idname = "uas_shot_manager.create_n_vignettes"
-    bl_label = "Create Specifed Number of Vignettes..."
-    bl_description = "Create a specified number of vignettes, each one with its own camera"
+class UAS_ShotManager_CreateNStoryboardShots(Operator):
+    bl_idname = "uas_shot_manager.create_n_storyboard_shots"
+    bl_label = "Create Specifed Number of Storyboard Shots..."
+    bl_description = "Create a specified number of storyboard shots, each one with its own camera"
     bl_options = {"REGISTER", "UNDO"}
 
     name: StringProperty(name="Name")
@@ -43,8 +43,8 @@ class UAS_ShotManager_CreateNvignettes(Operator):
         name="Duration", min=1, subtype="TIME",
     )
     offsetFromPrevious: IntProperty(
-        name="Time Offset Between Vignette",
-        description="Number of frames from which the start of a vignette will be offset from the end of the one preceding it",
+        name="Time Offset Between Shots",
+        description="Number of frames from which the start of a storyboard frame will be offset from the end of the one preceding it",
         subtype="TIME",
         default=1,
     )
@@ -92,7 +92,7 @@ class UAS_ShotManager_CreateNvignettes(Operator):
         grid_flow = row.grid_flow(align=True, row_major=True, columns=2, even_columns=False)
 
         col = grid_flow.column(align=False)
-        col.label(text="Number of Vignettes:")
+        col.label(text="Number of Shots:")
         col = grid_flow.column(align=False)
         col.prop(self, "count", text="")
 
@@ -191,7 +191,7 @@ class UAS_ShotManager_CreateNvignettes(Operator):
         return {"INTERFACE"}
 
 
-_classes = (UAS_ShotManager_CreateNvignettes,)
+_classes = (UAS_ShotManager_CreateNStoryboardShots,)
 
 
 def register():

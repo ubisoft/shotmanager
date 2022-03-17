@@ -368,8 +368,8 @@ class UAS_MT_ShotManager_Shots_ToolsMenu(Menu):
             row = layout.row(align=True)
             row.operator_context = "INVOKE_DEFAULT"
             row.operator(
-                "uas_shot_manager.create_n_vignettes",
-                text="   Create Specifed Number of Shots with Vignettes...",
+                "uas_shot_manager.create_n_storyboard_shots",
+                text="   Create Specifed Number of Shots with Storyboard Frames...",
                 icon="ADD",
             )
 

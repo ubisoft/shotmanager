@@ -76,7 +76,7 @@ class UAS_ShotManager_OT_AddGreasePencil(Operator):
         # gpProperties.initialize(shot)
 
         # gpName = shot.camera.name + "_GP"
-        # gpObj = utils_greasepencil.create_new_greasepencil(gpName, parent_object=shot.camera, location=[0, 0, -0.5])
+        # gpObj = utils_greasepencil.create_new_greasepencil(gpName, parentCamera=shot.camera, location=[0, 0, -0.5])
 
         # utils_greasepencil.add_grease_pencil_canvas_layer(gpObj, "GP_Canvas", order="BOTTOM", camera=shot.camera)
 
@@ -104,7 +104,7 @@ class UAS_ShotManager_OT_AddGreasePencil(Operator):
 #         else:
 #             cam = scene.objects[self.cameraGpName]
 #             gpName = cam.name + "_GP"
-#             gpObj = utils_greasepencil.create_new_greasepencil(gpName, parent_object=cam, location=[0, 0, -0.5])
+#             gpObj = utils_greasepencil.create_new_greasepencil(gpName, parentCamera=cam, location=[0, 0, -0.5])
 
 #             utils_greasepencil.add_grease_pencil_canvas_layer(gpObj, "GP_Canvas", order="BOTTOM", camera=cam)
 
@@ -115,8 +115,8 @@ class UAS_ShotManager_OT_AddGreasePencil(Operator):
 
 class UAS_ShotManager_OT_SelectShotGreasePencil(Operator):
     bl_idname = "uas_shot_manager.select_shot_grease_pencil"
-    bl_label = "Select Shot Grease Pencil"
-    bl_description = "Select Grease Pencil object from the specified shot"
+    bl_label = "Select Shot Storyboard Frame"
+    bl_description = "Select the storyboard frame from the specified shot"
     bl_options = {"INTERNAL", "UNDO"}
 
     index: bpy.props.IntProperty(default=0)
@@ -142,6 +142,8 @@ class UAS_ShotManager_OT_SelectShotGreasePencil(Operator):
                     bpy.ops.object.select_all(action="DESELECT")
                     bpy.context.view_layer.objects.active = gp_child
                     gp_child.select_set(True)
+
+        utils.setPropertyPanelContext(bpy.context, "DATA")
 
         return {"FINISHED"}
 
@@ -169,6 +171,8 @@ class UAS_ShotManager_OT_SelectGreasePencilObject(Operator):
                 obj.select_set(False)
             bpy.context.view_layer.objects.active = context.object
             bpy.data.objects[context.object.name].select_set(True)
+
+            utils.setPropertyPanelContext(bpy.context, "DATA")
 
         return {"FINISHED"}
 
@@ -329,8 +333,8 @@ class UAS_ShotManager_OT_UpdateGreasePencil(Operator):
 
 class UAS_ShotManager_OT_RemoveGreasePencil(Operator):
     bl_idname = "uas_shot_manager.remove_grease_pencil"
-    bl_label = "Remove Vignettes"
-    bl_description = "Remove the storyboard vignette of the specified shots"
+    bl_label = "Remove Storyboard Frames"
+    bl_description = "Remove the storyboard frames of the specified shots"
     bl_options = {"INTERNAL", "UNDO"}
 
     shotIndex: IntProperty(default=-1)
@@ -444,11 +448,10 @@ class UAS_ShotManager_OT_ClearLayer(Operator):
 
 class UAS_ShotManager_GreasePencilItem(Operator):
     bl_idname = "uas_shot_manager.greasepencilitem"
-    bl_label = " "
+    bl_label = "Select Storyboard Frame"
     bl_description = (
-        "Select Shot Grease Pencil"
-        "\n+ Shift: Add Grease Pencil to the current selection"
-        "\n+ Alt: Select Grease Pencil and switch to Draw mode"
+        "+ Shift: Add a storyboard frame to the current selection"
+        "\n+ Alt: Select storyboard frame and switch to Draw mode"
     )
     bl_options = {"INTERNAL", "UNDO"}
 
@@ -473,7 +476,7 @@ class UAS_ShotManager_GreasePencilItem(Operator):
                 return {"CANCELLED"}
 
             utils_greasepencil.create_new_greasepencil(
-                shot.camera.name + "_GP", parent_object=shot.camera, location=[0, 0, 0]
+                shot.camera.name + "_GP", parentCamera=shot.camera, location=[0, 0, 0]
             )
             gpChild = shot.getGreasePencilObject()
 
@@ -483,10 +486,12 @@ class UAS_ShotManager_GreasePencilItem(Operator):
                     bpy.ops.object.mode_set(mode="OBJECT")
             bpy.ops.object.select_all(action="DESELECT")
             gpChild.select_set(True)
-            bpy.context.view_layer.objects.active = gpChild
+            context.view_layer.objects.active = gpChild
             if event.alt:
                 props.setCurrentShotByIndex(self.index)
                 utils_greasepencil.switchToDrawMode(gpChild)
+
+        utils.setPropertyPanelContext(bpy.context, "DATA")
 
         return {"FINISHED"}
 

@@ -898,9 +898,9 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
     )
 
     display_greasepencil_in_properties: BoolProperty(
-        name="Storyboard Vignettes and Grease Pencil Tools",
-        description="Display the storyboard vignettes properties and tools in the Shot properties panel."
-        "\nA vignette is a Grease Pencil drawing surface associated to the camera of each shot",
+        name="Storyboard Frames and Grease Pencil Tools",
+        description="Display the storyboard frames properties and tools in the Shot properties panel."
+        "\nA storyboard frame is a Grease Pencil drawing surface associated to the camera of each shot",
         default=False,
         options=set(),
     )
@@ -921,8 +921,8 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
             self.expand_cameraBG_properties = False
 
     expand_greasepencil_properties: BoolProperty(
-        name="Storyboard Vignettes",
-        description="Expand the Storyboard Vignette Properties panel for the selected shot",
+        name="Storyboard Frames",
+        description="Expand the Storyboard Frame Properties panel for the selected shot",
         default=False,
         get=_get_expand_greasepencil_properties,
         set=_set_expand_greasepencil_properties,

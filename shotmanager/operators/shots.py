@@ -453,7 +453,7 @@ class UAS_ShotManager_ShotAdd(Operator):
 
     addStoryboardGP: BoolProperty(
         name="Add Storyboard Grease Pencil",
-        description="If checked, a grease pencil storyboard vignette is created and parented to the specified camera",
+        description="If checked, a grease pencil storyboard frame is created and parented to the specified camera",
         default=False,
     )
 

@@ -560,9 +560,9 @@ class UAS_ShotManager_Shot(ShotInterface, PropertyGroup):
 
         if gpObj is None:
             gpName = self.camera.name + "_GP"
-            gpObj = utils_greasepencil.create_new_greasepencil(gpName, parent_object=self.camera, location=[0, 0, -0.5])
+            gpObj = utils_greasepencil.create_new_greasepencil(gpName, parentCamera=self.camera, location=[0, 0, -0.5])
 
-            utils_greasepencil.add_grease_pencil_canvas_layer(gpObj, "GP_Canvas", order="BOTTOM", camera=self.camera)
+            # utils_greasepencil.add_grease_pencil_canvas_layer(gpObj, "GP_Canvas", order="BOTTOM", camera=self.camera)
 
         gpProps.updateGreasePencilToFrustum()
 

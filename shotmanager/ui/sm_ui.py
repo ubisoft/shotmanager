@@ -66,10 +66,7 @@ class UAS_PT_ShotManager(Panel):
 
         row = layout.row(align=True)
 
-        # if context.window_manager.  warning on addons missing - to do:
-        #     row.alert = True
-        # else:
-        #     row.alert = False
+        import addon_utils
 
         icon = config.icons_col["Ubisoft_32"]
         icon = config.icons_col["ShotManager_32"]
@@ -82,6 +79,16 @@ class UAS_PT_ShotManager(Panel):
                 row.alert = False
             else:
                 row.label(text=props.project_name)
+
+        addonWarning = [
+            addon.bl_info.get("warning", "")
+            for addon in addon_utils.modules()
+            if addon.bl_info["name"] == "Shot Manager"
+        ]
+        if len(addonWarning):
+            betaRow = row.row()
+            betaRow.alert = True
+            betaRow.label(text=f" *** {addonWarning[0]} ***")
 
     def draw_header_preset(self, context):
         layout = self.layout
@@ -132,7 +139,7 @@ class UAS_PT_ShotManager(Panel):
 
         # addon warning message - for beta message display
         ###############
-        # import addon_utils
+        import addon_utils
 
         # addonWarning = [
         #     addon.bl_info.get("warning", "")

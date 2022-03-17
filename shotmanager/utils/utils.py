@@ -441,6 +441,20 @@ def getAreaInfo(context, area, verbose=False):
     return None
 
 
+def setPropertyPanelContext(context, spaceContext):
+    """Set the Property panel to the specified context
+
+    Args:   spaceContext: Can be ('TOOL', 'RENDER', 'OUTPUT', 'VIEW_LAYER', 'SCENE', 'WORLD', 'OBJECT', 'MODIFIER', 
+            'PARTICLES', 'PHYSICS', 'CONSTRAINT', 'DATA', 'MATERIAL', 'TEXTURE')
+    """
+    for area in context.screen.areas:
+        if area.type == "PROPERTIES":
+            for space in area.spaces:
+                if space.type == "PROPERTIES":
+                    space.context = spaceContext
+                    break
+
+
 # 3D VIEW areas (= viewports)
 #####################################
 
@@ -987,6 +1001,12 @@ def sRGBColor(color):
     gamma = 1.0 / 0.45
     d_color = (pow(color[0], gamma), pow(color[1], gamma), pow(color[2], gamma), color[3] * 1.0)
     return d_color
+
+
+# to refactor
+def to_sRGB(value):
+    gamma = 1.0 / 0.45
+    return pow(value, gamma)
 
 
 def gamma_color(color):

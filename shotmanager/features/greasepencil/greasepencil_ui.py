@@ -68,7 +68,7 @@ def draw_greasepencil_shot_properties(layout, context, shot):
     subrowleft = extendSubRow.row()
     subrowleft.alignment = "EXPAND"
     # subrowleft.scale_x = 0.8
-    subrowleft.label(text=propertiesModeStr + "Shot Vignette:")
+    subrowleft.label(text=propertiesModeStr + "Shot Storyboard Frame:")
 
     # panelIcon = "TRIA_DOWN" if prefs.shot_greasepencil_expanded and gp_child is not None else "TRIA_RIGHT"
     # extendSubRow.prop(prefs, "shot_greasepencil_expanded", text="", icon=panelIcon, emboss=False)
@@ -177,8 +177,9 @@ def draw_greasepencil_shot_properties(layout, context, shot):
             # utils_greasepencil.get_grease_pencil_layer
             row.operator("uas_shot_manager.add_canvas_to_grease_pencil", text="+").gpName = gp_child.name
         else:
+            # row.prop(canvasLayer, "opacity", text="")
+            row.prop(gpProperties, "gpCanvasOpacity", slider=True, text="Opacity")
             row.prop(canvasLayer, "hide", text="")
-            row.prop(canvasLayer, "opacity", text="")
 
         row = col.row()
         row.separator(factor=0.5)
@@ -266,6 +267,7 @@ def draw_greasepencil_play_tools(layout, context, shot, layersListDropdown=None)
 
         # layout.label(text="Layer:")
         sub = layersRow.row(align=True)
+        # sub.alignment = "LEFT"
         # sub.scale_x = 0.8
         sub.ui_units_x = 6
         sub.popover(
@@ -278,23 +280,30 @@ def draw_greasepencil_play_tools(layout, context, shot, layersListDropdown=None)
         else:
             sub.label(text="", icon="LOCKED")
 
-        rightRow = mainRow.row(align=True)
-        rightRow.operator("uas_shot_manager.select_grease_pencil_object", text="", icon="RESTRICT_SELECT_OFF")
+        gpOpsRow = layersRow.row(align=False)
+        gpOpsRow.separator(factor=0.1)
+        gpOpsLeftRow = gpOpsRow.row(align=True)
+        gpOpsLeftRow.ui_units_x = 3
+        gpOpsLeftRow.scale_x = 2.0
+        # gpOpsLeftRow.alignment = "RIGHT"
+        gpOpsLeftRow.operator("uas_shot_manager.select_grease_pencil_object", text="", icon="RESTRICT_SELECT_OFF")
 
         if gp.mode == "PAINT_GPENCIL":
             icon = "GREASEPENCIL"
-            rightRow.alert = True
+            gpOpsLeftRow.alert = True
             # row.operator("uas_shot_manager.greasepencilitem", text="", icon=icon).index = index
 
-            rightRow.operator("uas_shot_manager.toggle_grease_pencil_draw_mode", text="", icon=icon)
+            gpOpsLeftRow.operator("uas_shot_manager.toggle_grease_pencil_draw_mode", text="", icon=icon)
             # bpy.ops.gpencil.paintmode_toggle()
         else:
             icon = config.icons_col["ShotManager_CamGPShot_32"]
-            rightRow.operator("uas_shot_manager.toggle_grease_pencil_draw_mode", text="", icon_value=icon.icon_id)
+            gpOpsLeftRow.operator("uas_shot_manager.toggle_grease_pencil_draw_mode", text="", icon_value=icon.icon_id)
             # mainRow.operator("uas_shot_manager.draw_on_grease_pencil", text="", icon_value=icon.icon_id)
             # row.operator("uas_shot_manager.greasepencilitem", text="", icon_value=icon.icon_id).index = index
 
-        mainRow.operator("uas_shot_manager.clear_layer", text="", icon="MESH_PLANE")
+        gpOpsRightRow = gpOpsRow.row(align=False)
+        # gpOpsRightRow.separator(factor=0.1)
+        gpOpsRightRow.operator("uas_shot_manager.clear_layer", text="", icon="MESH_PLANE")
 
     # Active material ###
     ###################
