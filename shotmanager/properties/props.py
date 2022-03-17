@@ -237,7 +237,13 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
                 #     bpy.context.window_manager.UAS_shot_manager_version,
                 # )
 
-                warningList.append(("Debug: Data version is lower than SM version. Save and reload the file.", 50))
+                warningList.append(
+                    (
+                        f"Debug: Data version ({utils.convertVersionIntToStr(self.dataVersion)}) is lower than "
+                        f"SM version ({utils.convertVersionIntToStr(bpy.context.window_manager.UAS_shot_manager_version)}).  Save and reload the file.",
+                        50,
+                    )
+                )
 
         # check if some camera markers bound to cameras are used in the scene
         ###########
@@ -823,7 +829,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
 
     expand_shot_properties: BoolProperty(
         name="Properties  ",
-        description="Expand shot properties",
+        description="Expand the Properties panel for the selected shot",
         default=False,
         get=_get_expand_shot_properties,
         set=_set_expand_shot_properties,
@@ -831,8 +837,8 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
     )
 
     display_notes_in_properties: BoolProperty(
-        # name="Display Shot Notes in Shot Properties",
-        description="Display shot notes in the Shot Properties panels",
+        name="Takes and Shots Notes",
+        description="Display the takes and shots notes in the Shot Properties panels",
         default=False,
         options=set(),
     )
@@ -854,7 +860,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
 
     expand_notes_properties: BoolProperty(
         name="Notes",
-        description="Expand the shot Notes properties",
+        description="Expand the Notes Properties panel for the selected shot",
         default=False,
         get=_get_expand_notes_properties,
         set=_set_expand_notes_properties,
@@ -862,8 +868,8 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
     )
 
     display_cameraBG_in_properties: BoolProperty(
-        # name="Display Camera Background Image Tools in Shot Properties",
-        description="Display the Camera Background Image tools in the Shot Properties panel",
+        name="Camera Background Tools",
+        description="Display the camera background image tools and controls in the Shot Properties panel",
         default=False,
         options=set(),
     )
@@ -884,7 +890,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
 
     expand_cameraBG_properties: BoolProperty(
         name="Camera BG",
-        description="Expand the shot Camera Background properties",
+        description="Expand the Camera Background Properties panel for the selected shot",
         default=False,
         get=_get_expand_cameraBG_properties,
         set=_set_expand_cameraBG_properties,
@@ -892,11 +898,13 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
     )
 
     display_greasepencil_in_properties: BoolProperty(
-        # name="Display Grease Pencil in Shot Properties",
-        description="Display Grease Pencil in the Shot properties panels",
+        name="Storyboard Vignettes and Grease Pencil Tools",
+        description="Display the storyboard vignettes properties and tools in the Shot properties panel."
+        "\nA vignette is a Grease Pencil drawing surface associated to the camera of each shot",
         default=False,
         options=set(),
     )
+
     # hidden UI parameter
     def _get_expand_greasepencil_properties(self):
         val = self.get("expand_greasepencil_properties", False)
@@ -913,8 +921,8 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
             self.expand_cameraBG_properties = False
 
     expand_greasepencil_properties: BoolProperty(
-        name="Grease Pencil",
-        description="Expand the shot Grease Pencil properties",
+        name="Storyboard Vignettes",
+        description="Expand the Storyboard Vignette Properties panel for the selected shot",
         default=False,
         get=_get_expand_greasepencil_properties,
         set=_set_expand_greasepencil_properties,
@@ -936,8 +944,9 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
     )
 
     display_takerendersettings_in_properties: BoolProperty(
-        # name="Display Take Render Settings in Take Properties panels",
-        description="Display the take render settings in the Take Properties panel",
+        name="Take Render Settings",
+        description="Display the take render settings in the Take Properties panel."
+        "\nThese options allow each take to be rendered with its own output resolution",
         default=False,
         options=set(),
     )
@@ -1073,7 +1082,9 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         options=set(),
     )
 
-    highlight_all_shot_frames: BoolProperty(default=True, options=set())
+    highlight_all_shot_frames: BoolProperty(
+        description="Highlight Framing Values When Equal to Current Time", default=True, options=set()
+    )
 
     # timeline
     #############
@@ -1843,6 +1854,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         camera=None,
         color=(0.2, 0.6, 0.8, 1),
         enabled=True,
+        addGreasePencilStoryboard=False,
     ):
         """Add a new shot after the current shot if possible or at the end of the shot list otherwise (case of an add in a take
         that is not the current one)
@@ -1885,6 +1897,9 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
             shots.move(len(shots) - 1, atValidIndex)
             newShot = shots[atValidIndex]
             newShotInd = atValidIndex
+
+        if addGreasePencilStoryboard:
+            newShot.addGreasePencil(type="STORYBOARD")
 
         # update the current take if needed
         if takeInd == currentTakeInd:
@@ -1973,7 +1988,35 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
 
         return newShot
 
-    def removeShot(self, shot):
+    def removeShotByIndex(self, shotIndex, deleteCamera=False, takeIndex=-1):
+        """Remove the shot at the specified index from the specifed take
+        If deleteCamera is True the camera is deleted only if it is not shared with any other shots
+        """
+        takeInd = (
+            self.getCurrentTakeIndex()
+            if -1 == takeIndex
+            else (takeIndex if 0 <= takeIndex and takeIndex < len(self.getTakes()) else -1)
+        )
+        if -1 == takeInd:
+            return None
+
+        shots = self.get_shots(takeIndex=takeInd)
+        if shotIndex < len(shots):
+            shots[shotIndex].removeGreasePencil()
+            if deleteCamera:
+                self.deleteShotCamera(shots[shotIndex])
+            shots.remove(shotIndex)
+
+    def removeShot(self, shot, deleteCamera=False):
+        """Remove the shot from its parent take
+        If deleteCamera is True the camera is deleted only if it is not shared with any other shots
+        """
+        shotInd = self.getShotIndex(shot)
+        self.removeShotByIndex(shotInd, deleteCamera=deleteCamera, takeIndex=shot.getParentTakeIndex())
+
+    def removeShot_UIupdate(self, shot, deleteCamera=False):
+        # TODO: Need refactorisation to put the UI part in an operator
+
         currentTakeInd = self.getCurrentTakeIndex()
         takeInd = shot.getParentTakeIndex()
         shots = self.get_shots(takeIndex=takeInd)
@@ -1994,19 +2037,21 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
             # case of the last shot
             if selectedShotInd == len(shots) - 1:
                 if currentShotInd == selectedShotInd:
-                    self.setCurrentShotByIndex(selectedShotInd - 1)
+                    self.setCurrentShotByIndex(selectedShotInd - 1, setCamToViewport=False)
 
-                shots.remove(selectedShotInd)
+                self.removeShot(shot, deleteCamera=deleteCamera)
+                # shots.remove(selectedShotInd)
                 self.setSelectedShotByIndex(selectedShotInd - 1)
             else:
                 if currentShotInd >= selectedShotInd:
-                    self.setCurrentShotByIndex(-1)
-                shots.remove(selectedShotInd)
+                    self.setCurrentShotByIndex(-1, setCamToViewport=False)
+                self.removeShot(shot, deleteCamera=deleteCamera)
+                #  shots.remove(selectedShotInd)
 
                 if currentShotInd == selectedShotInd:
-                    self.setCurrentShotByIndex(self.selected_shot_index)
+                    self.setCurrentShotByIndex(self.selected_shot_index, setCamToViewport=False)
                 elif currentShotInd > selectedShotInd:
-                    self.setCurrentShotByIndex(min(currentShotInd - 1, len(shots) - 1))
+                    self.setCurrentShotByIndex(min(currentShotInd - 1, len(shots) - 1), setCamToViewport=False)
 
                 if selectedShotInd < len(shots):
                     self.setSelectedShotByIndex(selectedShotInd)
@@ -2021,6 +2066,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
                     self.setSelectedShotByIndex(previousSelectedShotInd)
         else:
             # print(f"La: takeInd: {takeInd}, currentTakeInd: {currentTakeInd}, shot Ind: {shotInd}")
+            self.removeShot(shot, deleteCamera=deleteCamera)
             shots.remove(shotInd)
 
     def moveShotToIndex(self, shot, newIndex):
@@ -2245,7 +2291,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
 
         return currentShot
 
-    def setCurrentShotByIndex(self, currentShotIndex, changeTime=None, source_area=None):
+    def setCurrentShotByIndex(self, currentShotIndex, changeTime=None, source_area=None, setCamToViewport=True):
         """Changing the current shot:
           - doesn't affect the selected one
           - changes the current time if specifed
@@ -2254,10 +2300,11 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
                 - None(default): depends on the state of prefs.current_shot_changes_current_time_to_start
                 - True: set current time to the start of the new shot
                 - False: current time is not changed
+            setCamToViewport: If set to True then the shot camera is set to the viewport
         """
         scene = bpy.context.scene
 
-        target_area_index = self.getTargetViewportIndex(bpy.context, only_valid=True)
+        target_area_index = self.getTargetViewportIndex(bpy.context, only_valid=False)
         target_area = utils.getAreaFromIndex(bpy.context, target_area_index, "VIEW_3D")
         if source_area is None:
             # source_area = bpy.context.area
@@ -2283,7 +2330,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
             # if prefs.current_shot_changes_time_range:
             #     zoom_dopesheet_view_to_range(bpy.context, currentShot.start, currentShot.end)
 
-            if currentShot.camera is not None and bpy.context.screen is not None:
+            if setCamToViewport and currentShot.camera is not None and bpy.context.screen is not None:
                 # set the current camera in the 3D view: [‘PERSP’, ‘ORTHO’, ‘CAMERA’]
                 scene.camera = currentShot.camera
                 utils.setCurrentCameraToViewport2(bpy.context, target_area)
@@ -2296,10 +2343,12 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
 
         # bpy.context.scene.objects["Camera_Sapin"]
 
-    def setCurrentShot(self, currentShot, changeTime=None, source_area=None):
+    def setCurrentShot(self, currentShot, changeTime=None, source_area=None, setCamToViewport=True):
         shotInd = self.getShotIndex(currentShot)
         # print("setCurrentShot: shotInd:", shotInd)
-        self.setCurrentShotByIndex(shotInd, changeTime=changeTime, source_area=source_area)
+        self.setCurrentShotByIndex(
+            shotInd, changeTime=changeTime, source_area=source_area, setCamToViewport=setCamToViewport
+        )
 
     def getSelectedShotIndex(self):
         """Return the index of the selected shot in the enabled shot list of the current take
@@ -2636,7 +2685,8 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         """Check in all takes if the camera is used by another shot and if not then delete it"""
         deleteOk = False
 
-        if shot.camera is None:
+        # if shot.camera is None:
+        if not shot.isCameraValid():
             return False
 
         for t in self.takes:
@@ -2644,13 +2694,16 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
                 if shot != s and s.camera is not None and shot.camera == s.camera:
                     return False
 
-        bpy.ops.object.select_all(action="DESELECT")
+        # bpy.ops.object.select_all(action="DESELECT")
         cam = shot.camera
         shot.camera = None
 
+        cam.select_set(False)
+        bpy.data.objects.remove(cam, do_unlink=True)
+
         # https://wiki.blender.org/wiki/Reference/Release_Notes/2.80/Python_API/Scene_and_Object_API
-        cam.select_set(True)
-        bpy.ops.object.delete()
+        #  cam.select_set(True)
+        #  bpy.ops.object.delete()
 
         return deleteOk
 
