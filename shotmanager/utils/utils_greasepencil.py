@@ -56,11 +56,14 @@ def create_new_greasepencil(gp_name, parent_object=None, location=None, locate_o
 
     if location is None:
         new_gp_obj.location = [0, 0, 0]
+    elif locate_on_cursor:
+        new_gp_obj.location = bpy.context.scene.cursor.location
     else:
         new_gp_obj.location = location
 
-    if locate_on_cursor:
-        new_gp_obj.location = bpy.context.scene.cursor.location
+    new_gp_obj.lock_location = [True, True, True]
+    new_gp_obj.lock_rotation = [True, True, True]
+    new_gp_obj.lock_scale = [True, True, True]
 
     from math import radians
 
@@ -292,7 +295,10 @@ def fitGreasePencilToFrustum(camera, distance=None):
     # fitLayersToFrustum(gpencil, applied_scale_factor)
 
     # method with gpencil scaling ###
+    gpencil.location[0] = gpencil.location[1] = 0.0
     gpencil.location[2] = -1.0 * distance
+    gpencil.rotation_euler = [0, 0, 0]
+    gpencil.rotation_quaternion = [0, 0, 0, 0]
     distRef = getDistRef(camera)
     gpWidth = distance / distRef
 

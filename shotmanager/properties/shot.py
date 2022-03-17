@@ -550,21 +550,31 @@ class UAS_ShotManager_Shot(ShotInterface, PropertyGroup):
         """Create a Grease Pencil object parented to the camera of the shot.
         Return a tupple with the grease pencil properties and the created object.
         """
-
         if len(self.greasePencils):
             gpProps = self.greasePencils[0]
         else:
             gpProps = self.greasePencils.add()
             gpProps.initialize(self)
 
+        gpObj = self.getGreasePencilObject()
+
+        if gpObj is None:
             gpName = self.camera.name + "_GP"
             gpObj = utils_greasepencil.create_new_greasepencil(gpName, parent_object=self.camera, location=[0, 0, -0.5])
 
             utils_greasepencil.add_grease_pencil_canvas_layer(gpObj, "GP_Canvas", order="BOTTOM", camera=self.camera)
 
-            gpProps.updateGreasePencilToFrustum()
+        gpProps.updateGreasePencilToFrustum()
 
         return (gpProps, gpObj)
+
+    def removeGreasePencil(self, type="STORYBOARD"):
+        """Remove the Grease Pencil properties and the object parented to the camera of the shot.
+        """
+        if self.isCameraValid():
+            gp_child = utils_greasepencil.get_greasepencil_child(self.camera)
+            if gp_child is not None:
+                bpy.data.objects.remove(gp_child, do_unlink=True)
 
     def hasGreasePencil(self):
         if self.camera is not None:
@@ -574,7 +584,7 @@ class UAS_ShotManager_Shot(ShotInterface, PropertyGroup):
             return False
 
     # wkip to update with the gp list
-    def getGreasePencil(self):
+    def getGreasePencilObject(self):
         gp_child = None
         if self.camera is not None:
             gp_child = utils_greasepencil.get_greasepencil_child(self.camera)

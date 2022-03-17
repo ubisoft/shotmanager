@@ -65,6 +65,8 @@ Camera sel:
     - animer le zoom en cas de changement animé de focale:
     https://www.codegrepper.com/code-examples/python/blender+change+text+during+animation
 
-    
+Preferences:
+    - Faire un Features default activation settings
 
 
+- Pb d'undo dans les delete all shots

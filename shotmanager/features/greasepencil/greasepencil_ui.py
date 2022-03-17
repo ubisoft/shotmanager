@@ -34,6 +34,8 @@ def draw_greasepencil_shot_properties(layout, context, shot):
         return
 
     propertiesModeStr = "Selected " if "SELECTED" == props.current_shot_properties_mode else "Current "
+    leftSepFactor = 0.5
+    hSepFactor = 0.5
 
     gp_child = None
     cameraIsValid = shot.isCameraValid()
@@ -65,8 +67,8 @@ def draw_greasepencil_shot_properties(layout, context, shot):
     # extendSubRow.alignment = "RIGHT"
     subrowleft = extendSubRow.row()
     subrowleft.alignment = "EXPAND"
-    subrowleft.scale_x = 0.8
-    subrowleft.label(text=propertiesModeStr + "Shot GP:")
+    # subrowleft.scale_x = 0.8
+    subrowleft.label(text=propertiesModeStr + "Shot Vignette:")
 
     # panelIcon = "TRIA_DOWN" if prefs.shot_greasepencil_expanded and gp_child is not None else "TRIA_RIGHT"
     # extendSubRow.prop(prefs, "shot_greasepencil_expanded", text="", icon=panelIcon, emboss=False)
@@ -96,20 +98,9 @@ def draw_greasepencil_shot_properties(layout, context, shot):
         # subRow.scale_x = 0.8
         selSubRow = subRow.row(align=True)
         selSubRow.label(text=gp_child.name)
-        selSubRow.operator(
-            "uas_shot_manager.select_shot_grease_pencil", text="", icon="RESTRICT_SELECT_OFF"
-        ).index = shotIndex
-        selSubRow.operator("uas_shot_manager.update_grease_pencil", text="", icon="FILE_REFRESH").shotIndex = shotIndex
 
-        if gp_child.mode == "PAINT_GPENCIL":
-            icon = "GREASEPENCIL"
-            selSubRow.alert = True
-            selSubRow.operator("uas_shot_manager.toggle_grease_pencil_draw_mode", text="", icon=icon)
-            selSubRow.alert = False
-            # bpy.ops.gpencil.paintmode_toggle()
-        else:
-            selSubRow.operator("uas_shot_manager.draw_on_grease_pencil", text="", icon="OUTLINER_OB_GREASEPENCIL")
-
+        # Visibility tools
+        ################
         subSubRow = subRow.row(align=True)
         subSubRow.prop(gp_child, "hide_select", text="")
         subSubRow.prop(gp_child, "hide_viewport", text="")
@@ -122,24 +113,60 @@ def draw_greasepencil_shot_properties(layout, context, shot):
         subRow.separator()
         subRow.prop(props, "display_greasepencil_in_shotlist", text="")
 
+        # Tools
+        ################
         mainRow = extendSubRow.row()
-        sepRow = mainRow.row()
-        sepRow.separator(factor=0.5)
+        hSepRow = mainRow.row()
+        hSepRow.separator(factor=0.5)
 
         mainRow = box.row()
-        mainRow.separator(factor=0.5)
+        mainRow.separator(factor=leftSepFactor)
         col = mainRow.column()
-        if config.devDebug:
-            # or prefs.shot_greasepencil_expanded:
-            subRow = col.row()
-            subRow.prop(gp_child, "location")
-            subRow = col.row()
-            subRow.prop(gp_child, "scale")
 
+        # Grease Pencil tools
+        ################
         subRow = col.row()
-        # subRow.prop(shot.gpStoryboard, "distance")
-        subRow.prop(gpProperties, "gpDistance", slider=True)
+        gpToolsSplit = subRow.split(factor=0.4)
+        # gpToolsRow1 = subRow.row(align=False)
+        gpToolsRow = gpToolsSplit.row(align=True)
+        gpToolsRow.alignment = "LEFT"
+        gpToolsRow.scale_x = 2
+        gpToolsRow.operator(
+            "uas_shot_manager.select_shot_grease_pencil", text="", icon="RESTRICT_SELECT_OFF"
+        ).index = shotIndex
 
+        if gp_child.mode == "PAINT_GPENCIL":
+            icon = "GREASEPENCIL"
+            gpToolsRow.alert = True
+            gpToolsRow.operator("uas_shot_manager.toggle_grease_pencil_draw_mode", text="", icon=icon)
+            gpToolsRow.alert = False
+            # bpy.ops.gpencil.paintmode_toggle()
+        else:
+            gpToolsRow.operator("uas_shot_manager.draw_on_grease_pencil", text="", icon="OUTLINER_OB_GREASEPENCIL")
+
+        gpToolsRow.operator("uas_shot_manager.update_grease_pencil", text="", icon="FILE_REFRESH").shotIndex = shotIndex
+
+        # subRow.alignment = "LEFT"
+        gpDistRow = gpToolsSplit.row(align=True)
+        gpDistRow.scale_x = 1.2
+        gpDistRow.use_property_split = True
+        gpDistRow.alignment = "RIGHT"
+        # gpDistRow.label(text="Distance:")
+        gpDistRow.prop(gpProperties, "gpDistance", text="Distance:", slider=True)
+
+        # Debug settings
+        ################
+        if config.devDebug:
+            debugRow = col.row()
+            debugRow.separator(factor=hSepFactor)
+            # or prefs.shot_greasepencil_expanded:
+            debugRow = col.row()
+            debugRow.prop(gp_child, "location")
+            debugRow = col.row()
+            debugRow.prop(gp_child, "scale")
+
+        row = col.row()
+        row.separator(factor=hSepFactor)
         row = col.row()
         row.label(text="Canvas: ")
 
@@ -155,8 +182,9 @@ def draw_greasepencil_shot_properties(layout, context, shot):
 
         row = col.row()
         row.separator(factor=0.5)
-        # row = box.row()
-        # row.operator("uas_shot_manager.change_grease_pencil_opacity").gpObjectName = gp_child
+
+    # row = box.row()
+    # row.operator("uas_shot_manager.change_grease_pencil_opacity").gpObjectName = gp_child
 
 
 def draw_greasepencil_global_properties(layout, context):

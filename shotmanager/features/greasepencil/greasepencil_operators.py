@@ -329,8 +329,8 @@ class UAS_ShotManager_OT_UpdateGreasePencil(Operator):
 
 class UAS_ShotManager_OT_RemoveGreasePencil(Operator):
     bl_idname = "uas_shot_manager.remove_grease_pencil"
-    bl_label = "Remove Grease Pencil"
-    bl_description = "Remove the camera grease pencil of the specified shots"
+    bl_label = "Remove Vignettes"
+    bl_description = "Remove the storyboard vignette of the specified shots"
     bl_options = {"INTERNAL", "UNDO"}
 
     shotIndex: IntProperty(default=-1)
@@ -339,8 +339,8 @@ class UAS_ShotManager_OT_RemoveGreasePencil(Operator):
         props = context.scene.UAS_shot_manager_props
         shotList = []
 
-        print("Remove Grease Pencil: shotIndex: ", self.shotIndex)
-        if 0 > self.shotIndex:
+        # print("Remove Grease Pencil: shotIndex: ", self.shotIndex)
+        if self.shotIndex < 0:
             take = context.scene.UAS_shot_manager_props.getCurrentTake()
             shotList = take.getShotsList(ignoreDisabled=props.shotsGlobalSettings.alsoApplyToDisabledShots)
         else:
@@ -349,11 +349,12 @@ class UAS_ShotManager_OT_RemoveGreasePencil(Operator):
                 shotList.append(shot)
 
         for shot in shotList:
-            #    print("   shot name: ", shot.name)
-            if shot.camera is not None:
-                gp_child = utils_greasepencil.get_greasepencil_child(shot.camera)
-                if gp_child is not None:
-                    bpy.data.objects.remove(gp_child, do_unlink=True)
+            # print("   del gp for shot ", shot.name)
+            shot.removeGreasePencil()
+            # if shot.camera is not None:
+            #     gp_child = utils_greasepencil.get_greasepencil_child(shot.camera)
+            #     if gp_child is not None:
+            #         bpy.data.objects.remove(gp_child, do_unlink=True)
 
         return {"FINISHED"}
 
@@ -458,7 +459,7 @@ class UAS_ShotManager_GreasePencilItem(Operator):
         scene = context.scene
         props.setSelectedShotByIndex(self.index)
         shot = props.getShotByIndex(self.index)
-        gpChild = shot.getGreasePencil()
+        gpChild = shot.getGreasePencilObject()
 
         try:
             bpy.ops.object.select_all(action="DESELECT")
@@ -474,7 +475,7 @@ class UAS_ShotManager_GreasePencilItem(Operator):
             utils_greasepencil.create_new_greasepencil(
                 shot.camera.name + "_GP", parent_object=shot.camera, location=[0, 0, 0]
             )
-            gpChild = shot.getGreasePencil()
+            gpChild = shot.getGreasePencilObject()
 
         if gpChild is not None:
             if not event.shift or event.alt:

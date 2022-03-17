@@ -31,6 +31,10 @@ import json
 from shotmanager.utils import utils
 from shotmanager.utils.utils_time import zoom_dopesheet_view_to_range
 
+from shotmanager.config import sm_logging
+
+_logger = sm_logging.getLogger(__name__)
+
 
 def list_cameras(self, context):
     res = list()
@@ -494,7 +498,7 @@ class UAS_ShotManager_ShotAdd(Operator):
         #     elif 0 < len(cameras):
         #         self.cameraName = cameras[0].name
 
-        self.alignCamToView = not props.display_greasepencil_in_properties
+        # self.alignCamToView = not props.display_greasepencil_in_properties
         self.addStoryboardGP = props.display_greasepencil_in_properties
 
         return wm.invoke_props_dialog(self, width=360)
@@ -684,16 +688,13 @@ class UAS_ShotManager_ShotAdd(Operator):
             #            camera  = scene.objects[ self.camera ] if self.camera else None,
             camera=cam,
             color=col,
+            addGreasePencilStoryboard=self.addStoryboardGP,
         )
 
         # make new camera name match possible changes in shot name
         if "NEW_CAMERA" == self.cameraName and newShot.name != self.name:
             cam.name = "Cam_" + newShot.name
             cam.data.name = cam.name
-
-        # create storyboard grease pencil
-        if self.addStoryboardGP:
-            newShot.addGreasePencil(type="STORYBOARD")
 
         utils.clear_selection()
         utils.add_to_selection(cam)
@@ -793,7 +794,7 @@ class UAS_ShotManager_ShotDuplicate(Operator):
         #     newCam.name = self.camName
         #     newShot.camera = newCam
 
-        props.setCurrentShotByIndex(newShotInd)
+        props.setCurrentShotByIndex(newShotInd, setCamToViewport=False)
         props.setSelectedShotByIndex(newShotInd)
 
         return {"INTERFACE"}
@@ -802,7 +803,7 @@ class UAS_ShotManager_ShotDuplicate(Operator):
 class UAS_ShotManager_ShotRemove(Operator):
     bl_idname = "uas_shot_manager.shot_remove"
     bl_label = "Remove Selected Shot"
-    bl_description = "Remove the shot selected in the shot list."
+    bl_description = "Remove the shot selected in the shot list"
     bl_options = {"REGISTER", "UNDO"}
 
     @classmethod
@@ -814,12 +815,8 @@ class UAS_ShotManager_ShotRemove(Operator):
         scene = context.scene
         props = scene.UAS_shot_manager_props
         shots = props.get_shots()
-        for s in shots:
-            print(f"* Shot Name: {s.name}")
         selectedShotInd = props.getSelectedShotIndex()
-        print(f"* selectedShotInd: {selectedShotInd}")
-
-        props.removeShot(shots[selectedShotInd])
+        props.removeShot_UIupdate(shots[selectedShotInd])
 
         return {"FINISHED"}
 
@@ -865,7 +862,7 @@ class UAS_ShotManager_ShotMove(Operator):
             #    if len(shots) - 1 > selectedShotInd:
             movedShot = props.moveShotToIndex(movedShot, selectedShotInd + 1)
 
-        props.setCurrentShot(movedShot)
+        props.setCurrentShot(movedShot, setCamToViewport=False)
         props.setSelectedShot(movedShot)
 
         return {"FINISHED"}
@@ -890,14 +887,15 @@ def convertMarkersFromCameraBindingToShots(scene):
     # get the list of markers bound to cameras and sort them by time
     boundMarkers = []
     for m in scene.timeline_markers:
-        print(f"Marker name: {m.name}, cam: {m.camera}")
+        #    _logger.debug_ext(f"Marker name: {m.name}, cam: {m.camera}", col="BLUE", form="BASIC")
         if m.camera is not None:
             boundMarkers.append(m)
 
     boundMarkers = utils.sortMarkers(boundMarkers)
-    print(f"--- sorting")
-    for m in boundMarkers:
-        print(f"Marker name: {m.name}, cam: {m.camera}")
+
+    # display sorted markers
+    # for m in boundMarkers:
+    #     _logger.debug_ext(f"Marker name: {m.name}, cam: {m.camera}", col="BLUE", form="BASIC")
 
     # create shot for each marker, even is some markers have the same camera
     for i, m in enumerate(boundMarkers):
@@ -1229,7 +1227,7 @@ class UAS_ShotManager_DuplicateShotsToOtherTake(Operator):
         else:  # move
             for i, shot in enumerate(reversed(enabledShots)):
                 print(f"shot to remove: {shot.name}, {shot.parentScene}, i:{i}")
-                props.removeShot(shot)
+                props.removeShot_UIupdate(shot)
 
         return {"INTERFACE"}
 
@@ -1297,7 +1295,7 @@ class UAS_ShotManager_ShotRemoveMultiple(Operator):
         currentShotInd = props.current_shot_index
         selectedShotInd = props.getSelectedShotIndex()
 
-        props.setCurrentShotByIndex(-1)
+        props.setCurrentShotByIndex(-1, setCamToViewport=False)
 
         try:
             item = shots[selectedShotInd]
@@ -1305,12 +1303,13 @@ class UAS_ShotManager_ShotRemoveMultiple(Operator):
             pass
         else:
             if self.action == "ALL":
-                props.setCurrentShotByIndex(-1)
+                props.setCurrentShotByIndex(-1, setCamToViewport=False)
                 i = len(shots) - 1
                 while i > -1:
-                    if self.deleteCameras:
-                        props.deleteShotCamera(shots[i])
-                    shots.remove(i)
+                    # if self.deleteCameras:
+                    #     props.deleteShotCamera(shots[i])
+                    # shots.remove(i)
+                    props.removeShotByIndex(i, deleteCamera=self.deleteCameras)
                     i -= 1
                 props.setSelectedShotByIndex(-1)
             elif self.action == "DISABLED":
@@ -1319,12 +1318,13 @@ class UAS_ShotManager_ShotRemoveMultiple(Operator):
                     if not shots[i].enabled:
                         if currentShotInd == len(shots) - 1 and currentShotInd == selectedShotInd:
                             pass
-                        if self.deleteCameras:
-                            props.deleteShotCamera(shots[i])
-                        shots.remove(i)
+                        # if self.deleteCameras:
+                        #     props.deleteShotCamera(shots[i])
+                        # shots.remove(i)
+                        props.removeShotByIndex(i, deleteCamera=self.deleteCameras)
                     i -= 1
                 if 0 < len(shots):  # wkip pas parfait, on devrait conserver la sel currente
-                    props.setCurrentShotByIndex(0)
+                    props.setCurrentShotByIndex(0, setCamToViewport=False)
                     props.setSelectedShotByIndex(0)
 
         #  print(" ** removed shots, len(props.get_shots()): ", len(props.get_shots()))

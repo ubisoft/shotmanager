@@ -115,7 +115,7 @@ class UAS_UL_ShotManager_Items(bpy.types.UIList):
                 row = row.row(align=True)
                 row.scale_x = 1.0
 
-                gp = item.getGreasePencil()
+                gp = item.getGreasePencilObject()
                 if gp is None:
                     icon = config.icons_col["ShotManager_CamGPNoShot_32"]
                     row.operator("uas_shot_manager.greasepencilitem", text="", icon_value=icon.icon_id).index = index
@@ -195,7 +195,7 @@ class UAS_UL_ShotManager_Items(bpy.types.UIList):
                 if props.highlight_all_shot_frames or current_shot_index == index:
                     grid_flow.alert = True
             grid_flow.prop(item, "start", text="")
-            grid_flow.alert = False
+            grid_flow.alert = item.camera is None or itemHasWarnings
 
         # duration
         ###########
@@ -221,7 +221,7 @@ class UAS_UL_ShotManager_Items(bpy.types.UIList):
             else:
                 grid_flow.scale_x = 0.05
                 grid_flow.operator("uas_shot_manager.shot_duration", text="").index = index
-            grid_flow.alert = False
+            grid_flow.alert = item.camera is None or itemHasWarnings
         else:
             grid_flow.scale_x = 1.5
 
@@ -247,7 +247,7 @@ class UAS_UL_ShotManager_Items(bpy.types.UIList):
                 if props.highlight_all_shot_frames or current_shot_index == index:
                     grid_flow.alert = True
             grid_flow.prop(item, "end", text="")
-            grid_flow.alert = False
+            grid_flow.alert = item.camera is None or itemHasWarnings
 
             grid_flow.scale_x = button_x_factor - 0.2
             if props.display_getsetcurrentframe_in_shotlist:
@@ -368,7 +368,9 @@ class UAS_MT_ShotManager_Shots_ToolsMenu(Menu):
             row = layout.row(align=True)
             row.operator_context = "INVOKE_DEFAULT"
             row.operator(
-                "uas_shot_manager.create_n_vignettes", text="   Create Specifed Number of Vignettes...", icon="ADD"
+                "uas_shot_manager.create_n_vignettes",
+                text="   Create Specifed Number of Shots with Vignettes...",
+                icon="ADD",
             )
 
         #############

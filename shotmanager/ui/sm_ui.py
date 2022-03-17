@@ -409,11 +409,20 @@ class UAS_PT_ShotManager(Panel):
         )
         if display_take_arrow:
             # utils_ui.collapsable_panel(row, prefs, "take_properties_expanded")     # doesn't improve the UI
-            row.prop(prefs, "take_properties_expanded", text="", icon_only=True, icon=panelIcon, emboss=False)
+            arrowRow = row.row()
+            arrowRow.scale_x = 0.9
+            arrowRow.prop(prefs, "take_properties_expanded", text="", icon_only=True, icon=panelIcon, emboss=False)
 
         leftrow = row.row()
         leftrow.alignment = "LEFT"
-        leftrow.scale_x = 0.81 if display_take_arrow else 1.16
+        # leftrow.scale_x = 0.81 if display_take_arrow else 1.16
+
+        if display_take_arrow:
+            arrowScale_x = 1.0 if props.display_advanced_infos else 0.9
+        else:
+            arrowScale_x = 1.0 if props.display_advanced_infos else 0.9
+        leftrow.scale_x = arrowScale_x
+
         takeStr = "Take:" if not props.display_advanced_infos else f"Take ({currentTakeInd + 1}/{props.getNumTakes()}):"
         leftrow.label(text=takeStr)
 

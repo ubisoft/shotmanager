@@ -21,7 +21,7 @@ Shot Manager grease pencil tools and specific operators
 
 import bpy
 from bpy.types import Operator
-from bpy.props import StringProperty, IntProperty, FloatVectorProperty
+from bpy.props import StringProperty, IntProperty
 
 from random import uniform
 
@@ -36,15 +36,20 @@ class UAS_ShotManager_CreateNvignettes(Operator):
 
     name: StringProperty(name="Name")
     # cameraName: EnumProperty(items=list_cameras, name="Camera", description="Select a Camera")
-    start: IntProperty(name="Start")
-    duration: IntProperty(name="Duration", min=1)
+    start: IntProperty(
+        name="Start", subtype="TIME",
+    )
+    duration: IntProperty(
+        name="Duration", min=1, subtype="TIME",
+    )
     offsetFromPrevious: IntProperty(
-        name="Offset From previous Vignette",
+        name="Time Offset Between Vignette",
         description="Number of frames from which the start of a vignette will be offset from the end of the one preceding it",
+        subtype="TIME",
         default=1,
     )
-    count: IntProperty(name="Number of Shots to Create", min=1, default=4)
-    numCamsPerRow: IntProperty(name="Number of cameras per row", min=1, default=8)
+    count: IntProperty(name="Number of Shots to Create", min=1, soft_max=20, default=4)
+    numCamsPerRow: IntProperty(name="Number of cameras per row", min=1, soft_max=20, default=8)
 
     # color: FloatVectorProperty(
     #     name="Color",
@@ -119,6 +124,8 @@ class UAS_ShotManager_CreateNvignettes(Operator):
         col = grid_flow.column(align=False)
         col.prop(self, "offsetFromPrevious", text="")
 
+        col.separator(factor=1)
+
         col = grid_flow.column(align=False)
         col.label(text="Num Cams Per Row:")
         col = grid_flow.column(align=False)
@@ -169,15 +176,17 @@ class UAS_ShotManager_CreateNvignettes(Operator):
                 end=endFrame,
                 camera=cam,
                 color=col,
+                addGreasePencilStoryboard=True,
             )
 
             # create storyboard grease pencil
-            newShot.addGreasePencil(type="STORYBOARD")
+            # newShot.addGreasePencil(type="STORYBOARD")
 
             newShotInd += 1
 
         props.setCurrentShotByIndex(newShotInd - 1)
         props.setSelectedShotByIndex(newShotInd - 1)
+        bpy.ops.uas_shot_manager.scenerangefromtake("INVOKE_DEFAULT")
         bpy.ops.ed.undo_push()
         return {"INTERFACE"}
 

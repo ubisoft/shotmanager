@@ -66,6 +66,11 @@ def drawShotPropertiesToolbar(layout, context, shot):
         panelIcon = "TRIA_DOWN" if props.expand_shot_properties else "TRIA_RIGHT"
         subrow.prop(props, "expand_shot_properties", toggle=True, icon=panelIcon)
 
+        if props.display_greasepencil_in_properties:
+            subrow = buttonsrow.row()
+            subrow.scale_x = 0.9
+            panelIcon = "TRIA_DOWN" if props.expand_greasepencil_properties else "TRIA_RIGHT"
+            subrow.prop(props, "expand_greasepencil_properties", text="Storyboard", toggle=True, icon=panelIcon)
         if props.display_notes_in_properties:
             subrow = buttonsrow.row()
             subrow.scale_x = 0.9
@@ -76,11 +81,6 @@ def drawShotPropertiesToolbar(layout, context, shot):
             subrow.scale_x = 0.9
             panelIcon = "TRIA_DOWN" if props.expand_cameraBG_properties else "TRIA_RIGHT"
             subrow.prop(props, "expand_cameraBG_properties", toggle=True, icon=panelIcon)
-        if props.display_greasepencil_in_properties:
-            subrow = buttonsrow.row()
-            subrow.scale_x = 0.9
-            panelIcon = "TRIA_DOWN" if props.expand_greasepencil_properties else "TRIA_RIGHT"
-            subrow.prop(props, "expand_greasepencil_properties", toggle=True, icon=panelIcon)
 
         buttonsrow.separator()
     else:

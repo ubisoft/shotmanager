@@ -25,7 +25,6 @@ from bpy.props import PointerProperty, FloatProperty
 
 # from shotmanager.properties.shot import UAS_ShotManager_Shot
 
-from shotmanager.utils import utils
 from shotmanager.utils import utils_greasepencil
 
 
@@ -39,6 +38,8 @@ class GreasePencilProperties(PropertyGroup):
     )
 
     def initialize(self, parentShot):
+        """Set the parent camera of the Grease Pencil Properties
+        """
         print(f"\nInitializing new Grease Pencil Properties for shot {parentShot.name}...")
 
         self.parentCamera = parentShot.camera
@@ -49,9 +50,10 @@ class GreasePencilProperties(PropertyGroup):
 
     gpDistance: FloatProperty(
         name="Distance",
-        description="Distance",
-        soft_min=0.0,
-        min=0.0,
+        description="Distance between the vignette and the parent camera",
+        subtype="DISTANCE",
+        soft_min=0.02,
+        min=0.001,
         soft_max=10.0,
         # max=1.0,
         step=0.1,
