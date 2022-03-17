@@ -150,13 +150,6 @@ class UAS_VSE_OpenFileBrowser(Operator):  # from bpy_extras.io_utils import Impo
 
 
 class ShotManager_Vse_Render(PropertyGroup):
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-
->>>>>>> Fix: same as previous
-=======
->>>>>>> Code cleaning
     def get_inputOverMediaPath(self):
         val = self.get("inputOverMediaPath", "")
         return val
@@ -190,10 +183,6 @@ class ShotManager_Vse_Render(PropertyGroup):
 
     outputMediaPath: StringProperty(name="Output Media Path", default="")
 
-<<<<<<< HEAD
-=======
-
->>>>>>> Fix: same as previous
     def printMedia(self):
         mediaStr = "\nShot Manager: VSE_Render current media:\n"
         mediaStr += f"   - inputOverMediaPath:  '{self.inputOverMediaPath}'\n"
@@ -214,13 +203,8 @@ class ShotManager_Vse_Render(PropertyGroup):
         mediaStr += f"   - outputMediaPath:     '{self.outputMediaPath}'\n"
         # mediaStr += "\n"
 
-<<<<<<< HEAD
         _YELLOW = "\33[33m"
         _ENDCOLOR = "\033[0m"
-=======
-        _YELLOW = '\33[33m'
-        _ENDCOLOR = '\033[0m'
->>>>>>> Fix: same as previous
         print(f"{_YELLOW}{mediaStr}{_ENDCOLOR}")
 
         # if bg_file is not None:
