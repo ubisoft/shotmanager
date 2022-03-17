@@ -22,22 +22,6 @@
 - render_sequence_prefix renamed to render_sequence_prefix
 
 
-# 1.7.08 (2022-03-04)
-
-## Rendering:
-
-- Fixed rendering in Playblast mode
-
-## UI:
-
-- "Render Shot Prefix" parameter was renamed Render Sequence Prefix
-
-## Code:
-
-- Cleaned the debug folder to make it a well-integrated package
-- render_sequence_prefix renamed to render_sequence_prefix
-
-
 # 1.7.1 (2022-02-11)
 
 ## Fixed:
@@ -58,51 +42,23 @@
 - Added a checkbox in the render panel to choose to keep the intermediate rendered images
 - Added a Reset Render Properties button
 
-<<<<<<< HEAD
 ## Grease Pencil:
 - Fixed bug when painting on hidden objects
-=======
-fixed res ouput for sep video and for playblast
-fixed shots play mode issues on version 3
->>>>>>> Fix: Shots Play Mode issues on Blender V 3.x
 
-<<<<<<< HEAD
 ## UI:
 
 - Added button to take range
 - Added information for output render
 - Added the main panel items menu in the Render Panel
-<<<<<<< HEAD
-=======
-fixed res ouput for sep video and for playblast
-fixed shots play mode issues on version 3
-<<<<<<< HEAD
->>>>>>> Fix: Shots Play Mode issues on Blender V 3.x
-=======
->>>>>>> Debug folder as a real package
 
 ## Code:
 
 - Code cleaning to match Flake8 rules
 - Refactor code for output media
 ***Warning: temp directory names have changed ***
-=======
->>>>>>> Fix: Shots Play Mode issues on Blender V 3.x
 
 ## Debug
 - Added debug function to fix entities parent in old blender files
-
-Debug
-Added debug function to fix entities parent in old blender files
-
-Debug
-Added debug function to fix entities parent in old blender files
-
-Debug
-Added debug function to fix entities parent in old blender files
-
-Debug
-Added debug function to fix entities parent in old blender files
 
 Debug
 Added debug function to fix entities parent in old blender files

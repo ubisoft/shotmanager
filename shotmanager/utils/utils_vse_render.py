@@ -1071,11 +1071,7 @@ class ShotManager_Vse_Render(PropertyGroup):
                     print(f"specificFrame: {specificFrame}")
 
                 # remove the end digits if there are some
-<<<<<<< HEAD
                 # fileNoExt = fileNoExt.rstrip("0123456789")
-=======
-                #fileNoExt = fileNoExt.rstrip("0123456789")
->>>>>>> Fix: same as previous
 
                 self.outputMediaPath = filePathOnly + output_file_prefix + fileNoExt + frameIndStr + ".png"
                 vse_scene.render.filepath = self.outputMediaPath
@@ -1108,7 +1104,6 @@ class ShotManager_Vse_Render(PropertyGroup):
                     vse_scene.render.image_settings.file_format = "PNG"
                     ext = ".png"
 
-<<<<<<< HEAD
                 # self.outputMediaPath = (
                 #     filePathOnly + fileNoExt + "\\" + output_file_prefix + fileNoExt + frameIndStr + ext
                 # )
@@ -1116,10 +1111,6 @@ class ShotManager_Vse_Render(PropertyGroup):
                 self.outputMediaPath = (
                     filePathOnly + fileNoExt + "\\" + output_file_prefix + fileNoExt + frameIndStr + ext
                 )
-=======
-                self.outputMediaPath = filePathOnly + fileNoExt + "\\" + output_file_prefix + fileNoExt + frameIndStr + ext
-                vse_scene.render.filepath = self.outputMediaPath
->>>>>>> Fix: same as previous
 
                 vse_scene.render.filepath = self.outputMediaPath
 
