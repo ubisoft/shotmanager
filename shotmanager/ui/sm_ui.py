@@ -226,7 +226,11 @@ class UAS_PT_ShotManager(Panel):
         )
         #  subSubRow = toggleButRow.row(align=True)
         toggleButRow.prop(
-            context.window_manager, "UAS_shot_manager_use_best_perfs", text="", icon="INDIRECT_ONLY_ON", toggle=True,
+            context.window_manager,
+            "UAS_shot_manager_use_best_perfs",
+            text="",
+            icon="INDIRECT_ONLY_ON",
+            toggle=True,
         )
 
         # row.prop(scene, "use_audio", text="", icon="PLAY_SOUND")      # works inverted :S
@@ -332,7 +336,11 @@ class UAS_PT_ShotManager(Panel):
         # activeindrow.scale_x = 0.4
         subactiveindrow = activeindrow.row(align=True)
         subactiveindrow.prop(
-            context.window_manager, "UAS_shot_manager_identify_3dViews", text="", toggle=True, icon="WORDWRAP_ON",
+            context.window_manager,
+            "UAS_shot_manager_identify_3dViews",
+            text="",
+            toggle=True,
+            icon="WORDWRAP_ON",
         )
         targviewprow = subactiveindrow.row(align=True)
         expected_target_area_ind = props.getTargetViewportIndex(context, only_valid=False)
@@ -376,9 +384,11 @@ class UAS_PT_ShotManager(Panel):
 
             rightrow.alignment = "RIGHT"
 
-            if props.use_project_settings and props.project_fps != scene.render.fps:
+            sceneFps = utils.getSceneEffectiveFps(scene)
+            if props.use_project_settings and props.project_fps != sceneFps:
                 rightrow.alert = True
-            rightrow.label(text=str(scene.render.fps) + " fps")
+            # rightrow.label(text=str(scene.render.fps) + " fps")
+            rightrow.label(text=f"{sceneFps} fps")
 
         # takes
         ################

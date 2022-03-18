@@ -227,9 +227,11 @@ class UAS_VideoShotManager_OT_RRS_ExportShotsFromEdit(Operator):
             row.label(text=f"Num. Sequences: {len(config.gMontageOtio.sequencesList)}")
 
             row = box.row()
-            if config.gMontageOtio.get_fps() != scene.render.fps:
+            # if config.gMontageOtio.get_fps() != scene.render.fps:
+            sceneFps = utils.getSceneEffectiveFps(scene)
+            if config.gMontageOtio.get_fps() != sceneFps:
                 row.alert = True
-                row.label(text=f"!! Scene has a different framerate: {scene.render.fps} fps !!")
+                row.label(text=f"!! Scene has a different framerate: {sceneFps} fps !!")
                 row.alert = False
 
         #     # if config.devDebug:
@@ -283,7 +285,7 @@ class UAS_VideoShotManager_OT_RRS_ExportShotsFromEdit(Operator):
         #       scene.render.filepath = output_filepath
         scene.render.use_file_extension = False
 
-        # scene.render.resolution_percentage = 75.0
+        # scene.render.resolution_percentage = 75
 
         return {"FINISHED"}
 
@@ -382,9 +384,11 @@ class UAS_VideoShotManager_OT_SM_CheckSequence(Operator):
             row.label(text=f"Num. Sequences: {len(config.gMontageOtio.sequencesList)}")
 
             row = box.row()
-            if config.gMontageOtio.get_fps() != scene.render.fps:
+            # if config.gMontageOtio.get_fps() != scene.render.fps:
+            sceneFps = utils.getSceneEffectiveFps(scene)
+            if config.gMontageOtio.get_fps() != sceneFps:
                 row.alert = True
-                row.label(text=f"!! Scene has a different framerate: {scene.render.fps} fps !!")
+                row.label(text=f"!! Scene has a different framerate: {sceneFps} fps !!")
                 row.alert = False
 
         #     # if config.devDebug:
@@ -413,7 +417,9 @@ class UAS_VideoShotManager_OT_SM_CheckSequence(Operator):
         playblastInfos = dict()
 
         rrs_animatic_to_vsm(
-            editVideoFile=self.editVideoFile, montageOtio=config.gMontageOtio, importMarkers=self.importMarkers,
+            editVideoFile=self.editVideoFile,
+            montageOtio=config.gMontageOtio,
+            importMarkers=self.importMarkers,
         )
 
         bpy.ops.uas_video_shot_manager.zoom_view(zoomMode="SELECTEDCLIPS")

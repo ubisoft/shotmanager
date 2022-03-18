@@ -53,5 +53,5 @@ def unregister():
     from shotmanager.config import config
 
     config.devDebug = False
-    for cls in reversed(__classes):
+    for cls in reversed(_classes):
         bpy.utils.unregister_class(cls)
