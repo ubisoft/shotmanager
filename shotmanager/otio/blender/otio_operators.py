@@ -70,7 +70,8 @@ class UAS_ShotManager_Export_OTIO(Operator):
     # wkip a remettre plus tard pour définir des chemins alternatifs de sauvegarde.
     # se baser sur
     # wm = context.window_manager
-    # self.fps = context.scene.render.fps
+    # # self.fps = context.scene.render.fps
+    # self.fps = utils.getSceneEffectiveFps(context.scene)
     # out_path = context.scene.render.filepath
     # if out_path.startswith ( "//" ):
 
@@ -99,7 +100,8 @@ class UAS_ShotManager_Export_OTIO(Operator):
                 context.scene,
                 filePath=props.renderRootPath,
                 fileName=f"{props.getCurrentTake().getName_PathCompliant(withPrefix=True)}.{props.renderSettingsOtio.otioFileType.lower()}",
-                fps=context.scene.render.fps,
+                # fps=context.scene.render.fps,
+                fps=utils.getSceneEffectiveFps(context.scene),
                 # montageCharacteristics=props.get_montage_characteristics(),
             )
         else:
@@ -161,7 +163,9 @@ class UAS_ShotManager_OT_Create_Shots_From_OTIO_Simple(Operator):
     )
 
     reformatShotNames: BoolProperty(
-        name="Reformat Shot Names", description="Keep only the shot name part for the name of the shots", default=True,
+        name="Reformat Shot Names",
+        description="Keep only the shot name part for the name of the shots",
+        default=True,
     )
     createCameras: BoolProperty(
         name="Create Camera for New Shots",
@@ -174,10 +178,16 @@ class UAS_ShotManager_OT_Create_Shots_From_OTIO_Simple(Operator):
         default=True,
     )
     mediaHaveHandles: BoolProperty(
-        name="Media Have Handles", description="Do imported media use the project handles?", default=False,
+        name="Media Have Handles",
+        description="Do imported media use the project handles?",
+        default=False,
     )
     mediaHandlesDuration: IntProperty(
-        name="Handles Duration", description="", soft_min=0, min=0, default=10,
+        name="Handles Duration",
+        description="",
+        soft_min=0,
+        min=0,
+        default=10,
     )
 
     importAudioInVSE: BoolProperty(
@@ -207,11 +217,11 @@ class UAS_ShotManager_OT_Create_Shots_From_OTIO_Simple(Operator):
             time = timeline.duration()
             rate = int(time.rate)
 
-            if rate != context.scene.render.fps:
+            # if rate != context.scene.render.fps:
+            sceneFps = utils.getSceneEffectiveFps(context.scene)
+            if rate != sceneFps:
                 box.alert = True
-                box.label(
-                    text="!!! Scene fps is " + str(context.scene.render.fps) + ", imported edit is " + str(rate) + "!!"
-                )
+                box.label(text=f"!!! Scene fps is {sceneFps}, imported edit is {rate} !!!")
                 box.alert = False
 
         row = layout.row(align=True)
@@ -349,18 +359,42 @@ class UAS_ShotManager_OT_Create_Shots_From_OTIO_Adv(Operator):
     importFpsMode: EnumProperty(
         name="FPS Mode",
         description="Specify if the scene fps should be changed to match the edit fps",
-        items=(("EDIT_FPS", "Use Edit Fps", "",), ("SCENE_FPS", "Use Scene Fps", "",),),
+        items=(
+            (
+                "EDIT_FPS",
+                "Use Edit Fps",
+                "",
+            ),
+            (
+                "SCENE_FPS",
+                "Use Scene Fps",
+                "",
+            ),
+        ),
         default="EDIT_FPS",
     )
     importResMode: EnumProperty(
         name="Res Mode",
         description="Specify if the scene resolution should be changed to match the edit resolution",
-        items=(("EDIT_RES", "Use Edit Resolution", "",), ("SCENE_RES", "Use Scene Resolution", "",),),
+        items=(
+            (
+                "EDIT_RES",
+                "Use Edit Resolution",
+                "",
+            ),
+            (
+                "SCENE_RES",
+                "Use Scene Resolution",
+                "",
+            ),
+        ),
         default="EDIT_RES",
     )
 
     offsetTime: BoolProperty(
-        name="Offset Time", description="Offset the imported part of edit to start at the specified time", default=True,
+        name="Offset Time",
+        description="Offset the imported part of edit to start at the specified time",
+        default=True,
     )
     importAtFrame: IntProperty(
         name="Import at Frame",
@@ -375,7 +409,9 @@ class UAS_ShotManager_OT_Create_Shots_From_OTIO_Adv(Operator):
     ############
 
     reformatShotNames: BoolProperty(
-        name="Reformat Shot Names", description="Keep only the shot name part for the name of the shots", default=True,
+        name="Reformat Shot Names",
+        description="Keep only the shot name part for the name of the shots",
+        default=True,
     )
 
     ############
@@ -431,10 +467,16 @@ class UAS_ShotManager_OT_Create_Shots_From_OTIO_Adv(Operator):
     )
 
     mediaHaveHandles: BoolProperty(
-        name="Media Have Handles", description="Do imported media use the project handles?", default=False,
+        name="Media Have Handles",
+        description="Do imported media use the project handles?",
+        default=False,
     )
     mediaHandlesDuration: IntProperty(
-        name="Handles Duration", description="", soft_min=0, min=0, default=0,
+        name="Handles Duration",
+        description="",
+        soft_min=0,
+        min=0,
+        default=0,
     )
 
     compare3DAndAnimaticInVSE: BoolProperty(
@@ -707,10 +749,12 @@ class UAS_ShotManager_OT_Create_Shots_From_OTIO_Adv(Operator):
             row = col.row()
             editFps = config.gMontageOtio.get_fps()
             row.label(text=f"Framerate: {editFps} fps")
-            if editFps != context.scene.render.fps:
+            sceneFps = utils.getSceneEffectiveFps(context.scene)
+            # if editFps != context.scene.render.fps:
+            if editFps != sceneFps:
                 row.prop(self, "importFpsMode", text="")
                 row.alert = True
-                row.label(text=f"Scene is {context.scene.render.fps} fps!!")
+                row.label(text=f"Scene is {sceneFps} fps!!")
 
             row = col.row()
             editRes = config.gMontageOtio.get_resolution()
@@ -886,7 +930,8 @@ class UAS_ShotManager_OT_Create_Shots_From_OTIO_Adv(Operator):
         # update scene if needed
         editFps = config.gMontageOtio.get_fps()
         if editFps != context.scene.render.fps and "EDIT_FPS" == self.importFpsMode:
-            context.scene.render.fps = editFps
+            # context.scene.render.fps = editFps
+            utils.setSceneFps(context.scene, editFps)
         editRes = config.gMontageOtio.get_resolution()
         sceneRes = (context.scene.render.resolution_x, context.scene.render.resolution_y)
         if editRes is not None and editRes != sceneRes and "EDIT_RES" == self.importResMode:

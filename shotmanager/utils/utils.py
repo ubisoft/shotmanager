@@ -252,7 +252,9 @@ def openMedia(media_filepath, inExternalPlayer=False):
 
         # bpy.ops.render.view_show()
         bpy.ops.image.open(
-            filepath=media_filepath, relative_path=False, show_multiview=False,
+            filepath=media_filepath,
+            relative_path=False,
+            show_multiview=False,
         )
 
         # bpy.data.images.[image_name].reload()
@@ -285,6 +287,47 @@ def getFrameInAnimRange(scene, frame):
         newFrame = max(newFrame, scene.frame_start)
         newFrame = min(newFrame, scene.frame_end)
     return newFrame
+
+
+def convertFramerateToSceneFPS(framerate):
+    """Set the scene fps and fps_base values
+    The argument "framerate" can be a float and has to be converted because scene.render.fps is an int
+
+    https://blenderartists.org/t/get-set-frames-per-second-in-blender/539880/3
+    fps_base is the amount of time, in seconds, which is filled by fps, such that at values
+    other than 1 for fps_base, fps semantically becomes “frames per base”.
+    I.e. the effective framerate always is, in frames per second:
+        effective fps = scene.render.fps / scene.render.fps_base
+
+    Return a tupple made of fps (int) and fps_base (float >= 1.0)
+
+    Usage:
+        fps, fps_base = utils.convertFramerateToSceneFPS(self.project_fps)
+        parentScn.render.fps = fps
+        parentScn.render.fps_base = fps_base
+    """
+
+    # we assume scene.render.fps_base >= 1.0
+    import math
+
+    # scene.render.fps = int(math.ceil(project_fps))
+    # scene.render.fps_base = scene.render.fps / project_fps
+    fps = int(math.ceil(framerate))
+    fps_base = fps / framerate
+
+    return (fps, fps_base)
+
+
+def setSceneFps(scene, framerate):
+    """Apply the specified framerate to the scene by changing both scene.render.fps and scene.render.fps_base"""
+    fps, fps_base = convertFramerateToSceneFPS(framerate)
+    scene.render.fps = fps
+    scene.render.fps_base = fps_base
+
+
+def getSceneEffectiveFps(scene):
+    """Return the effective scene fps, which is given by scene.render.fps / scene.render.fps_base"""
+    return scene.render.fps / scene.render.fps_base
 
 
 ###################
@@ -384,8 +427,7 @@ def deleteMarkerAtFrame(scene, frame):
 
 
 def getAreasByType(context, area_type):
-    """Return a list of the areas of the specifed type from the specified context
-    """
+    """Return a list of the areas of the specifed type from the specified context"""
     areasList = list()
     for area in context.screen.areas:
         if area.type == area_type:
@@ -557,6 +599,7 @@ def getSceneVSE(vsm_sceneName, createVseTab=False):
     else:
         vsm_scene = bpy.data.scenes.new(name=vsm_sceneName)
         vsm_scene.render.fps = bpy.context.scene.render.fps
+        vsm_scene.render.fps_base = bpy.context.scene.render.fps_base
 
     if not vsm_scene.sequence_editor:
         vsm_scene.sequence_editor_create()
@@ -586,7 +629,7 @@ def getSceneVSE(vsm_sceneName, createVseTab=False):
 
 def duplicateObject(sourceObject, newName=None):
     """Duplicate (deepcopy) an object and place it in the same collection
-        Can be any 3D object, camera...
+    Can be any 3D object, camera...
     """
     newObject = sourceObject.copy()
     if newObject.animation_data is not None:
@@ -667,8 +710,7 @@ def create_new_greasepencil(gp_name, parent_object=None, location=None, locate_o
 
 
 def get_greasepencil_child(obj, name_filter=""):
-    """Return the first child of the specifed object that is of type GPENCIL
-    """
+    """Return the first child of the specifed object that is of type GPENCIL"""
     gpChild = None
 
     if obj is not None:
@@ -685,14 +727,14 @@ def get_greasepencil_child(obj, name_filter=""):
 
 
 def cameras_from_scene(scene):
-    """Return the list of all the cameras in the scene
-    """
+    """Return the list of all the cameras in the scene"""
     camList = [c for c in scene.objects if c.type == "CAMERA"]
     return camList
 
 
 def getCameraCurrentlyInViewport(
-    context, area=None,
+    context,
+    area=None,
 ):
     """Return the camera currently used by the view, None if
     no camera is used or if the 3D view is not found.
@@ -846,8 +888,7 @@ def setCurrentCameraToViewport(context, area=None):
 
 
 def create_new_camera(camera_name, location=[0, 0, 0], locate_on_cursor=False):
-    """A unique name will be automatically given to the new camera
-    """
+    """A unique name will be automatically given to the new camera"""
     cam = bpy.data.cameras.new(camera_name)
     cam_ob = bpy.data.objects.new(cam.name, cam)
     cam_ob.name = cam.name
@@ -895,8 +936,7 @@ def create_new_camera(camera_name, location=[0, 0, 0], locate_on_cursor=False):
 
 
 def getMovieClipByPath(filepath):
-    """Get the first clip with the specified full file name
-    """
+    """Get the first clip with the specified full file name"""
     # TODO: add Case sensitive
     for clip in bpy.data.movieclips:
         if Path(clip.filepath) == filepath:

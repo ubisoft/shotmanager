@@ -34,14 +34,20 @@ _logger = sm_logging.getLogger(__name__)
 
 
 def exportTakeEditToOtio(
-    scene, take, rootPath, output_filepath="", fps=-1, fileListOnly=False, output_media_mode="VIDEO",
+    scene,
+    take,
+    rootPath,
+    output_filepath="",
+    fps=-1,
+    fileListOnly=False,
+    output_media_mode="VIDEO",
 ):
-    """ Create an OpenTimelineIO XML file for the specified take
-        Return the file path of the created file
-        If file_name is left to default then the rendered file will be a .xml
-        seqCharacteristics and videoCharacteristics are dictionaries from the Montage_Otio
-        output_media_mode: can be "IMAGE_SEQ", "VIDEO", "IMAGE_SEQ_AND_VIDEO". Specify the file format of the rendered
-        media.
+    """Create an OpenTimelineIO XML file for the specified take
+    Return the file path of the created file
+    If file_name is left to default then the rendered file will be a .xml
+    seqCharacteristics and videoCharacteristics are dictionaries from the Montage_Otio
+    output_media_mode: can be "IMAGE_SEQ", "VIDEO", "IMAGE_SEQ_AND_VIDEO". Specify the file format of the rendered
+    media.
     """
 
     def _addEditCharacteristicsToXML(xml_filename, montageCharacteristics):
@@ -235,7 +241,8 @@ def exportTakeEditToOtio(
 
     print("  ** -- ** exportTakeEditToOtio from exports.py, fileListOnly: ", fileListOnly)
     props = scene.UAS_shot_manager_props
-    sceneFps = fps if fps != -1 else scene.render.fps
+    # sceneFps = fps if fps != -1 else scene.render.fps
+    # sceneFps = fps if fps != -1 else utils.getSceneEffectiveFps(scene)
     #   import opentimelineio as opentimelineio
 
     shotList = take.getShotList(ignoreDisabled=True)
@@ -272,10 +279,10 @@ def exportShotManagerEditToOtio(
     fileListOnly=False,
     montageCharacteristics=None,
 ):
-    """ Create an OpenTimelineIO XML file for the specified take
-        Return the file path of the created file
-        If file_name is left to default then the rendered file will be a .xml
-        seqCharacteristics and videoCharacteristics are dictionaries from the Montage_Otio
+    """Create an OpenTimelineIO XML file for the specified take
+    Return the file path of the created file
+    If file_name is left to default then the rendered file will be a .xml
+    seqCharacteristics and videoCharacteristics are dictionaries from the Montage_Otio
     """
 
     def _addEditCharacteristicsToXML(xml_filename, montageCharacteristics):
@@ -366,7 +373,8 @@ def exportShotManagerEditToOtio(
 
     print("  ** -- ** DEPRECATED --- exportShotManagerEditToOtio from exports.py, fileListOnly: ", fileListOnly)
     props = scene.UAS_shot_manager_props
-    sceneFps = fps if fps != -1 else scene.render.fps
+    # sceneFps = fps if fps != -1 else scene.render.fps
+    sceneFps = fps if fps != -1 else utils.getSceneEffectiveFps(scene)
     #   import opentimelineio as opentimelineio
 
     montageCharacteristics = props.get_montage_characteristics()

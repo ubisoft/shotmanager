@@ -196,7 +196,8 @@ def launchRenderWithVSEComposite(
     # set specific render context
     #######################
 
-    projectFps = scene.render.fps
+    # projectFps = scene.render.fps
+    projectFps = utils.getSceneEffectiveFps(scene)
     sequenceFileName = props.getRenderShotPrefix() + takeName
     scene.use_preview_range = False
     renderResolution = [scene.render.resolution_x, scene.render.resolution_y]
@@ -217,7 +218,7 @@ def launchRenderWithVSEComposite(
         renderResolutionFramed = [props.project_resolution_framed_x, props.project_resolution_framed_y]
 
     if "PLAYBLAST" == renderMode:
-        scene.render.resolution_percentage = renderPreset.resolutionPercentage
+        scene.render.resolution_percentage = int(renderPreset.resolutionPercentage)
         renderResolution[0] = int(renderResolution[0] * renderPreset.resolutionPercentage / 100)
         renderResolution[1] = int(renderResolution[1] * renderPreset.resolutionPercentage / 100)
 
@@ -467,7 +468,10 @@ def launchRenderWithVSEComposite(
                 # render all in one anim pass
                 else:
                     scene.render.filepath = shot.getOutputMediaPath(
-                        "SH_INTERM_IMAGE_SEQ", rootPath=rootPath, provideExtension=False, genericFrame=True,
+                        "SH_INTERM_IMAGE_SEQ",
+                        rootPath=rootPath,
+                        provideExtension=False,
+                        genericFrame=True,
                     )
 
                     #   _logger.debug("ici PAS loop")
@@ -999,7 +1003,11 @@ def renderStampedInfoForShot(
             )
 
         stampInfoSettings.renderTmpImageWithStampedInfo(
-            scene, currentFrame, renderPath=newTempRenderPath, renderFilename=tmpShotFilename, verbose=False,
+            scene,
+            currentFrame,
+            renderPath=newTempRenderPath,
+            renderFilename=tmpShotFilename,
+            verbose=False,
         )
 
     ##############
@@ -1028,10 +1036,9 @@ def launchRender(context, renderMode, rootPath, area=None):
     renderDisplayInfo += "\n                                 *** Shot Manager V " + props.version()[0] + " - "
 
     def _generateEditFiles():
-        """renderedFilesDict is also updated
-        """
+        """renderedFilesDict is also updated"""
         if not module_can_be_imported("shotmanager.otio"):
-            _logger.info("Otio module not available - Export failed")
+            _logger.error("Otio module not available - Edit file export failed")
             return
 
         from shotmanager.otio.exports import exportTakeEditToOtio
