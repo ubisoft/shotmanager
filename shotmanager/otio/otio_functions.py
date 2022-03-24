@@ -16,30 +16,24 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 """
-Shot Manager debug package
+Useful functions for Shot Manager Otio package
 """
-
-
-from . import sm_debug_operators
-from . import sm_debug_ui
-from . import sm_debug
 
 from ..config import sm_logging
 
 _logger = sm_logging.getLogger(__name__)
 
 
-def register():
-    _logger.debug_ext("       - Registering Debug Package", form="REG")
+def isOtioAvailable():
+    """Return True if OpenTimelineIO is installed and the Shot Manager package can be imported and used"""
 
-    sm_debug_operators.register()
-    sm_debug.register()
-    sm_debug_ui.register()
+    try:
+        import opentimelineio
 
+        _logger.debug_ext(f"isOtioAvailable: True - OTIO can be imported: {opentimelineio.__version__}", col="GREEN")
+        return True
 
-def unregister():
-    _logger.debug_ext("       - Unregistering Debug Package", form="UNREG")
+    except ModuleNotFoundError:
+        _logger.debug_ext("*** isOtioAvailable: False - OTIO CANNOT be imported", col="RED")
 
-    sm_debug_ui.unregister()
-    sm_debug.unregister()
-    sm_debug_operators.unregister()
+        return False

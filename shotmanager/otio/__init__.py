@@ -19,27 +19,31 @@
 OTIO package and everything related to it
 """
 
-import os
-import importlib
-import subprocess
-import platform
 
 import bpy
 
 # from . import otio_wrapper
 # from shotmanager.config import config
 
-import sys
-from pathlib import Path
 
 from ..config import sm_logging
 
 _logger = sm_logging.getLogger(__name__)
 
 
-# def importOpenTimelineIOLib():
-# if (2, 93, 0) < bpy.app.version:
-#     return False
+# def isOtioAvailable():
+#     """Return True if OpenTimelineIO is installed and the Shot Manager package can be imported and used"""
+#     try:
+#         import opentimelineio
+
+#         _logger.debug_ext(f"isOtioAvailable: True - OTIO can be imported: {opentimelineio.__version__}", col="GREEN")
+#         return True
+
+#     except ModuleNotFoundError:
+#         _logger.debug_ext("*** isOtioAvailable: False - OTIO CANNOT be imported", col="RED")
+
+#         return False
+
 
 # for versions of Blender after 2.93:
 if (2, 93, 0) <= bpy.app.version:
@@ -49,38 +53,38 @@ if (2, 93, 0) <= bpy.app.version:
     #
     # import opentimelineio
 
-    if not platform.system() == "Windows":
+    # if not platform.system() == "Windows":
+    #     import opentimelineio
+    # else:
+
+    try:
         import opentimelineio
-    else:
 
-        try:
-            import opentimelineio
+        _logger.debug_ext(f"OTIO correctly imported: {opentimelineio.__version___}", col="GREEN")
 
-            _logger.debug_ext("OTIO correctly imported", col="GREEN")
+    except ModuleNotFoundError:
+        _logger.error("*** Error - OpenTimelineIO import failed - Installing provided version")
 
-        except ModuleNotFoundError:
-            _logger.error("*** Error - OpenTimelineIO import failed - Installing provided version")
+        raise
 
-            raise
+        # # we use the provided wheel
+        # pyExeFile = sys.executable
+        # localPyDir = str(Path(pyExeFile).parent) + "\\lib\\site-packages\\"
 
-            # # we use the provided wheel
-            # pyExeFile = sys.executable
-            # localPyDir = str(Path(pyExeFile).parent) + "\\lib\\site-packages\\"
-
-            # try:
-            #     print("  installing OpenTimelineIO 0.13 for Python 3.9 for Ubisoft Shot Manager...")
-            #     subprocess.run(
-            #         [
-            #             pyExeFile,
-            #             "-m",
-            #             "pip",
-            #             "install",
-            #             os.path.join(os.path.dirname(__file__), "OpenTimelineIO-0.13.0_Ubi0.2-py3-none-any.whl"),
-            #         ]
-            #     )
-            #     import opentimelineio as opentimelineio
-            # except ModuleNotFoundError:
-            #     _logger.error("*** Error - OpenTimelineIO instal from provided version 0.013 failed")
+        # try:
+        #     print("  installing OpenTimelineIO 0.13 for Python 3.9 for Ubisoft Shot Manager...")
+        #     subprocess.run(
+        #         [
+        #             pyExeFile,
+        #             "-m",
+        #             "pip",
+        #             "install",
+        #             os.path.join(os.path.dirname(__file__), "OpenTimelineIO-0.13.0_Ubi0.2-py3-none-any.whl"),
+        #         ]
+        #     )
+        #     import opentimelineio as opentimelineio
+        # except ModuleNotFoundError:
+        #     _logger.error("*** Error - OpenTimelineIO instal from provided version 0.013 failed")
 
 
 # for versions of Blender before 2.93:

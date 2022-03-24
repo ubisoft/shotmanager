@@ -115,17 +115,20 @@ def register():
     # is used and provide some visibility to the user to solve the issue
     # Pillow lib is installed there
 
-    from .install.install_dependencies import install_dependencies
+    from .install.install_otio_local_dist import install_otio_local_dist
 
-    installErrorCode = install_dependencies([("opentimelineio", "opentimelineio")], retries=1, timeout=20)
-    # installErrorCode = 0
-    if 0 != installErrorCode:
-        # utils_handlers.removeAllHandlerOccurences(shotMngHandler_frame_change_pre_jumpToShot, handlerCateg=bpy.app.handlers.frame_change_pre)
-        # return installErrorCode
-        print("  *** OpenTimelineIO install failed for Ubisoft Shot Manager ***")
-        pass
-    else:
-        print("  OpenTimelineIO correctly installed for Ubisoft Shot Manager")
+    if not install_otio_local_dist():
+        from .install.install_dependencies import install_dependencies
+
+        installErrorCode = install_dependencies([("opentimelineio", "opentimelineio")], retries=1, timeout=20)
+        # installErrorCode = 0
+        if 0 != installErrorCode:
+            # utils_handlers.removeAllHandlerOccurences(shotMngHandler_frame_change_pre_jumpToShot, handlerCateg=bpy.app.handlers.frame_change_pre)
+            # return installErrorCode
+            print("  *** OpenTimelineIO install failed for Ubisoft Shot Manager ***")
+            pass
+        else:
+            print("  OpenTimelineIO correctly installed for Ubisoft Shot Manager")
 
         # otio
         try:
@@ -142,7 +145,7 @@ def register():
         except ModuleNotFoundError:
             print("       *** OTIO Package import failed ****")
 
-    # if install went right then register other packages
+    # register other packages
     ###################
 
     # debug tools
@@ -187,21 +190,6 @@ def register():
     rrs.register()
     retimer_ui.register()
     rendering_ui.register()
-
-    # # otio
-    # try:
-    #     from . import otio
-
-    #     otio.register()
-
-    #     # from shotmanager.otio import importOpenTimelineIOLib
-
-    #     # if importOpenTimelineIOLib():
-    #     #     otio.register()
-    #     # else:
-    #     #     print("       *** OTIO Package import failed ***")
-    # except ModuleNotFoundError:
-    #     print("       *** OTIO Package import failed ****")
 
     utils_vse_render.register()
     # try:

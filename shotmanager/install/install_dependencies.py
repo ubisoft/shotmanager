@@ -20,6 +20,7 @@ Dependencies installation
 """
 
 import bpy
+
 from ..utils.utils_os import internet_on, module_can_be_imported, is_admin
 from . import addon_error_prefs
 
@@ -40,8 +41,6 @@ def install_library(lib_names, pip_retries=2, pip_timeout=-100):
     error_messages = []
     # return ["Debug message"]
 
-    # PIL (or pillow)
-    ##########################
     lib_name = lib_names[0]
     if not module_can_be_imported(lib_name):
 
@@ -63,9 +62,7 @@ def install_library(lib_names, pip_retries=2, pip_timeout=-100):
         pyExeFile = sys.executable
         # we have to go above \bin dir
         localPyDir = str((Path(pyExeFile).parent).parent) + "\\lib\\site-packages\\"
-        tmp_file = localPyDir + "StampInfo_Tmp.txt"
-
-        # print(f"localPyDir: {localPyDir}")
+        tmp_file = localPyDir + "ShotManager_Tmp.txt"
 
         if not is_admin():
             from os.path import isfile
@@ -87,7 +84,7 @@ def install_library(lib_names, pip_retries=2, pip_timeout=-100):
 
                 try:
                     f = open(tmp_file, "w")
-                    f.write("Temp file for Ubisoft Stamp Info")
+                    f.write("Temp file for Ubisoft Shot Managero")
                     f.close()
                 except Exception as e:
                     print(f"e: {e}")
@@ -101,7 +98,7 @@ def install_library(lib_names, pip_retries=2, pip_timeout=-100):
 
                 try:
                     f = open(tmp_file, "w")
-                    f.write("Temp file for Ubisoft Stamp Info")
+                    f.write("Temp file for Ubisoft Shot Manager")
                     f.close()
                 except Exception as e:
                     print(f"e: {e}")

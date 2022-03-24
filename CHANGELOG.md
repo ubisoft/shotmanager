@@ -34,6 +34,23 @@
 - Improved output messages with logger
 - Added patch V1.7.15 to ensure the data compatibility
 - Refactored the Render Settings properties initialization
+# 1.7.12 (2022-03-23)
+
+- Intregration of a Windows wheel for OpenTimelineIO for Python 3.10.
+This package will be installed on the user Blender Python environment if no
+wheel can be downloaded from the network.
+
+# 1.7.11 (2022-03-22)
+
+- Support for Blender 3.1 and Python 3.10
+
+## Fixed:
+
+- Fixed implicit conversions from float to int for some Blender parameters because this is not
+supported anymore with Python 3.10
+
+- Fixed float framerate values: now noninteger framerates such as 29.97 are supported thanks to a
+new set of functions in utils.py: convertFramerateToSceneFPS, setSceneFps, getSceneEffectiveFps
 
 
 # 1.7.10 (2022-03-03)
