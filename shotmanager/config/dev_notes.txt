@@ -1,15 +1,16 @@
 
-Dialog windows width:   360
-                        350
-                        300
-                        500
-                        400
-                        450
-                        420
-                        480
+Dialog windows width:
+    250     invoke_popup
+    360
+    350
+    300
+    500
+    400
+    420
+    450     project settings, seq settings
+    480
 
 
-invoke_popup width:     250
 
 
 To do V1.7.2 +:
@@ -46,3 +47,9 @@ Utiliser ImageSequenceReference
 Voir https://github.com/PixarAnimationStudios/OpenTimelineIO/issues/890
 
 OTIO advanced doc: https://sandflow.github.io/otio-core-specification/
+
+
+To do dans le support des noms de seq:
+    - bug dans le path donné sur les shots
+        - faire un test alert qd le nom de la seq est vide
+    - otio import

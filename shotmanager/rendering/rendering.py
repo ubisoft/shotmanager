@@ -213,7 +213,8 @@ def launchRenderWithVSEComposite(
         props.applyProjectSettings()
         scene.render.image_settings.file_format = props.project_images_output_format
         projectFps = props.project_fps
-        sequenceFileName = props.getRenderShotPrefix()
+        # sequenceFileName = props.getRenderShotPrefix()
+        sequenceFileName = props.getSequenceName("FULL")
         renderResolution = [props.project_resolution_x, props.project_resolution_y]
         renderResolutionFramed = [props.project_resolution_framed_x, props.project_resolution_framed_y]
 

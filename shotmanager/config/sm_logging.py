@@ -96,6 +96,10 @@ class SM_Logger(logging.getLoggerClass()):
             if "" == col:
                 color = self._colors["GRAY"]
             f = Formatter(color + "{message:<90}" + "\033[0m", style="{")
+        elif "DEPRECATED" == form:
+            if "" == col:
+                color = self._colors["ORANGE"]
+            f = Formatter(color + "[DEPRECATED] {message:<90}" + "\033[0m", style="{")
         elif "ERROR" == form:
             f = Formatter(color + "Shot Manager: " + " {message:<140}" + "\033[0m", style="{")
         elif "OTHER" == form:

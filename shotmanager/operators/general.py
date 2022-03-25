@@ -21,7 +21,7 @@ Operators for Shot Manager
 
 import bpy
 from bpy.types import Operator
-from bpy.props import BoolProperty, StringProperty
+from bpy.props import BoolProperty, StringProperty, IntProperty
 
 from shotmanager.config import config
 from shotmanager.operators.shots import convertMarkersFromCameraBindingToShots
@@ -114,6 +114,99 @@ class UAS_ShotManager_OT_ConvertMarkersFromCameraBindingToShots(Operator):
         convertMarkersFromCameraBindingToShots(context.scene)
         clearMarkersFromCameraBinding(context.scene)
         return {"FINISHED"}
+
+
+class UAS_ShotManager_OT_SetProjectSequenceName(Operator):
+    bl_idname = "uas_shot_manager.set_project_sequence_name"
+    bl_label = "Project Sequence Name"
+    bl_description = "Set the name of the sequence when project settings are used"
+    bl_options = {"REGISTER", "UNDO"}
+
+    naming_project_index: IntProperty(name="Project or Act Index", min=0, default=1)
+    naming_sequence_index: IntProperty(name="Sequence Index", min=0, step=10, default=10)
+
+    # naming_project_format: StringProperty(default="01")
+    # naming_sequence_format: StringProperty(default="001")
+
+    def invoke(self, context, event):
+        props = context.scene.UAS_shot_manager_props
+        # numHashes = len([n for n in props.project_naming_project_format if n == "#"])
+        # if "" != props.project_naming_project_format or 0 < numHashes:
+
+        if -1 != props.project_naming_project_index:
+            self.naming_project_index = props.project_naming_project_index
+
+        if -1 != props.project_naming_sequence_index:
+            self.naming_sequence_index = props.project_naming_sequence_index
+
+        return context.window_manager.invoke_props_dialog(self, width=450)
+
+    def draw(self, context):
+        scene = context.scene
+        props = scene.UAS_shot_manager_props
+        layout = self.layout
+        box = layout.box()
+
+        col = box.column(align=False)
+        col.use_property_split = True
+
+        # seqNameTemplate = f"{props.project_naming_project_format}{props.project_naming_separator_char}{props.project_naming_sequence_format}"
+        seqNameTemplate = props.getProjectOutputMediaName(projInd=None, seqInd=None)
+        namingRow = col.row(align=True)
+        namingRow.label(text="Sequence Template from Project Settings:")
+        namingRow.label(text=seqNameTemplate)
+
+        # namingRow = col.row(align=True)
+        # namingRow.alignment = "CENTER"
+        # namingRow.scale_x = 0.5
+
+        # namingRowLeft = namingRow.row(align=True)
+        # namingRowLeft.alignment = "RIGHT"
+        # namingRowLeft.scale_x = 2.0
+        # namingRowLeft.label(text="Actt")
+        # namingRowLeft.prop(self, "naming_project_format", text="")
+        # namingRowLeft.separator(factor=1.0)
+
+        # namingRowRight = namingRow.row(align=True)
+        # namingRowRight.alignment = "LEFT"
+        # namingRowRight.scale_x = 2.0
+        # namingRowRight.label(text="_Seqq")
+        # namingRowRight.prop(self, "naming_sequence_format", text="")
+
+        numHashes = len([n for n in props.project_naming_project_format if n == "#"])
+        if "" != props.project_naming_project_format or 0 < numHashes:
+            row = col.row(align=True)
+            row.prop(self, "naming_project_index")
+
+        row = col.row(align=True)
+        row.prop(self, "naming_sequence_index")
+
+        col.separator(factor=0.5)
+
+        if "" != props.project_naming_project_format or 0 < numHashes:
+            seqName = props.getProjectOutputMediaName(
+                projInd=self.naming_project_index, seqInd=self.naming_sequence_index
+            )
+        else:
+            seqName = props.getProjectOutputMediaName(seqInd=self.naming_sequence_index)
+
+        namingRow = col.row(align=True)
+        namingRow.label(text="Resulting Sequence Name:")
+        namingRow.label(text=seqName)
+
+        box.separator(factor=0.5)
+
+    def execute(self, context):
+        props = context.scene.UAS_shot_manager_props
+        prefs = context.preferences.addons["shotmanager"].preferences
+
+        props.project_naming_project_index = self.naming_project_index
+        props.project_naming_sequence_index = self.naming_sequence_index
+
+        # update main ui
+        prefs.projectSeqName = props.getSequenceName("FULL")
+
+        return {"INTERFACE"}
 
 
 class UAS_ShotManager_OT_GoToVideoShotManager(Operator):
@@ -259,6 +352,7 @@ _classes = (
     UAS_ShotManager_OT_DisplayOverlayTools,
     UAS_ShotManager_OT_ClearMarkersFromCameraBinding,
     UAS_ShotManager_OT_ConvertMarkersFromCameraBindingToShots,
+    UAS_ShotManager_OT_SetProjectSequenceName,
     UAS_ShotManager_OT_GoToVideoShotManager,
     UAS_ShotManager_OT_FileInfo,
     UAS_ShotManager_OT_EnableDebug,

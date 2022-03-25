@@ -24,6 +24,8 @@ import re
 from pathlib import Path
 from urllib.parse import unquote_plus, urlparse
 
+from random import uniform
+
 import bpy
 
 
@@ -889,12 +891,12 @@ def setCurrentCameraToViewport(context, area=None):
 
 def create_new_camera(camera_name, location=[0, 0, 0], locate_on_cursor=False):
     """A unique name will be automatically given to the new camera"""
-    cam = bpy.data.cameras.new(camera_name)
-    cam_ob = bpy.data.objects.new(cam.name, cam)
-    cam_ob.name = cam.name
+    cam_data = bpy.data.cameras.new(camera_name)
+    cam = bpy.data.objects.new(cam_data.name, cam_data)
+    cam.name = cam_data.name
 
     # add to main collection
-    # bpy.context.collection.objects.link(cam_ob)
+    # bpy.context.collection.objects.link(cam)
 
     # add to a collection named "Cameras"
     camCollName = "Cameras"
@@ -904,35 +906,23 @@ def create_new_camera(camera_name, location=[0, 0, 0], locate_on_cursor=False):
         bpy.context.scene.collection.children.link(camColl)
     else:
         camColl = bpy.context.scene.collection.children[camCollName]
-    camColl.objects.link(cam_ob)
+    camColl.objects.link(cam)
 
-    bpy.data.cameras[cam.name].lens = 40
+    bpy.data.cameras[cam_data.name].lens = 40
 
-    cam_ob.location = location
+    cam.color[0] = uniform(0, 1)
+    cam.color[1] = uniform(0, 1)
+    cam.color[2] = uniform(0, 1)
+
+    cam.location = location
     if locate_on_cursor:
-        cam_ob.location = bpy.context.scene.cursor.location
+        cam.location = bpy.context.scene.cursor.location
 
     from math import radians
 
-    cam_ob.rotation_euler = (radians(90), 0.0, radians(90))
+    cam.rotation_euler = (radians(90), 0.0, radians(90))
 
-    # import math
-    # import mathutils
-
-    # eul = mathutils.Euler((math.radians(90.0), 0.0, 0.0), "XYZ")
-
-    # if cam_ob.rotation_mode == "QUATERNION":
-    #     cam_ob.rotation_quaternion = eul.to_quaternion()
-    # elif cam_ob.rotation_mode == "AXIS_ANGLE":
-    #     q = eul.to_quaternion()
-    #     cam_ob.rotation_axis_angle[0] = q.angle
-    #     cam_ob.rotation_axis_angle[1:] = q.axis
-    # else:
-    #     cam_ob.rotation_euler = (
-    #         eul if eul.order == cam_ob.rotation_mode else (eul.to_quaternion().to_euler(cam_ob.rotation_mode))
-    #     )
-
-    return cam_ob
+    return cam
 
 
 def getMovieClipByPath(filepath):

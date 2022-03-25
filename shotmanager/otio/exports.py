@@ -16,7 +16,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 """
-To do: module description here.
+Otion exports
 """
 
 from pathlib import Path
@@ -26,6 +26,7 @@ import opentimelineio
 
 from xml.dom.minidom import parse
 
+from ..utils import utils
 from ..utils import utils_xml
 
 from ..config import sm_logging
@@ -242,7 +243,7 @@ def exportTakeEditToOtio(
     print("  ** -- ** exportTakeEditToOtio from exports.py, fileListOnly: ", fileListOnly)
     props = scene.UAS_shot_manager_props
     # sceneFps = fps if fps != -1 else scene.render.fps
-    # sceneFps = fps if fps != -1 else utils.getSceneEffectiveFps(scene)
+    sceneFps = fps if fps != -1 else utils.getSceneEffectiveFps(scene)
     #   import opentimelineio as opentimelineio
 
     shotList = take.getShotList(ignoreDisabled=True)

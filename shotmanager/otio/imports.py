@@ -16,7 +16,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 """
-To do: module description here.
+Otio import
 """
 
 import os
@@ -30,11 +30,12 @@ from math import radians
 import bpy
 import opentimelineio
 
-from .. import config
 from ..utils import utils
 from ..utils import utils_vse
 
 from . import otio_wrapper as ow
+
+from .. import config
 
 from ..config import sm_logging
 

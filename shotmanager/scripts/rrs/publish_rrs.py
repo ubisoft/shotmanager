@@ -89,7 +89,6 @@ def initializeForRRS(override_existing: bool, verbose=False):
         project_fps=float(os.environ["UAS_PROJECT_FRAMERATE"]),
         project_resolution=json.loads(os.environ["UAS_PROJECT_RESOLUTION"]),
         project_resolution_framed=json.loads(os.environ["UAS_PROJECT_RESOLUTIONFRAMED"]),
-        project_shot_format=os.environ["UAS_PROJECT_SHOTFORMAT"],
         project_use_shot_handles=bool(os.environ["UAS_PROJECT_USESHOTHANDLES"]),
         project_shot_handle_duration=int(os.environ["UAS_PROJECT_SHOTHANDLEDURATION"]),
         project_output_format=os.environ["UAS_PROJECT_OUTPUTFORMAT"],
@@ -110,15 +109,15 @@ def publishRRS(
     renderAlsoDisabled=True,
     settingsDict=None,
 ):
-    """ Return a dictionary with the rendered and the failed file paths
-        The dictionary have the following entries:
-            - rendered_files_in_cache: rendered files when cache is used
-            - failed_files_in_cache: failed files when cache is used
-            - edl_files_in_cache: edl files when cache is used
-            - rendered_files: rendered files (either from direct rendering or from copy from cache)
-            - failed_files: failed files (either from direct rendering or from copy from cache)
-            - edl_files: edl files
-            - other_files: json dumped file list
+    """Return a dictionary with the rendered and the failed file paths
+    The dictionary have the following entries:
+        - rendered_files_in_cache: rendered files when cache is used
+        - failed_files_in_cache: failed files when cache is used
+        - edl_files_in_cache: edl files when cache is used
+        - rendered_files: rendered files (either from direct rendering or from copy from cache)
+        - failed_files: failed files (either from direct rendering or from copy from cache)
+        - edl_files: edl files
+        - other_files: json dumped file list
     """
     import os
     import errno

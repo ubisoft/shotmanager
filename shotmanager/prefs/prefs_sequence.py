@@ -16,13 +16,11 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 """
-To do: module description here.
+Preference panel for the sequences
 """
 
 import bpy
-from bpy.types import Panel, Operator, Menu
-
-from shotmanager import config
+from bpy.types import Operator
 
 
 class UAS_ShotManager_Sequence_Prefs(Operator):
@@ -32,11 +30,11 @@ class UAS_ShotManager_Sequence_Prefs(Operator):
     bl_options = {"INTERNAL"}
 
     def invoke(self, context, event):
-        return context.window_manager.invoke_props_dialog(self, width=400)
+        return context.window_manager.invoke_props_dialog(self, width=450)
 
     def draw(self, context):
         props = context.scene.UAS_shot_manager_props
-        prefs = context.preferences.addons["shotmanager"].preferences
+        # prefs = context.preferences.addons["shotmanager"].preferences
         layout = self.layout
 
         layout.alert = True
@@ -83,7 +81,15 @@ class UAS_ShotManager_Sequence_Prefs(Operator):
         col = box.column()
 
         col.use_property_split = True
-        col.prop(props, "editStartFrame", text="Index of the First Frame in the Edit:")
+
+        namingRow = col.row(align=False)
+        namingRowSplit = namingRow.split(factor=0.5)
+        namingRowLeft = namingRowSplit.row()
+        namingRowLeft.alignment = "RIGHT"
+        namingRowLeft.label(text="Index of the First Frame in the Edit")
+        namingRowRight = namingRowSplit.row(align=True)
+        namingRowRight.prop(props, "editStartFrame", text="")
+
         # box.separator(factor=0.5)
 
         layout.separator(factor=1)

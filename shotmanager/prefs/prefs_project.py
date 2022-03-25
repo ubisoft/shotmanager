@@ -59,15 +59,52 @@ class UAS_ShotManager_ProjectSettings_Prefs(Operator):
         col.use_property_decorate = False
 
         ############
-        # naming
+        # project name
         ############
         col.prop(props, "project_name")
-        col.prop(props, "project_default_take_name")
-        col.prop(props, "project_shot_format")
 
         ############
-        # handles
+        # sequence name parts
         ############
+
+        box.label(text="Naming Conventions:")
+        col = box.column(align=False)
+        col.use_property_split = True
+        col.use_property_decorate = False
+
+        namingRow = col.row(align=False)
+        namingRowSplit = namingRow.split(factor=0.4)
+        namingRowLeft = namingRowSplit.row()
+        namingRowLeft.alignment = "RIGHT"
+        namingRowLeft.label(text="Proj. / Seq. / Shot Identifiers")
+        namingRowRight = namingRowSplit.row(align=True)
+        namingRowRight.prop(props, "project_naming_project_format", text="")
+        namingRowRight.prop(props, "project_naming_sequence_format", text="")
+        namingRowRight.prop(props, "project_naming_shot_format", text="")
+
+        col.prop(props, "project_naming_separator_char")
+
+        namingRow = col.row(align=False)
+        namingRowSplit = namingRow.split(factor=0.4)
+        namingRowLeft = namingRowSplit.row()
+        namingRowLeft.alignment = "RIGHT"
+        shotNameEg = props.getProjectOutputMediaName(projInd=3, seqInd=20, shotInd=40)
+        namingRowLeft.label(text="Eg. Resulting Shot Full Name")
+        namingRowRight = namingRowSplit.row(align=True)
+        namingRowRight.label(text=shotNameEg)
+
+        col.separator()
+        col.prop(props, "project_default_take_name")
+
+        ############
+        # settings
+        ############
+
+        box.label(text="Settings:")
+        col = box.column(align=False)
+        col.use_property_split = True
+        col.use_property_decorate = False
+
         col.separator(factor=1)
         row = col.row()
         row.prop(props, "project_use_shot_handles")
@@ -161,7 +198,6 @@ class UAS_ShotManager_ProjectSettings_Prefs(Operator):
         return {"FINISHED"}
 
     def cancel(self, context):
-        print("cancel proj settings")
         # since project properties are immediatly applied to Shot Manager properties then we also force the
         # application of the settings in the scene even if the user is not clicking on OK button
         context.scene.UAS_shot_manager_props.applyProjectSettings()
