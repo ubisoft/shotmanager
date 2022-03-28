@@ -913,11 +913,13 @@ class UAS_ShotManager_OT_Create_Shots_From_OTIO_Adv(Operator):
 
     def execute(self, context):
         props = context.scene.UAS_shot_manager_props
-        print(f"\n--------------------")
+        scene = context.scene
+
+        print("\n--------------------")
         print(
             f"\nCreateshotsfromotio Import Sequence Exec: {self.sequenceList}, {config.gSeqEnumList[int(self.sequenceList)]}"
         )
-        print(f"\n--------")
+        print("\n--------")
 
         # filename, extension = os.path.splitext(self.filepath)
         # print("ex Selected file:", self.filepath)
@@ -929,14 +931,15 @@ class UAS_ShotManager_OT_Create_Shots_From_OTIO_Adv(Operator):
 
         # update scene if needed
         editFps = config.gMontageOtio.get_fps()
-        if editFps != context.scene.render.fps and "EDIT_FPS" == self.importFpsMode:
-            # context.scene.render.fps = editFps
-            utils.setSceneFps(context.scene, editFps)
+        if editFps != scene.render.fps and "EDIT_FPS" == self.importFpsMode:
+            utils.setSceneFps(scene, editFps)
+        fps = utils.getSceneEffectiveFps(scene)
+
         editRes = config.gMontageOtio.get_resolution()
-        sceneRes = (context.scene.render.resolution_x, context.scene.render.resolution_y)
+        sceneRes = (scene.render.resolution_x, scene.render.resolution_y)
         if editRes is not None and editRes != sceneRes and "EDIT_RES" == self.importResMode:
-            context.scene.render.resolution_x = editRes[0]
-            context.scene.render.resolution_y = editRes[1]
+            scene.render.resolution_x = editRes[0]
+            scene.render.resolution_y = editRes[1]
 
         selSeq = config.gMontageOtio.sequencesList[int(self.sequenceList)]
 
@@ -966,8 +969,9 @@ class UAS_ShotManager_OT_Create_Shots_From_OTIO_Adv(Operator):
             #     audioTracksToImport.extend(list(range(17, 19)))
 
             createShotsFromOtioTimelineClass(
-                context.scene,
+                scene,
                 config.gMontageOtio,
+                fps,
                 selSeq.get_name(),
                 config.gMontageOtio.sequencesList[int(self.sequenceList)].shotsList,
                 timeRange=timeRange,
@@ -995,7 +999,7 @@ class UAS_ShotManager_OT_Create_Shots_From_OTIO_Adv(Operator):
             try:
                 bpy.context.space_data.overlay.show_overlays = True
             except Exception as e:
-                print("Cannot set Overlay")
+                print(f"Exception: Cannot set Overlay: {e}")
 
         else:
             # track indices are starting from 1, not 0!!
@@ -1014,8 +1018,9 @@ class UAS_ShotManager_OT_Create_Shots_From_OTIO_Adv(Operator):
                 bpy.ops.uasshotmanager.compare_otio_and_current_montage(sequenceName=selSeq.get_name())
 
             textFile = conformToRefMontage(
-                context.scene,
+                scene,
                 config.gMontageOtio,
+                fps,
                 selSeq.get_name(),
                 mediaInEDLHaveHandles=self.mediaInEDLHaveHandles,
                 mediaInEDLHandlesDuration=self.mediaInEDLHandlesDuration,
@@ -1045,7 +1050,7 @@ class UAS_ShotManager_OT_Create_Shots_From_OTIO_Adv(Operator):
             try:
                 bpy.context.space_data.overlay.show_overlays = True
             except Exception as e:
-                print("Cannot set Overlay")
+                print(f"Exception: Cannot set Overlay: {e}")
 
             props.display_notes_in_properties = True
 

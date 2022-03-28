@@ -372,7 +372,8 @@ def exportShotManagerEditToOtio(
 
         return ()
 
-    print("  ** -- ** DEPRECATED --- exportShotManagerEditToOtio from exports.py, fileListOnly: ", fileListOnly)
+    _logger.debug_ext(f"exportShotManagerEditToOtio from exports.py, fileListOnly: {fileListOnly}", tag="DEPRECATED")
+
     props = scene.UAS_shot_manager_props
     # sceneFps = fps if fps != -1 else scene.render.fps
     sceneFps = fps if fps != -1 else utils.getSceneEffectiveFps(scene)

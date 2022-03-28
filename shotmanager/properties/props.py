@@ -396,8 +396,8 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         default="_",
     )
 
-    project_naming_project_index: IntProperty(description="Set to -1 if not defined", min=-1, default=-1)
-    project_naming_sequence_index: IntProperty(description="Set to -1 if not defined", min=-1, step=10, default=-1)
+    project_naming_project_index: IntProperty(description="Set to -1 if not defined", min=-1, default=1)
+    project_naming_sequence_index: IntProperty(description="Set to -1 if not defined", min=-1, step=10, default=1)
 
     ############
     # stamp info
@@ -575,6 +575,9 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
             if self.use_project_settings:
                 res = (self.project_resolution_x, self.project_resolution_y)
             else:
+                # wkip temp fix
+                if self.parentScene is None:
+                    self.getParentScene()
                 res = (self.parentScene.render.resolution_x, self.parentScene.render.resolution_y)
         return res
 
@@ -3126,7 +3129,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
 
     def getRenderShotPrefix(self):
         """Deprecated - Use getSequenceName instead"""
-        _logger.debug_ext("getRenderShotPrefix is  Deprecated", form="DEPRECATED")
+        _logger.debug_ext("getRenderShotPrefix is Deprecated", tag="DEPRECATED")
         shotPrefix = ""
 
         if self.use_project_settings:
@@ -3135,7 +3138,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
             # shotPrefix = self.getParentScene().name
 
             shotPrefix = self.parentScene.name
-            shotPrefix = self.getSequenceName("FULL") + self.project_naming_separator_char
+            shotPrefix = self.getSequenceName("FULL", addSeparator=True)
 
             # cf getProjectOutputMediaName
             # shotPrefix = self._replaceHashByNumber(self.project_naming_project_format, projInd)
@@ -3216,13 +3219,15 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
     def getShotPrefix(self, index=None):
         return self._replaceHashByNumber(self.project_naming_shot_format, index)
 
-    def getSequenceName(self, mode="FULL"):  # , index=-1
-        """
+    def getSequenceName(self, mode="FULL", addSeparator=False):
+        """Return the sequence name formated as specified.
+        *** Warning: The returned sequence name depends on the project settings context: if the project settings
+        are used then the sequence name is defined there, otherwise it is given by props.sequence_name and
+        props.render_sequence_prefix
+
         Args:
-            # index:  if -1 (default) then use the current sequence index,
-            #         if None then use ###
-            #         else use the provided index
             mode: "FULL", "SHORT", "FORMATED"
+            addSeparator: If True, add the separator suffix to the end of the returned sequence name
         """
 
         # if "" != props.project_naming_project_format or 0 < numHashes:
@@ -3244,15 +3249,22 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
                 name = self.getProjectOutputMediaName(
                     projInd=self.project_naming_project_index, seqInd=self.project_naming_sequence_index, shotInd=-1
                 )
+
+            if addSeparator:
+                name += self.project_naming_separator_char
+
         else:
             if "FORMATED" == mode:
                 name = "Formated seq name to do"
             elif "SHORT" == mode:
-                name = self.sequence_name + "_"
+                name = self.sequence_name
             # FULL
             else:
                 name = self.render_sequence_prefix
-                # name += self.sequence_name + "_"
+                name += self.sequence_name
+
+            if addSeparator:
+                name += "_"
 
         return name
 

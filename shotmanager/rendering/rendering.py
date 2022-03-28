@@ -112,6 +112,8 @@ def launchRenderWithVSEComposite(
 
     currentShot = props.getCurrentShot()
 
+    displayRenderTimes = True
+
     renderMode = "PROJECT" if renderPreset is None else renderPreset.renderMode
     renderInfo = dict()
 
@@ -198,7 +200,10 @@ def launchRenderWithVSEComposite(
 
     # projectFps = scene.render.fps
     projectFps = utils.getSceneEffectiveFps(scene)
-    sequenceFileName = props.getRenderShotPrefix() + takeName
+
+    # sequence name will get a different value is project settings are used
+    sequenceFileName = props.getSequenceName("FULL", addSeparator=True)
+
     scene.use_preview_range = False
     renderResolution = [scene.render.resolution_x, scene.render.resolution_y]
     renderResolutionFramed = [scene.render.resolution_x, scene.render.resolution_y]
@@ -213,8 +218,6 @@ def launchRenderWithVSEComposite(
         props.applyProjectSettings()
         scene.render.image_settings.file_format = props.project_images_output_format
         projectFps = props.project_fps
-        # sequenceFileName = props.getRenderShotPrefix()
-        sequenceFileName = props.getSequenceName("FULL")
         renderResolution = [props.project_resolution_x, props.project_resolution_y]
         renderResolutionFramed = [props.project_resolution_framed_x, props.project_resolution_framed_y]
 
@@ -536,7 +539,10 @@ def launchRenderWithVSEComposite(
             #######################
 
             deltaTime = time.monotonic() - startShotRenderTime
-            _logger.debug(f"      \nShot render time (images only): {deltaTime:0.2f} sec.")
+            _logger.info_ext(
+                f"Shot render time (images only): {deltaTime:0.2f} sec.", tag="RENDERTIME", display=displayRenderTimes
+            )
+
             allRenderTimes[shot.name + "_" + "images"] = deltaTime
 
             #######################
@@ -716,7 +722,10 @@ def launchRenderWithVSEComposite(
             #######################
 
             deltaTime = time.monotonic() - startShotRenderTime
-            print(f"      \nShot render time (incl. video): {deltaTime:0.2f} sec.")
+            _logger.info_ext(
+                f"Shot render time (incl. video): {deltaTime:0.2f} sec.", tag="RENDERTIME", display=displayRenderTimes
+            )
+
             allRenderTimes[shot.name + "_" + "full"] = deltaTime
 
             print("----------------------------------------")
@@ -726,7 +735,7 @@ def launchRenderWithVSEComposite(
     #######################
 
     deltaTime = time.monotonic() - startRenderTime
-    print(f"      \nAll shots render time: {deltaTime:0.2f} sec.")
+    _logger.info_ext(f"All shots render time: {deltaTime:0.2f} sec.", tag="RENDERTIME", display=displayRenderTimes)
     allRenderTimes["AllShots"] = deltaTime
 
     startSequenceRenderTime = time.monotonic()
@@ -739,7 +748,13 @@ def launchRenderWithVSEComposite(
             #######################
 
             print(" --- In generateShotVideos")
-            sequenceOutputFullPath = f"{rootPath}{takeName}\\{sequenceFileName}.{props.getOutputFileFormat()}"
+            sequenceOutputFullPath = f"{rootPath}{takeName}\\{sequenceFileName}"
+            # if props.use_project_settings:
+            #     sequenceOutputFullPath += props.project_naming_separator_char
+            # else:
+            #     sequenceOutputFullPath += "_"
+            sequenceOutputFullPath += f"{takeName}"
+            sequenceOutputFullPath += f".{props.getOutputFileFormat()}"
             print(f"  Rendered sequence from shot videos: {sequenceOutputFullPath}")
 
             if not fileListOnly:
@@ -794,7 +809,7 @@ def launchRenderWithVSEComposite(
         renderInfo["renderSound"] = renderSound
 
         deltaTime = time.monotonic() - startSequenceRenderTime
-        print(f"      \nSequence video render time: {deltaTime:0.2f} sec.")
+        _logger.info_ext(f"Sequence video render time: {deltaTime:0.2f} sec.", tag="RENDERTIME")
         allRenderTimes["SequenceVideo"] = deltaTime
 
     # playblastInfos = {"startFrameIn3D": startFrameIn3D, "startFrameInEdit": startFrameInEdit}
@@ -815,15 +830,15 @@ def launchRenderWithVSEComposite(
         filesDict["playblastInfos"] = renderInfo
 
     deltaTime = time.monotonic() - startRenderTime
-    print(f"      \nFull Sequence render time: {deltaTime:0.2f} sec.")
+    _logger.info_ext(f"Full Sequence render time: {deltaTime:0.2f} sec.", tag="RENDERTIME")
     allRenderTimes["SequenceAndShots"] = deltaTime
 
-    printAllRenderTimes = True  # config.devDebug
-    if printAllRenderTimes:
-        print("\nRender times:")
+    if displayRenderTimes:
+        _logger.info_ext("Render times:", tag="RENDERTIME")
         for key, value in allRenderTimes.items():
-            print(f"{key:>20}: {value:0.2f} sec.")
-        print("\n")
+            _logger.info_ext(f"{key:>20}: {value:0.2f} sec.", tag="RENDERTIME")
+
+        _logger.info_ext("\n", tag="RENDERTIME")
 
     #######################
     # restore current scene settings

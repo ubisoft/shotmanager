@@ -690,6 +690,7 @@ class UAS_ShotManager_OT_Create_Shots_From_OTIO_RRS(Operator):
             createShotsFromOtioTimelineClass(
                 context.scene,
                 config.gMontageOtio,
+                fps,
                 selSeq.get_name(),
                 config.gMontageOtio.sequencesList[int(self.sequenceList)].shotsList,
                 timeRange=timeRange,
