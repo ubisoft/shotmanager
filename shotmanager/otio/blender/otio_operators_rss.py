@@ -28,7 +28,6 @@ import platform
 import bpy
 from bpy.types import Operator
 from bpy.props import StringProperty, BoolProperty, IntProperty, EnumProperty
-from bpy_extras.io_utils import ImportHelper
 
 # paths are relative in order to make the package not dependent on an add-on name
 from ..config import config
@@ -37,7 +36,6 @@ from ..utils import utils
 import opentimelineio
 from .exports import exportShotManagerEditToOtio
 
-from .imports import createShotsFromOtio
 from .imports import getSequenceListFromOtioTimeline
 from .imports import createShotsFromOtioTimelineClass, conformToRefMontage
 
@@ -784,7 +782,7 @@ class UAS_ShotManager_OT_Create_Shots_From_OTIO_RRS(Operator):
             else:  # linux variants
                 subprocess.call(("xdg-open", textFile))
 
-        return {"FINISHED"}
+        return {"INTERFACE"}
 
 
 _classes = (UAS_ShotManager_OT_Create_Shots_From_OTIO_RRS,)

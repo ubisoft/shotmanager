@@ -1205,10 +1205,14 @@ def launchRender(context, renderMode, rootPath, area=None):
         if not fileIsReadOnly:
             bpy.ops.wm.save_mainfile()
 
-        takesToRender = [-1]
+        takesToRender = None
         if preset.renderAllTakes:
             print("Render All takes")
             takesToRender = [i for i in range(0, len(props.takes))]
+        elif len(props.takes):
+            currentTakeInd = props.getCurrentTakeIndex()
+            if -1 != currentTakeInd:
+                takesToRender = [currentTakeInd]
 
         for takeInd in takesToRender:
             renderedFilesDict = launchRenderWithVSEComposite(

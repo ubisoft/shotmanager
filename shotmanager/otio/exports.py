@@ -199,7 +199,7 @@ def exportTakeEditToOtio(
 
                 _logger.info(f" Adding shot: {shotFileFullPath}")
                 if not Path(shotFileFullPath).exists():
-                    _logger.info("     *** File not found *** ")
+                    _logger.warning_ext("    File not found ! ")
 
                 media_reference_video = opentimelineio.schema.ExternalReference(
                     target_url=shotFileFullPath, available_range=available_range
@@ -242,7 +242,6 @@ def exportTakeEditToOtio(
 
     print("  ** -- ** exportTakeEditToOtio from exports.py, fileListOnly: ", fileListOnly)
     props = scene.UAS_shot_manager_props
-    # sceneFps = fps if fps != -1 else scene.render.fps
     sceneFps = fps if fps != -1 else utils.getSceneEffectiveFps(scene)
     #   import opentimelineio as opentimelineio
 
@@ -375,7 +374,6 @@ def exportShotManagerEditToOtio(
     _logger.debug_ext(f"exportShotManagerEditToOtio from exports.py, fileListOnly: {fileListOnly}", tag="DEPRECATED")
 
     props = scene.UAS_shot_manager_props
-    # sceneFps = fps if fps != -1 else scene.render.fps
     sceneFps = fps if fps != -1 else utils.getSceneEffectiveFps(scene)
     #   import opentimelineio as opentimelineio
 
@@ -468,7 +466,7 @@ def exportShotManagerEditToOtio(
 
             _logger.info(f" Adding shot: {shotFileFullPath}")
             if not Path(shotFileFullPath).exists():
-                _logger.info(f"     *** File not found *** ")
+                _logger.warning_ext("    File not found ! ")
 
             media_reference_video = opentimelineio.schema.ExternalReference(
                 target_url=shotFileFullPath, available_range=available_range

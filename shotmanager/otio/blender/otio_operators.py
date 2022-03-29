@@ -37,7 +37,6 @@ from ...utils import utils
 import opentimelineio
 from ..exports import exportShotManagerEditToOtio
 
-from ..imports import createShotsFromOtio
 from ..imports import createShotsFromOtioTimelineClass, conformToRefMontage
 
 from ..montage_otio import MontageOtio
@@ -142,144 +141,6 @@ def list_video_tracks_from_edit_file(self, context):
     if res is None or 0 == len(res):
         res = nothingList
     return res
-
-
-class UAS_ShotManager_OT_Create_Shots_From_OTIO_Simple(Operator):
-    bl_idname = "uasshotmanager.createshotsfromotio_simple"
-    bl_label = "Import / Update Shots from Edit File - Simple Mode"
-    bl_description = "Open edit file (Final Cut XML, OTIO...) to import a set of shots"
-    bl_options = {"REGISTER", "UNDO"}
-
-    filepath: StringProperty(subtype="FILE_PATH")
-    filter_glob: StringProperty(default="*.xml;*.otio", options={"HIDDEN"})
-
-    otioFile: StringProperty()
-    importAtFrame: IntProperty(
-        name="Import at Frame",
-        description="Make the imported edit start at the specified frame",
-        soft_min=0,
-        min=0,
-        default=25,
-    )
-
-    reformatShotNames: BoolProperty(
-        name="Reformat Shot Names",
-        description="Keep only the shot name part for the name of the shots",
-        default=True,
-    )
-    createCameras: BoolProperty(
-        name="Create Camera for New Shots",
-        description="Create a camera for each new shot or use the same camera for all shots",
-        default=True,
-    )
-    useMediaAsCameraBG: BoolProperty(
-        name="Use Clips as Camera Backgrounds",
-        description="Use the clips and videos from the edit file as background for the cameras",
-        default=True,
-    )
-    mediaHaveHandles: BoolProperty(
-        name="Media Have Handles",
-        description="Do imported media use the project handles?",
-        default=False,
-    )
-    mediaHandlesDuration: IntProperty(
-        name="Handles Duration",
-        description="",
-        soft_min=0,
-        min=0,
-        default=10,
-    )
-
-    importAudioInVSE: BoolProperty(
-        name="Import sound In VSE",
-        description="Import sound clips directly into the VSE of the current scene",
-        default=True,
-    )
-
-    def invoke(self, context, event):
-        wm = context.window_manager
-        wm.invoke_props_dialog(self, width=500)
-
-        return {"RUNNING_MODAL"}
-
-    def draw(self, context):
-        layout = self.layout
-        row = layout.row(align=True)
-
-        box = row.box()
-        box.label(text="OTIO File")
-        box.prop(self, "otioFile", text="")
-
-        from pathlib import Path
-
-        if "" != self.otioFile and Path(self.otioFile).exists():
-            timeline = opentimelineio.adapters.read_from_file(self.otioFile)
-            time = timeline.duration()
-            rate = int(time.rate)
-
-            # if rate != context.scene.render.fps:
-            sceneFps = utils.getSceneEffectiveFps(context.scene)
-            if rate != sceneFps:
-                box.alert = True
-                box.label(text=f"!!! Scene fps is {sceneFps}, imported edit is {rate} !!!")
-                box.alert = False
-
-        row = layout.row(align=True)
-        box = row.box()
-        box.separator(factor=0.2)
-        box.prop(self, "importAtFrame")
-        box.prop(self, "reformatShotNames")
-        box.prop(self, "createCameras")
-
-        if self.createCameras:
-            layout.label(text="Camera Background:")
-            row = layout.row(align=True)
-            box = row.box()
-            box.prop(self, "useMediaAsCameraBG")
-            row = box.row()
-            row.enabled = self.useMediaAsCameraBG
-            row.separator()
-            row.prop(self, "mediaHaveHandles")
-            row = box.row()
-            row.enabled = self.useMediaAsCameraBG and self.mediaHaveHandles
-            row.separator(factor=4)
-            row.prop(self, "mediaHandlesDuration")
-        #                if self.mediaHaveHandles:
-
-        layout.label(text="Sound:")
-        row = layout.row(align=True)
-        box = row.box()
-        row = box.row()
-        # if 0 != self.mediaHandlesDuration and
-        #     row.enabled = False
-        row.prop(self, "importAudioInVSE")
-
-        layout.separator()
-
-    def execute(self, context):
-        #   import opentimelineio as otio
-        # from random import uniform
-        # from math import radians
-        print("Exec uasshotmanager.createshotsfromotio")
-        # filename, extension = os.path.splitext(self.filepath)
-        # print("ex Selected file:", self.filepath)
-        # print("ex File name:", filename)
-        # print("ex File extension:", extension)
-
-        # importOtio(
-        createShotsFromOtio(
-            context.scene,
-            self.otioFile,
-            importAtFrame=self.importAtFrame,
-            reformatShotNames=self.reformatShotNames,
-            createCameras=self.createCameras,
-            useMediaAsCameraBG=self.useMediaAsCameraBG,
-            mediaHaveHandles=self.mediaHaveHandles,
-            mediaHandlesDuration=self.mediaHandlesDuration,
-            importAudioInVSE=self.importAudioInVSE,
-        )
-
-        return {"FINISHED"}
 
 
 class UAS_ShotManager_OT_Create_Shots_From_OTIO_Adv(Operator):
@@ -410,7 +271,13 @@ class UAS_ShotManager_OT_Create_Shots_From_OTIO_Adv(Operator):
 
     reformatShotNames: BoolProperty(
         name="Reformat Shot Names",
-        description="Keep only the shot name part for the name of the shots",
+        description="Try to fix mispells in the imported shot names",
+        default=True,
+    )
+
+    removeSeqPrefixFromShotNames: BoolProperty(
+        name="Remove Sequence Prefix Shot Names",
+        description="Remove the sequence prefix from the shot names",
         default=True,
     )
 
@@ -583,10 +450,10 @@ class UAS_ShotManager_OT_Create_Shots_From_OTIO_Adv(Operator):
         config.gMontageOtio = None
 
         if "" == self.otioFile:
-            print(f"*** Otio file not defined - Cannot open edit file ***")
+            print("*** Otio file not defined - Cannot open edit file ***")
             return {"CANCELLED"}
         if not Path(self.otioFile).exists():
-            print(f"*** Otio file not found - Cannot open edit file ***")
+            print("*** Otio file not found - Cannot open edit file ***")
             print(f"***      Otio file: {self.otioFile}")
             return {"CANCELLED"}
 
@@ -840,7 +707,8 @@ class UAS_ShotManager_OT_Create_Shots_From_OTIO_Adv(Operator):
         ############
         if "CREATE" == self.conformMode:
             box.prop(self, "createCameras")
-            box.prop(self, "reformatShotNames")
+            # box.prop(self, "reformatShotNames")
+            box.prop(self, "removeSeqPrefixFromShotNames")
 
         ############
         # Update UI
@@ -912,8 +780,8 @@ class UAS_ShotManager_OT_Create_Shots_From_OTIO_Adv(Operator):
         layout.separator()
 
     def execute(self, context):
-        props = context.scene.UAS_shot_manager_props
         scene = context.scene
+        props = scene.UAS_shot_manager_props
 
         print("\n--------------------")
         print(
@@ -974,10 +842,12 @@ class UAS_ShotManager_OT_Create_Shots_From_OTIO_Adv(Operator):
                 fps,
                 selSeq.get_name(),
                 config.gMontageOtio.sequencesList[int(self.sequenceList)].shotsList,
+                props,
                 timeRange=timeRange,
                 offsetTime=self.offsetTime,
                 importAtFrame=self.importAtFrame,
                 reformatShotNames=self.reformatShotNames,
+                removeSeqPrefixFromShotNames=self.removeSeqPrefixFromShotNames,
                 createCameras=self.createCameras,
                 useMediaAsCameraBG=self.useMediaAsCameraBG,
                 mediaHaveHandles=self.mediaHaveHandles,
@@ -1005,14 +875,14 @@ class UAS_ShotManager_OT_Create_Shots_From_OTIO_Adv(Operator):
             # track indices are starting from 1, not 0!!
             videoTracksToImport = [2]
 
-            if self.importAudio_HumanVoices:
-                audioTracksToImport.extend(list(range(1, 6)))
-            if self.importAudio_RabbidVoices:
-                audioTracksToImport.extend(list(range(6, 13)))
-            if self.importAudio_Sounds:
-                audioTracksToImport.extend(list(range(14, 26)))
-            if self.importAudio_Music:
-                audioTracksToImport.extend(list(range(28, 30)))
+            # if self.importAudio_HumanVoices:
+            #     audioTracksToImport.extend(list(range(1, 6)))
+            # if self.importAudio_RabbidVoices:
+            #     audioTracksToImport.extend(list(range(6, 13)))
+            # if self.importAudio_Sounds:
+            #     audioTracksToImport.extend(list(range(14, 26)))
+            # if self.importAudio_Music:
+            #     audioTracksToImport.extend(list(range(28, 30)))
 
             if config.devDebug:
                 bpy.ops.uasshotmanager.compare_otio_and_current_montage(sequenceName=selSeq.get_name())
@@ -1020,7 +890,6 @@ class UAS_ShotManager_OT_Create_Shots_From_OTIO_Adv(Operator):
             textFile = conformToRefMontage(
                 scene,
                 config.gMontageOtio,
-                fps,
                 selSeq.get_name(),
                 mediaInEDLHaveHandles=self.mediaInEDLHaveHandles,
                 mediaInEDLHandlesDuration=self.mediaInEDLHandlesDuration,
@@ -1066,7 +935,7 @@ class UAS_ShotManager_OT_Create_Shots_From_OTIO_Adv(Operator):
             else:  # linux variants
                 subprocess.call(("xdg-open", textFile))
 
-        return {"FINISHED"}
+        return {"INTERFACE"}
 
 
 class UAS_ShotManager_OT_CompareOtioAndCurrentMontage(Operator):
@@ -1086,8 +955,8 @@ class UAS_ShotManager_OT_CompareOtioAndCurrentMontage(Operator):
 
 # This operator requires   from bpy_extras.io_utils import ImportHelper
 # See https://sinestesia.co/blog/tutorials/using-blenders-filebrowser-with-python/
-class UAS_OTIO_OpenFileBrowser(Operator, ImportHelper):  # from bpy_extras.io_utils import ImportHelper
-    bl_idname = "uasotio.openfilebrowser"
+class UAS_OTIO_ImportEditFile(Operator, ImportHelper):  # from bpy_extras.io_utils import ImportHelper
+    bl_idname = "uasotio.import_edit_file"
     bl_label = "Open Edit File"
     bl_description = "Open edit file (Final Cut XML, OTIO...) to import a set of shots"
 
@@ -1149,15 +1018,14 @@ class UAS_OTIO_OpenFileBrowser(Operator, ImportHelper):  # from bpy_extras.io_ut
         elif "PARSE_EDIT" == self.importMode:
             bpy.ops.uas_video_shot_manager.parseeditfromotio("INVOKE_DEFAULT", otioFile=self.filepath)
 
-        return {"FINISHED"}
+        return {"INTERFACE"}
 
 
 _classes = (
     UAS_ShotManager_Export_OTIO,
-    UAS_ShotManager_OT_Create_Shots_From_OTIO_Simple,
     UAS_ShotManager_OT_Create_Shots_From_OTIO_Adv,
     UAS_ShotManager_OT_CompareOtioAndCurrentMontage,
-    UAS_OTIO_OpenFileBrowser,
+    UAS_OTIO_ImportEditFile,
 )
 
 

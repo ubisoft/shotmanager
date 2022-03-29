@@ -44,7 +44,8 @@ class UAS_PT_Shot_Manager_Debug(Panel):
     @classmethod
     def poll(self, context):
         prefs = context.preferences.addons["shotmanager"].preferences
-        return config.devDebug and prefs.displaySMDebugPanel
+        return True
+        return Trueconfig.devDebug and prefs.displaySMDebugPanel
 
     def draw(self, context):
         layout = self.layout
@@ -135,6 +136,10 @@ class UAS_PT_Shot_Manager_Debug(Panel):
         layout.separator()
         row = layout.row()
         row.operator("uas_utils.run_script", text="Parse XML").path = "//../debug/debug_parse_xml.py"
+
+        layout.separator()
+        row = layout.row()
+        row.operator("uas.debug_print_text_color")
 
         layout.separator()
 

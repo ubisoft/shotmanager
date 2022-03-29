@@ -15,7 +15,13 @@
 
 ## Fixed:
 
-- FPS variable issue when exporting edit file
+- FPS variable issue when rendering and when exporting and importing edit file
+- Issue in rendered sequence video name: the name of the take was not added
+- Issue in OTIO export: the exported take was not the current one
+
+## Dev:
+
+- Improved output messages with logger
 
 
 # 1.7.10 (2022-03-03)

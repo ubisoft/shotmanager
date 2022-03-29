@@ -2542,7 +2542,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
 
         return (numSharedCams, len(sharedCams))
 
-    def hisThereSharedCameraInTake(self, ignoreDisabled=False, takeIndex=-1, inAllTakes=True):
+    def isThereSharedCamerasInTake(self, ignoreDisabled=False, takeIndex=-1, inAllTakes=True):
         """Return True if there is at least 1 camera shared in the specified take, False otherwise"""
         takeInd = (
             self.getCurrentTakeIndex()
@@ -3152,6 +3152,18 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
 
         return shotPrefix
 
+    def removeSequenceName(self, prefixedName):
+        """Remove the name of the sequence, if found, that is at the beginning of the provided name
+        *** Warning: The returned sequence name depends on the project settings context! ***
+        """
+        seqName = self.getSequenceName("FULL", addSeparator=True)
+        ind = prefixedName.find(seqName)
+        if 0 == ind:
+            name = prefixedName[len(seqName) :]
+        else:
+            name = prefixedName
+        return name
+
     def getOutputFileFormat(self, isVideo=True):
         #   _logger.debug(f"  /// isVideo: {isVideo}")
         outputFileFormat = ""
@@ -3221,9 +3233,9 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
 
     def getSequenceName(self, mode="FULL", addSeparator=False):
         """Return the sequence name formated as specified.
-        *** Warning: The returned sequence name depends on the project settings context: if the project settings
-        are used then the sequence name is defined there, otherwise it is given by props.sequence_name and
-        props.render_sequence_prefix
+        *** Warning: The returned sequence name depends on the project settings context! ***
+        if project settings are used then the sequence name is defined there, otherwise it is given
+        by props.sequence_name and props.render_sequence_prefix
 
         Args:
             mode: "FULL", "SHORT", "FORMATED"

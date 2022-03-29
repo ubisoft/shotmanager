@@ -36,7 +36,6 @@ class UAS_ShotManager_ProjectSettings_Prefs(Operator):
     bl_options = {"INTERNAL"}
 
     def invoke(self, context, event):
-        print("Invoke prefs")
         return context.window_manager.invoke_props_dialog(self, width=450)
 
     def draw(self, context):

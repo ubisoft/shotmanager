@@ -26,3 +26,7 @@ def copyString(str1):
         resStr += c
     return resStr
 
+
+def asciiColor(r, g, b):
+    """Convert rgb values to ascii color string"""
+    return f"\33[38;2;{r};{g};{b}m"
