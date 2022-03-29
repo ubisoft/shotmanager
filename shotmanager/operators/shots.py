@@ -965,7 +965,7 @@ class UAS_ShotManager_CreateNShots(Operator):
         props = context.scene.UAS_shot_manager_props
         prefs = context.preferences.addons["shotmanager"].preferences
 
-        self.name = props.project_naming_shot_format if props.use_project_settings else props.new_shot_prefix
+        self.name = props.project_naming_shot_format if props.use_project_settings else props.naming_shot_format
 
         self.start = max(context.scene.frame_current, 10)
         self.duration = prefs.new_shot_duration

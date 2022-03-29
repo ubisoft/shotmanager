@@ -380,19 +380,19 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
 
     project_naming_sequence_format: StringProperty(
         name="Sequence Naming Format",
-        description="Identifier for the sequence and the number of digits of its index" "\n(eg: Seq####)",
+        description="Identifier for the sequence and the number of digits of its index" "\neg: Seq####",
         default="Seq####",
     )
 
     project_naming_shot_format: StringProperty(
         name="Shot Naming Format",
-        description="Identifier for the shot and the number of digits of its index" "\n(eg: Sh####)",
+        description="Identifier for the shot and the number of digits of its index" "\neg: Sh####",
         default="Sh####",
     )
 
     project_naming_separator_char: StringProperty(
         name="Naming Separator",
-        description="Character used to separate the identifiers in the shot full name (eg: _)",
+        description="Character used to separate the identifiers in the shot full name eg: _",
         default="_",
     )
 
@@ -525,8 +525,11 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         options=set(),
     )
 
-    new_shot_prefix: StringProperty(
-        default="Sh",
+    naming_shot_format: StringProperty(
+        name="Shot Naming Format",
+        description="Identifier for the shot and the number of digits of its index used for the creation of new shots"
+        "\neg: Sh####",
+        default="Sh####",
     )
 
     renderSingleFrameShotAsImage: BoolProperty(
@@ -3154,7 +3157,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
 
     def removeSequenceName(self, prefixedName):
         """Remove the name of the sequence, if found, that is at the beginning of the provided name
-        *** Warning: The returned sequence name depends on the project settings context! ***
+        *** Warning: The returned value depends on the Project Settings context! ***
         """
         seqName = self.getSequenceName("FULL", addSeparator=True)
         ind = prefixedName.find(seqName)
@@ -3233,7 +3236,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
 
     def getSequenceName(self, mode="FULL", addSeparator=False):
         """Return the sequence name formated as specified.
-        *** Warning: The returned sequence name depends on the project settings context! ***
+        *** Warning: The returned value depends on the Project Settings context! ***
         if project settings are used then the sequence name is defined there, otherwise it is given
         by props.sequence_name and props.render_sequence_prefix
 
@@ -3283,8 +3286,19 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
     # def getSequencePrefix(self, index=None):
     #     return self._replaceHashByNumber(self.project_naming_sequence_format, index)
 
+    def getProjectName(self):
+        """Return the name of the project if Project Settings are used, an empty string otherwise
+        since there is no project notion in free mode
+        *** Warning: The returned value depends on the Project Settings context! ***
+        """
+        return self.project_name if self.use_project_settings else ""
+
     def getProjectPrefix(self, index=None):
-        return self._replaceHashByNumber(self.project_naming_project_format, index)
+        """Return the project identifier if Project Settings are used, an empty string otherwise
+        since there is no project notion in free mode
+        *** Warning: The returned value depends on the Project Settings context! ***
+        """
+        return self._replaceHashByNumber(self.project_naming_project_format, index) if self.use_project_settings else ""
 
     def getOutputMediaPath(
         self,
@@ -3713,11 +3727,17 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         self.getCurrentTake().printInfo()
 
     def get_name(self):
-        return self.parentScene.name + "_" + self.takes[self.getCurrentTakeIndex()].get_name()
+        """Return the name of the montage, which is also the name of the sequence
+        *** Warning: The returned value depends on the Project Settings context! ***
+        """
+        return self.getSequenceName("FULL")
+        # return self.parentScene.name + "_" + self.takes[self.getCurrentTakeIndex()].get_name()
 
     def get_fps(self):
-        # return self.parentScene.render.fps
-        return utils.getSceneEffectiveFps(self.parentScene)
+        """Return the fps of the montage
+        *** Warning: The returned value depends on the Project Settings context! ***
+        """
+        return self.project_fps if self.use_project_settings else utils.getSceneEffectiveFps(self.parentScene)
 
     def get_frame_start(self):
         return self.parentScene.UAS_shot_manager_props.editStartFrame

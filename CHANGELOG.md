@@ -1,4 +1,4 @@
-# 1.7.15 (2022-03-24)
+# 1.7.15 (2022-03-30)
 
 ## Project:
 
@@ -13,11 +13,20 @@
 
 - Improve the shot tool named Create Specified Number of Shots
 
+## OTIO:
+
+- Improve support for custom sequence names
+- Clean code for otio and xml exporters
+
 ## Fixed:
 
 - FPS variable issue when rendering and when exporting and importing edit file
 - Issue in rendered sequence video name: the name of the take was not added
 - Issue in OTIO export: the exported take was not the current one
+
+## Doc:
+
+- New page for naming of entities
 
 ## Dev:
 

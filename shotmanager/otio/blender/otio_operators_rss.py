@@ -34,14 +34,10 @@ from ..config import config
 from ..utils import utils
 
 import opentimelineio
-from .exports import exportShotManagerEditToOtio
 
-from .imports import getSequenceListFromOtioTimeline
 from .imports import createShotsFromOtioTimelineClass, conformToRefMontage
 
 from .montage_otio import MontageOtio
-
-from . import otio_wrapper as ow
 
 from ..config import sm_logging
 

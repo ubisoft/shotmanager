@@ -81,7 +81,7 @@ def createShotsFromOtio(
                     if reformatShotNames:
                         match = shot_re.search(clipName)
                         if match:
-                            clipName = scene.UAS_shot_manager_props.new_shot_prefix + match.group(1)
+                            clipName = scene.UAS_shot_manager_props.naming_shot_format + match.group(1)
 
                     cam_ob = utils.create_new_camera("Cam_" + clipName, location=[0.0, i, 0.0])
                     cam = cam_ob.data

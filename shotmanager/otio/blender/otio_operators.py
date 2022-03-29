@@ -498,22 +498,21 @@ class UAS_ShotManager_OT_Create_Shots_From_OTIO_Adv(Operator):
             #         (str(0), " ** No Sequence in Ref Track **", f"No sequence found in the specifed reference track", 1)
             #     )
 
-            currentSeqName = (scene.name)[0:6]
-            print(f"Current seq name: {currentSeqName}")
+            currentSeqName = props.getSequenceName("FULL")
+            print(f"Current sequence full name: {currentSeqName}")
             currentSeqIndex = -1
             config.gSeqEnumList = list()
             if len(config.gMontageOtio.sequencesList):
-                print("Herere")
                 for i, seq in enumerate(config.gMontageOtio.sequencesList):
                     strDebug = f"- seqList: i:{i}, seq: {seq.get_name()}"
                     if seq.get_name() == currentSeqName:
                         currentSeqIndex = i
                         strDebug += " - Is current sequence !"
-                    _logger.debug_ext(f"Seq in Edit File: {strDebug}", col="RED", tag="EDIT_IO")
+                    _logger.debug_ext(f"Seq in Edit File: {strDebug}", tag="EDIT_IO")
                     config.gSeqEnumList.append((str(i), seq.get_name(), f"Import sequence {seq.get_name()}", i + 1))
             else:
                 config.gSeqEnumList.append(
-                    (str(0), " ** No Sequence in Ref Track **", f"No sequence found in the specifed reference track", 1)
+                    (str(0), " ** No Sequence in Ref Track **", "No sequence found in the specifed reference track", 1)
                 )
 
             if -1 != currentSeqIndex:

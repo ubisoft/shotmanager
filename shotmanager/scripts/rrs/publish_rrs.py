@@ -224,12 +224,12 @@ def publishRRS(
     # wkip beurk pour récuperer le bon contexte de scene
     bpy.context.window.scene = scene
     print("publish RRS")
-    # wkip removed while opentimelineio is not supported on 2.98
-    # from shotmanager.otio.exports import exportShotManagerEditToOtio
 
-    # renderedOtioFile = exportShotManagerEditToOtio(
-    #     scene, takeIndex=takeInd, filePath=renderDir, fileListOnly=fileListOnly
-    # )
+    from shotmanager.otio.exports import exportShotManagerEditToOtio
+
+    renderedOtioFile = exportShotManagerEditToOtio(
+        scene, takeIndex=takeInd, filePath=renderDir, fileListOnly=fileListOnly
+    )
     renderedFilesDict["edl_files"] = [renderedOtioFile]
 
     # if verbose:

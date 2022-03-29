@@ -57,7 +57,7 @@ class UAS_ShotManager_Sequence_Prefs(Operator):
         box.enabled = not props.use_project_settings
         col = box.column()
         col.use_property_split = True
-        col.prop(props, "new_shot_prefix", text="Default Shot Prefix")
+        col.prop(props, "naming_shot_format", text="Shot Naming Template")
 
         # row = layout.row()
         # row.label(text="Handles:")
