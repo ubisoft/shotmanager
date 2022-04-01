@@ -122,13 +122,14 @@ def addEditCharacteristicsToXML(xml_filename, montageCharacteristics):
 
 
 def fillEditFile(scene, props, take, sceneFps, output_media_mode, rootPath):
-    shotList = take.getShotList(ignoreDisabled=True)
+    seq_name = props.getSequenceName("FULL", addSeparator=True)
     take_name = take.getName_PathCompliant()
+    shotList = take.getShotList(ignoreDisabled=True)
 
     # wkip note: scene.frame_start probablement à remplacer par start du premier shot enabled!!!
     startFrame = 0
     timeline = opentimelineio.schema.Timeline(
-        name=scene.name + "_" + take_name,
+        name=f"{seq_name}{take_name}",
         global_start_time=opentimelineio.opentime.from_frames(startFrame, sceneFps),
     )
     timeline.metadata["exported_with"] = "Shot Manager V. " + props.version()[0]

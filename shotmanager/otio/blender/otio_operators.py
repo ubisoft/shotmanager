@@ -508,7 +508,7 @@ class UAS_ShotManager_OT_Create_Shots_From_OTIO_Adv(Operator):
                     if seq.get_name() == currentSeqName:
                         currentSeqIndex = i
                         strDebug += " - Is current sequence !"
-                    _logger.debug_ext(f"Seq in Edit File: {strDebug}", tag="EDIT_IO")
+                    _logger.debug_ext(f"Seq in Edit File: {strDebug}", col="PURPLE", tag="EDIT_IO")
                     config.gSeqEnumList.append((str(i), seq.get_name(), f"Import sequence {seq.get_name()}", i + 1))
             else:
                 config.gSeqEnumList.append(
@@ -519,6 +519,7 @@ class UAS_ShotManager_OT_Create_Shots_From_OTIO_Adv(Operator):
                 self.sequenceList = config.gSeqEnumList[currentSeqIndex][0]
             else:
                 self.sequenceList = config.gSeqEnumList[0][0]
+            _logger.debug(f"config.gSeqEnumList: {config.gSeqEnumList}")
             _logger.debug(f"self.sequenceList: {self.sequenceList}")
 
         #    seqList = getSequenceListFromOtioTimeline(config.gMontageOtio)

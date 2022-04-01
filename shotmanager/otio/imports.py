@@ -795,7 +795,7 @@ def conformToRefMontage(
 
     print(f"\n\n {utils.bcolors.HEADER}Conform montage to {ref_montage.get_name()}:{utils.bcolors.ENDC}\n")
 
-    infoStr = f"\n\n------ ------ ------ ------ ------ ------ ------ ------ ------ "
+    infoStr = "\n\n------ ------ ------ ------ ------ ------ ------ ------ ------ "
     infoStr += f"\n\nConform montage to {ref_montage.get_name()}:\n"
     # print(infoStr)
 
@@ -926,12 +926,12 @@ def conformToRefMontage(
                     shotSelfModifs.append(modifStr)
 
                 else:
-                    modifStr = f"- (No shot created, ref shot belongs to another sequence)"
+                    modifStr = "- (No shot created, ref shot belongs to another sequence)"
                     textSelf = modifStr
                     shotSelfModifs.append(modifStr)
 
             else:
-                modifStr = f"-"
+                modifStr = "-"
                 textSelf = modifStr
                 shotSelfModifs.append(modifStr)
 
