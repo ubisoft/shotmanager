@@ -25,8 +25,7 @@ from bpy.types import Menu
 
 
 def draw_settings(context, layout):
-    """Used in Shot Manager Feature Toggles panel
-    """
+    """Used in Shot Manager Feature Toggles panel"""
     props = context.scene.UAS_shot_manager_props
     prefs = context.preferences.addons["shotmanager"].preferences
     # layout = self.layout
@@ -45,7 +44,9 @@ def draw_settings(context, layout):
     col.prop(props, "interactShotsStack_displayDisabledShots", text="Display Disabled Shots")
 
     col.prop(
-        props, "interactShotsStack_displayInCompactMode", text="Compact Shots Display (= decrease visual stack height)",
+        props,
+        "interactShotsStack_displayInCompactMode",
+        text="Compact Shots Display (= decrease visual stack height)",
     )
     # return {"FINISHED"}
 
@@ -69,7 +70,7 @@ def draw_settings(context, layout):
 #     target_area_ind = props.getTargetViewportIndex(context, only_valid=True)
 #     # print(f"display area targ: expected_target_area_ind:{expected_target_area_ind}, targ:{target_area_ind}")
 #     targdoperow.alert = target_area_ind < expected_target_area_ind
-#     targdoperow.prop(props, "target_viewport_index", text="Target Dopesheet toto Editor: ")
+#     targdoperow.prop(props, "target_viewport_index", text="Target Dopesheet Editor: ")
 
 
 # class UAS_ShotManager_OT_InteractShotsStackSettings(Operator):
@@ -124,7 +125,11 @@ class UAS_ShotManager_OT_InteractShotsStackSettingsWind(Operator):
 
         targetrow = split.row(align=True)
         targetrow.prop(
-            context.window_manager, "UAS_shot_manager_identify_dopesheets", text="", toggle=True, icon="WORDWRAP_ON",
+            context.window_manager,
+            "UAS_shot_manager_identify_dopesheets",
+            text="",
+            toggle=True,
+            icon="WORDWRAP_ON",
         )
 
         targdoperow = targetrow.row(align=True)
@@ -229,4 +234,3 @@ def register():
 def unregister():
     for cls in reversed(_classes):
         bpy.utils.unregister_class(cls)
-

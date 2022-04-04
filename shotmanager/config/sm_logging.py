@@ -26,8 +26,10 @@ import os
 from pathlib import Path
 
 import logging
-from logging import DEBUG, INFO, ERROR
 
+# from logging import DEBUG, INFO, ERROR
+
+from ..utils.utils_python import asciiColor
 from ..config import config
 
 
@@ -56,6 +58,24 @@ class SM_Logger(logging.getLoggerClass()):
         # _ENDCOLOR = '\033[0m'
         # print(f"{_YELLOW}text{_ENDCOLOR}")
 
+        # self._colors = {
+        #     "BLUE": "\33[34m",
+        #     "BLUE_LIGHT": "\33[1;34m",
+        #     "GREEN": "\33[32m",
+        #     "GREEN_LIGHT": "\33[1;32m",
+        #     "GRAY": "\33[1;30m",
+        #     "YELLOW": "\33[33m",
+        #     "YELLOW_LIGHT": "\33[1;33m",
+        #     "ORANGE": "\33[1;31m",
+        #     "RED": "\33[31m",
+        #     "PURPLE": "\33[35m",
+        #     "PURPULE_LIGHT": "\33[1;35m",
+        #     "TURQUOISE": "\33[36m",
+        #     "TURQUOISE_LIGHT": "\33[1;36m",
+        #     "WHITE": "\33[37m",
+        # }
+
+        # 1; :bold
         self._colors = {
             "BLUE": "\33[34m",
             "BLUE_LIGHT": "\33[1;34m",
@@ -64,8 +84,9 @@ class SM_Logger(logging.getLoggerClass()):
             "GRAY": "\33[1;30m",
             "YELLOW": "\33[33m",
             "YELLOW_LIGHT": "\33[1;33m",
-            "ORANGE": "\33[1;31m",
+            "ORANGE": asciiColor(255, 165, 0),
             "RED": "\33[31m",
+            "RED_BG": "\33[41m",
             "PURPLE": "\33[35m",
             "PURPULE_LIGHT": "\33[1;35m",
             "TURQUOISE": "\33[36m",
@@ -83,30 +104,43 @@ class SM_Logger(logging.getLoggerClass()):
             "OTHER": self._formatter_other,
         }
 
+        self.tags = config.getLoggingTags()
+
     def _getFormatter(self, col="", form="DEFAULT"):
         color = self._colors[col] if col != "" else ""
+        _ENDCOLOR = "\033[0m"
 
         if "STD" == form:
-            f = Formatter(color + self._prefix + "  {message:<120}" + "\033[0m", style="{")
+            f = Formatter(color + self._prefix + "  {message:<120}" + _ENDCOLOR, style="{")
         elif "REG" == form:
             if "" == col:
                 color = self._colors["YELLOW"]
-            f = Formatter(color + "{message:<90}" + "\033[0m", style="{")
+            f = Formatter(color + "{message:<90}" + _ENDCOLOR, style="{")
         elif "UNREG" == form:
             if "" == col:
                 color = self._colors["GRAY"]
-            f = Formatter(color + "{message:<90}" + "\033[0m", style="{")
+            f = Formatter(color + "{message:<90}" + _ENDCOLOR, style="{")
+        elif "DEPRECATED" == form:
+            if "" == col:
+                color = self._colors["ORANGE"]
+            f = Formatter(color + "[DEPRECATED] {message:<90}" + _ENDCOLOR, style="{")
+        elif "WARNING" == form:
+            if "" == col:
+                color = self._colors["ORANGE"]
+            f = Formatter(color + "SM  *** Warning" + " {message:<140}" + _ENDCOLOR, style="{")
         elif "ERROR" == form:
-            f = Formatter(color + "Shot Manager: " + " {message:<140}" + "\033[0m", style="{")
+            if "" == col:
+                color = self._colors["RED"]
+            f = Formatter(color + "Shot Manager: " + " {message:<140}" + _ENDCOLOR, style="{")
+        elif "CRITICAL" == form:
+            if "" == col:
+                color = self._colors["RED_BG"]
+            f = Formatter(color + "Shot Manager: " + " {message:<140}" + _ENDCOLOR, style="{")
         elif "OTHER" == form:
-            f = Formatter(color + "~Other +++" + " {message:<140}" + "\033[0m", style="{")
+            f = Formatter(color + "~Other +++" + " {message:<140}" + _ENDCOLOR, style="{")
         else:  # "DEFAULT"
             f = Formatter("\033[0m" + "~default +++" + " {message:<140}", style="{")
         return f
-
-    # to remove
-    def info_colored(self, msg, extra=None, col=""):
-        super(SM_Logger, self).info((self._colors[col] + "{}\033[0m").format(msg), extra=extra)
 
     # def debug_basic(self, msg, extra=None, color="GREEN", formatter="OTHER"):
     #     ch = logging.StreamHandler()
@@ -127,43 +161,62 @@ class SM_Logger(logging.getLoggerClass()):
         ch.setLevel(logging.DEBUG)
         _logger.handlers[0].setFormatter(self._getFormatter(col, form))
 
-    def debug_ext(self, msg, extra=None, col="", form="STD", tag=None):
-        _logger.handlers[0].setFormatter(self._getFormatter(col, form))
+    def _print_ext(self, mode, msg, extra=None, col="", form="STD", tag=None, display=True):
+        """
+        Args:
+            mode: "DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"
+        """
+        if not display:
+            return
 
         # accept or silence message display according to tags (if return is enabled then tag is ignored)
         if tag is not None:
-            if "TIMELINE_EVENT" == tag:
-                return
-                pass
-            elif "SHOTSTACK_EVENT" == tag:
-                return
-                pass
-            elif "SHOTS_PLAY_MODE" == tag:
-                return
-                pass
-            elif "EDIT_IO" == tag:
-                # return
-                pass
+            if tag in self.tags:
+                if not self.tags[tag]:
+                    return
+
+        if "DEPRECATED" == tag:
+            form = "DEPRECATED"
+
+        _logger.handlers[0].setFormatter(self._getFormatter(col, form))
 
         # Note: marvellous parameter: stacklevel allows to get the call from the sender, otherwise
         # it is this function that is used and the path is not good
         # cf https://stackoverflow.com/questions/14406347/python-logging-check-location-of-log-files
         # and https://www.py4u.net/discuss/157715
-        super(SM_Logger, self).debug(("{}").format(msg), extra=extra, stacklevel=2)
+        if "DEBUG" == mode:
+            super(SM_Logger, self).debug(("{}").format(msg), extra=extra, stacklevel=2)
+        elif "WARNING" == mode:
+            super(SM_Logger, self).warning(("{}").format(msg), extra=extra, stacklevel=2)
+        elif "ERROR" == mode:
+            super(SM_Logger, self).error(("{}").format(msg), extra=extra, stacklevel=2)
+        elif "CRITICAL" == mode:
+            super(SM_Logger, self).critical(("{}").format(msg), extra=extra, stacklevel=2)
+        # INFO
+        else:
+            super(SM_Logger, self).info(("{}").format(msg), extra=extra, stacklevel=2)
+
         _logger.handlers[0].setFormatter(self._getFormatter(self._defaultColor, self._defaultForm))
 
-    def error_ext(self, msg, extra=None, col="RED", form="ERROR"):
-        _logger.handlers[0].setFormatter(self._getFormatter(col, form))
+    def debug_ext(self, msg, extra=None, col="", form="STD", tag=None, display=True):
+        """
+        eg:
+        _logger.debug_ext(f"message: {text}", tag="DEPRECATED")
+        _logger.warning_ext(f"message: {text}")
+        """
+        self._print_ext("DEBUG", msg, extra=extra, col=col, form=form, tag=tag, display=display)
 
-        super(SM_Logger, self).error(("{}").format(msg), extra=extra, stacklevel=2)
-        _logger.handlers[0].setFormatter(self._getFormatter(self._defaultColor, self._defaultForm))
+    def info_ext(self, msg, extra=None, col="BLUE_LIGHT", form="STD", tag=None, display=True):
+        self._print_ext("INFO", msg, extra=extra, col=col, form=form, tag=tag, display=display)
 
-    # # wkip not working...
-    # def debug(self, msg, extra=None, col="GREEN", form="STD"):
-    #     print("Kid")
-    #     _logger.handlers[0].setFormatter(self._getFormatter(col, form))
-    #     super(SM_Logger, self).debug(("{}").format(msg), extra=extra, stacklevel=2)
-    #     _logger.handlers[0].setFormatter(self._formatter["STD"])
+    def warning_ext(self, msg, extra=None, col="ORANGE", form="WARNING", tag=None, display=True):
+        self._print_ext("WARNING", msg, extra=extra, col=col, form=form, tag=tag, display=display)
+
+    def error_ext(self, msg, extra=None, col="RED", form="ERROR", tag=None, display=True):
+        self._print_ext("ERROR", msg, extra=extra, col=col, form=form, tag=tag, display=display)
+
+    def critical_ext(self, msg, extra=None, col="RED_BG", form="CRITICAL", tag=None, display=True):
+        self._print_ext("CRITICAL", msg, extra=extra, col=col, form=form, tag=tag, display=display)
 
 
 class Formatter(logging.Formatter):
@@ -192,17 +245,13 @@ def loggerFormatTest(message=""):
     # warning: put back to the application mode afterward
     _logger.setLevel(logging.DEBUG)
 
-    _logger.debug("debug message")
-    _logger.info("info message")
-    _logger.info_colored("info message colored")
-    _logger.warning("warning message")
-    _logger.error("error message")
-    _logger.critical("critical message")
+    _logger.debug_ext("debug message")
+    _logger.info_ext("info message")
+    _logger.warning_ext("warning message")
+    _logger.error_ext("error message")
+    _logger.critical_ext("critical message")
 
-    # _logger.debug_basic("Test Debug Basic")
-    # _logger.debug_basic("Test Debug Basic", formatter="BASIC")
-    _logger.debug("debug message 02")
-
+    print("\n")
     _logger.debug_ext("debug_ext", col="RED", form="STD")
     _logger.debug_ext("debug_ext", col="BLUE", form="BASIC")
 
@@ -226,8 +275,9 @@ _logger = logging.getLogger(__name__)
 def initialize():
 
     if config.devDebug:
-        print("Initializing Logger...")
-        print(f"len(_logger.handlers): {len(_logger.handlers)}")
+        #  print("Initializing Logger...")
+        #  print(f"len(_logger.handlers): {len(_logger.handlers)}")
+        pass
 
     _logger.propagate = False
 

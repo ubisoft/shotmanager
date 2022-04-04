@@ -27,8 +27,7 @@ _logger = sm_logging.getLogger(__name__)
 
 
 class MontageInterface(object):
-    """ 
-    """
+    """ """
 
     def __init__(self):
         self._name = ""
@@ -72,14 +71,13 @@ class MontageInterface(object):
 
     def get_montage_characteristics(self):
         """
-            Return a dictionary with the characterisitics of the montage.
-            This is required to export it as xml edit file.
+        Return a dictionary with the characterisitics of the montage.
+        This is required to export it as xml edit file.
         """
         return self._characteristics
 
     def set_montage_characteristics(self, framerate=-1, resolution_x=-1, resolution_y=-1, duration=-1):
-        """
-        """
+        """ """
         self._characteristics = dict()
         self._characteristics["framerate"] = framerate  # timebase
         self._characteristics["resolution_x"] = resolution_x  # width
@@ -99,8 +97,7 @@ class MontageInterface(object):
             return -1
 
     def get_frame_end(self):
-        """get_frame_end is exclusive in order to follow the Blender implementation of get_frame_end for its clips
-        """
+        """get_frame_end is exclusive in order to follow the Blender implementation of get_frame_end for its clips"""
         if self.sequencesList is not None and len(self.sequencesList):
             return self.sequencesList[len(self.sequencesList) - 1].get_frame_end()
         else:
@@ -139,13 +136,13 @@ class MontageInterface(object):
     def conformToRefMontage(self, ref_montage, ref_sequence_name=""):
         WARNING = "\033[93m"
         ENDC = "\033[0m"
-        infoStr += f"\n\n {WARNING}Conform to ref montge (in Montage_interface.py):{ENDC}\n"
+        infoStr += f"\n\n {WARNING}Conform to ref montage (in Montage_interface.py):{ENDC}\n"
         print(infoStr)
 
     def compareWithMontage(self, ref_montage, ref_sequence_name=""):
         """
-            Compare current montage with specified montage
-            If ref_sequence_name is specified then only this sequence is compared
+        Compare current montage with specified montage
+        If ref_sequence_name is specified then only this sequence is compared
         """
 
         def printInfoLine(col00, col01, col02):
@@ -246,8 +243,7 @@ class MontageInterface(object):
 
 
 class SequenceInterface(object):
-    """ 
-    """
+    """ """
 
     def __init__(self, parent):
         # parent montage
@@ -315,8 +311,7 @@ class SequenceInterface(object):
         return start
 
     def get_frame_end(self):
-        """get_frame_end is exclusive in order to follow the Blender implementation of get_frame_end for its clips
-        """
+        """get_frame_end is exclusive in order to follow the Blender implementation of get_frame_end for its clips"""
         # warning: clips may not be on the same track, hence they may not be ordered!!
         end = self.shotsList[0].get_frame_final_end()
         for shot in self.shotsList:
@@ -330,8 +325,7 @@ class SequenceInterface(object):
 
 
 class ShotInterface(object):
-    """ 
-    """
+    """ """
 
     def __init__(self):
         # print(" *** self Init in ShotInterface *** ")
@@ -351,6 +345,10 @@ class ShotInterface(object):
     #     pass
 
     def get_name(self):
+        return ""
+
+    def get_media_filename(self):
+        """Return the path of the shot media"""
         return ""
 
     def get_index_in_parent(self):
@@ -385,8 +383,7 @@ class ShotInterface(object):
         return -1
 
     def get_frame_end(self):
-        """get_frame_end is exclusive in order to follow the Blender implementation of get_frame_end for its clips
-        """
+        """get_frame_end is exclusive in order to follow the Blender implementation of get_frame_end for its clips"""
         return -1
 
     def get_frame_duration(self):

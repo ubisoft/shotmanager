@@ -19,8 +19,15 @@
 Preferences related to a project configuration
 """
 
+import os
+from pathlib import Path
+
 import bpy
 from bpy.types import Operator
+from bpy.props import StringProperty
+
+# for file browser:
+from bpy_extras.io_utils import ImportHelper
 
 from ..config import config
 
@@ -36,7 +43,6 @@ class UAS_ShotManager_ProjectSettings_Prefs(Operator):
     bl_options = {"INTERNAL"}
 
     def invoke(self, context, event):
-        print("Invoke prefs")
         return context.window_manager.invoke_props_dialog(self, width=450)
 
     def draw(self, context):
@@ -58,16 +64,67 @@ class UAS_ShotManager_ProjectSettings_Prefs(Operator):
         col.use_property_split = True
         col.use_property_decorate = False
 
-        ############
-        # naming
+        # project name
         ############
         col.prop(props, "project_name")
+        subrow = col.row(align=True)
+        subrow.scale_x = 1.0
+
+        # logo
+        ############
+        propRow = col.row(align=False)
+        propRowSplit = propRow.split(factor=0.4)
+        propRowLeft = propRowSplit.row()
+        propRowLeft.alignment = "RIGHT"
+        propRowLeft.label(text="Logo")
+        propRowRight = propRowSplit.row(align=True)
+        logoRow = propRowRight.row(align=True)
+        if props.project_logo_path != "":
+            logoRow.alert = not Path(props.project_logo_path).exists()
+        logoRow.prop(props, "project_logo_path", text="")
+        propRowRight.operator("shotmanager.set_project_logo", text="", icon="FILEBROWSER")
+
+        # sequence name parts
+        ############
+
+        box.label(text="Naming Conventions:")
+        col = box.column(align=False)
+        col.use_property_split = True
+        col.use_property_decorate = False
+
+        namingRow = col.row(align=False)
+        namingRowSplit = namingRow.split(factor=0.4)
+        namingRowLeft = namingRowSplit.row()
+        namingRowLeft.alignment = "RIGHT"
+        namingRowLeft.label(text="Proj. / Seq. / Shot Identifiers")
+        namingRowRight = namingRowSplit.row(align=True)
+        namingRowRight.prop(props, "project_naming_project_format", text="")
+        namingRowRight.prop(props, "project_naming_sequence_format", text="")
+        namingRowRight.prop(props, "project_naming_shot_format", text="")
+
+        col.prop(props, "project_naming_separator_char")
+
+        namingRow = col.row(align=False)
+        namingRowSplit = namingRow.split(factor=0.4)
+        namingRowLeft = namingRowSplit.row()
+        namingRowLeft.alignment = "RIGHT"
+        shotNameEg = props.getProjectOutputMediaName(projInd=3, seqInd=20, shotInd=40)
+        namingRowLeft.label(text="Eg. Resulting Shot Full Name")
+        namingRowRight = namingRowSplit.row(align=True)
+        namingRowRight.label(text=shotNameEg)
+
+        col.separator()
         col.prop(props, "project_default_take_name")
-        col.prop(props, "project_shot_format")
 
         ############
-        # handles
+        # settings
         ############
+
+        box.label(text="Settings:")
+        col = box.column(align=False)
+        col.use_property_split = True
+        col.use_property_decorate = False
+
         col.separator(factor=1)
         row = col.row()
         row.prop(props, "project_use_shot_handles")
@@ -82,11 +139,7 @@ class UAS_ShotManager_ProjectSettings_Prefs(Operator):
         row = col.row()
         row.alignment = "RIGHT"
         row.enabled = props.project_use_stampinfo
-        row.label(text="Logo")
         # row.separator(factor=0)
-        subrow = row.row()
-        subrow.scale_x = 1.0
-        subrow.prop(props, "project_logo_path", text="")
 
         ############
         # resolution
@@ -156,18 +209,46 @@ class UAS_ShotManager_ProjectSettings_Prefs(Operator):
                 split.label(text=str(prop[1]))
 
     def execute(self, context):
-        print("exec proj settings")
         context.scene.UAS_shot_manager_props.applyProjectSettings()
         return {"FINISHED"}
 
     def cancel(self, context):
-        print("cancel proj settings")
         # since project properties are immediatly applied to Shot Manager properties then we also force the
         # application of the settings in the scene even if the user is not clicking on OK button
         context.scene.UAS_shot_manager_props.applyProjectSettings()
 
 
-_classes = (UAS_ShotManager_ProjectSettings_Prefs,)
+# This operator requires   from bpy_extras.io_utils import ImportHelper
+# See https://sinestesia.co/blog/tutorials/using-blenders-filebrowser-with-python/
+class UAS_ShotManager_SetProjectLogo(Operator, ImportHelper):
+    bl_idname = "shotmanager.set_project_logo"
+    bl_label = "Project Logo"
+    bl_description = (
+        "Open the file browser to define the image to stamp\n"
+        "Relative path must be set directly in the text field and must start with ''//''"
+    )
+
+    filter_glob: StringProperty(default="*.jpg;*.jpeg;*.png;*.tif;*.tiff;*.tga,*.bmp", options={"HIDDEN"})
+
+    def execute(self, context):
+        """Use the selected file as a stamped logo"""
+
+        props = context.scene.UAS_shot_manager_props
+
+        filename, extension = os.path.splitext(self.filepath)
+        #   print('Selected file:', self.filepath)
+        #   print('File name:', filename)
+        #   print('File extension:', extension)
+        # bpy.context.scene.UAS_StampInfo_Settings.logoFilepath = self.filepath
+        props.project_logo_path = self.filepath
+
+        return {"FINISHED"}
+
+
+_classes = (
+    UAS_ShotManager_ProjectSettings_Prefs,
+    UAS_ShotManager_SetProjectLogo,
+)
 
 
 def register():

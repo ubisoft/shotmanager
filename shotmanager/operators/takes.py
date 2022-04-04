@@ -125,7 +125,7 @@ class UAS_ShotManager_TakeAdd(Operator):
         newTake = context.scene.UAS_shot_manager_props.addTake(name=self.name)
 
         context.scene.UAS_shot_manager_props.current_take_name = newTake.name
-        return {"FINISHED"}
+        return {"INTERFACE"}
 
 
 class UAS_ShotManager_TakeDuplicate(Operator):

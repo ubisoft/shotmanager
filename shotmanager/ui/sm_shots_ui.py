@@ -49,12 +49,11 @@ class UAS_UL_ShotManager_Items(bpy.types.UIList):
         cameraIsValid = item.isCameraValid()
         itemHasWarnings = not cameraIsValid
 
-        numSharedCamInTake = 0
-        numSharedCam = props.getNumSharedCamera(item.camera)
-        if 1 < numSharedCam:
-            numSharedCamInTake = 1
+        takeContainsSharedCameras = props.isThereSharedCamerasInTake()
+        if takeContainsSharedCameras:
+            numSharedCam = props.getNumSharedCamera(item.camera)
         else:
-            numSharedCamInTake = props.hisThereSharedCameraInTake()
+            numSharedCam = 2
 
         # draw the Duration components
 
@@ -121,7 +120,7 @@ class UAS_UL_ShotManager_Items(bpy.types.UIList):
                 row.operator("uas_shot_manager.greasepencilitem", text="", icon=icon).index = index
                 row.scale_x = 0.9
 
-            if numSharedCamInTake:
+            if takeContainsSharedCameras:
                 camrow = row.row(align=True)
                 camrow.scale_x = 0.5
                 camrow.alert = 1 < numSharedCam
@@ -371,7 +370,7 @@ class UAS_MT_ShotManager_Shots_ToolsMenu(Menu):
             row = layout.row(align=True)
             row.operator_context = "INVOKE_DEFAULT"
             row.operator(
-                "uasotio.openfilebrowser", text="   Create / Update Shots From Edit File..."
+                "uasotio.import_edit_file", text="   Create / Update Shots From Edit File..."
             ).importMode = "CREATE_SHOTS"
 
             if config.devDebug:
@@ -380,21 +379,21 @@ class UAS_MT_ShotManager_Shots_ToolsMenu(Menu):
                 row = layout.row(align=True)
                 row.label(text="Tools For Edit -- Debug:")
 
-                row = layout.row(align=True)
-                row.operator_context = "INVOKE_DEFAULT"
-                row.operator(
-                    "uasotio.openfilebrowser", text="   Create / Update Shots From Edit File - Simple Mode..."
-                ).importMode = "CREATE_SHOTS_SIMPLE"
+                # row = layout.row(align=True)
+                # row.operator_context = "INVOKE_DEFAULT"
+                # row.operator(
+                #     "uasotio.import_edit_file", text="   Create / Update Shots From Edit File - Simple Mode..."
+                # ).importMode = "CREATE_SHOTS_SIMPLE"
 
                 row = layout.row(align=True)
                 row.operator_context = "INVOKE_DEFAULT"
                 row.operator(
-                    "uasotio.openfilebrowser", text="   Import Shots From Edit File - RRS..."
+                    "uasotio.import_edit_file", text="   Import Shots From Edit File - RRS..."
                 ).importMode = "IMPORT_EDIT"
 
                 row = layout.row(align=True)
                 row.operator_context = "INVOKE_DEFAULT"
-                row.operator("uasotio.openfilebrowser", text="   Parse File - RRS...").importMode = "PARSE_EDIT"
+                row.operator("uasotio.import_edit_file", text="   Parse File - RRS...").importMode = "PARSE_EDIT"
 
         layout.separator()
 

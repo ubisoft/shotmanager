@@ -21,9 +21,7 @@ Shots functions and operators
 
 import bpy
 from bpy.types import Operator
-from bpy.props import IntProperty, StringProperty, EnumProperty, BoolProperty, FloatVectorProperty, PointerProperty
-
-from shotmanager.properties.shot import UAS_ShotManager_Shot
+from bpy.props import IntProperty, StringProperty, EnumProperty, BoolProperty, FloatVectorProperty
 
 from random import uniform
 import json
@@ -36,6 +34,28 @@ def list_cameras(self, context):
     res = list()
     for i, cam in enumerate([c for c in context.scene.objects if c.type == "CAMERA"]):
         res.append((cam.name, cam.name, "", i))
+
+    return res
+
+
+def list_cameras_for_new_shot(self, context):
+    res = list()
+    res.append(("NEW_CAMERA", "Create New Camera", "Create new camera", 0))
+    for i, cam in enumerate([c for c in context.scene.objects if c.type == "CAMERA"]):
+        res.append(
+            (cam.name, cam.name, 'Use the exising scene camera named "' + cam.name + '"\nfor the new shot', i + 1)
+        )
+
+    return res
+
+
+def list_cameras_for_new_shots(self, context):
+    res = list()
+    res.append(("NEW_CAMERAS", "Create New Cameras", "Create a new camera for each shot", 0))
+    for i, cam in enumerate([c for c in context.scene.objects if c.type == "CAMERA"]):
+        res.append(
+            (cam.name, cam.name, 'Use the exising scene camera named "' + cam.name + '"\nfor all the new shots', i + 1)
+        )
 
     return res
 
@@ -56,7 +76,6 @@ class UAS_ShotManager_SetShotStart(Operator):
     #     return bpy.context.preferences.addons["shotmanager"].preferences.display_frame_range_tool
 
     newStart: IntProperty(default=-99999)
-    # shot: PointerProperty(type=UAS_ShotManager_Shot)
 
     def execute(self, context):
         props = context.scene.UAS_shot_manager_props
@@ -361,17 +380,6 @@ class UAS_ShotManager_MakeShotCameraUnique(Operator):
 ########################
 
 
-def list_cameras_for_new_shot(self, context):
-    res = list()
-    res.append(("NEW_CAMERA", "Create New Camera", "Create new camera", 0))
-    for i, cam in enumerate([c for c in context.scene.objects if c.type == "CAMERA"]):
-        res.append(
-            (cam.name, cam.name, 'Use the exising scene camera named "' + cam.name + '"\nfor the new shot', i + 1)
-        )
-
-    return res
-
-
 class UAS_ShotManager_ShotAdd_GetCurrentFrameFor(Operator):
     bl_idname = "uas_shot_manager.shotadd_getcurrentframefor"
     bl_label = "Get Current Frame"
@@ -445,8 +453,7 @@ class UAS_ShotManager_ShotAdd(Operator):
         prefs = context.preferences.addons["shotmanager"].preferences
         selectedShot = props.getSelectedShot()
 
-        # self.name = f"{props.new_shot_prefix}{len ( props.getShotsList() ) + 1:02}" + "0"
-        self.name = (props.project_shot_format.split("_")[2]).format((len(props.getShotsList()) + 1) * 10)
+        self.name = props.getShotPrefix((len(props.getShotsList()) + 1) * 10)
 
         # prefs.addShot_start = max(scene.frame_current, 10)
 
@@ -460,24 +467,12 @@ class UAS_ShotManager_ShotAdd(Operator):
 
         prefs.addShot_end = prefs.addShot_start + prefs.new_shot_duration
 
-        camName = props.getActiveCameraName()
-        if "" != camName:
-            self.cameraName = camName
+        self.cameraName = "NEW_CAMERA"
+        # camName = props.getActiveCameraName()
+        # if "" != camName:
+        #     self.cameraName = camName
 
         self.color = (uniform(0, 1), uniform(0, 1), uniform(0, 1))
-
-        self.cameraName = "NEW_CAMERA"
-        #     cameras = props.getSceneCameras()
-        #    # selectedObjs = []  #bpy.context.view_layer.objects.active    # wkip get the selection
-        #     currentCam = None
-        #     if context.view_layer.objects.active and (context.view_layer.objects.active).type == 'CAMERA':
-        #     #if len(selectedObjs) == 1 and selectedObjs.name == bpy.context.scene.objects[self.cameraName]:
-        #     #    currentCam =  bpy.context.scene.objects[self.cameraName]
-        #         currentCam = context.view_layer.objects.active
-        #     if currentCam:
-        #         self.cameraName = currentCam.name
-        #     elif 0 < len(cameras):
-        #         self.cameraName = cameras[0].name
 
         return wm.invoke_props_dialog(self, width=300)
 
@@ -877,7 +872,6 @@ def convertMarkersFromCameraBindingToShots(scene):
         else:
             duration = boundMarkers[i + 1].frame - boundMarkers[i].frame
 
-        # shotName = props.new_shot_prefix + f"{(i + 1):02d}" + "0"
         shotName = m.camera.name
         props.addShot(
             atIndex=lastShotInd + i + 1,
@@ -897,7 +891,7 @@ def convertMarkersFromCameraBindingToShots(scene):
 class UAS_ShotManager_CreateShotsFromEachCamera(Operator):
     bl_idname = "uas_shot_manager.create_shots_from_each_camera"
     bl_label = "Create Shots From Existing Cameras"
-    bl_description = "Create a new shot for each camera in the scene.\nThe edit made with these shots will cover the current animation range."
+    bl_description = "Create a new shot for each camera in the scene.\nThe edit made with these shots will cover the current animation range"
     bl_options = {"REGISTER", "UNDO"}
 
     def invoke(self, context, event):
@@ -919,7 +913,7 @@ class UAS_ShotManager_CreateShotsFromEachCamera(Operator):
             duration = scene.frame_end - scene.frame_start + 1
 
             for i, cam in enumerate(cams):
-                shotName = props.new_shot_prefix + f"{(i + 1):02d}" + "0"
+                shotName = props.getShotPrefix((i + 1) * 10)
                 props.addShot(
                     atIndex=selectedShotInd + i + 1,
                     camera=cam,
@@ -932,7 +926,7 @@ class UAS_ShotManager_CreateShotsFromEachCamera(Operator):
             if -1 == currentShotInd:
                 props.setCurrentShotByIndex(0)
                 props.setSelectedShotByIndex(0)
-                # wkip pas parfait, on devrait conserver la sel currente
+                # wkipwkipwkip pas parfait, on devrait conserver la sel currente
 
         return {"FINISHED"}
 
@@ -940,11 +934,11 @@ class UAS_ShotManager_CreateShotsFromEachCamera(Operator):
 class UAS_ShotManager_CreateNShots(Operator):
     bl_idname = "uas_shot_manager.create_n_shots"
     bl_label = "Create Specifed Number of Shots..."
-    bl_description = "Create a specified number of shots with the same camera"
+    bl_description = "Create a specified number of shots with new cameras or with the same one"
     bl_options = {"REGISTER", "UNDO"}
 
     name: StringProperty(name="Name")
-    cameraName: EnumProperty(items=list_cameras, name="Camera", description="Select a Camera")
+    cameraName: EnumProperty(items=list_cameras_for_new_shots, name="Camera", description="New Shot Camera")
     start: IntProperty(name="Start")
     duration: IntProperty(name="Duration", min=1)
     offsetFromPrevious: IntProperty(
@@ -971,20 +965,22 @@ class UAS_ShotManager_CreateNShots(Operator):
         props = context.scene.UAS_shot_manager_props
         prefs = context.preferences.addons["shotmanager"].preferences
 
-        # self.name = f"{props.new_shot_prefix}{len ( props.getShotsList() ) + 1:02}" + "0"
-        self.name = (props.project_shot_format.split("_")[2]).format((len(props.getShotsList()) + 1) * 10)
+        self.name = props.project_naming_shot_format if props.use_project_settings else props.naming_shot_format
+
         self.start = max(context.scene.frame_current, 10)
         self.duration = prefs.new_shot_duration
 
-        camName = props.getActiveCameraName()
-        if "" != camName:
-            self.cameraName = camName
+        self.cameraName = "NEW_CAMERAS"
+        # camName = props.getActiveCameraName()
+        # if "" != camName:
+        #     self.cameraName = camName
 
         self.color = (uniform(0, 1), uniform(0, 1), uniform(0, 1))
 
         return wm.invoke_props_dialog(self)
 
     def draw(self, context):
+        props = context.scene.UAS_shot_manager_props
         layout = self.layout
 
         box = layout.box()
@@ -999,9 +995,11 @@ class UAS_ShotManager_CreateNShots(Operator):
         col.separator(factor=2)
         col = grid_flow.column(align=False)
         col.scale_x = 0.6
-        col.label(text="New Shot Name:")
+        col.label(text="New Shot Identifier:")
         col = grid_flow.column(align=False)
-        col.prop(self, "name", text="")
+        idRow = col.row()
+        idRow.enabled = not props.use_project_settings
+        idRow.prop(self, "name", text="")
         col = grid_flow.column(align=False)
         col.label(text="Camera:")
         col = grid_flow.column(align=False)
@@ -1038,7 +1036,7 @@ class UAS_ShotManager_CreateNShots(Operator):
         cam = None
         col = [self.color[0], self.color[1], self.color[2], 1]
 
-        if "" != self.cameraName:
+        if "" != self.cameraName and "NEW_CAMERAS" != self.cameraName:
             cam = bpy.context.scene.objects[self.cameraName]
             if props.use_camera_color:
                 col[0] = cam.color[0]
@@ -1046,18 +1044,23 @@ class UAS_ShotManager_CreateNShots(Operator):
                 col[2] = cam.color[2]
 
         for i in range(1, self.count + 1):
+            if props.use_project_settings:
+                newShotName = props.getUniqueShotName(props.getShotPrefix((len(props.getShotsList()) + 1) * 10))
+            else:
+                newShotName = props.getUniqueShotName(props._replaceHashByNumber(self.name, (i + 1) * 10))
             startFrame = self.start + (i - 1) * (self.duration - 1 + self.offsetFromPrevious)
             endFrame = startFrame + self.duration - 1
 
+            if "NEW_CAMERAS" == self.cameraName:
+                cam = utils.create_new_camera("Cam_" + newShotName)
+
             props.addShot(
                 atIndex=newShotInd,
-                name=props.getUniqueShotName(props.project_shot_format.split("_")[2]).format(
-                    (len(props.getShotsList()) + 1) * 10
-                ),
+                name=newShotName,
                 start=startFrame,
                 end=endFrame,
                 camera=cam,
-                color=col,
+                color=cam.color,
             )
             newShotInd += 1
 
@@ -1108,7 +1111,9 @@ class UAS_ShotManager_DuplicateShotsToOtherTake(Operator):
     )
 
     targetTake: EnumProperty(
-        name="Target Take", description="Take in which the shots will be duplicated", items=(list_target_takes),
+        name="Target Take",
+        description="Take in which the shots will be duplicated",
+        items=(list_target_takes),
     )
 
     insertAfterShot: EnumProperty(

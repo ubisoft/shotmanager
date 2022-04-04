@@ -89,3 +89,19 @@ def releaseGlobalVariables():
 
     bpy.utils.previews.remove(icons_col)
     icons_col = None
+
+
+def getLoggingTags():
+    tags = dict()
+
+    # debug tags
+    tags["DEPRECATED"] = False
+    tags["TIMELINE_EVENT"] = True
+    tags["SHOTSTACK_EVENT"] = True
+    tags["SHOTS_PLAY_MODE"] = True
+    tags["EDIT_IO"] = True
+
+    # info tags
+    tags["RENDERTIME"] = True
+
+    return tags

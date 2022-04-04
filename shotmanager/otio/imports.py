@@ -16,7 +16,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 """
-To do: module description here.
+Otio import
 """
 
 import os
@@ -30,18 +30,19 @@ from math import radians
 import bpy
 import opentimelineio
 
-from .. import config
 from ..utils import utils
 from ..utils import utils_vse
 
 from . import otio_wrapper as ow
+
+from .. import config
 
 from ..config import sm_logging
 
 _logger = sm_logging.getLogger(__name__)
 
 
-def importTrack(track, trackInd, track_type, timeRange=None, offsetFrameNumber=0, alternative_media_folder=""):
+def importTrack(track, trackInd, track_type, fps, timeRange=None, offsetFrameNumber=0, alternative_media_folder=""):
     verbose = False
     #   verbose = "VIDEO" == track_type
 
@@ -51,7 +52,6 @@ def importTrack(track, trackInd, track_type, timeRange=None, offsetFrameNumber=0
 
     range_start = -9999999
     range_end = 9999999
-    fps = 25
     if timeRange is not None:
         range_start = timeRange[0]
         range_end = timeRange[1]
@@ -280,6 +280,7 @@ def importTrack(track, trackInd, track_type, timeRange=None, offsetFrameNumber=0
 def importToVSE(
     timeline,
     vse,
+    fps,
     timeRange=None,
     offsetFrameNumber=0,
     track_type="ALL",
@@ -288,7 +289,7 @@ def importToVSE(
     alternative_media_folder="",
 ):
     """
-        track_type can be "ALL", "VIDEO" or "AUDIO"
+    track_type can be "ALL", "VIDEO" or "AUDIO"
     """
     # print(f"\nimportToVSE: track_type: {track_type}")
 
@@ -305,6 +306,7 @@ def importToVSE(
                     editTrack,
                     trackInd + 1,
                     "VIDEO",
+                    fps,
                     timeRange=timeRange,
                     offsetFrameNumber=offsetFrameNumber,
                     alternative_media_folder=alternative_media_folder,
@@ -318,6 +320,7 @@ def importToVSE(
                     editTrack,
                     trackInd + 1,
                     "AUDIO",
+                    fps,
                     timeRange=timeRange,
                     offsetFrameNumber=offsetFrameNumber,
                     alternative_media_folder=alternative_media_folder,
@@ -331,7 +334,9 @@ def getSequenceListFromOtio(otioFile):
 
 
 def getSequenceNameFromMediaName(fileName):
-    print("\n\n **** Deprecated : imports.py getSequenceNameFromMediaName !!!")
+
+    _logger.debug_ext("imports.py getSequenceNameFromMediaName !!!", tag="DEPRECATED")
+
     seqName = ""
 
     seq_pattern = "Seq"
@@ -366,7 +371,8 @@ def getSequenceNameFromMediaName(fileName):
 
 def getSequenceListFromOtioTimeline(timeline):
 
-    print("\n\n **** Deprecated : imports.py getSequenceListFromOtioTimeline !!!")
+    _logger.debug_ext("imports.py getSequenceListFromOtioTimeline !!!", tag="DEPRECATED")
+
     if timeline is None:
         _logger.error("getSequenceListFromOtioTimeline: Timeline is None!")
         return
@@ -396,127 +402,18 @@ def getSequenceListFromOtioTimeline(timeline):
     return seq_list
 
 
-def createShotsFromOtio(
-    scene,
-    otioFile,
-    importAtFrame=0,
-    reformatShotNames=False,
-    createCameras=True,
-    useMediaAsCameraBG=False,
-    mediaHaveHandles=False,
-    mediaHandlesDuration=0,
-    importAudioInVSE=True,
-):
-    # filePath="", fileName=""):
-
-    print("Import Otio File createShotsFromOtio: ", otioFile)
-    from random import uniform
-    from math import radians
-
-    props = scene.UAS_shot_manager_props
-    if len(props.getCurrentTake().getShotList()) != 0:
-        bpy.ops.uas_shot_manager.take_add(name=Path(otioFile).stem)
-
-    handlesDuration = 0
-    if mediaHaveHandles:
-        handlesDuration = mediaHandlesDuration
-
-    try:
-        timeline = opentimelineio.adapters.read_from_file(otioFile)
-        if len(timeline.video_tracks()):
-            track = timeline.video_tracks()[0]  # Assume the first one contains the shots.
-
-            cam = None
-            if not createCameras:  # Create Default Camera
-                cam_ob = utils.create_new_camera("Camera", location=[0, 0, 0])
-                cam = cam_ob.data
-
-            shot_re = re.compile(r"sh_?(\d+)", re.IGNORECASE)
-            atLeastOneVideoFailed = False
-            for i, clip in enumerate(track.each_clip()):
-                clipName = clip.name
-                if createCameras:
-                    if reformatShotNames:
-                        match = shot_re.search(clipName)
-                        if match:
-                            clipName = scene.UAS_shot_manager_props.new_shot_prefix + match.group(1)
-
-                    cam_ob = utils.create_new_camera("Cam_" + clipName, location=[0.0, i, 0.0])
-                    cam = cam_ob.data
-                    cam_ob.color = [uniform(0, 1), uniform(0, 1), uniform(0, 1), 1]
-                    cam_ob.rotation_euler = (radians(90), 0.0, radians(90))
-
-                    # add media as camera background
-                    if useMediaAsCameraBG:
-                        print("Import Otio clip.media_reference.target_url: ", clip.media_reference.target_url)
-                        media_path = Path(utils.file_path_from_url(clip.media_reference.target_url))
-                        print("Import Otio media_path: ", media_path)
-                        if not media_path.exists():
-                            # Lets find it inside next to the xml
-                            media_path = Path(otioFile).parent.joinpath(media_path.name)
-                            print("** not found, so Path(self.otioFile).parent: ", Path(otioFile).parent)
-                            print("   and new media_path: ", media_path)
-
-                        # start frame of the background video is not set here since it will be linked to the shot start frame
-                        videoAdded = utils.add_background_video_to_cam(
-                            cam, str(media_path), 0, alpha=props.shotsGlobalSettings.backgroundAlpha
-                        )
-                        if videoAdded is None:
-                            atLeastOneVideoFailed = True
-
-                shot = props.addShot(
-                    name=clipName,
-                    start=opentimelineio.opentime.to_frames(clip.range_in_parent().start_time) + importAtFrame,
-                    end=opentimelineio.opentime.to_frames(clip.range_in_parent().end_time_inclusive()) + importAtFrame,
-                    camera=cam_ob,
-                    color=cam_ob.color,
-                )
-                # bpy.ops.uas_shot_manager.shot_add(
-                #     name=clipName,
-                #     start=opentimelineio.opentime.to_frames(clip.range_in_parent().start_time) + importAtFrame,
-                #     end=opentimelineio.opentime.to_frames(clip.range_in_parent().end_time_inclusive()) + importAtFrame,
-                #     cameraName=cam.name,
-                #     color=(cam_ob.color[0], cam_ob.color[1], cam_ob.color[2]),
-                # )
-                shot.bgImages_linkToShotStart = True
-                shot.bgImages_offset = -1 * handlesDuration
-
-                # wkip maybe to remove
-                scene.frame_start = importAtFrame
-                scene.frame_end = (
-                    opentimelineio.opentime.to_frames(clip.range_in_parent().end_time_inclusive()) + importAtFrame
-                )
-
-            if importAudioInVSE:
-                # creation VSE si existe pas
-                vse = utils.getSceneVSE(scene.name)
-                # bpy.context.space_data.show_seconds = False
-                bpy.context.window.workspace = bpy.data.workspaces["Video Editing"]
-                importOtioToVSE(otioFile, vse, importAtFrame=importAtFrame, importVideoTracks=False)
-
-            # TOFIX wkip message don't appear...
-            if createCameras and atLeastOneVideoFailed:
-                utils.ShowMessageBox(
-                    message=f"At least one video import failed...",
-                    title="Missing Media\n   {media_path}",
-                    icon="WARNING",
-                )
-
-    except opentimelineio.exceptions.NoKnownAdapterForExtensionError:
-        from ..utils.utils import ShowMessageBox
-
-        ShowMessageBox("File not recognized", f"{otioFile} could not be understood by Opentimelineio", "ERROR")
-
-
 def createShotsFromOtioTimelineClass(
     scene,
     montageOtio,
+    fps,
     ref_sequence_name,
     clipList,
+    props,
     timeRange=None,
     offsetTime=True,
     importAtFrame=0,
     reformatShotNames=False,
+    removeSeqPrefixFromShotNames=False,
     createCameras=True,
     useMediaAsCameraBG=False,
     mediaHaveHandles=False,
@@ -529,10 +426,10 @@ def createShotsFromOtioTimelineClass(
     animaticFile=None,
 ):
     """
-        timeRange: use a 2 elments array
-        When offsetTime is True and a range is used then the start of the extracted edit range will be
-        placed at the frame specified by importAtFrame
-        timeRange end is inclusive!
+    timeRange: use a 2 elments array
+    When offsetTime is True and a range is used then the start of the extracted edit range will be
+    placed at the frame specified by importAtFrame
+    timeRange end is inclusive!
     """
 
     # filePath="", fileName=""):
@@ -551,7 +448,8 @@ def createShotsFromOtioTimelineClass(
     # print("clipList:", clipList)
 
     # wkip temp - to remove! Shots are added to another take!
-    props = scene.UAS_shot_manager_props
+    # props = scene.UAS_shot_manager_props
+
     if len(props.getCurrentTake().getShotList()) != 0:
         bpy.ops.uas_shot_manager.take_add(name=Path(montageOtio.otioFile).stem)
 
@@ -559,122 +457,122 @@ def createShotsFromOtioTimelineClass(
     if mediaHaveHandles:
         handlesDuration = mediaHandlesDuration
 
-    # try:
-    if True:
-        timeline = montageOtio.timeline
-        fps = 25
-        if len(timeline.video_tracks()):
-            # track = timeline.video_tracks()[0]  # Assume the first one contains the shots.
+    timeline = montageOtio.timeline
+    if len(timeline.video_tracks()):
+        # track = timeline.video_tracks()[0]  # Assume the first one contains the shots.
 
-            cam = None
-            if not createCameras:  # Create Default Camera
-                cam_ob = utils.create_new_camera("Camera", location=[0, 0, 0])
+        cam = None
+        if not createCameras:  # Create Default Camera
+            cam_ob = utils.create_new_camera("Camera", location=[0, 0, 0])
+            cam = cam_ob.data
+
+        shot_re = re.compile(r"sh_?(\d+)", re.IGNORECASE)
+        atLeastOneVideoFailed = False
+        # for i, clip in enumerate(track.each_clip()):
+        for i, clip in enumerate(clipList):
+            clipName = clip.clip.name
+            if createCameras:
+                # if reformatShotNames:
+                #     match = shot_re.search(clipName)
+                #     if match:
+                #         clipName = scene.UAS_shot_manager_props.naming_shot_format + match.group(1)
+
+                if removeSeqPrefixFromShotNames:
+                    clipName = props.removeSequenceName(clipName)
+
+                cam_ob = utils.create_new_camera("Cam_" + clipName, location=[0.0, i, 0.0])
                 cam = cam_ob.data
+                cam_ob.color = [uniform(0, 1), uniform(0, 1), uniform(0, 1), 1]
+                cam_ob.rotation_euler = (radians(90), 0.0, radians(90))
 
-            shot_re = re.compile(r"sh_?(\d+)", re.IGNORECASE)
-            atLeastOneVideoFailed = False
-            # for i, clip in enumerate(track.each_clip()):
-            for i, clip in enumerate(clipList):
-                clipName = clip.clip.name
-                if createCameras:
-                    if reformatShotNames:
-                        match = shot_re.search(clipName)
-                        if match:
-                            clipName = scene.UAS_shot_manager_props.new_shot_prefix + match.group(1)
+                # add media as camera background
+                if useMediaAsCameraBG:
+                    media_path = ow.get_clip_media_path(clip.clip)
+                    # print("Import Otio media_path 1: ", media_path)
+                    media_path = Path(media_path)
+                    # print("Import Otio media_path 2: ", media_path)
+                    if not media_path.exists():
+                        # Lets find it inside next to the xml
+                        media_path = Path(montageOtio.otioFile).parent.joinpath(media_path.name)
+                        print("** not found, so Path(self.otioFile).parent: ", Path(montageOtio.otioFile).parent)
+                        print("   and new media_path: ", media_path)
 
-                    cam_ob = utils.create_new_camera("Cam_" + clipName, location=[0.0, i, 0.0])
-                    cam = cam_ob.data
-                    cam_ob.color = [uniform(0, 1), uniform(0, 1), uniform(0, 1), 1]
-                    cam_ob.rotation_euler = (radians(90), 0.0, radians(90))
+                    # start frame of the background video is not set here since it will be linked to the shot start frame
+                    videoAdded = utils.add_background_video_to_cam(
+                        cam, str(media_path), 0, alpha=props.shotsGlobalSettings.backgroundAlpha
+                    )
+                    if videoAdded is None:
+                        atLeastOneVideoFailed = True
 
-                    # add media as camera background
-                    if useMediaAsCameraBG:
-                        media_path = ow.get_clip_media_path(clip.clip)
-                        # print("Import Otio media_path 1: ", media_path)
-                        media_path = Path(media_path)
-                        # print("Import Otio media_path 2: ", media_path)
-                        if not media_path.exists():
-                            # Lets find it inside next to the xml
-                            media_path = Path(otioFile).parent.joinpath(media_path.name)
-                            print("** not found, so Path(self.otioFile).parent: ", Path(otioFile).parent)
-                            print("   and new media_path: ", media_path)
+            shot = props.addShot(
+                name=clipName,
+                start=ow.get_clip_frame_final_start(clip.clip, fps) + offsetFrameNumber,
+                end=ow.get_timeline_clip_end_inclusive(clip.clip) + offsetFrameNumber,
+                camera=cam_ob,
+                color=cam_ob.color,
+            )
+            shot.durationLocked = True
 
-                        # start frame of the background video is not set here since it will be linked to the shot start frame
-                        videoAdded = utils.add_background_video_to_cam(
-                            cam, str(media_path), 0, alpha=props.shotsGlobalSettings.backgroundAlpha
-                        )
-                        if videoAdded is None:
-                            atLeastOneVideoFailed = True
+            shot.bgImages_linkToShotStart = True
+            shot.bgImages_offset = -1 * handlesDuration
 
-                shot = props.addShot(
-                    name=clipName,
-                    start=ow.get_clip_frame_final_start(clip.clip, fps) + offsetFrameNumber,
-                    end=ow.get_timeline_clip_end_inclusive(clip.clip) + offsetFrameNumber,
-                    camera=cam_ob,
-                    color=cam_ob.color,
-                )
-                shot.durationLocked = True
+            # wkip maybe to remove
+            scene.frame_start = offsetFrameNumber
+            scene.frame_end = (
+                opentimelineio.opentime.to_frames(clip.clip.range_in_parent().end_time_inclusive()) + offsetFrameNumber
+            )
 
-                shot.bgImages_linkToShotStart = True
-                shot.bgImages_offset = -1 * handlesDuration
+        if importVideoInVSE or importAudioInVSE:
+            # store current workspace cause it may not be the Layout one
+            currentWorkspace = bpy.context.window.workspace
 
-                # wkip maybe to remove
-                scene.frame_start = offsetFrameNumber
-                scene.frame_end = (
-                    opentimelineio.opentime.to_frames(clip.clip.range_in_parent().end_time_inclusive())
-                    + offsetFrameNumber
-                )
+            # creation VSE si existe pas
+            vse = utils.getSceneVSE(scene.name, createVseTab=True)
+            bpy.context.window.workspace = bpy.data.workspaces["Video Editing"]
+            # bpy.context.space_data.show_seconds = False
 
-            if importVideoInVSE or importAudioInVSE:
-                # store current workspace cause it may not be the Layout one
-                currentWorkspace = bpy.context.window.workspace
+            trackType = "ALL"
+            if importVideoInVSE and not importAudioInVSE:
+                trackType = "VIDEO"
+            elif not importVideoInVSE and importAudioInVSE:
+                trackType = "AUDIO"
 
-                # creation VSE si existe pas
-                vse = utils.getSceneVSE(scene.name, createVseTab=True)
-                bpy.context.window.workspace = bpy.data.workspaces["Video Editing"]
-                # bpy.context.space_data.show_seconds = False
+            importToVSE(
+                montageOtio.timeline,
+                vse,
+                fps,
+                timeRange=timeRange,
+                offsetFrameNumber=offsetFrameNumber,
+                track_type=trackType,
+                videoTracksList=videoTracksList,
+                audioTracksList=audioTracksList,
+                alternative_media_folder=Path(montageOtio.otioFile).parent,
+            )
 
-                trackType = "ALL"
-                if importVideoInVSE and not importAudioInVSE:
-                    trackType = "VIDEO"
-                elif not importVideoInVSE and importAudioInVSE:
-                    trackType = "AUDIO"
+            # restore workspace
+            # bpy.context.window.workspace = bpy.data.workspaces["Layout"]
+            bpy.context.window.workspace = currentWorkspace
 
-                importToVSE(
-                    montageOtio.timeline,
-                    vse,
-                    timeRange=timeRange,
-                    offsetFrameNumber=offsetFrameNumber,
-                    track_type=trackType,
-                    videoTracksList=videoTracksList,
-                    audioTracksList=audioTracksList,
-                    alternative_media_folder=Path(montageOtio.otioFile).parent,
-                )
+        if animaticFile is not None:
+            importAnimatic(montageOtio, ref_sequence_name, animaticFile, offsetFrameNumber)
 
-                # restore workspace
-                # bpy.context.window.workspace = bpy.data.workspaces["Layout"]
-                bpy.context.window.workspace = currentWorkspace
+        # TODO: wkipwkipwkip message don't appear...
+        if createCameras and atLeastOneVideoFailed:
+            utils.ShowMessageBox(
+                message="At least one video import failed...",
+                title="Missing Media\n   {media_path}",
+                icon="WARNING",
+            )
 
-            if animaticFile is not None:
-                importAnimatic(montageOtio, ref_sequence_name, animaticFile, offsetFrameNumber)
+        # restore context
+        # wkip ajouter time range original
+        props.setCurrentShotByIndex(0)
+        props.setSelectedShotByIndex(0)
 
-            # TODO: wkipwkipwkip message don't appear...
-            if createCameras and atLeastOneVideoFailed:
-                utils.ShowMessageBox(
-                    message=f"At least one video import failed...",
-                    title="Missing Media\n   {media_path}",
-                    icon="WARNING",
-                )
+    # except opentimelineio.exceptions.NoKnownAdapterForExtensionError:
+    #     from ..utils.utils import ShowMessageBox
 
-            # restore context
-            # wkip ajouter time range original
-            props.setCurrentShotByIndex(0)
-            props.setSelectedShotByIndex(0)
-
-        # except opentimelineio.exceptions.NoKnownAdapterForExtensionError:
-        #     from ..utils.utils import ShowMessageBox
-
-        # ShowMessageBox("File not recognized", f"{otioFile} could not be understood by Opentimelineio", "ERROR")
+    # ShowMessageBox("File not recognized", f"{otioFile} could not be understood by Opentimelineio", "ERROR")
 
 
 def importAnimatic(montageOtio, sequenceName, animaticFile, offsetFrameNumber=0):
@@ -763,7 +661,7 @@ def _addNewShot(
         # if reformatShotNames:
         #     match = shot_re.search(clipName)
         #     if match:
-        #         clipName = scene.UAS_shot_manager_props.new_shot_prefix + match.group(1)
+        #         clipName = scene.UAS_shot_manager_props.naming_shot_format + match.group(1)
 
         cam_ob = utils.create_new_camera("Cam_" + clipName, location=[0.0, 0.0, 0.0])
         cam = cam_ob.data
@@ -792,7 +690,14 @@ def _addNewShot(
                     icon="ERROR",
                 )
 
-    shot = props.addShot(name=clipName, start=start, end=end, durationLocked=True, camera=cam_ob, color=cam_ob.color,)
+    shot = props.addShot(
+        name=clipName,
+        start=start,
+        end=end,
+        durationLocked=True,
+        camera=cam_ob,
+        color=cam_ob.color,
+    )
     shot.bgImages_linkToShotStart = True
     shot.bgImages_offset = -1 * handlesDuration
 
@@ -813,7 +718,7 @@ def conformToRefMontage(
     createCameras=True,
     useMediaAsCameraBG=False,
     useMediaSoundtrackForCameraBG=False,
-    videoShotsFolder=None,
+    videoShotsFolder="",
     mediaHaveHandles=False,
     mediaHandlesDuration=0,
     takeIndex=-1,
@@ -824,8 +729,8 @@ def conformToRefMontage(
     animaticFile=None,
 ):
     """
-        Conform / update current montage to match specified montage
-        If ref_sequence_name is specified then only this sequence is compared
+    Conform / update current montage to match specified montage
+    If ref_sequence_name is specified then only this sequence is compared
     """
 
     # scene = bpy.context.scene
@@ -841,6 +746,12 @@ def conformToRefMontage(
 
     take = props.getTakeByIndex(takeInd)
     shotList = props.get_shots(takeIndex=takeInd)
+
+    if "." == videoShotsFolder:
+        videoShotsFolder = str(Path(ref_montage.otioFile).parent)
+
+    # if "" == videoShotsFolder or videoShotsFolder is None:
+    # then we use the media path
 
     if not mediaInEDLHaveHandles:
         mediaInEDLHandlesDuration = 0
@@ -872,7 +783,7 @@ def conformToRefMontage(
             now = datetime.now()
 
             confoDisplayInfo = f"\nConformation of {bpy.data.filepath}"
-            confoDisplayInfo += f"\n---------------------------------------------------------------------\n\n"
+            confoDisplayInfo += "\n---------------------------------------------------------------------\n\n"
             confoDisplayInfo += f"{'   - Date: ': <20}{now.strftime('%b-%d-%Y')}  -  {now.strftime('%H:%M:%S')}\n"
 
             confoDisplayInfo += f"{'   - File: ': <20}{bpy.data.filepath}\n"
@@ -890,7 +801,7 @@ def conformToRefMontage(
 
     print(f"\n\n {utils.bcolors.HEADER}Conform montage to {ref_montage.get_name()}:{utils.bcolors.ENDC}\n")
 
-    infoStr = f"\n\n------ ------ ------ ------ ------ ------ ------ ------ ------ "
+    infoStr = "\n\n------ ------ ------ ------ ------ ------ ------ ------ ------ "
     infoStr += f"\n\nConform montage to {ref_montage.get_name()}:\n"
     # print(infoStr)
 
@@ -959,7 +870,9 @@ def conformToRefMontage(
         shotSelf = None
         for sh in shotList:
             # if sh.get_name() == shotRef.get_name():
-            shotName = props.getRenderShotPrefix() + "_" + sh.get_name()
+            # shotName = props.getRenderShotPrefix() + "_" + sh.get_name()
+            shotName = sh.get_name()
+
             # print(f"shotName: {shotName}, shotRefName: {shotRefName}")
             if shotName == shotRefName:
                 shotSelf = sh
@@ -977,7 +890,8 @@ def conformToRefMontage(
             #     print("   and new media_path: ", media_path)
 
             if createMissingShots:
-                seqSelfName = props.getRenderShotPrefix() + "_"
+                # seqSelfName = props.getRenderShotPrefix() + "_"
+                seqSelfName = props.getSequenceName("FULL", addSeparator=True)
                 # print(
                 #     f"here 01: seqSelfName: {seqSelfName}, shotRefName: {shotRefName}, {shotRefName.find(seqSelfName)}"
                 # )
@@ -1002,10 +916,7 @@ def conformToRefMontage(
                         shotSelf.camera.color = [0, 0, 1, 1]
 
                     noteStr = "New shot added from "
-                    if "RRSpecial_ACT01_AQ_201103_TECH" == ref_montage.get_name():
-                        noteStr += "Act01_Edit_Previz.xml (Oct. 4th, 2020)"
-                    else:
-                        noteStr += ref_montage.get_name()
+                    noteStr += ref_montage.get_name()
                     shotSelf.note01 = noteStr
 
                     shotSelf = props.moveShotToIndex(shotSelf, expectedIndInSelfEdit)
@@ -1019,12 +930,12 @@ def conformToRefMontage(
                     shotSelfModifs.append(modifStr)
 
                 else:
-                    modifStr = f"- (No shot created, ref shot belongs to another sequence)"
+                    modifStr = "- (No shot created, ref shot belongs to another sequence)"
                     textSelf = modifStr
                     shotSelfModifs.append(modifStr)
 
             else:
-                modifStr = f"-"
+                modifStr = "-"
                 textSelf = modifStr
                 shotSelfModifs.append(modifStr)
 
@@ -1091,7 +1002,11 @@ def conformToRefMontage(
                 shotSelf.removeBGImages()
 
                 if useMediaAsCameraBG:
-                    media_path = Path(videoShotsFolder + "/" + shotRef.get_name())
+                    if videoShotsFolder is None or "" == videoShotsFolder:
+                        media_path = Path(shotRef.get_media_filename())
+                    else:
+                        media_path = Path(videoShotsFolder + "/" + shotRef.get_name())
+
                     if "" == media_path.suffix:
                         media_path = Path(str(media_path) + ".mp4")
 
@@ -1290,6 +1205,7 @@ def conformToRefMontage(
             importToVSE(
                 ref_montage.timeline,
                 vse,
+                fps,
                 timeRange=timeRange,
                 offsetFrameNumber=offsetFrameNumber,
                 track_type=trackType,
@@ -1306,7 +1222,11 @@ def conformToRefMontage(
                 textRef = shotRef.get_name()
                 shotRefName = Path(shotRef.get_name()).stem
 
-                media_path = Path(videoShotsFolder + "/" + shotRef.get_name())
+                if videoShotsFolder is None or "" == videoShotsFolder:
+                    media_path = Path(shotRef.get_media_filename())
+                else:
+                    media_path = Path(videoShotsFolder + "/" + shotRef.get_name())
+
                 if "" == media_path.suffix:
                     media_path = Path(str(media_path) + ".mp4")
 
@@ -1329,7 +1249,12 @@ def conformToRefMontage(
                         clip_x = 1280
                         clip_y = 720
                         vse_render.cropClipToCanvas(
-                            res_x, res_y, newClipInVSE, clip_x, clip_y, mode="FIT_WIDTH",
+                            res_x,
+                            res_y,
+                            newClipInVSE,
+                            clip_x,
+                            clip_y,
+                            mode="FIT_WIDTH",
                         )
                         # newClipInVSE.use_crop = True
                         # newClipInVSE.crop.min_x = 1 * int((1280 - 1280) / 2)
@@ -1357,6 +1282,7 @@ def conformToRefMontage(
 
 def importOtioToVSE(otioFile, vse, importAtFrame=0, importVideoTracks=True, importAudioTracks=True):
     print("ImportOtioToVSE: **** Deprecated ****")
+    _logger.debug_ext("Import.py: ImportOtioToVSE", tag="DEPRECATED")
 
     # def importTrack(track, trackInd, importAtFrame):
     #     for i, clip in enumerate(track.each_clip()):
@@ -1480,4 +1406,3 @@ def import_otio(scene, filepath, old_dir, new_dir):
                     clip.name, str(media_path), i, opentimelineio.opentime.to_frames(clip.range_in_parent().start_time)
                 )
                 c.frame_final_duration = opentimelineio.opentime.to_frames(clip.duration())
-

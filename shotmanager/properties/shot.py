@@ -103,7 +103,8 @@ class UAS_ShotManager_Shot(ShotInterface, PropertyGroup):
     def getName_PathCompliant(self, withPrefix=False):
         shotName = self.name.replace(" ", "_")
         if withPrefix:
-            shotName = f"{self.parentScene.UAS_shot_manager_props.getRenderShotPrefix()}{shotName}"
+            # shotName = f"{self.parentScene.UAS_shot_manager_props.getRenderShotPrefix()}{shotName}"
+            shotName = f"{self.parentScene.UAS_shot_manager_props.getSequenceName('FULL', addSeparator=True)}{shotName}"
         return shotName
 
     def _get_name(self):
@@ -519,7 +520,6 @@ class UAS_ShotManager_Shot(ShotInterface, PropertyGroup):
 
     def getSoundSequence(self):
         soundClip = None
-        print("Soundseq")
         if "" != self.bgSoundClipName and self.bgSoundClipName in self.parentScene.sequence_editor.sequences_all:
             soundClip = self.parentScene.sequence_editor.sequences_all[self.bgSoundClipName]
         if soundClip is not None:
@@ -584,7 +584,8 @@ class UAS_ShotManager_Shot(ShotInterface, PropertyGroup):
         return props.getShotIndex(self)
 
     def get_name(self):
-        return self.parentScene.UAS_shot_manager_props.getRenderShotPrefix() + self.name
+        # return self.parentScene.UAS_shot_manager_props.getRenderShotPrefix() + self.name
+        return self.getName_PathCompliant(withPrefix=True)
 
     def printInfo(self, only_clip_info=False):
         super().printInfo(only_clip_info=True)

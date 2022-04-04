@@ -120,8 +120,8 @@ def get_timeline_from_file(otioFile):
 
 
 def parseTrack(timeline, track_type, track_index):
-    """ Display the track information
-        track_type can be "VIDEO" or "AUDIO"
+    """Display the track information
+    track_type can be "VIDEO" or "AUDIO"
     """
     # timeline = opentimelineio.adapters.read_from_file(otioFile)
 
@@ -171,9 +171,9 @@ def parseTrack(timeline, track_type, track_index):
 
 
 def get_media_occurence(timeline, media_name, track_type="ALL", last_occurence=False):
-    """ Return the first (or last if last_occurence is True) occurence of the clip with a name containing
-        media_name found in the timeline
-        track_type can be "ALL", "VIDEO" or "AUDIO"
+    """Return the first (or last if last_occurence is True) occurence of the clip with a name containing
+    media_name found in the timeline
+    track_type can be "ALL", "VIDEO" or "AUDIO"
     """
     found_clip = None
     tab = "   "
@@ -253,8 +253,7 @@ def get_media_occurence(timeline, media_name, track_type="ALL", last_occurence=F
 
 
 def get_clip_media_path(clip):
-    """Return the media used by the clip, or None if the clip is not a media user (if it is a stack or nested edit for example)
-    """
+    """Return the media used by the clip, or None if the clip is not a media user (if it is a stack or nested edit for example)"""
     # media_path = clip.media_reference.target_url
     # media_path = Path(utils.file_path_from_url(clip.media_reference.target_url))
     media_path = None
@@ -288,8 +287,8 @@ def get_clip_frame_start(clip, fps):
 
 def get_clip_frame_end(clip, fps):
     """
-        Exclusive
-        Doesn't exist in blender
+    Exclusive
+    Doesn't exist in blender
     """
     # absolute in track, clip frame final start:
     frame_start = get_clip_frame_start(clip, fps)
@@ -307,7 +306,7 @@ def get_clip_frame_final_start(clip, fps):
 
 def get_clip_frame_final_end(clip, fps):
     """
-        Exclusive
+    Exclusive
     """
     # absolute in track, clip frame final start:
     frame_final_start = opentimelineio.opentime.to_frames(clip.range_in_parent().start_time)
@@ -318,7 +317,6 @@ def get_clip_frame_final_end(clip, fps):
 
 
 def get_clip_frame_offset_start(clip, fps):
-    #  print("wkip get_clip_frame_offset_start: mettre un framerate au lieu de 25!!!")
     return int(math.ceil(clip.source_range.start_time.value)) - int(
         math.ceil(clip.available_range().start_time.value_rescaled_to(fps))
     )
@@ -362,8 +360,8 @@ def get_timeline_clip_end_exclusive(clip):
 
 
 def get_media_list(timeline, track_type="ALL"):
-    """ Return the list of the media found in the timeline
-        track_type can be "ALL", "VIDEO" or "AUDIO"
+    """Return the list of the media found in the timeline
+    track_type can be "ALL", "VIDEO" or "AUDIO"
     """
 
     media_list = list()
@@ -398,11 +396,11 @@ def get_media_list(timeline, track_type="ALL"):
 
 
 def get_clips_in_range(timeline, track_type="ALL", mode="STRICTLY"):
-    """ Return the clips in the specified range
-        track_type can be "ALL", "VIDEO" or "AUDIO"
-        mode: "STRICTLY": start and end of clip are inside the range or equal to its boundaries
-        mode: "OVERLAPPING": start, end or frames inbetweens are in the range
-        *** Warning: track owner is not kept at the moment ***
+    """Return the clips in the specified range
+    track_type can be "ALL", "VIDEO" or "AUDIO"
+    mode: "STRICTLY": start and end of clip are inside the range or equal to its boundaries
+    mode: "OVERLAPPING": start, end or frames inbetweens are in the range
+    *** Warning: track owner is not kept at the moment ***
     """
 
     if "ALL" == track_type or "VIDEO" == track_type:
@@ -411,4 +409,3 @@ def get_clips_in_range(timeline, track_type="ALL", mode="STRICTLY"):
         pass
 
     return
-

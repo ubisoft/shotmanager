@@ -320,7 +320,20 @@ class UAS_PT_ShotManager(Panel):
         # subnamerow.scale
         #  rightsplit.alignment = "RIGHT"
         rightsplitrow = rightsplit.row(align=True)
-        rightsplitrow.prop(props, "sequence_name", text="")
+
+        # sequence name
+        #####################
+
+        if props.use_project_settings:
+            # rightsplitrow.prop(props, "sequence_name", text="")
+            # props.getSequenceName("SHORT")
+            seqnamerow = rightsplitrow.row(align=True)
+            # seqnamerow.enabled = False
+            seqnamerow.prop(prefs, "projectSeqName", text="")
+            rightsplitrow.operator("uas_shot_manager.set_project_sequence_name", text="", icon="SYNTAX_OFF")
+        else:
+            rightsplitrow.prop(props, "sequence_name", text="")
+
         subnamerow = rightsplit.row(align=True)
         subnamerow.separator(factor=0.2)
         # subnamerow.operator(

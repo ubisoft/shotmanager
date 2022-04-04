@@ -29,7 +29,7 @@ import time
 import bpy
 
 from shotmanager.config import config
-from shotmanager.rendering.sm_StampInfo_default_settings import set_StampInfoSettings
+from shotmanager.rendering.rendering_stampinfo import setStampInfoSettings, renderStampedInfoForShot
 
 from shotmanager.utils import utils
 from shotmanager.utils import utils_store_context as utilsStore
@@ -112,6 +112,8 @@ def launchRenderWithVSEComposite(
 
     currentShot = props.getCurrentShot()
 
+    displayRenderTimes = True
+
     renderMode = "PROJECT" if renderPreset is None else renderPreset.renderMode
     renderInfo = dict()
 
@@ -174,7 +176,7 @@ def launchRenderWithVSEComposite(
 
                 stampInfoSettings.stampInfoUsed = props.useStampInfoDuringRendering
                 if stampInfoSettings.stampInfoUsed:
-                    set_StampInfoSettings(scene)
+                    setStampInfoSettings(scene)
 
         context.window_manager.UAS_shot_manager_shots_play_mode = False
         context.window_manager.UAS_shot_manager_display_overlay_tools = False
@@ -198,7 +200,10 @@ def launchRenderWithVSEComposite(
 
     # projectFps = scene.render.fps
     projectFps = utils.getSceneEffectiveFps(scene)
-    sequenceFileName = props.getRenderShotPrefix() + takeName
+
+    # sequence name will get a different value is project settings are used
+    sequenceFileName = props.getSequenceName("FULL", addSeparator=True)
+
     scene.use_preview_range = False
     renderResolution = [scene.render.resolution_x, scene.render.resolution_y]
     renderResolutionFramed = [scene.render.resolution_x, scene.render.resolution_y]
@@ -213,7 +218,6 @@ def launchRenderWithVSEComposite(
         props.applyProjectSettings()
         scene.render.image_settings.file_format = props.project_images_output_format
         projectFps = props.project_fps
-        sequenceFileName = props.getRenderShotPrefix()
         renderResolution = [props.project_resolution_x, props.project_resolution_y]
         renderResolutionFramed = [props.project_resolution_framed_x, props.project_resolution_framed_y]
 
@@ -535,7 +539,10 @@ def launchRenderWithVSEComposite(
             #######################
 
             deltaTime = time.monotonic() - startShotRenderTime
-            _logger.debug(f"      \nShot render time (images only): {deltaTime:0.2f} sec.")
+            _logger.info_ext(
+                f"Shot render time (images only): {deltaTime:0.2f} sec.", tag="RENDERTIME", display=displayRenderTimes
+            )
+
             allRenderTimes[shot.name + "_" + "images"] = deltaTime
 
             #######################
@@ -715,7 +722,10 @@ def launchRenderWithVSEComposite(
             #######################
 
             deltaTime = time.monotonic() - startShotRenderTime
-            print(f"      \nShot render time (incl. video): {deltaTime:0.2f} sec.")
+            _logger.info_ext(
+                f"Shot render time (incl. video): {deltaTime:0.2f} sec.", tag="RENDERTIME", display=displayRenderTimes
+            )
+
             allRenderTimes[shot.name + "_" + "full"] = deltaTime
 
             print("----------------------------------------")
@@ -725,7 +735,7 @@ def launchRenderWithVSEComposite(
     #######################
 
     deltaTime = time.monotonic() - startRenderTime
-    print(f"      \nAll shots render time: {deltaTime:0.2f} sec.")
+    _logger.info_ext(f"All shots render time: {deltaTime:0.2f} sec.", tag="RENDERTIME", display=displayRenderTimes)
     allRenderTimes["AllShots"] = deltaTime
 
     startSequenceRenderTime = time.monotonic()
@@ -738,7 +748,13 @@ def launchRenderWithVSEComposite(
             #######################
 
             print(" --- In generateShotVideos")
-            sequenceOutputFullPath = f"{rootPath}{takeName}\\{sequenceFileName}.{props.getOutputFileFormat()}"
+            sequenceOutputFullPath = f"{rootPath}{takeName}\\{sequenceFileName}"
+            # if props.use_project_settings:
+            #     sequenceOutputFullPath += props.project_naming_separator_char
+            # else:
+            #     sequenceOutputFullPath += "_"
+            sequenceOutputFullPath += f"{takeName}"
+            sequenceOutputFullPath += f".{props.getOutputFileFormat()}"
             print(f"  Rendered sequence from shot videos: {sequenceOutputFullPath}")
 
             if not fileListOnly:
@@ -793,7 +809,7 @@ def launchRenderWithVSEComposite(
         renderInfo["renderSound"] = renderSound
 
         deltaTime = time.monotonic() - startSequenceRenderTime
-        print(f"      \nSequence video render time: {deltaTime:0.2f} sec.")
+        _logger.info_ext(f"Sequence video render time: {deltaTime:0.2f} sec.", tag="RENDERTIME")
         allRenderTimes["SequenceVideo"] = deltaTime
 
     # playblastInfos = {"startFrameIn3D": startFrameIn3D, "startFrameInEdit": startFrameInEdit}
@@ -814,15 +830,15 @@ def launchRenderWithVSEComposite(
         filesDict["playblastInfos"] = renderInfo
 
     deltaTime = time.monotonic() - startRenderTime
-    print(f"      \nFull Sequence render time: {deltaTime:0.2f} sec.")
+    _logger.info_ext(f"Full Sequence render time: {deltaTime:0.2f} sec.", tag="RENDERTIME")
     allRenderTimes["SequenceAndShots"] = deltaTime
 
-    printAllRenderTimes = True  # config.devDebug
-    if printAllRenderTimes:
-        print("\nRender times:")
+    if displayRenderTimes:
+        _logger.info_ext("Render times:", tag="RENDERTIME")
         for key, value in allRenderTimes.items():
-            print(f"{key:>20}: {value:0.2f} sec.")
-        print("\n")
+            _logger.info_ext(f"{key:>20}: {value:0.2f} sec.", tag="RENDERTIME")
+
+        _logger.info_ext("\n", tag="RENDERTIME")
 
     #######################
     # restore current scene settings
@@ -832,194 +848,6 @@ def launchRenderWithVSEComposite(
     props.setCurrentShot(currentShot, changeTime=False)
 
     return filesDict
-
-
-def renderStampedInfoForFrame(scene, shot):
-    pass
-
-
-def renderStampedInfoForShot(
-    stampInfoSettings,
-    shotManagerProps,
-    takeName,
-    shot,
-    rootPath,
-    newTempRenderPath,
-    handles,
-    render_handles=True,
-    specificFrame=None,
-    stampInfoCustomSettingsDict=None,
-    verbose=False,
-):
-    """Launch the rendering or the frames of the shot, with Stamp Info
-
-    In this function Stamp Info properties values are updated according to the current time
-    and the state of the scene.
-    The display itself of the properties is NOT modified here, it is supposed to be already
-    set thanks to a call to set_StampInfoSettings
-    """
-    _logger.debug("\n - * - *renderStampedInfoForShot *** ")
-    props = shotManagerProps
-    scene = props.parentScene
-    verbose = verbose or config.devDebug
-
-    if stampInfoCustomSettingsDict is not None:
-        print(f"*** customFileFullPath: {stampInfoCustomSettingsDict['customFileFullPath']}")
-        if "customFileFullPath" in stampInfoCustomSettingsDict:
-            stampInfoSettings.customFileFullPath = stampInfoCustomSettingsDict["customFileFullPath"]
-
-    #####################
-    # enable or disable stamp info properties
-    #####################
-    if props.use_project_settings:
-        # wkip get stamp info configuration specifed for the project
-
-        stampInfoSettings.notesUsed = shot.hasNotes()
-        stampInfoSettings.cornerNoteUsed = not shot.enabled
-
-    else:
-        # use stamp info settings from scene
-        pass
-
-    #####################
-    # set properties independently to them being enabled or not
-    #####################
-
-    if hasattr(stampInfoSettings, "sequenceName"):
-        stampInfoSettings.sequenceName = props.sequence_name
-
-    if props.use_project_settings:
-        # wkip get stamp info configuration specifed for the project
-
-        stampInfoSettings.takeName = takeName
-
-        stampInfoSettings.notesLine01 = shot.note01
-        stampInfoSettings.notesLine02 = shot.note02
-        stampInfoSettings.notesLine03 = shot.note03
-
-    else:
-        # set stamp info property values according to the scene
-        stampInfoSettings.takeName = takeName
-
-        stampInfoSettings.notesLine01 = shot.note01
-        stampInfoSettings.notesLine02 = shot.note02
-        stampInfoSettings.notesLine03 = shot.note03
-
-    if not shot.enabled:
-        stampInfoSettings.cornerNote = " *** Shot Muted in the take ***"
-    else:
-        stampInfoSettings.cornerNote = ""
-
-    if not render_handles:
-        handles = 0
-
-    stampInfoSettings.shotHandles = handles
-
-    # wkipwkipwkip faux!!!!!!!!!
-    stampInfoSettings.edit3DTotalNumber = props.getEditDuration()
-
-    ##############
-    # save scene state
-    ##############
-
-    previousCam = scene.camera
-    previousFrameStart = scene.frame_start
-    previousFrameEnd = scene.frame_end
-
-    previousResX = scene.render.resolution_x
-    previousResY = scene.render.resolution_y
-
-    ##############
-    # change scene state
-    ##############
-
-    scene.camera = shot.camera
-    scene.frame_start = shot.start - handles
-    scene.frame_end = shot.end + handles
-
-    # scene.render.resolution_x = 1280
-    # scene.render.resolution_y = 960
-
-    numFramesInShot = scene.frame_end - scene.frame_start + 1
-
-    if props.use_project_settings:
-        scene.render.resolution_x = props.project_resolution_framed_x
-        scene.render.resolution_y = props.project_resolution_framed_y
-
-    render_frame_start = scene.frame_start
-    if specificFrame is not None:
-        render_frame_start = specificFrame
-    elif not render_handles:
-        render_frame_start = shot.start
-
-    render_frame_end = scene.frame_end
-    if specificFrame is not None:
-        render_frame_end = specificFrame
-    elif not render_handles:
-        render_frame_end = shot.end
-
-    for f, currentFrame in enumerate(range(render_frame_start, render_frame_end + 1)):
-
-        # TODO
-        renderStampedInfoForFrame(scene, currentFrame)
-
-        # scene.frame_current = currentFrame
-        scene.frame_set(currentFrame)
-
-        # scene.render.filepath = shot.getOutputMediaPath(
-        #     rootPath=rootPath, insertTempFolder=True, specificFrame=scene.frame_current
-        # )
-        scene.render.filepath = shot.getOutputMediaPath(
-            "SH_INTERM_STAMPINFO_SEQ", rootPath=rootPath, specificFrame=scene.frame_current
-        )
-        #    shotFilename = shot.getName_PathCompliant()
-
-        stampInfoSettings.renderRootPath = newTempRenderPath
-
-        stampInfoSettings.shotName = f"{props.getRenderShotPrefix()}{shot.name}"
-        # stampInfoSettings.shotName = f"{shot.name}"
-
-        if stampInfoCustomSettingsDict is not None:
-            if True or "asset_tracking_step" in stampInfoCustomSettingsDict:
-                stampInfoSettings.bottomNoteUsed = True
-                stampInfoSettings.bottomNote = "Step: " + stampInfoCustomSettingsDict["asset_tracking_step"]
-            else:
-                stampInfoSettings.bottomNoteUsed = False
-                stampInfoSettings.bottomNote = ""
-
-        stampInfoSettings.cameraName = shot.camera.name
-        stampInfoSettings.edit3DFrame = props.getEditTime(shot, currentFrame, referenceLevel="GLOBAL_EDIT")
-
-        tmpShotFilename = shot.getOutputMediaPath(
-            "SH_INTERM_STAMPINFO_SEQ", providePath=False, specificFrame=currentFrame
-        )
-        if verbose:
-            print("      ------------------------------------------")
-            print(
-                f"      \nStamp Info Frame: {currentFrame}    ( {f + 1} / {numFramesInShot} )    -     Shot: {shot.name}"
-                f"      \nscene.render.filepath: {scene.render.filepath}"
-                f"      \ntmpShotFilename: {tmpShotFilename}"
-                f"      \nstampInfoSettings.renderRootPath: {stampInfoSettings.renderRootPath}"
-            )
-
-        stampInfoSettings.renderTmpImageWithStampedInfo(
-            scene,
-            currentFrame,
-            renderPath=newTempRenderPath,
-            renderFilename=tmpShotFilename,
-            verbose=False,
-        )
-
-    ##############
-    # restore scene state
-    ##############
-
-    scene.camera = previousCam
-    scene.frame_start = previousFrameStart
-    scene.frame_end = previousFrameEnd
-
-    scene.render.resolution_x = previousResX
-    scene.render.resolution_y = previousResY
 
 
 def launchRender(context, renderMode, rootPath, area=None):
@@ -1189,10 +1017,14 @@ def launchRender(context, renderMode, rootPath, area=None):
         if not fileIsReadOnly:
             bpy.ops.wm.save_mainfile()
 
-        takesToRender = [-1]
+        takesToRender = None
         if preset.renderAllTakes:
             print("Render All takes")
             takesToRender = [i for i in range(0, len(props.takes))]
+        elif len(props.takes):
+            currentTakeInd = props.getCurrentTakeIndex()
+            if -1 != currentTakeInd:
+                takesToRender = [currentTakeInd]
 
         for takeInd in takesToRender:
             renderedFilesDict = launchRenderWithVSEComposite(
