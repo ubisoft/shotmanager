@@ -152,7 +152,7 @@ def draw_greasepencil_shot_properties(layout, context, shot):
         gpDistRow.use_property_split = True
         gpDistRow.alignment = "RIGHT"
         # gpDistRow.label(text="Distance:")
-        gpDistRow.prop(gpProperties, "gpDistance", text="Distance:", slider=True)
+        gpDistRow.prop(gpProperties, "distanceFromOrigin", text="Distance:", slider=True)
 
         # Debug settings
         ################
@@ -178,8 +178,11 @@ def draw_greasepencil_shot_properties(layout, context, shot):
             row.operator("uas_shot_manager.add_canvas_to_grease_pencil", text="+").gpName = gp_child.name
         else:
             # row.prop(canvasLayer, "opacity", text="")
-            row.prop(gpProperties, "gpCanvasOpacity", slider=True, text="Opacity")
+            row.prop(gpProperties, "canvasOpacity", slider=True, text="Opacity")
             row.prop(canvasLayer, "hide", text="")
+            row = col.row()
+            row.separator(factor=2)
+            row.prop(gpProperties, "canvasSize", slider=True)
 
         row = col.row()
         row.separator(factor=0.5)
@@ -271,7 +274,8 @@ def draw_greasepencil_play_tools(layout, context, shot, layersListDropdown=None)
         # sub.scale_x = 0.8
         sub.ui_units_x = 6
         sub.popover(
-            panel="TOPBAR_PT_gpencil_layers", text=text,
+            panel="TOPBAR_PT_gpencil_layers",
+            text=text,
         )
         if gpl and gpl.info is not None:
             sub.alert = gpl.lock

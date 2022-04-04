@@ -1,3 +1,22 @@
+
+# 2.0.5 (2022-04-05)
+
+## Storyboard:
+
+- Improve workflow
+- Add extension values of the Storyboard Frame canvas
+- Add add-on preferences to set default values for modules
+
+   ### Tools
+   - Add Duplicate GP key
+   - Add Onion Skin option
+
+
+# 2.0.3 (2022-03-20)
+
+   Basics of the new Storyboard mode
+
+
 # 1.7.15 (2022-03-30)
 
 ## Project:

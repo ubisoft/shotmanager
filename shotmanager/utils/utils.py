@@ -939,7 +939,7 @@ def create_new_camera(camera_name, location=[0, 0, 0], locate_on_cursor=False):
 
     # align along the Y axis, as in Front view
     # cam_ob.rotation_euler = (radians(90), 0.0, radians(90))
-    cam_ob.rotation_euler = (radians(90), 0.0, 0.0)
+    cam.rotation_euler = (radians(90), 0.0, 0.0)
 
     # import math
     # import mathutils

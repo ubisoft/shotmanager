@@ -68,7 +68,17 @@ Grease Pencil for boarding:
         - pdf export
         - step render mode
         - representative image per shot
-        
+
+    - Add extension values of the Storyboard Frame canvas
+    - Add add-on preferences to set default values for modules
+
+    ### Tools
+    - Add Duplicate GP key
+    - Add Onion Skin option
+
+    - Offset with shot start
+    - Rescale with shot range
+
 
 Camera sel:
     - ajouter Shift pour ajout a la sel

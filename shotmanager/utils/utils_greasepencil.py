@@ -86,8 +86,7 @@ def create_new_greasepencil(gp_name, parentCamera=None, location=None, locate_on
 
 
 def get_greasepencil_child(obj, name_filter=""):
-    """Return the first child of the specifed object that is of type GPENCIL
-    """
+    """Return the first child of the specifed object that is of type GPENCIL"""
     gpChild = None
 
     if obj is not None:
@@ -265,8 +264,10 @@ def add_grease_pencil_canvas_layer(
     )
 
     zDistance = 0.0  # -5
-    ptTopLeft = (-1, -1, zDistance)
-    ptBottomRight = (1, 1, zDistance)
+    # ptTopLeft = (-1, -1, zDistance)
+    # ptBottomRight = (1, 1, zDistance)
+    ptTopLeft = (-0.5, -0.5, zDistance)
+    ptBottomRight = (0.5, 0.5, zDistance)
     gpStroke = draw_canvas_rect(gpencil_layer.frames[0], ptTopLeft, ptBottomRight)
     gpStroke.material_index = mat_index
 
@@ -287,8 +288,15 @@ def fitGreasePencilToFrustum(camera, distance=None):
     # fitLayersToFrustum(gpencil, applied_scale_factor)
 
     # method with gpencil scaling ###
+
+    # removed to allow frame panning
+    # gpencil.location[0] = gpencil.location[1] = 0.0
+    prevX = gpencil.location[0]
+    prevY = gpencil.location[1]
     gpencil.location[0] = gpencil.location[1] = 0.0
+
     gpencil.location[2] = -1.0 * distance
+
     gpencil.rotation_euler = [0, 0, 0]
     gpencil.rotation_quaternion = [0, 0, 0, 0]
     distRef = getDistRef(camera)
@@ -298,6 +306,9 @@ def fitGreasePencilToFrustum(camera, distance=None):
     gpencil.scale = vec
 
     # gpencil.scale =
+
+    gpencil.location[0] = prevX * gpWidth
+    gpencil.location[1] = prevY * gpWidth
 
 
 def getDistRef(camera):
@@ -446,7 +457,7 @@ def switchToDrawMode(gpencil: bpy.types.GreasePencil):
 
 
 def getLayerPreviousFrame(gpencil: bpy.types.GreasePencil, currentFrame, layerMode):
-    """ Return the previous key of the specified layer
+    """Return the previous key of the specified layer
     Args:
         layerMode: Can be "NOLAYER", "ACTIVE", "ALL" or the name of the layer
         Usually comes from props.greasePencil_layersMode
@@ -480,7 +491,7 @@ def getLayerPreviousFrame(gpencil: bpy.types.GreasePencil, currentFrame, layerMo
 
 
 def getLayerNextFrame(gpencil: bpy.types.GreasePencil, currentFrame, layerMode):
-    """ Return the next key of the specified layer
+    """Return the next key of the specified layer
     Args:
         layerMode: Can be "NOLAYER", "ACTIVE", "ALL" or the name of the layer
         Usually comes from props.greasePencil_layersMode
@@ -514,7 +525,7 @@ def getLayerNextFrame(gpencil: bpy.types.GreasePencil, currentFrame, layerMode):
 
 
 def isCurrentFrameOnLayerFrame(gpencil: bpy.types.GreasePencil, currentFrame, layerMode):
-    """ Return True if the specifed layer has a key at the specified frame
+    """Return True if the specifed layer has a key at the specified frame
     Args:
         layerMode: Can be "NOLAYER", "ACTIVE", "ALL" or the name of the layer
         Usually comes from props.greasePencil_layersMode
@@ -545,7 +556,7 @@ def isCurrentFrameOnLayerFrame(gpencil: bpy.types.GreasePencil, currentFrame, la
 
 
 def addFrameToLayer(gpencil: bpy.types.GreasePencil, currentFrame, layerMode):
-    """ Add a new key to the specified layer at the specified frame
+    """Add a new key to the specified layer at the specified frame
     Args:
         layerMode: Can be "NOLAYER", "ACTIVE", "ALL" or the name of the layer
         Usually comes from props.greasePencil_layersMode
@@ -580,7 +591,7 @@ def addFrameToLayer(gpencil: bpy.types.GreasePencil, currentFrame, layerMode):
 
 
 def getLayerFrameIndexAtFrame(gpencil: bpy.types.GreasePencil, currentFrame, layerMode):
-    """ Return the index of the layer frame at the specified time frame.
+    """Return the index of the layer frame at the specified time frame.
     If no layer frame matches the time frame then -1 is returned
     Args:
         layerMode: Can be "NOLAYER", "ACTIVE", "ALL" or the name of the layer

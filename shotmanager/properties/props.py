@@ -597,6 +597,10 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
                 res = (self.parentScene.render.resolution_x, self.parentScene.render.resolution_y)
         return res
 
+    def getRenderAspectRatio(self):
+        res = self.getRenderResolution()
+        return res[0] / res[1]
+
     def setResolutionToScene(self):
         """
         Check the current resolution and change it if necessary to match either the project
