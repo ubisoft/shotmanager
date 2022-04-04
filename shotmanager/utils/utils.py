@@ -24,6 +24,8 @@ import re
 from pathlib import Path
 from urllib.parse import unquote_plus, urlparse
 
+from random import uniform
+
 import bpy
 
 
@@ -252,7 +254,9 @@ def openMedia(media_filepath, inExternalPlayer=False):
 
         # bpy.ops.render.view_show()
         bpy.ops.image.open(
-            filepath=media_filepath, relative_path=False, show_multiview=False,
+            filepath=media_filepath,
+            relative_path=False,
+            show_multiview=False,
         )
 
         # bpy.data.images.[image_name].reload()
@@ -285,6 +289,47 @@ def getFrameInAnimRange(scene, frame):
         newFrame = max(newFrame, scene.frame_start)
         newFrame = min(newFrame, scene.frame_end)
     return newFrame
+
+
+def convertFramerateToSceneFPS(framerate):
+    """Set the scene fps and fps_base values
+    The argument "framerate" can be a float and has to be converted because scene.render.fps is an int
+
+    https://blenderartists.org/t/get-set-frames-per-second-in-blender/539880/3
+    fps_base is the amount of time, in seconds, which is filled by fps, such that at values
+    other than 1 for fps_base, fps semantically becomes “frames per base”.
+    I.e. the effective framerate always is, in frames per second:
+        effective fps = scene.render.fps / scene.render.fps_base
+
+    Return a tupple made of fps (int) and fps_base (float >= 1.0)
+
+    Usage:
+        fps, fps_base = utils.convertFramerateToSceneFPS(self.project_fps)
+        parentScn.render.fps = fps
+        parentScn.render.fps_base = fps_base
+    """
+
+    # we assume scene.render.fps_base >= 1.0
+    import math
+
+    # scene.render.fps = int(math.ceil(project_fps))
+    # scene.render.fps_base = scene.render.fps / project_fps
+    fps = int(math.ceil(framerate))
+    fps_base = fps / framerate
+
+    return (fps, fps_base)
+
+
+def setSceneFps(scene, framerate):
+    """Apply the specified framerate to the scene by changing both scene.render.fps and scene.render.fps_base"""
+    fps, fps_base = convertFramerateToSceneFPS(framerate)
+    scene.render.fps = fps
+    scene.render.fps_base = fps_base
+
+
+def getSceneEffectiveFps(scene):
+    """Return the effective scene fps, which is given by scene.render.fps / scene.render.fps_base"""
+    return scene.render.fps / scene.render.fps_base
 
 
 ###################
@@ -384,8 +429,7 @@ def deleteMarkerAtFrame(scene, frame):
 
 
 def getAreasByType(context, area_type):
-    """Return a list of the areas of the specifed type from the specified context
-    """
+    """Return a list of the areas of the specifed type from the specified context"""
     areasList = list()
     for area in context.screen.areas:
         if area.type == area_type:
@@ -444,7 +488,7 @@ def getAreaInfo(context, area, verbose=False):
 def setPropertyPanelContext(context, spaceContext):
     """Set the Property panel to the specified context
 
-    Args:   spaceContext: Can be ('TOOL', 'RENDER', 'OUTPUT', 'VIEW_LAYER', 'SCENE', 'WORLD', 'OBJECT', 'MODIFIER', 
+    Args:   spaceContext: Can be ('TOOL', 'RENDER', 'OUTPUT', 'VIEW_LAYER', 'SCENE', 'WORLD', 'OBJECT', 'MODIFIER',
             'PARTICLES', 'PHYSICS', 'CONSTRAINT', 'DATA', 'MATERIAL', 'TEXTURE')
     """
     for area in context.screen.areas:
@@ -571,6 +615,7 @@ def getSceneVSE(vsm_sceneName, createVseTab=False):
     else:
         vsm_scene = bpy.data.scenes.new(name=vsm_sceneName)
         vsm_scene.render.fps = bpy.context.scene.render.fps
+        vsm_scene.render.fps_base = bpy.context.scene.render.fps_base
 
     if not vsm_scene.sequence_editor:
         vsm_scene.sequence_editor_create()
@@ -600,7 +645,7 @@ def getSceneVSE(vsm_sceneName, createVseTab=False):
 
 def duplicateObject(sourceObject, newName=None):
     """Duplicate (deepcopy) an object and place it in the same collection
-        Can be any 3D object, camera...
+    Can be any 3D object, camera...
     """
     newObject = sourceObject.copy()
     if newObject.animation_data is not None:
@@ -624,19 +669,88 @@ def duplicateObject(sourceObject, newName=None):
 
 
 ###################
+# Grease Pencil
+###################
+
+
+def create_new_greasepencil(gp_name, parent_object=None, location=None, locate_on_cursor=False):
+    new_gp_data = bpy.data.grease_pencils.new(gp_name)
+    new_gp_obj = bpy.data.objects.new(new_gp_data.name, new_gp_data)
+    new_gp_obj.name = new_gp_data.name
+
+    # add to main collection
+    # bpy.context.collection.objects.link(new_gp_obj)
+
+    # add to a collection named "Cameras"
+    gpCollName = "GreasePencil"
+    cpColl = None
+    if gpCollName not in bpy.context.scene.collection.children:
+        cpColl = bpy.data.collections.new(name=gpCollName)
+        bpy.context.scene.collection.children.link(cpColl)
+    else:
+        cpColl = bpy.context.scene.collection.children[gpCollName]
+    cpColl.objects.link(new_gp_obj)
+
+    if parent_object is not None:
+        new_gp_obj.parent = parent_object
+
+    if location is None:
+        new_gp_obj.location = [0, 0, 0]
+    else:
+        new_gp_obj.location = location
+
+    if locate_on_cursor:
+        new_gp_obj.location = bpy.context.scene.cursor.location
+
+    from math import radians
+
+    new_gp_obj.rotation_euler = (radians(90), 0.0, radians(90))
+
+    # import math
+    # import mathutils
+
+    # eul = mathutils.Euler((math.radians(90.0), 0.0, 0.0), "XYZ")
+
+    # if new_gp_obj.rotation_mode == "QUATERNION":
+    #     new_gp_obj.rotation_quaternion = eul.to_quaternion()
+    # elif new_gp_obj.rotation_mode == "AXIS_ANGLE":
+    #     q = eul.to_quaternion()
+    #     new_gp_obj.rotation_axis_angle[0] = q.angle
+    #     new_gp_obj.rotation_axis_angle[1:] = q.axis
+    # else:
+    #     new_gp_obj.rotation_euler = (
+    #         eul if eul.order == new_gp_obj.rotation_mode else (eul.to_quaternion().to_euler(new_gp_obj.rotation_mode))
+    #     )
+
+    return new_gp_obj
+
+
+def get_greasepencil_child(obj, name_filter=""):
+    """Return the first child of the specifed object that is of type GPENCIL"""
+    gpChild = None
+
+    if obj is not None:
+        if len(obj.children):
+            for c in obj.children:
+                if "GPENCIL" == c.type:
+                    return c
+    return gpChild
+
+
+###################
 # Cameras
 ###################
 
 
 def cameras_from_scene(scene):
-    """Return the list of all the cameras in the scene
-    """
+    """Return the list of all the cameras in the scene"""
     camList = [c for c in scene.objects if c.type == "CAMERA"]
     return camList
 
 
 def getCameraCurrentlyInViewport(
-    context, area=None,
+    context,
+    area=None,
 ):
     """Return the camera currently used by the view, None if
     no camera is used or if the 3D view is not found.
@@ -790,14 +904,13 @@ def setCurrentCameraToViewport(context, area=None):
 
 
 def create_new_camera(camera_name, location=[0, 0, 0], locate_on_cursor=False):
-    """A unique name will be automatically given to the new camera
-    """
+    """A unique name will be automatically given to the new camera"""
     cam_data = bpy.data.cameras.new(camera_name)
-    cam_ob = bpy.data.objects.new(cam_data.name, cam_data)
-    cam_ob.name = cam_data.name
+    cam = bpy.data.objects.new(cam_data.name, cam_data)
+    cam.name = cam_data.name
 
     # add to main collection
-    # bpy.context.collection.objects.link(cam_ob)
+    # bpy.context.collection.objects.link(cam)
 
     # add to a collection named "Cameras"
     camCollName = "Cameras"
@@ -807,15 +920,20 @@ def create_new_camera(camera_name, location=[0, 0, 0], locate_on_cursor=False):
         bpy.context.scene.collection.children.link(camColl)
     else:
         camColl = bpy.context.scene.collection.children[camCollName]
-    camColl.objects.link(cam_ob)
+    camColl.objects.link(cam)
+
+    bpy.data.cameras[cam_data.name].lens = 40
 
     # bpy.data.cameras[cam_data.name].lens = 40
     cam_data.lens = 40
     cam_data.clip_start = 0.01
+    cam.color[0] = uniform(0, 1)
+    cam.color[1] = uniform(0, 1)
+    cam.color[2] = uniform(0, 1)
 
-    cam_ob.location = location
+    cam.location = location
     if locate_on_cursor:
-        cam_ob.location = bpy.context.scene.cursor.location
+        cam.location = bpy.context.scene.cursor.location
 
     from math import radians
 
@@ -828,23 +946,11 @@ def create_new_camera(camera_name, location=[0, 0, 0], locate_on_cursor=False):
 
     # eul = mathutils.Euler((math.radians(90.0), 0.0, 0.0), "XYZ")
 
-    # if cam_ob.rotation_mode == "QUATERNION":
-    #     cam_ob.rotation_quaternion = eul.to_quaternion()
-    # elif cam_ob.rotation_mode == "AXIS_ANGLE":
-    #     q = eul.to_quaternion()
-    #     cam_ob.rotation_axis_angle[0] = q.angle
-    #     cam_ob.rotation_axis_angle[1:] = q.axis
-    # else:
-    #     cam_ob.rotation_euler = (
-    #         eul if eul.order == cam_ob.rotation_mode else (eul.to_quaternion().to_euler(cam_ob.rotation_mode))
-    #     )
-
-    return cam_ob
+    return cam
 
 
 def getMovieClipByPath(filepath):
-    """Get the first clip with the specified full file name
-    """
+    """Get the first clip with the specified full file name"""
     # TODO: add Case sensitive
     for clip in bpy.data.movieclips:
         if Path(clip.filepath) == filepath:

@@ -1,3 +1,38 @@
+# 1.7.15 (2022-03-30)
+
+## Project:
+
+- Improve support for sequence names when using the project settings
+   In the Project Settings panel the shot name template has been replaced by 3 identifiers,
+   one for the project or act, one for the sequence and one for the shot.
+
+   In the main panel the name of the sequence, when the project settings are used, is now
+   set thanks to a dedicated dialog box.
+
+## Tools:
+
+- Improve the shot tool named Create Specified Number of Shots
+
+## OTIO:
+
+- Improve support for custom sequence names
+- Clean code for otio and xml exporters
+
+## Fixed:
+
+- FPS variable issue when rendering and when exporting and importing edit file
+- Issue in rendered sequence video name: the name of the take was not added
+- Issue in OTIO export: the exported take was not the current one
+
+## Doc:
+
+- New page for naming of entities
+
+## Dev:
+
+- Improved output messages with logger
+
+
 # 1.7.10 (2022-03-03)
 
 ## Fixed:

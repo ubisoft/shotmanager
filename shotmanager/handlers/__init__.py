@@ -85,8 +85,8 @@ def register():
     bpy.app.handlers.redo_pre.append(sm_handlers.shotMngHandler_redo_pre)
     bpy.app.handlers.redo_post.append(sm_handlers.shotMngHandler_redo_post)
 
-    if config.devDebug:
-        utils_handlers.displayHandlers(handlerCategName="load_post")
+    # if config.devDebug:
+    #     utils_handlers.displayHandlers(handlerCategName="load_post")
 
     # handler to write the data version at save
     ##################
@@ -157,4 +157,3 @@ def unregister():
 
 
 #  sm_overlay_tools_handlers.unregister()
-

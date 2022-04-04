@@ -1,15 +1,16 @@
 
-Dialog windows width:   300
-                        350
-                        360
-                        500
-                        400
-                        450
-                        420
-                        480
+Dialog windows width:
+    250     invoke_popup
+    360
+    350
+    300
+    500
+    400
+    420
+    450     project settings, seq settings
+    480
 
 
-invoke_popup width:     250
 
 
 To do V1.7.2 +:
@@ -19,6 +20,9 @@ To do V1.7.2 +:
     - voir ce qui se passe qd stamp info n'est pas la ds render panel
     - remove set et get pour l'expand des panels de shot properties
     - remove shot_notes_expanded
+
+    - faire un playblast qui marche pour un time range quelconque
+    - cleaner preset_useStampInfo dans launchRenderWithVSEComposite
 
     - faire un playblast qui marche pour un time range quelconque
     - cleaner preset_useStampInfo dans launchRenderWithVSEComposite
@@ -96,3 +100,7 @@ picture
 
 
 
+To do dans le support des noms de seq:
+    - bug dans le path donné sur les shots
+        - faire un test alert qd le nom de la seq est vide
+    - otio import

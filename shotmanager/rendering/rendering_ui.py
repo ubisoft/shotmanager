@@ -169,7 +169,8 @@ def drawRenderInfos(context, layout):
             subTitleRow.label(text="- Using Project Settings -")
         fps = props.project_fps
     else:
-        fps = scene.render.fps
+        # fps = scene.render.fps
+        fps = utils.getSceneEffectiveFps(scene)
 
     row = col.row()
     row.separator(factor=sepFactor)
@@ -180,7 +181,8 @@ def drawRenderInfos(context, layout):
     # else:
     #     infosStr = f"Image Res: {scene.render.resolution_x} x {scene.render.resolution_y}, "
     #     infosStr += f"Final Res: {props.project_resolution_framed_x} x {props.project_resolution_framed_y}, "
-    #     infosStr = f"{scene.render.fps} fps"
+    #     # infosStr = f"{scene.render.fps} fps"
+    #     infosStr = f"{utils.getSceneEffectiveFps(scene)} fps"
 
     imgRes = props.getRenderResolution()
     finalRes = props.getRenderResolutionForFinalOutput(resPercentage=100)

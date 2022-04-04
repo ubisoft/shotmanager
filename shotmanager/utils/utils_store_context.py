@@ -16,10 +16,10 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 """
-To do: module description here.
+Utils - store context
 """
 
-import bpy
+# import bpy
 
 
 def storeUserRenderSettings(context, userRenderSettings):
@@ -105,7 +105,7 @@ def restoreUserRenderSettings(context, userRenderSettings):
 
     scene.render.resolution_x = userRenderSettings["resolution_x"]
     scene.render.resolution_y = userRenderSettings["resolution_y"]
-    scene.render.resolution_percentage = userRenderSettings["resolution_percentage"]
+    scene.render.resolution_percentage = int(userRenderSettings["resolution_percentage"])
     scene.render.engine = userRenderSettings["render_engine"]
 
     scene.frame_start = userRenderSettings["frame_start"]

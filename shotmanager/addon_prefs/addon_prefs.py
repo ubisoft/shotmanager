@@ -47,8 +47,8 @@ def list_greasepencil_layers(self, context):
 
 class UAS_ShotManager_AddonPrefs(AddonPreferences):
     """
-        Use this to get these prefs:
-        prefs = context.preferences.addons["shotmanager"].preferences
+    Use this to get these prefs:
+    prefs = context.preferences.addons["shotmanager"].preferences
     """
 
     # this must match the add-on name, use '__package__'
@@ -56,7 +56,8 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
     bl_idname = "shotmanager"
 
     install_failed: BoolProperty(
-        name="Install failed", default=False,
+        name="Install failed",
+        default=False,
     )
 
     ########################################################################
@@ -102,7 +103,8 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
     # ------------------------------
 
     general_warning_expanded: BoolProperty(
-        name="Expand Warnings", default=False,
+        name="Expand Warnings",
+        default=False,
     )
 
     def _get_take_properties_expanded(self):
@@ -126,38 +128,49 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
     )
 
     take_renderSettings_expanded: BoolProperty(
-        name="Expand Take Render Settings", description="*** This take has its own render settings ***", default=False,
+        name="Expand Take Render Settings",
+        description="*** This take has its own render settings ***",
+        default=False,
     )
     take_notes_expanded: BoolProperty(
-        name="Expand Take Notes", default=False,
+        name="Expand Take Notes",
+        default=False,
     )
 
     shot_properties_expanded: BoolProperty(
-        name="Expand Shot Properties", default=True,
+        name="Expand Shot Properties",
+        default=True,
     )
     shot_notes_expanded: BoolProperty(
-        name="Expand Shot Notes", default=False,
+        name="Expand Shot Notes",
+        default=False,
     )
     shot_cameraBG_expanded: BoolProperty(
-        name="Expand Shot Camera BG", default=False,
+        name="Expand Shot Camera BG",
+        default=False,
     )
     shot_greasepencil_expanded: BoolProperty(
-        name="Expand Shot Grease Pencil", default=False,
+        name="Expand Shot Grease Pencil",
+        default=False,
     )
 
     # prefs panels
     ######################
     addonPrefs_settings_expanded: BoolProperty(
-        name="Expand Settings Preferences", default=False,
+        name="Expand Settings Preferences",
+        default=False,
     )
     addonPrefs_ui_expanded: BoolProperty(
-        name="Expand UI Preferences", default=False,
+        name="Expand UI Preferences",
+        default=False,
     )
     addonPrefs_tools_expanded: BoolProperty(
-        name="Expand Tools Preferences", default=False,
+        name="Expand Tools Preferences",
+        default=False,
     )
     addonPrefs_debug_expanded: BoolProperty(
-        name="Expand Debug Preferences", default=False,
+        name="Expand Debug Preferences",
+        default=False,
     )
 
     current_shot_changes_current_time_to_start: BoolProperty(
@@ -360,7 +373,8 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
     )
 
     seqTimeline_settings_expanded: BoolProperty(
-        name="Expand Panel Settings", default=False,
+        name="Expand Panel Settings",
+        default=False,
     )
 
     ###################################
@@ -389,7 +403,8 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
     )
 
     intShStack_settings_expanded: BoolProperty(
-        name="Expand Panel Settings", default=False,
+        name="Expand Panel Settings",
+        default=False,
     )
 
     def _update_display_intShStack_toolbar(self, context):
@@ -411,7 +426,8 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
     # Camera HUD ######################
     ###################################
     cameraHUD_settings_expanded: BoolProperty(
-        name="Expand Panel Settings", default=False,
+        name="Expand Panel Settings",
+        default=False,
     )
 
     ###################################
@@ -450,6 +466,35 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
     # used for example as a placehoder in VSM to have a text field when no strip is selected
     emptyField: StringProperty(name=" ")
     emptyBool: BoolProperty(name=" ", default=False)
+
+    def _get_projectSeqName(self):
+        # print(" get_projectSeqName")
+        # val = self.get("projectSeqName", "-")
+        props = bpy.context.scene.UAS_shot_manager_props
+        val = props.getSequenceName("FULL")
+        return val
+
+    def _set_projectSeqName(self, value):
+        #  print(" set_projectSeqName: value: ", value)
+        props = bpy.context.scene.UAS_shot_manager_props
+        val = props.getSequenceName("FULL")
+        self["projectSeqName"] = val
+
+    def _update_projectSeqName(self, context):
+        # update the main UI when the value is changed
+        for region in context.area.regions:
+            if region.type == "UI":
+                region.tag_redraw()
+        return None
+
+    projectSeqName: StringProperty(
+        name="(read-only)",
+        description="Shot name of the current sequence, as defined by the project settings",
+        get=_get_projectSeqName,
+        set=_set_projectSeqName,
+        update=_update_projectSeqName,
+        default="",
+    )
 
     ##################
     # add new shot ###
@@ -515,11 +560,13 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
     ##################
 
     mnavbar_use_filter: BoolProperty(
-        name="Filter Markers", default=False,
+        name="Filter Markers",
+        default=False,
     )
 
     mnavbar_filter_text: StringProperty(
-        name="Filter Text", default="",
+        name="Filter Text",
+        default="",
     )
 
     ##################################################################################

@@ -123,13 +123,13 @@ class UAS_ShotManager_PredecTools_CreateShotsFromSingleCamera(Operator):
         #       #  currentShotInd = props.getCurrentShotIndex()
         #         selectedShotInd = props.getSelectedShotIndex()
 
-        shots = props.get_shots()
+        # shots = props.get_shots()
         currentShotInd = props.getCurrentShotIndex()
         selectedShotInd = props.getSelectedShotIndex()
 
         i = 0
         for shotNumber in range(self.start, self.end, self.duration):
-            shotName = props.new_shot_prefix + f"{(shotNumber):03d}"
+            shotName = props.getShotPrefix(shotNumber)
             props.addShot(
                 atIndex=selectedShotInd + i + 1,
                 camera=scene.objects[self.cameraName],

@@ -77,13 +77,13 @@ def rrs_animatic_to_vsm(editVideoFile=None, otioFile=None, montageOtio=None, imp
     scene.frame_end = 40000
     if props.use_project_settings:
         # scene.render.image_settings.file_format = props.project_images_output_format
-        scene.render.fps = props.project_fps
+        utils.setSceneFps(scene, props.project_fps)
         scene.render.resolution_x = props.project_resolution_framed_x
         scene.render.resolution_y = props.project_resolution_framed_y
-
-    scene.render.fps = 25
-    scene.render.resolution_x = 1280
-    scene.render.resolution_y = 960
+    else:
+        utils.setSceneFps(scene, 25)
+        scene.render.resolution_x = 1280
+        scene.render.resolution_y = 960
 
     # projectFps = scene.render.fps
     # sequenceFileName = props.getRenderShotPrefix() + takeName
@@ -195,8 +195,7 @@ def getSoundFilesForEachShot(montageOtio, seqName, otioFile):
 
 
 def rrs_sequence_to_vsm(scene, sequenceName):
-    """Import specified sequence video to the VSM
-    """
+    """Import specified sequence video to the VSM"""
     vse_render = bpy.context.window_manager.UAS_vse_render
     props = scene.UAS_shot_manager_props
     vsm_props = scene.UAS_vsm_props
@@ -260,7 +259,9 @@ def rrs_sequence_to_vsm(scene, sequenceName):
             )
             vsm_props.updateTracksList(scene)
             sequence_AudioTrack = vsm_props.setTrackInfo(
-                channelInd_audio, trackType="AUDIO", name=sequence_AudioTrack_name,
+                channelInd_audio,
+                trackType="AUDIO",
+                name=sequence_AudioTrack_name,
             )
 
         # create video clip
@@ -284,7 +285,12 @@ def rrs_sequence_to_vsm(scene, sequenceName):
             res_x = 1280
             res_y = 960
             vse_render.cropClipToCanvas(
-                res_x, res_y, sequenceClip, 1280, 960, mode="FIT_WIDTH",
+                res_x,
+                res_y,
+                sequenceClip,
+                1280,
+                960,
+                mode="FIT_WIDTH",
             )
 
             scene.sequence_editor.active_strip = sequenceClip
@@ -292,7 +298,9 @@ def rrs_sequence_to_vsm(scene, sequenceName):
         # vsm_props.addTrack(atIndex=3, trackType="STANDARD", name="Sequence", color=(0.5, 0.4, 0.6, 1))
         vsm_props.updateTracksList(scene)
         sequence_VideoTrack = vsm_props.setTrackInfo(
-            channelInd_video, trackType="VIDEO", name=sequence_VideoTrack_name,
+            channelInd_video,
+            trackType="VIDEO",
+            name=sequence_VideoTrack_name,
         )
         vsm_props.setSelectedTrackByIndex(channelInd_video)
 
@@ -403,7 +411,10 @@ def rrs_playblast_to_vsm(playblastInfo=None, editVideoFile=None, otioFile=None, 
             )
             vsm_props.updateTracksList(scene)
             playblast_AudioTrack = vsm_props.setTrackInfo(
-                channelInd_audio, trackType="AUDIO", name=playblast_AudioTrack_name, color=(0.6, 0.4, 0.4, 1),
+                channelInd_audio,
+                trackType="AUDIO",
+                name=playblast_AudioTrack_name,
+                color=(0.6, 0.4, 0.4, 1),
             )
 
         # create video clip
@@ -441,7 +452,10 @@ def rrs_playblast_to_vsm(playblastInfo=None, editVideoFile=None, otioFile=None, 
         # vsm_props.addTrack(atIndex=3, trackType="STANDARD", name="Playblast", color=(0.5, 0.4, 0.6, 1))
         vsm_props.updateTracksList(scene)
         playblast_VideoTrack = vsm_props.setTrackInfo(
-            channelInd_video, trackType="VIDEO", name=playblast_VideoTrack_name, color=(0.6, 0.3, 0.3, 1),
+            channelInd_video,
+            trackType="VIDEO",
+            name=playblast_VideoTrack_name,
+            color=(0.6, 0.3, 0.3, 1),
         )
         vsm_props.setSelectedTrackByIndex(channelInd_video)
 
@@ -493,7 +507,6 @@ def rrs_playblast_to_vsm(playblastInfo=None, editVideoFile=None, otioFile=None, 
 
     vsm_props.jumpToScene = bpy.data.scenes[playblastInfo["scene"]]
 
-    # scene.render.resolution_percentage = 75.0
+    # scene.render.resolution_percentage = 75
 
     return
-

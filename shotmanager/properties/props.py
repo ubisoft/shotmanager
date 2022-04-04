@@ -119,11 +119,15 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         self["isInitialized"] = value
 
     isInitialized: BoolProperty(
-        get=get_isInitialized, set=set_isInitialized, default=False, options=set(),
+        get=get_isInitialized,
+        set=set_isInitialized,
+        default=False,
+        options=set(),
     )
 
     parentScene: PointerProperty(
-        type=Scene, options=set(),
+        type=Scene,
+        options=set(),
     )
 
     def findParentScene(self):
@@ -158,7 +162,8 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         return self.parentScene
 
     retimer: PointerProperty(
-        type=UAS_Retimer_Properties, options=set(),
+        type=UAS_Retimer_Properties,
+        options=set(),
     )
 
     def getWarnings(self, scene):
@@ -187,7 +192,8 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         # check if the current framerate is valid according to the project settings (wkip)
         ###########
         if self.use_project_settings:
-            if scene.render.fps != self.project_fps:
+            # if scene.render.fps != self.project_fps:
+            if utils.getSceneEffectiveFps(scene) != self.project_fps:
                 warningList.append(("Current scene fps and project fps are different !!", 20))
 
         # check if a negative render frame may be rendered
@@ -309,16 +315,24 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
     #############
 
     rrs_useRenderRoot: BoolProperty(
-        name="Use Render Root", default=True, options=set(),
+        name="Use Render Root",
+        default=True,
+        options=set(),
     )
     rrs_rerenderExistingShotVideos: BoolProperty(
-        name="Force Re-render", default=True, options=set(),
+        name="Force Re-render",
+        default=True,
+        options=set(),
     )
     rrs_fileListOnly: BoolProperty(
-        name="File List Only", default=True, options=set(),
+        name="File List Only",
+        default=True,
+        options=set(),
     )
     rrs_renderAlsoDisabled: BoolProperty(
-        name="Render Also Disabled Shots", default=False, options=set(),
+        name="Render Also Disabled Shots",
+        default=False,
+        options=set(),
     )
 
     # project settings
@@ -332,14 +346,16 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
     ############
     # naming
     ############
-    project_shot_format: StringProperty(
-        name="Shot Format", default=r"Act{:02}_Seq{:04}_Sh{:04}", options=set(),
-    )
+
     project_name: StringProperty(
-        name="Project Name", default="My Project", options=set(),
+        name="Project Name",
+        default="My Project",
+        options=set(),
     )
     project_default_take_name: StringProperty(
-        name="Default Take Name", default="Main Take", options=set(),
+        name="Default Take Name",
+        default="Main Take",
+        options=set(),
     )
 
     project_use_shot_handles: BoolProperty(
@@ -356,6 +372,38 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         default=10,
         options=set(),
     )
+
+    ############
+    # sequence and shot name template
+    ############
+
+    project_naming_project_format: StringProperty(
+        name="Project Naming Format",
+        description="Name of the project (eg: MyProject)"
+        "\nor the identifier for the act and the number of digits of its index (eg: Act##)",
+        default="Act##",
+    )
+
+    project_naming_sequence_format: StringProperty(
+        name="Sequence Naming Format",
+        description="Identifier for the sequence and the number of digits of its index" "\neg: Seq####",
+        default="Seq####",
+    )
+
+    project_naming_shot_format: StringProperty(
+        name="Shot Naming Format",
+        description="Identifier for the shot and the number of digits of its index" "\neg: Sh####",
+        default="Sh####",
+    )
+
+    project_naming_separator_char: StringProperty(
+        name="Naming Separator",
+        description="Character used to separate the identifiers in the shot full name eg: _",
+        default="_",
+    )
+
+    project_naming_project_index: IntProperty(description="Set to -1 if not defined", min=-1, default=1)
+    project_naming_sequence_index: IntProperty(description="Set to -1 if not defined", min=-1, step=10, default=1)
 
     ############
     # stamp info
@@ -377,19 +425,35 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
     # resolution
     ############
     project_fps: FloatProperty(
-        name="Project Fps", min=0.5, max=200.0, default=25.0, options=set(),
+        name="Project Fps",
+        min=0.5,
+        max=200.0,
+        default=25.0,
+        options=set(),
     )
     project_resolution_x: IntProperty(
-        name="Res. X", min=0, default=1280, options=set(),
+        name="Res. X",
+        min=0,
+        default=1280,
+        options=set(),
     )
     project_resolution_y: IntProperty(
-        name="Res. Y", min=0, default=720, options=set(),
+        name="Res. Y",
+        min=0,
+        default=720,
+        options=set(),
     )
     project_resolution_framed_x: IntProperty(
-        name="Res. Framed X", min=0, default=1280, options=set(),
+        name="Res. Framed X",
+        min=0,
+        default=1280,
+        options=set(),
     )
     project_resolution_framed_y: IntProperty(
-        name="Res. Framed Y", min=0, default=960, options=set(),
+        name="Res. Framed Y",
+        min=0,
+        default=960,
+        options=set(),
     )
 
     ############
@@ -397,18 +461,33 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
     ############
 
     project_color_space: StringProperty(
-        name="Color Space", default="", options=set(),
+        name="Color Space",
+        default="",
+        options=set(),
     )
     project_asset_name: StringProperty(
-        name="Asset Name", default="", options=set(),
+        name="Asset Name",
+        default="",
+        options=set(),
     )
 
     project_output_format: StringProperty(
-        name="Video Output Format", default="mp4", options=set(),
+        name="Video Output Format",
+        default="mp4",
+        options=set(),
     )
 
     project_sounds_output_format: StringProperty(
-        name="Sound Output Format", default="", options=set(),
+        name="Sound Output Format",
+        default="",
+        options=set(),
+    )
+
+    project_renderSingleFrameShotAsImage: BoolProperty(
+        name="Project Render Single Frame Shot as Image",
+        description="Render single frame shot as an image, not as a video",
+        default=True,
+        options=set(),
     )
 
     project_renderSingleFrameShotAsImage: BoolProperty(
@@ -439,7 +518,9 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
 
     # built-in project settings
     project_images_output_format: StringProperty(
-        name="Image Output Format", default="PNG", options=set(),
+        name="Image Output Format",
+        default="PNG",
+        options=set(),
     )
 
     # built-in settings
@@ -457,8 +538,11 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         options=set(),
     )
 
-    new_shot_prefix: StringProperty(
-        default="Sh", options=set(),
+    naming_shot_format: StringProperty(
+        name="Shot Naming Format",
+        description="Identifier for the shot and the number of digits of its index used for the creation of new shots"
+        "\neg: Sh####",
+        default="Sh####",
     )
 
     renderSingleFrameShotAsImage: BoolProperty(
@@ -507,6 +591,9 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
             if self.use_project_settings:
                 res = (self.project_resolution_x, self.project_resolution_y)
             else:
+                # wkip temp fix
+                if self.parentScene is None:
+                    self.getParentScene()
                 res = (self.parentScene.render.resolution_x, self.parentScene.render.resolution_y)
         return res
 
@@ -981,7 +1068,9 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         return res
 
     greasePencil_layersMode: EnumProperty(
-        name="Apply to:", items=(list_greasepencil_layer_modes), default=1,
+        name="Apply to:",
+        items=(list_greasepencil_layer_modes),
+        default=1,
     )
 
     def list_greasepencil_materials(self, context):
@@ -1277,7 +1366,10 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         self.setSelectedShotByIndex(0)
 
     current_take_name: EnumProperty(
-        name="Takes", description="Select a take", items=_list_takes, update=_update_current_take_name,
+        name="Takes",
+        description="Select a take",
+        items=_list_takes,
+        update=_update_current_take_name,
     )
 
     takes: CollectionProperty(type=UAS_ShotManager_Take)
@@ -1385,7 +1477,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         return currentTakeName
 
     def getTakeName_PathCompliant(self, takeIndex=-1):
-        """Return the name of the current take with spaces replaced by a non-space separator """
+        """Return the name of the current take with spaces replaced by a non-space separator"""
         takeInd = (
             self.getCurrentTakeIndex()
             if -1 == takeIndex
@@ -1828,18 +1920,28 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
             if -1 == takeIndex
             else (takeIndex if 0 <= takeIndex and takeIndex < len(self.getTakes()) else -1)
         )
-        uniqueName = nameToMakeUnique
         if -1 == takeInd:
             return uniqueName
 
         shotList = self.getShotsList(ignoreDisabled=False, takeIndex=takeIndex)
+        uniqueName = nameToMakeUnique
+        ind = 1
+        restartLoop = True
+        while restartLoop:
+            restartLoop = False
+            for s in shotList:
+                if uniqueName.lower() == s.name.lower():
+                    uniqueName = f"{nameToMakeUnique}.{ind:03}"
+                    ind += 1
+                    restartLoop = True
+                    break
 
-        dup_name = False
-        for shot in shotList:
-            if uniqueName == shot.name:
-                dup_name = True
-        if dup_name:
-            uniqueName = f"{uniqueName}_1"
+        # dup_name = False
+        # for shot in shotList:
+        #     if uniqueName == shot.name:
+        #         dup_name = True
+        # if dup_name:
+        #     uniqueName = f"{uniqueName}_1"
 
         return uniqueName
 
@@ -2643,7 +2745,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
 
         return (numSharedCams, len(sharedCams))
 
-    def hisThereSharedCameraInTake(self, ignoreDisabled=False, takeIndex=-1, inAllTakes=True):
+    def isThereSharedCamerasInTake(self, ignoreDisabled=False, takeIndex=-1, inAllTakes=True):
         """Return True if there is at least 1 camera shared in the specified take, False otherwise"""
         takeInd = (
             self.getCurrentTakeIndex()
@@ -2817,7 +2919,13 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
 
                 clipName = "myBGSound"
                 newSoundClip = vse_render.createNewClip(
-                    scene, str(sound_path), targetTrackInd, 0, importVideo=False, importAudio=True, clipName=clipName,
+                    scene,
+                    str(sound_path),
+                    targetTrackInd,
+                    0,
+                    importVideo=False,
+                    importAudio=True,
+                    clipName=clipName,
                 )
 
                 shot.bgSoundClipName = newSoundClip.name
@@ -3227,18 +3335,41 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         return formatedFrame
 
     def getRenderShotPrefix(self):
+        """Deprecated - Use getSequenceName instead"""
+        _logger.debug_ext("getRenderShotPrefix is Deprecated", tag="DEPRECATED")
         shotPrefix = ""
 
         if self.use_project_settings:
             # wkipwkipwkip to improve with project_shot_format!!!
             # scene name is used but it may be weak. Replace by take name??
             # shotPrefix = self.getParentScene().name
+
             shotPrefix = self.parentScene.name
+            shotPrefix = self.getSequenceName("FULL", addSeparator=True)
+
+            # cf getProjectOutputMediaName
+            # shotPrefix = self._replaceHashByNumber(self.project_naming_project_format, projInd)
+            # shotPrefix += self.project_naming_separator_char
+            # shotPrefix += self._replaceHashByNumber(self.project_naming_sequence_format, seqInd)
+            # shotPrefix += self.project_naming_separator_char
+            # shotPrefix += self._replaceHashByNumber(self.project_naming_shot_format, shotInd)
         else:
             shotPrefix = self.render_sequence_prefix
+            shotPrefix += self.sequence_name + "_"
 
-        shotPrefix += self.sequence_name + "_"
         return shotPrefix
+
+    def removeSequenceName(self, prefixedName):
+        """Remove the name of the sequence, if found, that is at the beginning of the provided name
+        *** Warning: The returned value depends on the Project Settings context! ***
+        """
+        seqName = self.getSequenceName("FULL", addSeparator=True)
+        ind = prefixedName.find(seqName)
+        if 0 == ind:
+            name = prefixedName[len(seqName) :]
+        else:
+            name = prefixedName
+        return name
 
     def getOutputFileFormat(self, isVideo=True):
         #   _logger.debug(f"  /// isVideo: {isVideo}")
@@ -3267,6 +3398,111 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
             else:
                 outputFileFormat = "png"
         return outputFileFormat
+
+    def _replaceHashByNumber(self, name, index):
+        newStr = name
+        if index is not None:
+            numHashes = len([n for n in name if n == "#"])
+            if 0 < numHashes:
+                newStr = name.replace("#", "") + "{:0" + str(numHashes) + "}"
+                if index != -2:
+                    # print(f"Format: {newStr}: {newStr.format(2)}")
+                    newStr = newStr.format(int(abs(index)))
+
+        return newStr
+
+    def getProjectOutputMediaName(self, projInd=-1, seqInd=-1, shotInd=-1):
+        """Used with project settings activated. Return a formated name for the sequence or shot name.
+        Args:
+            projInd, seqInd, shotInd:   provide -1 (default) to hide these values from the resulting name,
+                                        provide an integer to get a numbered format,
+                                        provide None to get a ### format,
+                                        provide -2 to get a {:00} format based on the number of hashes,
+        """
+        mediaName = ""
+
+        projNumHashes = len([n for n in self.project_naming_project_format if n == "#"])
+
+        if "" != self.project_naming_project_format or 0 < projNumHashes:
+            if -1 != projInd:
+                mediaName += self._replaceHashByNumber(self.project_naming_project_format, projInd)
+                mediaName += self.project_naming_separator_char
+        if -1 != seqInd:
+            mediaName += self._replaceHashByNumber(self.project_naming_sequence_format, seqInd)
+            if -1 != shotInd:
+                mediaName += self.project_naming_separator_char
+        if -1 != shotInd:
+            mediaName += self._replaceHashByNumber(self.project_naming_shot_format, shotInd)
+        return mediaName
+
+    def getShotPrefix(self, index=None):
+        return self._replaceHashByNumber(self.project_naming_shot_format, index)
+
+    def getSequenceName(self, mode="FULL", addSeparator=False):
+        """Return the sequence name formated as specified.
+        *** Warning: The returned value depends on the Project Settings context! ***
+        if project settings are used then the sequence name is defined there, otherwise it is given
+        by props.sequence_name and props.render_sequence_prefix
+
+        Args:
+            mode: "FULL", "SHORT", "FORMATED"
+            addSeparator: If True, add the separator suffix to the end of the returned sequence name
+        """
+
+        # if "" != props.project_naming_project_format or 0 < numHashes:
+        #     seqName = props.getProjectOutputMediaName(
+        #         projInd=self.naming_project_index, seqInd=self.naming_sequence_index
+        #     )
+        # else:
+        #     seqName = props.getProjectOutputMediaName(seqInd=self.naming_sequence_index)
+
+        # return self._replaceHashByNumber(self.project_naming_sequence_format, index)
+
+        if self.use_project_settings:
+            if "FORMATED" == mode:
+                name = "Formated proj settings seq name to do"
+            elif "SHORT" == mode:
+                name = self.getProjectOutputMediaName(projInd=-1, seqInd=self.project_naming_sequence_index, shotInd=-1)
+            # FULL
+            else:
+                name = self.getProjectOutputMediaName(
+                    projInd=self.project_naming_project_index, seqInd=self.project_naming_sequence_index, shotInd=-1
+                )
+
+            if addSeparator:
+                name += self.project_naming_separator_char
+
+        else:
+            if "FORMATED" == mode:
+                name = "Formated seq name to do"
+            elif "SHORT" == mode:
+                name = self.sequence_name
+            # FULL
+            else:
+                name = self.render_sequence_prefix
+                name += self.sequence_name
+
+            if addSeparator:
+                name += "_"
+
+        return name
+
+    # def getSequencePrefix(self, index=None):
+    #     return self._replaceHashByNumber(self.project_naming_sequence_format, index)
+
+    def getProjectName(self):
+        """Return the name of the project if Project Settings are used, an empty string otherwise
+        since there is no project notion in free mode
+        *** Warning: The returned value depends on the Project Settings context! ***
+        """
+        return self.project_name if self.use_project_settings else ""
+
+    def getProjectPrefix(self, index=None):
+        """Return the project identifier if Project Settings are used, an empty string otherwise
+        since there is no project notion in free mode
+        *** Warning: The returned value depends on the Project Settings context! ***
+        """
+        return self._replaceHashByNumber(self.project_naming_project_format, index) if self.use_project_settings else ""
 
     def getOutputMediaPath(
         self,
@@ -3365,9 +3601,12 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
             if "SH_" == outputMedia[0:3]:
                 if "SH_INTERM_STAMPINFO_SEQ" == outputMedia:
                     fileName += "_tmp_StampInfo_"
-
-                # entity is a shot
-                fileName += entity.getName_PathCompliant(withPrefix=insertSeqPrefix)
+                    # entity is a shot
+                    fileName += entity.getName_PathCompliant(withPrefix=insertSeqPrefix)
+                elif "SH_VIDEO" == outputMedia:
+                    fileName += entity.getName_PathCompliant(withPrefix=True)
+                else:
+                    fileName += entity.getName_PathCompliant(withPrefix=insertSeqPrefix)
 
                 # wkip hack degueu
                 if "SH_IMAGE_SEQ" == outputMedia and not genericFrame and specificFrame is None:
@@ -3496,7 +3735,6 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         project_fps=-1,
         project_resolution=None,
         project_resolution_framed=None,
-        project_shot_format=None,
         project_use_shot_handles=None,
         project_shot_handle_duration=-1,
         project_output_format=None,
@@ -3522,8 +3760,6 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         if project_resolution_framed is not None:
             self.project_resolution_framed_x = project_resolution_framed[0]
             self.project_resolution_framed_y = project_resolution_framed[1]
-        if project_shot_format is not None:
-            self.project_shot_format = project_shot_format
 
         if project_use_shot_handles is not None:
             self.project_use_shot_handles = project_use_shot_handles
@@ -3544,7 +3780,14 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         settingsList = []
 
         settingsList.append(["Project Name", '"' + self.project_name + '"'])
-        settingsList.append(["Project Framerate", str(self.project_fps) + " fps"])
+
+        # framerate
+        ################
+        fps, fps_base = utils.convertFramerateToSceneFPS(self.project_fps)
+        settingsList.append(["Project Framerate", f"fps: {fps}, fps_base: {fps_base}"])
+
+        settingsList.append(["Shot Full Name", f"{self.getProjectOutputMediaName(projInd=-2, seqInd=-2, shotInd=-2)}"])
+
         settingsList.append(["Resolution", str(self.project_resolution_x) + " x " + str(self.project_resolution_y)])
         settingsList.append(
             [
@@ -3552,35 +3795,27 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
                 str(self.project_resolution_framed_x) + " x " + str(self.project_resolution_framed_y),
             ]
         )
-        settingsList.append(["Shot Name Format", str(self.project_shot_format)])
         settingsList.append(["Use Shot Handles", str(self.project_use_shot_handles)])
         settingsList.append(["Shot Handle Duration", str(self.project_shot_handle_duration)])
         settingsList.append(["Project Output Format", str(self.project_output_format)])
         settingsList.append(["Project Color Space", str(self.project_color_space)])
         settingsList.append(["Project Asset Name", str(self.project_asset_name)])
-        settingsList.append(["new_shot_prefix", str(self.new_shot_prefix)])
 
-        #################
         # applying project settings to parent scene
+        ################
 
         if not settingsListOnly:
             if self.use_project_settings:
                 parentScn = self.getParentScene()
-                parentScn.render.fps = self.project_fps
-                parentScn.render.fps_base = 1.0
+                utils.setSceneFps(parentScn, self.project_fps)
 
                 # parentScn.render.resolution_x = self.project_resolution_x
                 # parentScn.render.resolution_y = self.project_resolution_y
-                parentScn.render.resolution_percentage = 100.0
+                parentScn.render.resolution_percentage = 100
 
                 # wkip both should not be there
                 # self.use_handles = self.project_use_shot_handles
                 # self.handles = self.project_shot_handle_duration
-
-                s = self.project_shot_format.split("_")[2]
-                s = s.format(0)
-                s = s.replace("0", "")
-                self.new_shot_prefix = s
 
                 # path
                 self.setProjectRenderFilePath()
@@ -3696,10 +3931,17 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         self.getCurrentTake().printInfo()
 
     def get_name(self):
-        return self.parentScene.name + "_" + self.takes[self.getCurrentTakeIndex()].get_name()
+        """Return the name of the montage, which is also the name of the sequence
+        *** Warning: The returned value depends on the Project Settings context! ***
+        """
+        return self.getSequenceName("FULL")
+        # return self.parentScene.name + "_" + self.takes[self.getCurrentTakeIndex()].get_name()
 
     def get_fps(self):
-        return self.parentScene.render.fps
+        """Return the fps of the montage
+        *** Warning: The returned value depends on the Project Settings context! ***
+        """
+        return self.project_fps if self.use_project_settings else utils.getSceneEffectiveFps(self.parentScene)
 
     def get_frame_start(self):
         return self.parentScene.UAS_shot_manager_props.editStartFrame

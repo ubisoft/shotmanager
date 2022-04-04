@@ -61,6 +61,8 @@ if (2, 93, 0) <= bpy.app.version:
         except ModuleNotFoundError:
             _logger.error("*** Error - OpenTimelineIO import failed - Installing provided version")
 
+            raise
+
             # # we use the provided wheel
             # pyExeFile = sys.executable
             # localPyDir = str(Path(pyExeFile).parent) + "\\lib\\site-packages\\"

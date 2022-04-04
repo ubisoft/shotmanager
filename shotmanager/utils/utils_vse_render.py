@@ -539,7 +539,14 @@ class ShotManager_Vse_Render(PropertyGroup):
         elif "CAMERA" == mediaType:
             newClipName = clipName if "" != clipName else "myCamera"
             newClip = _new_camera_sequence(
-                scene, newClipName, channelInd, atFrame, offsetStart, offsetEnd, cameraScene, cameraObject,
+                scene,
+                newClipName,
+                channelInd,
+                atFrame,
+                offsetStart,
+                offsetEnd,
+                cameraScene,
+                cameraObject,
             )
             newClip.blend_type = "ALPHA_OVER"
 
@@ -761,7 +768,7 @@ class ShotManager_Vse_Render(PropertyGroup):
         #         if area.type == "SEQUENCE_EDITOR":
         #             area.spaces.items()[0][1].show_seconds = True
 
-        sequenceScene.render.fps = fps  # projectFps
+        utils.setSceneFps(sequenceScene, fps)  # projectFps
 
         if mediaDictArr is not None:
             sequenceScene.render.resolution_x = mediaDictArr[0]["output_resolution"][0]
@@ -830,7 +837,12 @@ class ShotManager_Vse_Render(PropertyGroup):
                         clip_x = inputOverResolution[0]
                         clip_y = inputOverResolution[1]
                         self.cropClipToCanvas(
-                            res_x, res_y, overClip, clip_x, clip_y, mode="FIT_WIDTH",
+                            res_x,
+                            res_y,
+                            overClip,
+                            clip_x,
+                            clip_y,
+                            mode="FIT_WIDTH",
                         )
                         # overClip.use_crop = True
                         # overClip.crop.min_x = -1 * int((mediaDictArr[0]["bg_resolution"][0] - inputOverResolution[0]) / 2)
@@ -847,7 +859,11 @@ class ShotManager_Vse_Render(PropertyGroup):
                         audioClip = self.createNewClip(
                             sequenceScene, mediaDict["sound"], 1, atFrame, final_duration=shotDuration
                         )
-                        audioClip = self.createNewClipFromRange(sequenceScene, mediaDict["sound"], 1,)
+                        audioClip = self.createNewClipFromRange(
+                            sequenceScene,
+                            mediaDict["sound"],
+                            1,
+                        )
                     else:
                         print(f" *** Rendered shot not found: {mediaDict['sound']}")
 
@@ -977,7 +993,8 @@ class ShotManager_Vse_Render(PropertyGroup):
             self.inputAudioMediaPath = audio_file
 
         self.compositeVideoInVSE(
-            scene.render.fps if fps is None else fps,
+            # scene.render.fps if fps is None else fps,
+            utils.getSceneEffectiveFps(scene) if fps is None else fps,
             scene.frame_start if frame_start is None else frame_start,
             scene.frame_end if frame_end is None else frame_end,
             output_file,
@@ -1095,6 +1112,9 @@ class ShotManager_Vse_Render(PropertyGroup):
                 self.outputMediaPath = (
                     filePathOnly + fileNoExt + "\\" + output_file_prefix + fileNoExt + frameIndStr + ext
                 )
+                vse_scene.render.filepath = self.outputMediaPath
+
+                vse_scene.render.filepath = self.outputMediaPath
 
                 vse_scene.render.filepath = self.outputMediaPath
 
@@ -1155,7 +1175,9 @@ class ShotManager_Vse_Render(PropertyGroup):
         vse_scene = utils.getSceneVSE("Tmp_VSE_RenderScene" + postfixSceneName, createVseTab=True)
         self.clearAllChannels(vse_scene)
 
-        vse_scene.render.fps = fps
+        # vse_scene.render.fps = fps
+        utils.setSceneFps(vse_scene, fps)
+
         # Make "My New Scene" the active one
         #    bpy.context.window.scene = vse_scene
 
