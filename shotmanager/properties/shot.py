@@ -584,7 +584,8 @@ class UAS_ShotManager_Shot(ShotInterface, PropertyGroup):
         return props.getShotIndex(self)
 
     def get_name(self):
-        return self.parentScene.UAS_shot_manager_props.getRenderShotPrefix() + self.name
+        # return self.parentScene.UAS_shot_manager_props.getRenderShotPrefix() + self.name
+        return self.getName_PathCompliant(withPrefix=True)
 
     def printInfo(self, only_clip_info=False):
         super().printInfo(only_clip_info=True)

@@ -493,8 +493,8 @@ def createShotsFromOtioTimelineClass(
                     # print("Import Otio media_path 2: ", media_path)
                     if not media_path.exists():
                         # Lets find it inside next to the xml
-                        media_path = Path(otioFile).parent.joinpath(media_path.name)
-                        print("** not found, so Path(self.otioFile).parent: ", Path(otioFile).parent)
+                        media_path = Path(montageOtio.otioFile).parent.joinpath(media_path.name)
+                        print("** not found, so Path(self.otioFile).parent: ", Path(montageOtio.otioFile).parent)
                         print("   and new media_path: ", media_path)
 
                     # start frame of the background video is not set here since it will be linked to the shot start frame
@@ -718,7 +718,7 @@ def conformToRefMontage(
     createCameras=True,
     useMediaAsCameraBG=False,
     useMediaSoundtrackForCameraBG=False,
-    videoShotsFolder=None,
+    videoShotsFolder="",
     mediaHaveHandles=False,
     mediaHandlesDuration=0,
     takeIndex=-1,
@@ -746,6 +746,12 @@ def conformToRefMontage(
 
     take = props.getTakeByIndex(takeInd)
     shotList = props.get_shots(takeIndex=takeInd)
+
+    if "." == videoShotsFolder:
+        videoShotsFolder = str(Path(ref_montage.otioFile).parent)
+
+    # if "" == videoShotsFolder or videoShotsFolder is None:
+    # then we use the media path
 
     if not mediaInEDLHaveHandles:
         mediaInEDLHandlesDuration = 0
@@ -865,7 +871,8 @@ def conformToRefMontage(
         for sh in shotList:
             # if sh.get_name() == shotRef.get_name():
             # shotName = props.getRenderShotPrefix() + "_" + sh.get_name()
-            shotName = props.getSequenceName("FULL", addSeparator=True) + sh.get_name()
+            shotName = sh.get_name()
+
             # print(f"shotName: {shotName}, shotRefName: {shotRefName}")
             if shotName == shotRefName:
                 shotSelf = sh
@@ -909,10 +916,7 @@ def conformToRefMontage(
                         shotSelf.camera.color = [0, 0, 1, 1]
 
                     noteStr = "New shot added from "
-                    if "RRSpecial_ACT01_AQ_201103_TECH" == ref_montage.get_name():
-                        noteStr += "Act01_Edit_Previz.xml (Oct. 4th, 2020)"
-                    else:
-                        noteStr += ref_montage.get_name()
+                    noteStr += ref_montage.get_name()
                     shotSelf.note01 = noteStr
 
                     shotSelf = props.moveShotToIndex(shotSelf, expectedIndInSelfEdit)
@@ -998,7 +1002,11 @@ def conformToRefMontage(
                 shotSelf.removeBGImages()
 
                 if useMediaAsCameraBG:
-                    media_path = Path(videoShotsFolder + "/" + shotRef.get_name())
+                    if videoShotsFolder is None or "" == videoShotsFolder:
+                        media_path = Path(shotRef.get_media_filename())
+                    else:
+                        media_path = Path(videoShotsFolder + "/" + shotRef.get_name())
+
                     if "" == media_path.suffix:
                         media_path = Path(str(media_path) + ".mp4")
 
@@ -1214,7 +1222,11 @@ def conformToRefMontage(
                 textRef = shotRef.get_name()
                 shotRefName = Path(shotRef.get_name()).stem
 
-                media_path = Path(videoShotsFolder + "/" + shotRef.get_name())
+                if videoShotsFolder is None or "" == videoShotsFolder:
+                    media_path = Path(shotRef.get_media_filename())
+                else:
+                    media_path = Path(videoShotsFolder + "/" + shotRef.get_name())
+
                 if "" == media_path.suffix:
                     media_path = Path(str(media_path) + ".mp4")
 

@@ -310,7 +310,7 @@ class UAS_ShotManager_OT_Create_Shots_From_OTIO_Adv(Operator):
         description="Clear existing camera backgrounds to avoid conflics",
         default=True,
     )
-    videoShotsFolder: StringProperty()
+    videoShotsFolder: StringProperty(name="Folder for shot videos", default="")
 
     ############
     # common UI

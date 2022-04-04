@@ -38,8 +38,7 @@ _logger = sm_logging.getLogger(__name__)
 
 
 class MontageOtio(MontageInterface):
-    """ 
-    """
+    """ """
 
     def __init__(self):
         super().__init__()
@@ -63,8 +62,8 @@ class MontageOtio(MontageInterface):
 
     def get_montage_characteristics(self):
         """
-            Return a dictionary with the characterisitics of the montage.
-            This is required to export it as xml edit file.
+        Return a dictionary with the characterisitics of the montage.
+        This is required to export it as xml edit file.
         """
         # print(f"-++ self.timeline: {self.timeline}")
         self._characteristics["framerate"] = self.get_fps()
@@ -73,8 +72,7 @@ class MontageOtio(MontageInterface):
         return self._characteristics
 
     def set_montage_characteristics(self, resolution_x=-1, resolution_y=-1, framerate=-1, duration=-1):
-        """
-        """
+        """ """
         self._characteristics = dict()
         # self._characteristics["framerate"] = framerate  # timebase
         self._characteristics["resolution_x"] = resolution_x  # width
@@ -111,7 +109,8 @@ class MontageOtio(MontageInterface):
 
         media_name_splited = fileName.split("_")
         if 2 <= len(media_name_splited):
-            seqName = media_name_splited[1]
+            # seqName = media_name_splited[1]
+            seqName = f"{media_name_splited[0]}_{media_name_splited[1]}"
 
         return seqName
 
@@ -366,8 +365,7 @@ class MontageOtio(MontageInterface):
 
 
 class SequenceOtio(SequenceInterface):
-    """ Custom sequence to contain the clips related to the shots
-    """
+    """Custom sequence to contain the clips related to the shots"""
 
     def __init__(self, parent):
         super().__init__(parent)
@@ -375,7 +373,7 @@ class SequenceOtio(SequenceInterface):
 
     def newShot(self, shot):
         """
-            shot is an otio clip
+        shot is an otio clip
         """
         if self.shotsList is None:
             self.shotsList = list()
@@ -385,8 +383,7 @@ class SequenceOtio(SequenceInterface):
 
 
 class ShotOtio(ShotInterface):
-    """ 
-    """
+    """ """
 
     def __init__(self, parent, shot):
         super().__init__()
@@ -421,8 +418,8 @@ class ShotOtio(ShotInterface):
 
     def get_name_old(self):
         """
-            The clip name retuned for a Stak clip is the name of the nested edit, not the name of the clip.
-            We then have to dig into the XML to get the right clip name
+        The clip name retuned for a Stak clip is the name of the nested edit, not the name of the clip.
+        We then have to dig into the XML to get the right clip name
         """
 
         clipName = self.clip.name
@@ -487,6 +484,10 @@ class ShotOtio(ShotInterface):
         # return clipName + "_" + clipId
         return clipName
 
+    def get_media_filename(self):
+        """Return the path of the shot media"""
+        return ow.get_clip_media_path(self.clip)
+
     def printInfo(self, only_clip_info=False):
         infoStr = ""
         super().printInfo(only_clip_info=only_clip_info)
@@ -523,8 +524,7 @@ class ShotOtio(ShotInterface):
         return ow.get_clip_frame_start(self.clip, self.parent.parent.get_fps())
 
     def get_frame_end(self):
-        """get_frame_end is exclusive in order to follow the Blender implementation of get_frame_end for its clips
-        """
+        """get_frame_end is exclusive in order to follow the Blender implementation of get_frame_end for its clips"""
         # get_clip_frame_end is exclusive
         return ow.get_clip_frame_end(self.clip, self.parent.parent.get_fps())
 

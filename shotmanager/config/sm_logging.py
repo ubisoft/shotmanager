@@ -26,7 +26,8 @@ import os
 from pathlib import Path
 
 import logging
-from logging import DEBUG, INFO, ERROR
+
+# from logging import DEBUG, INFO, ERROR
 
 from ..utils.utils_python import asciiColor
 from ..config import config
@@ -274,8 +275,9 @@ _logger = logging.getLogger(__name__)
 def initialize():
 
     if config.devDebug:
-        print("Initializing Logger...")
-        print(f"len(_logger.handlers): {len(_logger.handlers)}")
+        #  print("Initializing Logger...")
+        #  print(f"len(_logger.handlers): {len(_logger.handlers)}")
+        pass
 
     _logger.propagate = False
 

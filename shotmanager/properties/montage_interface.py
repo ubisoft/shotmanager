@@ -347,6 +347,10 @@ class ShotInterface(object):
     def get_name(self):
         return ""
 
+    def get_media_filename(self):
+        """Return the path of the shot media"""
+        return ""
+
     def get_index_in_parent(self):
         # if "parent" in self:
         if self in self.parent.shotsList:
