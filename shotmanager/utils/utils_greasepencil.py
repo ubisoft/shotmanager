@@ -303,9 +303,8 @@ def fitGreasePencilToFrustum(camera, distance=None):
     gpWidth = distance / distRef
 
     vec = mathutils.Vector((gpWidth, gpWidth, gpWidth))
-    gpencil.scale = vec
-
-    # gpencil.scale =
+    # gpencil.scale = vec
+    gpencil.delta_scale = vec
 
     gpencil.location[0] = prevX * gpWidth
     gpencil.location[1] = prevY * gpWidth
@@ -440,6 +439,10 @@ def draw_canvas_rect(gp_frame, top_left: tuple, bottom_right: tuple) -> bpy.type
 
 
 def switchToDrawMode(gpencil: bpy.types.GreasePencil):
+    """Set the specified grease pencil object in Draw mode
+    It the current object is not the specified one then the current selection is modified
+    to switch to the current object.
+    """
     # if another object is edited it is switched to OBJECT mode
     if bpy.context.active_object is not None and bpy.context.active_object.mode != "OBJECT":
         bpy.ops.object.mode_set(mode="OBJECT")
@@ -447,13 +450,17 @@ def switchToDrawMode(gpencil: bpy.types.GreasePencil):
     # clear selection
     bpy.ops.object.select_all(action="DESELECT")
 
-    bpy.context.view_layer.objects.active = gpencil
-    gpencil.select_set(True)
-    gpencil.hide_select = False
-    gpencil.hide_viewport = False
-
     if "GPENCIL" == gpencil.type:
+
+        gpencil.select_set(True)
+        bpy.context.view_layer.objects.active = gpencil
+        gpencil.select_set(True)
+        gpencil.hide_select = False
+        gpencil.hide_viewport = False
+        
         bpy.ops.gpencil.paintmode_toggle()
+        bpy.context.scene.tool_settings.gpencil_stroke_placement_view3d = "ORIGIN"
+        bpy.context.scene.tool_settings.gpencil_sculpt.lock_axis = "VIEW"
 
 
 def getLayerPreviousFrame(gpencil: bpy.types.GreasePencil, currentFrame, layerMode):

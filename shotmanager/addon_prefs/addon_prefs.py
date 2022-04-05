@@ -154,8 +154,15 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
         default=False,
     )
 
+    # storyboard panel
+    ####################
+    stb_anim_props_expanded: BoolProperty(
+        name="Expand Animation Properties",
+        default=False,
+    )
+
     # prefs panels
-    ######################
+    ####################
     addonPrefs_settings_expanded: BoolProperty(
         name="Expand Settings Preferences",
         default=False,

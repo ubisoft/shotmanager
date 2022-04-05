@@ -156,14 +156,34 @@ def draw_greasepencil_shot_properties(layout, context, shot):
 
         # Debug settings
         ################
-        if config.devDebug:
-            debugRow = col.row()
-            debugRow.separator(factor=hSepFactor)
+        # if config.devDebug:
+
+        # animation
+        ################
+        # panelIcon = "TRIA_DOWN" if prefs.stb_anim_props_expanded else "TRIA_RIGHT"
+        animRow = col.row()
+        utils_ui.collapsable_panel(
+            animRow, prefs, "stb_anim_props_expanded", alert=False, text="Animate Frame Transform"
+        )
+        # animRow.label(text="Animate Frame Transform")
+        if prefs.stb_anim_props_expanded:
+            transformRow = col.row()
+            transformRow.separator(factor=hSepFactor)
             # or prefs.shot_greasepencil_expanded:
-            debugRow = col.row()
-            debugRow.prop(gp_child, "location")
-            debugRow = col.row()
-            debugRow.prop(gp_child, "scale")
+            transformRow = col.row()
+            # transformRow.label(text="Location:")
+            transformRow.use_property_split = True
+            transformRow.use_property_decorate = True
+            transformRow.prop(gp_child, "location")
+
+            transformRow = col.row()
+            transformRow.use_property_split = True
+            transformRow.use_property_decorate = True
+            transformRow.prop(gp_child, "scale")
+
+            transformRow = col.row()
+            transformRow.operator("object.paths_update", text="Update Paths", icon="OBJECT_DATA")
+            transformRow.operator("object.paths_clear", text="", icon="X")
 
         row = col.row()
         row.separator(factor=hSepFactor)

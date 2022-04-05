@@ -3,6 +3,19 @@
 
 ## Storyboard:
 
+Done:
+- Add Canvas Size
+   - To fix: display of some channels only
+
+- Fixed remove Storyboard frame from shot
+
+- Change stroke context (with Lock drawing to View) so that we ensure we can draw
+on the canvas when entering in the drawing mode 
+
+Q:
+ Change scale to delta scale?
+
+To do:
 - Improve workflow
 - Add extension values of the Storyboard Frame canvas
 - Add add-on preferences to set default values for modules

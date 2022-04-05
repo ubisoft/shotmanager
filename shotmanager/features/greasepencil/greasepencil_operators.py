@@ -283,26 +283,30 @@ class UAS_ShotManager_OT_DrawOnGreasePencil(Operator):
             print("Grease Pencil cannot be applied on hidden objects - Cancelling...")
             return {"CANCELLED"}
         else:
-            if context.active_object.mode == "PAINT_GPENCIL":
-                bpy.ops.gpencil.paintmode_toggle()
-                return {"FINISHED"}
+            # if context.active_object.mode == "PAINT_GPENCIL":
+            #     if gp_child != context.active_object:
+            #         # we change the current object
+            #     bpy.ops.gpencil.paintmode_toggle()
+            #     return {"FINISHED"}
 
-            if context.active_object is not None and context.active_object.mode != "OBJECT":
-                bpy.ops.object.mode_set(mode="OBJECT")
-            bpy.ops.object.select_all(action="DESELECT")
-            bpy.context.view_layer.objects.active = gp_child
-            gp_child.select_set(True)
-            gp_child.hide_select = False
-            gp_child.hide_viewport = False
-            gp_child.hide_render = False
+            # if context.active_object is not None and context.active_object.mode != "OBJECT":
+            #     bpy.ops.object.mode_set(mode="OBJECT")
+            # bpy.ops.object.select_all(action="DESELECT")
+            # bpy.context.view_layer.objects.active = gp_child
 
             shot.updateGreasePencils()
-            # updateGreasePencilToFrustum()
-
             # set ink layer, else topmost layer
             setInkLayerReadyToDraw(gp_child)
 
-            bpy.ops.gpencil.paintmode_toggle()
+            utils_greasepencil.switchToDrawMode(gp_child)
+            # gp_child.select_set(True)
+            # gp_child.hide_select = False
+            # gp_child.hide_viewport = False
+            # gp_child.hide_render = False
+            # bpy.ops.gpencil.paintmode_toggle()
+
+            # context.scene.tool_settings.gpencil_stroke_placement_view3d = "ORIGIN"
+            # context.scene.tool_settings.gpencil_sculpt.lock_axis = "VIEW"
 
         return {"FINISHED"}
 
@@ -462,14 +466,14 @@ class UAS_ShotManager_GreasePencilItem(Operator):
         scene = context.scene
         props.setSelectedShotByIndex(self.index)
         shot = props.getShotByIndex(self.index)
-        gpChild = shot.getGreasePencilObject()
+        gp_child = shot.getGreasePencilObject()
 
         try:
             bpy.ops.object.select_all(action="DESELECT")
         except Exception:
             pass
 
-        if gpChild is None and event.alt and not event.ctrl and not event.shift:
+        if gp_child is None and event.alt and not event.ctrl and not event.shift:
 
             if shot.camera is None or shot.camera.name not in scene.objects or scene.objects[shot.camera.name] is None:
                 print("Camera is invalid for grease pencil parenting - Cancelling...")
@@ -478,18 +482,29 @@ class UAS_ShotManager_GreasePencilItem(Operator):
             utils_greasepencil.create_new_greasepencil(
                 shot.camera.name + "_GP", parentCamera=shot.camera, location=[0, 0, 0]
             )
-            gpChild = shot.getGreasePencilObject()
+            gp_child = shot.getGreasePencilObject()
 
-        if gpChild is not None:
+        if gp_child is not None:
+            props.setCurrentShotByIndex(self.index)
+
             if not event.shift or event.alt:
                 if context.active_object is not None and context.active_object.mode != "OBJECT":
                     bpy.ops.object.mode_set(mode="OBJECT")
             bpy.ops.object.select_all(action="DESELECT")
-            gpChild.select_set(True)
-            context.view_layer.objects.active = gpChild
-            if event.alt:
-                props.setCurrentShotByIndex(self.index)
-                utils_greasepencil.switchToDrawMode(gpChild)
+            gp_child.select_set(True)
+            context.view_layer.objects.active = gp_child
+
+            # add to selection
+            if event.shift and not event.ctrl and not event.alt:
+                gp_child.select_set(True)
+                context.view_layer.objects.active = gp_child
+
+            # draw mode
+            if event.alt and not event.ctrl and not event.shift:
+                shot.updateGreasePencils()
+                # set ink layer, else topmost layer
+                setInkLayerReadyToDraw(gp_child)
+                utils_greasepencil.switchToDrawMode(gp_child)
 
         utils.setPropertyPanelContext(bpy.context, "DATA")
 
