@@ -587,6 +587,9 @@ def getViewportAreaView(context, viewport_index=0):
     return None
 
 
+########################
+
+
 def findFirstUniqueName(originalItem, name, itemsArray):
     """Return a string that correspont to name.xxx as the first unique name in the array"""
     itemInd = 0

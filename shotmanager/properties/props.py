@@ -850,6 +850,20 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
             valid_target = utils.getAreaFromIndex(context, valid_target_ind, "VIEW_3D")
         return valid_target
 
+    def getValidTargetViewportSpaceData(self, context):
+        """Return a valid (= existing in the context) target viewport space data (= 3D view in 3D view area)
+        Return None if no valid viewport exists in the screen
+        """
+        viewportArea = self.getValidTargetViewport(context)
+        spaceData = None
+        if viewportArea is not None:
+            for space_data in viewportArea.spaces:
+                if space_data.type == "VIEW_3D":
+                    spaceData = space_data
+                    break
+        return spaceData
+
+
     def list_target_viewports(self, context):
         # res = config.gSeqEnumList
         res = None

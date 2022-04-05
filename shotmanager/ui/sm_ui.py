@@ -33,7 +33,7 @@ from . import sm_takes_ui
 from . import sm_shot_settings_ui
 from .warnings_ui import drawWarnings
 
-from shotmanager.features.greasepencil import greasepencil_ui as gp
+# from shotmanager.features.greasepencil import greasepencil_ui as gp
 
 from shotmanager.config import sm_logging
 
@@ -314,8 +314,8 @@ class UAS_PT_ShotManager(Panel):
         # grease pencil
         ################
 
-        if props.display_greasepencil_in_properties:  # and props.expand_greasepencil_properties:
-            gp.draw_greasepencil_play_tools(layout, context, shot, layersListDropdown=prefs.layersListDropdown)
+        # if props.display_greasepencil_in_properties:  # and props.expand_greasepencil_properties:
+        #     gp.draw_greasepencil_play_tools(layout, context, shot, layersListDropdown=prefs.layersListDropdown)
 
         # sequence name
         ################

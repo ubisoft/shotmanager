@@ -294,7 +294,7 @@ class UAS_ShotManager_OT_DrawOnGreasePencil(Operator):
             # bpy.ops.object.select_all(action="DESELECT")
             # bpy.context.view_layer.objects.active = gp_child
 
-            shot.updateGreasePencils()
+            # shot.updateGreasePencils()
             # set ink layer, else topmost layer
             setInkLayerReadyToDraw(gp_child)
 
@@ -485,8 +485,6 @@ class UAS_ShotManager_GreasePencilItem(Operator):
             gp_child = shot.getGreasePencilObject()
 
         if gp_child is not None:
-            props.setCurrentShotByIndex(self.index)
-
             if not event.shift or event.alt:
                 if context.active_object is not None and context.active_object.mode != "OBJECT":
                     bpy.ops.object.mode_set(mode="OBJECT")
@@ -501,6 +499,7 @@ class UAS_ShotManager_GreasePencilItem(Operator):
 
             # draw mode
             if event.alt and not event.ctrl and not event.shift:
+                props.setCurrentShotByIndex(self.index)
                 shot.updateGreasePencils()
                 # set ink layer, else topmost layer
                 setInkLayerReadyToDraw(gp_child)
@@ -591,6 +590,36 @@ class UAS_ShotManager_GreasePencil_AddNewFrame(Operator):
         return {"FINISHED"}
 
 
+class UAS_ShotManager_GreasePencil_ToggleOnionSkin(Operator):
+    bl_idname = "uas_shot_manager.greasepencil_toggleonionskin"
+    bl_label = "Onion Skin"
+    bl_description = "Toggle Grease Pencil viewport overlay onion skin"
+    bl_options = {"INTERNAL"}
+
+    # https://blender.stackexchange.com/questions/162459/access-viewport-overlay-options-using-python-api
+    def invoke(self, context, event):
+        props = context.scene.UAS_shot_manager_props
+        spaceDataViewport = props.getValidTargetViewportSpaceData(context)
+        if spaceDataViewport is not None:
+            spaceDataViewport.overlay.use_gpencil_onion_skin = not spaceDataViewport.overlay.use_gpencil_onion_skin
+        return {"FINISHED"}
+
+
+class UAS_ShotManager_GreasePencil_ToggleCanvas(Operator):
+    bl_idname = "uas_shot_manager.greasepencil_togglecanvas"
+    bl_label = "Canvas"
+    bl_description = "Toggle Grease Pencil viewport overlay canvas"
+    bl_options = {"INTERNAL"}
+
+    # https://blender.stackexchange.com/questions/162459/access-viewport-overlay-options-using-python-api
+    def invoke(self, context, event):
+        props = context.scene.UAS_shot_manager_props
+        spaceDataViewport = props.getValidTargetViewportSpaceData(context)
+        if spaceDataViewport is not None:
+            spaceDataViewport.overlay.use_gpencil_grid = not spaceDataViewport.overlay.use_gpencil_grid
+        return {"FINISHED"}
+
+
 _classes = (
     UAS_ShotManager_OT_AddGreasePencil,
     UAS_ShotManager_OT_SelectShotGreasePencil,
@@ -606,6 +635,8 @@ _classes = (
     UAS_ShotManager_GreasePencil_NextKey,
     UAS_ShotManager_GreasePencil_PreviousKey,
     UAS_ShotManager_GreasePencil_AddNewFrame,
+    UAS_ShotManager_GreasePencil_ToggleOnionSkin,
+    UAS_ShotManager_GreasePencil_ToggleCanvas,
     #   UAS_ShotManager_OT_ChangeGreasePencilOpacity,
 )
 

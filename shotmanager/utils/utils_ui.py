@@ -71,12 +71,13 @@ def collapsable_panel(
         icon="TRIA_DOWN" if getattr(data, property) else "TRIA_RIGHT",
         icon_only=True,
         emboss=False,
+        text=text,
     )
     if alert:
         row.alert = True
         row.label(text="", icon="ERROR")
-    if text is not None:
-        row.label(text=text)
+    # if text is not None:
+    #     row.label(text=text)
     return getattr(data, property)
 
 

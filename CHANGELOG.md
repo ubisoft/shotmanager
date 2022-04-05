@@ -12,6 +12,8 @@ Done:
 - Change stroke context (with Lock drawing to View) so that we ensure we can draw
 on the canvas when entering in the drawing mode 
 
+- moved the grease pencil play tools from the Shot Manager panel top to the Storyboard properties
+
 Q:
  Change scale to delta scale?
 
@@ -22,7 +24,9 @@ To do:
 
    ### Tools
    - Add Duplicate GP key
-   - Add Onion Skin option
+   - Add Onion Skin overlay toggle button
+   - Add Canvas (=grid) overlay toggle button
+   - Add Fade Layers overlay toggle button and opacity slider
 
 
 # 2.0.3 (2022-03-20)

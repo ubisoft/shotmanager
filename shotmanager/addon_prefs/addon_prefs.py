@@ -21,11 +21,13 @@ add-on global preferences
 
 import bpy
 from bpy.types import AddonPreferences
-from bpy.props import StringProperty, IntProperty, BoolProperty, EnumProperty
+from bpy.props import StringProperty, IntProperty, BoolProperty, EnumProperty, FloatProperty
 
 # from ..config import config
 
 from .addon_prefs_ui import draw_shotmanager_addon_prefs
+
+from shotmanager.utils import utils
 
 from shotmanager.config import sm_logging
 
@@ -161,6 +163,40 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
         default=False,
     )
 
+    def _get_stb_overlay_layers_opacity(self):
+        # print(" get_projectSeqName")
+        props = bpy.context.scene.UAS_shot_manager_props
+        spaceDataViewport = props.getValidTargetViewportSpaceData(bpy.context)
+        if spaceDataViewport is not None:
+            val = spaceDataViewport.overlay.gpencil_fade_layer
+        else:
+            val = 1.0
+        return val
+
+    def _set_stb_overlay_layers_opacity(self, value):
+        #  print(" set_projectSeqName: value: ", value)
+        self["stb_overlay_layers_opacity"] = value
+
+    def _update_stb_overlay_layers_opacity(self, context):
+        # print("stb_overlay_layers_opacity")
+        props = context.scene.UAS_shot_manager_props
+        spaceDataViewport = props.getValidTargetViewportSpaceData(context)
+        if spaceDataViewport is not None:
+            spaceDataViewport.overlay.gpencil_fade_layer = utils.to_sRGB(self["stb_overlay_layers_opacity"])
+
+    stb_overlay_layers_opacity: FloatProperty(
+        name="Layers Opacity",
+        description="Opacity of the Grease Pencil layers in the viewport overlay",
+        min=0.0,
+        max=1.0,
+        step=0.1,
+        get=_get_stb_overlay_layers_opacity,
+        set=_set_stb_overlay_layers_opacity,
+        update=_update_stb_overlay_layers_opacity,
+        default=1.0,
+        options=set(),
+    )
+
     # prefs panels
     ####################
     addonPrefs_settings_expanded: BoolProperty(
@@ -279,11 +315,9 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
         #                 self["layersListDropdown"] = layer.info
         #                 print(f"layer ret: {layer.info}, {i}")
         #                 return 0
-        print("titittii")
         return val
 
     def _set_layersListDropdown(self, value):
-        print("rorororo")
         self["layersListDropdown"] = value
 
     def _update_layersListDropdown(self, context):
