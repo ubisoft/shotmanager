@@ -87,6 +87,7 @@ class SM_Logger(logging.getLoggerClass()):
             "ORANGE": asciiColor(255, 165, 0),
             "RED": "\33[31m",
             "RED_BG": "\33[41m",
+            "PINK": asciiColor(255, 192, 203),
             "PURPLE": "\33[35m",
             "PURPULE_LIGHT": "\33[1;35m",
             "TURQUOISE": "\33[36m",

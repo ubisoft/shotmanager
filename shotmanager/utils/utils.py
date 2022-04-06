@@ -48,6 +48,8 @@ def convertVersionStrToInt(versionStr):
 
 def convertVersionIntToStr(versionInt):
     """Convert an integer formated like 1023048 to a version string such as "1.23.48" """
+    if versionInt < 1000000:
+        versionInt = 1000000
     versionIntStr = str(versionInt)
     length = len(versionIntStr)
     versionStr = (
@@ -58,6 +60,15 @@ def convertVersionIntToStr(versionInt):
         + str(int(versionIntStr[-3:length]))
     )
     return versionStr
+
+
+def isAddonLoaded(addonName):
+    try:
+        bpy.context.preferences.addons[addonName]
+        isLoaded = True
+    except Exception:
+        isLoaded = False
+    return isLoaded
 
 
 def addonVersion(addonName):
