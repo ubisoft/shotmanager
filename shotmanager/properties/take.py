@@ -125,6 +125,16 @@ class UAS_ShotManager_Take(SequenceInterface, PropertyGroup):
             takeName = f"{self.parentScene.UAS_shot_manager_props.getRenderShotPrefix()}{takeName}"
         return takeName
 
+    def getShotList(self, ignoreDisabled=False):
+        """Return a filtered copy of the shots associated to this take"""
+        shotList = []
+
+        for shot in self.shots:
+            if not ignoreDisabled or shot.enabled:
+                shotList.append(shot)
+
+        return shotList
+
     def _get_name(self):
         val = self.get("name", "Take 00")
         return val
