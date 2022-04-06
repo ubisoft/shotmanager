@@ -3992,6 +3992,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
 
     ###########################
 
+    # TOFIX: wkipwkipwkip pb with old naming conventions
     def sortShotsVersions(self, takeIndex=-1):
         """Sorts shots ending with '_a', '_b'...
         *** Only sort disabled shots by default ***
@@ -4024,7 +4025,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         shot_re = re.compile(r"^Sh\d\d\d\d")
 
         def _baseName(name):
-            """We are based on teh name template Shxxxx"""
+            """We are based on the name template Shxxxx"""
             return name[:6]
 
         def _isValidShotName(name):

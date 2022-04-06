@@ -23,7 +23,6 @@ import os
 from pathlib import Path
 
 # paths are relative in order to make the package not dependent on an add-on name
-from ..config import config
 from ..utils.utils import file_path_from_url
 from ..utils import utils_xml
 from ..properties.montage_interface import MontageInterface, SequenceInterface, ShotInterface
@@ -119,7 +118,7 @@ class MontageOtio(MontageInterface):
         if otioFile is not None:
             self.initialize(otioFile)
 
-        print(f"\n\n   fillMontageInfoFromOtioFile:")
+        print("\n\n   fillMontageInfoFromOtioFile:")
         print(f"      Edit file: {self.otioFile} \n")
 
         if self.timeline is None:
@@ -143,11 +142,11 @@ class MontageOtio(MontageInterface):
 
             seq = xmlDom.getElementsByTagName("sequence")[0]
 
-            seqCharacteristics = dict()
+            # seqCharacteristics = dict()
 
-            seqDuration = utils_xml.getFirstChildWithName(seq, "duration")
-            if seqDuration is not None:
-                seqCharacteristics = {"duration": int(seqDuration.childNodes[0].nodeValue)}
+            # seqDuration = utils_xml.getFirstChildWithName(seq, "duration")
+            # if seqDuration is not None:
+            #     seqCharacteristics = {"duration": int(seqDuration.childNodes[0].nodeValue)}
             # seqRate = utils_xml.getFirstChildWithName(seq, "rate")
             # if seqRate is not None:
             #     seqRateDict = {
@@ -494,9 +493,9 @@ class ShotOtio(ShotInterface):
         clipType = self.get_type()
         # print(f"clipType: {clipType}")
         if "Clip" == clipType:
-            infoStr += f"             - Type: OTIO Media Clip"
+            infoStr += "             - Type: OTIO Media Clip"
         elif "Stack" == clipType:
-            infoStr += f"             - Type: OTIO Nested Edit (Stack)"
+            infoStr += "             - Type: OTIO Nested Edit (Stack)"
         #   infoStr += f"   Clip Name: {self.get_name()}"
         #   infoStr += f"\n   Clip: {self.clip}"
         else:
@@ -577,5 +576,6 @@ class ShotOtio(ShotInterface):
                         filename = os.path.split(media_path)[1]
                         media_name = os.path.splitext(filename)[0]
                         media_name_lower = media_name.lower()
+                        print(f"*** wkipwkipwkip to finish: {media_name_lower} ***")
 
         return sounds

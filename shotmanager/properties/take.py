@@ -255,6 +255,8 @@ class UAS_ShotManager_Take(SequenceInterface, PropertyGroup):
             if props.use_project_settings:
                 res = (props.project_resolution_x, props.project_resolution_y)
             else:
+                if props.parentScene is None:
+                    props.getParentScene()
                 res = (props.parentScene.render.resolution_x, props.parentScene.render.resolution_y)
         return res
 
@@ -263,7 +265,9 @@ class UAS_ShotManager_Take(SequenceInterface, PropertyGroup):
     #############
 
     showNotes: BoolProperty(
-        name="Show Take Notes", description="Show or hide current take notes", default=False,
+        name="Show Take Notes",
+        description="Show or hide current take notes",
+        default=False,
     )
 
     note01: StringProperty(name="Note 1", description="")

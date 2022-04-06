@@ -16,7 +16,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 """
-To do: module description here.
+Data patch
 """
 
 import bpy
@@ -29,8 +29,7 @@ from ..utils import utils
 
 
 def data_patch_to_v1_3_61():
-    """Patch to introduce the Playblast render settings
-    """
+    """Patch to introduce the Playblast render settings"""
     for scn in bpy.data.scenes:
         # if "UAS_shot_manager_props" in scn:
         if getattr(bpy.context.scene, "UAS_shot_manager_props", None) is not None:
@@ -54,4 +53,3 @@ def data_patch_to_v1_3_61():
                 print(
                     f"       Scene {scn.name}: Data upgraded to version V.{utils.convertVersionIntToStr(props.dataVersion)}"
                 )
-

@@ -140,7 +140,6 @@ class UAS_ShotManager_SetCurrentShot(Operator):
         props = scene.UAS_shot_manager_props
         prefs = bpy.context.preferences.addons["shotmanager"].preferences
         shot = props.getShotByIndex(self.index)
-        currentShotChanged = False
 
         def _updateEditors(changeTime=True, zoom_mode=""):
             # change time range to match shot range
@@ -179,7 +178,6 @@ class UAS_ShotManager_SetCurrentShot(Operator):
                 props.setCurrentShotByIndex(self.index, source_area=context.area)
                 props.setSelectedShotByIndex(self.index)
                 _updateEditors(changeTime=True)
-            currentShotChanged = True
 
         # disable shot
         elif event.shift and not event.ctrl and not event.alt:
@@ -193,7 +191,6 @@ class UAS_ShotManager_SetCurrentShot(Operator):
                 props.setCurrentShotByIndex(self.index, source_area=context.area)
             props.setSelectedShotByIndex(self.index)
             scene.UAS_shot_manager_props.setSelectedShotByIndex(self.index)
-            currentShotChanged = True
             if event.shift:
                 _updateEditors(zoom_mode="EDIT")
             else:
@@ -1229,12 +1226,9 @@ class UAS_ShotManager_DuplicateShotsToOtherTake(Operator):
 
         insertAfterShotInd = int(self.insertAfterShot) + 1
         insertAtInd = insertAfterShotInd
-        copyCam = "DUPLICATE" == self.mode and self.duplicateCam
         for shot in enabledShots:
             # print(f"insertAtInd: {insertAtInd}")
-            newShot = props.copyShot(
-                shot, atIndex=insertAtInd, copyCamera=self.duplicateCam, targetTakeIndex=targetTakeInd
-            )
+            props.copyShot(shot, atIndex=insertAtInd, copyCamera=self.duplicateCam, targetTakeIndex=targetTakeInd)
             insertAtInd += 1
 
         # delete source shots
@@ -1317,6 +1311,7 @@ class UAS_ShotManager_ShotRemoveMultiple(Operator):
 
         try:
             item = shots[selectedShotInd]
+            item.name
         except IndexError:
             pass
         else:
@@ -1438,7 +1433,7 @@ class UAS_ShotManager_UniqueCameras(Operator):
 
     def execute(self, context):
         scene = context.scene
-        props = context.scene.UAS_shot_manager_props
+        props = scene.UAS_shot_manager_props
         takes = props.getTakes()
         new_cam_from_shots = dict()
         objects = bpy.data.objects
@@ -1453,7 +1448,7 @@ class UAS_ShotManager_UniqueCameras(Operator):
                     if shot.name in new_cam_from_shots:
                         shot.camera = new_cam_from_shots[shot.name]
                     else:
-                        cam_obj = context.scene.objects[camName]
+                        cam_obj = scene.objects[camName]
                         new_cam = utils.duplicateObject(cam_obj)
                         new_cam.name = self.unique_cam_name(f"{camName}_{shot.name}")
                         new_cam.color = (uniform(0, 1), uniform(0, 1), uniform(0, 1), 1)
@@ -1468,9 +1463,9 @@ class UAS_ShotManager_UniqueCameras(Operator):
 
 
 _classes = (
-    # for shot maniputlation
+    # # shot maniputlation
     UAS_ShotManager_SetShotStart,
-    # for shot items:
+    # # shot items
     UAS_ShotManager_SetCurrentShot,
     UAS_ShotManager_ShotDuration,
     UAS_ShotManager_GetSetCurrentFrame,
@@ -1480,13 +1475,13 @@ _classes = (
     UAS_ShotManager_ShowNotes,
     UAS_ShotManager_ListCameraInstances,
     UAS_ShotManager_MakeShotCameraUnique,
-    # for shot manipulation:
+    # # shot manipulation
     UAS_ShotManager_ShotAdd_GetCurrentFrameFor,
     UAS_ShotManager_ShotAdd,
     UAS_ShotManager_ShotDuplicate,
     UAS_ShotManager_ShotRemove,
     UAS_ShotManager_ShotMove,
-    # for shot actions:
+    # # shot actions
     UAS_ShotManager_CreateShotsFromEachCamera,
     UAS_ShotManager_CreateNShots,
     UAS_ShotManager_DuplicateShotsToOtherTake,
