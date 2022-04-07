@@ -23,6 +23,8 @@ import bpy
 from bpy.app.handlers import persistent
 
 from shotmanager.utils import utils
+from shotmanager.utils import utils_shot_manager
+from shotmanager.data_patches.check_scene_data import check_shotmanager_file_data
 
 from shotmanager.config import sm_logging
 
@@ -33,63 +35,69 @@ _logger = sm_logging.getLogger(__name__)
 def shotMngHandler_load_post_checkDataVersion(self, context):
     loadedFileName = bpy.path.basename(bpy.context.blend_data.filepath)
     print("\n\n-------------------------------------------------------")
+
+    _logger.debug_ext("shotMngHandler_load_post_checkDataVersion", col="RED")
+
     if "" == loadedFileName:
         print("\nNew file loaded")
     else:
         print("\nExisting file loaded: ", bpy.path.basename(bpy.context.blend_data.filepath))
         _logger.info("  - Shot Manager is checking the version used to create the loaded scene data...")
 
-        latestVersionToPatch = 1003061
+        checkStr = check_shotmanager_file_data(verbose=False)
+        _logger.debug_ext("Before changes:", col="PINK")
+        _logger.debug_ext(checkStr, col="PINK")
+
+        latestVersionToPatch = 1007015
 
         numScenesToUpgrade = 0
         lowerSceneVersion = -1
-        for scn in bpy.data.scenes:
 
-            # if "UAS_shot_manager_props" in scn:
-            #  if getattr(bpy.context.scene, "UAS_shot_manager_props", None) is not None:
-            if getattr(scn, "UAS_shot_manager_props", None) is not None:
-                #   print("\n   Shot Manager instance found in scene " + scn.name)
-                props = scn.UAS_shot_manager_props
+        for scene in bpy.data.scenes:
+            sm_data_in_scene = utils_shot_manager.sceneHasShotManagerData(scene)
+            if not sm_data_in_scene:
+                continue
 
-                _logger.debug_ext(f"Scene: {scn.name}, props.dataVersion: {props.dataVersion}", col="RED")
+            props = scene.UAS_shot_manager_props
 
-                # # Dirty hack to avoid accidental move of the cameras
-                # try:
-                #     print("ici")
-                #     if bpy.context.space_data is not None:
-                #         print("ici 02")
-                #         if props.useLockCameraView:
-                #             print("ici 03")
-                #             bpy.context.space_data.lock_camera = False
-                # except Exception as e:
-                #     print("ici error")
-                #     _logger.error("** bpy.context.space_data.lock_camera had an error **")
-                #     pass
+            _logger.debug_ext(f"Scene: {scene.name}, props.dataVersion: {props.dataVersion}", col="RED")
+            _logger.debug_ext(f"props.version: {props.version()[1]}", col="RED")
+            _logger.debug_ext(f"latestVersionToPatch: {latestVersionToPatch}", col="RED")
 
-                #   print("     Data version: ", props.dataVersion)
-                #   print("     Shot Manager version: ", bpy.context.window_manager.UAS_shot_manager_version)
-                # if props.dataVersion <= 0 or props.dataVersion < bpy.context.window_manager.UAS_shot_manager_version:
-                # if props.dataVersion <= 0 or props.dataVersion < props.version()[1]:
+            #   print("     Data version: ", props.dataVersion)
+            #   print("     Shot Manager version: ", bpy.context.window_manager.UAS_shot_manager_version)
+            # if props.dataVersion <= 0 or props.dataVersion < bpy.context.window_manager.UAS_shot_manager_version:
+            # if props.dataVersion <= 0 or props.dataVersion < props.version()[1]:
 
-                if props.dataVersion <= 0:
+            if props.dataVersion <= 0:
+                # props.dataVersion = props.version()[1]
+                # _logger.info(
+                #     f"   *** Scene {scene.name}: The version of the Shot Manager data was not set - It has been fixed and is now {utils.convertVersionIntToStr(props.dataVersion)}"
+                # )
+                _logger.info_ext(
+                    f"   *** Scene {scene.name}: The version of the Shot Manager data is not set - Scene will be patched ***",
+                    col="RED",
+                )
+
+            if props.dataVersion < latestVersionToPatch:  # <= ???
+                _logger.info(
+                    f"   *** Scene {scene.name}: The version of the Shot Manager data is lower than the latest patch version - Need patching ***"
+                    f"\n     Data Version: {utils.convertVersionIntToStr(props.dataVersion)}, latest version to patch: {utils.convertVersionIntToStr(latestVersionToPatch)}"
+                )
+                numScenesToUpgrade += 1
+                if -1 == lowerSceneVersion or props.dataVersion < lowerSceneVersion:
+                    lowerSceneVersion = props.dataVersion
+            else:
+                if props.dataVersion < props.version()[1]:
                     props.dataVersion = props.version()[1]
-                    _logger.info(
-                        f"   *** Scene {scn.name}: The version of the Shot Manager data was not set - It has been fixed and is now {utils.convertVersionIntToStr(props.dataVersion)}"
-                    )
-                elif props.dataVersion < latestVersionToPatch:  # <= ???
-                    _logger.info(
-                        f"   *** Scene {scn.name}: The version of the Shot Manager data is lower than the latest patch version - Need patching ***"
-                        f"\n     Data Version: {utils.convertVersionIntToStr(props.dataVersion)}, latest version to patch: {utils.convertVersionIntToStr(latestVersionToPatch)}"
-                    )
-                    numScenesToUpgrade += 1
-                    if -1 == lowerSceneVersion or props.dataVersion < lowerSceneVersion:
-                        lowerSceneVersion = props.dataVersion
-                else:
-                    if props.dataVersion < props.version()[1]:
-                        props.dataVersion = props.version()[1]
-                    # set right data version
-                    # props.dataVersion = bpy.context.window_manager.UAS_shot_manager_version
-                    # print("       Data upgraded to version V. ", props.dataVersion)
+                # set right data version
+                # props.dataVersion = bpy.context.window_manager.UAS_shot_manager_version
+                # print("       Data upgraded to version V. ", props.dataVersion)
+
+            # fixing issues "on the fly"
+            if props.parentScene is None:
+                props.getParentScene()
+                print(f"Fixed Shot Manager parent scene issue in the following scene: {scene.name}")
 
         if numScenesToUpgrade:
             print("\nUpgrading Shot Manager data with latest patches...")
@@ -124,13 +132,17 @@ def shotMngHandler_load_post_checkDataVersion(self, context):
             if lowerSceneVersion < props.version()[1]:
                 props.dataVersion = props.version()[1]
 
+            checkStr = check_shotmanager_file_data(verbose=False)
+            _logger.debug_ext("\n\nAfter changes:", col="PINK")
+            _logger.debug_ext(checkStr, col="PINK")
+
 
 # wkip doesn t work!!! Property values changed right before the save are not saved in the file!
 # @persistent
 # def checkDataVersion_save_pre_handler(self, context):
 #     print("\nFile saved - Shot Manager is writing its data version in the scene")
-#     for scn in bpy.data.scenes:
-#         if "UAS_shot_manager_props" in scn:
-#             print("\n   Shot Manager instance found in scene, writing data version: " + scn.name)
+#     for scene in bpy.data.scenes:
+#         if "UAS_shot_manager_props" in scene:
+#             print("\n   Shot Manager instance found in scene, writing data version: " + scene.name)
 #             props.dataVersion = bpy.context.window_manager.UAS_shot_manager_version
 #             print("   props.dataVersion: ", props.dataVersion)

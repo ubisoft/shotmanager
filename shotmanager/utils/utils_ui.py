@@ -55,7 +55,11 @@ def collapsable_panel(
     row.alignment = "LEFT"
     # row.scale_x = 0.9
     row.prop(
-        data, property, icon="TRIA_DOWN" if getattr(data, property) else "TRIA_RIGHT", icon_only=True, emboss=False,
+        data,
+        property,
+        icon="TRIA_DOWN" if getattr(data, property) else "TRIA_RIGHT",
+        icon_only=True,
+        emboss=False,
     )
     if alert:
         row.alert = True
@@ -158,7 +162,6 @@ class UAS_ShotManager_OpenFileBrowser(Operator, ImportHelper):
 # Dev note: This function has to be here for the moment cause it is passed
 # in stampinfo code to a call to uas_stamp_info.querybox
 def reset_render_properties():
-    print("reset_render_properties")
     props = bpy.context.scene.UAS_shot_manager_props
     props.reset_render_properties()
 

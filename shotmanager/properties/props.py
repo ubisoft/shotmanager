@@ -20,9 +20,8 @@ Shot Manager properties
 """
 
 import os
-from stat import S_IMODE, S_IWRITE
-from pathlib import Path
 import re
+import sys
 
 import bpy
 from bpy.types import Scene
@@ -47,6 +46,7 @@ from .output_params import UAS_ShotManager_OutputParams_Resolution
 
 from .shot import UAS_ShotManager_Shot
 from .take import UAS_ShotManager_Take
+from ..functions import warnings
 from ..operators.shots_global_settings import UAS_ShotManager_ShotsGlobalSettings
 from ..retimer.retimer_props import UAS_Retimer_Properties
 
@@ -54,7 +54,7 @@ from shotmanager.utils import utils
 
 # from shotmanager.utils.utils_time import zoom_dopesheet_view_to_range
 
-from shotmanager.config import config
+# from shotmanager.config import config
 from shotmanager.config import sm_logging
 
 _logger = sm_logging.getLogger(__name__)
@@ -150,7 +150,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         # if parentScn is not None:
         #     return parentScn
         if parentScn is None:
-            _logger.error("\n\n WkError: parentScn in None in Props !!! *** ")
+            _logger.error("\n\n WkError: parentScn is None in Props !!! *** ")
             self.parentScene = self.findParentScene()
         else:
             self.parentScene = parentScn
@@ -174,95 +174,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
             An array of tupples made of the warning message and the warning index
             eg: [("Current file in Read-Only", 1), ("Current scene fps and project fps are different !!", 2)]
         """
-        warningList = []
-
-        # check if the current file is saved and not read only
-        ###########
-        currentFilePath = bpy.path.abspath(bpy.data.filepath)
-        if "" == currentFilePath:
-            # warningList.append("Current file has to be saved")
-            # wkip to remove ones warning mecanics are integrated in the settings
-            pass
-        else:
-            stat = Path(currentFilePath).stat()
-            # print(f"Blender file Stats: {stat.st_mode}")
-            if S_IMODE(stat.st_mode) & S_IWRITE == 0:
-                warningList.append(("Current file in Read-Only", 10))
-
-        # check if the current framerate is valid according to the project settings (wkip)
-        ###########
-        if self.use_project_settings:
-            # if scene.render.fps != self.project_fps:
-            if utils.getSceneEffectiveFps(scene) != self.project_fps:
-                warningList.append(("Current scene fps and project fps are different !!", 20))
-
-        # check if a negative render frame may be rendered
-        ###########
-        shotList = self.get_shots()
-        hasNegativeFrame = False
-        shotInd = 0
-        handlesDuration = self.getHandlesDuration()
-        while shotInd < len(shotList) and not hasNegativeFrame:
-            hasNegativeFrame = shotList[shotInd].start - handlesDuration < 0
-            shotInd += 1
-        if hasNegativeFrame:
-            if self.areShotHandlesUsed():
-                warningList.append(
-                    (
-                        "Index of the output frame of a shot minus handle is negative !!"
-                        "\nNegative time indicies are not supported by Shot Manager renderer.",
-                        30,
-                    )
-                )
-            else:
-                warningList.append(
-                    (
-                        "At least one shot starts at a negative frame !!"
-                        "\nNegative time indicies are not supported by Shot Manager renderer.",
-                        31,
-                    )
-                )
-
-        # check if the resolution render percentage is at 100%
-        ###########
-        if 100 != scene.render.resolution_percentage:
-            warningList.append(("Render Resolution Percentage is not at 100%", 40))
-
-        # check if the resolution render uses multiples of 2
-        ###########
-        if 0 != scene.render.resolution_x % 2 or 0 != scene.render.resolution_y % 2:
-            warningList.append(("Render Resolution must use multiples of 2", 42))
-
-        # check is the data version is compatible with the current version
-        # wkip obsolete code due to post register data version check
-        if config.devDebug:
-            if self.dataVersion <= 0 or self.dataVersion < bpy.context.window_manager.UAS_shot_manager_version:
-                # print("Warning: elf.dataVersion:", self.dataVersion)
-                # print(
-                #     "Warning: bpy.context.window_manager.UAS_shot_manager_version:",
-                #     bpy.context.window_manager.UAS_shot_manager_version,
-                # )
-
-                warningList.append(("Debug: Data version is lower than SM version. Save and reload the file.", 50))
-
-        # check if some camera markers bound to cameras are used in the scene
-        ###########
-        if utils.sceneContainsCameraBinding(scene):
-            warningList.append(
-                (
-                    "Scene contains markers binded to cameras"
-                    "\n*** Shot Manager is NOT compatible with camera binding ***",
-                    60,
-                )
-            )
-
-        # if self.use_project_settings and "Scene" in scene.name:
-        #     warningList.append("Scene Name is Invalid !!!")
-        # c.label(text=" *************************************** ")
-        # c.label(text=" *    SCENE NAME IS INVALID !!!    * ")
-        # c.label(text=" *************************************** ")
-
-        return warningList
+        return warnings.getWarnings(self, scene)
 
     def sceneIsReady(self):
         renderWarnings = ""
@@ -2639,7 +2551,8 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
 
             # create meta
             bpy.ops.sequencer.select_all(action="DESELECT")
-            tmpClip = scene.sequence_editor.sequences.new_effect(
+            # get effect tmpClip
+            scene.sequence_editor.sequences.new_effect(
                 "_tmp_clip-to_delete", "COLOR", newMetaTrackInd, frame_start=0, frame_end=45000
             )
             # tmpClip is selected so we can call meta_make()
@@ -3623,36 +3536,11 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
     def createRenderSettings(self):
         _logger.debug_ext("createRenderSettings", col="GREEN")
 
-        # Still
-        self.renderSettingsStill.name = "Still Preset"
-        self.renderSettingsStill.renderMode = "STILL"
-
-        # Animation
-        self.renderSettingsAnim.name = "Animation Preset"
-        self.renderSettingsAnim.renderMode = "ANIMATION"
-
-        # All shots
-        self.renderSettingsAll.name = "All Shots Preset"
-        self.renderSettingsAll.renderMode = "ALL"
-
-        self.renderSettingsAll.renderAllTakes = False
-        self.renderSettingsAll.renderAllShots = False
-        self.renderSettingsAll.renderAlsoDisabled = False
-        self.renderSettingsAll.renderHandles = False
-        self.renderSettingsAll.renderOtioFile = True
-        self.renderSettingsAll.otioFileType = "XML"
-        self.renderSettingsAll.generateEditVideo = True
-
-        # Otio
-        self.renderSettingsOtio.name = "Otio Preset"
-        self.renderSettingsOtio.renderMode = "OTIO"
-        self.renderSettingsOtio.renderOtioFile = True  # not used in this preset
-        self.renderSettingsOtio.otioFileType = "XML"
-
-        # Playblast
-        self.renderSettingsPlayblast.name = "Playblast Preset"
-        self.renderSettingsPlayblast.renderMode = "PLAYBLAST"
-        self.renderSettingsPlayblast.useStampInfo = False
+        self.renderSettingsStill.initialize("STILL")
+        self.renderSettingsAnim.initialize("ANIMATION")
+        self.renderSettingsAll.initialize("ALL")
+        self.renderSettingsOtio.initialize("OTIO")
+        self.renderSettingsPlayblast.initialize("PLAYBLAST")
 
     def setProjectRenderFilePath(self):
         # if '' == bpy.data.filepath:
@@ -3770,6 +3658,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
 
     ###########################
 
+    # TOFIX: wkipwkipwkip pb with old naming conventions
     def sortShotsVersions(self, takeIndex=-1):
         """Sorts shots ending with '_a', '_b'...
         *** Only sort disabled shots by default ***
@@ -3802,7 +3691,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         shot_re = re.compile(r"^Sh\d\d\d\d")
 
         def _baseName(name):
-            """We are based on teh name template Shxxxx"""
+            """We are based on the name template Shxxxx"""
             return name[:6]
 
         def _isValidShotName(name):
