@@ -192,7 +192,6 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         # check if the current framerate is valid according to the project settings (wkip)
         ###########
         if self.use_project_settings:
-            # if scene.render.fps != self.project_fps:
             if utils.getSceneEffectiveFps(scene) != self.project_fps:
                 warningList.append(("Current scene fps and project fps are different !!", 20))
 

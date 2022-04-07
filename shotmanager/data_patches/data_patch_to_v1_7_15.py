@@ -57,6 +57,16 @@ def data_patch_to_v1_7_15():
                 props.project_naming_project_index = -1
                 props.project_naming_sequence_index = -1
 
+                # check issue found on some old scenes
+                if (
+                    "Render Settings" == props.renderSettingsStill.name
+                    or "Render Settings" == props.renderSettingsAnim.name
+                    or "Render Settings" == props.renderSettingsAll.name
+                    or "Render Settings" == props.renderSettingsOtio.name
+                    or "Render Settings" == props.renderSettingsPlayblast.name
+                ):
+                    props.reset_render_properties()
+
                 # set right data version
                 # props.dataVersion = bpy.context.window_manager.UAS_shot_manager_version
                 props.dataVersion = bpy.context.window_manager.UAS_shot_manager_version
