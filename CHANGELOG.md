@@ -59,6 +59,7 @@ To do:
 - FPS variable issue when rendering and when exporting and importing edit file
 - Issue in rendered sequence video name: the name of the take was not added
 - Issue in OTIO export: the exported take was not the current one
+- Issue in Reset Render Settings: initial values were not all restored
 
 ## Doc:
 
@@ -67,6 +68,8 @@ To do:
 ## Dev:
 
 - Improved output messages with logger
+- Added patch V1.7.15 to ensure the data compatibility
+- Refactored the Render Settings properties initialization
 
 
 # 1.7.10 (2022-03-03)

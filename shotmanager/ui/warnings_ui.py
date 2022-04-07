@@ -21,8 +21,7 @@ Draw the warnings component
 
 
 def drawWarnings(context, ui_component, warningsList, panelType=None):
-    """panelType can be "MAIN" or "RENDERING"
-    """
+    """panelType can be "MAIN" or "RENDERING" """
     if len(warningsList):
         prefs = context.preferences.addons["shotmanager"].preferences
         panelIcon = "TRIA_DOWN" if prefs.general_warning_expanded else "TRIA_RIGHT"
@@ -58,6 +57,7 @@ def drawWarnings(context, ui_component, warningsList, panelType=None):
                     else:
                         warningCol.label(text="    " + mess)
 
+                # add camera binding conversion buttons
                 if "MAIN" == panelType:
                     if 60 == w[1]:
                         warningCol.scale_y = 1.0
@@ -68,5 +68,18 @@ def drawWarnings(context, ui_component, warningsList, panelType=None):
                             "uas_shot_manager.convert_markers_from_camera_binding_to_shots", text="Convert Binding"
                         )
                         butsrow.separator(factor=0.5)
+
+                # add render settings preset reset button
+                if 110 == w[1]:
+                    warningCol.scale_y = 1.0
+                    butsrow = warningCol.row()
+                    butsrow.separator(factor=0.5)
+                    resetOp = butsrow.operator(
+                        "uas_shotmanager.querybox", text="Reset Render to Default Values...", icon="LOOP_BACK"
+                    )
+                    resetOp.width = 400
+                    resetOp.message = "Reset all the rendering properties to their default value?"
+                    resetOp.function_name = "reset_render_properties"
+                    butsrow.separator(factor=0.5)
 
                 warningCol.separator(factor=1.0)
