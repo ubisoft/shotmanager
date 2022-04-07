@@ -94,6 +94,11 @@ def shotMngHandler_load_post_checkDataVersion(self, context):
                 # props.dataVersion = bpy.context.window_manager.UAS_shot_manager_version
                 # print("       Data upgraded to version V. ", props.dataVersion)
 
+            # fixing issues "on the fly"
+            if props.parentScene is None:
+                props.getParentScene()
+                print(f"Fixed Shot Manager parent scene issue in the following scene: {scene.name}")
+
         if numScenesToUpgrade:
             print("\nUpgrading Shot Manager data with latest patches...")
             # apply patch and apply new data version

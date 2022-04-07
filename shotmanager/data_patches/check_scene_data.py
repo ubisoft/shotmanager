@@ -80,7 +80,25 @@ def check_shotmanager_file_data(verbose=True):
                 checkStr += f"{spacer}SM Data version: {props.dataVersion}, SM version: {bpy.context.window_manager.UAS_shot_manager_version}"
 
                 # properties introduced in SM V. 2.0.5
+                checkStr += f"\n{spacer}New properties introduced in SM V. 2.0.5"
+                spacer += "  "
                 checkStr += f"{spacer}props.{'project_naming_project_format'}: {getattr(props, 'project_naming_project_format', 'Not Set')}"
+                checkStr += f"{spacer}props.{'project_naming_sequence_format'}: {getattr(props, 'project_naming_sequence_format', 'Not Set')}"
+                checkStr += f"{spacer}props.{'project_naming_shot_format'}: {getattr(props, 'project_naming_shot_format', 'Not Set')}"
+                checkStr += f"{spacer}props.{'project_naming_separator_char'}: {getattr(props, 'project_naming_separator_char', 'Not Set')}"
+                checkStr += f"{spacer}props.{'project_naming_project_index'}: {getattr(props, 'project_naming_project_index', 'Not Set')}"
+                checkStr += f"{spacer}props.{'project_naming_sequence_index'}: {getattr(props, 'project_naming_sequence_index', 'Not Set')}"
+
+                # check issue found on some old scenes
+                if (
+                    "Render Settings" == props.renderSettingsStill.name
+                    or "Render Settings" == props.renderSettingsAnim.name
+                    or "Render Settings" == props.renderSettingsAll.name
+                    or "Render Settings" == props.renderSettingsOtio.name
+                    or "Render Settings" == props.renderSettingsPlayblast.name
+                ):
+                    # props.reset_render_properties()
+                    checkStr += f"{spacer}Some render settings presets are not correctly initialized"
 
         else:
             props_dict = scene["UAS_shot_manager_props"].to_dict()

@@ -22,6 +22,10 @@ Render properties
 from bpy.types import PropertyGroup
 from bpy.props import StringProperty, BoolProperty, EnumProperty, IntProperty
 
+from shotmanager.config import sm_logging
+
+_logger = sm_logging.getLogger(__name__)
+
 
 class UAS_ShotManager_RenderGlobalContext(PropertyGroup):
 
@@ -320,7 +324,9 @@ class UAS_ShotManager_RenderSettings(PropertyGroup):
     renderHandles: BoolProperty(name="Render With Handles", default=False)
 
     renderSound: BoolProperty(
-        name="Render Sound", description="Also generate sound in rendered media", default=True,
+        name="Render Sound",
+        description="Also generate sound in rendered media",
+        default=True,
     )
 
     disableCameraBG: BoolProperty(
@@ -347,13 +353,15 @@ class UAS_ShotManager_RenderSettings(PropertyGroup):
         name="Bypass Project Settings",
         description="When Project Settings are used this allows the use of custom rendering settings",
         default=False,
-        options=set(),
+        #    options=set(),
     )
 
     # used by ANIMATION and ALL
     # wkipwkipwkip not used!!!
     generateImageSequence: BoolProperty(
-        name="Generate Image Sequence", description="Generate an image sequence per rendered shot", default=False,
+        name="Generate Image Sequence",
+        description="Generate an image sequence per rendered shot",
+        default=False,
     )
 
     outputMediaMode: EnumProperty(
@@ -383,7 +391,9 @@ class UAS_ShotManager_RenderSettings(PropertyGroup):
 
     # only used by ANIMATION
     generateShotVideo: BoolProperty(
-        name="Generate Shot Video", description="Generate the video of the rendered shot", default=True,
+        name="Generate Shot Video",
+        description="Generate the video of the rendered shot",
+        default=True,
     )
 
     # only used by ALL
@@ -413,21 +423,21 @@ class UAS_ShotManager_RenderSettings(PropertyGroup):
         name="Open in Video Shot Manager",
         description="Open the rendered playblast in the VSE",
         default=False,
-        options=set(),
+        #    options=set(),
     )
 
     openPlayblastInPlayer: BoolProperty(
         name="Open in Player",
         description="Open the rendered playblast in the default OS media player",
         default=False,
-        options=set(),
+        #    options=set(),
     )
 
     stampRenderInfo: BoolProperty(
         name="Stamp Render Info",
         description="Open the rendered playblast in the default OS media player",
         default=True,
-        options=set(),
+        #    options=set(),
     )
 
     # renderCameraBG: BoolProperty(
@@ -436,3 +446,69 @@ class UAS_ShotManager_RenderSettings(PropertyGroup):
     #     default=False,
     #     options=set(),
     # )
+
+    def initialize(self, renderMode):
+        """
+        Args:
+            renderMode: the rendering mode of the settings. Can be STILL, ANIMATION, ALL, OTIO, PLAYBLAST
+        """
+        _logger.debug_ext(f"initialize Render Settings {renderMode}", col="GREEN")
+
+        # common values
+        self.renderAllTakes = False
+        self.renderAllShots = True
+        self.renderAlsoDisabled = False
+        self.renderHandles = False
+        self.renderSound = True
+        self.disableCameraBG = True
+        self.writeToDisk = False
+        self.renderOtioFile = False
+        self.useStampInfo = True
+        self.rerenderExistingShotVideos = True
+        self.bypass_rendering_project_settings = False
+        self.generateImageSequence = False
+        self.outputMediaMode = "VIDEO"
+        self.keepIntermediateFiles = False
+        self.generateShotVideo = True
+        self.generateEditVideo = False
+        self.otioFileType = "XML"
+        self.resolutionPercentage = 100
+        self.updatePlayblastInVSM = False
+        self.openPlayblastInPlayer = False
+        self.stampRenderInfo = True
+
+        # Still
+        if "STILL" == renderMode:
+            self.name = "Still Preset"
+            self.renderMode = "STILL"
+
+        # Animation
+        elif "ANIMATION" == renderMode:
+            self.name = "Animation Preset"
+            self.renderMode = "ANIMATION"
+
+        # All shots
+        elif "ALL" == renderMode:
+            self.name = "All Shots Preset"
+            self.renderMode = "ALL"
+
+            self.renderAllTakes = False
+            self.renderAllShots = False
+            self.renderAlsoDisabled = False
+            self.renderHandles = False
+            self.renderOtioFile = True
+            self.otioFileType = "XML"
+            self.generateEditVideo = True
+
+        # Otio
+        elif "OTIO" == renderMode:
+            self.name = "Otio Preset"
+            self.renderMode = "OTIO"
+            self.renderOtioFile = True  # not used in this preset
+            self.otioFileType = "XML"
+
+        # Playblast
+        elif "PLAYBLAST" == renderMode:
+            self.name = "Playblast Preset"
+            self.renderMode = "PLAYBLAST"
+            self.useStampInfo = False
