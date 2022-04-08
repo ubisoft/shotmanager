@@ -462,8 +462,8 @@ class UAS_ShotManager_GreasePencilItem(Operator):
     index: bpy.props.IntProperty(default=0)
 
     def invoke(self, context, event):
-        props = context.scene.UAS_shot_manager_props
         scene = context.scene
+        props = scene.UAS_shot_manager_props
         props.setSelectedShotByIndex(self.index)
         shot = props.getShotByIndex(self.index)
         gp_child = shot.getGreasePencilObject()
@@ -567,11 +567,22 @@ class UAS_ShotManager_GreasePencil_NextKey(Operator):
         return {"FINISHED"}
 
 
-class UAS_ShotManager_GreasePencil_AddNewFrame(Operator):
-    bl_idname = "uas_shot_manager.greasepencil_addnewframe"
-    bl_label = "Add"
-    bl_description = "Add new drawing frame to the selected Grease Pencil"
+class UAS_ShotManager_GreasePencil_FrameOperation(Operator):
+    bl_idname = "uas_shot_manager.greasepencil_frameoperation"
+    bl_label = "Frame Operation"
+    bl_description = "Add, duplicate or delete drawing frame to the selected Grease Pencil"
     bl_options = {"INTERNAL", "UNDO"}
+
+    layersMode: StringProperty(
+        name="Layers Mode",
+        default="",
+    )
+
+    # can be "NEW", "DUPLICATE", "DELETE"
+    frameMode: StringProperty(
+        name="Frame Mode",
+        default="NEW",
+    )
 
     def invoke(self, context, event):
         gp = context.active_object
@@ -586,7 +597,15 @@ class UAS_ShotManager_GreasePencil_AddNewFrame(Operator):
         print(
             f"On a frame for mode {props.greasePencil_layersMode}: {utils_greasepencil.isCurrentFrameOnLayerFrame(gp, context.scene.frame_current, props.greasePencil_layersMode)}"
         )
-        utils_greasepencil.addFrameToLayer(gp, context.scene.frame_current, props.greasePencil_layersMode)
+
+        if "NEW" == self.frameMode:
+            utils_greasepencil.addFrameToLayer(gp, context.scene.frame_current, props.greasePencil_layersMode)
+        elif "DUPLICATE" == self.frameMode:
+            utils_greasepencil.duplicateFrameToLayer(gp, context.scene.frame_current, props.greasePencil_layersMode)
+            pass
+        elif "DELETE" == self.frameMode:
+            pass
+
         return {"FINISHED"}
 
 
@@ -634,7 +653,7 @@ _classes = (
     UAS_ShotManager_GreasePencilItem,
     UAS_ShotManager_GreasePencil_NextKey,
     UAS_ShotManager_GreasePencil_PreviousKey,
-    UAS_ShotManager_GreasePencil_AddNewFrame,
+    UAS_ShotManager_GreasePencil_FrameOperation,
     UAS_ShotManager_GreasePencil_ToggleOnionSkin,
     UAS_ShotManager_GreasePencil_ToggleCanvas,
     #   UAS_ShotManager_OT_ChangeGreasePencilOpacity,
