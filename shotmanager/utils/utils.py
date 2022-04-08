@@ -739,18 +739,6 @@ def create_new_greasepencil(gp_name, parent_object=None, location=None, locate_o
     return new_gp_obj
 
 
-def get_greasepencil_child(obj, name_filter=""):
-    """Return the first child of the specifed object that is of type GPENCIL"""
-    gpChild = None
-
-    if obj is not None:
-        if len(obj.children):
-            for c in obj.children:
-                if "GPENCIL" == c.type:
-                    return c
-    return gpChild
-
-
 ###################
 # Cameras
 ###################

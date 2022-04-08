@@ -186,7 +186,18 @@ def draw_greasepencil_shot_properties(layout, context, shot):
             transformRow = col.row()
             transformRow.use_property_split = True
             transformRow.use_property_decorate = True
+            transformRow.prop(gp_child, "rotation_euler")
+
+            transformRow = col.row()
+            transformRow.use_property_split = True
+            transformRow.use_property_decorate = True
             transformRow.prop(gp_child, "scale")
+
+            # transformRow = col.row()
+            # transformRow.label(text="test")
+            # transformRow.use_property_split = True
+            # transformRow.use_property_decorate = True
+            # transformRow.prop(gp_child.location, "x")
 
             transformRow = col.row()
             transformRow.separator(factor=0.6)

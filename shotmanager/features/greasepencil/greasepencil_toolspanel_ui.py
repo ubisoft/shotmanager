@@ -150,7 +150,16 @@ def draw_greasepencil_play_tools(layout, context, shot, layersListDropdown=None)
         iconFrame = "KEYTYPE_MOVING_HOLD_VEC"
         iconFrame = "KEYFRAME"
     # iconFrame = "ADD"
-    keysRow.operator("uas_shot_manager.greasepencil_addnewframe", icon=iconFrame, text="")
+    frameOpRow = keysRow.row(align=True)
+    frameOpRow.operator("uas_shot_manager.greasepencil_frameoperation", icon=iconFrame, text="").frameMode = "NEW"
+    frameOpRow.operator("uas_shot_manager.greasepencil_frameoperation", icon=iconFrame, text="").frameMode = "DUPLICATE"
+
+    delFrameOpRow = frameOpRow.row(align=True)
+    delFrameOpRow.enabled = isCurrentFrameOnGPFrame
+    delFrameOpRow.operator(
+        "uas_shot_manager.greasepencil_frameoperation", icon="PANEL_CLOSE", text=""
+    ).frameMode = "DELETE"
+
     # keysRow.enabled = True
     keysRow.operator("uas_shot_manager.greasepencil_nextkey", icon="NEXT_KEYFRAME", text="")
 
@@ -165,7 +174,7 @@ def draw_greasepencil_play_tools(layout, context, shot, layersListDropdown=None)
     subsubRow.alignment = "LEFT"
     subsubRow.prop(props, "greasePencil_layersMode", text="Apply to")
 
-    mainRow.label(text="Drawing on GP frame: ")
+    mainRow.label(text="Drawing on: ")
     subsubRow = mainRow.row(align=True)
     gpFrameStr = "-"
     if objIsGP:
@@ -185,12 +194,22 @@ def draw_greasepencil_play_tools(layout, context, shot, layersListDropdown=None)
         onionSkinIsActive = spaceDataViewport.overlay.use_gpencil_onion_skin
         gridIsActive = spaceDataViewport.overlay.use_gpencil_grid
 
-    row.operator("uas_shot_manager.greasepencil_toggleonionskin", depress=onionSkinIsActive)
-    row.operator("uas_shot_manager.greasepencil_togglecanvas", depress=gridIsActive)
-    row = box.row(align=False)
-    row.prop(spaceDataViewport.overlay, "use_gpencil_fade_layers", text="")
+    # overlay tools
+    overlayCol = row.column()
+    overlaySplit = overlayCol.split(factor=0.2)
+    overlaySplit.label(text="Overlay: ")
+    overlayRighRow = overlaySplit.row()
+    overlayRighRow.operator("uas_shot_manager.greasepencil_toggleonionskin", depress=onionSkinIsActive)
+    overlayRighRow.operator("uas_shot_manager.greasepencil_togglecanvas", depress=gridIsActive)
+
+    overlaySplit = overlayCol.split(factor=0.2)
+    overlaySplit.separator()
+    overlayRighRow = overlaySplit.row()
+    overlayRighRow.prop(spaceDataViewport.overlay, "use_gpencil_fade_layers", text="")
     # row.prop(spaceDataViewport.overlay, "gpencil_fade_layer")
-    row.prop(prefs, "stb_overlay_layers_opacity")
+    subOverlayRighRow = overlayRighRow.row()
+    subOverlayRighRow.enabled = spaceDataViewport.overlay.use_gpencil_fade_layers
+    subOverlayRighRow.prop(prefs, "stb_overlay_layers_opacity", text="Fade Layers")
 
 
 #     utils_ui.drawSeparatorLine(layout, lower_height=0.6)

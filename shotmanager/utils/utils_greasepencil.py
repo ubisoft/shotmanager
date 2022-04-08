@@ -36,6 +36,19 @@ def create_new_greasepencil(gp_name, parentCamera=None, location=None, locate_on
     Return this object
     Args:   parentCamera: the camera to parent to
     """
+    # no data of empty objects
+    gpEmpty = bpy.data.objects.new("empty", None)
+    bpy.context.scene.collection.objects.link(gpEmpty)
+
+    gpEmpty.empty_display_size = 0.5
+    gpEmpty.empty_display_type = "ARROWS"  # "PLAIN_AXES"
+
+    gpEmpty
+    gpEmpty.lock_location = [True, True, True]
+    gpEmpty.lock_rotation = [True, True, True]
+    gpEmpty.lock_scale = [True, True, True]
+
+    # grease pencil frame
     new_gp_data = bpy.data.grease_pencils.new(gp_name)
     new_gp_obj = bpy.data.objects.new(new_gp_data.name, new_gp_data)
     new_gp_obj.name = new_gp_data.name
@@ -45,7 +58,7 @@ def create_new_greasepencil(gp_name, parentCamera=None, location=None, locate_on
     # add to main collection
     # bpy.context.collection.objects.link(new_gp_obj)
 
-    # add to a collection named "Cameras"
+    # add to a collection named "GreasePencil"
     gpCollName = "GreasePencil"
     cpColl = None
     if gpCollName not in bpy.context.scene.collection.children:
@@ -56,7 +69,8 @@ def create_new_greasepencil(gp_name, parentCamera=None, location=None, locate_on
     cpColl.objects.link(new_gp_obj)
 
     if parentCamera is not None:
-        new_gp_obj.parent = parentCamera
+        gpEmpty.parent = parentCamera
+    new_gp_obj.parent = gpEmpty
 
     if location is None:
         new_gp_obj.location = [0, 0, 0]
@@ -65,14 +79,16 @@ def create_new_greasepencil(gp_name, parentCamera=None, location=None, locate_on
     else:
         new_gp_obj.location = location
 
-    new_gp_obj.lock_location = [True, True, True]
-    new_gp_obj.lock_rotation = [True, True, True]
-    new_gp_obj.lock_scale = [True, True, True]
+    # new_gp_obj.lock_location = [True, True, True]
+    # new_gp_obj.lock_rotation = [True, True, True]
+    # new_gp_obj.lock_scale = [True, True, True]
+    new_gp_obj.lock_rotation[0] = True
+    new_gp_obj.lock_rotation[1] = True
 
-    from math import radians
+    # from math import radians
 
-    # align gp with camera axes
-    new_gp_obj.rotation_euler = (radians(0.0), 0.0, radians(0.0))
+    # # align gp with camera axes
+    # new_gp_obj.rotation_euler = (radians(0.0), 0.0, radians(0.0))
 
     add_grease_pencil_draw_layers(new_gp_obj)
     create_grease_pencil_material(new_gp_obj, "LINES")
@@ -85,16 +101,28 @@ def create_new_greasepencil(gp_name, parentCamera=None, location=None, locate_on
     return new_gp_obj
 
 
-def get_greasepencil_child(obj, name_filter=""):
-    """Return the first child of the specifed object that is of type GPENCIL"""
+def get_greasepencil_child(obj, childType="GPENCIL", name_filter=""):
+    """Return the first child of the specifed object that is of type GPENCIL or EMPTY"""
     gpChild = None
 
     if obj is not None:
         if len(obj.children):
             for c in obj.children:
-                if "GPENCIL" == c.type:
-                    return c
+                if "EMPTY" == c.type:
+                    if "EMPTY" == childType:
+                        return c
+                    if len(c.children):
+                        for cc in c.children:
+                            if "GPENCIL" == cc.type:
+                                return cc
+
     return gpChild
+    # if obj is not None:
+    #     if len(obj.children):
+    #         for c in obj.children:
+    #             if "GPENCIL" == c.type:
+    #                 return c
+    # return gpChild
 
 
 def get_grease_pencil(gpencil_obj_name="GPencil") -> bpy.types.GreasePencil:
@@ -279,7 +307,9 @@ def add_grease_pencil_canvas_layer(
 
 
 def fitGreasePencilToFrustum(camera, distance=None):
-    gpencil = get_greasepencil_child(camera)
+
+    gpencil = get_greasepencil_child(camera, "GPENCIL")
+    gpEmpty = get_greasepencil_child(camera, "EMPTY")
 
     # method with canvas points modification ###
     # gpencil.location[2] = -1.0 * distance
@@ -291,23 +321,38 @@ def fitGreasePencilToFrustum(camera, distance=None):
 
     # removed to allow frame panning
     # gpencil.location[0] = gpencil.location[1] = 0.0
-    prevX = gpencil.location[0]
-    prevY = gpencil.location[1]
-    gpencil.location[0] = gpencil.location[1] = 0.0
 
-    gpencil.location[2] = -1.0 * distance
+    ######################################""""""
+    # prevX = gpencil.location[0]
+    # prevY = gpencil.location[1]
+    # gpencil.location[0] = gpencil.location[1] = 0.0
 
-    gpencil.rotation_euler = [0, 0, 0]
-    gpencil.rotation_quaternion = [0, 0, 0, 0]
+    # gpencil.location[2] = -1.0 * distance
+
+    # gpencil.rotation_euler = [0, 0, 0]
+    # gpencil.rotation_quaternion = [0, 0, 0, 0]
+    # distRef = getDistRef(camera)
+    # gpWidth = distance / distRef
+
+    # vec = mathutils.Vector((gpWidth, gpWidth, gpWidth))
+    # # gpencil.scale = vec
+    # gpencil.delta_scale = vec
+
+    # gpencil.location[0] = prevX * gpWidth
+    # gpencil.location[1] = prevY * gpWidth
+    # ############################################
+
+    gpEmpty.location[0] = gpEmpty.location[1] = gpEmpty.location[2] = 0.0
+    gpEmpty.rotation_euler = [0, 0, 0]
+    gpEmpty.rotation_quaternion = [0, 0, 0, 0]
     distRef = getDistRef(camera)
     gpWidth = distance / distRef
 
     vec = mathutils.Vector((gpWidth, gpWidth, gpWidth))
-    # gpencil.scale = vec
-    gpencil.delta_scale = vec
+    gpEmpty.scale = vec
+    # gpEmpty.delta_scale = vec
 
-    gpencil.location[0] = prevX * gpWidth
-    gpencil.location[1] = prevY * gpWidth
+    gpencil.location[2] = -1.0 * distRef
 
 
 def getDistRef(camera):
@@ -457,7 +502,7 @@ def switchToDrawMode(gpencil: bpy.types.GreasePencil):
         gpencil.select_set(True)
         gpencil.hide_select = False
         gpencil.hide_viewport = False
-        
+
         bpy.ops.gpencil.paintmode_toggle()
         bpy.context.scene.tool_settings.gpencil_stroke_placement_view3d = "ORIGIN"
         bpy.context.scene.tool_settings.gpencil_sculpt.lock_axis = "VIEW"
@@ -564,6 +609,41 @@ def isCurrentFrameOnLayerFrame(gpencil: bpy.types.GreasePencil, currentFrame, la
 
 def addFrameToLayer(gpencil: bpy.types.GreasePencil, currentFrame, layerMode):
     """Add a new key to the specified layer at the specified frame
+    Args:
+        layerMode: Can be "NOLAYER", "ACTIVE", "ALL" or the name of the layer
+        Usually comes from props.greasePencil_layersMode
+    """
+
+    if "NOLAYER" == layerMode:
+        return
+    elif "ALL" == layerMode:
+        for layer in gpencil.data.layers:
+            if not layer.lock:
+                if not isCurrentFrameOnLayerFrame(gpencil, currentFrame, layer.info):
+                    layer.frames.new(currentFrame)
+
+        # not working: it duplicates existing frames
+        # bpy.ops.gpencil.blank_frame_add(all_layers=True)
+    elif "ACTIVE" == layerMode:
+        currentFrameIsOnGPFrame = isCurrentFrameOnLayerFrame(gpencil, currentFrame, "ACTIVE")
+        if not currentFrameIsOnGPFrame and not gpencil.data.layers.active.lock:
+            # bpy.ops.gpencil.blank_frame_add(all_layers=False)
+            gpencil.data.layers.active.frames.new(currentFrame)
+    else:
+        gpLayer = gpencil.data.layers[layerMode]
+        currentFrameIsOnGPFrame = isCurrentFrameOnLayerFrame(gpencil, currentFrame, layerMode)
+        if not currentFrameIsOnGPFrame and not gpLayer.lock:
+            # prevActiveLayer = gpencil.data.layers.active
+            # gpencil.data.layers.active = gpLayer
+            # bpy.ops.gpencil.blank_frame_add(all_layers=False)
+            gpLayer.frames.new(currentFrame)
+            # gpencil.data.layers.active = prevActiveLayer
+
+    return
+
+
+def duplicateFrameToLayer(gpencil: bpy.types.GreasePencil, currentFrame, layerMode):
+    """Duplicate an existing key of the specified layer at the specified frame
     Args:
         layerMode: Can be "NOLAYER", "ACTIVE", "ALL" or the name of the layer
         Usually comes from props.greasePencil_layersMode
