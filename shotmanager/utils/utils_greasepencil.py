@@ -26,6 +26,11 @@ import bpy
 import mathutils
 from shotmanager.utils import utils
 
+from shotmanager.config import sm_logging
+
+_logger = sm_logging.getLogger(__name__)
+
+
 ###################
 # Grease Pencil
 ###################
@@ -36,69 +41,91 @@ def create_new_greasepencil(gp_name, parentCamera=None, location=None, locate_on
     Return this object
     Args:   parentCamera: the camera to parent to
     """
-    # no data of empty objects
+    scene = bpy.context.scene
+
+    # empty intermediate object
+    ####################
+    # no data to specify for empty objects
     gpEmpty = bpy.data.objects.new("empty", None)
-    bpy.context.scene.collection.objects.link(gpEmpty)
+    scene.collection.objects.link(gpEmpty)
+    gpEmpty.name = gp_name + "_empty"
 
     gpEmpty.empty_display_size = 0.5
     gpEmpty.empty_display_type = "ARROWS"  # "PLAIN_AXES"
 
-    gpEmpty
     gpEmpty.lock_location = [True, True, True]
     gpEmpty.lock_rotation = [True, True, True]
     gpEmpty.lock_scale = [True, True, True]
 
-    # grease pencil frame
-    new_gp_data = bpy.data.grease_pencils.new(gp_name)
-    new_gp_obj = bpy.data.objects.new(new_gp_data.name, new_gp_data)
-    new_gp_obj.name = new_gp_data.name
-
-    new_gp_obj.use_grease_pencil_lights = False
-
     # add to main collection
-    # bpy.context.collection.objects.link(new_gp_obj)
+    # bpy.context.collection.objects.link(gpencil)
 
-    # add to a collection named "GreasePencil"
-    gpCollName = "GreasePencil"
+    # add empty object to a specific collection
+    emptyCollectionName = "SM_Storyboard_Empties"
     cpColl = None
-    if gpCollName not in bpy.context.scene.collection.children:
-        cpColl = bpy.data.collections.new(name=gpCollName)
-        bpy.context.scene.collection.children.link(cpColl)
+    if emptyCollectionName not in scene.collection.children:
+        cpColl = bpy.data.collections.new(name=emptyCollectionName)
+        scene.collection.children.link(cpColl)
     else:
-        cpColl = bpy.context.scene.collection.children[gpCollName]
-    cpColl.objects.link(new_gp_obj)
+        cpColl = scene.collection.children[emptyCollectionName]
+    utils.excludeLayerCollection(scene, emptyCollectionName, True)
+    cpColl.objects.link(gpEmpty)
+
+    # for some reason the empty also belongs to the scence collection, so we remove it from there
+    scene.collection.objects.unlink(gpEmpty)
+
+    # grease pencil frame
+    ####################
+    gpencil_data = bpy.data.grease_pencils.new(gp_name)
+    gpencil = bpy.data.objects.new(gpencil_data.name, gpencil_data)
+    gpencil.name = gpencil_data.name
+
+    gpencil.use_grease_pencil_lights = False
+
+    # add grease pencil object to a specific collection
+    gpCollectionName = "SM_Storyboard_Frames"
+    cpColl = None
+    if gpCollectionName not in scene.collection.children:
+        cpColl = bpy.data.collections.new(name=gpCollectionName)
+        scene.collection.children.link(cpColl)
+    else:
+        cpColl = scene.collection.children[gpCollectionName]
+    cpColl.objects.link(gpencil)
 
     if parentCamera is not None:
         gpEmpty.parent = parentCamera
-    new_gp_obj.parent = gpEmpty
+    gpencil.parent = gpEmpty
 
     if location is None:
-        new_gp_obj.location = [0, 0, 0]
+        gpencil.location = [0, 0, 0]
     elif locate_on_cursor:
-        new_gp_obj.location = bpy.context.scene.cursor.location
+        gpencil.location = scene.cursor.location
     else:
-        new_gp_obj.location = location
+        gpencil.location = location
 
-    # new_gp_obj.lock_location = [True, True, True]
-    # new_gp_obj.lock_rotation = [True, True, True]
-    # new_gp_obj.lock_scale = [True, True, True]
-    new_gp_obj.lock_rotation[0] = True
-    new_gp_obj.lock_rotation[1] = True
+    # gpencil.lock_location = [True, True, True]
+    # gpencil.lock_rotation = [True, True, True]
+    # gpencil.lock_scale = [True, True, True]
+    gpencil.lock_rotation[0] = True
+    gpencil.lock_rotation[1] = True
 
     # from math import radians
 
     # # align gp with camera axes
-    # new_gp_obj.rotation_euler = (radians(0.0), 0.0, radians(0.0))
+    # gpencil.rotation_euler = (radians(0.0), 0.0, radians(0.0))
 
-    add_grease_pencil_draw_layers(new_gp_obj)
-    create_grease_pencil_material(new_gp_obj, "LINES")
-    create_grease_pencil_material(new_gp_obj, "FILLS")
+    add_grease_pencil_draw_layers(gpencil)
+    create_grease_pencil_material(gpencil, "LINES")
+    create_grease_pencil_material(gpencil, "FILLS")
 
-    add_grease_pencil_canvas_layer(new_gp_obj, "GP_Canvas", order="BOTTOM", camera=parentCamera)
+    add_grease_pencil_canvas_layer(gpencil, "GP_Canvas", order="BOTTOM", camera=parentCamera)
 
-    new_gp_obj.data.layers.active = new_gp_obj.data.layers["Lines"]
+    gpencil.data.layers.active = gpencil.data.layers["Lines"]
 
-    return new_gp_obj
+    return gpencil
+
+
+# def copy_greasepencil(gp_name, parentCamera=None, location=None, locate_on_cursor=False):
 
 
 def get_greasepencil_child(obj, childType="GPENCIL", name_filter=""):
@@ -509,19 +536,19 @@ def switchToDrawMode(gpencil: bpy.types.GreasePencil):
 
 
 def getLayerPreviousFrame(gpencil: bpy.types.GreasePencil, currentFrame, layerMode):
-    """Return the previous key of the specified layer
+    """Return the frame value of the previous key of the specified layer
     Args:
         layerMode: Can be "NOLAYER", "ACTIVE", "ALL" or the name of the layer
         Usually comes from props.greasePencil_layersMode
     """
 
     def _getPrevFrame(gpLayer, frame):
-        for f in reversed(gpLayer.frames):
-            if f.frame_number < frame:
-                return f.frame_number
+        for kf in reversed(gpLayer.frames):
+            if kf.frame_number < frame:
+                return kf.frame_number
         return frame
 
-    gpFrame = currentFrame
+    previousFrame = currentFrame
     if "NOLAYER" == layerMode:
         pass
     elif "ALL" == layerMode:
@@ -531,31 +558,31 @@ def getLayerPreviousFrame(gpencil: bpy.types.GreasePencil, currentFrame, layerMo
             if prevKeyFrame < currentFrame:
                 mins.append(prevKeyFrame)
         if len(mins):
-            gpFrame = max(mins)
+            previousFrame = max(mins)
     elif "ACTIVE" == layerMode:
         gpLayer = gpencil.data.layers.active
-        gpFrame = _getPrevFrame(gpLayer, currentFrame)
+        previousFrame = _getPrevFrame(gpLayer, currentFrame)
     else:
         gpLayer = gpencil.data.layers[layerMode]
-        gpFrame = _getPrevFrame(gpLayer, currentFrame)
+        previousFrame = _getPrevFrame(gpLayer, currentFrame)
 
-    return gpFrame
+    return previousFrame
 
 
 def getLayerNextFrame(gpencil: bpy.types.GreasePencil, currentFrame, layerMode):
-    """Return the next key of the specified layer
+    """Return the frame value of the next key of the specified layer
     Args:
         layerMode: Can be "NOLAYER", "ACTIVE", "ALL" or the name of the layer
         Usually comes from props.greasePencil_layersMode
     """
 
     def _getNextFrame(gpLayer, frame):
-        for f in gpLayer.frames:
-            if f.frame_number > frame:
-                return f.frame_number
+        for kf in gpLayer.frames:
+            if kf.frame_number > frame:
+                return kf.frame_number
         return frame
 
-    gpFrame = currentFrame
+    nextFrame = currentFrame
     if "NOLAYER" == layerMode:
         pass
     elif "ALL" == layerMode:
@@ -565,27 +592,27 @@ def getLayerNextFrame(gpencil: bpy.types.GreasePencil, currentFrame, layerMode):
             if currentFrame < nextKeyFrame:
                 maxs.append(nextKeyFrame)
         if len(maxs):
-            gpFrame = min(maxs)
+            nextFrame = min(maxs)
     elif "ACTIVE" == layerMode:
         gpLayer = gpencil.data.layers.active
-        gpFrame = _getNextFrame(gpLayer, currentFrame)
+        nextFrame = _getNextFrame(gpLayer, currentFrame)
     else:
         gpLayer = gpencil.data.layers[layerMode]
-        gpFrame = _getNextFrame(gpLayer, currentFrame)
+        nextFrame = _getNextFrame(gpLayer, currentFrame)
 
-    return gpFrame
+    return nextFrame
 
 
-def isCurrentFrameOnLayerFrame(gpencil: bpy.types.GreasePencil, currentFrame, layerMode):
-    """Return True if the specifed layer has a key at the specified frame
+def isCurrentFrameOnLayerKeyFrame(gpencil: bpy.types.GreasePencil, currentFrame, layerMode):
+    """Return True if the specifed layer has a key at the specified time frame
     Args:
         layerMode: Can be "NOLAYER", "ACTIVE", "ALL" or the name of the layer
         Usually comes from props.greasePencil_layersMode
     """
 
     def _isCurrentFrameOnFrame(gpLayer, frame):
-        for f in gpLayer.frames:
-            if f.frame_number == frame:
+        for kf in gpLayer.frames:
+            if kf.frame_number == frame:
                 return True
         return False
 
@@ -607,89 +634,46 @@ def isCurrentFrameOnLayerFrame(gpencil: bpy.types.GreasePencil, currentFrame, la
     return currentFrameIsOnGPFrame
 
 
-def addFrameToLayer(gpencil: bpy.types.GreasePencil, currentFrame, layerMode):
-    """Add a new key to the specified layer at the specified frame
+def getLayerKeyFrameAtFrame(gpencil: bpy.types.GreasePencil, currentFrame, layerMode):
+    """Return the layer key frame that is at the specified time frame, None if the
+    specifed layer has no key frame at that time
     Args:
-        layerMode: Can be "NOLAYER", "ACTIVE", "ALL" or the name of the layer
+        layerMode: Can be "ACTIVE" or the name of the layer
         Usually comes from props.greasePencil_layersMode
     """
+    if "NOLAYER" == layerMode or "ALL" == layerMode:
+        return None
 
-    if "NOLAYER" == layerMode:
-        return
-    elif "ALL" == layerMode:
-        for layer in gpencil.data.layers:
-            if not layer.lock:
-                if not isCurrentFrameOnLayerFrame(gpencil, currentFrame, layer.info):
-                    layer.frames.new(currentFrame)
+    def _getKeyFrameAtFrame(gpLayer, frame):
+        for kf in gpLayer.frames:
+            if kf.frame_number == frame:
+                return kf
+        return None
 
-        # not working: it duplicates existing frames
-        # bpy.ops.gpencil.blank_frame_add(all_layers=True)
-    elif "ACTIVE" == layerMode:
-        currentFrameIsOnGPFrame = isCurrentFrameOnLayerFrame(gpencil, currentFrame, "ACTIVE")
-        if not currentFrameIsOnGPFrame and not gpencil.data.layers.active.lock:
-            # bpy.ops.gpencil.blank_frame_add(all_layers=False)
-            gpencil.data.layers.active.frames.new(currentFrame)
+    keyFrame = None
+    if "ACTIVE" == layerMode:
+        gpLayer = gpencil.data.layers.active
+        keyFrame = _getKeyFrameAtFrame(gpLayer, currentFrame)
     else:
         gpLayer = gpencil.data.layers[layerMode]
-        currentFrameIsOnGPFrame = isCurrentFrameOnLayerFrame(gpencil, currentFrame, layerMode)
-        if not currentFrameIsOnGPFrame and not gpLayer.lock:
-            # prevActiveLayer = gpencil.data.layers.active
-            # gpencil.data.layers.active = gpLayer
-            # bpy.ops.gpencil.blank_frame_add(all_layers=False)
-            gpLayer.frames.new(currentFrame)
-            # gpencil.data.layers.active = prevActiveLayer
+        keyFrame = _getKeyFrameAtFrame(gpLayer, currentFrame)
 
-    return
+    return keyFrame
 
 
-def duplicateFrameToLayer(gpencil: bpy.types.GreasePencil, currentFrame, layerMode):
-    """Duplicate an existing key of the specified layer at the specified frame
-    Args:
-        layerMode: Can be "NOLAYER", "ACTIVE", "ALL" or the name of the layer
-        Usually comes from props.greasePencil_layersMode
-    """
-
-    if "NOLAYER" == layerMode:
-        return
-    elif "ALL" == layerMode:
-        for layer in gpencil.data.layers:
-            if not layer.lock:
-                if not isCurrentFrameOnLayerFrame(gpencil, currentFrame, layer.info):
-                    layer.frames.new(currentFrame)
-
-        # not working: it duplicates existing frames
-        # bpy.ops.gpencil.blank_frame_add(all_layers=True)
-    elif "ACTIVE" == layerMode:
-        currentFrameIsOnGPFrame = isCurrentFrameOnLayerFrame(gpencil, currentFrame, "ACTIVE")
-        if not currentFrameIsOnGPFrame and not gpencil.data.layers.active.lock:
-            # bpy.ops.gpencil.blank_frame_add(all_layers=False)
-            gpencil.data.layers.active.frames.new(currentFrame)
-    else:
-        gpLayer = gpencil.data.layers[layerMode]
-        currentFrameIsOnGPFrame = isCurrentFrameOnLayerFrame(gpencil, currentFrame, layerMode)
-        if not currentFrameIsOnGPFrame and not gpLayer.lock:
-            # prevActiveLayer = gpencil.data.layers.active
-            # gpencil.data.layers.active = gpLayer
-            # bpy.ops.gpencil.blank_frame_add(all_layers=False)
-            gpLayer.frames.new(currentFrame)
-            # gpencil.data.layers.active = prevActiveLayer
-
-    return
-
-
-def getLayerFrameIndexAtFrame(gpencil: bpy.types.GreasePencil, currentFrame, layerMode):
-    """Return the index of the layer frame at the specified time frame.
+def getLayerKeyFrameIndexAtFrame(gpencil: bpy.types.GreasePencil, currentFrame, layerMode):
+    """Return the index of the layer key frame at the specified time frame.
     If no layer frame matches the time frame then -1 is returned
     Args:
         layerMode: Can be "NOLAYER", "ACTIVE", "ALL" or the name of the layer
         Usually comes from props.greasePencil_layersMode
     """
-    if not isCurrentFrameOnLayerFrame(gpencil, currentFrame, layerMode):
+    if not isCurrentFrameOnLayerKeyFrame(gpencil, currentFrame, layerMode):
         return -1
 
     def _getLayerFrameIndexAtFrame(layer, currentFrame):
-        for ind, f in enumerate(layer.frames):
-            if f.frame_number == currentFrame:
+        for ind, kf in enumerate(layer.frames):
+            if kf.frame_number == currentFrame:
                 return ind
         return -1
 
@@ -700,9 +684,9 @@ def getLayerFrameIndexAtFrame(gpencil: bpy.types.GreasePencil, currentFrame, lay
         # TODO
         # for layer in gpencil.data.layers:
         #     if not layer.lock:
-        #         if not isCurrentFrameOnLayerFrame(gpencil, currentFrame, layer.info):
+        #         if not isCurrentFrameOnLayerKeyFrame(gpencil, currentFrame, layer.info):
         #             layer.frames.new(currentFrame)
-
+        _logger.debug_ext("getLayerKeyFrameIndexAtFrame TODO", col="RED")
         # not working: it duplicates existing frames
         # bpy.ops.gpencil.blank_frame_add(all_layers=True)
         pass
@@ -713,3 +697,99 @@ def getLayerFrameIndexAtFrame(gpencil: bpy.types.GreasePencil, currentFrame, lay
         layerFrameInd = _getLayerFrameIndexAtFrame(gpLayer, currentFrame)
 
     return layerFrameInd
+
+
+def addKeyFrameToLayer(gpencil: bpy.types.GreasePencil, currentFrame, layerMode):
+    """Add a new key frame to the specified layer at the specified time frame
+    Return the key frame
+    Args:
+        layerMode: Can be "NOLAYER", "ACTIVE", "ALL" or the name of the layer
+        Usually comes from props.greasePencil_layersMode
+    """
+    # NOTE: operators are not working as expected: blank_frame_add duplicates existing frames
+    # bpy.ops.gpencil.blank_frame_add(all_layers=True)
+    newLayerKeyFrame = None
+    if "NOLAYER" == layerMode:
+        return None
+    elif "ALL" == layerMode:
+        for layer in gpencil.data.layers:
+            if not layer.lock:
+                if not isCurrentFrameOnLayerKeyFrame(gpencil, currentFrame, layer.info):
+                    newLayerKeyFrame = layer.frames.new(currentFrame)
+                    # refresh viewport
+                    layer.hide = not layer.hide
+                    layer.hide = not layer.hide
+    else:
+        if "ACTIVE" == layerMode:
+            gpLayer = gpencil.data.layers.active
+        else:
+            gpLayer = gpencil.data.layers[layerMode]
+
+        if not gpLayer.lock and not isCurrentFrameOnLayerKeyFrame(gpencil, currentFrame, gpLayer.info):
+            newLayerKeyFrame = gpLayer.frames.new(currentFrame)
+            # refresh viewport
+            gpLayer.hide = not gpLayer.hide
+            gpLayer.hide = not gpLayer.hide
+
+    return newLayerKeyFrame
+
+
+def duplicateLayerKeyFrame(gpencil: bpy.types.GreasePencil, currentFrame, layerMode):
+    """Duplicate an existing key frame of the specified layer at the specified time frame
+    Return the key frame or None when already on a key
+    Args:
+        layerMode: Can be "NOLAYER", "ACTIVE", "ALL" or the name of the layer
+        Usually comes from props.greasePencil_layersMode
+    """
+    newLayerKeyFrame = None
+    if "NOLAYER" == layerMode:
+        return None
+    elif "ALL" == layerMode:
+        for layer in gpencil.data.layers:
+            if not layer.lock:
+                if not isCurrentFrameOnLayerKeyFrame(gpencil, currentFrame, layer.info):
+                    prevFrame = getLayerPreviousFrame(gpencil, currentFrame, layer.info)
+                    if prevFrame < currentFrame:
+                        newLayerKeyFrame = layer.frames.copy(getLayerKeyFrameAtFrame(gpencil, prevFrame, layer.info))
+                        newLayerKeyFrame.frame_number = currentFrame
+    else:
+        if "ACTIVE" == layerMode:
+            gpLayer = gpencil.data.layers.active
+        else:
+            gpLayer = gpencil.data.layers[layerMode]
+
+        if not gpLayer.lock and not isCurrentFrameOnLayerKeyFrame(gpencil, currentFrame, gpLayer.info):
+            if prevFrame < currentFrame:
+                newLayerKeyFrame = layer.frames.copy(getLayerKeyFrameAtFrame(gpencil, prevFrame, gpLayer.info))
+                newLayerKeyFrame.frame_number = currentFrame
+
+    return newLayerKeyFrame
+
+
+def deleteLayerKeyFrame(gpencil: bpy.types.GreasePencil, currentFrame, layerMode):
+    """Delete an existing key frame of the specified layer at the specified time frame
+    Return the key frame or None when already on a key
+    Args:
+        layerMode: Can be "NOLAYER", "ACTIVE", "ALL" or the name of the layer
+        Usually comes from props.greasePencil_layersMode
+    """
+    if "NOLAYER" == layerMode:
+        return None
+    elif "ALL" == layerMode:
+        for layer in gpencil.data.layers:
+            if not layer.lock:
+                layerKeyFrame = getLayerKeyFrameAtFrame(gpencil, currentFrame, layer.info)
+                if layerKeyFrame is not None:
+                    layer.frames.remove(layerKeyFrame)
+    else:
+        if "ACTIVE" == layerMode:
+            gpLayer = gpencil.data.layers.active
+        else:
+            gpLayer = gpencil.data.layers[layerMode]
+
+        if not gpLayer.lock:
+            layerKeyFrame = getLayerKeyFrameAtFrame(gpencil, currentFrame, gpLayer.info)
+            if layerKeyFrame is not None:
+                gpLayer.frames.remove(layerKeyFrame)
+
+    return

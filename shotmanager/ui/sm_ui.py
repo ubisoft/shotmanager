@@ -746,7 +746,7 @@ class UAS_PT_ShotManager(Panel):
             # col = row.column(align=True)
             # shotsrow.separator(factor=3.2)
             # row.operator("uas_shot_manager.shots_prefs", text="", icon="SETTINGS")
-            #  shotsrow.operator("shot_manager.features", text="", icon="PROPERTIES")
+            # shotsrow.operator("shot_manager.features", text="", icon="PROPERTIES")
             shotsrow.menu("UAS_MT_Shot_Manager_shots_toolsmenu", icon="TOOL_SETTINGS", text="")
 
             ##################################################
@@ -760,12 +760,13 @@ class UAS_PT_ShotManager(Panel):
             col = row.column(align=True)
             col.operator("uas_shot_manager.shot_add", icon="ADD", text="")
             col.operator("uas_shot_manager.shot_duplicate", icon="DUPLICATE", text="")
-            col.operator("uas_shot_manager.shot_remove", icon="REMOVE", text="")
+            # col.operator("uas_shot_manager.shot_remove", icon="REMOVE", text="")
+            col.operator("uas_shot_manager.remove_multiple_shots", icon="REMOVE", text="").action = "SELECTED"
             col.separator()
             col.operator("uas_shot_manager.shot_move", icon="TRIA_UP", text="").action = "UP"
             col.operator("uas_shot_manager.shot_move", icon="TRIA_DOWN", text="").action = "DOWN"
             col.separator()
-            #   col.menu("UAS_MT_Shot_Manager_shots_toolsmenu", icon="TOOL_SETTINGS", text="")
+            # col.menu("UAS_MT_Shot_Manager_shots_toolsmenu", icon="TOOL_SETTINGS", text="")
 
             row = layout.row()
 

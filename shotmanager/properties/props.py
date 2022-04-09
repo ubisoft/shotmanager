@@ -51,8 +51,7 @@ from ..operators.shots_global_settings import UAS_ShotManager_ShotsGlobalSetting
 from ..retimer.retimer_props import UAS_Retimer_Properties
 
 from shotmanager.utils import utils
-
-# from shotmanager.utils.utils_time import zoom_dopesheet_view_to_range
+from shotmanager.utils import utils_greasepencil
 
 # from shotmanager.config import config
 from shotmanager.config import sm_logging
@@ -1937,7 +1936,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
 
         return newShot
 
-    def copyShot(self, shot, atIndex=-1, targetTakeIndex=-1, copyCamera=False):
+    def copyShot(self, shot, atIndex=-1, targetTakeIndex=-1, copyCamera=False, copyGreasePencil=False):
         """Copy a shot after the current shot if possible or at the end of the shot list otherwise (case of an add in a take
         that is not the current one)
         Return the newly added shot
@@ -1961,11 +1960,19 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
 
         cam = shot.camera
         if copyCamera and shot.camera is not None:
-            newCam = utils.duplicateObject(cam)
+            newCam = utils.duplicateObject(cam, duplicateHierarchy=copyGreasePencil)
             if targetTakeIndex == sourceTakeInd:
                 newCam.name = cam.name + "_copy"
             newCam.color = utils.sRGBColor(utils.slightlyRandomizeColor(utils.linearizeColor(cam.color)))
             cam = newCam
+
+            utils.select_object(cam)
+            # if copyGreasePencil:
+            #     gpencil = utils_greasepencil.get_greasepencil_child(cam, childType="EMPTY")
+            #     if gpencil is not None:
+            #         new_gpencil = utils_greasepencil.copy_greasepencil()
+            #         new_gpencil = utils.duplicateObject(gpencil, duplicateHierarchy=True)
+            #         new_gpencil.parent = cam
 
         nameSuffix = ""
         if targetTakeIndex == sourceTakeInd:

@@ -25,6 +25,7 @@ from pathlib import Path
 from urllib.parse import unquote_plus, urlparse
 
 from random import uniform
+from xmlrpc.client import Boolean
 
 import bpy
 
@@ -657,86 +658,62 @@ def getSceneVSE(vsm_sceneName, createVseTab=False):
 ###################
 
 
-def duplicateObject(sourceObject, newName=None):
+def duplicateObject(sourceObject, newName=None, duplicateHierarchy=False):
     """Duplicate (deepcopy) an object and place it in the same collection
     Can be any 3D object, camera...
     """
-    newObject = sourceObject.copy()
-    if newObject.animation_data is not None:
-        newObject.animation_data.action = sourceObject.animation_data.action.copy()
 
-    newObject.data = sourceObject.data.copy()
-    if newObject.data.animation_data is not None:
-        newObject.data.animation_data.action = sourceObject.data.animation_data.action.copy()
+    def _duplicateObjectRec(sourceObject, sourceParent, dupHierarchy):
 
-    sourceCollections = sourceObject.users_collection
-    if len(sourceCollections):
-        sourceCollections[0].objects.link(newObject)
-    else:
-        (sourceObject.users_scene)[0].collection.objects.link(newObject)
+        newObject = sourceObject.copy()
+        if newObject.animation_data is not None:
+            newObject.animation_data.action = sourceObject.animation_data.action.copy()
 
+        # empty objects don't have data
+        if sourceObject.data is not None:
+            newObject.data = sourceObject.data.copy()
+            if newObject.data.animation_data is not None:
+                newObject.data.animation_data.action = sourceObject.data.animation_data.action.copy()
+
+        sourceCollections = sourceObject.users_collection
+        if len(sourceCollections):
+            sourceCollections[0].objects.link(newObject)
+        else:
+            (sourceObject.users_scene)[0].collection.objects.link(newObject)
+
+        newObject.parent = sourceParent
+
+        if dupHierarchy:
+            for child in sourceObject.children:
+                _duplicateObjectRec(child, newObject, True)
+
+        return newObject
+
+    rootNewObject = _duplicateObjectRec(sourceObject, None, duplicateHierarchy)
     if newName is not None and "" != newName:
-        newObject.name = newName
-        newObject.data.name = newName
+        rootNewObject.name = newName
+        rootNewObject.data.name = newName
 
-    return newObject
+    return rootNewObject
 
 
 ###################
-# Grease Pencil
+# Collections
 ###################
 
 
-def create_new_greasepencil(gp_name, parent_object=None, location=None, locate_on_cursor=False):
-    new_gp_data = bpy.data.grease_pencils.new(gp_name)
-    new_gp_obj = bpy.data.objects.new(new_gp_data.name, new_gp_data)
-    new_gp_obj.name = new_gp_data.name
+def excludeLayerCollection(scene, collectionName, value: Boolean):
+    """Exclude a collection from the view_layer (= check the little Exclude checkbox)"""
+    # NOTE: A Layer Collection is different from a Collection and the Exclude parameter is
+    # only available on a Layer Collection, which is related to a view_layer
+    # Layer Collection: https://docs.blender.org/api/current/bpy.types.LayerCollection.html
+    # Collection: https://docs.blender.org/api/current/bpy.types.Collection.html#bpy.types.Collection
 
-    # add to main collection
-    # bpy.context.collection.objects.link(new_gp_obj)
-
-    # add to a collection named "Cameras"
-    gpCollName = "GreasePencil"
-    cpColl = None
-    if gpCollName not in bpy.context.scene.collection.children:
-        cpColl = bpy.data.collections.new(name=gpCollName)
-        bpy.context.scene.collection.children.link(cpColl)
-    else:
-        cpColl = bpy.context.scene.collection.children[gpCollName]
-    cpColl.objects.link(new_gp_obj)
-
-    if parent_object is not None:
-        new_gp_obj.parent = parent_object
-
-    if location is None:
-        new_gp_obj.location = [0, 0, 0]
-    else:
-        new_gp_obj.location = location
-
-    if locate_on_cursor:
-        new_gp_obj.location = bpy.context.scene.cursor.location
-
-    from math import radians
-
-    new_gp_obj.rotation_euler = (radians(90), 0.0, radians(90))
-
-    # import math
-    # import mathutils
-
-    # eul = mathutils.Euler((math.radians(90.0), 0.0, 0.0), "XYZ")
-
-    # if new_gp_obj.rotation_mode == "QUATERNION":
-    #     new_gp_obj.rotation_quaternion = eul.to_quaternion()
-    # elif new_gp_obj.rotation_mode == "AXIS_ANGLE":
-    #     q = eul.to_quaternion()
-    #     new_gp_obj.rotation_axis_angle[0] = q.angle
-    #     new_gp_obj.rotation_axis_angle[1:] = q.axis
-    # else:
-    #     new_gp_obj.rotation_euler = (
-    #         eul if eul.order == new_gp_obj.rotation_mode else (eul.to_quaternion().to_euler(new_gp_obj.rotation_mode))
-    #     )
-
-    return new_gp_obj
+    for viewLayer in scene.view_layers:
+        for col in viewLayer.layer_collection.children:
+            if col.name == collectionName:
+                col.exclude = value
+                return
 
 
 ###################
@@ -1032,9 +1009,10 @@ def remove_background_video_from_cam(camera: bpy.types.Camera):
 
 def clear_selection():
     if bpy.context.active_object is not None:
-        bpy.context.active_object.select_set(False)
-    for obj in bpy.context.selected_objects:
-        bpy.context.view_layer.objects.active = obj
+        bpy.context.view_layer.objects.active = None
+    selectedObjs = [obj for obj in bpy.context.selected_objects]
+    for obj in selectedObjs:
+        obj.select_set(False)
 
 
 def select_object(obj: bpy.types.Object, clear_sel=True):

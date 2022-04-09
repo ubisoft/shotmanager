@@ -136,7 +136,7 @@ def draw_greasepencil_play_tools(layout, context, shot, layersListDropdown=None)
 
     isCurrentFrameOnGPFrame = False
     if objIsGP:
-        isCurrentFrameOnGPFrame = utils_greasepencil.isCurrentFrameOnLayerFrame(
+        isCurrentFrameOnGPFrame = utils_greasepencil.isCurrentFrameOnLayerKeyFrame(
             gp, context.scene.frame_current, props.greasePencil_layersMode
         )
     else:
@@ -151,14 +151,12 @@ def draw_greasepencil_play_tools(layout, context, shot, layersListDropdown=None)
         iconFrame = "KEYFRAME"
     # iconFrame = "ADD"
     frameOpRow = keysRow.row(align=True)
-    frameOpRow.operator("uas_shot_manager.greasepencil_frameoperation", icon=iconFrame, text="").frameMode = "NEW"
-    frameOpRow.operator("uas_shot_manager.greasepencil_frameoperation", icon=iconFrame, text="").frameMode = "DUPLICATE"
+    frameOpRow.operator("uas_shot_manager.greasepencil_newkeyframe", icon=iconFrame, text="")
+    frameOpRow.operator("uas_shot_manager.greasepencil_duplicatekeyframe", icon=iconFrame, text="")
 
     delFrameOpRow = frameOpRow.row(align=True)
     delFrameOpRow.enabled = isCurrentFrameOnGPFrame
-    delFrameOpRow.operator(
-        "uas_shot_manager.greasepencil_frameoperation", icon="PANEL_CLOSE", text=""
-    ).frameMode = "DELETE"
+    delFrameOpRow.operator("uas_shot_manager.greasepencil_deletekeyframe", icon="PANEL_CLOSE", text="")
 
     # keysRow.enabled = True
     keysRow.operator("uas_shot_manager.greasepencil_nextkey", icon="NEXT_KEYFRAME", text="")

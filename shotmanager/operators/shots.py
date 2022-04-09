@@ -728,6 +728,7 @@ class UAS_ShotManager_ShotDuplicate(Operator):
     addToEndOfList: BoolProperty(name="Add at the End of the List")
     duplicateCam: BoolProperty(name="Duplicate Camera", default=True)
     camName: StringProperty(name="Camera Name")
+    duplicateStoryboardGP: BoolProperty(name="Duplicate Storyboard Frame", default=True)
 
     @classmethod
     def poll(cls, context):
@@ -766,7 +767,7 @@ class UAS_ShotManager_ShotDuplicate(Operator):
         subgrid_flow.separator(factor=1.0)
         subgrid_flow.prop(self, "duplicateCam")
 
-        row = box.row()
+        row = subgrid_flow.row()
         row.enabled = self.duplicateCam
         row.scale_x = 1.6
         row.separator(factor=2.0)
@@ -774,6 +775,11 @@ class UAS_ShotManager_ShotDuplicate(Operator):
         row.scale_x = 2.4
         row.prop(self, "camName", text="")
         row.separator(factor=0.5)
+
+        row = subgrid_flow.row()
+        row.enabled = self.duplicateCam
+        row.separator(factor=5)
+        row.prop(self, "duplicateStoryboardGP")
 
         box.separator(factor=0.4)
 
@@ -786,7 +792,10 @@ class UAS_ShotManager_ShotDuplicate(Operator):
             return {"CANCELLED"}
 
         newShotInd = len(props.get_shots()) if self.addToEndOfList else selectedShotInd + 1
-        newShot = props.copyShot(selectedShot, atIndex=newShotInd, copyCamera=self.duplicateCam)
+        copyGreasePencil = self.duplicateCam and self.duplicateStoryboardGP
+        newShot = props.copyShot(
+            selectedShot, atIndex=newShotInd, copyCamera=self.duplicateCam, copyGreasePencil=copyGreasePencil
+        )
 
         # newShot.name = props.getUniqueShotName(self.name)
         newShot.name = self.name
@@ -805,6 +814,7 @@ class UAS_ShotManager_ShotDuplicate(Operator):
         return {"INTERFACE"}
 
 
+# Not used anymore - Using UAS_ShotManager_ShotRemoveMultiple instead
 class UAS_ShotManager_ShotRemove(Operator):
     bl_idname = "uas_shot_manager.shot_remove"
     bl_label = "Remove Selected Shot"
@@ -1246,15 +1256,18 @@ class UAS_ShotManager_DuplicateShotsToOtherTake(Operator):
 
 class UAS_ShotManager_ShotRemoveMultiple(Operator):
     bl_idname = "uas_shot_manager.remove_multiple_shots"
-    bl_label = "Remove Shots"
-    bl_description = "Remove the specified shots from the current take"
+    bl_label = "Remove Shot(s)"
+    bl_description = "Remove the specified shot(s) from the current take"
     bl_options = {"REGISTER", "UNDO"}
 
-    action: EnumProperty(items=(("ALL", "ALL", ""), ("DISABLED", "DISABLED", "")), default="ALL")
+    action: EnumProperty(
+        items=(("ALL", "ALL", ""), ("DISABLED", "DISABLED", ""), ("SELECTED", "SELECTED", "")), default="ALL"
+    )
 
     deleteCameras: BoolProperty(
         name="Delete Shots Cameras",
-        description="When deleting a shot, also delete the associated camera, if not used by another shot",
+        description="When deleting a shot, also delete the associated camera, if not used by another shot"
+        "\nand its storyboard frame, if any",
         default=False,
     )
 
@@ -1267,6 +1280,8 @@ class UAS_ShotManager_ShotRemoveMultiple(Operator):
             descr = "Remove all shots from the current take"
         elif "DISABLED" == properties.action:
             descr = "Remove only disabled shots from the current take"
+        elif "SELECTED" == properties.action:
+            descr = "Remove the shot selected in the shot list"
         return descr
 
     @classmethod
@@ -1287,16 +1302,17 @@ class UAS_ShotManager_ShotRemoveMultiple(Operator):
 
         col = grid_flow.column(align=False)
         col.scale_x = 0.6
-        col.label(text="Delete Associated Camera:")
+        txtS = "" if "SELECTED" == self.action else "s"
+        col.label(text=f"Also Remove Associated Camera{txtS}:")
         col = grid_flow.column(align=False)
         col.prop(self, "deleteCameras", text="")
 
-        # row = box.row(align=True)
-        # grid_flow = row.grid_flow(align=True, row_major=True, columns=1, even_columns=False)
-        # # grid_flow.separator( factor=0.5)
-        # grid_flow.use_property_split = True
-        # grid_flow.prop(self, "startAtCurrentTime")
-        # grid_flow.prop(self, "addToEndOfList")
+        row = box.row()
+        row.separator(factor=2)
+        col = row.column(align=True)
+        col.enabled = False
+        col.label(text="Only cameras that are not used by any other shots can be deleted.")
+        col.label(text="Storyboard frames parented to the removed cameras will also be deleted.")
 
         layout.separator()
 
@@ -1307,7 +1323,7 @@ class UAS_ShotManager_ShotRemoveMultiple(Operator):
         currentShotInd = props.current_shot_index
         selectedShotInd = props.getSelectedShotIndex()
 
-        props.setCurrentShotByIndex(-1, setCamToViewport=False)
+        # props.setCurrentShotByIndex(-1, setCamToViewport=False)
 
         try:
             item = shots[selectedShotInd]
@@ -1315,7 +1331,7 @@ class UAS_ShotManager_ShotRemoveMultiple(Operator):
         except IndexError:
             pass
         else:
-            if self.action == "ALL":
+            if "ALL" == self.action:
                 props.setCurrentShotByIndex(-1, setCamToViewport=False)
                 i = len(shots) - 1
                 while i > -1:
@@ -1325,7 +1341,8 @@ class UAS_ShotManager_ShotRemoveMultiple(Operator):
                     props.removeShotByIndex(i, deleteCamera=self.deleteCameras)
                     i -= 1
                 props.setSelectedShotByIndex(-1)
-            elif self.action == "DISABLED":
+            elif "DISABLED" == self.action:
+                props.setCurrentShotByIndex(-1, setCamToViewport=False)
                 i = len(shots) - 1
                 while i > -1:
                     if not shots[i].enabled:
@@ -1339,6 +1356,8 @@ class UAS_ShotManager_ShotRemoveMultiple(Operator):
                 if 0 < len(shots):  # wkip pas parfait, on devrait conserver la sel currente
                     props.setCurrentShotByIndex(0, setCamToViewport=False)
                     props.setSelectedShotByIndex(0)
+            elif "SELECTED" == self.action:
+                props.removeShot_UIupdate(shots[selectedShotInd], deleteCamera=self.deleteCameras)
 
         #  print(" ** removed shots, len(props.get_shots()): ", len(props.get_shots()))
 

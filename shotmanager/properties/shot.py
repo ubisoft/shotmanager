@@ -576,7 +576,10 @@ class UAS_ShotManager_Shot(ShotInterface, PropertyGroup):
     def removeGreasePencil(self, type="STORYBOARD"):
         """Remove the Grease Pencil properties and the object parented to the camera of the shot."""
         if self.isCameraValid():
-            gp_child = utils_greasepencil.get_greasepencil_child(self.camera)
+            gp_child = utils_greasepencil.get_greasepencil_child(self.camera, childType="GPENCIL")
+            if gp_child is not None:
+                bpy.data.objects.remove(gp_child, do_unlink=True)
+            gp_child = utils_greasepencil.get_greasepencil_child(self.camera, childType="EMPTY")
             if gp_child is not None:
                 bpy.data.objects.remove(gp_child, do_unlink=True)
         if len(self.greasePencils):
