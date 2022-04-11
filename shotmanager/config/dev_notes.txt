@@ -59,6 +59,14 @@ OTIO advanced doc: https://sandflow.github.io/otio-core-specification/
 
 
 Grease Pencil for boarding:
+    - Urgent:
+        - Sur 176 - Interm gizmo, faire:
+            - reécrire Make All Cams Unique pour prendre en compte un changement par take seulement
+            - vérifier l'intégration du stb frame dans make cam unique ET make all cams unique
+        - faire une recherche sur addShot dans shots.py
+        - introduire proprement le type Storyboard
+        - Delete shots should delete also the cams and stb
+
     - focale animée sur cam: conséquences?
     - déplacement du start et end du shot:
         - pouvoir linker l'anim du gp au start

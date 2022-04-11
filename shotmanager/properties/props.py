@@ -1988,6 +1988,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
             camera=cam,
             color=cam.color,
             enabled=shot.enabled,
+            addGreasePencilStoryboard=False,
         )
 
         newShot.bgImages_offset = shot.bgImages_offset
@@ -1996,6 +1997,13 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         newShot.note01 = shot.note01
         newShot.note03 = shot.note02
         newShot.note03 = shot.note03
+
+        if len(shot.greasePencils):
+            gpProps = newShot.greasePencils.add()
+            gpProps.initialize(newShot)
+            sourceGpProps = shot.getGreasePencilProps("STORYBOARD")
+            if sourceGpProps is not None:
+                gpProps.copyPropertiesFrom(sourceGpProps)
 
         # newShot = shots.add()  # shot is added at the end
         # newShot.parentScene = shot.parentScene

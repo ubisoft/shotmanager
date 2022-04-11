@@ -573,6 +573,15 @@ class UAS_ShotManager_Shot(ShotInterface, PropertyGroup):
 
         return (gpProps, gpObj)
 
+    def getGreasePencilProps(self, type):
+        """Return the GreasePencilProperties instance of the specified type
+        Args:
+            type: "STORYBOARD"
+        """
+        # TODO: differenciate the types of grease pencils to provide the right one
+        gpProps = self.greasePencils[0] if len(self.greasePencils) else None
+        return gpProps
+
     def removeGreasePencil(self, type="STORYBOARD"):
         """Remove the Grease Pencil properties and the object parented to the camera of the shot."""
         if self.isCameraValid():

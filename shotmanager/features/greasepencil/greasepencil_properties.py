@@ -96,6 +96,14 @@ class GreasePencilProperties(PropertyGroup):
         options=set(),
     )
 
+    def copyPropertiesFrom(self, sourceGpProps):
+        """Copy the value of the properties of the specified GreasePencilProperties instance to this one
+        Camera value will not be changed.
+        """
+        self.distanceFromOrigin = sourceGpProps.distanceFromOrigin
+        self.canvasOpacity = sourceGpProps.canvasOpacity
+        self.canvasSize = sourceGpProps.canvasSize
+
     def updateGreasePencil(self):
         self.updateCanvas()
         self.updateGreasePencilToFrustum()
