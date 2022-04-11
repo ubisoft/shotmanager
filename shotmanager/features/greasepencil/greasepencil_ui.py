@@ -45,7 +45,14 @@ def draw_greasepencil_shot_properties(sm_ui, context, shot):
 
     box = layout.box()
     box.use_property_decorate = False
-    row = box.row()
+    row = box.row(align=True)
+
+    # grease pencil
+    ################
+
+    if props.display_storyboard_in_properties:  # and props.expand_greasepencil_properties:
+        gp.draw_greasepencil_play_tools(layout, context, shot, layersListDropdown=prefs.layersListDropdown)
+
     extendSubRow = row.row(align=True)
     extendSubRow.prop(prefs, "shot_greasepencil_expanded", text="", icon=panelIcon, emboss=False)
     # row.separator(factor=1.0)

@@ -103,6 +103,16 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         self.camera_hud_display_in_viewports = True
         self.camera_hud_display_in_pov = True
 
+        # enable features
+        prefs = bpy.context.preferences.addons["shotmanager"].preferences
+        self.display_storyboard_in_properties = prefs.display_storyboard_in_properties
+        self.display_notes_in_properties = prefs.display_notes_in_properties
+        self.display_cameraBG_in_properties = prefs.display_cameraBG_in_properties
+        self.display_takerendersettings_in_properties = prefs.display_takerendersettings_in_properties
+        self.display_editmode_in_properties = prefs.display_editmode_in_properties
+        self.display_globaleditintegr_in_properties = prefs.display_globaleditintegr_in_properties
+        self.display_advanced_infos = prefs.display_advanced_infos
+
         self.isInitialized = True
 
     def get_isInitialized(self):
@@ -812,39 +822,114 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         options=set(),
     )
 
-    display_greasepencil_in_properties: BoolProperty(
-        # name="Display Grease Pencil in Shot Properties",
-        description="Display Grease Pencil in the Shot Properties panels",
+    # hidden UI parameter
+    def _get_expand_notes_properties(self):
+        val = self.get("expand_notes_properties", False)
+        return val
+
+    def _set_expand_notes_properties(self, value):
+        self["expand_notes_properties"] = value
+
+    def _update_expand_notes_properties(self, context):
+        #    print("\n*** expand_notes_properties updated. New state: ", self.expand_notes_properties)
+        if self.expand_notes_properties:
+            self.expand_shot_properties = False
+            self.expand_cameraBG_properties = False
+            self.expand_greasepencil_properties = False
+
+    expand_notes_properties: BoolProperty(
+        name="Notes",
+        description="Expand the Notes Properties panel for the selected shot",
+        default=False,
+        get=_get_expand_notes_properties,
+        set=_set_expand_notes_properties,
+        update=_update_expand_notes_properties,
+    )
+
+    display_cameraBG_in_properties: BoolProperty(
+        name="Camera Background Tools",
+        description="Display the camera background image tools and controls in the Shot Properties panel",
         default=False,
         options=set(),
+    )
+    # hidden UI parameter
+    def _get_expand_cameraBG_properties(self):
+        val = self.get("expand_cameraBG_properties", False)
+        return val
+
+    def _set_expand_cameraBG_properties(self, value):
+        self["expand_cameraBG_properties"] = value
+
+    def _update_expand_cameraBG_properties(self, context):
+        #    print("\n*** expand_cameraBG_properties updated. New state: ", self.expand_cameraBG_properties)
+        if self.expand_cameraBG_properties:
+            self.expand_shot_properties = False
+            self.expand_notes_properties = False
+            self.expand_greasepencil_properties = False
+
+    expand_cameraBG_properties: BoolProperty(
+        name="Camera BG",
+        description="Expand the Camera Background Properties panel for the selected shot",
+        default=False,
+        get=_get_expand_cameraBG_properties,
+        set=_set_expand_cameraBG_properties,
+        update=_update_expand_cameraBG_properties,
+    )
+
+    display_storyboard_in_properties: BoolProperty(
+        name="Storyboard Frames and Grease Pencil Tools",
+        description="Display the storyboard frames properties and tools in the Shot properties panel."
+        "\nA storyboard frame is a Grease Pencil drawing surface associated to the camera of each shot",
+        default=False,
+    )
+
+    # hidden UI parameter
+    def _get_expand_greasepencil_properties(self):
+        val = self.get("expand_greasepencil_properties", False)
+        return val
+
+    def _set_expand_greasepencil_properties(self, value):
+        self["expand_greasepencil_properties"] = value
+
+    def _update_expand_greasepencil_properties(self, context):
+        #    print("\n*** expand_greasepencil_properties updated. New state: ", self.expand_greasepencil_properties)
+        if self.expand_greasepencil_properties:
+            self.expand_shot_properties = False
+            self.expand_notes_properties = False
+            self.expand_cameraBG_properties = False
+
+    expand_greasepencil_properties: BoolProperty(
+        name="Storyboard Frames",
+        description="Expand the Storyboard Frame Properties panel for the selected shot",
+        default=False,
+        get=_get_expand_greasepencil_properties,
+        set=_set_expand_greasepencil_properties,
+        update=_update_expand_greasepencil_properties,
+    )
+
+    display_takerendersettings_in_properties: BoolProperty(
+        name="Take Render Settings",
+        description="Display the take render settings in the Take Properties panel."
+        "\nThese options allow each take to be rendered with its own output resolution",
+        default=False,
     )
 
     display_editmode_in_properties: BoolProperty(
         name="Display Global Edit Integration Tools",
         description="Display the advanced properties of the takes used to specify their position in a global edit",
         default=False,
-        options=set(),
     )
 
     display_globaleditintegr_in_properties: BoolProperty(
         name="Display Global Edit Integration Tools",
         description="Display the advanced properties of the takes used to specify their position in a global edit",
         default=False,
-        options=set(),
-    )
-
-    display_takerendersettings_in_properties: BoolProperty(
-        # name="Display Take Render Settings in Take Properties panels",
-        description="Display the take render settings in the Take Properties panel",
-        default=False,
-        options=set(),
     )
 
     # display_retimer_in_properties: BoolProperty(
     #     name="Display Retimer sub-Panel",
     #     description="Display Retimer sub-panel in the Shot Manager panel",
     #     default=False,
-    #     options=set(),
     # )
 
     display_notes_in_shotlist: BoolProperty(name="Display Color in Shot List", default=True, options=set())
@@ -853,7 +938,6 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         name="Display Advanced Infos",
         description="Display technical information and feedback in the UI",
         default=False,
-        options=set(),
     )
 
     def _get_useLockCameraView(self):

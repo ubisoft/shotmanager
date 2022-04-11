@@ -60,6 +60,7 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
         "\nThis is 0 in most editing applications, sometimes 1."
         "\nIf the Project Settings are active then the value provided there is used instead",
         min=0,
+        soft_max=1001,
         subtype="TIME",
         default=0,
     )
@@ -69,15 +70,26 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
         description="Number of digits to use for the index of an output image in its name."
         "\nIf the Project Settings are active then the value provided there is used instead",
         min=1,
+        max=8,
         default=5,
     )
 
     new_shot_duration: IntProperty(
         name="Default Shot Duration",
         description="Default duration for new shots, in frames",
-        min=0,
+        min=1,
+        soft_max=250,
         subtype="TIME",
         default=50,
+    )
+
+    storyboard_default_canvas_opacity: FloatProperty(
+        name="Storyboard Default Canvas Opacity",
+        description="Opacity of the Canvas layer for new storyboard frames",
+        min=0.0,
+        max=1.0,
+        step=0.1,
+        default=1.0,
     )
 
     displaySMDebugPanel: BoolProperty(
@@ -151,6 +163,10 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
         name="Expand UI Preferences",
         default=False,
     )
+    addonPrefs_features_expanded: BoolProperty(
+        name="Expand Features Preferences",
+        default=False,
+    )
     addonPrefs_tools_expanded: BoolProperty(
         name="Expand Tools Preferences",
         default=False,
@@ -208,6 +224,56 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
     #     # update=_update_useLockCameraView,
     #     options=set(),
     # )
+
+    ########################################################################
+    # features to display by default   ###
+    ########################################################################
+
+    display_storyboard_in_properties: BoolProperty(
+        name="Storyboard Frames and Grease Pencil Tools",
+        description="Display the storyboard frames properties and tools in the Shot properties panel."
+        "\nA storyboard frame is a Grease Pencil drawing surface associated to the camera of each shot",
+        default=False,
+    )
+
+    display_notes_in_properties: BoolProperty(
+        name="Takes and Shots Notes",
+        description="Display the takes and shots notes in the Shot Properties panels",
+        default=False,
+        options=set(),
+    )
+
+    display_cameraBG_in_properties: BoolProperty(
+        name="Camera Background Tools",
+        description="Display the camera background image tools and controls in the Shot Properties panel",
+        default=False,
+        options=set(),
+    )
+
+    display_takerendersettings_in_properties: BoolProperty(
+        name="Take Render Settings",
+        description="Display the take render settings in the Take Properties panel."
+        "\nThese options allow each take to be rendered with its own output resolution",
+        default=False,
+    )
+
+    display_editmode_in_properties: BoolProperty(
+        name="Display Global Edit Integration Tools",
+        description="Display the advanced properties of the takes used to specify their position in a global edit",
+        default=False,
+    )
+
+    display_globaleditintegr_in_properties: BoolProperty(
+        name="Display Global Edit Integration Tools",
+        description="Display the advanced properties of the takes used to specify their position in a global edit",
+        default=False,
+    )
+
+    display_advanced_infos: BoolProperty(
+        name="Display Advanced Infos",
+        description="Display technical information and feedback in the UI",
+        default=False,
+    )
 
     ########################################################################
     # rendering ui   ###

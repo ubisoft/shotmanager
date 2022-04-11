@@ -23,6 +23,7 @@ from shotmanager.config import config
 from shotmanager.ui.dependencies_ui import drawDependencies
 from shotmanager.utils.utils_ui import collapsable_panel
 
+from shotmanager.prefs.features import draw_features_prefs
 
 ##################################################################################
 # Draw
@@ -43,26 +44,33 @@ def draw_shotmanager_addon_prefs(self, context):
     collapsable_panel(box, self, "addonPrefs_settings_expanded", text="Settings")
     if self.addonPrefs_settings_expanded:
 
-        split = box.split(factor=splitFactor)
+        split = box.split(factor=settingsSplitFactor)
         rowLeft = split.row()
         rowLeft.alignment = "RIGHT"
         rowLeft.label(text="Output First Frame Index")
         rowRight = split.row()
         rowRight.prop(self, "output_first_frame", text="Start Frame")
 
-        split = box.split(factor=splitFactor)
+        split = box.split(factor=settingsSplitFactor)
         rowLeft = split.row()
         rowLeft.alignment = "RIGHT"
         rowLeft.label(text="Image Name Digit Padding")
         rowRight = split.row()
         rowRight.prop(self, "img_name_digits_padding", text="Padding")
 
-        split = box.split(factor=splitFactor)
+        split = box.split(factor=settingsSplitFactor)
         rowLeft = split.row()
         rowLeft.alignment = "RIGHT"
         rowLeft.label(text="Default Shot Duration")
         rowRight = split.row()
         rowRight.prop(self, "new_shot_duration", text="Frames")
+
+        split = box.split(factor=settingsSplitFactor)
+        rowLeft = split.row()
+        rowLeft.alignment = "RIGHT"
+        rowLeft.label(text="Storyboard Default Canvas Opacity")
+        rowRight = split.row()
+        rowRight.prop(self, "storyboard_default_canvas_opacity", slider=True, text="Opacity")
 
     # General UI
     ###############

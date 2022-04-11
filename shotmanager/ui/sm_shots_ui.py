@@ -105,7 +105,7 @@ class UAS_UL_ShotManager_Items(bpy.types.UIList):
                 row.operator("uas_shot_manager.cambgitem", text="", icon=icon).index = index
                 row.scale_x = 0.9
 
-            if props.display_greasepencil_in_shotlist:
+            if props.display_storyboard_in_properties and props.display_greasepencil_in_shotlist:
                 row = row.row(align=True)
                 row.scale_x = 1.0
                 icon = "BLANK1"
@@ -345,6 +345,25 @@ class UAS_MT_ShotManager_Shots_ToolsMenu(Menu):
         row.operator_context = "INVOKE_DEFAULT"
         row.operator("uas_shot_manager.remove_multiple_shots", text="Remove All Shots...", icon="REMOVE").action = "ALL"
 
+        #############
+        # tools for storyboard
+        #############
+        if props.display_storyboard_in_properties:
+            layout.separator()
+            row = layout.row(align=True)
+            row.label(text="Tools for Storyboard:")
+
+            row = layout.row(align=True)
+            row.operator_context = "INVOKE_DEFAULT"
+            row.operator(
+                "uas_shot_manager.create_n_storyboard_shots",
+                text="   Create Specifed Number of Shots with Storyboard Frames...",
+                icon="ADD",
+            )
+
+        #############
+        # tools for shots
+        #############
         layout.separator()
 
         # tools for shots ###

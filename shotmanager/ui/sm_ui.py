@@ -297,6 +297,12 @@ class UAS_PT_ShotManager(Panel):
         if props.dontRefreshUI():
             return None
 
+        # grease pencil
+        ################
+
+        # if props.display_storyboard_in_properties:  # and props.expand_greasepencil_properties:
+        #     gp.draw_greasepencil_play_tools(layout, context, shot, layersListDropdown=prefs.layersListDropdown)
+
         # sequence name
         ################
         seqrow = layout.row()
@@ -583,7 +589,7 @@ class UAS_PT_ShotManager(Panel):
             # numEnabledShots = len(props.getShotsList(ignoreDisabled=True))
             numShots = props.getNumShots()
             numEnabledShots = props.getNumShots(ignoreDisabled=True)
-            display_adv_features = props.display_greasepencil_in_properties or props.display_camerabgtools_in_properties
+            display_adv_features = props.display_storyboard_in_properties or props.display_cameraBG_in_properties
 
             box = layout.box()
             shotsrow = box.row()
@@ -663,7 +669,7 @@ class UAS_PT_ShotManager(Panel):
                 subrowtools.alignment = "LEFT"
                 # subrowtools.scale_x = 0.9
 
-                if props.display_greasepencil_in_properties:
+                if props.display_storyboard_in_properties:
                     icon = (
                         config.icons_col["ShotManager_CamGPVisible_32"]
                         if not prefs.toggleGreasePencil

@@ -40,6 +40,56 @@ _logger = sm_logging.getLogger(__name__)
 ##################
 
 
+def drawShotPropertiesToolbar(layout, context, shot):
+    props = context.scene.UAS_shot_manager_props
+    row = layout.row(align=False)
+
+    cameraIsValid = shot.isCameraValid()
+
+    # if props.display_notes_in_properties or props.display_cameraBG_in_properties or props.display_storyboard_in_properties:
+    if True:
+        # leftrow = row.row(align=False)
+        # leftrow.alignment = "LEFT"
+
+        # propertiesModeStr = "Current Shot:  "
+        # if "SELECTED" == scene.UAS_shot_manager_props.current_shot_properties_mode:
+        #     propertiesModeStr = "Selected Shot:  "
+        # leftrow.label(text=propertiesModeStr)
+
+        buttonsrow = row.row(align=True)
+        buttonsrow.alignment = "LEFT"
+        buttonsrow.separator()
+
+        subrow = buttonsrow.row()
+        subrow.alert = not cameraIsValid
+        subrow.scale_x = 0.9
+        panelIcon = "TRIA_DOWN" if props.expand_shot_properties else "TRIA_RIGHT"
+        subrow.prop(props, "expand_shot_properties", toggle=True, icon=panelIcon)
+
+        if props.display_storyboard_in_properties:
+            subrow = buttonsrow.row()
+            subrow.scale_x = 0.9
+            panelIcon = "TRIA_DOWN" if props.expand_greasepencil_properties else "TRIA_RIGHT"
+            subrow.prop(props, "expand_greasepencil_properties", text="Storyboard", toggle=True, icon=panelIcon)
+        if props.display_notes_in_properties:
+            subrow = buttonsrow.row()
+            subrow.scale_x = 0.9
+            panelIcon = "TRIA_DOWN" if props.expand_notes_properties else "TRIA_RIGHT"
+            subrow.prop(props, "expand_notes_properties", toggle=True, icon=panelIcon)
+        if props.display_cameraBG_in_properties:
+            subrow = buttonsrow.row()
+            subrow.scale_x = 0.9
+            panelIcon = "TRIA_DOWN" if props.expand_cameraBG_properties else "TRIA_RIGHT"
+            subrow.prop(props, "expand_cameraBG_properties", toggle=True, icon=panelIcon)
+
+        buttonsrow.separator()
+    else:
+        propertiesModeStr = (
+            "Selected Shot Notes:" if "SELECTED" == props.current_shot_properties_mode else "Current Shot Notes:"
+        )
+        row.label(text=propertiesModeStr)
+
+
 class UAS_PT_ShotManager_ShotProperties(Panel):
     bl_label = " "  # "Current Shot Properties" # keep the space !!
     bl_idname = "UAS_PT_Shot_Manager_Shot_Prefs"
@@ -141,7 +191,17 @@ class UAS_PT_ShotManager_ShotProperties(Panel):
         layout = self.layout
         layout.use_property_decorate = False
 
-        if shot is not None:
+        ######################
+        # shot properties
+        ######################
+        if (
+            not (
+                props.display_notes_in_properties
+                or props.display_cameraBG_in_properties
+                or props.display_storyboard_in_properties
+            )
+            or props.expand_shot_properties
+        ):
             box = layout.box()
             box.use_property_decorate = False
 
@@ -333,6 +393,21 @@ class UAS_PT_ShotManager_ShotProperties(Panel):
             ######################
             if props.display_greasepencil_in_properties and shot.camera is not None:
                 gp.draw_greasepencil_shot_properties(self, context, shot)
+
+
+        ######################
+        # Camera background images
+        ######################
+        if props.display_cameraBG_in_properties and props.expand_cameraBG_properties:
+            cBG.draw_cameraBG_shot_properties(self.layout, context, shot)
+            cBG.draw_cameraBG_global_properties(self.layout, context)
+
+        ######################
+        # Grease pencil
+        ######################
+        if props.display_storyboard_in_properties and props.expand_greasepencil_properties:
+            gp.draw_greasepencil_shot_properties(self.layout, context, shot)
+            gp.draw_greasepencil_global_properties(self.layout, context)
 
 
 classes = (UAS_PT_ShotManager_ShotProperties,)

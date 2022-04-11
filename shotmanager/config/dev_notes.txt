@@ -49,6 +49,72 @@ Voir https://github.com/PixarAnimationStudios/OpenTimelineIO/issues/890
 OTIO advanced doc: https://sandflow.github.io/otio-core-specification/
 
 
+
+Grease Pencil for boarding:
+    - Urgent:
+        - Sur 176 - Interm gizmo, faire:
+            - reécrire Make All Cams Unique pour prendre en compte un changement par take seulement
+            - vérifier l'intégration du stb frame dans make cam unique ET make all cams unique
+        - faire une recherche sur addShot dans shots.py
+        - introduire proprement le type Storyboard
+        - Delete shots should delete also the cams and stb
+
+        - remove qui ne delete pas les cams ni gp
+        - offset lors de la créa cam et de la dupl
+
+    - focale animée sur cam: conséquences?
+    - déplacement du start et end du shot:
+        - pouvoir linker l'anim du gp au start
+
+    - adapter les 2 outils de framing de cam présents par défaut dans Bl
+
+    - idées:
+        - action pour tout ranger en array
+        - pdf export
+        - step render mode
+        - representative image per shot
+
+    - Add extension values of the Storyboard Frame canvas
+    - Add add-on preferences to set default values for modules
+
+    ### Tools
+    - Add Duplicate GP key
+    - Add Onion Skin option
+
+    - Offset with shot start
+    - Rescale with shot range
+
+
+Camera sel:
+    - ajouter Shift pour ajout a la sel
+    voir desel
+    - ajouter ctrl pour la selection de data de la cam
+    - faire pareil pour gp
+
+    - animer le zoom en cas de changement animé de focale:
+    https://www.codegrepper.com/code-examples/python/blender+change+text+during+animation
+
+Preferences:
+    - Faire un Features default activation settings
+
+
+- Pb d'undo dans les delete all shots
+
+vignette    no
+panel
+frame
+thumbnail
+image
+canvas
+area
+drawing
+picture
+
+
+
+
+
+
 To do dans le support des noms de seq:
     - bug dans le path donné sur les shots
         - faire un test alert qd le nom de la seq est vide

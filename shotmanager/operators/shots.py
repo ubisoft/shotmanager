@@ -473,6 +473,11 @@ class UAS_ShotManager_ShotAdd(Operator):
 
         return wm.invoke_props_dialog(self, width=300)
 
+        # self.alignCamToView = not props.display_storyboard_in_properties
+        self.addStoryboardGP = props.display_storyboard_in_properties
+
+        return wm.invoke_props_dialog(self, width=360)
+
     def draw(self, context):
         # scene = context.scene
         props = context.scene.UAS_shot_manager_props
@@ -610,6 +615,16 @@ class UAS_ShotManager_ShotAdd(Operator):
             subrow.alignment = "RIGHT"
             subrow.label(text=" ")
             mainRowSplit.prop(self, "alignCamToView", text="Align New Camera to View")
+
+        if props.display_storyboard_in_properties:
+            col.separator(factor=0.1)
+            row = col.row(align=True)
+            mainRowSplit = row.split(factor=splitFactor)
+            subrow = mainRowSplit.row()
+            subrow.alignment = "RIGHT"
+            subrow.label(text="Storyboard:")
+            subrow = mainRowSplit.row()
+            subrow.prop(self, "addStoryboardGP")
 
         layout.separator()
 
