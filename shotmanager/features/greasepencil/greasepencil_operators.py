@@ -45,6 +45,37 @@ class UAS_ShotManager_OT_AddGreasePencil(Operator):
             cam = scene.objects[self.cameraGpName]
             utils.create_new_greasepencil(cam.name + "_GP", parent_object=cam, location=[0, 0, -0.2])
 
+        # Monkey patch the shot property to avoid circular registration
+
+        # from shotmanager.features.greasepencil.greasepencil_properties import GreasePencilProperties
+
+        # from shotmanager.properties.shot import UAS_ShotManager_Shot
+
+        # shot.gpStoryboard = bpy.props.PointerProperty(type=GreasePencilProperties)
+        # UAS_ShotManager_Shot.gpStoryboard = PointerProperty(type=GreasePencilProperties)
+
+        # shot["gpStoryboard"] = None
+        # shot.gpStoryboard = None
+        # shot.gpStoryboard = GreasePencilProperties()
+        # print(f" gpStoryboard: {shot.gpStoryboard}")
+
+        # if not hasattr(shot, "greasePencils"):
+        #     UAS_ShotManager_Shot.gpList = CollectionProperty(type=GreasePencilProperties)
+        # newShot = GreasePencilProperties()
+        # newShot = GreasePencilProperties()
+
+        gpProperties, gpObj = shot.addGreasePencil(mode="STORYBOARD")
+        # gpProperties.initialize(shot)
+
+        # gpName = shot.camera.name + "_GP"
+        # gpObj = utils_greasepencil.create_new_greasepencil(gpName, parentCamera=shot.camera, location=[0, 0, -0.5])
+
+        # utils_greasepencil.add_grease_pencil_canvas_layer(gpObj, "GP_Canvas", order="BOTTOM", camera=shot.camera)
+
+        gpProperties.updateGreasePencilToFrustum()
+
+        utils.select_object(gpObj)
+
         return {"FINISHED"}
 
 

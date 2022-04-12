@@ -819,7 +819,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         name="Use Grease Pencil",
         description="Toggle the display of storyboard frames in the scene",
         #  update=_update_use_greasepencil,
-        default=False,
+        default=True,
     )
 
     def updateGreasePencilVisibility(self, take):
@@ -1917,6 +1917,9 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
             shots.move(len(shots) - 1, atValidIndex)
             newShot = shots[atValidIndex]
             newShotInd = atValidIndex
+
+        if addGreasePencilStoryboard:
+            newShot.addGreasePencil(mode="STORYBOARD")
 
         # update the current take if needed
         if takeInd == currentTakeInd:

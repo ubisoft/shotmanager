@@ -46,7 +46,7 @@ class GreasePencilProperties(PropertyGroup):
     def initialize(self, parentShot, mode="STORYBOARD"):
         """Set the parent camera of the Grease Pencil Properties"""
         prefs = bpy.context.preferences.addons["shotmanager"].preferences
-        print(f"\nInitializing new Grease Pencil Properties for shot {parentShot.name}...")
+        # print(f"\nInitializing new Grease Pencil Properties for shot {parentShot.name}...")
 
         self.parentCamera = parentShot.camera
         self.frameMode = mode

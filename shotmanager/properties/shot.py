@@ -611,7 +611,7 @@ class UAS_ShotManager_Shot(ShotInterface, PropertyGroup):
 
     # wkip to update with the gp list
     def showGreasePencil(self):
-        #    def showGreasePencil(self, visible=None, type="STORYBOARD"):
+        #    def showGreasePencil(self, visible=None, mode="STORYBOARD"):
         def _showGreasePencil(gpencil, visible):
             gpencil.hide_viewport = not visible
             gpencil.hide_render = not visible

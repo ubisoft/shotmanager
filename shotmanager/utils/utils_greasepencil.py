@@ -121,7 +121,158 @@ def add_grease_pencil_canvas_layer(
     return gpencil_layer
 
 
-def draw_line(gp_frame, p0: tuple, p1: tuple):
+def fitGreasePencilToFrustum(camera, distance=None):
+
+    gpencil = get_greasepencil_child(camera, "GPENCIL")
+    gpEmpty = get_greasepencil_child(camera, "EMPTY")
+
+    # method with canvas points modification ###
+    # gpencil.location[2] = -1.0 * distance
+    # canvas_bg_stroke = get_grease_pencil_canvas_stroke(gpencil)
+    # applied_scale_factor = fitCanvasToFrustum(canvas_bg_stroke, camera, distance, zOffset=gpencil.location[2])
+    # fitLayersToFrustum(gpencil, applied_scale_factor)
+
+    # method with gpencil scaling ###
+
+    # removed to allow frame panning
+    # gpencil.location[0] = gpencil.location[1] = 0.0
+
+    ######################################""""""
+    # prevX = gpencil.location[0]
+    # prevY = gpencil.location[1]
+    # gpencil.location[0] = gpencil.location[1] = 0.0
+
+    # gpencil.location[2] = -1.0 * distance
+
+    # gpencil.rotation_euler = [0, 0, 0]
+    # gpencil.rotation_quaternion = [0, 0, 0, 0]
+    # distRef = getDistRef(camera)
+    # gpWidth = distance / distRef
+
+    # vec = mathutils.Vector((gpWidth, gpWidth, gpWidth))
+    # # gpencil.scale = vec
+    # gpencil.delta_scale = vec
+
+    # gpencil.location[0] = prevX * gpWidth
+    # gpencil.location[1] = prevY * gpWidth
+    # ############################################
+
+    gpEmpty.location[0] = gpEmpty.location[1] = gpEmpty.location[2] = 0.0
+    gpEmpty.rotation_euler = [0, 0, 0]
+    gpEmpty.rotation_quaternion = [0, 0, 0, 0]
+    distRef = getDistRef(camera)
+    gpWidth = distance / distRef
+
+    vec = mathutils.Vector((gpWidth, gpWidth, gpWidth))
+    gpEmpty.scale = vec
+    # gpEmpty.delta_scale = vec
+
+    gpencil.location[2] = -1.0 * distRef
+
+
+def getDistRef(camera):
+    f = 1.0 if camera.type == "ORTHO" else 1.0
+    corners = [(f * p) for p in camera.data.view_frame(scene=bpy.context.scene)]
+    width = corners[0][0] - corners[2][0]
+    dist = -1.0 * corners[2][2]
+    #  print(f"getDistRef: width:{width}, dist:{dist}")
+    return dist
+
+
+def fitLayersToFrustum(gpencil, factor):
+    for layer in gpencil.data.layers:
+        if layer.info != "GP_Canvas":
+            layer.scale[0] = factor
+            layer.scale[1] = factor
+            layer.scale[2] = factor
+
+
+def fitCanvasToFrustum(gpStroke: bpy.types.GPencilStroke, camera, distance=None, zOffset=0.0):
+    if camera is None:
+        return
+
+    top_left_previous_x = gpStroke.points[0].co[0]
+    bottom_right_previous = gpStroke.points[2].co
+
+    # print(f"fitCanvasToFrustum: camera: {camera.name}, distance: {distance}")
+    if distance is not None:
+        corners = getCameraCorners(bpy.context, camera, -1.0 * distance)
+    else:
+        corners = getCameraCorners(bpy.context, camera)
+
+    top_left = corners[0]
+    top_left[2] = 0.0
+    top_left[2] -= zOffset
+    bottom_right = corners[2]
+    bottom_right[2] = 0.0
+    bottom_right[2] -= zOffset
+
+    gpStroke.points[0].co = top_left
+    gpStroke.points[1].co = (bottom_right[0], top_left[1], top_left[2])
+    gpStroke.points[2].co = bottom_right
+    gpStroke.points[3].co = (top_left[0], bottom_right[1], bottom_right[2])
+
+    # wkipwkipwkip to fix
+    applied_scale_factor = top_left_previous_x / top_left[0]
+
+    return applied_scale_factor
+
+
+def getCameraCorners(context, camera, distance=None):
+    mw = camera.matrix_world
+
+    # sizeRef is an arbitrary ref for the frustum width of the camera
+    sizeRef = 1.0
+    # point of the frustum when width is 1
+    distRef = camera.data.view_frame(scene=context.scene)[0][2]
+
+    # camera.data.display_size is the width of the frustum for a given lens
+    # f = 1 if camera.type == "ORTHO" else distance if distance is not None else camera.data.display_size
+    f = (
+        1
+        if camera.type == "ORTHO"
+        else distance * sizeRef / distRef
+        if distance is not None
+        else camera.data.display_size
+    )
+
+    corners = [(f * p) for p in camera.data.view_frame(scene=context.scene)]
+    # corners = [mw @ (f * p) for p in camera.data.view_frame(scene=context.scene)]
+
+    """
+    # add empties at corners
+    for i, p in enumerate(corners):
+        bpy.ops.object.empty_add(location=p)
+        context.object.name = f"MT{i}"
+    """
+
+    # w = corners[3] - corners[0]
+    # h = corners[1] - corners[0]
+
+    # print(f"Camera: {camera.name} dimensions {w.length : .2f} x {h.length : .2f}")
+
+    return corners
+
+
+def get_grease_pencil_canvas_layer(gpencil: bpy.types.GreasePencil) -> bpy.types.GPencilLayer:
+    canvas_layer = None
+    if gpencil.data.layers:
+        if gpencil.data.layers["GP_Canvas"] is not None:
+            canvas_layer = gpencil.data.layers["GP_Canvas"]
+    return canvas_layer
+
+
+def get_grease_pencil_canvas_stroke(gpencil: bpy.types.GreasePencil) -> bpy.types.GPencilLayer:
+    canvas_bg_stroke = None
+    canvas_layer = get_grease_pencil_canvas_layer(gpencil)
+    if canvas_layer is not None:
+        if canvas_layer.frames:
+            if canvas_layer.frames[0].strokes:
+                canvas_bg_stroke = canvas_layer.frames[0].strokes[0]
+    return canvas_bg_stroke
+
+
+def draw_line(gp_frame, p0: tuple, p1: tuple) -> bpy.types.GPencilStroke:
     # Init new stroke
     gp_stroke = gp_frame.strokes.new()
     gp_stroke.display_mode = "3DSPACE"  # allows for editing

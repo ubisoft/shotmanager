@@ -360,7 +360,7 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
         name="Storyboard Frames and Grease Pencil Tools",
         description="Display the storyboard frames properties and tools in the Shot properties panel."
         "\nA storyboard frame is a Grease Pencil drawing surface associated to the camera of each shot",
-        default=False,
+        default=True,
     )
 
     display_notes_in_properties: BoolProperty(
@@ -473,7 +473,7 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
     display_retimer_in_properties: BoolProperty(
         name="Display Retimer",
         description="Display the Retimer sub-panel in the Shot Manager panel.\n(saved in the add-on preferences)",
-        default=True,
+        default=False,
     )
     applyToTimeCursor: BoolProperty(
         name="Apply to Time Cursor",

@@ -334,13 +334,12 @@ def drawKeysRow(context, props, layout, gp, objIsGP):
     subsubRow.scale_x = 0.9
     # subRow.ui_units_x = 14
     subsubRow.alignment = "LEFT"
-    subsubRow.separator(factor=2)
     subsubRow.prop(props, "greasePencil_layersMode", text="Apply to")
 
     # settingsRow = settingsRow.row(align=True)
     subsubRow = settingsRow.row(align=True)
     subsubRow.alignment = "CENTER"
-    subsubRow.label(text="Drawing on: ")
+    subsubRow.label(text="Drawing on key frame: ")
     gpFrameStr = "-"
     if objIsGP:
         if isCurrentFrameOnGPFrame:
