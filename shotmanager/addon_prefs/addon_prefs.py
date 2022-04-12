@@ -153,6 +153,74 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
         default=False,
     )
 
+    # storyboard panel
+    ####################
+    stb_canvas_props_expanded: BoolProperty(
+        name="Expand Canvas Properties",
+        default=False,
+    )
+
+    stb_anim_props_expanded: BoolProperty(
+        name="Expand Animation Properties",
+        default=False,
+    )
+
+    def _get_stb_overlay_layers_opacity(self):
+        # print(" get_projectSeqName")
+        props = bpy.context.scene.UAS_shot_manager_props
+        spaceDataViewport = props.getValidTargetViewportSpaceData(bpy.context)
+        if spaceDataViewport is not None:
+            val = spaceDataViewport.overlay.gpencil_fade_layer
+        else:
+            val = 1.0
+        return val
+
+    def _set_stb_overlay_layers_opacity(self, value):
+        #  print(" set_projectSeqName: value: ", value)
+        self["stb_overlay_layers_opacity"] = value
+
+    def _update_stb_overlay_layers_opacity(self, context):
+        # print("stb_overlay_layers_opacity")
+        props = context.scene.UAS_shot_manager_props
+        spaceDataViewport = props.getValidTargetViewportSpaceData(context)
+        if spaceDataViewport is not None:
+            spaceDataViewport.overlay.gpencil_fade_layer = utils.to_sRGB(self["stb_overlay_layers_opacity"])
+
+    stb_overlay_layers_opacity: FloatProperty(
+        name="Layers Opacity",
+        description="Opacity of the Grease Pencil layers in the viewport overlay",
+        min=0.0,
+        max=1.0,
+        step=0.1,
+        get=_get_stb_overlay_layers_opacity,
+        set=_set_stb_overlay_layers_opacity,
+        update=_update_stb_overlay_layers_opacity,
+        default=1.0,
+        options=set(),
+    )
+
+    ###############################
+    # layers use
+    ###############################
+
+    stb_useLayer_Canvas: BoolProperty(
+        name="Canvas Layer",
+        description="Use Canvas layer",
+        default=True,
+    )
+
+    stb_useLayer_BG_Ink: BoolProperty(
+        name="BG Ink Layer",
+        description="use BG Ink Layer",
+        default=True,
+    )
+
+    stb_useLayer_BG_Fill: BoolProperty(
+        name="BG Fill Layer",
+        description="use BG Fill Layer",
+        default=True,
+    )
+
     # prefs panels
     ######################
     addonPrefs_settings_expanded: BoolProperty(

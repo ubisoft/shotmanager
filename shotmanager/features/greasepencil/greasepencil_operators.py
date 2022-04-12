@@ -290,6 +290,231 @@ class UAS_ShotManager_GreasePencilItem(Operator):
         return {"FINISHED"}
 
 
+class UAS_ShotManager_GreasePencil_PreviousKey(Operator):
+    bl_idname = "uas_shot_manager.greasepencil_previouskey"
+    bl_label = "Previous"
+    bl_description = "Go to the previous key of the specified layer"
+    bl_options = {"INTERNAL", "UNDO"}
+
+    def invoke(self, context, event):
+        gp = context.active_object
+        if gp is not None:
+            props = context.scene.UAS_shot_manager_props
+            if "" == props.greasePencil_layersMode:
+                if len(gp.data.layers):
+                    props.greasePencil_layersMode = "ACTIVE"
+                else:
+                    props.greasePencil_layersMode = "NOLAYER"
+
+            if "NOLAYER" == props.greasePencil_layersMode:
+                return {"FINISHED"}
+
+            currentFrame = context.scene.frame_current
+            context.scene.frame_current = utils_greasepencil.getLayerPreviousFrame(
+                gp, currentFrame, props.greasePencil_layersMode
+            )
+
+        return {"FINISHED"}
+
+
+# https://blender.stackexchange.com/questions/142190/how-do-i-access-grease-pencil-data
+
+
+class UAS_ShotManager_GreasePencil_NextKey(Operator):
+    bl_idname = "uas_shot_manager.greasepencil_nextkey"
+    bl_label = "Next"
+    bl_description = "Go to the next key of the specified layer"
+    bl_options = {"INTERNAL", "UNDO"}
+
+    def invoke(self, context, event):
+        gp = context.active_object
+        if gp is not None:
+            props = context.scene.UAS_shot_manager_props
+            if "" == props.greasePencil_layersMode:
+                if len(gp.data.layers):
+                    props.greasePencil_layersMode = "ACTIVE"
+                else:
+                    props.greasePencil_layersMode = "NOLAYER"
+
+            if "NOLAYER" == props.greasePencil_layersMode:
+                return {"FINISHED"}
+
+            currentFrame = context.scene.frame_current
+            context.scene.frame_current = utils_greasepencil.getLayerNextFrame(
+                gp, currentFrame, props.greasePencil_layersMode
+            )
+
+        return {"FINISHED"}
+
+
+class UAS_ShotManager_GreasePencil_NewKeyFrame(Operator):
+    bl_idname = "uas_shot_manager.greasepencil_newkeyframe"
+    bl_label = "New Drawing Frame"
+    bl_description = "Add a new drawing frame to the specified Grease Pencil"
+    bl_options = {"INTERNAL", "UNDO"}
+
+    # layersMode: StringProperty(
+    #     name="Layers Mode",
+    #     default="",
+    # )
+
+    def invoke(self, context, event):
+        gp = context.active_object
+        if gp is not None:
+            props = context.scene.UAS_shot_manager_props
+            if "" == props.greasePencil_layersMode:
+                if len(gp.data.layers):
+                    props.greasePencil_layersMode = "ACTIVE"
+                else:
+                    props.greasePencil_layersMode = "NOLAYER"
+
+        print(
+            f"On a frame for mode {props.greasePencil_layersMode}: {utils_greasepencil.isCurrentFrameOnLayerKeyFrame(gp, context.scene.frame_current, props.greasePencil_layersMode)}"
+        )
+
+        utils_greasepencil.addKeyFrameToLayer(gp, context.scene.frame_current, props.greasePencil_layersMode)
+
+        return {"FINISHED"}
+
+
+class UAS_ShotManager_GreasePencil_DuplicateKeyFrame(Operator):
+    bl_idname = "uas_shot_manager.greasepencil_duplicatekeyframe"
+    bl_label = "Duplicate Drawing Frame"
+    bl_description = "Duplicate the previous drawing frame of the specified Grease Pencil at current time"
+    bl_options = {"INTERNAL", "UNDO"}
+
+    # layersMode: StringProperty(
+    #     name="Layers Mode",
+    #     default="",
+    # )
+
+    def invoke(self, context, event):
+        gp = context.active_object
+        if gp is not None:
+            props = context.scene.UAS_shot_manager_props
+            if "" == props.greasePencil_layersMode:
+                if len(gp.data.layers):
+                    props.greasePencil_layersMode = "ACTIVE"
+                else:
+                    props.greasePencil_layersMode = "NOLAYER"
+
+        print(
+            f"On a frame for mode {props.greasePencil_layersMode}: {utils_greasepencil.isCurrentFrameOnLayerKeyFrame(gp, context.scene.frame_current, props.greasePencil_layersMode)}"
+        )
+
+        utils_greasepencil.duplicateLayerKeyFrame(gp, context.scene.frame_current, props.greasePencil_layersMode)
+
+        return {"FINISHED"}
+
+
+class UAS_ShotManager_GreasePencil_DeleteKeyFrame(Operator):
+    bl_idname = "uas_shot_manager.greasepencil_deletekeyframe"
+    bl_label = "Delete Drawing Frame"
+    bl_description = "Delete the drawing frame of the specified Grease Pencil at current time"
+    bl_options = {"INTERNAL", "UNDO"}
+
+    # layersMode: StringProperty(
+    #     name="Layers Mode",
+    #     default="",
+    # )
+
+    def invoke(self, context, event):
+        gp = context.active_object
+        if gp is not None:
+            props = context.scene.UAS_shot_manager_props
+            if "" == props.greasePencil_layersMode:
+                if len(gp.data.layers):
+                    props.greasePencil_layersMode = "ACTIVE"
+                else:
+                    props.greasePencil_layersMode = "NOLAYER"
+
+        print(
+            f"On a frame for mode {props.greasePencil_layersMode}: {utils_greasepencil.isCurrentFrameOnLayerKeyFrame(gp, context.scene.frame_current, props.greasePencil_layersMode)}"
+        )
+
+        utils_greasepencil.deleteLayerKeyFrame(gp, context.scene.frame_current, props.greasePencil_layersMode)
+
+        return {"FINISHED"}
+
+
+class UAS_ShotManager_GreasePencil_ToggleOnionSkin(Operator):
+    bl_idname = "uas_shot_manager.greasepencil_toggleonionskin"
+    bl_label = "Onion Skin"
+    bl_description = "Toggle Grease Pencil viewport overlay onion skin"
+    bl_options = {"INTERNAL"}
+
+    # https://blender.stackexchange.com/questions/162459/access-viewport-overlay-options-using-python-api
+    def invoke(self, context, event):
+        props = context.scene.UAS_shot_manager_props
+        spaceDataViewport = props.getValidTargetViewportSpaceData(context)
+        if spaceDataViewport is not None:
+            spaceDataViewport.overlay.use_gpencil_onion_skin = not spaceDataViewport.overlay.use_gpencil_onion_skin
+        return {"FINISHED"}
+
+
+class UAS_ShotManager_GreasePencil_ToggleCanvas(Operator):
+    bl_idname = "uas_shot_manager.greasepencil_togglecanvas"
+    bl_label = "Canvas"
+    bl_description = "Toggle Grease Pencil viewport overlay canvas"
+    bl_options = {"INTERNAL"}
+
+    # https://blender.stackexchange.com/questions/162459/access-viewport-overlay-options-using-python-api
+    def invoke(self, context, event):
+        props = context.scene.UAS_shot_manager_props
+        spaceDataViewport = props.getValidTargetViewportSpaceData(context)
+        if spaceDataViewport is not None:
+            spaceDataViewport.overlay.use_gpencil_grid = not spaceDataViewport.overlay.use_gpencil_grid
+        return {"FINISHED"}
+
+
+class UAS_ShotManager_GreasePencil_SetLayerAndMat(Operator):
+    bl_idname = "uas_shot_manager.greasepencil_setlayerandmat"
+    bl_label = ""
+    bl_description = "Set active layer and current material"
+    bl_options = {"INTERNAL", "UNDO"}
+
+    "layerID:    Can be CANVAS, BG_INK, BG_FILL"
+    layerID: StringProperty(
+        name="Layer ID",
+        default="",
+    )
+
+    layerName: StringProperty(
+        name="Layer Name",
+        default="",
+    )
+
+    gpObjName: StringProperty(
+        name="grease Pencil Object Name",
+        default="",
+    )
+
+    @classmethod
+    def description(self, context, properties):
+        descr = "Set layer to active and pick the associated material"
+        # print("properties: ", properties)
+
+        warningStr = " - *** Layer not found ***" if "WARNING" in properties.layerID else ""
+
+        if "CANVAS" in properties.layerID:
+            descr = f"Canvas Layer{warningStr}\n{descr}"
+        elif "BG_INK" in properties.layerID:
+            descr = f"BG Ink Layer{warningStr}\n{descr}"
+        elif "BG_FILL" in properties.layerID:
+            descr = f"BG Fill Layer{warningStr}\n{descr}"
+
+        return descr
+
+    def invoke(self, context, event):
+        prefs = context.preferences.addons["shotmanager"].preferences
+        props = context.scene.UAS_shot_manager_props
+        # print(f"Layer and mat - ID: {self.layerID}, name:{self.gpObjName}")
+
+        utils_greasepencil.activeGpLayerAndMat(bpy.context.scene.objects[self.gpObjName], self.layerName)
+
+        return {"FINISHED"}
+
+
 _classes = (
     UAS_ShotManager_OT_AddGreasePencil,
     UAS_ShotManager_OT_SelectGreasePencil,
@@ -298,6 +523,14 @@ _classes = (
     UAS_ShotManager_OT_RemoveGreasePencil,
     UAS_ShotManager_OT_EnableDisableGreasePencil,
     UAS_ShotManager_GreasePencilItem,
+    UAS_ShotManager_GreasePencil_NextKey,
+    UAS_ShotManager_GreasePencil_PreviousKey,
+    UAS_ShotManager_GreasePencil_NewKeyFrame,
+    UAS_ShotManager_GreasePencil_DuplicateKeyFrame,
+    UAS_ShotManager_GreasePencil_DeleteKeyFrame,
+    UAS_ShotManager_GreasePencil_ToggleOnionSkin,
+    UAS_ShotManager_GreasePencil_ToggleCanvas,
+    UAS_ShotManager_GreasePencil_SetLayerAndMat,
     #   UAS_ShotManager_OT_ChangeGreasePencilOpacity,
 )
 

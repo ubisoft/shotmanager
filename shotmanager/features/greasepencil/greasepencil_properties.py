@@ -21,7 +21,7 @@ Grease pencil shot class
 
 import bpy
 from bpy.types import PropertyGroup
-from bpy.props import PointerProperty, FloatProperty, FloatVectorProperty
+from bpy.props import PointerProperty, FloatProperty, FloatVectorProperty, BoolProperty
 
 # from shotmanager.properties.shot import UAS_ShotManager_Shot
 

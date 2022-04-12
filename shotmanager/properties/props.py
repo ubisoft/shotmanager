@@ -940,6 +940,54 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         default=False,
     )
 
+    def list_greasepencil_layer_modes(self, context):
+        res = list()
+        res.append(("ALL", "All", "", 0))
+        res.append(("ACTIVE", "Active", "", 1))
+
+        # _logger.debug_ext(f"context.object: {context.object.name}", col="RED")
+
+        if context.object is not None and "GPENCIL" == context.object.type:
+            if len(context.object.data.layers):
+                for i, layer in reversed(list(enumerate(context.object.data.layers))):
+                    res.append((layer.info, layer.info, "", i + 2))
+            else:
+                res = (("NOLAYER", "No Layer", "", 0),)
+        return res
+
+    greasePencil_layersMode: EnumProperty(
+        name="Apply to:",
+        items=(list_greasepencil_layer_modes),
+        default=1,
+    )
+
+    def list_greasepencil_materials(self, context):
+        res = list()
+
+        if context.object is not None and "GPENCIL" == context.object.type:
+            if len(context.object.data.layers):
+                for i, mat in list(enumerate(context.object.material_slots)):
+                    res.append((mat.name, mat.name, "", i))
+            else:
+                res = (("NOMAT", "No Material", "", 0),)
+        return res
+
+    def _update_greasePencil_activeMaterial(self, context):
+        if self.greasePencil_activeMaterial != "NOMAT":
+            if context.object is not None and "GPENCIL" == context.object.type:
+                # Create a lookup-dict for the object materials:
+                # mat_dict = {mat.name: i for i, mat in enumerate(context.object.data.materials)}
+                mat_dict = {mat.name: i for i, mat in enumerate(context.object.material_slots)}
+                # then map names to indices:
+                context.object.active_material_index = mat_dict[self.greasePencil_activeMaterial]
+
+    greasePencil_activeMaterial: EnumProperty(
+        name="Active Material",
+        items=(list_greasepencil_materials),
+        update=_update_greasePencil_activeMaterial,
+        default=0,
+    )
+
     def _get_useLockCameraView(self):
         # Can also use area.spaces.active to get the space assoc. with the area
         for area in bpy.context.screen.areas:
