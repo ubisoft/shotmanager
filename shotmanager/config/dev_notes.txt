@@ -53,12 +53,8 @@ OTIO advanced doc: https://sandflow.github.io/otio-core-specification/
 Grease Pencil for boarding:
     - Urgent:
 
-        - Move cam POV lorsqu'on select un gp free
         - modes alt shift to add keys or delete
-        - hide when not current
-        - hide prop
         - offset in time
-
 
         - Sur 176 - Interm gizmo, faire:
             - reécrire Make All Cams Unique pour prendre en compte un changement par take seulement
@@ -73,8 +69,6 @@ Grease Pencil for boarding:
     - debug ui ici: _logger.debug_ext(f"context.object: {context.object.name}", col="RED")
 
     - Deal with case where layer Canvas doesn't exist...
-
-    - add a Visible prop on the frame properties
 
     - focale animée sur cam: conséquences?
     - déplacement du start et end du shot:

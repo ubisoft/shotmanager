@@ -59,13 +59,18 @@ def draw_greasepencil_play_tools(layout, context, shot, layersListDropdown=None)
 
         col = box.column()
         if not gpIsStoryboardFrame:
-            warningRow = col.row(align=False)
-            warningRow.alert = True
-            warningRow.label(text="*** Free Scene GP: ")
-            warningRow.alert = False
-            warningRow.label(text=f"GP:  {gp.name if objIsGP else '-'}")
-            warningRow.alert = True
-            warningRow.label(text=" ***")
+            freeGPRow = col.row(align=False)
+            freeGPRow.alert = True
+            freeGPRow.label(text="*** Free Scene GP: ")
+            freeGPRow.alert = False
+            freeGPRow.label(text=f"GP:  {gp.name if objIsGP else '-'}")
+            freeGPRow.alert = True
+            freeGPRow.label(text=" ***")
+            freeGPRow.alert = False
+
+            rightFreeGPRow = freeGPRow.row(align=False)
+            rightFreeGPRow.alignment = "RIGHT"
+            rightFreeGPRow.prop(prefs, "stb_camPOV_forFreeGP", text="Cam POV")
 
         #     mainRow = col.row(align=False)
 
@@ -101,8 +106,6 @@ def draw_greasepencil_play_tools(layout, context, shot, layersListDropdown=None)
         if gp.mode == "PAINT_GPENCIL":
             icon = "GREASEPENCIL"
             gpToolsRow.alert = True
-            # row.operator("uas_shot_manager.greasepencilitem", text="", icon=icon).index = index
-
             gpToolsRow.operator("uas_shot_manager.toggle_grease_pencil_draw_mode", text="", icon=icon)
             gpToolsRow.alert = False
         else:

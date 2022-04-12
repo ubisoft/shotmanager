@@ -23,9 +23,10 @@ To do: module description here.
 from shotmanager.utils import utils_ui
 from shotmanager.utils import utils_greasepencil
 
+from shotmanager.config import config
 
-def draw_greasepencil_shot_properties(sm_ui, context, shot):
-    layout = sm_ui.layout
+
+def draw_greasepencil_shot_properties(layout, context, shot):
     props = context.scene.UAS_shot_manager_props
     prefs = context.preferences.addons["shotmanager"].preferences
     scene = context.scene
@@ -56,14 +57,10 @@ def draw_greasepencil_shot_properties(sm_ui, context, shot):
     # grease pencil
     ################
 
-    # if props.display_storyboard_in_properties:  # and props.expand_greasepencil_properties:
-    #     gp.draw_greasepencil_play_tools(layout, context, shot, layersListDropdown=prefs.layersListDropdown)
-
     extendSubRow = row.row(align=True)
     extendSubRow.prop(prefs, "shot_greasepencil_expanded", text="", icon=panelIcon, emboss=False)
     # row.separator(factor=1.0)
 
-    subRow = row.row(align=False)
     # subRow.scale_x = 0.6
     subRow.label(text="Grease Pencil:")
 
@@ -78,14 +75,13 @@ def draw_greasepencil_shot_properties(sm_ui, context, shot):
         # subSubRow.separator(factor=0.5)  # prevents stange look when panel is narrow
 
     else:
-        subRow.label(text=gp_child.name)
-        subRow.operator("uas_shot_manager.select_grease_pencil", text="", icon="RESTRICT_SELECT_OFF").index = shotIndex
-        subSubRow = subRow.row(align=True)
-        subSubRow.prop(gp_child, "hide_select", text="")
-        subSubRow.prop(gp_child, "hide_viewport", text="")
-        subSubRow.prop(gp_child, "hide_render", text="")
+        extendSubRow.alignment = "EXPAND"
+        subRow = extendSubRow.row(align=False)
+        subRow.separator(factor=0.9)
+        subRow.ui_units_x = 8
 
-        subRow = row.row(align=True)
+        subRow.prop(gpProperties, "visibility", text="")
+
         subRow.operator("uas_shot_manager.remove_grease_pencil", text="", icon="PANEL_CLOSE").shotIndex = shotIndex
         subRow.separator()
         subRow.prop(props, "display_greasepencil_in_shotlist", text="")
@@ -250,3 +246,39 @@ def draw_greasepencil_shot_properties(sm_ui, context, shot):
 
     # row = box.row()
     # row.operator("uas_shot_manager.change_grease_pencil_opacity").gpObjectName = gp_child
+
+
+def draw_greasepencil_global_properties(layout, context):
+    props = context.scene.UAS_shot_manager_props
+    prefs = context.preferences.addons["shotmanager"].preferences
+
+    box = layout.box()
+    row = box.row()
+    row.label(text="Storyboard Frames Global Control:")
+    rightRow = row.row()
+    rightRow.alignment = "RIGHT"
+    rightRow.prop(props.shotsGlobalSettings, "alsoApplyToDisabledShots")
+
+    # Grease pencil
+    # ######################
+
+    row = box.row()
+    row.use_property_decorate = False
+    row.separator()
+
+    col = row.column()
+    subRow = col.row()
+
+    grid_flow = subRow.grid_flow(align=False, columns=4, even_columns=False)
+    # grid_flow.label(text="Grease Pencil:")
+    grid_flow.label(text="")
+    grid_flow.prop(prefs, "stb_global_visibility", text="")
+    # grid_flow.operator("uas_shots_settings.use_greasepencil", text="Turn On").useGreasepencil = True
+    # grid_flow.operator("uas_shots_settings.use_greasepencil", text="Turn Off").useGreasepencil = False
+    # grid_flow.prop(props.shotsGlobalSettings, "greasepencilAlpha", text="Alpha")
+    c = row.column()
+    c.operator(
+        "uas_shot_manager.remove_grease_pencil", text="", icon="PANEL_CLOSE"
+    ).alsoApplyToDisabledShots = props.shotsGlobalSettings.alsoApplyToDisabledShots
+
+    col.separator(factor=0.5)

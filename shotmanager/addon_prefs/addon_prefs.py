@@ -165,6 +165,13 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
         default=False,
     )
 
+    stb_camPOV_forFreeGP: BoolProperty(
+        name="Camera POV for Free Grease Pencil",
+        description="Set the camera of the current shot in the viewport when\n"
+        "a 2.5D grease pencil object is drawn, and force the origin and view",
+        default=True,
+    )
+
     def _get_stb_overlay_layers_opacity(self):
         # print(" get_projectSeqName")
         props = bpy.context.scene.UAS_shot_manager_props
@@ -197,6 +204,58 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
         update=_update_stb_overlay_layers_opacity,
         default=1.0,
         options=set(),
+    )
+
+    # hidden UI properties
+    def _get_stb_global_visibility(self):
+        val = self.get("stb_global_visibility", 0)
+        return val
+
+    def _set_stb_global_visibility(self, value):
+        # "NO_CHANGE"
+        if 0 != value:
+            props = bpy.context.scene.UAS_shot_manager_props
+            currentTake = props.getCurrentTake()
+            if currentTake is not None:
+                for sh in currentTake.shots:
+                    if sh.enabled or props.shotGlobalSettings.alsoApplyToDisabledShots:
+                        gpProps = sh.getGreasePencilProps()
+                        if gpProps is not None:
+                            if 1 == value:
+                                gpProps.visibility = "ALWAYS_VISIBLE"
+                            elif 2 == value:
+                                gpProps.visibility = "ALWAYS_HIDDEN"
+                            elif 3 == value:
+                                gpProps.visibility = "AUTO"
+        self["stb_global_visibility"] = 0
+
+    # def _update_stb_global_visibility(self, context):
+    #     props = context.scene.UAS_shot_manager_props
+    #     currentTake = props.getCurrentTake()
+    #     if currentTake is not None:
+    #         for sh in currentTake.shots:
+    #             gpProps = sh.getGreasePencilProps()
+    #             if gpProps is not None:
+    #                 gpProps.visibility = self.stb_global_visibility
+
+    stb_global_visibility: EnumProperty(
+        name="Global Frame Visibility",
+        description="Visibility",
+        items=(
+            (
+                "NO_CHANGE",
+                "Set Visibility",
+                "Select the new visibility state to apply to all the storyboard frames of the current take\n"
+                "Change is applied immediatly",
+            ),
+            ("ALWAYS_VISIBLE", "All to Visible", "Storyboard frame is always visible"),
+            ("ALWAYS_HIDDEN", "All to Hidden", "Storyboard frame is always hidden"),
+            ("AUTO", "All to Auto", "Storyboard frame is automaticaly shown or hidden"),
+        ),
+        get=_get_stb_global_visibility,
+        set=_set_stb_global_visibility,
+        # update=_update_stb_global_visibility,
+        default="NO_CHANGE",
     )
 
     ###############################
@@ -552,7 +611,7 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
     ##################
     toggleCamsBG: BoolProperty(name=" ", default=False)
     toggleCamsSoundBG: BoolProperty(name=" ", default=False)
-    toggleGreasePencil: BoolProperty(name=" ", default=False)
+    enableGreasePencil: BoolProperty(name=" ", default=False)
 
     ##################
     # ui helpers   ###

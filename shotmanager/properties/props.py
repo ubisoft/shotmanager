@@ -251,11 +251,13 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         options=set(),
     )
 
+    #############
     # project settings
     #############
 
     use_project_settings: BoolProperty(name="Use Project Settings", default=False, options=set())
 
+    ############
     # settings coming from production:
     ############
 
@@ -805,6 +807,39 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         # default=0,
     )
 
+    #############
+    # grease pencil
+    # storyboard
+    #############
+    # def _update_use_greasepencil(self, context):
+    #     # print("use_greasepencil")
+    #     to do
+
+    use_greasepencil: BoolProperty(
+        name="Use Grease Pencil",
+        description="Toggle the display of storyboard frames in the scene",
+        #  update=_update_use_greasepencil,
+        default=False,
+    )
+
+    def updateGreasePencilVisibility(self, take):
+        """Update the display of grease pencil objects of the specified take"""
+        for sh in take.shots:
+            sh.showGreasePencil()
+
+    def enableGreasePencil(self, enable, takeIndex=-1):
+        """Toggle the display of grease pencil objects"""
+        takeInd = (
+            self.getCurrentTakeIndex()
+            if -1 == takeIndex
+            else (takeIndex if 0 <= takeIndex and takeIndex < len(self.getTakes()) else -1)
+        )
+        if -1 == takeInd:
+            return ()
+
+        self.use_greasepencil = enable
+        self.updateGreasePencilVisibility(self.takes[takeInd])
+
     # Features
     #############
 
@@ -819,7 +854,6 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         # name="Display Shot Notes in Shot Properties",
         description="Display shot notes in the Shot Properties panels",
         default=False,
-        options=set(),
     )
 
     # hidden UI parameter
@@ -850,7 +884,6 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         name="Camera Background Tools",
         description="Display the camera background image tools and controls in the Shot Properties panel",
         default=False,
-        options=set(),
     )
     # hidden UI parameter
     def _get_expand_cameraBG_properties(self):
@@ -2256,14 +2289,15 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         """
         scene = bpy.context.scene
 
-        target_area_index = self.getTargetViewportIndex(bpy.context, only_valid=True)
-        target_area = utils.getAreaFromIndex(bpy.context, target_area_index, "VIEW_3D")
-        if source_area is None:
-            # source_area = bpy.context.area
-            # source_area = utils.getViewportAreaView(
-            #     bpy.context, viewport_index=bpy.context.window_manager.shotmanager_target_viewport
-            # )
-            source_area = utils.getViewportAreaView(bpy.context, viewport_index=target_area_index)
+        # was required to set the camera to the target viewport
+        # target_area_index = self.getTargetViewportIndex(bpy.context, only_valid=False)
+        # target_area = utils.getAreaFromIndex(bpy.context, target_area_index, "VIEW_3D")
+        # if source_area is None:
+        #     # source_area = bpy.context.area
+        #     # source_area = utils.getViewportAreaView(
+        #     #     bpy.context, viewport_index=bpy.context.window_manager.shotmanager_target_viewport
+        #     # )
+        #     source_area = utils.getViewportAreaView(bpy.context, viewport_index=target_area_index)
 
         shotList = self.get_shots()
         self.current_shot_index = currentShotIndex
@@ -2282,10 +2316,14 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
             # if prefs.current_shot_changes_time_range:
             #     zoom_dopesheet_view_to_range(bpy.context, currentShot.start, currentShot.end)
 
-            if currentShot.camera is not None and bpy.context.screen is not None:
-                # set the current camera in the 3D view: [‘PERSP’, ‘ORTHO’, ‘CAMERA’]
-                scene.camera = currentShot.camera
-                utils.setCurrentCameraToViewport2(bpy.context, target_area)
+            if setCamToViewport:
+                currentShot.setCameraToViewport()
+            # if setCamToViewport and currentShot.camera is not None and bpy.context.screen is not None:
+            #     # set the current camera in the 3D view: [‘PERSP’, ‘ORTHO’, ‘CAMERA’]
+            #     scene.camera = currentShot.camera
+            #     utils.setCurrentCameraToViewport2(bpy.context, target_area)
+
+            self.updateGreasePencilVisibility(self.getCurrentTake())
 
             # wkip use if
             # if prefs.toggleCamsSoundBG:

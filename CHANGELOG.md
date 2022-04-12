@@ -1,6 +1,18 @@
 # 1.7.16 (2022-04-24)
 
 ## Camera HUD:
+# 2.0.10 (2022-04-11)
+
+- checkbox to set the current shot camera to the viewport when a free grease pencil object is selected
+
+
+# 2.0.9 (2022-04-08)
+
+- Introduction of an Empty object between the shot camera and the storyboard grease pencil in order to
+allow animated frames
+
+
+# 2.0.5 (2022-04-05)
 
 - Exposed the size of the shot names displayed over the cameras in the viewport
 in the add-on Preferences panel as well as in the Features panel preferences

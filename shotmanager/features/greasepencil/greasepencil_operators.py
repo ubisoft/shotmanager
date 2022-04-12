@@ -21,7 +21,7 @@ To do: module description here.
 
 import bpy
 from bpy.types import Operator
-from bpy.props import StringProperty, IntProperty
+from bpy.props import StringProperty, IntProperty, BoolProperty
 
 from shotmanager.utils import utils
 from shotmanager.utils import utils_greasepencil
@@ -131,6 +131,36 @@ class UAS_ShotManager_OT_AddCanvasToGreasePencil(Operator):
 #         return {"FINISHED"}
 
 
+class UAS_ShotManager_OT_ToggleGreasePencilDrawMode(Operator):
+    bl_idname = "uas_shot_manager.toggle_grease_pencil_draw_mode"
+    bl_label = "Toggle Grease Pencil Draw Mode"
+    bl_description = "Toggle Grease Pencil Draw Mode"
+    bl_options = {"INTERNAL", "UNDO"}
+
+    gpObjectName: StringProperty(default="")
+
+    def execute(self, context):
+        scene = context.scene
+        prefs = context.preferences.addons["shotmanager"].preferences
+        props = scene.UAS_shot_manager_props
+
+        if context.active_object is not None:
+            if context.active_object.mode == "PAINT_GPENCIL":
+                bpy.ops.object.mode_set(mode="OBJECT")
+            else:
+                bpy.ops.object.mode_set(mode="PAINT_GPENCIL")
+                if prefs.stb_camPOV_forFreeGP:
+                    props.getCurrentShot().setCameraToViewport()
+                    scene.tool_settings.gpencil_stroke_placement_view3d = "ORIGIN"
+                    scene.tool_settings.gpencil_sculpt.lock_axis = "VIEW"
+            # bpy.ops.object.select_all(action="DESELECT")
+            # bpy.context.view_layer.objects.active = gp_child
+            # gp_child.select_set(True)
+            # bpy.ops.gpencil.paintmode_toggle()
+
+        return {"FINISHED"}
+
+
 class UAS_ShotManager_OT_DrawOnGreasePencil(Operator):
     bl_idname = "uas_shot_manager.draw_on_grease_pencil"
     bl_label = "Draw on Grease Pencil"
@@ -190,6 +220,7 @@ class UAS_ShotManager_OT_RemoveGreasePencil(Operator):
     bl_options = {"INTERNAL", "UNDO"}
 
     shotIndex: IntProperty(default=-1)
+    alsoApplyToDisabledShots: BoolProperty(default=True)
 
     def invoke(self, context, event):
         props = context.scene.UAS_shot_manager_props
@@ -198,7 +229,7 @@ class UAS_ShotManager_OT_RemoveGreasePencil(Operator):
         print("Remove Grease Pencil: shotIndex: ", self.shotIndex)
         if 0 > self.shotIndex:
             take = context.scene.UAS_shot_manager_props.getCurrentTake()
-            shotList = take.getShotList(ignoreDisabled=props.shotsGlobalSettings.alsoApplyToDisabledShots)
+            shotList = take.getShotsList(ignoreDisabled=not self.alsoApplyToDisabledShots)
         else:
             shot = props.getShotByIndex(self.shotIndex)
             if shot is not None:
@@ -217,13 +248,17 @@ class UAS_ShotManager_OT_RemoveGreasePencil(Operator):
 class UAS_ShotManager_OT_EnableDisableGreasePencil(Operator):
     bl_idname = "uas_shot_manager.enabledisablegreasepencil"
     bl_label = "Enable / Disable Grease Pencil"
-    bl_description = "Alternatively enable or disable the grease pencil used by camera the shots"
+    bl_description = "Alternatively enable or disable the grease pencil used by the camera of the shots"
     bl_options = {"INTERNAL", "UNDO"}
 
     def invoke(self, context, event):
-        prefs = context.preferences.addons["shotmanager"].preferences
-        bpy.ops.uas_shots_settings.use_greasepencil(useGreasepencil=prefs.toggleGreasePencil)
-        prefs.toggleGreasePencil = not prefs.toggleGreasePencil
+        props = context.scene.UAS_shot_manager_props
+
+        # prefs = context.preferences.addons["shotmanager"].preferences
+        # bpy.ops.uas_shots_settings.use_greasepencil(useGreasepencil=prefs.enableGreasePencil)
+        # prefs.enableGreasePencil = not prefs.enableGreasePencil
+
+        props.enableGreasePencil(not props.use_greasepencil)
 
         return {"FINISHED"}
 

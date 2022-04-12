@@ -27,6 +27,8 @@ from bpy.types import Scene
 from bpy.types import PropertyGroup
 from bpy.props import StringProperty, IntProperty, BoolProperty, PointerProperty, FloatVectorProperty
 
+from shotmanager.features.greasepencil.greasepencil_props import GreasePencilProperties
+
 from shotmanager.utils import utils
 from .montage_interface import ShotInterface
 
@@ -312,6 +314,14 @@ class UAS_ShotManager_Shot(ShotInterface, PropertyGroup):
             if 1 < self.parentScene.UAS_shot_manager_props.getNumSharedCamera(self.camera):
                 self.camera = utils.duplicateObject(self.camera, newName="Cam_" + self.name)
 
+    def setCameraToViewport(self):
+        if self.isCameraValid() and bpy.context.screen is not None:
+            props = self.parentScene.UAS_shot_manager_props
+            target_area_index = props.getTargetViewportIndex(bpy.context, only_valid=False)
+            target_area = utils.getAreaFromIndex(bpy.context, target_area_index, "VIEW_3D")
+            self.parentScene.camera = self.camera
+            utils.setCurrentCameraToViewport2(bpy.context, target_area)
+
     ##############
     # color
     ##############
@@ -531,18 +541,105 @@ class UAS_ShotManager_Shot(ShotInterface, PropertyGroup):
     # grease pencil
     #############
 
+    greasePencils: CollectionProperty(
+        name="Properties of Grease Pencil Children",
+        description="Set of Grease Pencil Properties",
+        type=GreasePencilProperties,
+    )
+
+    def addGreasePencil(self, mode="STORYBOARD"):
+        """Create a Grease Pencil object parented to the camera of the shot.
+        Return a tupple with the grease pencil properties and the created object.
+        """
+        if len(self.greasePencils):
+            gpProps = self.greasePencils[0]
+        else:
+            gpProps = self.greasePencils.add()
+            gpProps.initialize(self)
+
+        gpObj = self.getGreasePencilObject()
+
+        if gpObj is None:
+            gpName = self.camera.name + "_GP"
+            gpObj = utils_greasepencil.create_new_greasepencil(gpName, parentCamera=self.camera, location=[0, 0, -0.5])
+
+            # utils_greasepencil.add_grease_pencil_canvas_layer(gpObj, "GP_Canvas", order="BOTTOM", camera=self.camera)
+
+        # gpProps.updateGreasePencilToFrustum()
+        gpProps.updateGreasePencil()
+
+        return (gpProps, gpObj)
+
+    def getGreasePencilProps(self, mode="STORYBOARD"):
+        """Return the GreasePencilProperties instance of the specified mode
+        Args:
+            mode: "STORYBOARD"
+        """
+        # TODO: differenciate the modes of grease pencils to provide the right one
+        gpProps = self.greasePencils[0] if len(self.greasePencils) else None
+        return gpProps
+
+    def removeGreasePencil(self, mode="STORYBOARD"):
+        """Remove the Grease Pencil properties and the object parented to the camera of the shot."""
+        if self.isCameraValid():
+            gp_child = utils_greasepencil.get_greasepencil_child(self.camera, childType="GPENCIL")
+            if gp_child is not None:
+                bpy.data.objects.remove(gp_child, do_unlink=True)
+            gp_child = utils_greasepencil.get_greasepencil_child(self.camera, childType="EMPTY")
+            if gp_child is not None:
+                bpy.data.objects.remove(gp_child, do_unlink=True)
+        if len(self.greasePencils):
+            self.greasePencils.remove(0)
+
     def hasGreasePencil(self):
-        if self.camera is not None:
-            gp_child = utils.get_greasepencil_child(self.camera)
+        if self.isCameraValid():
+            gp_child = utils_greasepencil.get_greasepencil_child(self.camera)
             return gp_child is not None
         else:
             return False
 
-    def getGreasePencil(self):
+    # wkip to update with the gp list
+    def getGreasePencilObject(self, mode="STORYBOARD"):
         gp_child = None
-        if self.camera is not None:
-            gp_child = utils.get_greasepencil_child(self.camera)
+        if self.isCameraValid():
+            gp_child = utils_greasepencil.get_greasepencil_child(self.camera)
         return gp_child
+
+    def updateGreasePencils(self):
+        for gpProps in self.greasePencils:
+            gpProps.updateGreasePencil()
+
+    # wkip to update with the gp list
+    def showGreasePencil(self):
+        #    def showGreasePencil(self, visible=None, type="STORYBOARD"):
+        def _showGreasePencil(gpencil, visible):
+            gpencil.hide_viewport = not visible
+            gpencil.hide_render = not visible
+
+        if not self.isCameraValid():
+            return
+
+        gp_child = utils_greasepencil.get_greasepencil_child(self.camera)
+        if gp_child is not None:
+            gpProps = self.greasePencils[0]
+            props = self.parentScene.UAS_shot_manager_props
+
+            # if visible is None:
+            #     gpProps.visibility =
+            # else:
+            if "ALWAYS_VISIBLE" == gpProps.visibility:
+                _showGreasePencil(gp_child, props.use_greasepencil)
+            elif "ALWAYS_HIDDEN" == gpProps.visibility:
+                _showGreasePencil(gp_child, False)
+            # AUTO
+            else:
+                if props.use_greasepencil:
+                    if props.getCurrentShot() == self:
+                        _showGreasePencil(gp_child, True)
+                    else:
+                        _showGreasePencil(gp_child, False)
+                else:
+                    _showGreasePencil(gp_child, False)
 
     #############
     # notes #####

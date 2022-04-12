@@ -21,7 +21,7 @@ Grease pencil shot class
 
 import bpy
 from bpy.types import PropertyGroup
-from bpy.props import PointerProperty, FloatProperty, FloatVectorProperty, BoolProperty
+from bpy.props import PointerProperty, FloatProperty, FloatVectorProperty, BoolProperty, EnumProperty
 
 # from shotmanager.properties.shot import UAS_ShotManager_Shot
 
@@ -36,13 +36,30 @@ class GreasePencilProperties(PropertyGroup):
         name="Camera", description="Camera parent of the grease pencil object", type=bpy.types.Object
     )
 
-    def initialize(self, parentShot):
+    frameMode: EnumProperty(
+        name="Frame Mode",
+        description="grease Pencil usage",
+        items=(("STORYBOARD", "Storyboard", "Storyboard frame properties"),),
+        default="STORYBOARD",
+    )
+
+    def initialize(self, parentShot, mode="STORYBOARD"):
         """Set the parent camera of the Grease Pencil Properties"""
         prefs = bpy.context.preferences.addons["shotmanager"].preferences
         print(f"\nInitializing new Grease Pencil Properties for shot {parentShot.name}...")
 
         self.parentCamera = parentShot.camera
+        self.frameMode = mode
         self.canvasOpacity = prefs.storyboard_default_canvas_opacity
+
+    def getParentShot(self):
+        props = bpy.context.scene.UAS_shot_manager_props
+        for take in props.takes:
+            for shot in take.shots:
+                for gpProps in shot.greasePencils:
+                    if gpProps == self:
+                        return shot
+        return None
 
     def _update_distanceFromOrigin(self, context):
         # print("distanceFromOrigin")
@@ -60,6 +77,21 @@ class GreasePencilProperties(PropertyGroup):
         update=_update_distanceFromOrigin,
         default=0.5,
         options=set(),
+    )
+
+    def _update_visibility(self, context):
+        self.getParentShot().showGreasePencil()
+
+    visibility: EnumProperty(
+        name="Frame Visibility",
+        description="Visibility",
+        items=(
+            ("ALWAYS_VISIBLE", "Visible", "Storyboard frame is always visible"),
+            ("ALWAYS_HIDDEN", "Hidden", "Storyboard frame is always hidden"),
+            ("AUTO", "Auto", "Storyboard frame is automaticaly shown or hidden"),
+        ),
+        update=_update_visibility,
+        default="AUTO",
     )
 
     def _update_canvasOpacity(self, context):
@@ -103,6 +135,8 @@ class GreasePencilProperties(PropertyGroup):
         """Copy the value of the properties of the specified GreasePencilProperties instance to this one
         Camera value will not be changed.
         """
+        self.frameMode = sourceGpProps.frameMode
+        self.visibility = sourceGpProps.visibility
         self.distanceFromOrigin = sourceGpProps.distanceFromOrigin
         self.canvasOpacity = sourceGpProps.canvasOpacity
         self.canvasSize = sourceGpProps.canvasSize
@@ -116,7 +150,7 @@ class GreasePencilProperties(PropertyGroup):
     def updateCanvas(self):
         props = bpy.context.scene.UAS_shot_manager_props
 
-        res = props.getRenderResolution()
+        # res = props.getRenderResolution()
         renderRatio = props.getRenderAspectRatio()
         # print(f"ResX: {res[0]}, resY: {res[1]}, ratio: {renderRatio}")
 

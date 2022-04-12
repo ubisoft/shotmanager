@@ -16,14 +16,14 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 """
-To do: module description here.
+Shots global settings
 """
 
 import bpy
 from bpy.types import Operator, PropertyGroup
 from bpy.props import EnumProperty, BoolProperty, FloatProperty
 
-from shotmanager.utils import utils
+from shotmanager.utils import utils_greasepencil
 
 
 class UAS_ShotManager_ShotsGlobalSettings(PropertyGroup):
@@ -63,8 +63,9 @@ class UAS_ShotManager_ShotsGlobalSettings(PropertyGroup):
     )
 
     def _update_proxyRenderSize(self, context):
-        take = context.scene.UAS_shot_manager_props.getCurrentTake()
-        shotList = take.getShotList(ignoreDisabled=False)
+        props = context.scene.UAS_shot_manager_props
+        take = props.getCurrentTake()
+        shotList = take.getShotsList(ignoreDisabled=False)
 
         for shot in shotList:
             if shot.enabled or props.shotsGlobalSettings.alsoApplyToDisabledShots:
