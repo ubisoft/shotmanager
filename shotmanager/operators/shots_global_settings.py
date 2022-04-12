@@ -88,6 +88,27 @@ class UAS_ShotManager_ShotsGlobalSettings(PropertyGroup):
     )
 
     #########################
+    # Storyboard
+    #########################
+
+    stb_camPOV_forFreeGP: BoolProperty(
+        name="Camera POV for Free Grease Pencil",
+        description="Set the camera of the current shot in the viewport when\n"
+        "a 2.5D grease pencil object is drawn, and force the stroke draw placement and drawing plane",
+        default=True,
+    )
+
+    stb_strokePlacement_forFreeGP: EnumProperty(
+        name="Stroke Placement for Free Grease Pencil",
+        description="Set the stroke placement mode when starting to draw on a grease pencil object",
+        items=(
+            ("ORIGIN", "Origin", "", "OBJECT_ORIGIN", 0),
+            ("CURSOR", "3D Cursor", "", "PIVOT_CURSOR", 1),
+        ),
+        default="ORIGIN",
+    )
+
+    #########################
     # Sound
     #########################
 

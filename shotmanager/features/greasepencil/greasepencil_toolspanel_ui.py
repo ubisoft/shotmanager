@@ -19,7 +19,7 @@
 Shot Manager grease pencil tools and specific operators
 """
 
-# import bpy
+import bpy
 
 # from shotmanager.utils import utils
 from shotmanager.utils import utils_ui
@@ -68,9 +68,12 @@ def draw_greasepencil_play_tools(layout, context, shot, layersListDropdown=None)
             freeGPRow.label(text=" ***")
             freeGPRow.alert = False
 
-            rightFreeGPRow = freeGPRow.row(align=False)
+            rightFreeGPRow = freeGPRow.row(align=True)
             rightFreeGPRow.alignment = "RIGHT"
-            rightFreeGPRow.prop(prefs, "stb_camPOV_forFreeGP", text="Cam POV")
+            rightFreeGPRow.prop(props.shotsGlobalSettings, "stb_camPOV_forFreeGP", text="")
+            subrightFreeGPRow = rightFreeGPRow.row(align=True)
+            subrightFreeGPRow.enabled = props.shotsGlobalSettings.stb_camPOV_forFreeGP
+            subrightFreeGPRow.prop(props.shotsGlobalSettings, "stb_strokePlacement_forFreeGP", text="")
 
         #     mainRow = col.row(align=False)
 
@@ -121,7 +124,11 @@ def draw_greasepencil_play_tools(layout, context, shot, layersListDropdown=None)
             ).shotIndex = shotIndex
 
         gpToolsRow.separator(factor=0.5)
+        navRow = gpToolsRow.row(align=True)
+        navRow.operator("uas_shot_manager.greasepencil_previouskey", icon="PREV_KEYFRAME", text="")
+        navRow.operator("uas_shot_manager.greasepencil_nextkey", icon="NEXT_KEYFRAME", text="")
 
+        gpToolsRow.separator(factor=0.5)
         drawLayersRow(context, props, gpToolsRow, gp, objIsGP)
 
         gpOpsRightRow = gpOpsRow.row(align=False)
@@ -129,7 +136,7 @@ def draw_greasepencil_play_tools(layout, context, shot, layersListDropdown=None)
         gpOpsRightRow.scale_x = 1.2
         # gpOpsRightRow.separator(factor=0.1)
         gpOpsRightRow.operator("uas_shot_manager.clear_layer", text="", icon="MESH_PLANE")
-        gpOpsRightRow.separator(factor=0.5)
+        gpOpsRightRow.separator(factor=0.1)
 
         # current frame ###
         ###################
@@ -138,7 +145,44 @@ def draw_greasepencil_play_tools(layout, context, shot, layersListDropdown=None)
 
         # mainRow = box.row(align=False)
         keysRow = col.row(align=True)
-        drawKeysRow(context, props, col, gp, objIsGP)
+
+        # drawing on key frames
+        ###################
+
+        isCurrentFrameOnGPFrame = False
+        if objIsGP:
+            isCurrentFrameOnGPFrame = utils_greasepencil.isCurrentFrameOnLayerKeyFrame(
+                gp, context.scene.frame_current, "ACTIVE"
+            )
+        else:
+            keysRow.enabled = False
+
+        subsubRow = keysRow.row(align=True)
+        subsubRow.alignment = "CENTER"
+
+        # auto key (code from the timeline of Blender)
+        # subsubRow = keysRow.row(align=True)
+        subsubRow.prop(bpy.context.tool_settings, "use_keyframe_insert_auto", text="", toggle=True)
+        subsubRow.separator()
+        # subsubRow = keysRow.row(align=True)
+        # subsubRow.active = bpy.context.tool_settings.use_keyframe_insert_auto
+        # subsubRow.popover(
+        #     panel="TIME_PT_auto_keyframing",
+        #     text="",
+        # )
+
+        subsubRow.label(text="Drawing on key frame: ")
+        gpFrameStr = "-"
+        if objIsGP:
+            if isCurrentFrameOnGPFrame:
+                gpFrameStr = f"{context.scene.frame_current} (Current)"
+            else:
+                subsubRow.alert = True
+                prevFrame = utils_greasepencil.getLayerPreviousFrame(gp, context.scene.frame_current, "ACTIVE")
+                gpFrameStr = str(prevFrame)
+        subsubRow.label(text=f"{prevFrame}")
+
+        # drawKeysRow(context, props, col, gp, objIsGP)
 
         # layers ##
         ##################
@@ -181,8 +225,9 @@ def draw_greasepencil_play_tools(layout, context, shot, layersListDropdown=None)
         # Active material ###
         ###################
 
-        materialsRow = matRow.row(align=True)
         if objIsGP:
+            materialsRow = matRow.row(align=True)
+            materialsRow.alignment = "RIGHT"
             materialsRow.label(text="Material:")
             # materialsRow.prop(gp, "material_slots")
             materialsRow.prop(props, "greasePencil_activeMaterial", text="")

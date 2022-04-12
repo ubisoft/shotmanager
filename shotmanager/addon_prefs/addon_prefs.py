@@ -165,13 +165,6 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
         default=False,
     )
 
-    stb_camPOV_forFreeGP: BoolProperty(
-        name="Camera POV for Free Grease Pencil",
-        description="Set the camera of the current shot in the viewport when\n"
-        "a 2.5D grease pencil object is drawn, and force the origin and view",
-        default=True,
-    )
-
     def _get_stb_overlay_layers_opacity(self):
         # print(" get_projectSeqName")
         props = bpy.context.scene.UAS_shot_manager_props

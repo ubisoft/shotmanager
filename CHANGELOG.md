@@ -3,8 +3,12 @@
 ## Camera HUD:
 # 2.0.10 (2022-04-11)
 
-- checkbox to set the current shot camera to the viewport when a free grease pencil object is selected
+- Added a checkbox to set the current shot camera to the viewport when a free grease pencil object enters into draw mode
 
+- Added a dropdown to set the stroke placement and origin when a free grease pencil object enters into draw mode
+
+- Modified the alternative behaviors for the Set Current Shot button in order to change the current shot
+without changing the current viewport
 
 # 2.0.9 (2022-04-08)
 

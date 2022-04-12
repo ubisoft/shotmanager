@@ -540,8 +540,9 @@ def duplicateLayerKeyFrame(gpencil: bpy.types.GreasePencil, currentFrame, layerM
             gpLayer = gpencil.data.layers[layerMode]
 
         if not gpLayer.lock and not isCurrentFrameOnLayerKeyFrame(gpencil, currentFrame, gpLayer.info):
+            prevFrame = getLayerPreviousFrame(gpencil, currentFrame, gpLayer.info)
             if prevFrame < currentFrame:
-                newLayerKeyFrame = layer.frames.copy(getLayerKeyFrameAtFrame(gpencil, prevFrame, gpLayer.info))
+                newLayerKeyFrame = gpLayer.frames.copy(getLayerKeyFrameAtFrame(gpencil, prevFrame, gpLayer.info))
                 newLayerKeyFrame.frame_number = currentFrame
 
     return newLayerKeyFrame
