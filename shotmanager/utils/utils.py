@@ -1016,18 +1016,39 @@ def remove_background_video_from_cam(camera: bpy.types.Camera):
 
 
 def clear_selection():
+    selectedObjs = [obj for obj in bpy.context.selected_objects]
+    for obj in selectedObjs:
+        obj.select_set(False)
     if bpy.context.active_object is not None:
-        bpy.context.active_object.select_set(False)
-    for obj in bpy.context.selected_objects:
+        if "OBJECT" == bpy.context.active_object.mode:
+            bpy.context.view_layer.objects.active = None
+
+
+def select_object(obj: bpy.types.Object, clear_sel=True):
+    if clear_sel:
+        clear_selection()
+    obj.select_set(True)
+    if bpy.context.active_object is None:
         bpy.context.view_layer.objects.active = obj
 
+    # if context.active_object is not None and context.active_object.mode != "OBJECT":
+    #     bpy.ops.object.mode_set(mode="OBJECT")
+    # bpy.ops.object.select_all(action="DESELECT")
+    # bpy.context.view_layer.objects.active = gp_child
+    # gp_child.select_set(True)
+    # gp_child.hide_select = False
+    # gp_child.hide_viewport = False
+    # gp_child.hide_render = False
+    # gp_child.hide_set(False)  # the eye icon
 
-def add_to_selection(obj):
+
+def add_to_selection(obj: bpy.types.Object):
     # bpy.data.objects[obj.name].select_set(True)
     # bpy.context.view_layer.objects.active = bpy.data.objects['Sphere']
     obj.select_set(True)
     # to set the active object
-    bpy.context.view_layer.objects.active = obj
+    if bpy.context.active_object is None or "OBJECT" == bpy.context.active_object.mode:
+        bpy.context.view_layer.objects.active = obj
 
 
 ###################

@@ -52,6 +52,12 @@ OTIO advanced doc: https://sandflow.github.io/otio-core-specification/
 
 Grease Pencil for boarding:
     - Urgent:
+        - remove operator duplicate "uas_shot_manager.draw_on_grease_pencil"
+
+        - faire un mode TrackEdit
+
+        - Quand un objet est pinné et qu'on entre en draw depuis un shot, faire sauter le pin???
+            Non, dépinner suffit - mais ca fait une inconsistence avec le shot sélectionné
 
         - modes alt shift to add keys or delete
         - offset in time

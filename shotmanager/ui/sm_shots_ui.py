@@ -107,10 +107,13 @@ class UAS_UL_ShotManager_Items(bpy.types.UIList):
 
             if props.display_storyboard_in_properties and props.display_greasepencil_in_shotlist:
                 row = row.row(align=True)
-                row.scale_x = 1.0
-                icon = "BLANK1"
-                gp = item.getGreasePencil()
-                if gp is not None:
+                row.scale_x = 1.1
+
+                gp = item.getGreasePencilObject()
+                if gp is None:
+                    icon = config.icons_col["ShotManager_CamGPNoShot_32"]
+                    row.operator("uas_shot_manager.greasepencilitem", text="", icon_value=icon.icon_id).index = index
+                else:
                     # if gp == context.active_object and context.active_object.mode == "PAINT_GPENCIL":
                     if gp.mode == "PAINT_GPENCIL":
                         icon = "GREASEPENCIL"

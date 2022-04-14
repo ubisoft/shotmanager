@@ -92,6 +92,7 @@ class GreasePencilProperties(PropertyGroup):
         ),
         update=_update_visibility,
         default="AUTO",
+        options=set(),
     )
 
     def _update_canvasOpacity(self, context):
@@ -109,7 +110,7 @@ class GreasePencilProperties(PropertyGroup):
         description="Opacity of the Canvas layer",
         min=0.0,
         max=1.0,
-        step=0.01,
+        step=0.05,
         update=_update_canvasOpacity,
         default=1.0,
         options=set(),

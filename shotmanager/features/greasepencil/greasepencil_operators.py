@@ -83,13 +83,90 @@ class UAS_ShotManager_OT_AddGreasePencil(Operator):
         return {"FINISHED"}
 
 
-class UAS_ShotManager_OT_SelectGreasePencil(Operator):
-    bl_idname = "uas_shot_manager.select_grease_pencil"
-    bl_label = "Select Grease Pencil"
-    bl_description = "Select Grease Pencil object from the specified shot"
+# class UAS_ShotManager_OT_AddGreasePencil(Operator):
+#     bl_idname = "uas_shot_manager.add_grease_pencil"
+#     bl_label = "Add Grease Pencil"
+#     bl_description = "Add Grease Pencil to the camera of the specified shot"
+#     bl_options = {"INTERNAL", "UNDO"}
+
+#     cameraGpName: StringProperty(default="")
+
+#     def execute(self, context):
+#         scene = context.scene
+
+#         if self.cameraGpName not in scene.objects or scene.objects[self.cameraGpName] is None:
+#             print("Camera is invalid for grease pencil parenting - Cancelling...")
+#             return {"CANCELLED"}
+#         else:
+#             cam = scene.objects[self.cameraGpName]
+#             gpName = cam.name + "_GP"
+#             gpObj = utils_greasepencil.create_new_greasepencil(gpName, parentCamera=cam, location=[0, 0, -0.5])
+
+#             utils_greasepencil.add_grease_pencil_canvas_layer(gpObj, "GP_Canvas", order="BOTTOM", camera=cam)
+
+#             utils.select_object(gpObj)
+
+#         return {"FINISHED"}
+
+
+class UAS_ShotManager_OT_SelectShotGreasePencil(Operator):
+    bl_idname = "uas_shot_manager.select_shot_grease_pencil"
+    bl_label = "Select Storyboard Frame"
+    bl_description = "Select the storyboard frame of the current shot"
     bl_options = {"INTERNAL", "UNDO"}
 
-    index: bpy.props.IntProperty(default=0)
+    index: bpy.props.IntProperty(default=-1)
+
+    @classmethod
+    def description(self, context, properties):
+        descr = "_"
+        if -1 == properties.index:
+            descr = "Select the storyboard frame of the current shot"
+        else:
+            descr = "Select the storyboard frame of the selected shot"
+        return descr
+
+    # @classmethod
+    # def poll(self, context):
+    #     selectionIsPossible = context.active_object is None or context.active_object.mode == "OBJECT"
+    #     return selectionIsPossible
+
+    def invoke(self, context, event):
+        scene = context.scene
+        props = scene.UAS_shot_manager_props
+
+        # select SELECTED shot
+        # if event.shift and not event.ctrl and not event.alt:
+        if context.active_object is not None and context.active_object.mode != "OBJECT":
+            bpy.ops.object.mode_set(mode="OBJECT")
+
+        if -1 == self.index:
+            shot = props.getShotByIndex(props.current_shot_index)
+        else:
+            props.setSelectedShotByIndex(self.index)
+            shot = props.getShotByIndex(props.selected_shot_index)
+
+        if shot is not None:
+            if shot.isCameraValid() is not None:
+                gp_child = utils_greasepencil.get_greasepencil_child(shot.camera)
+                if gp_child is not None:
+                    bpy.ops.object.select_all(action="DESELECT")
+                    bpy.context.view_layer.objects.active = gp_child
+                    gp_child.select_set(True)
+
+        utils.setPropertyPanelContext(bpy.context, "DATA")
+
+        # # select CURRENT shot
+        # elif not event.ctrl and not event.shift and not event.alt:
+
+        return {"FINISHED"}
+
+
+class UAS_ShotManager_OT_SelectGreasePencilObject(Operator):
+    bl_idname = "uas_shot_manager.select_grease_pencil_object"
+    bl_label = "Select the grease pencil object being drawn"
+    # bl_description = "Select Grease Pencil object"
+    bl_options = {"INTERNAL", "UNDO"}
 
     # @classmethod
     # def poll(self, context):
@@ -97,21 +174,19 @@ class UAS_ShotManager_OT_SelectGreasePencil(Operator):
     #     return selectionIsPossible
 
     def execute(self, context):
-        scene = context.scene
-        props = scene.UAS_shot_manager_props
+        # bpy.ops.outliner.item_activate(extend=True, deselect_all=True)
 
-        props.setSelectedShotByIndex(self.index)
-        if context.active_object is not None and context.active_object.mode != "OBJECT":
-            bpy.ops.object.mode_set(mode="OBJECT")
+        # bpy.ops.object.select_all(action="DESELECT")
+        if context.object is None:
+            bpy.ops.object.select_all(action="DESELECT")
+        else:
+            # bpy.data.objects["Cube"].select_get()
+            for obj in context.selected_objects:
+                obj.select_set(False)
+            bpy.context.view_layer.objects.active = context.object
+            bpy.data.objects[context.object.name].select_set(True)
 
-        shot = props.getShotByIndex(props.selected_shot_index)
-        if shot is not None:
-            if shot.camera is not None:
-                gp_child = utils.get_greasepencil_child(shot.camera)
-                if gp_child is not None:
-                    bpy.ops.object.select_all(action="DESELECT")
-                    bpy.context.view_layer.objects.active = gp_child
-                    gp_child.select_set(True)
+            utils.setPropertyPanelContext(bpy.context, "DATA")
 
         return {"FINISHED"}
 
@@ -137,38 +212,9 @@ class UAS_ShotManager_OT_AddCanvasToGreasePencil(Operator):
         return {"FINISHED"}
 
 
-# class UAS_ShotManager_OT_DrawOnGreasePencil(Operator):
-#     bl_idname = "uas_shot_manager.draw_on_grease_pencil"
-#     bl_label = "Select Grease Pencil"
-#     bl_description = "Select Grease Pencil object from the specified shot"
-#     bl_options = {"INTERNAL", "UNDO"}
-
-#     gpObjectName: StringProperty(default="")
-
-#     def execute(self, context):
-#         scene = context.scene
-#         props = scene.UAS_shot_manager_props
-
-#         if self.gpObjectName not in scene.objects or scene.objects[self.gpObjectName] is None:
-#             print("Grease Pencil Child is invalid for grease pencil parenting - Cancelling...")
-#             return {"CANCELLED"}
-#         else:
-#             gp_child = scene.objects[self.gpObjectName]
-
-#             # context.scene.UAS_shot_manager_props.setSelectedShotByIndex(self.index)
-#             if context.active_object is not None and context.active_object.mode != "OBJECT":
-#                 bpy.ops.object.mode_set(mode="OBJECT")
-#             bpy.ops.object.select_all(action="DESELECT")
-#             bpy.context.view_layer.objects.active = gp_child
-#             gp_child.select_set(True)
-#             bpy.ops.gpencil.paintmode_toggle()
-
-#         return {"FINISHED"}
-
-
 class UAS_ShotManager_OT_ToggleGreasePencilDrawMode(Operator):
     bl_idname = "uas_shot_manager.toggle_grease_pencil_draw_mode"
-    bl_label = "Toggle Grease Pencil Draw Mode"
+    bl_label = ""
     bl_description = "Toggle Grease Pencil Draw Mode"
     bl_options = {"INTERNAL", "UNDO"}
 
@@ -178,21 +224,28 @@ class UAS_ShotManager_OT_ToggleGreasePencilDrawMode(Operator):
         scene = context.scene
         props = scene.UAS_shot_manager_props
 
-        if context.active_object is not None:
-            if context.active_object.mode == "PAINT_GPENCIL":
-                bpy.ops.object.mode_set(mode="OBJECT")
+        # NOTE: we use context.object here instead of context.active_object because
+        # when the eye icon of the object is closed (meaning object.hide_get() == True)
+        # then context.active_object is None
+        if context.object is not None:
+            if "OBJECT" != context.object.mode:
+                # if context.active_object.mode == "PAINT_GPENCIL":
+                # bpy.ops.object.mode_set(mode="OBJECT")
+                utils_greasepencil.switchToObjectMode()
             else:
-                bpy.ops.object.mode_set(mode="PAINT_GPENCIL")
+                # bpy.ops.object.mode_set(mode="PAINT_GPENCIL")
+                if self.gpObjectName in context.scene.objects:
+                    gpencil = context.scene.objects[self.gpObjectName]
+                else:
+                    gpencil = context.object
+
+                utils_greasepencil.switchToDrawMode(context, gpencil)
                 if props.shotsGlobalSettings.stb_camPOV_forFreeGP:
                     props.getCurrentShot().setCameraToViewport()
                     scene.tool_settings.gpencil_stroke_placement_view3d = (
                         props.shotsGlobalSettings.stb_strokePlacement_forFreeGP
                     )
                     scene.tool_settings.gpencil_sculpt.lock_axis = "VIEW"
-            # bpy.ops.object.select_all(action="DESELECT")
-            # bpy.context.view_layer.objects.active = gp_child
-            # gp_child.select_set(True)
-            # bpy.ops.gpencil.paintmode_toggle()
 
         return {"FINISHED"}
 
@@ -245,6 +298,16 @@ class UAS_ShotManager_OT_DrawOnGreasePencil(Operator):
             gp_child.hide_render = False
 
             bpy.ops.gpencil.paintmode_toggle()
+
+            utils_greasepencil.switchToDrawMode(context, gp_child)
+            # gp_child.select_set(True)
+            # gp_child.hide_select = False
+            # gp_child.hide_viewport = False
+            # gp_child.hide_render = False
+            # bpy.ops.gpencil.paintmode_toggle()
+
+            # context.scene.tool_settings.gpencil_stroke_placement_view3d = "ORIGIN"
+            # context.scene.tool_settings.gpencil_sculpt.lock_axis = "VIEW"
 
         return {"FINISHED"}
 
@@ -368,42 +431,136 @@ class UAS_ShotManager_OT_ClearLayer(Operator):
         return {"FINISHED"}
 
 
+class UAS_ShotManager_OT_PinGreasePencilObject(Operator):
+    bl_idname = "uas_shot_manager.pin_grease_pencil_object"
+    bl_label = "Pin the grease pencil object being drawn"
+    # bl_description = "Select Grease Pencil object"
+    bl_options = {"INTERNAL", "UNDO"}
+
+    pin: BoolProperty(default=False)
+    pinnedObjName: StringProperty(default="")
+
+    def execute(self, context):
+        props = context.scene.UAS_shot_manager_props
+
+        _logger.debug_ext(f"pinnedObjName: {self.pinnedObjName}, pin: {self.pin}")
+
+        if self.pin:
+            if "" != self.pinnedObjName and self.pinnedObjName in context.scene.objects:
+                props.stb_editedGPencilName = self.pinnedObjName
+
+        props.stb_hasPinnedObject = self.pin
+
+        # # bpy.ops.outliner.item_activate(extend=True, deselect_all=True)
+
+        # # bpy.ops.object.select_all(action="DESELECT")
+        # if context.object is None:
+        #     bpy.ops.object.select_all(action="DESELECT")
+        # else:
+        #     # bpy.data.objects["Cube"].select_get()
+        #     for obj in context.selected_objects:
+        #         obj.select_set(False)
+        #     bpy.context.view_layer.objects.active = context.object
+        #     bpy.data.objects[context.object.name].select_set(True)
+
+        #     utils.setPropertyPanelContext(bpy.context, "DATA")
+
+        return {"FINISHED"}
+
+
 class UAS_ShotManager_GreasePencilItem(Operator):
     bl_idname = "uas_shot_manager.greasepencilitem"
     bl_label = " "
     bl_description = (
-        "Select Shot Grease Pencil"
-        # "\n+ Ctrl: Disable all shots"
-        # "\n+ Ctrl + Shift: Invert shots state"
-        "\n+ Shift: Add Grease Pencil to the current selection"
-        "\n+ Alt: Select Grease Pencil and switch to Draw mode"
+        "+ Shift: Select the storyboard frame and add it to the current selection"
+        "\n+ Alt: Select the storyboard frame and switch to Draw mode"
     )
     bl_options = {"INTERNAL", "UNDO"}
 
-    index: bpy.props.IntProperty(default=0)
+    index: IntProperty(default=0)
+
+    action: StringProperty(default="DO_NOTHING")
 
     def invoke(self, context, event):
-        props = context.scene.UAS_shot_manager_props
+        self.action = "DO_NOTHING"
+
+        if not event.ctrl and not event.shift and not event.alt:
+            self.action = "SELECT"
+        elif not event.ctrl and event.shift and not event.alt:
+            self.action = "ADD_TO_SELECTION"
+        if not event.ctrl and not event.shift and event.alt:
+            self.action = "SELECT_AND_DRAW"
+
+        return self.execute(context)
+
+    def execute(self, context):
+        scene = context.scene
+        props = scene.UAS_shot_manager_props
         props.setSelectedShotByIndex(self.index)
         shot = props.getShotByIndex(self.index)
-        gpChild = shot.getGreasePencil()
-        if gpChild is not None:
-            if not event.shift or event.alt:
-                if context.active_object is not None and context.active_object.mode != "OBJECT":
-                    bpy.ops.object.mode_set(mode="OBJECT")
-                bpy.ops.object.select_all(action="DESELECT")
-            gpChild.select_set(True)
-            if event.alt:
-                props.setCurrentShotByIndex(self.index)
-                utils_greasepencil.switchToDrawMode(gpChild)
+        gp_child = shot.getGreasePencilObject()
+
+        # try:
+        #     bpy.ops.object.select_all(action="DESELECT")
+        # except Exception:
+        #     pass
+
+        if gp_child is None and "SELECT_AND_DRAW" == self.action:
+
+            if shot.camera is None or shot.camera.name not in scene.objects or scene.objects[shot.camera.name] is None:
+                print("Camera is invalid for grease pencil parenting - Cancelling...")
+                return {"CANCELLED"}
+
+            utils_greasepencil.create_new_greasepencil(
+                shot.camera.name + "_GP", parentCamera=shot.camera, location=[0, 0, 0]
+            )
+            gp_child = shot.getGreasePencilObject()
+
+        if gp_child is not None:
+            # if not event.shift or event.alt:
+            if "SELECT" == self.action:
+                # if context.active_object is not None and context.active_object.mode != "OBJECT":
+                #     bpy.ops.object.mode_set(mode="OBJECT")
+                if "OBJECT" != gp_child.mode:
+                    utils_greasepencil.switchToObjectMode()
+                utils.select_object(gp_child)
+
+            # add to selection
+            if "ADD_TO_SELECTION" == self.action:
+                utils.add_to_selection(gp_child)
+
+            # draw mode TOGGLE
+            elif "SELECT_AND_DRAW" == self.action:
+                if utils_greasepencil.isAnotherObjectInSubMode(gp_child):
+                    utils_greasepencil.switchToObjectMode()
+
+                utils.select_object(gp_child)
+
+                # quit draw mode
+                if "OBJECT" != gp_child.mode:
+                    utils_greasepencil.switchToObjectMode()
+
+                # enter draw mode
+                else:
+                    props.setCurrentShotByIndex(self.index)
+                    shot.updateGreasePencils()
+                    # set ink layer, else topmost layer
+                    setInkLayerReadyToDraw(gp_child)
+                    utils_greasepencil.switchToDrawMode(context, gp_child)
+
+        utils.setPropertyPanelContext(context, "DATA")
 
         return {"FINISHED"}
 
 
 class UAS_ShotManager_GreasePencil_PreviousKey(Operator):
     bl_idname = "uas_shot_manager.greasepencil_previouskey"
-    bl_label = "Previous"
-    bl_description = "Go to the previous key of the specified layer"
+    bl_label = ""
+    bl_description = (
+        "Jump to the previous key frame of the specified layer"
+        "\n+ Ctrl: Jump to the start of the current shot, then to"
+        "\nthe start of the previous shot"
+    )
     bl_options = {"INTERNAL", "UNDO"}
 
     def invoke(self, context, event):
@@ -432,8 +589,10 @@ class UAS_ShotManager_GreasePencil_PreviousKey(Operator):
 
 class UAS_ShotManager_GreasePencil_NextKey(Operator):
     bl_idname = "uas_shot_manager.greasepencil_nextkey"
-    bl_label = "Next"
-    bl_description = "Go to the next key of the specified layer"
+    bl_label = ""
+    bl_description = (
+        "Jump to the next key frame of the specified layer" "\n+ Ctrl: Jump to the start of the current shot"
+    )
     bl_options = {"INTERNAL", "UNDO"}
 
     def invoke(self, context, event):
@@ -646,6 +805,8 @@ _classes = (
     UAS_ShotManager_OT_DrawOnGreasePencil,
     UAS_ShotManager_OT_RemoveGreasePencil,
     UAS_ShotManager_OT_EnableDisableGreasePencil,
+    UAS_ShotManager_OT_ClearLayer,
+    UAS_ShotManager_OT_PinGreasePencilObject,
     UAS_ShotManager_GreasePencilItem,
     UAS_ShotManager_GreasePencil_NextKey,
     UAS_ShotManager_GreasePencil_PreviousKey,

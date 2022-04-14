@@ -297,12 +297,6 @@ class UAS_PT_ShotManager(Panel):
         if props.dontRefreshUI():
             return None
 
-        # grease pencil
-        ################
-
-        # if props.display_storyboard_in_properties:  # and props.expand_greasepencil_properties:
-        #     gp.draw_greasepencil_play_tools(layout, context, shot, layersListDropdown=prefs.layersListDropdown)
-
         # sequence name
         ################
         seqrow = layout.row()

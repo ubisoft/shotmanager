@@ -80,7 +80,9 @@ def draw_greasepencil_shot_properties(layout, context, shot):
         subRow.separator(factor=0.9)
         subRow.ui_units_x = 8
 
-        subRow.prop(gpProperties, "visibility", text="")
+        propSubRow = subRow.row(align=True)
+        propSubRow.prop(gpProperties, "visibility", text="")
+        propSubRow.prop(gp_child, "hide_select", text="")
 
         subRow.operator("uas_shot_manager.remove_grease_pencil", text="", icon="PANEL_CLOSE").shotIndex = shotIndex
         subRow.separator()
@@ -94,7 +96,17 @@ def draw_greasepencil_shot_properties(layout, context, shot):
         # subRow.scale_x = 0.8
         leftSubRow = subRow.row(align=True)
         leftSubRow.alignment = "LEFT"
-        leftSubRow.label(text="GP: ")
+        leftSubRow.separator(factor=1)
+
+        gpToolsRow = leftSubRow.row(align=True)
+        # gpToolsRow.alignment = "RIGHT"
+        gpToolsRow.scale_x = 1
+        gpToolsRow.operator(
+            "uas_shot_manager.select_shot_grease_pencil", text="", icon="RESTRICT_SELECT_OFF"
+        ).index = shotIndex
+
+        # leftSubRow.separator(factor=1)
+        leftSubRow.label(text="  GP: ")
         leftSubRow.label(text=gp_child.name)
 
         rightSubRow = subRow.row(align=True)

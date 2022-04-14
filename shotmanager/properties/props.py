@@ -300,28 +300,43 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         description="Name of the project (eg: MyProject)"
         "\nor the identifier for the act and the number of digits of its index (eg: Act##)",
         default="Act##",
+        options=set(),
     )
 
     project_naming_sequence_format: StringProperty(
         name="Sequence Naming Format",
         description="Identifier for the sequence and the number of digits of its index" "\neg: Seq####",
         default="Seq####",
+        options=set(),
     )
 
     project_naming_shot_format: StringProperty(
         name="Shot Naming Format",
         description="Identifier for the shot and the number of digits of its index" "\neg: Sh####",
         default="Sh####",
+        options=set(),
     )
 
     project_naming_separator_char: StringProperty(
         name="Naming Separator",
         description="Character used to separate the identifiers in the shot full name eg: _",
         default="_",
+        options=set(),
     )
 
-    project_naming_project_index: IntProperty(description="Set to -1 if not defined", min=-1, default=1)
-    project_naming_sequence_index: IntProperty(description="Set to -1 if not defined", min=-1, step=10, default=1)
+    project_naming_project_index: IntProperty(
+        description="Set to -1 if not defined",
+        min=-1,
+        default=1,
+        options=set(),
+    )
+    project_naming_sequence_index: IntProperty(
+        description="Set to -1 if not defined",
+        min=-1,
+        step=10,
+        default=1,
+        options=set(),
+    )
 
     ############
     # stamp info
@@ -417,6 +432,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         min=0,
         subtype="TIME",
         default=0,
+        options=set(),
     )
 
     project_img_name_digits_padding: IntProperty(
@@ -425,6 +441,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         "\nThis setting overrides the related Add-on Preference",
         min=0,
         default=5,
+        options=set(),
     )
 
     # built-in project settings
@@ -454,6 +471,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         description="Identifier for the shot and the number of digits of its index used for the creation of new shots"
         "\neg: Sh####",
         default="Sh####",
+        options=set(),
     )
 
     renderSingleFrameShotAsImage: BoolProperty(
@@ -622,7 +640,10 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
 
     # playbar
     #############
-    restartPlay: BoolProperty(default=False)
+    restartPlay: BoolProperty(
+        default=False,
+        options=set(),
+    )
 
     # edit
     #############
@@ -807,19 +828,42 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         # default=0,
     )
 
-    #############
+    ####################
     # grease pencil
     # storyboard
-    #############
+    ####################
     # def _update_use_greasepencil(self, context):
     #     # print("use_greasepencil")
     #     to do
+
+    def getParentShotFromGpChild(self, obj):
+        """obj can be a gp object or an empty or even whatever"""
+
+        # wkip case where a cam has a parent cam is not taken into account here
+        parentShot = None
+
+        def _rec_getCamParent(obj):
+            if "CAMERA" == obj.type:
+                return obj
+            if obj.parent is None:
+                return None
+            return _rec_getCamParent(obj.parent)
+
+        if obj is not None:
+            shotCam = _rec_getCamParent(obj)
+            if shotCam is not None:
+                # search for the shot in the current take
+                shotsUsingCam = self.getShotsUsingCamera(shotCam)
+                if len(shotsUsingCam):
+                    parentShot = shotsUsingCam[0]
+        return parentShot
 
     use_greasepencil: BoolProperty(
         name="Use Grease Pencil",
         description="Toggle the display of storyboard frames in the scene",
         #  update=_update_use_greasepencil,
         default=True,
+        options=set(),
     )
 
     def updateGreasePencilVisibility(self, take):
@@ -840,13 +884,30 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         self.use_greasepencil = enable
         self.updateGreasePencilVisibility(self.takes[takeInd])
 
+    stb_hasPinnedObject: BoolProperty(
+        name="Pin Grease Pencil",
+        description="Pin grease pencil object",
+        default=False,
+        options=set(),
+    )
+    stb_editedGPencilName: StringProperty(
+        name="Edited Grease Pencil",
+        description="Edited or pinned grease pencil object",
+        default="",
+        options=set(),
+    )
+
+    ####################
     # Features
-    #############
+    ####################
 
     display_camerabgtools_in_properties: BoolProperty(
         # name="Display Camera Background Image Tools in Shot Properties",
         description="Display the Camera Background Image Tools in the Shot Properties panel",
         default=False,
+        get=_get_expand_shot_properties,
+        set=_set_expand_shot_properties,
+        update=_update_expand_shot_properties,
         options=set(),
     )
 
@@ -854,6 +915,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         # name="Display Shot Notes in Shot Properties",
         description="Display shot notes in the Shot Properties panels",
         default=False,
+        options=set(),
     )
 
     # hidden UI parameter
@@ -878,6 +940,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         get=_get_expand_notes_properties,
         set=_set_expand_notes_properties,
         update=_update_expand_notes_properties,
+        options=set(),
     )
 
     display_cameraBG_in_properties: BoolProperty(
@@ -907,6 +970,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         get=_get_expand_cameraBG_properties,
         set=_set_expand_cameraBG_properties,
         update=_update_expand_cameraBG_properties,
+        options=set(),
     )
 
     display_storyboard_in_properties: BoolProperty(
@@ -914,6 +978,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         description="Display the storyboard frames properties and tools in the Shot properties panel."
         "\nA storyboard frame is a Grease Pencil drawing surface associated to the camera of each shot",
         default=False,
+        options=set(),
     )
 
     # hidden UI parameter
@@ -938,6 +1003,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         get=_get_expand_greasepencil_properties,
         set=_set_expand_greasepencil_properties,
         update=_update_expand_greasepencil_properties,
+        options=set(),
     )
 
     display_takerendersettings_in_properties: BoolProperty(
@@ -945,24 +1011,28 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         description="Display the take render settings in the Take Properties panel."
         "\nThese options allow each take to be rendered with its own output resolution",
         default=False,
+        options=set(),
     )
 
     display_editmode_in_properties: BoolProperty(
         name="Display Global Edit Integration Tools",
         description="Display the advanced properties of the takes used to specify their position in a global edit",
         default=False,
+        options=set(),
     )
 
     display_globaleditintegr_in_properties: BoolProperty(
         name="Display Global Edit Integration Tools",
         description="Display the advanced properties of the takes used to specify their position in a global edit",
         default=False,
+        options=set(),
     )
 
     # display_retimer_in_properties: BoolProperty(
     #     name="Display Retimer sub-Panel",
     #     description="Display Retimer sub-panel in the Shot Manager panel",
     #     default=False,
+    #     options=set(),
     # )
 
     display_notes_in_shotlist: BoolProperty(name="Display Color in Shot List", default=True, options=set())
@@ -971,6 +1041,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         name="Display Advanced Infos",
         description="Display technical information and feedback in the UI",
         default=False,
+        options=set(),
     )
 
     def list_greasepencil_layer_modes(self, context):
@@ -992,6 +1063,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         name="Apply to:",
         items=(list_greasepencil_layer_modes),
         default=1,
+        options=set(),
     )
 
     def list_greasepencil_materials(self, context):
@@ -1019,6 +1091,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         items=(list_greasepencil_materials),
         update=_update_greasePencil_activeMaterial,
         default=0,
+        options=set(),
     )
 
     def _get_useLockCameraView(self):
@@ -2327,6 +2400,13 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
             #     utils.setCurrentCameraToViewport2(bpy.context, target_area)
 
             self.updateGreasePencilVisibility(self.getCurrentTake())
+
+            #  set current edit gp
+            if not self.stb_hasPinnedObject:
+                # if bpy.context.active_object is not None and "GPENCIL" == bpy.context.active_object.type:
+                shotGp = currentShot.getGreasePencilObject(mode="STORYBOARD")
+                if shotGp is not None:
+                    self.stb_editedGPencilName = shotGp.name
 
             # wkip use if
             # if prefs.toggleCamsSoundBG:

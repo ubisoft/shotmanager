@@ -24,6 +24,129 @@ Useful functions related to the use of Grease Pencil
 import bpy
 
 
+from shotmanager.config import sm_logging
+
+_logger = sm_logging.getLogger(__name__)
+
+
+###################
+# Grease Pencil
+###################
+
+
+def create_new_greasepencil(gp_name, parentCamera=None, location=None, locate_on_cursor=False):
+    """Create a new grease pencil object that will be used as a storyboard frame
+    Return this object
+    Args:   parentCamera: the camera to parent to
+    """
+    scene = bpy.context.scene
+
+    # empty intermediate object
+    ####################
+    # no data to specify for empty objects
+    gpEmpty = bpy.data.objects.new("empty", None)
+    scene.collection.objects.link(gpEmpty)
+    gpEmpty.name = gp_name + "_empty"
+
+    gpEmpty.empty_display_size = 0.5
+    gpEmpty.empty_display_type = "ARROWS"  # "PLAIN_AXES"
+
+    gpEmpty.lock_location = [True, True, True]
+    gpEmpty.lock_rotation = [True, True, True]
+    gpEmpty.lock_scale = [True, True, True]
+
+    # add to main collection
+    # bpy.context.collection.objects.link(gpencil)
+
+    # add empty object to a specific collection
+    emptyCollectionName = "SM_Storyboard_Empties"
+    cpColl = None
+    if emptyCollectionName not in scene.collection.children:
+        cpColl = bpy.data.collections.new(name=emptyCollectionName)
+        scene.collection.children.link(cpColl)
+    else:
+        cpColl = scene.collection.children[emptyCollectionName]
+    utils.excludeLayerCollection(scene, emptyCollectionName, True)
+    cpColl.objects.link(gpEmpty)
+
+    # for some reason the empty also belongs to the scence collection, so we remove it from there
+    scene.collection.objects.unlink(gpEmpty)
+
+    # grease pencil frame
+    ####################
+    gpencil_data = bpy.data.grease_pencils.new(gp_name)
+    gpencil = bpy.data.objects.new(gpencil_data.name, gpencil_data)
+    gpencil.name = gpencil_data.name
+
+    gpencil.use_grease_pencil_lights = False
+
+    # add grease pencil object to a specific collection
+    gpCollectionName = "SM_Storyboard_Frames"
+    cpColl = None
+    if gpCollectionName not in scene.collection.children:
+        cpColl = bpy.data.collections.new(name=gpCollectionName)
+        scene.collection.children.link(cpColl)
+    else:
+        cpColl = scene.collection.children[gpCollectionName]
+    cpColl.objects.link(gpencil)
+
+    if parentCamera is not None:
+        gpEmpty.parent = parentCamera
+    gpencil.parent = gpEmpty
+
+    if location is None:
+        gpencil.location = [0, 0, 0]
+    elif locate_on_cursor:
+        gpencil.location = scene.cursor.location
+    else:
+        gpencil.location = location
+
+    # gpencil.lock_location = [True, True, True]
+    # gpencil.lock_rotation = [True, True, True]
+    # gpencil.lock_scale = [True, True, True]
+    gpencil.lock_rotation[0] = True
+    gpencil.lock_rotation[1] = True
+
+    # from math import radians
+
+    # # align gp with camera axes
+    # gpencil.rotation_euler = (radians(0.0), 0.0, radians(0.0))
+
+    add_grease_pencil_draw_layers(gpencil)
+    create_grease_pencil_material(gpencil, "LINES")
+    create_grease_pencil_material(gpencil, "FILLS")
+
+    add_grease_pencil_canvas_layer(gpencil, "GP_Canvas", order="BOTTOM", camera=parentCamera)
+
+    gpencil.data.layers.active = gpencil.data.layers["Lines"]
+
+    return gpencil
+
+
+def get_greasepencil_child(obj, childType="GPENCIL", name_filter=""):
+    """Return the first child of the specifed object that is of type GPENCIL or EMPTY"""
+    gpChild = None
+
+    if obj is not None:
+        if len(obj.children):
+            for c in obj.children:
+                if "EMPTY" == c.type:
+                    if "EMPTY" == childType:
+                        return c
+                    if len(c.children):
+                        for cc in c.children:
+                            if "GPENCIL" == cc.type:
+                                return cc
+
+    return gpChild
+    # if obj is not None:
+    #     if len(obj.children):
+    #         for c in obj.children:
+    #             if "GPENCIL" == c.type:
+    #                 return c
+    # return gpChild
+
+
 def get_grease_pencil(gpencil_obj_name="GPencil") -> bpy.types.GreasePencil:
     """
     Return the grease-pencil object with the given name. Initialize one if not already present.
@@ -298,21 +421,74 @@ def draw_canvas_rect(gp_frame, top_left: tuple, bottom_right: tuple):
     return gp_stroke
 
 
-def switchToDrawMode(gp_obj):
-    # if another object is edited it is switched to OBJECT mode
-    if bpy.context.active_object is not None and bpy.context.active_object.mode != "OBJECT":
+def switchToObjectMode():
+    """Switch from any mode back to Object mode"""
+    #NOTE: we use context.object here instead of context.active_object because
+    # when the eye icon of the object is closed (meaning object.hide_get() == True)
+    # then context.active_object is None
+    if bpy.context.object is not None and "OBJECT" != bpy.context.object.mode:
+        previous_hide_select = bpy.context.object.hide_select
+        previous_hide_viewport = bpy.context.object.hide_viewport
+        previous_hide_get = bpy.context.object.hide_get()
+
+        bpy.context.object.hide_select = False
+        bpy.context.object.hide_viewport = False
+        bpy.context.object.hide_set(False)
         bpy.ops.object.mode_set(mode="OBJECT")
+
+        bpy.context.object.hide_select = previous_hide_select
+        bpy.context.object.hide_viewport = previous_hide_viewport
+        bpy.context.object.hide_set(previous_hide_get)
+
+
+def isAnotherObjectInSubMode(obj):
+    """Return True if another object that specified one is currently being edited (= in another mode
+    that OBJECT mode), False otherwise
+    Possible edit modes: 'EDIT', 'POSE', 'SCULPT', 'VERTEX_PAINT', 'WEIGHT_PAINT',
+                'TEXTURE_PAINT', 'PARTICLE_EDIT', 'EDIT_GPENCIL', 'SCULPT_GPENCIL',
+                'PAINT_GPENCIL', 'WEIGHT_GPENCIL', 'VERTEX_GPENCIL'
+                Not 'OBJECT'
+    """
+    #NOTE: we use context.object here instead of context.active_object because
+    # when the eye icon of the object is closed (meaning object.hide_get() == True)
+    # then context.active_object is None
+    return (
+        bpy.context.object is not None
+        and obj != bpy.context.object
+        and "OBJECT" != bpy.context.object.mode
+    )
+
+
+def switchToDrawMode(context, gpencil: bpy.types.GreasePencil):
+    """Set the specified grease pencil object in Draw mode
+    Return True if the operation succeeded
+    It the current object is not the specified one then the current selection is modified
+    to switch to the current object.
+    """
+    if gpencil is None or "GPENCIL" != gpencil.type:
+        return False
+
+    # if another object is edited it is switched to OBJECT mode
+    if isAnotherObjectInSubMode(gpencil):
+        switchToObjectMode()
 
     # clear selection
     bpy.ops.object.select_all(action="DESELECT")
 
-    bpy.context.view_layer.objects.active = gp_obj
-    gp_obj.select_set(True)
-    gp_obj.hide_select = False
-    gp_obj.hide_viewport = False
+    gpencil.hide_select = False
+    gpencil.hide_viewport = False
+    gpencil.hide_set(False)
+    gpencil.select_set(True)
+    bpy.context.view_layer.objects.active = gpencil
+    gpencil.select_set(True)
 
-    if "GPENCIL" == gp_obj.type:
-        bpy.ops.gpencil.paintmode_toggle()
+    if "PAINT_GPENCIL" != gpencil.mode:
+        # bpy.ops.gpencil.paintmode_toggle()
+        bpy.ops.object.mode_set(mode="PAINT_GPENCIL")
+
+    context.scene.tool_settings.gpencil_stroke_placement_view3d = "ORIGIN"
+    context.scene.tool_settings.gpencil_sculpt.lock_axis = "VIEW"
+    return True
 
 
 def getLayerPreviousFrame(gpencil: bpy.types.GreasePencil, currentFrame, layerMode):

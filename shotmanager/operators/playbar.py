@@ -16,13 +16,13 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 """
-To do: module description here.
+Playbar opetators
 """
 
 # -*- coding: utf-8 -*-
 import bpy
-from bpy.types import Panel, Operator
-from bpy.props import CollectionProperty, StringProperty, BoolProperty
+from bpy.types import Operator
+from bpy.props import BoolProperty
 
 
 #########
