@@ -38,6 +38,8 @@ def draw_greasepencil_play_tools(layout, context, shot, layersListDropdown=None)
 
     shotIndex = props.getShotIndex(shot)
 
+    scale_y_pgOpsRow = 1.4
+
     # Object and layers ###
     ###################
     objIsGP = False
@@ -127,7 +129,7 @@ def draw_greasepencil_play_tools(layout, context, shot, layersListDropdown=None)
         sepRow.separator(factor=1)
 
         gpOpsRow = col.row(align=True)
-        gpOpsRow.scale_y = 1.2
+        gpOpsRow.scale_y = scale_y_pgOpsRow
         gpOpsRow.separator(factor=leftSepFactor)
         gpOpsSplit = gpOpsRow.split(factor=0.3)
         leftgpOpsRow = gpOpsSplit.row(align=True)
@@ -346,11 +348,34 @@ def drawAutokey(context, layout):
 
 
 def drawLayersRow(context, props, layout, editedGpencil, objIsGP):
-    prefs = context.preferences.addons["shotmanager"].preferences
+    # prefs = context.preferences.addons["shotmanager"].preferences
+    framePreset = context.scene.UAS_shot_manager_props.stb_frameTemplate
     currentFrame = context.scene.frame_current
 
-    row = layout.row(align=True)
-    row.scale_x = 2.0
+    def _draw_layer_button(layout, preset):
+        # if preset.used:
+        if preset.layerName is not None:
+            currentFrameIsOnLayerKeyFrame = utils_greasepencil.isCurrentFrameOnLayerKeyFrame(
+                editedGpencil, currentFrame, preset.layerName
+            )
+            icon_frame = icon_OnFrame if currentFrameIsOnLayerKeyFrame else icon_OnprevFrame
+            depressBut = utils_greasepencil.gpLayerIsActive(editedGpencil, preset.layerName)
+            op = layout.operator(
+                "uas_shot_manager.greasepencil_setlayerandmat", depress=depressBut, icon=icon_frame, text=""
+            )
+            op.layerID = preset.id
+            op.layerName = preset.layerName
+            op.gpObjName = editedGpencil.name
+        else:
+            warningRow = layout.row(align=True)
+            warningRow.alert = True
+            warningRow.enabled = False
+            warningRow.operator(
+                "uas_shot_manager.greasepencil_setlayerandmat", depress=depressBut, icon=icon_frame, text=""
+            ).layerID = f"{preset.id}_WARNING"
+
+    usageButsRow = layout.row(align=True)
+    # row.scale_x = 2.0
     # row.alignment = "EXPAND"
     # row.ui_units_x = 10
 
@@ -358,63 +383,43 @@ def drawLayersRow(context, props, layout, editedGpencil, objIsGP):
     icon_OnFrame = "KEYFRAME_HLT"
 
     # canvas layer #####
-    if prefs.stb_useLayer_Canvas:
-        layerName = utils_greasepencil.getGpLayerNameFromID(editedGpencil, "CANVAS")
-        currentFrameIsOnLayerKeyFrame = None
-        depressBut = False
-        icon_frame = icon_OnFrame if currentFrameIsOnLayerKeyFrame else icon_OnprevFrame
-        if layerName is not None:
-            currentFrameIsOnLayerKeyFrame = utils_greasepencil.isCurrentFrameOnLayerKeyFrame(
-                editedGpencil, currentFrame, layerName
-            )
-            depressBut = utils_greasepencil.gpLayerIsActive(editedGpencil, layerName)
-            op = row.operator(
-                "uas_shot_manager.greasepencil_setlayerandmat", depress=depressBut, icon=icon_frame, text=""
-            )
-            op.layerID = "CANVAS"
-            op.layerName = layerName
-            op.gpObjName = editedGpencil.name
-        else:
-            warningRow = row.row(align=True)
-            warningRow.alert = True
-            warningRow.enabled = False
-            warningRow.operator(
-                "uas_shot_manager.greasepencil_setlayerandmat", depress=depressBut, icon=icon_frame, text=""
-            ).layerID = ("CANVAS" + "_WARNING")
+    preset = framePreset.getPresetByID("CANVAS")
+    if preset is not None:
+        _draw_layer_button(usageButsRow, preset)
 
-    # bg layer #########
-    if prefs.stb_useLayer_BG_Ink or prefs.stb_useLayer_BG_Fill:
-        layerCol = row.column(align=True)
-        layerCol.scale_y = 0.5 if prefs.stb_useLayer_BG_Ink and prefs.stb_useLayer_BG_Fill else 1.0
+    usageButsSubRow = usageButsRow.row(align=True)
+    usageButsSubRow.scale_x = 2.0
 
-        if prefs.stb_useLayer_BG_Ink:
-            layerName = utils_greasepencil.getGpLayerNameFromID(editedGpencil, "BG_INK")
-            currentFrameIsOnLayerKeyFrame = utils_greasepencil.isCurrentFrameOnLayerKeyFrame(
-                editedGpencil, currentFrame, layerName
-            )
-            icon_frame = icon_OnFrame if currentFrameIsOnLayerKeyFrame else icon_OnprevFrame
-            depressBut = utils_greasepencil.gpLayerIsActive(editedGpencil, layerName)
-            op = layerCol.operator(
-                "uas_shot_manager.greasepencil_setlayerandmat", depress=depressBut, icon=icon_frame, text=""
-            )
-            op.layerID = "BG_INK"
-            op.layerName = layerName
-            op.gpObjName = editedGpencil.name
-        if prefs.stb_useLayer_BG_Fill:
-            layerName = utils_greasepencil.getGpLayerNameFromID(editedGpencil, "BG_FILL")
-            currentFrameIsOnLayerKeyFrame = utils_greasepencil.isCurrentFrameOnLayerKeyFrame(
-                editedGpencil, currentFrame, layerName
-            )
-            icon_frame = icon_OnFrame if currentFrameIsOnLayerKeyFrame else icon_OnprevFrame
-            depressBut = utils_greasepencil.gpLayerIsActive(editedGpencil, layerName)
-            op = layerCol.operator(
-                "uas_shot_manager.greasepencil_setlayerandmat", depress=depressBut, icon=icon_frame, text=""
-            )
-            op.layerID = "BG_FILL"
-            op.layerName = layerName
-            op.gpObjName = editedGpencil.name
+    # BG layers #########
+    preset_lines = framePreset.getPresetByID("BG_LINES")
+    preset_fills = framePreset.getPresetByID("BG_FILLS")
+    if preset_lines.used or preset_fills.used:
+        layerCol = usageButsSubRow.column(align=True)
+        layerCol.scale_y = 0.5 if preset_lines.used and preset_fills.used else 1.0
+        _draw_layer_button(layerCol, preset_lines)
+        _draw_layer_button(layerCol, preset_fills)
 
-    pass
+    # MG layers #########
+    preset_lines = framePreset.getPresetByID("MG_LINES")
+    preset_fills = framePreset.getPresetByID("MG_FILLS")
+    if preset_lines.used or preset_fills.used:
+        layerCol = usageButsSubRow.column(align=True)
+        layerCol.scale_y = 0.5 if preset_lines.used and preset_fills.used else 1.0
+        _draw_layer_button(layerCol, preset_lines)
+        _draw_layer_button(layerCol, preset_fills)
+
+    # FG layers #########
+    preset_lines = framePreset.getPresetByID("FG_LINES")
+    preset_fills = framePreset.getPresetByID("FG_FILLS")
+    if preset_lines.used or preset_fills.used:
+        layerCol = usageButsSubRow.column(align=True)
+        layerCol.scale_y = 0.5 if preset_lines.used and preset_fills.used else 1.0
+        _draw_layer_button(layerCol, preset_lines)
+        _draw_layer_button(layerCol, preset_fills)
+
+    # Rough layer #######
+    preset_lines = framePreset.getPresetByID("ROUGH")
+    _draw_layer_button(usageButsSubRow, preset_lines)
 
 
 def drawKeysRow(context, props, layout, editedGpencil, objIsGP):
