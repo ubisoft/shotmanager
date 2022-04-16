@@ -24,6 +24,9 @@ from shotmanager.config import config
 # from .greasepencil_props import UAS_ShotManager_RenderGlobalContext, UAS_ShotManager_RenderSettings
 from . import greasepencil_props
 from . import greasepencil_operators
+from . import greasepencil_tools
+from . import greasepencil_frame_template
+from . import greasepencil_frame_panel
 
 from shotmanager.config import sm_logging
 
@@ -41,7 +44,9 @@ def register():
 
     greasepencil_props.register()
     greasepencil_operators.register()
-    # rendering_ui.register()    # done in shotmanager.__init__ in order to display the panel in the right order
+    greasepencil_tools.register()
+    greasepencil_frame_template.register()
+    greasepencil_frame_panel.register()
 
 
 def unregister():
@@ -51,5 +56,9 @@ def unregister():
     #     bpy.utils.unregister_class(cls)
 
     # rendering_ui.unregister()   # done in shotmanager.__init__ in order to display the panel in the right order
+    # greasepencil_toolbox_ui.unregister()
+    greasepencil_frame_panel.unregister()
+    greasepencil_frame_template.unregister()
+    greasepencil_tools.unregister()
     greasepencil_operators.unregister()
     greasepencil_props.unregister()

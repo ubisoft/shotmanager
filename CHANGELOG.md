@@ -1,6 +1,21 @@
 # 1.7.16 (2022-04-24)
 
 ## Camera HUD:
+# 2.0.12 (2022-04-15)
+
+## Storyboard
+
+- Improvement of the storyboard frames entry to draw mode
+
+- Added a Pin mode to maintain the selected grease pencil object referenced in the panel
+
+- Added a panel to set up the usages and context of each layer, and support for up to 8 usage presets
+
+## General
+
+- Patch to correctly update previous scenes with the usage template
+
+
 # 2.0.10 (2022-04-11)
 
 - Added a checkbox to set the current shot camera to the viewport when a free grease pencil object enters into draw mode
@@ -9,6 +24,7 @@
 
 - Modified the alternative behaviors for the Set Current Shot button in order to change the current shot
 without changing the current viewport
+
 
 # 2.0.9 (2022-04-08)
 

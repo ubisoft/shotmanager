@@ -49,6 +49,7 @@ from .take import UAS_ShotManager_Take
 from ..functions import warnings
 from ..operators.shots_global_settings import UAS_ShotManager_ShotsGlobalSettings
 from ..retimer.retimer_props import UAS_Retimer_Properties
+from ..features.greasepencil.greasepencil_frame_template import UAS_GreasePencil_FrameTemplate
 
 from shotmanager.utils import utils
 
@@ -92,7 +93,9 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
             self.parentScene = self.findParentScene()
         # _logger.info(f"\n  self.parentScene : {self.parentScene}")
 
+        # not used - for Otio compatibility somehow
         self.initialize()
+
         self.dataVersion = bpy.context.window_manager.UAS_shot_manager_version
         self.createDefaultTake()
         self.createRenderSettings()
@@ -112,6 +115,9 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         self.display_editmode_in_properties = prefs.display_editmode_in_properties
         self.display_globaleditintegr_in_properties = prefs.display_globaleditintegr_in_properties
         self.display_advanced_infos = prefs.display_advanced_infos
+
+        # storyboard
+        self.stb_frameTemplate.initialize()
 
         self.isInitialized = True
 
@@ -897,6 +903,11 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         options=set(),
     )
 
+    stb_frameTemplate: PointerProperty(
+        type=UAS_GreasePencil_FrameTemplate,
+        options=set(),
+    )
+
     ####################
     # Features
     ####################
@@ -1051,12 +1062,12 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
 
         # _logger.debug_ext(f"context.object: {context.object.name}", col="RED")
 
-        if context.object is not None and "GPENCIL" == context.object.type:
-            if len(context.object.data.layers):
-                for i, layer in reversed(list(enumerate(context.object.data.layers))):
-                    res.append((layer.info, layer.info, "", i + 2))
-            else:
-                res = (("NOLAYER", "No Layer", "", 0),)
+        # if context.object is not None and "GPENCIL" == context.object.type:
+        #     if len(context.object.data.layers):
+        #         for i, layer in reversed(list(enumerate(context.object.data.layers))):
+        #             res.append((layer.info, layer.info, "", i + 2))
+        #     else:
+        #         res = (("NOLAYER", "No Layer", "", 0),)
         return res
 
     greasePencil_layersMode: EnumProperty(

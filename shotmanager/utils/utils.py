@@ -28,6 +28,10 @@ from random import uniform
 
 import bpy
 
+from shotmanager.config import sm_logging
+
+_logger = sm_logging.getLogger(__name__)
+
 
 def unique_object_name(obj_name):
     # TODO write new names as .00i rather than _i_i
@@ -494,6 +498,25 @@ def getAreaInfo(context, area, verbose=False):
             return (i, area.type)
 
     return None
+
+
+def setPropertyPanelContext(context, spaceContext):
+    """Set the Property panel to the specified context
+
+    Args:   spaceContext: Can be ('TOOL', 'RENDER', 'OUTPUT', 'VIEW_LAYER', 'SCENE', 'WORLD', 'OBJECT', 'MODIFIER',
+            'PARTICLES', 'PHYSICS', 'CONSTRAINT', 'DATA', 'MATERIAL', 'TEXTURE')
+    """
+    for area in context.screen.areas:
+        if area.type == "PROPERTIES":
+            for space in area.spaces:
+                if space.type == "PROPERTIES":
+                    # specified space context is not always available (eg: no "DATA" when no objects in scene)
+                    try:
+                        space.context = spaceContext
+                        break
+                    except Exception as e:
+                        _logger.debug_ext("Cannot set Properties panel to 'DATA', no such tab available", col="ORANGE")
+                        _logger.debug_ext(f"{e}", col="ORANGE")
 
 
 # 3D VIEW areas (= viewports)

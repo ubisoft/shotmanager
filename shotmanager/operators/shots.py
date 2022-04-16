@@ -674,8 +674,15 @@ class UAS_ShotManager_ShotAdd(Operator):
             cam.name = "Cam_" + newShot.name
             cam.data.name = cam.name
 
+        bpy.ops.object.select_all(action="DESELECT")
         utils.clear_selection()
-        utils.add_to_selection(cam)
+
+        if props.display_storyboard_in_properties:
+            gp_child = newShot.getGreasePencilObject()
+            utils.add_to_selection(gp_child)
+            utils.setPropertyPanelContext(bpy.context, "DATA")
+        else:
+            utils.add_to_selection(cam)
 
         # removed, now done in camera HUD overlay tool
         # if 0 < props.getNumShots() and props.camera_hud_display_in_viewports:

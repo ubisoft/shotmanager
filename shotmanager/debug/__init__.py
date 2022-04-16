@@ -19,7 +19,6 @@
 Shot Manager debug package
 """
 
-
 from . import sm_debug_operators
 from . import sm_debug_ui
 from . import sm_debug

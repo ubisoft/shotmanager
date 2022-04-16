@@ -94,6 +94,7 @@ def draw_features_prefs(mode, layout):
     subrow.scale_x = 1.5
     icon = config.icons_col["ShotManager_CamGPVisible_32"]
     subrow.prop(props, "display_storyboard_in_properties", text="", icon_value=icon.icon_id)
+    subrow.operator("uas_shot_manager.greasepencil_template_panel")
     subrow.label(text="Storyboard")
 
     ################

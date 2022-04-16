@@ -29,6 +29,7 @@ from bpy.props import StringProperty, IntProperty, BoolProperty, PointerProperty
 
 from shotmanager.features.greasepencil.greasepencil_props import GreasePencilProperties
 
+from shotmanager.features.greasepencil import greasepencil as gp
 from shotmanager.utils import utils
 from .montage_interface import ShotInterface
 
@@ -560,12 +561,11 @@ class UAS_ShotManager_Shot(ShotInterface, PropertyGroup):
         gpObj = self.getGreasePencilObject()
 
         if gpObj is None:
+            framePreset = self.parentScene.UAS_shot_manager_props.stb_frameTemplate
+
             gpName = self.camera.name + "_GP"
-            gpObj = utils_greasepencil.create_new_greasepencil(gpName, parentCamera=self.camera, location=[0, 0, -0.5])
+            gpObj = gp.createStoryboarFrameGP(gpName, framePreset, parentCamera=self.camera, location=[0, 0, -0.5])
 
-            # utils_greasepencil.add_grease_pencil_canvas_layer(gpObj, "GP_Canvas", order="BOTTOM", camera=self.camera)
-
-        # gpProps.updateGreasePencilToFrustum()
         gpProps.updateGreasePencil()
 
         return (gpProps, gpObj)

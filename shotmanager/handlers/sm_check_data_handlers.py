@@ -48,7 +48,7 @@ def shotMngHandler_load_post_checkDataVersion(self, context):
         _logger.debug_ext("Before changes:", col="PINK")
         _logger.debug_ext(checkStr, col="PINK")
 
-        latestVersionToPatch = 1007015
+        latestVersionToPatch = 2000012
 
         numScenesToUpgrade = 0
         lowerSceneVersion = -1
@@ -62,7 +62,9 @@ def shotMngHandler_load_post_checkDataVersion(self, context):
 
             _logger.debug_ext(f"Scene: {scene.name}, props.dataVersion: {props.dataVersion}", col="RED")
             _logger.debug_ext(f"props.version: {props.version()[1]}", col="RED")
-            _logger.debug_ext(f"latestVersionToPatch: {latestVersionToPatch}", col="RED")
+            _logger.debug_ext(
+                f"\n---------------\n   latestVersionToPatch: {latestVersionToPatch}\n---------------\n", col="RED"
+            )
 
             #   print("     Data version: ", props.dataVersion)
             #   print("     Shot Manager version: ", bpy.context.window_manager.UAS_shot_manager_version)
@@ -126,6 +128,22 @@ def shotMngHandler_load_post_checkDataVersion(self, context):
 
                 print(f"       Applying data patch to file: upgrade to {patchVersion}")
                 data_patch_to_v1_3_61()
+                lowerSceneVersion = patchVersion
+
+            patchVersion = 1007015
+            if lowerSceneVersion < patchVersion:
+                from shotmanager.data_patches.data_patch_to_v1_7_15 import data_patch_to_v1_7_15
+
+                print(f"       Applying data patch to file: upgrade to {patchVersion}")
+                data_patch_to_v1_7_15()
+                lowerSceneVersion = patchVersion
+
+            patchVersion = 2000012
+            if lowerSceneVersion < patchVersion:
+                from shotmanager.data_patches.data_patch_to_v2_0_12 import data_patch_to_v2_0_12
+
+                print(f"       Applying data patch to file: upgrade to {patchVersion}")
+                data_patch_to_v2_0_12()
                 lowerSceneVersion = patchVersion
 
             # current version, no patch required but data version is updated

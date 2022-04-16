@@ -255,23 +255,23 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
     # layers use
     ###############################
 
-    stb_useLayer_Canvas: BoolProperty(
-        name="Canvas Layer",
-        description="Use Canvas layer",
-        default=True,
-    )
+    # stb_useLayer_Canvas: BoolProperty(
+    #     name="Canvas Layer",
+    #     description="Use Canvas layer",
+    #     default=True,
+    # )
 
-    stb_useLayer_BG_Ink: BoolProperty(
-        name="BG Ink Layer",
-        description="use BG Ink Layer",
-        default=True,
-    )
+    # stb_useLayer_BG_Ink: BoolProperty(
+    #     name="BG Ink Layer",
+    #     description="use BG Ink Layer",
+    #     default=True,
+    # )
 
-    stb_useLayer_BG_Fill: BoolProperty(
-        name="BG Fill Layer",
-        description="use BG Fill Layer",
-        default=True,
-    )
+    # stb_useLayer_BG_Fill: BoolProperty(
+    #     name="BG Fill Layer",
+    #     description="use BG Fill Layer",
+    #     default=True,
+    # )
 
     # prefs panels
     ######################

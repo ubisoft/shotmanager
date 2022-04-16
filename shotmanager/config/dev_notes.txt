@@ -52,9 +52,12 @@ OTIO advanced doc: https://sandflow.github.io/otio-core-specification/
 
 Grease Pencil for boarding:
     - Urgent:
+        - check the materials for the presets and add them in the preset panel
+
         - remove operator duplicate "uas_shot_manager.draw_on_grease_pencil"
 
-        - faire un mode TrackEdit
+        - remettre le layer mode pour locker les layers de tracking de clé
+        - faire un mode TrackEdit pour rester en edit quand on passe d'un layer a un autre
 
         - Quand un objet est pinné et qu'on entre en draw depuis un shot, faire sauter le pin???
             Non, dépinner suffit - mais ca fait une inconsistence avec le shot sélectionné
@@ -81,6 +84,8 @@ Grease Pencil for boarding:
         - pouvoir linker l'anim du gp au start
 
     - adapter les 2 outils de framing de cam présents par défaut dans Bl
+
+    - ajouter un "storyboard layout"
 
     - idées:
         - action pour tout ranger en array

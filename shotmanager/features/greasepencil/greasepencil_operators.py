@@ -23,6 +23,8 @@ import bpy
 from bpy.types import Operator
 from bpy.props import StringProperty, IntProperty, BoolProperty
 
+from . import greasepencil as gp
+
 from shotmanager.utils import utils
 from shotmanager.utils import utils_greasepencil
 
@@ -72,7 +74,7 @@ class UAS_ShotManager_OT_AddGreasePencil(Operator):
         # gpProperties.initialize(shot)
 
         # gpName = shot.camera.name + "_GP"
-        # gpObj = utils_greasepencil.create_new_greasepencil(gpName, parentCamera=shot.camera, location=[0, 0, -0.5])
+        # gpObj = gp.createStoryboarFrameGP(gpName, parentCamera=shot.camera, location=[0, 0, -0.5])
 
         # utils_greasepencil.add_grease_pencil_canvas_layer(gpObj, "GP_Canvas", order="BOTTOM", camera=shot.camera)
 
@@ -100,7 +102,7 @@ class UAS_ShotManager_OT_AddGreasePencil(Operator):
 #         else:
 #             cam = scene.objects[self.cameraGpName]
 #             gpName = cam.name + "_GP"
-#             gpObj = utils_greasepencil.create_new_greasepencil(gpName, parentCamera=cam, location=[0, 0, -0.5])
+#             gpObj = gp.createStoryboarFrameGP(gpName, parentCamera=cam, location=[0, 0, -0.5])
 
 #             utils_greasepencil.add_grease_pencil_canvas_layer(gpObj, "GP_Canvas", order="BOTTOM", camera=cam)
 
@@ -150,9 +152,10 @@ class UAS_ShotManager_OT_SelectShotGreasePencil(Operator):
             if shot.isCameraValid() is not None:
                 gp_child = utils_greasepencil.get_greasepencil_child(shot.camera)
                 if gp_child is not None:
-                    bpy.ops.object.select_all(action="DESELECT")
-                    bpy.context.view_layer.objects.active = gp_child
-                    gp_child.select_set(True)
+                    # bpy.ops.object.select_all(action="DESELECT")
+                    # bpy.context.view_layer.objects.active = gp_child
+                    # gp_child.select_set(True)
+                    utils.select_object(gp_child)
 
         utils.setPropertyPanelContext(bpy.context, "DATA")
 
@@ -185,6 +188,7 @@ class UAS_ShotManager_OT_SelectGreasePencilObject(Operator):
                 obj.select_set(False)
             bpy.context.view_layer.objects.active = context.object
             bpy.data.objects[context.object.name].select_set(True)
+            # utils.select_object(context.object)
 
             utils.setPropertyPanelContext(bpy.context, "DATA")
 
@@ -205,9 +209,13 @@ class UAS_ShotManager_OT_AddCanvasToGreasePencil(Operator):
     #     return selectionIsPossible
 
     def execute(self, context):
+        props = context.scene.UAS_shot_manager_props
         gpObj = context.scene.objects[self.gpName]
 
-        utils_greasepencil.add_grease_pencil_canvas_layer(gpObj, "GP_Canvas", order="BOTTOM")
+        # get camera parent
+        parentCam = gpObj.parent
+        canvasPreset = props.stb_frameTemplate.getPresetByID("CANVAS")
+        utils_greasepencil.add_grease_pencil_canvas_layer(gpObj, canvasPreset, order="BOTTOM", camera=parentCam)
 
         return {"FINISHED"}
 
@@ -297,7 +305,9 @@ class UAS_ShotManager_OT_DrawOnGreasePencil(Operator):
             gp_child.hide_viewport = False
             gp_child.hide_render = False
 
-            bpy.ops.gpencil.paintmode_toggle()
+            # shot.updateGreasePencils()
+            # set ink layer, else topmost layer
+            gp.setInkLayerReadyToDraw(gp_child)
 
             utils_greasepencil.switchToDrawMode(context, gp_child)
             # gp_child.select_set(True)
@@ -308,6 +318,8 @@ class UAS_ShotManager_OT_DrawOnGreasePencil(Operator):
 
             # context.scene.tool_settings.gpencil_stroke_placement_view3d = "ORIGIN"
             # context.scene.tool_settings.gpencil_sculpt.lock_axis = "VIEW"
+
+            utils.setPropertyPanelContext(context, "DATA")
 
         return {"FINISHED"}
 
@@ -496,6 +508,7 @@ class UAS_ShotManager_GreasePencilItem(Operator):
     def execute(self, context):
         scene = context.scene
         props = scene.UAS_shot_manager_props
+        framePreset = props.stb_frameTemplate
         props.setSelectedShotByIndex(self.index)
         shot = props.getShotByIndex(self.index)
         gp_child = shot.getGreasePencilObject()
@@ -511,8 +524,8 @@ class UAS_ShotManager_GreasePencilItem(Operator):
                 print("Camera is invalid for grease pencil parenting - Cancelling...")
                 return {"CANCELLED"}
 
-            utils_greasepencil.create_new_greasepencil(
-                shot.camera.name + "_GP", parentCamera=shot.camera, location=[0, 0, 0]
+            gp.createStoryboarFrameGP(
+                shot.camera.name + "_GP", framePreset, parentCamera=shot.camera, location=[0, 0, 0]
             )
             gp_child = shot.getGreasePencilObject()
 
@@ -545,7 +558,7 @@ class UAS_ShotManager_GreasePencilItem(Operator):
                     props.setCurrentShotByIndex(self.index)
                     shot.updateGreasePencils()
                     # set ink layer, else topmost layer
-                    setInkLayerReadyToDraw(gp_child)
+                    gp.setInkLayerReadyToDraw(gp_child)
                     utils_greasepencil.switchToDrawMode(context, gp_child)
 
         utils.setPropertyPanelContext(context, "DATA")

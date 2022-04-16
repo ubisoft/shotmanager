@@ -29,7 +29,8 @@ from shotmanager.utils import utils_greasepencil, utils
 
 
 class GreasePencilProperties(PropertyGroup):
-    """Contains the grease pencil related to the shot"""
+    """Contains the grease pencil information and properties related to the shot.
+    Each shot has an array of GreasePencilProperties items, the first one is used for storyboard frame"""
 
     # parentShot: PointerProperty(type=UAS_ShotManager_Shot)
     parentCamera: PointerProperty(
@@ -99,8 +100,12 @@ class GreasePencilProperties(PropertyGroup):
         # print("canvasOpacity")
         gp_child = utils_greasepencil.get_greasepencil_child(self.parentCamera)
         if gp_child is not None:
+            props = context.scene.UAS_shot_manager_props
+            canvasPreset = props.stb_frameTemplate.getPresetByID("CANVAS")
+            canvasName = "_Canvas_" if canvasPreset is None else canvasPreset.layerName
+
             canvasLayer = utils_greasepencil.get_grease_pencil_layer(
-                gp_child, gpencil_layer_name="GP_Canvas", create_layer=False
+                gp_child, gpencil_layer_name=canvasName, create_layer=False
             )
             if canvasLayer is not None:
                 canvasLayer.opacity = utils.to_sRGB(self.canvasOpacity)
@@ -188,9 +193,14 @@ class GreasePencilProperties(PropertyGroup):
         utils_greasepencil.fitGreasePencilToFrustum(self.parentCamera, self.distanceFromOrigin)
 
     def getCanvasLayer(self):
+        props = bpy.context.scene.UAS_shot_manager_props
+        canvasPreset = props.stb_frameTemplate.getPresetByID("CANVAS")
+        canvasName = "_Canvas_" if canvasPreset is None else canvasPreset.layerName
+
         gp_child = utils_greasepencil.get_greasepencil_child(self.parentCamera)
+
         canvasLayer = utils_greasepencil.get_grease_pencil_layer(
-            gp_child, gpencil_layer_name="GP_Canvas", create_layer=False
+            gp_child, gpencil_layer_name=canvasName, create_layer=False
         )
         return canvasLayer
 

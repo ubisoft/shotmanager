@@ -173,8 +173,12 @@ def draw_greasepencil_shot_properties(layout, context, shot):
         # canvasSplitRow.label(text=" ")
         # canvasSplitRow.separator(factor=0.1)
 
+        props = context.scene.UAS_shot_manager_props
+        canvasPreset = props.stb_frameTemplate.getPresetByID("CANVAS")
+        canvasName = "_Canvas_" if canvasPreset is None else canvasPreset.layerName
+
         canvasLayer = utils_greasepencil.get_grease_pencil_layer(
-            gp_child, gpencil_layer_name="GP_Canvas", create_layer=False
+            gp_child, gpencil_layer_name=canvasName, create_layer=False
         )
         if canvasLayer is None:
             # utils_greasepencil.get_grease_pencil_layer
