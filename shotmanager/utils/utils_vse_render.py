@@ -1116,8 +1116,6 @@ class ShotManager_Vse_Render(PropertyGroup):
 
                 vse_scene.render.filepath = self.outputMediaPath
 
-                vse_scene.render.filepath = self.outputMediaPath
-
                 # since Blender starts the render indices at 1 and not 0 we have to rename the sequence
                 # another approach than renaming is to render still images
                 vse_scene.render.use_file_extension = False

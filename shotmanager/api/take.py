@@ -16,9 +16,8 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 """
-Shot Manager Take API
+To do: module description here.
 """
-
 
 def get_name(take_instance):
     return take_instance.name
@@ -37,7 +36,7 @@ def get_name_path_compliant(take_instance):
 def get_shot_list(take_instance, ignore_disabled=False):
     """ Return a filtered copy of the shots associated to this take
     """
-    return take_instance.getShotsList(ignoreDisabled=ignore_disabled)
+    return take_instance.getShotList(ignoreDisabled=ignore_disabled)
 
 
 def get_num_shots(take_instance, ignore_disabled=False):

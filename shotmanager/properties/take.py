@@ -140,7 +140,7 @@ class UAS_ShotManager_Take(SequenceInterface, PropertyGroup):
         return val
 
     def _set_name(self, value):
-        """Set a unique name to the take"""
+        """Set a unique name to the shot"""
         takes = self.getParentScene().UAS_shot_manager_props.getTakes()
         newName = findFirstUniqueName(self, value, takes)
         self["name"] = newName
@@ -169,20 +169,19 @@ class UAS_ShotManager_Take(SequenceInterface, PropertyGroup):
                 numShots = len(self.shots)
         return numShots
 
-    def getShotsList(self, ignoreDisabled=False):
-        """Return a filtered copy of the list of the shots associated to this take"""
-        shotList = list()
-        for shot in self.shots:
-            if not ignoreDisabled or shot.enabled:
-                shotList.append(shot)
-
-        return shotList
-
     def getShotsUsingCamera(self, cam, ignoreDisabled=False):
         """Return the list of all the shots used by the specified camera"""
         shotList = []
         for shot in self.shots:
             if cam == shot.camera and (not ignoreDisabled or shot.enabled):
+                shotList.append(shot)
+
+        return shotList
+
+    def getShotsList(self, ignoreDisabled=False):
+        shotList = list()
+        for shot in self.shots:
+            if not ignoreDisabled or shot.enabled:
                 shotList.append(shot)
 
         return shotList

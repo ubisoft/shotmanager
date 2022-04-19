@@ -16,9 +16,8 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 """
-Shot Manager API for shots
+To do: module description here.
 """
-
 
 def get_shot_manager_owner(shot_instance):
     """Return the shot manager properties instance the shot is belonging to.

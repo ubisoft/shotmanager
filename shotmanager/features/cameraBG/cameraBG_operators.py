@@ -134,7 +134,7 @@ class UAS_ShotManager_RemoveBGImages(Operator):
         print("Remove BG images: shotIndex: ", self.shotIndex)
         if 0 > self.shotIndex:
             take = context.scene.UAS_shot_manager_props.getCurrentTake()
-            shotList = take.getShotsList(ignoreDisabled=props.shotsGlobalSettings.alsoApplyToDisabledShots)
+            shotList = take.getShotList(ignoreDisabled=props.shotsGlobalSettings.alsoApplyToDisabledShots)
         else:
             shot = props.getShotByIndex(self.shotIndex)
             if shot is not None:

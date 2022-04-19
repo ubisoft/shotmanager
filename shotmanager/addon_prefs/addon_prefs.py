@@ -21,30 +21,15 @@ add-on global preferences
 
 import bpy
 from bpy.types import AddonPreferences
-from bpy.props import StringProperty, IntProperty, BoolProperty, EnumProperty, FloatProperty
+from bpy.props import StringProperty, IntProperty, BoolProperty, EnumProperty
 
 # from ..config import config
 
 from .addon_prefs_ui import draw_shotmanager_addon_prefs
 
-from shotmanager.utils import utils
-
 from shotmanager.config import sm_logging
 
 _logger = sm_logging.getLogger(__name__)
-
-
-def list_greasepencil_layers(self, context):
-    res = list()
-    if context.object is not None and "GPENCIL" == context.object.type:
-        if len(context.object.data.layers):
-            for i, layer in enumerate(context.object.data.layers):
-                res.append((layer.info, layer.info, "", i))
-        else:
-            res = (("NOLAYER", "No Layer", "", 0),)
-    else:
-        res = (("ALL", "ALL", "", 0), ("DISABLED", "DISABLED", "", 1))
-    return res
 
 
 class UAS_ShotManager_AddonPrefs(AddonPreferences):
@@ -156,49 +141,8 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
         default=False,
     )
 
-    # storyboard panel
-    ####################
-    stb_anim_props_expanded: BoolProperty(
-        name="Expand Animation Properties",
-        default=False,
-    )
-
-    def _get_stb_overlay_layers_opacity(self):
-        # print(" get_projectSeqName")
-        props = bpy.context.scene.UAS_shot_manager_props
-        spaceDataViewport = props.getValidTargetViewportSpaceData(bpy.context)
-        if spaceDataViewport is not None:
-            val = spaceDataViewport.overlay.gpencil_fade_layer
-        else:
-            val = 1.0
-        return val
-
-    def _set_stb_overlay_layers_opacity(self, value):
-        #  print(" set_projectSeqName: value: ", value)
-        self["stb_overlay_layers_opacity"] = value
-
-    def _update_stb_overlay_layers_opacity(self, context):
-        # print("stb_overlay_layers_opacity")
-        props = context.scene.UAS_shot_manager_props
-        spaceDataViewport = props.getValidTargetViewportSpaceData(context)
-        if spaceDataViewport is not None:
-            spaceDataViewport.overlay.gpencil_fade_layer = utils.to_sRGB(self["stb_overlay_layers_opacity"])
-
-    stb_overlay_layers_opacity: FloatProperty(
-        name="Layers Opacity",
-        description="Opacity of the Grease Pencil layers in the viewport overlay",
-        min=0.0,
-        max=1.0,
-        step=0.1,
-        get=_get_stb_overlay_layers_opacity,
-        set=_set_stb_overlay_layers_opacity,
-        update=_update_stb_overlay_layers_opacity,
-        default=1.0,
-        options=set(),
-    )
-
     # prefs panels
-    ####################
+    ######################
     addonPrefs_settings_expanded: BoolProperty(
         name="Expand Settings Preferences",
         default=False,
@@ -298,40 +242,6 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
             ("PLAYBLAST", "PLAYBLAST", ""),
         ),
         default="STILL",
-    )
-
-    # items=(list_target_takes)
-    # targetTakes = list_target_takes(self, context)
-    #     self.targetTake = targetTakes[0][0]
-    # layersListDropdown: EnumProperty(name="Layers", items=(("ALL", "ALL", ""), ("DISABLED", "DISABLED", "")))
-    def _get_layersListDropdown(self):
-        # val = self.get("layersListDropdown", 0)
-        val = 0
-        # if bpy.context.object is not None and "GPENCIL" == bpy.context.object.type:
-        #     if len(bpy.context.object.data.layers):
-        #         for i, layer in enumerate(bpy.context.object.data.layers):
-        #             print(f"layer: {layer.info}, {i}")
-        #             if layer.info == bpy.context.object.data.layers.active.info:
-        #                 self["layersListDropdown"] = layer.info
-        #                 print(f"layer ret: {layer.info}, {i}")
-        #                 return 0
-        return val
-
-    def _set_layersListDropdown(self, value):
-        self["layersListDropdown"] = value
-
-    def _update_layersListDropdown(self, context):
-        if bpy.context.object is not None and "GPENCIL" == bpy.context.object.type:
-            if len(bpy.context.object.data.layers):
-                bpy.context.object.data.layers.active = bpy.context.object.data.layers[self.layersListDropdown]
-        print("\n*** layersListDropdown updated. New state: ", self.layersListDropdown)
-
-    layersListDropdown: EnumProperty(
-        name="Layers",
-        items=(list_greasepencil_layers),
-        # get=_get_layersListDropdown,
-        # set=_set_layersListDropdown,
-        update=_update_layersListDropdown,
     )
 
     ########################################################################

@@ -78,10 +78,10 @@ bl_info = {
     "author": "Ubisoft - Julien Blervaque (aka Werwack), Romain Carriquiry Borchiari",
     "description": "Easily manage shots and cameras in the 3D View and see the resulting edit in real-time",
     "blender": (2, 93, 0),
-    "version": (2, 0, 9),
+    "version": (1, 7, 15),
     "location": "View3D > Shot Manager",
     "doc_url": "https://ubisoft-shotmanager.readthedocs.io",
-    "warning": "BETA Version",
+    # "warning": "BETA Version",
     "category": "Ubisoft",
 }
 
@@ -170,6 +170,7 @@ def register():
     # markers_nav_bar_addon_prefs.register()
     cameraBG.register()
     soundBG.register()
+    greasepencil.register()
     frame_range.register()
     rendering.register()
     takes.register()
@@ -178,17 +179,7 @@ def register():
     precut_tools.register()
     playbar.register()
     retimer.register()
-    greasepencil.register()
     props.register()
-
-    # if not hasattr(shot, "greasePencils"):
-    # from shotmanager.properties.shot import UAS_ShotManager_Shot
-    # from shotmanager.features.greasepencil.greasepencil_properties import GreasePencilProperties
-
-    # from bpy.props import CollectionProperty
-
-    # UAS_ShotManager_Shot.greasePencils = CollectionProperty(type=GreasePencilProperties)
-
     shots_toolbar.register()
 
     # ui

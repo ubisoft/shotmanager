@@ -141,7 +141,7 @@ def launchRenderWithVSEComposite(
     take = props.getCurrentTake() if -1 == takeIndex else props.getTakeByIndex(takeIndex)
     takeName = take.getName_PathCompliant()
     shotListTmp = (
-        take.getShotsList(ignoreDisabled=not renderAlsoDisabled) if specificShotList is None else specificShotList
+        take.getShotList(ignoreDisabled=not renderAlsoDisabled) if specificShotList is None else specificShotList
     )
 
     # remove shots ending with "_removed" and not enabled
@@ -748,7 +748,13 @@ def launchRenderWithVSEComposite(
             #######################
 
             print(" --- In generateShotVideos")
-            sequenceOutputFullPath = f"{rootPath}{takeName}\\{sequenceFileName}.{props.getOutputFileFormat()}"
+            sequenceOutputFullPath = f"{rootPath}{takeName}\\{sequenceFileName}"
+            # if props.use_project_settings:
+            #     sequenceOutputFullPath += props.project_naming_separator_char
+            # else:
+            #     sequenceOutputFullPath += "_"
+            sequenceOutputFullPath += f"{takeName}"
+            sequenceOutputFullPath += f".{props.getOutputFileFormat()}"
             print(f"  Rendered sequence from shot videos: {sequenceOutputFullPath}")
 
             if not fileListOnly:

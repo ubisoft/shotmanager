@@ -99,7 +99,6 @@ def getLoggingTags():
     tags["TIMELINE_EVENT"] = True
     tags["SHOTSTACK_EVENT"] = True
     tags["SHOTS_PLAY_MODE"] = True
-    tags["HANDLER"] = False
     tags["EDIT_IO"] = True
 
     # info tags

@@ -18,14 +18,6 @@ To do V1.7.2 +:
     - cleaner notion de projet, les noms donnés aux shots en particulier
     - bug ds le Comparaison à l'import d'un edit: reorder pas pris en compte
     - voir ce qui se passe qd stamp info n'est pas la ds render panel
-    - remove set et get pour l'expand des panels de shot properties
-    - remove shot_notes_expanded
-
-    - faire un playblast qui marche pour un time range quelconque
-    - cleaner preset_useStampInfo dans launchRenderWithVSEComposite
-
-    - faire un playblast qui marche pour un time range quelconque
-    - cleaner preset_useStampInfo dans launchRenderWithVSEComposite
 
     - faire un playblast qui marche pour un time range quelconque
     - cleaner preset_useStampInfo dans launchRenderWithVSEComposite
@@ -55,67 +47,6 @@ Utiliser ImageSequenceReference
 Voir https://github.com/PixarAnimationStudios/OpenTimelineIO/issues/890
 
 OTIO advanced doc: https://sandflow.github.io/otio-core-specification/
-
-
-
-Grease Pencil for boarding:
-    - Urgent:
-        - Sur 176 - Interm gizmo, faire:
-            - reécrire Make All Cams Unique pour prendre en compte un changement par take seulement
-            - vérifier l'intégration du stb frame dans make cam unique ET make all cams unique
-        - faire une recherche sur addShot dans shots.py
-        - introduire proprement le type Storyboard
-        - Delete shots should delete also the cams and stb
-
-    - focale animée sur cam: conséquences?
-    - déplacement du start et end du shot:
-        - pouvoir linker l'anim du gp au start
-    
-    - idées:
-        - action pour tout ranger en array
-        - pdf export
-        - step render mode
-        - representative image per shot
-
-    - Add extension values of the Storyboard Frame canvas
-    - Add add-on preferences to set default values for modules
-
-    ### Tools
-    - Add Duplicate GP key
-    - Add Onion Skin option
-
-    - Offset with shot start
-    - Rescale with shot range
-
-
-Camera sel:
-    - ajouter Shift pour ajout a la sel
-    voir desel
-    - ajouter ctrl pour la selection de data de la cam
-    - faire pareil pour gp
-
-    - animer le zoom en cas de changement animé de focale:
-    https://www.codegrepper.com/code-examples/python/blender+change+text+during+animation
-
-Preferences:
-    - Faire un Features default activation settings
-
-
-- Pb d'undo dans les delete all shots
-
-vignette    no
-panel
-frame
-thumbnail
-image
-canvas
-area
-drawing
-picture
-
-
-
-
 
 
 To do dans le support des noms de seq:
