@@ -705,7 +705,7 @@ class UAS_ShotManager_OT_Create_Shots_From_OTIO_RRS(Operator):
 
             props.setCurrentShotByIndex(0)
             props.setSelectedShotByIndex(0)
-            props.display_camerabgtools_in_properties = True
+            props.display_cameraBG_in_properties = True
             props.shotsGlobalSettings.backgroundAlpha = 1
             props.renderContext.useOverlays = True
 
@@ -756,7 +756,7 @@ class UAS_ShotManager_OT_Create_Shots_From_OTIO_RRS(Operator):
             )
             props.setCurrentShotByIndex(0)
             props.setSelectedShotByIndex(0)
-            props.display_camerabgtools_in_properties = True
+            props.display_cameraBG_in_properties = True
             # props.renderContext.useOverlays = True
 
             try:

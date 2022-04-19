@@ -39,8 +39,19 @@ from .utils_os import open_folder
 ###################
 
 
+def drawSeparatorLine(layout, lower_height=1.0):
+    col = layout.column()
+    row = col.row()
+    row.scale_y = 0.2
+    row.alignment = "CENTER"
+    row.label(text="_____________________")
+    row = col.row()
+    row.scale_y = lower_height
+    row.separator()
+
+
 def collapsable_panel(
-    layout: bpy.types.UILayout, data: bpy.types.AnyType, property: str, alert: bool = False, **kwargs
+    layout: bpy.types.UILayout, data: bpy.types.AnyType, property: str, alert: bool = False, text=None
 ):
     """Draw an arrow to collapse or extend a panel
     Args:
@@ -60,11 +71,13 @@ def collapsable_panel(
         icon="TRIA_DOWN" if getattr(data, property) else "TRIA_RIGHT",
         icon_only=True,
         emboss=False,
+        text=text,
     )
     if alert:
         row.alert = True
         row.label(text="", icon="ERROR")
-    row.label(**kwargs)
+    # if text is not None:
+    #     row.label(text=text)
     return getattr(data, property)
 
 

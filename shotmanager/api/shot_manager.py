@@ -16,13 +16,20 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 """
-To do: module description here.
+Shot Manager API
+
+Use in a Blender scene:
+
+from shotmanager.api import shot_manager as sm
+sm_props = sm.get_shot_manager()
 """
 
 import bpy
 
 
-def get_shot_manager(scene):
+def get_shot_manager(scene=None):
+    if scene is None:
+        scene = bpy.context.scene
     return scene.UAS_shot_manager_props
 
 
@@ -122,6 +129,7 @@ def add_shot(
     camera=None,
     color=(0.2, 0.6, 0.8, 1),
     enabled=True,
+    addGreasePencilStoryboard=False,
 ):
     """ Add a new shot after the current shot if possible or at the end of the shot list otherwise (case of an add in a take
         that is not the current one)
@@ -137,6 +145,7 @@ def add_shot(
         camera=camera,
         color=color,
         enabled=enabled,
+        addGreasePencilStoryboard=addGreasePencilStoryboard,
     )
 
 
@@ -157,10 +166,14 @@ def move_shot_to_index(shot_manager, shot, new_index):
     shot_manager.moveShotToIndex(shot, new_index)
 
 
-def set_current_shot_by_index(shot_manager, current_shot_index):
+def set_current_shot_by_index(
+    shot_manager, current_shot_index, change_time=None, source_area=None, set_cam_to_viewport=True
+):
     """ Changing the current shot doesn't affect the selected one
     """
-    return shot_manager.setCurrentShotByIndex(current_shot_index)
+    return shot_manager.setCurrentShotByIndex(
+        current_shot_index, changeTime=change_time, source_area=source_area, setCamToViewport=set_cam_to_viewport
+    )
 
 
 def set_current_shot(shot_manager, current_shot):

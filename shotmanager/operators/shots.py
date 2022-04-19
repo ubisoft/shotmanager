@@ -29,6 +29,10 @@ import json
 from shotmanager.utils import utils
 from shotmanager.utils.utils_time import zoom_dopesheet_view_to_range
 
+from shotmanager.config import sm_logging
+
+_logger = sm_logging.getLogger(__name__)
+
 
 def list_cameras(self, context):
     res = list()
@@ -267,6 +271,15 @@ class UAS_ShotManager_NoLens(Operator):
     index: IntProperty(default=0)
 
 
+class UAS_ShotManager_NoDisplaySize(Operator):
+    bl_idname = "uas_shot_manager.nodisplaysize"
+    bl_label = "No Size"
+    bl_description = "No Size"
+    bl_options = {"INTERNAL"}
+
+    index: IntProperty(default=0)
+
+
 class UAS_ShotManager_ShotTimeInEdit(Operator):
     bl_idname = "uas_shot_manager.shottimeinedit"
     bl_label = "Toggle Edit Times"
@@ -443,6 +456,12 @@ class UAS_ShotManager_ShotAdd(Operator):
         default=True,
     )
 
+    addStoryboardGP: BoolProperty(
+        name="Add Storyboard Grease Pencil",
+        description="If checked, a grease pencil storyboard frame is created and parented to the specified camera",
+        default=False,
+    )
+
     def invoke(self, context, event):
         wm = context.window_manager
         scene = context.scene
@@ -471,7 +490,23 @@ class UAS_ShotManager_ShotAdd(Operator):
 
         self.color = (uniform(0, 1), uniform(0, 1), uniform(0, 1))
 
-        return wm.invoke_props_dialog(self, width=300)
+        self.cameraName = "NEW_CAMERA"
+        #     cameras = props.getSceneCameras()
+        #    # selectedObjs = []  #bpy.context.view_layer.objects.active    # wkip get the selection
+        #     currentCam = None
+        #     if context.view_layer.objects.active and (context.view_layer.objects.active).type == 'CAMERA':
+        #     #if len(selectedObjs) == 1 and selectedObjs.name == bpy.context.scene.objects[self.cameraName]:
+        #     #    currentCam =  bpy.context.scene.objects[self.cameraName]
+        #         currentCam = context.view_layer.objects.active
+        #     if currentCam:
+        #         self.cameraName = currentCam.name
+        #     elif 0 < len(cameras):
+        #         self.cameraName = cameras[0].name
+
+        # self.alignCamToView = not props.display_greasepencil_in_properties
+        self.addStoryboardGP = props.display_greasepencil_in_properties
+
+        return wm.invoke_props_dialog(self, width=360)
 
     def draw(self, context):
         # scene = context.scene
@@ -553,7 +588,7 @@ class UAS_ShotManager_ShotAdd(Operator):
         subrow.label(text="Camera:")
         mainRowSplit.prop(self, "cameraName", text="")
 
-        # row camera color #########################
+        # row camera color ##########################################
         if props.use_camera_color:
             if "NEW_CAMERA" == self.cameraName:
                 row = doubleRow.row(align=False)
@@ -585,7 +620,7 @@ class UAS_ShotManager_ShotAdd(Operator):
                     usedStr = "Not yet used by any shot"
                 subrow.label(text=usedStr)
 
-                # row camera color ###############
+                # row camera color ##################################
                 row = doubleRow.row(align=False)
                 mainRowSplit = row.split(factor=splitFactor)
                 subrow = mainRowSplit.row()
@@ -602,7 +637,7 @@ class UAS_ShotManager_ShotAdd(Operator):
                 self.colorFromExistingCam = cam.color[0:3]
                 mainRowSplit.prop(self, "colorFromExistingCam", text="")
 
-        # row camera position #########################
+        # row camera position #######################################
         if "NEW_CAMERA" == self.cameraName:
             row = doubleRow.row(align=False)
             mainRowSplit = row.split(factor=splitFactor)
@@ -610,6 +645,16 @@ class UAS_ShotManager_ShotAdd(Operator):
             subrow.alignment = "RIGHT"
             subrow.label(text=" ")
             mainRowSplit.prop(self, "alignCamToView", text="Align New Camera to View")
+
+        if props.display_greasepencil_in_properties:
+            col.separator(factor=0.1)
+            row = col.row(align=True)
+            mainRowSplit = row.split(factor=splitFactor)
+            subrow = mainRowSplit.row()
+            subrow.alignment = "RIGHT"
+            subrow.label(text="Storyboard:")
+            subrow = mainRowSplit.row()
+            subrow.prop(self, "addStoryboardGP")
 
         layout.separator()
 
@@ -648,6 +693,7 @@ class UAS_ShotManager_ShotAdd(Operator):
             #            camera  = scene.objects[ self.camera ] if self.camera else None,
             camera=cam,
             color=col,
+            addGreasePencilStoryboard=self.addStoryboardGP,
         )
 
         # make new camera name match possible changes in shot name
@@ -682,6 +728,7 @@ class UAS_ShotManager_ShotDuplicate(Operator):
     addToEndOfList: BoolProperty(name="Add at the End of the List")
     duplicateCam: BoolProperty(name="Duplicate Camera", default=True)
     camName: StringProperty(name="Camera Name")
+    duplicateStoryboardGP: BoolProperty(name="Duplicate Storyboard Frame", default=True)
 
     @classmethod
     def poll(cls, context):
@@ -720,7 +767,7 @@ class UAS_ShotManager_ShotDuplicate(Operator):
         subgrid_flow.separator(factor=1.0)
         subgrid_flow.prop(self, "duplicateCam")
 
-        row = box.row()
+        row = subgrid_flow.row()
         row.enabled = self.duplicateCam
         row.scale_x = 1.6
         row.separator(factor=2.0)
@@ -728,6 +775,11 @@ class UAS_ShotManager_ShotDuplicate(Operator):
         row.scale_x = 2.4
         row.prop(self, "camName", text="")
         row.separator(factor=0.5)
+
+        row = subgrid_flow.row()
+        row.enabled = self.duplicateCam
+        row.separator(factor=5)
+        row.prop(self, "duplicateStoryboardGP")
 
         box.separator(factor=0.4)
 
@@ -740,7 +792,10 @@ class UAS_ShotManager_ShotDuplicate(Operator):
             return {"CANCELLED"}
 
         newShotInd = len(props.get_shots()) if self.addToEndOfList else selectedShotInd + 1
-        newShot = props.copyShot(selectedShot, atIndex=newShotInd, copyCamera=self.duplicateCam)
+        copyGreasePencil = self.duplicateCam and self.duplicateStoryboardGP
+        newShot = props.copyShot(
+            selectedShot, atIndex=newShotInd, copyCamera=self.duplicateCam, copyGreasePencil=copyGreasePencil
+        )
 
         # newShot.name = props.getUniqueShotName(self.name)
         newShot.name = self.name
@@ -753,16 +808,17 @@ class UAS_ShotManager_ShotDuplicate(Operator):
         #     newCam.name = self.camName
         #     newShot.camera = newCam
 
-        props.setCurrentShotByIndex(newShotInd)
+        props.setCurrentShotByIndex(newShotInd, setCamToViewport=False)
         props.setSelectedShotByIndex(newShotInd)
 
         return {"INTERFACE"}
 
 
+# Not used anymore - Using UAS_ShotManager_ShotRemoveMultiple instead
 class UAS_ShotManager_ShotRemove(Operator):
     bl_idname = "uas_shot_manager.shot_remove"
     bl_label = "Remove Selected Shot"
-    bl_description = "Remove the shot selected in the shot list."
+    bl_description = "Remove the shot selected in the shot list"
     bl_options = {"REGISTER", "UNDO"}
 
     @classmethod
@@ -774,12 +830,8 @@ class UAS_ShotManager_ShotRemove(Operator):
         scene = context.scene
         props = scene.UAS_shot_manager_props
         shots = props.get_shots()
-        for s in shots:
-            print(f"* Shot Name: {s.name}")
         selectedShotInd = props.getSelectedShotIndex()
-        print(f"* selectedShotInd: {selectedShotInd}")
-
-        props.removeShot(shots[selectedShotInd])
+        props.removeShot_UIupdate(shots[selectedShotInd])
 
         return {"FINISHED"}
 
@@ -825,7 +877,7 @@ class UAS_ShotManager_ShotMove(Operator):
             #    if len(shots) - 1 > selectedShotInd:
             movedShot = props.moveShotToIndex(movedShot, selectedShotInd + 1)
 
-        props.setCurrentShot(movedShot)
+        props.setCurrentShot(movedShot, setCamToViewport=False)
         props.setSelectedShot(movedShot)
 
         return {"FINISHED"}
@@ -850,14 +902,15 @@ def convertMarkersFromCameraBindingToShots(scene):
     # get the list of markers bound to cameras and sort them by time
     boundMarkers = []
     for m in scene.timeline_markers:
-        # print(f"Marker name: {m.name}, cam: {m.camera}")
+        #    _logger.debug_ext(f"Marker name: {m.name}, cam: {m.camera}", col="BLUE", form="BASIC")
         if m.camera is not None:
             boundMarkers.append(m)
 
     boundMarkers = utils.sortMarkers(boundMarkers)
-    # print("--- sorting markers")
+
+    # display sorted markers
     # for m in boundMarkers:
-    #     print(f"Marker name: {m.name}, cam: {m.camera}")
+    #     _logger.debug_ext(f"Marker name: {m.name}, cam: {m.camera}", col="BLUE", form="BASIC")
 
     # create shot for each marker, even is some markers have the same camera
     for i, m in enumerate(boundMarkers):
@@ -940,7 +993,7 @@ class UAS_ShotManager_CreateNShots(Operator):
     duration: IntProperty(name="Duration", min=1)
     offsetFromPrevious: IntProperty(
         name="Offset From previous Shot",
-        description="Number of frames from which the start of a whot will be offset from the end of the one preceding it",
+        description="Number of frames from which the start of a shot will be offset from the end of the one preceding it",
         default=1,
     )
     count: IntProperty(name="Number of Shots to Create", min=1, default=4)
@@ -974,7 +1027,7 @@ class UAS_ShotManager_CreateNShots(Operator):
 
         self.color = (uniform(0, 1), uniform(0, 1), uniform(0, 1))
 
-        return wm.invoke_props_dialog(self)
+        return wm.invoke_props_dialog(self, width=360)
 
     def draw(self, context):
         props = context.scene.UAS_shot_manager_props
@@ -1196,22 +1249,25 @@ class UAS_ShotManager_DuplicateShotsToOtherTake(Operator):
         else:  # move
             for i, shot in enumerate(reversed(enabledShots)):
                 print(f"shot to remove: {shot.name}, {shot.parentScene}, i:{i}")
-                props.removeShot(shot)
+                props.removeShot_UIupdate(shot)
 
         return {"INTERFACE"}
 
 
 class UAS_ShotManager_ShotRemoveMultiple(Operator):
     bl_idname = "uas_shot_manager.remove_multiple_shots"
-    bl_label = "Remove Shots"
-    bl_description = "Remove the specified shots from the current take"
+    bl_label = "Remove Shot(s)"
+    bl_description = "Remove the specified shot(s) from the current take"
     bl_options = {"REGISTER", "UNDO"}
 
-    action: EnumProperty(items=(("ALL", "ALL", ""), ("DISABLED", "DISABLED", "")), default="ALL")
+    action: EnumProperty(
+        items=(("ALL", "ALL", ""), ("DISABLED", "DISABLED", ""), ("SELECTED", "SELECTED", "")), default="ALL"
+    )
 
     deleteCameras: BoolProperty(
         name="Delete Shots Cameras",
-        description="When deleting a shot, also delete the associated camera, if not used by another shot",
+        description="When deleting a shot, also delete the associated camera, if not used by another shot"
+        "\nand its storyboard frame, if any",
         default=False,
     )
 
@@ -1224,6 +1280,8 @@ class UAS_ShotManager_ShotRemoveMultiple(Operator):
             descr = "Remove all shots from the current take"
         elif "DISABLED" == properties.action:
             descr = "Remove only disabled shots from the current take"
+        elif "SELECTED" == properties.action:
+            descr = "Remove the shot selected in the shot list"
         return descr
 
     @classmethod
@@ -1244,16 +1302,17 @@ class UAS_ShotManager_ShotRemoveMultiple(Operator):
 
         col = grid_flow.column(align=False)
         col.scale_x = 0.6
-        col.label(text="Delete Associated Camera:")
+        txtS = "" if "SELECTED" == self.action else "s"
+        col.label(text=f"Also Remove Associated Camera{txtS}:")
         col = grid_flow.column(align=False)
         col.prop(self, "deleteCameras", text="")
 
-        # row = box.row(align=True)
-        # grid_flow = row.grid_flow(align=True, row_major=True, columns=1, even_columns=False)
-        # # grid_flow.separator( factor=0.5)
-        # grid_flow.use_property_split = True
-        # grid_flow.prop(self, "startAtCurrentTime")
-        # grid_flow.prop(self, "addToEndOfList")
+        row = box.row()
+        row.separator(factor=2)
+        col = row.column(align=True)
+        col.enabled = False
+        col.label(text="Only cameras that are not used by any other shots can be deleted.")
+        col.label(text="Storyboard frames parented to the removed cameras will also be deleted.")
 
         layout.separator()
 
@@ -1264,7 +1323,7 @@ class UAS_ShotManager_ShotRemoveMultiple(Operator):
         currentShotInd = props.current_shot_index
         selectedShotInd = props.getSelectedShotIndex()
 
-        props.setCurrentShotByIndex(-1)
+        # props.setCurrentShotByIndex(-1, setCamToViewport=False)
 
         try:
             item = shots[selectedShotInd]
@@ -1272,28 +1331,33 @@ class UAS_ShotManager_ShotRemoveMultiple(Operator):
         except IndexError:
             pass
         else:
-            if self.action == "ALL":
-                props.setCurrentShotByIndex(-1)
+            if "ALL" == self.action:
+                props.setCurrentShotByIndex(-1, setCamToViewport=False)
                 i = len(shots) - 1
                 while i > -1:
-                    if self.deleteCameras:
-                        props.deleteShotCamera(shots[i])
-                    shots.remove(i)
+                    # if self.deleteCameras:
+                    #     props.deleteShotCamera(shots[i])
+                    # shots.remove(i)
+                    props.removeShotByIndex(i, deleteCamera=self.deleteCameras)
                     i -= 1
                 props.setSelectedShotByIndex(-1)
-            elif self.action == "DISABLED":
+            elif "DISABLED" == self.action:
+                props.setCurrentShotByIndex(-1, setCamToViewport=False)
                 i = len(shots) - 1
                 while i > -1:
                     if not shots[i].enabled:
                         if currentShotInd == len(shots) - 1 and currentShotInd == selectedShotInd:
                             pass
-                        if self.deleteCameras:
-                            props.deleteShotCamera(shots[i])
-                        shots.remove(i)
+                        # if self.deleteCameras:
+                        #     props.deleteShotCamera(shots[i])
+                        # shots.remove(i)
+                        props.removeShotByIndex(i, deleteCamera=self.deleteCameras)
                     i -= 1
                 if 0 < len(shots):  # wkip pas parfait, on devrait conserver la sel currente
-                    props.setCurrentShotByIndex(0)
+                    props.setCurrentShotByIndex(0, setCamToViewport=False)
                     props.setSelectedShotByIndex(0)
+            elif "SELECTED" == self.action:
+                props.removeShot_UIupdate(shots[selectedShotInd], deleteCamera=self.deleteCameras)
 
         #  print(" ** removed shots, len(props.get_shots()): ", len(props.get_shots()))
 
@@ -1425,6 +1489,7 @@ _classes = (
     UAS_ShotManager_ShotDuration,
     UAS_ShotManager_GetSetCurrentFrame,
     UAS_ShotManager_NoLens,
+    UAS_ShotManager_NoDisplaySize,
     UAS_ShotManager_ShotTimeInEdit,
     UAS_ShotManager_ShowNotes,
     UAS_ShotManager_ListCameraInstances,

@@ -1,3 +1,39 @@
+
+# 2.0.5 (2022-04-05)
+
+## Storyboard:
+
+Done:
+- Add Canvas Size
+   - To fix: display of some channels only
+
+- Fixed remove Storyboard frame from shot
+
+- Change stroke context (with Lock drawing to View) so that we ensure we can draw
+on the canvas when entering in the drawing mode 
+
+- moved the grease pencil play tools from the Shot Manager panel top to the Storyboard properties
+
+Q:
+ Change scale to delta scale?
+
+To do:
+- Improve workflow
+- Add extension values of the Storyboard Frame canvas
+- Add add-on preferences to set default values for modules
+
+   ### Tools
+   - Add Duplicate GP key
+   - Add Onion Skin overlay toggle button
+   - Add Canvas (=grid) overlay toggle button
+   - Add Fade Layers overlay toggle button and opacity slider
+
+
+# 2.0.3 (2022-03-20)
+
+   Basics of the new Storyboard mode
+
+
 # 1.7.15 (2022-03-30)
 
 ## Project:

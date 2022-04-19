@@ -142,13 +142,13 @@ def publishRRS(
 
     props = scene.UAS_shot_manager_props
     # _logger.debug(
-    #     f" + len takes: {len(props.getTakes())}, takeInd: {takeIndex}, len truc: {len(props.getTakes()[takeIndex].getShotList(ignoreDisabled=True))}"
+    #     f" + len takes: {len(props.getTakes())}, takeInd: {takeIndex}, len truc: {len(props.getTakes()[takeIndex].getShotsList(ignoreDisabled=True))}"
     # )
 
     # if (
     #     not len(props.getTakes())
     #     or len(props.getTakes()) <= takeIndex
-    #     or (not len(props.getTakes()[takeIndex].getShotList(ignoreDisabled=True)))
+    #     or (not len(props.getTakes()[takeIndex].getShotsList(ignoreDisabled=True)))
     # ):
 
     takeInd = 0 if -1 == takeIndex else takeIndex
@@ -161,7 +161,7 @@ def publishRRS(
         errorStr = "Take index higher than the number of takes - Aborting Publish"
         print(errorStr)
         return errorStr
-    elif not len(props.getTakes()[takeInd].getShotList(ignoreDisabled=True)):
+    elif not len(props.getTakes()[takeInd].getShotsList(ignoreDisabled=True)):
         errorStr = f"No take or no shots to render in take {props.getTakes()[takeInd].name} - Aborting Publish"
         print(errorStr)
         return errorStr

@@ -67,21 +67,20 @@ class UAS_ShotManager_Features(Operator):
         col = row.column()
 
         ################
-        # Take and shot notes
+        # Storyboard Grease Pencil
         subrow = col.row()
         subrow.scale_x = 1.5
-        icon = config.icons_col["ShotManager_NotesData_32"]
-        notesIcon = "TEXT"
-        notesIcon = "WORDWRAP_OFF"
-        subrow.prop(props, "display_notes_in_properties", text="", icon_value=icon.icon_id)
-        subrow.label(text="Takes and Shots Notes")
+        icon = config.icons_col["ShotManager_CamGPVisible_32"]
+        subrow.prop(props, "display_greasepencil_in_properties", text="", icon_value=icon.icon_id)
+        subrow.label(text="Storyboard")
 
         ################
-        # Take render settings
+        # Camera BG
         subrow = col.row()
         subrow.scale_x = 1.5
-        subrow.prop(props, "display_takerendersettings_in_properties", text="", icon="OUTPUT")
-        subrow.label(text="Takes Render Settings")
+        icon = config.icons_col["ShotManager_CamBGVisible_32"]
+        subrow.prop(props, "display_cameraBG_in_properties", text="", icon_value=icon.icon_id)
+        subrow.label(text="Camera Backgrounds")
 
         _draw_separator_row(col)
 
@@ -109,24 +108,21 @@ class UAS_ShotManager_Features(Operator):
         col = row.column()
 
         ################
-        # Camera BG
+        # Take and shot notes
         subrow = col.row()
         subrow.scale_x = 1.5
-        icon = config.icons_col["ShotManager_CamBGVisible_32"]
-        subrow.prop(props, "display_camerabgtools_in_properties", text="", icon_value=icon.icon_id)
-        subrow.label(text="Camera Backgrounds")
+        icon = config.icons_col["ShotManager_NotesData_32"]
+        notesIcon = "TEXT"
+        notesIcon = "WORDWRAP_OFF"
+        subrow.prop(props, "display_notes_in_properties", text="", icon_value=icon.icon_id)
+        subrow.label(text="Takes and Shots Notes")
 
         ################
-        # Grease Pencil
-        if config.devDebug:
-            subrow = col.row()
-            subrow.scale_x = 1.5
-            icon = config.icons_col["ShotManager_CamGPVisible_32"]
-            subrow.prop(props, "display_greasepencil_in_properties", text="", icon_value=icon.icon_id)
-            subrow.label(text="Camera Grease Pencil")
-        else:
-            subrow = col.row()
-            subrow.label(text=" ")
+        # Take render settings
+        subrow = col.row()
+        subrow.scale_x = 1.5
+        subrow.prop(props, "display_takerendersettings_in_properties", text="", icon="OUTPUT")
+        subrow.label(text="Takes Render Settings")
 
         _draw_separator_row(col)
 
