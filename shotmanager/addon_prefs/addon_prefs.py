@@ -346,6 +346,21 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
     # )
 
     ########################################################################
+    # layout   ###
+    ########################################################################
+
+    # can be STORYBOARD or PREVIZ
+    layout_mode: EnumProperty(
+        name="Layout Mode",
+        description="Defines if Shot Manager panel should be appropriate for storyboarding or for previz",
+        items=(
+            ("STORYBOARD", "Storyboard", "Storyboard layout"),
+            ("PREVIZ", "Previz", "Previz layout"),
+        ),
+        default="PREVIZ",
+    )
+
+    ########################################################################
     # features to display by default   ###
     ########################################################################
 
@@ -360,14 +375,12 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
         name="Takes and Shots Notes",
         description="Display the takes and shots notes in the Shot Properties panels",
         default=False,
-        options=set(),
     )
 
     display_cameraBG_in_properties: BoolProperty(
         name="Camera Background Tools",
         description="Display the camera background image tools and controls in the Shot Properties panel",
         default=False,
-        options=set(),
     )
 
     display_takerendersettings_in_properties: BoolProperty(

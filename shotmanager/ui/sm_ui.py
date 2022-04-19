@@ -60,6 +60,7 @@ class UAS_PT_ShotManager(Panel):
 
     def draw_header(self, context):
         props = context.scene.UAS_shot_manager_props
+        prefs = context.preferences.addons["shotmanager"].preferences
         layout = self.layout
         layout.emboss = "NONE"
 
@@ -70,9 +71,13 @@ class UAS_PT_ShotManager(Panel):
         # else:
         #     row.alert = False
 
-        icon = config.icons_col["Ubisoft_32"]
-        icon = config.icons_col["ShotManager_32"]
-        row.operator("uas_shot_manager.about", text="", icon_value=icon.icon_id)
+        if "STORYBOARD" == prefs.layout_mode:
+            icon_stb = "IMAGE_RGB"
+            row.operator("uas_shot_manager.about", text="", icon=icon_stb)
+        else:
+            icon = config.icons_col["Ubisoft_32"]
+            icon = config.icons_col["ShotManager_32"]
+            row.operator("uas_shot_manager.about", text="", icon_value=icon.icon_id)
 
         if props.use_project_settings:
             if "" == props.project_name:
