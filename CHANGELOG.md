@@ -1,3 +1,11 @@
+# 2.0.15 (2022-04-20)
+
+## Storyboard
+
+- Improved presets panel to support materials + fixes
+
+- Fixed issue on current object material list
+
 # 2.0.13 (2022-04-20)
 
 ## Storyboard

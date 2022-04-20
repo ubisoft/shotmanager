@@ -78,7 +78,7 @@ bl_info = {
     "author": "Ubisoft - Julien Blervaque (aka Werwack), Romain Carriquiry Borchiari",
     "description": "Easily manage shots and cameras in the 3D View and see the resulting edit in real-time",
     "blender": (2, 93, 0),
-    "version": (2, 0, 14),
+    "version": (2, 0, 16),
     "location": "View3D > Shot Manager",
     "doc_url": "https://ubisoft-shotmanager.readthedocs.io",
     # "warning": "BETA Version",
@@ -151,6 +151,7 @@ def register():
     # debug tools
     sm_debug.register()
 
+    from .features.greasepencil import greasepencil_frame_template
     from .addon_prefs import addon_prefs
     from .utils import utils_vse_render
     from .overlay_tools import sequence_timeline
@@ -166,7 +167,9 @@ def register():
         name="Add-on Version Int", description="Add-on version as integer", default=versionTupple[1]
     )
 
+    greasepencil_frame_template.register()
     addon_prefs.register()
+
     utils_operators.register()
 
     # operators
@@ -289,6 +292,10 @@ def register():
     if config.devDebug:
         print(f"\n ------ Shot Manager debug: {config.devDebug} ------- ")
 
+    # storyboard
+    # prefs_properties = bpy.context.preferences.addons["shotmanager"].preferences
+    # prefs_properties.stb_frameTemplate.initialize(fromPrefs=True)
+
     print("")
 
 
@@ -319,6 +326,8 @@ def unregister():
 
     # Unregister packages that were registered if the install went right
     ###################
+
+    from .features.greasepencil import greasepencil_frame_template
 
     from .addon_prefs import addon_prefs
     from .utils import utils_vse_render
@@ -359,6 +368,7 @@ def unregister():
     soundBG.unregister()
     cameraBG.unregister()
 
+    greasepencil_frame_template.unregister()
     addon_prefs.unregister()
 
     del bpy.types.WindowManager.UAS_shot_manager_shots_play_mode

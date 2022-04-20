@@ -149,15 +149,15 @@ def get_grease_pencil_material(mat_name):
     return gp_mat
 
 
-def create_grease_pencil_material(gpencil, mat_type="CANVAS"):
+def create_grease_pencil_material(gpencil, mat_type, materialName):
     """Create - or get if it already exists - the specified material type and assign it to the specified grease pencil object"""
     gp_mat = None
 
     if "LINES" == mat_type:
-        if "Lines Mat" in bpy.data.materials.keys():
-            gp_mat = bpy.data.materials["Lines Mat"]
+        if materialName in bpy.data.materials.keys():
+            gp_mat = bpy.data.materials[materialName]
         else:
-            gp_mat = bpy.data.materials.new("Lines Mat")
+            gp_mat = bpy.data.materials.new(materialName)
 
         if not gp_mat.is_grease_pencil:
             bpy.data.materials.create_gpencil_data(gp_mat)
@@ -166,10 +166,10 @@ def create_grease_pencil_material(gpencil, mat_type="CANVAS"):
             gp_mat.grease_pencil.color = utils.sRGBColor((0.1, 0.1, 0.1, 1))
 
     elif "FILLS" == mat_type:
-        if "Fills Mat" in bpy.data.materials.keys():
-            gp_mat = bpy.data.materials["Fills Mat"]
+        if materialName in bpy.data.materials.keys():
+            gp_mat = bpy.data.materials[materialName]
         else:
-            gp_mat = bpy.data.materials.new("Fills Mat")
+            gp_mat = bpy.data.materials.new(materialName)
 
         if not gp_mat.is_grease_pencil:
             bpy.data.materials.create_gpencil_data(gp_mat)
@@ -178,10 +178,10 @@ def create_grease_pencil_material(gpencil, mat_type="CANVAS"):
             gp_mat.grease_pencil.show_stroke = False
 
     elif "CANVAS" == mat_type:
-        if "Canvas Mat" in bpy.data.materials.keys():
-            gp_mat = bpy.data.materials["Canvas Mat"]
+        if materialName in bpy.data.materials.keys():
+            gp_mat = bpy.data.materials[materialName]
         else:
-            gp_mat = bpy.data.materials.new("Canvas Mat")
+            gp_mat = bpy.data.materials.new(materialName)
 
         if True or not gp_mat.is_grease_pencil:
             bpy.data.materials.create_gpencil_data(gp_mat)
@@ -210,7 +210,7 @@ def add_grease_pencil_canvas_layer(
     gpencil_layer_name = "_Canvas_" if canvasPreset is None else canvasPreset.layerName
 
     # Create material for grease pencil
-    gp_mat = create_grease_pencil_material(gpencil, "CANVAS")
+    gp_mat = create_grease_pencil_material(gpencil, "CANVAS", "_Canvas_Mat")
 
     # get the material index in the grease pencil material list:
     # Create a lookup-dict for the object materials:
@@ -767,29 +767,24 @@ def deleteLayerKeyFrame(gpencil: bpy.types.GreasePencil, currentFrame, layerMode
 #################################
 
 
-def activeGpLayerAndMat(gpencil: bpy.types.GreasePencil, layerName, materialName):
+def activeGpLayerAndMat(gpencil: bpy.types.GreasePencil, layerID):
     """If the specified layer is found then active it on the specified grease pencil object"""
 
     # Create a lookup-dict for the object materials:
     # mat_dict = {mat.name: i for i, mat in enumerate(context.object.data.materials)}
     mat_dict = {mat.name: i for i, mat in enumerate(gpencil.material_slots)}
 
-    if layerName in gpencil.data.layers:
-        gpencil.data.layers.active = gpencil.data.layers[layerName]
+    # get the preset with the specified id
+    props = bpy.context.scene.UAS_shot_manager_props
+    preset = props.stb_frameTemplate.getPresetByID(layerID)
 
-    if materialName in mat_dict:
-        gpencil.active_material_index = mat_dict[materialName]
+    if preset is not None:
 
-    # wkip do more generic
-    # if "GP_Canvas" == layerName:
-    #     if "Canvas Mat" in mat_dict:
-    #         gpencil.active_material_index = mat_dict["Canvas Mat"]
-    # elif "Lines" == layerName:
-    #     if "Lines Mat" in mat_dict:
-    #         gpencil.active_material_index = mat_dict["Lines Mat"]
-    # elif "Fills" == layerName:
-    #     if "Fills Mat" in mat_dict:
-    #         gpencil.active_material_index = mat_dict["Fills Mat"]
+        if preset.layerName in gpencil.data.layers:
+            gpencil.data.layers.active = gpencil.data.layers[preset.layerName]
+
+        if preset.materialName in mat_dict:
+            gpencil.active_material_index = mat_dict[preset.materialName]
 
 
 def gpLayerIsActive(gpencil: bpy.types.GreasePencil, layerName):

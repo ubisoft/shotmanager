@@ -766,7 +766,7 @@ class UAS_ShotManager_GreasePencil_SetLayerAndMat(Operator):
         default="",
     )
 
-    materilaName: StringProperty(
+    materialName: StringProperty(
         name="Material Name",
         default="",
     )
@@ -801,8 +801,7 @@ class UAS_ShotManager_GreasePencil_SetLayerAndMat(Operator):
 
         # if not event.ctrl and not event.shift and not event.alt:
         utils_greasepencil.activeGpLayerAndMat(
-            bpy.context.scene.objects[self.gpObjName], self.layerName, self.materialName
-        )
+            bpy.context.scene.objects[self.gpObjName], self.layerID)
         if event.ctrl and not event.shift and not event.alt:
             bpy.ops.uas_shot_manager.greasepencil_newkeyframe(layersMode="ACTIVE")
         elif event.shift and not event.ctrl and not event.alt:

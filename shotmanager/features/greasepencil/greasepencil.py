@@ -104,8 +104,9 @@ def createStoryboarFrameGP(gp_name, framePreset, parentCamera=None, location=Non
     # gpencil.rotation_euler = (radians(0.0), 0.0, radians(0.0))
 
     createStoryboarFrameLayers(gpencil, framePreset)
-    utils_greasepencil.create_grease_pencil_material(gpencil, "LINES")
-    utils_greasepencil.create_grease_pencil_material(gpencil, "FILLS")
+    # wkipwkipwkip
+    utils_greasepencil.create_grease_pencil_material(gpencil, "LINES", "Stb_Lines")
+    utils_greasepencil.create_grease_pencil_material(gpencil, "FILLS", "Stb_Fills")
 
     canvasPreset = framePreset.getPresetByID("CANVAS")
     utils_greasepencil.add_grease_pencil_canvas_layer(gpencil, canvasPreset, order="BOTTOM", camera=parentCamera)

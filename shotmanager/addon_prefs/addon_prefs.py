@@ -21,11 +21,14 @@ add-on global preferences
 
 import bpy
 from bpy.types import AddonPreferences
-from bpy.props import StringProperty, IntProperty, BoolProperty, EnumProperty
+from bpy.props import StringProperty, IntProperty, BoolProperty, EnumProperty, FloatProperty, PointerProperty
 
 # from ..config import config
 
 from .addon_prefs_ui import draw_shotmanager_addon_prefs
+
+from shotmanager.features.greasepencil.greasepencil_frame_template import UAS_GreasePencil_FrameTemplate
+from shotmanager.utils import utils
 
 from shotmanager.config import sm_logging
 
@@ -46,6 +49,15 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
         name="Install failed",
         default=False,
     )
+
+    isInitialized: BoolProperty(
+        default=False,
+    )
+
+    def initialize_shot_manager_prefs(self):
+        print("\nInitializing Shot Manager Preferences...")
+        self.stb_frameTemplate.initialize(mode="ADDON_PREFS")
+        self.isInitialized = True
 
     ########################################################################
     # general ###
@@ -197,6 +209,10 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
         update=_update_stb_overlay_layers_opacity,
         default=1.0,
         options=set(),
+    )
+
+    stb_frameTemplate: PointerProperty(
+        type=UAS_GreasePencil_FrameTemplate,
     )
 
     # hidden UI properties

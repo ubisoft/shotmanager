@@ -55,8 +55,8 @@ def draw_features_prefs(mode, layout):
     Args:
         mode:   Can be SCENE or ADDON_PREFS
     """
-    # TOFIX: the bpy.context calls should be double-checked
 
+    # TOFIX: the bpy.context calls should be double-checked
     prefs = bpy.context.preferences.addons["shotmanager"].preferences
     if "SCENE" == mode:
         props = bpy.context.scene.UAS_shot_manager_props
@@ -108,7 +108,7 @@ def draw_features_prefs(mode, layout):
     subrow.prop(props, "display_storyboard_in_properties", text="", icon_value=icon.icon_id)
     subSubrow = subrow.row()
     subSubrow.scale_x = 0.9
-    subSubrow.operator("uas_shot_manager.greasepencil_template_panel", text="", icon="LONGDISPLAY")
+    subSubrow.operator("uas_shot_manager.greasepencil_template_panel", text="", icon="LONGDISPLAY").mode = mode
     subrow.label(text="Storyboard")
 
     ################

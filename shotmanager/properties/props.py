@@ -89,6 +89,10 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         print(f"\nInitializing Shot Manager in the current scene ({bpy.context.scene.name})...")
         # self.parentScene = self.getParentScene()
 
+        prefs = bpy.context.preferences.addons["shotmanager"].preferences
+        if not prefs.isInitialized:
+            prefs.initialize_shot_manager_prefs()
+
         if self.parentScene is None:
             self.parentScene = self.findParentScene()
         # _logger.info(f"\n  self.parentScene : {self.parentScene}")
@@ -1154,12 +1158,39 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         res = list()
 
         if context.object is not None and "GPENCIL" == context.object.type:
-            if len(context.object.data.layers):
+            #   if len(context.object.data.layers):
+            if len(context.object.material_slots):
                 for i, mat in list(enumerate(context.object.material_slots)):
                     res.append((mat.name, mat.name, "", i))
             else:
                 res = (("NOMAT", "No Material", "", 0),)
         return res
+
+    def _get_greasePencil_activeMaterial(self):
+        val = self.get("_get_greasePencil_activeMaterial", 0)
+        # print(" _get_greasePencil_activeMaterial")
+        # props = bpy.context.scene.UAS_shot_manager_props
+        # spaceDataViewport = props.getValidTargetViewportSpaceData(bpy.context)
+        # if spaceDataViewport is not None:
+        #     val = spaceDataViewport.overlay.gpencil_fade_layer
+        # else:
+        #     val = 1.0
+        val = 0  # "NOMAT"
+        if bpy.context.object is not None and "GPENCIL" == bpy.context.object.type:
+            # if len(bpy.context.object.data.layers):
+            # mats = list_greasepencil_materials()
+            # mats = list()
+            # for i, mat in list(enumerate(bpy.context.object.material_slots)):
+            #     mats.append((mat.name, mat.name, "", i))
+            # mat_dict = {mat.name: i for i, mat in enumerate(bpy.context.object.data.materials)}
+            # val = mat_dict[self.greasePencil_activeMaterial]
+            val = bpy.context.object.active_material_index
+
+        return val
+
+    def _set_greasePencil_activeMaterial(self, value):
+        #  print(" _set_greasePencil_activeMaterial: value: ", value)
+        self["greasePencil_activeMaterial"] = value
 
     def _update_greasePencil_activeMaterial(self, context):
         if self.greasePencil_activeMaterial != "NOMAT":
@@ -1173,6 +1204,8 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
     greasePencil_activeMaterial: EnumProperty(
         name="Active Material",
         items=(list_greasepencil_materials),
+        get=_get_greasePencil_activeMaterial,
+        set=_set_greasePencil_activeMaterial,
         update=_update_greasePencil_activeMaterial,
         default=0,
         options=set(),

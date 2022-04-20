@@ -25,7 +25,8 @@ from shotmanager.config import config
 from . import greasepencil_props
 from . import greasepencil_operators
 from . import storyboard_operators
-from . import greasepencil_frame_template
+
+# from . import greasepencil_frame_template
 from . import greasepencil_frame_panel
 
 from shotmanager.config import sm_logging
@@ -45,7 +46,7 @@ def register():
     greasepencil_props.register()
     greasepencil_operators.register()
     storyboard_operators.register()
-    greasepencil_frame_template.register()
+    # greasepencil_frame_template.register()
     greasepencil_frame_panel.register()
 
 
@@ -58,7 +59,7 @@ def unregister():
     # rendering_ui.unregister()   # done in shotmanager.__init__ in order to display the panel in the right order
     # greasepencil_toolbox_ui.unregister()
     greasepencil_frame_panel.unregister()
-    greasepencil_frame_template.unregister()
+    # greasepencil_frame_template.unregister()
     storyboard_operators.unregister()
     greasepencil_operators.unregister()
     greasepencil_props.unregister()
