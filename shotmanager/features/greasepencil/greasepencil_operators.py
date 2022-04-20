@@ -766,6 +766,11 @@ class UAS_ShotManager_GreasePencil_SetLayerAndMat(Operator):
         default="",
     )
 
+    materilaName: StringProperty(
+        name="Material Name",
+        default="",
+    )
+
     gpObjName: StringProperty(
         name="grease Pencil Object Name",
         default="",
@@ -773,7 +778,7 @@ class UAS_ShotManager_GreasePencil_SetLayerAndMat(Operator):
 
     @classmethod
     def description(self, context, properties):
-        descr = "Set layer to active and pick the associated material"
+        descr = f"Activate the layer of the mode {properties.layerID} and pick the associated material"
         # print("properties: ", properties)
 
         warningStr = " - *** Layer not found ***" if "WARNING" in properties.layerID else ""
@@ -785,12 +790,7 @@ class UAS_ShotManager_GreasePencil_SetLayerAndMat(Operator):
         elif "BG_FILL" in properties.layerID:
             descr = f"BG Fill Layer{warningStr}\n{descr}"
 
-        descr += (
-            "\n+ Ctrl: Add key frame"
-            # "\n+ Ctrl + Shift: Invert shots state"
-            "\n+ Shift: Duplicate previous key frame"
-            "\n+ Alt: Delete key frame"
-        )
+        descr += "\n+ Ctrl: Add key frame" "\n+ Shift: Duplicate previous key frame" "\n+ Alt: Delete key frame"
 
         return descr
 
@@ -800,7 +800,9 @@ class UAS_ShotManager_GreasePencil_SetLayerAndMat(Operator):
         # print(f"Layer and mat - ID: {self.layerID}, name:{self.gpObjName}")
 
         # if not event.ctrl and not event.shift and not event.alt:
-        utils_greasepencil.activeGpLayerAndMat(bpy.context.scene.objects[self.gpObjName], self.layerName)
+        utils_greasepencil.activeGpLayerAndMat(
+            bpy.context.scene.objects[self.gpObjName], self.layerName, self.materialName
+        )
         if event.ctrl and not event.shift and not event.alt:
             bpy.ops.uas_shot_manager.greasepencil_newkeyframe(layersMode="ACTIVE")
         elif event.shift and not event.ctrl and not event.alt:

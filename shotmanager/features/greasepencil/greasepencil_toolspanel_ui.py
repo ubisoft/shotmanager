@@ -353,7 +353,9 @@ def drawLayersRow(context, props, layout, editedGpencil, objIsGP):
     currentFrame = context.scene.frame_current
 
     def _draw_layer_button(layout, preset):
-        # if preset.used:
+        if "CANVAS" != preset.id and not preset.used:
+            return
+
         if preset.layerName is not None:
             currentFrameIsOnLayerKeyFrame = utils_greasepencil.isCurrentFrameOnLayerKeyFrame(
                 editedGpencil, currentFrame, preset.layerName

@@ -744,7 +744,7 @@ class UAS_PT_ShotManager(Panel):
             row.template_list(shots_layout, "", currentTake, "shots", props, "selected_shot_index", rows=6)
 
             col = row.column(align=True)
-            col.operator("uas_shot_manager.shot_add", icon="ADD", text="")
+            col.operator("uas_shot_manager.shot_add", icon="ADD", text="").layout_mode = props.layout_mode
             col.operator("uas_shot_manager.shot_duplicate", icon="DUPLICATE", text="")
             col.operator("uas_shot_manager.shot_remove", icon="REMOVE", text="")
             col.separator()

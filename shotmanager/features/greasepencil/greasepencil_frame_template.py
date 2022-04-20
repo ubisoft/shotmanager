@@ -34,6 +34,7 @@ class UAS_ShotManager_FrameUsagePreset(PropertyGroup):
     id: StringProperty(default="ID")
     used: BoolProperty(default=False)
     layerName: StringProperty(default="")
+    materialName: StringProperty(default="")
 
 
 class UAS_GreasePencil_FrameTemplate(PropertyGroup):
@@ -57,7 +58,7 @@ class UAS_GreasePencil_FrameTemplate(PropertyGroup):
                     return p
         return preset
 
-    def addPreset(self, id, used=False, layerName="", updateExisting=True):
+    def addPreset(self, id, used=False, layerName="", materialName="", updateExisting=True):
         """Create a new preset and return it
         If a preset with the same ID already exists then it is returned as is
         Args:
@@ -75,6 +76,7 @@ class UAS_GreasePencil_FrameTemplate(PropertyGroup):
             preset.id = id
             preset.used = used
             preset.layerName = layerName
+            preset.materialName = materialName
 
         return preset
 

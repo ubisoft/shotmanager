@@ -174,7 +174,7 @@ class UAS_UL_ShotManager_Storyboard_Items(bpy.types.UIList):
             #         "uas_shot_manager.getsetcurrentframe", text="", icon="TRIA_DOWN_BAR"
             #     ).shotSource = f"[{index},0]"
 
-            grid_flow.scale_x = 0.4
+            grid_flow.scale_x = 0.3
             shotEditStart = item.getEditStart()
             if currentFrame == item.start:
                 if props.highlight_all_shot_frames or current_shot_index == index:
@@ -190,7 +190,7 @@ class UAS_UL_ShotManager_Storyboard_Items(bpy.types.UIList):
                     "uas_shot_manager.getsetcurrentframe", text="", icon="TRIA_DOWN_BAR"
                 ).shotSource = f"[{index},0]"
 
-            grid_flow.scale_x = 0.4
+            grid_flow.scale_x = 0.3
             if currentFrame == item.start:
                 if props.highlight_all_shot_frames or current_shot_index == index:
                     grid_flow.alert = True
@@ -263,7 +263,7 @@ class UAS_UL_ShotManager_Storyboard_Items(bpy.types.UIList):
             grid_flow.use_property_split = False
             # grid_flow.scale_x = button_x_factor - 0.1
             if props.display_duration_in_shotlist:
-                grid_flow.scale_x = 1.5
+                grid_flow.scale_x = 1.7
             grid_flow.prop(
                 item,
                 "durationLocked",
@@ -277,7 +277,7 @@ class UAS_UL_ShotManager_Storyboard_Items(bpy.types.UIList):
                     grid_flow.alert = True
 
             if props.display_duration_in_shotlist:
-                grid_flow.scale_x = 0.6
+                grid_flow.scale_x = 0.8
                 grid_flow.prop(item, "duration_fp", text="")
             else:
                 pass

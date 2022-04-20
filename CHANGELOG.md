@@ -1,4 +1,10 @@
-# 1.7.16 (2022-04-24)
+# 2.0.13 (2022-04-20)
+
+## Storyboard
+
+- Added a "storyboard" layout with a lightened UI for the shots items in the shot list
+
+- Added a property "Type" to define the role of each shot (storyboard, previz...)
 
 ## Camera HUD:
 # 2.0.12 (2022-04-15)

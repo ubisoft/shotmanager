@@ -767,7 +767,7 @@ def deleteLayerKeyFrame(gpencil: bpy.types.GreasePencil, currentFrame, layerMode
 #################################
 
 
-def activeGpLayerAndMat(gpencil: bpy.types.GreasePencil, layerName):
+def activeGpLayerAndMat(gpencil: bpy.types.GreasePencil, layerName, materialName):
     """If the specified layer is found then active it on the specified grease pencil object"""
 
     # Create a lookup-dict for the object materials:
@@ -777,16 +777,19 @@ def activeGpLayerAndMat(gpencil: bpy.types.GreasePencil, layerName):
     if layerName in gpencil.data.layers:
         gpencil.data.layers.active = gpencil.data.layers[layerName]
 
+    if materialName in mat_dict:
+        gpencil.active_material_index = mat_dict[materialName]
+
     # wkip do more generic
-    if "GP_Canvas" == layerName:
-        if "Canvas Mat" in mat_dict:
-            gpencil.active_material_index = mat_dict["Canvas Mat"]
-    elif "Lines" == layerName:
-        if "Lines Mat" in mat_dict:
-            gpencil.active_material_index = mat_dict["Lines Mat"]
-    elif "Fills" == layerName:
-        if "Fills Mat" in mat_dict:
-            gpencil.active_material_index = mat_dict["Fills Mat"]
+    # if "GP_Canvas" == layerName:
+    #     if "Canvas Mat" in mat_dict:
+    #         gpencil.active_material_index = mat_dict["Canvas Mat"]
+    # elif "Lines" == layerName:
+    #     if "Lines Mat" in mat_dict:
+    #         gpencil.active_material_index = mat_dict["Lines Mat"]
+    # elif "Fills" == layerName:
+    #     if "Fills Mat" in mat_dict:
+    #         gpencil.active_material_index = mat_dict["Fills Mat"]
 
 
 def gpLayerIsActive(gpencil: bpy.types.GreasePencil, layerName):
