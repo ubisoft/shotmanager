@@ -29,6 +29,7 @@ from shotmanager.config import config
 from shotmanager.utils import utils
 
 from . import sm_shots_ui
+from . import sm_shots_ui_storyboard_layout
 from . import sm_takes_ui
 from . import sm_shot_settings_ui
 from . import sm_shots_global_settings_ui
@@ -60,7 +61,7 @@ class UAS_PT_ShotManager(Panel):
 
     def draw_header(self, context):
         props = context.scene.UAS_shot_manager_props
-        prefs = context.preferences.addons["shotmanager"].preferences
+        # prefs = context.preferences.addons["shotmanager"].preferences
         layout = self.layout
         layout.emboss = "NONE"
 
@@ -71,7 +72,7 @@ class UAS_PT_ShotManager(Panel):
         # else:
         #     row.alert = False
 
-        if "STORYBOARD" == prefs.layout_mode:
+        if "STORYBOARD" == props.layout_mode:
             icon_stb = "IMAGE_RGB"
             row.operator("uas_shot_manager.about", text="", icon=icon_stb)
         else:
@@ -131,7 +132,6 @@ class UAS_PT_ShotManager(Panel):
         # addon warning message - for beta message display
         ###############
         # import addon_utils
-
         # addonWarning = [
         #     addon.bl_info.get("warning", "")
         #     for addon in addon_utils.modules()
@@ -735,9 +735,13 @@ class UAS_PT_ShotManager(Panel):
             ##################################################
 
             row = box.row()
-            row.template_list(
-                "UAS_UL_ShotManager_Items", "", currentTake, "shots", props, "selected_shot_index", rows=6
+            shots_layout = (
+                "UAS_UL_ShotManager_Storyboard_Items"
+                if "STORYBOARD" == props.layout_mode
+                else "UAS_UL_ShotManager_Items"
             )
+
+            row.template_list(shots_layout, "", currentTake, "shots", props, "selected_shot_index", rows=6)
 
             col = row.column(align=True)
             col.operator("uas_shot_manager.shot_add", icon="ADD", text="")
@@ -782,6 +786,7 @@ def register():
 
     sm_takes_ui.register()
     sm_shots_ui.register()
+    sm_shots_ui_storyboard_layout.register()
     sm_shot_settings_ui.register()
     sm_shots_global_settings_ui.register()
 
@@ -789,6 +794,7 @@ def register():
 def unregister():
     sm_shots_global_settings_ui.unregister()
     sm_shot_settings_ui.unregister()
+    sm_shots_ui_storyboard_layout.unregister()
     sm_shots_ui.unregister()
     sm_takes_ui.unregister()
 

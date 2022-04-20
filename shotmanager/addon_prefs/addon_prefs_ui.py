@@ -175,7 +175,7 @@ def drawGeneralUI(context, prefs, layout):
 
 def drawFeatures(context, prefs, layout):
     box = layout.box()
-    collapsable_panel(box, prefs, "addonPrefs_features_expanded", text="Features to Display in New Scenes")
+    collapsable_panel(box, prefs, "addonPrefs_features_expanded", text="Layout and Features to Display in New Scenes")
     if prefs.addonPrefs_features_expanded:
         uiSplitFactor = 0.15
 

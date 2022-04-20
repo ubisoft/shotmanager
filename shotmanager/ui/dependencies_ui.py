@@ -28,9 +28,13 @@ from ..utils import utils
 def drawDependencies(context, layout: bpy.types.UILayout, **kwargs):
 
     box = layout.box()
-    row = box.row()
-    row.label(text="Dependencies:")
-    row = box.row()
+    col = box.column()
+
+    titleRow = col.row()
+    titleRow.label(text="Dependencies:")
+    titleRow.separator()
+
+    row = col.row()
     row.separator()
     splitFactor = 0.25
 
@@ -67,7 +71,7 @@ def drawDependencies(context, layout: bpy.types.UILayout, **kwargs):
 
     # Ubisoft Stamp Info
     ####################
-    row = box.row()
+    row = col.row()
     row.separator()
     split = row.split(factor=splitFactor)
     split.label(text="- Stamp Info:")
@@ -89,4 +93,4 @@ def drawDependencies(context, layout: bpy.types.UILayout, **kwargs):
     doc_op.path = "https://github.com/ubisoft/stampinfo"
     doc_op.tooltip = "Open Stamp Info project on GitHub: " + doc_op.path
 
-    box.separator(factor=0.2)
+    col.separator(factor=0.4)

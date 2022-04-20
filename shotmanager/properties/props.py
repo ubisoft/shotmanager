@@ -106,8 +106,10 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         self.camera_hud_display_in_viewports = True
         self.camera_hud_display_in_pov = True
 
-        # enable features
+        # layout and features
+        ############################
         prefs = bpy.context.preferences.addons["shotmanager"].preferences
+        self.layout_mode = prefs.layout_mode
         self.display_storyboard_in_properties = prefs.display_storyboard_in_properties
         self.display_notes_in_properties = prefs.display_notes_in_properties
         self.display_cameraBG_in_properties = prefs.display_cameraBG_in_properties
@@ -872,10 +874,15 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         options=set(),
     )
 
-    def updateGreasePencilVisibility(self, take):
-        """Update the display of grease pencil objects of the specified take"""
+    def updateStoryboardFramesDisplay(self, take):
+        """Update the display of the grease pencil objects of the storyboard frames for the specified take"""
         for sh in take.shots:
             sh.showGreasePencil()
+
+    # def updateGreasePencilVisibility(self, take):
+    #     """Update the display of grease pencil objects of the specified take"""
+    #     for sh in take.shots:
+    #         sh.showGreasePencil()
 
     def enableGreasePencil(self, enable, takeIndex=-1):
         """Toggle the display of grease pencil objects"""
@@ -888,7 +895,9 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
             return ()
 
         self.use_greasepencil = enable
-        self.updateGreasePencilVisibility(self.takes[takeInd])
+        self.updateStoryboardFramesDisplay(self.takes[takeInd])
+
+    #   self.updateGreasePencilVisibility(self.takes[takeInd])
 
     stb_hasPinnedObject: BoolProperty(
         name="Pin Grease Pencil",
@@ -906,6 +915,70 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
     stb_frameTemplate: PointerProperty(
         type=UAS_GreasePencil_FrameTemplate,
         options=set(),
+    )
+
+    ########################################################################
+    # layout   ###
+    ########################################################################
+
+    # can be STORYBOARD or PREVIZ
+    # not visible in the UI because radiobuttons are more suitable
+
+    def _update_layout_mode(self, context):
+        # print("\n*** Props _update_layout_mode updated. New state: ", self._update_layout_mode)
+        self.layout_but_storyboard = "STORYBOARD" == self._update_layout_mode
+        self.layout_but_previez = "PREVIZ" == self._update_layout_mode
+
+    layout_mode: EnumProperty(
+        name="Layout Mode",
+        description="Defines if Shot Manager panel should be appropriate for storyboarding or for previz",
+        items=(
+            ("STORYBOARD", "Storyboard", "Storyboard layout"),
+            ("PREVIZ", "Previz", "Previz layout"),
+        ),
+        update=_update_layout_mode,
+        default="PREVIZ",
+    )
+
+    # NOTE:
+    # layout_but_storyboard and layout_but_previz behave as radiobuttons and control
+    # the state of layout_mode
+    def _get_layout_but_storyboard(self):
+        val = "STORYBOARD" == self.layout_mode
+        return val
+
+    def _set_layout_but_storyboard(self, value):
+        if value:
+            self.layout_mode = "STORYBOARD"
+        self["layout_but_storyboard"] = "STORYBOARD" == value
+
+    layout_but_storyboard: BoolProperty(
+        name="Storyboard",
+        description="Set the Shot Manager panel layout to Storyboard",
+        get=_get_layout_but_storyboard,
+        set=_set_layout_but_storyboard,
+        default=False,
+    )
+
+    def _get_layout_but_previz(self):
+        val = "PREVIZ" == self.layout_mode
+        return val
+
+    def _set_layout_but_previz(self, value):
+        if value:
+            self.layout_mode = "PREVIZ"
+        self["layout_but_storyboard"] = "PREVIZ" == value
+
+    def _update_layout_but_previz(self, context):
+        print("\n*** layout_but_storyboard updated. New state: ", self.layout_but_previz)
+        self.layout_mode = "PREVIZ"
+
+    layout_but_previz: BoolProperty(
+        name="Previz",
+        description="Set the Shot Manager panel layout to Previz",
+        get=_get_layout_but_previz,
+        set=_set_layout_but_previz,
+        default=True,
     )
 
     ####################
@@ -1950,6 +2023,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
 
     def addShot(
         self,
+        shotType="PREVIZ",
         atIndex=-1,
         takeIndex=-1,
         name="defaultShot",
@@ -1982,6 +2056,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         newShot = shots.add()  # shot is added at the end
         newShot.parentScene = self.getParentScene()
         # newShot.parentTakeIndex = takeInd
+        newShot.shotType = shotType
         newShot.initialize(self.getTakeByIndex(currentTakeInd))
         newShot.name = name
         newShot.enabled = enabled
@@ -2410,7 +2485,8 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
             #     scene.camera = currentShot.camera
             #     utils.setCurrentCameraToViewport2(bpy.context, target_area)
 
-            self.updateGreasePencilVisibility(self.getCurrentTake())
+            #    self.updateGreasePencilVisibility(self.getCurrentTake())
+            self.updateStoryboardFramesDisplay(self.getCurrentTake())
 
             #  set current edit gp
             if not self.stb_hasPinnedObject:

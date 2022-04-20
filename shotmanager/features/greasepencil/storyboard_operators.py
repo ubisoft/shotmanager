@@ -172,6 +172,7 @@ class UAS_ShotManager_CreateNStoryboardShots(Operator):
             cam.location[2] = y_offset * ((i - 1) // self.numCamsPerRow)
 
             newShot = props.addShot(
+                shotType="STORYBOARD",
                 atIndex=newShotInd,
                 name=props.getShotPrefix((len(props.getShotsList()) + 1) * 10),
                 # name=props.getUniqueShotName(props.project_shot_format.split("_")[2]).format(

@@ -191,6 +191,80 @@ class UAS_PT_ShotManager_ShotProperties(Panel):
 
         layout = self.layout
         layout.use_property_decorate = False
+        splitFactor = 0.25
+        rowSepFactor = 0.7
+
+        def _drawPropRow(
+            layout,
+            leftLabel=None,
+            leftProp=None,
+            leftPropCheckbx=None,
+            leftAlert=False,
+            rightLabel=None,
+            rightProp=None,
+            rightUnits_x=None,
+            rightPropCheckbx=None,
+            rightAlert=False,
+        ):
+            row = mainCol.row()
+            grid_flow = row.grid_flow(align=False, columns=4, even_columns=False)
+
+            # if not cameraIsValid:
+            #     grid_flow.alert = True
+
+            leftRow = grid_flow.row(align=False)
+            leftRow.alert = leftAlert
+            subRowCam = leftRow.row(align=True)
+            subRowCam.scale_x = 1.2
+
+            grid_flow = subRowCam.grid_flow(align=True, columns=4, even_columns=False)
+            # subSubRowCam = subRowCam.row(align=True)
+            grid_flow.scale_x = 0.2
+            if leftLabel is not None:
+                grid_flow.label(text=leftLabel)
+            grid_flow.scale_x = 1.8
+            if leftProp is not None:
+                grid_flow.prop(shot, leftProp, text="")
+            grid_flow.scale_x = 0.8
+
+            # camlistrow = grid_flow.row(align=True)
+            # camlistrow.scale_x = 0.6
+            # numSharedCam = props.getNumSharedCamera(shot.camera)
+            # camlistrow.alert = 1 < numSharedCam
+            # camlistrow.operator(
+            #     "uas_shot_manager.list_camera_instances", text=str(numSharedCam)
+            # ).index = props.selected_shot_index
+
+            # if not cameraIsValid:
+            #     grid_flow.alert = True
+            # subRowCam.separator(factor=1)
+
+            if rightLabel is not None:
+                subRowCam.label(text=rightLabel)
+            if leftPropCheckbx is not None:
+                subRowCam.prop(props, leftPropCheckbx, text="")
+
+            rightRow = leftRow.row(align=True)
+            # c.separator( factor = 0.5 )   # prevents strange look when panel is narrow
+            # rightRow.scale_x = 1
+
+            subRightRow = rightRow.row(align=False)
+            subRightRow.scale_x = 0.5
+
+            if rightUnits_x is not None:
+                subRightRow.ui_units_x = rightUnits_x
+
+            subRightRow.prop(shot, rightProp, text="")
+            # subSubRowCam.prop(shot, rightProp)
+
+            # subRowCam.scale_x = 1.0
+            rightRow.separator(factor=1)  # prevents strange look when panel is narrow
+            if rightPropCheckbx is not None:
+                rightRow.prop(props, rightPropCheckbx, text="")
+            else:
+                rightRow.separator(factor=2)  # prevents strange look when panel is narrow
+            rightRow.separator(factor=0.5)  # prevents strange look when panel is narrow
+            # row.separator(factor=0.5)  # prevents strange look when panel is narrow
 
         ######################
         # shot properties
@@ -206,7 +280,21 @@ class UAS_PT_ShotManager_ShotProperties(Panel):
             box = layout.box()
             box.use_property_decorate = False
 
-            currentTakeInd = props.getCurrentTakeIndex()
+            if itemHasWarnings:
+                subrowleft.alert = True
+                if shot.camera is None:
+                    subrowleft.label(text="*** Camera not defined ! ***")
+                else:
+                    subrowleft.scale_x = 1.1
+                    subrowleft.label(text="*** Referenced camera not in scene ! ***")
+
+            # sepRow = mainCol.row()
+            # sepRow.separator(factor=0.1)
+
+            ####################
+            # debug infos
+
+            debugRow = mainCol.row()
             if config.devDebug:
                 row = box.row()
                 row.label(
@@ -226,29 +314,40 @@ class UAS_PT_ShotManager_ShotProperties(Panel):
 
             ####################
             # name and color
-            row = box.row()
-            row.separator(factor=0.5)
-            grid_flow = row.grid_flow(align=False, columns=4, even_columns=False)
-            rowCam = grid_flow.row(align=False)
-            subRowCam = rowCam.row(align=False)
 
-            subRowCam.prop(shot, "name", text="Name")
-            #   grid_flow.scale_x = 0.7
-            # rowCam = grid_flow.row(align=False)
-            subSubRow = subRowCam.row(align=True)
-            subColor = subSubRow.row()
-            subColor.scale_x = 0.2
-            subColor.prop(shot, "color", text="")
-            #   grid_flow.scale_x = 1.0
-            subSubRow.separator(factor=1.0)
-            subSubRow.prop(props, "display_color_in_shotlist", text="")
-            subSubRow.separator(factor=0.5)  # prevents stange look when panel is narrow
+            _drawPropRow(
+                mainCol,
+                leftLabel="Name:",
+                leftProp="name",
+                rightLabel=None,
+                rightProp="color",
+                rightUnits_x=0.8,
+                rightPropCheckbx="display_color_in_shotlist",
+            )
+
+            ####################
+            # Type
+            _drawPropRow(
+                mainCol,
+                rightLabel="Type:",
+                rightProp="shotType",
+                rightPropCheckbx=None,
+            )
+
+            sepRow = mainCol.row()
+            sepRow.separator(factor=rowSepFactor)
 
             ####################
             # Duration
-            row = box.row()
-            row.separator(factor=0.5)
-            grid_flow = row.grid_flow(align=True, columns=4, even_columns=False)
+            # _drawPropRow(
+            #     mainCol,
+            #     rightLabel="Duration:",
+            #     rightProp="type",
+            #     rightPropCheckbx=None,
+            # )
+
+            durationRow = mainCol.row()
+            grid_flow = durationRow.grid_flow(align=True, columns=4, even_columns=False)
             # row.label ( text = r"Duration: " + str(shot.getDuration()) + " frames" )
 
             rowCam = grid_flow.row(align=False)
@@ -272,13 +371,25 @@ class UAS_PT_ShotManager_ShotProperties(Panel):
             subRowCam.prop(props, "display_duration_in_shotlist", text="")
             subRowCam.separator(factor=0.5)  # prevents stange look when panel is narrow
 
+            sepRow = mainCol.row()
+            sepRow.separator(factor=rowSepFactor)
+
             ####################
             # camera and lens
             cameraIsValid = shot.isCameraValid()
 
-            row = box.row()
-            row.separator(factor=0.5)
-            grid_flow = row.grid_flow(align=False, columns=4, even_columns=False)
+            # _drawPropRow(
+            #     mainCol,
+            #     leftProp="camera",
+            #     leftPropCheckbx="display_camera_in_shotlist",
+            #     leftAlert=not cameraIsValid,
+            #     rightProp="camera",
+            #     rightPropCheckbx="display_camera_in_shotlist",
+            #     rightAlert=not cameraIsValid,
+            # )
+
+            camRow = mainCol.row()
+            grid_flow = camRow.grid_flow(align=False, columns=4, even_columns=False)
 
             if not cameraIsValid:
                 grid_flow.alert = True
@@ -326,13 +437,27 @@ class UAS_PT_ShotManager_ShotProperties(Panel):
             subRowCam.separator(factor=0.5)  # prevents strange look when panel is narrow
             # row.separator(factor=0.5)  # prevents strange look when panel is narrow
 
-            box.separator(factor=0.5)
+            ###############
+            # Cam frustum
+            camRow = mainCol.row()
+            # camRow.scale_x = 0.8
+            camRow.alignment = "RIGHT"
+            if not cameraIsValid:
+                camRow.alert = True
+                camRow.operator("uas_shot_manager.nodisplaysize", text="No Size")
+                camRow.alert = False
+            else:
+                camRow.prop(shot.camera.data, "display_size", text="Frustum Size")
+            camRow.separator(factor=2.8)
 
             ####################
             # Output
-            row = box.row()
-            row.separator(factor=1.0)
-            grid_flow = row.grid_flow(align=False, columns=3, even_columns=False)
+
+            sepRow = mainCol.row()
+            sepRow.scale_y = 0.8
+            sepRow.separator()
+            outputRow = mainCol.row()
+            grid_flow = outputRow.grid_flow(align=False, columns=3, even_columns=False)
             rowCam = grid_flow.row(align=False)
             subRowCam = rowCam.row(align=True)
 
@@ -395,6 +520,16 @@ class UAS_PT_ShotManager_ShotProperties(Panel):
             if props.display_greasepencil_in_properties and shot.camera is not None:
                 gp.draw_greasepencil_shot_properties(self, context, shot)
 
+            # if prefs.shot_notes_expanded:
+            row = box.row()
+            row.separator(factor=1.0)
+            mainCol = row.column()
+            mainCol.scale_y = 0.95
+            mainCol.prop(shot, "note01", text="")
+            mainCol.prop(shot, "note02", text="")
+            mainCol.prop(shot, "note03", text="")
+            row.separator(factor=1.0)
+            box.separator(factor=0.1)
 
         ######################
         # Camera background images

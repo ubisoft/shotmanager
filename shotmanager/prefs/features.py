@@ -72,6 +72,18 @@ def draw_features_prefs(mode, layout):
         separatorrow.scale_y = 0.7
         separatorrow.separator()
 
+    layoutRow = layout.row()
+    if "SCENE" == mode:
+        layoutRow.label(text="Layout: ")
+    else:
+        layoutRow.label(text="Default Layout: ")
+
+    # layoutRow.alignment = "CENTER"
+    # layoutRow.scale_x = 0.8
+    layoutRow.scale_y = 1.2
+    layoutRow.prop(props, "layout_but_storyboard", toggle=1)
+    layoutRow.prop(props, "layout_but_previz", toggle=1)
+
     if "SCENE" == mode:
         layout.label(text="Display Takes and Shots additionnal features:")
     else:
@@ -158,7 +170,7 @@ def draw_features_prefs(mode, layout):
 
     ################
     ################
-    layout.separator(factor=separatorVertTopics)
+    # layout.separator(factor=separatorVertTopics)
     layout.label(text="Shot Manager Panels:")
     box = layout.box()
 
@@ -170,6 +182,7 @@ def draw_features_prefs(mode, layout):
     col = row.column()
     col.scale_x = separatorLeft
     col.label(text=" ")
+
     col = row.column()
 
     ################

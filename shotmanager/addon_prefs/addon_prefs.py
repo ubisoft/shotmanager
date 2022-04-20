@@ -350,6 +350,13 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
     ########################################################################
 
     # can be STORYBOARD or PREVIZ
+    # not visible in the UI because radiobuttons are more suitable
+
+    def _update_layout_mode(self, context):
+        #   print("\n*** Prefs _update_layout_mode updated. New state: ", self._update_layout_mode)
+        self.layout_but_storyboard = "STORYBOARD" == self._update_layout_mode
+        self.layout_but_previez = "PREVIZ" == self._update_layout_mode
+
     layout_mode: EnumProperty(
         name="Layout Mode",
         description="Defines if Shot Manager panel should be appropriate for storyboarding or for previz",
@@ -357,7 +364,49 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
             ("STORYBOARD", "Storyboard", "Storyboard layout"),
             ("PREVIZ", "Previz", "Previz layout"),
         ),
+        update=_update_layout_mode,
         default="PREVIZ",
+    )
+
+    # NOTE:
+    # layout_but_storyboard and layout_but_previz behave as radiobuttons and control
+    # the state of layout_mode
+    def _get_layout_but_storyboard(self):
+        val = "STORYBOARD" == self.layout_mode
+        return val
+
+    def _set_layout_but_storyboard(self, value):
+        if value:
+            self.layout_mode = "STORYBOARD"
+        self["layout_but_storyboard"] = "STORYBOARD" == value
+
+    layout_but_storyboard: BoolProperty(
+        name="Storyboard",
+        description="Set the Shot Manager panel layout to Storyboard",
+        get=_get_layout_but_storyboard,
+        set=_set_layout_but_storyboard,
+        default=False,
+    )
+
+    def _get_layout_but_previz(self):
+        val = "PREVIZ" == self.layout_mode
+        return val
+
+    def _set_layout_but_previz(self, value):
+        if value:
+            self.layout_mode = "PREVIZ"
+        self["layout_but_storyboard"] = "PREVIZ" == value
+
+    def _update_layout_but_previz(self, context):
+        print("\n*** layout_but_storyboard updated. New state: ", self.layout_but_previz)
+        self.layout_mode = "PREVIZ"
+
+    layout_but_previz: BoolProperty(
+        name="Previz",
+        description="Set the Shot Manager panel layout to Previz",
+        get=_get_layout_but_previz,
+        set=_set_layout_but_previz,
+        default=True,
     )
 
     ########################################################################

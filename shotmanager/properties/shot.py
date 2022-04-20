@@ -25,7 +25,15 @@ from bpy.types import Scene
 
 # from bpy.types import SoundSequence
 from bpy.types import PropertyGroup
-from bpy.props import StringProperty, IntProperty, BoolProperty, PointerProperty, FloatVectorProperty
+from bpy.props import (
+    StringProperty,
+    IntProperty,
+    BoolProperty,
+    EnumProperty,
+    PointerProperty,
+    FloatVectorProperty,
+    CollectionProperty,
+)
 
 from shotmanager.features.greasepencil.greasepencil_props import GreasePencilProperties
 
@@ -137,6 +145,16 @@ class UAS_ShotManager_Shot(ShotInterface, PropertyGroup):
         currentTakeInd = self.parentScene.UAS_shot_manager_props.getCurrentTakeIndex()
         if currentTakeInd == self.getParentTakeIndex():
             self.parentScene.UAS_shot_manager_props.setSelectedShot(self)
+
+    shotType: EnumProperty(
+        name="Type",
+        description="Usage of the shot",
+        items=(
+            ("PREVIZ", "Camera Shot", "Shot based on the record of a camera"),
+            ("STORYBOARD", "Storyboard Frame", "2D drawing used for storyboarding"),
+        ),
+        default="PREVIZ",
+    )
 
     #############
     # start #####
@@ -634,10 +652,13 @@ class UAS_ShotManager_Shot(ShotInterface, PropertyGroup):
             # AUTO
             else:
                 if props.use_greasepencil:
-                    if props.getCurrentShot() == self:
+                    if "STORYBOARD" == self.shotType:
                         _showGreasePencil(gp_child, True)
                     else:
-                        _showGreasePencil(gp_child, False)
+                        if props.getCurrentShot() == self:
+                            _showGreasePencil(gp_child, True)
+                        else:
+                            _showGreasePencil(gp_child, False)
                 else:
                     _showGreasePencil(gp_child, False)
 

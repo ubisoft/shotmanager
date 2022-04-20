@@ -16,14 +16,12 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 """
-UI for the shots in the shots list component
+UI for the shots - storyboard layout - in the shots list component
 """
 
 import bpy
-from bpy.types import Menu
 
 from shotmanager.config import config
-from shotmanager.utils.utils_os import module_can_be_imported
 
 from shotmanager.config import sm_logging
 
@@ -35,14 +33,15 @@ _logger = sm_logging.getLogger(__name__)
 #############
 
 
-class UAS_UL_ShotManager_Items(bpy.types.UIList):
+class UAS_UL_ShotManager_Storyboard_Items(bpy.types.UIList):
     def draw_item(self, context, layout, data, item, icon, active_data, active_propname, index):
         props = context.scene.UAS_shot_manager_props
         current_shot_index = props.current_shot_index
 
         itemHasWarnings = False
 
-        display_getsetcurrentframe_in_shotlist = props.display_getsetcurrentframe_in_shotlist
+        # display_getsetcurrentframe_in_shotlist = props.display_getsetcurrentframe_in_shotlist
+        display_getsetcurrentframe_in_shotlist = False
 
         cam = "Cam" if current_shot_index == index else ""
         currentFrame = context.scene.frame_current
@@ -98,14 +97,19 @@ class UAS_UL_ShotManager_Items(bpy.types.UIList):
                     # row.operator(
                     #     "uas_shot_manager.shots_shownotes", text="", icon_value=emptyIcon.icon_id
                     # ).index = index
-                row.scale_x = 0.9
-
-            if props.display_cameraBG_in_shotlist:
-                row = row.row(align=True)
                 row.scale_x = 1.0
-                icon = "VIEW_CAMERA" if item.hasBGImage() else "BLANK1"
-                row.operator("uas_shot_manager.cambgitem", text="", icon=icon).index = index
+
+            if props.display_cameraBG_in_properties and props.display_cameraBG_in_shotlist:
+                row = row.row(align=True)
                 row.scale_x = 0.9
+                # icon = "VIEW_CAMERA" if item.hasBGImage() else "BLANK1"
+                icon = (
+                    config.icons_col["ShotManager_CamBGShot_32"]
+                    if item.hasBGImage()
+                    else config.icons_col["ShotManager_CamBGNoShot_32"]
+                )
+                row.operator("uas_shot_manager.cambgitem", text="", icon_value=icon.icon_id).index = index
+                row.scale_x = 1
 
             if props.display_storyboard_in_properties and props.display_greasepencil_in_shotlist:
                 row = row.row(align=True)
@@ -120,9 +124,12 @@ class UAS_UL_ShotManager_Items(bpy.types.UIList):
                     if gp.mode == "PAINT_GPENCIL":
                         icon = "GREASEPENCIL"
                         row.alert = True
+                        row.operator("uas_shot_manager.greasepencilitem", text="", icon=icon).index = index
                     else:
-                        icon = "OUTLINER_OB_GREASEPENCIL"
-                row.operator("uas_shot_manager.greasepencilitem", text="", icon=icon).index = index
+                        icon = config.icons_col["ShotManager_CamGPShot_32"]
+                        row.operator(
+                            "uas_shot_manager.greasepencilitem", text="", icon_value=icon.icon_id
+                        ).index = index
                 row.scale_x = 0.9
 
             if takeContainsSharedCameras:
@@ -188,65 +195,67 @@ class UAS_UL_ShotManager_Items(bpy.types.UIList):
                 if props.highlight_all_shot_frames or current_shot_index == index:
                     grid_flow.alert = True
             grid_flow.prop(item, "start", text="")
-            grid_flow.alert = False
+            grid_flow.alert = item.camera is None or itemHasWarnings
 
         # duration
         ###########
 
         # display_duration_after_time_range
-        if not props.display_duration_after_time_range:
-            grid_flow.scale_x = button_x_factor - 0.1
-            grid_flow.prop(
-                item,
-                "durationLocked",
-                text="",
-                icon="DECORATE_LOCKED" if item.durationLocked else "DECORATE_UNLOCKED",
-                toggle=True,
-            )
+        # if not props.display_duration_after_time_range:
+        #     grid_flow.scale_x = button_x_factor - 0.1
+        #     grid_flow.prop(
+        #         item,
+        #         "durationLocked",
+        #         text="",
+        #         icon="DECORATE_LOCKED" if item.durationLocked else "DECORATE_UNLOCKED",
+        #         toggle=True,
+        #     )
 
-            if props.highlight_all_shot_frames or current_shot_index == index:
-                if item.start <= currentFrame and currentFrame <= item.end:
-                    grid_flow.alert = True
+        #     if props.highlight_all_shot_frames or current_shot_index == index:
+        #         if item.start <= currentFrame and currentFrame <= item.end:
+        #             grid_flow.alert = True
 
-            if props.display_duration_in_shotlist:
-                grid_flow.scale_x = 0.3
-                grid_flow.prop(item, "duration_fp", text="")
-            else:
-                grid_flow.scale_x = 0.05
-                grid_flow.operator("uas_shot_manager.shot_duration", text="").index = index
-            grid_flow.alert = False
-        else:
-            grid_flow.scale_x = 1.5
+        #     if props.display_duration_in_shotlist:
+        #         grid_flow.scale_x = 0.3
+        #         grid_flow.prop(item, "duration_fp", text="")
+        #     else:
+        #         grid_flow.scale_x = 0.05
+        #         grid_flow.operator("uas_shot_manager.shot_duration", text="").index = index
+        #     grid_flow.alert = item.camera is None or itemHasWarnings
+        # else:
+        # grid_flow.scale_x = 1.5
+
+        grid_flow.scale_x = 1.5
 
         # end
         ###########
-        if props.display_edit_times_in_shotlist:
-            grid_flow.scale_x = 0.4
-            shotEditEnd = item.getEditEnd()
-            if currentFrame == item.end:
-                if props.highlight_all_shot_frames or current_shot_index == index:
-                    grid_flow.alert = True
-            grid_flow.operator("uas_shot_manager.shottimeinedit", text=str(shotEditEnd)).shotSource = f"[{index},1]"
-            grid_flow.alert = False
+        # if props.display_edit_times_in_shotlist:
+        #     grid_flow.scale_x = 0.4
+        #     shotEditEnd = item.getEditEnd()
+        #     if currentFrame == item.end:
+        #         if props.highlight_all_shot_frames or current_shot_index == index:
+        #             grid_flow.alert = True
+        #     grid_flow.operator("uas_shot_manager.shottimeinedit", text=str(shotEditEnd)).shotSource = f"[{index},1]"
+        #     grid_flow.alert = False
 
-            # grid_flow.scale_x = button_x_factor - 0.2
-            # if display_getsetcurrentframe_in_shotlist:
-            #     grid_flow.operator(
-            #         "uas_shot_manager.getsetcurrentframe", text="", icon="TRIA_DOWN_BAR"
-            #     ).shotSource = f"[{index},1]"
-        else:
-            grid_flow.scale_x = 0.4
-            if currentFrame == item.end:
-                if props.highlight_all_shot_frames or current_shot_index == index:
-                    grid_flow.alert = True
-            grid_flow.prop(item, "end", text="")
-            grid_flow.alert = False
+        #     # grid_flow.scale_x = button_x_factor - 0.2
+        #     # if display_getsetcurrentframe_in_shotlist:
+        #     #     grid_flow.operator(
+        #     #         "uas_shot_manager.getsetcurrentframe", text="", icon="TRIA_DOWN_BAR"
+        #     #     ).shotSource = f"[{index},1]"
+        # else:
+        #     grid_flow.scale_x = 0.4
+        #     if currentFrame == item.end:
+        #         if props.highlight_all_shot_frames or current_shot_index == index:
+        #             grid_flow.alert = True
+        #     grid_flow.prop(item, "end", text="")
+        #     grid_flow.alert = item.camera is None or itemHasWarnings
 
-            grid_flow.scale_x = button_x_factor - 0.2
-            if display_getsetcurrentframe_in_shotlist:
-                grid_flow.operator(
-                    "uas_shot_manager.getsetcurrentframe", text="", icon="TRIA_DOWN_BAR"
-                ).shotSource = f"[{index},1]"
+        #     grid_flow.scale_x = button_x_factor - 0.2
+        #     if display_getsetcurrentframe_in_shotlist:
+        #         grid_flow.operator(
+        #             "uas_shot_manager.getsetcurrentframe", text="", icon="TRIA_DOWN_BAR"
+        #         ).shotSource = f"[{index},1]"
 
         if props.display_duration_after_time_range:
             row = layout.row(align=True)
@@ -309,159 +318,7 @@ class UAS_UL_ShotManager_Items(bpy.types.UIList):
             grid_flow.scale_x = 1.0
 
 
-#################
-# tools for shots
-#################
-
-
-class UAS_MT_ShotManager_Shots_ToolsMenu(Menu):
-    bl_idname = "UAS_MT_Shot_Manager_shots_toolsmenu"
-    bl_label = "Shots Tools"
-    # bl_description = "Shots Tools"
-
-    def draw(self, context):
-        # props = context.scene.UAS_shot_manager_props
-
-        # Copy menu entries[ ---
-        layout = self.layout
-        row = layout.row(align=True)
-
-        # row.label(text="Tools for Shots:")
-
-        row = layout.row(align=True)
-        row.operator_context = "INVOKE_DEFAULT"
-        row.operator("uas_shot_manager.create_shots_from_each_camera", icon="ADD")
-
-        row = layout.row(align=True)
-        row.operator_context = "INVOKE_DEFAULT"
-        row.operator("uas_shot_manager.create_n_shots", icon="ADD")
-
-        row = layout.row(align=True)
-        row.operator_context = "INVOKE_DEFAULT"
-        row.operator("uas_shot_manager.shot_duplicates_to_other_take", icon="DUPLICATE")
-
-        row = layout.row(align=True)
-        row.operator_context = "INVOKE_DEFAULT"
-        row.operator(
-            "uas_shot_manager.remove_multiple_shots", text="Remove Disabled Shots...", icon="REMOVE"
-        ).action = "DISABLED"
-
-        row = layout.row(align=True)
-        row.operator_context = "INVOKE_DEFAULT"
-        row.operator("uas_shot_manager.remove_multiple_shots", text="Remove All Shots...", icon="REMOVE").action = "ALL"
-
-        #############
-        # tools for storyboard
-        #############
-        if props.display_storyboard_in_properties:
-            layout.separator()
-            row = layout.row(align=True)
-            row.label(text="Tools for Storyboard:")
-
-            row = layout.row(align=True)
-            row.operator_context = "INVOKE_DEFAULT"
-            row.operator(
-                "uas_shot_manager.create_n_storyboard_shots",
-                text="   Create Specifed Number of Shots with Storyboard Frames...",
-                icon="ADD",
-            )
-
-        #############
-        # tools for shots
-        #############
-        layout.separator()
-
-        # tools for shots ###
-        row = layout.row(align=True)
-        row.label(text="Tools for Shots:")
-
-        row = layout.row(align=True)
-        row.operator_context = "INVOKE_DEFAULT"
-        row.operator("uas_shot_manager.unique_cameras", text="   Make All Cameras Unique")
-
-        row = layout.row(align=True)
-        row.operator_context = "INVOKE_DEFAULT"
-        row.operator("uas_shot_manager.shots_removecamera", text="   Remove Camera From All Shots...")
-
-        #############
-        # import edit file
-        #############
-        if module_can_be_imported("shotmanager.otio"):
-            layout.separator()
-            row = layout.row(align=True)
-            row.label(text="Tools For Edit (OTIO, XML):")
-
-            row = layout.row(align=True)
-            row.operator_context = "INVOKE_DEFAULT"
-            row.operator(
-                "uasotio.import_edit_file", text="   Create / Update Shots From Edit File..."
-            ).importMode = "CREATE_SHOTS"
-
-            if config.devDebug:
-                layout.separator()
-
-                row = layout.row(align=True)
-                row.label(text="Tools For Edit -- Debug:")
-
-                # row = layout.row(align=True)
-                # row.operator_context = "INVOKE_DEFAULT"
-                # row.operator(
-                #     "uasotio.import_edit_file", text="   Create / Update Shots From Edit File - Simple Mode..."
-                # ).importMode = "CREATE_SHOTS_SIMPLE"
-
-                row = layout.row(align=True)
-                row.operator_context = "INVOKE_DEFAULT"
-                row.operator(
-                    "uasotio.import_edit_file", text="   Import Shots From Edit File - RRS..."
-                ).importMode = "IMPORT_EDIT"
-
-                row = layout.row(align=True)
-                row.operator_context = "INVOKE_DEFAULT"
-                row.operator("uasotio.import_edit_file", text="   Parse File - RRS...").importMode = "PARSE_EDIT"
-
-        layout.separator()
-
-        # # tools for cameras ###
-        # row = layout.row(align=True)
-        # row.label(text="Tools for Cameras:")
-
-        # row = layout.row(align=True)
-        # row.operator_context = "INVOKE_DEFAULT"
-        # row.operator("uas_utils.create_camera_from_view", text="   New Camera from View")
-
-        # row = layout.row(align=True)
-        # row.operator_context = "INVOKE_DEFAULT"
-        # row.operator("uas_utils.camera_to_view", text="   Selected Camera to View")
-
-        #############
-        # tools for precut ###
-        #############
-        layout.separator()
-        row = layout.row(align=True)
-        row.label(text="Tools for Precut:")
-
-        # row = layout.row(align=True)
-        # row.operator_context = "INVOKE_DEFAULT"
-        # row.operator("uas_shot_manager.predec_shots_from_single_cam", text="   Create Shots From Single Camera...")
-
-        row = layout.row(align=True)
-        row.operator_context = "INVOKE_DEFAULT"
-        row.operator("uas_shot_manager.print_montage_info", text="   Print montage information in the console")
-
-        # tools for precut ###
-        layout.separator()
-        row = layout.row(align=True)
-        row.label(text="Various:")
-
-        row = layout.row(align=True)
-        row.operator_context = "INVOKE_DEFAULT"
-        row.operator("uas_shot_manager.predec_sort_versions_shots", text="   Sort Version Shots")
-
-
-classes = (
-    UAS_UL_ShotManager_Items,
-    UAS_MT_ShotManager_Shots_ToolsMenu,
-)
+classes = (UAS_UL_ShotManager_Storyboard_Items,)
 
 
 def register():
