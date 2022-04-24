@@ -58,7 +58,7 @@ def get_region_at_xy(context, x, y, area_type="VIEW_3D"):
 # Geometry utils functions
 #
 class Square:
-    """Draw a rectangle filled with the specifed color, from bottom left corner and with 
+    """Draw a rectangle filled with the specifed color, from bottom left corner and with
     width and height.
     Origin of the object is at the center.
 
@@ -70,7 +70,7 @@ class Square:
 
     def __init__(self, x, y, sx, sy, color=(1.0, 1.0, 1.0, 1.0), origin="MIDDLE_MIDDLE"):
         """
-        origin can be: MIDDLE_MIDDLE, LEFT_BOTTOM
+        origin can be: MIDDLE_MIDDLE, BOTTOM_LEFT
         """
         self._x = x
         self._y = y
@@ -131,7 +131,7 @@ class Square:
         return Square(self.x, self.y, self.sx, self.sy, self.color, self.origin)
 
     def draw(self, position=None):
-        if "LEFT_BOTTOM" == self._origin:
+        if "BOTTOM_LEFT" == self._origin:
             vertices = (
                 (self._x, self._sy + self._y),
                 (self._sx + self._x, self._sy + self._y),
@@ -157,3 +157,52 @@ class Square:
     def bbox(self):
         return (-self._sx + self._x, -self.sy + self._y), (self._sx + self._x, self._sy + self._y)
 
+
+class Rect:
+    """Draw a rectangle filled with the specifed color, from bottom left corner and with
+    width and height.
+    Origin of the object is at the center.
+    """
+
+    UNIFORM_SHADER_2D = gpu.shader.from_builtin("2D_UNIFORM_COLOR")
+
+    def __init__(self, x, y, sx, sy, color=(1.0, 1.0, 1.0, 1.0), origin="MIDDLE_MIDDLE"):
+        """
+        origin can be: MIDDLE_MIDDLE, BOTTOM_LEFT
+        """
+        self.x = x
+        self.y = y
+        self.sx = sx
+        self.sy = sy
+        self.color = color
+        self.origin = origin
+
+    def copy(self):
+        return Rect(self.x, self.y, self.sx, self.sy, self.color, self.origin)
+
+    def draw(self, position=None):
+        if "BOTTOM_LEFT" == self.origin:
+            vertices = (
+                (self.x, self.y + self.sy),
+                (self.x + self.sx, self.y + self.sy),
+                (self.x, self.y),
+                (self.x + self.sx, self.y),
+            )
+        else:
+            vertices = (
+                (self.x - 0.5 * self.sx, self.y + 0.5 * self.sy),
+                (self.x + 0.5 * self.sx, self.y + 0.5 * self.sy),
+                (self.x - 0.5 * self.sx, self.y - 0.5 * self.sy),
+                (self.x + 0.5 * self.sx, self.y - 0.5 * self.sy),
+            )
+        # vertices += [ pos_2d.x, pos_2d.y ]
+        indices = ((0, 1, 2), (2, 1, 3))
+
+        batch = batch_for_shader(self.UNIFORM_SHADER_2D, "TRIS", {"pos": vertices}, indices=indices)
+
+        self.UNIFORM_SHADER_2D.bind()
+        self.UNIFORM_SHADER_2D.uniform_float("color", self.color)
+        batch.draw(self.UNIFORM_SHADER_2D)
+
+    # def bbox(self):
+    #     return (-self.sx + self.x, -self.sy + self.y), (self.sx + self.x, self.sy + self.y)

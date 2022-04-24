@@ -1,3 +1,12 @@
+# 1.7.16 (2022-04-24)
+
+## Camera HUD:
+
+- Exposed the size of the shot names displayed over the cameras in the viewport
+in the add-on Preferences panel as well as in the Features panel preferences
+- Fix: The name of the shots is not displayed anymore for hidden cameras
+
+
 # 1.7.15 (2022-03-30)
 
 ## Project:
@@ -34,11 +43,14 @@
 - Improved output messages with logger
 - Added patch V1.7.15 to ensure the data compatibility
 - Refactored the Render Settings properties initialization
-# 1.7.12 (2022-03-23)
+
+
+# 1.7.12 (2022-04-24)
 
 - Integration of a Windows wheel for OpenTimelineIO for Python 3.10.
 This package will be installed on the user Blender Python environment if no
 wheel can be downloaded from the network.
+
 
 # 1.7.11 (2022-03-22)
 

@@ -33,7 +33,7 @@ import bpy
 from bpy_extras.view3d_utils import location_3d_to_region_2d
 
 
-from shotmanager.utils.utils_ogl import get_region_at_xy, Square
+from shotmanager.utils.utils_ogl import get_region_at_xy, Square, Rect
 
 # font_info = {"font_id": 0, "handler": None}
 
@@ -57,19 +57,32 @@ def draw_shots_names(context):
 
 def draw_all_shots_names(context, cam, pos_x, pos_y, vertical=False):
     props = context.scene.UAS_shot_manager_props
+    prefs = context.preferences.addons["shotmanager"].preferences
     current_shot = props.getCurrentShot()
-    hud_offset_x = 19
+    # hud_offset_x = 19
+    hud_offset_x = 8
     hud_offset_y = 0
 
+    font_size = prefs.cameraHUD_shotNameSize
+
     blf.color(0, 1, 1, 1, 1)
-    blf.size(0, 12, 72)
-    _, font_height = blf.dimensions(0, "A")  # Take maximum font height.
+    # blf.size(0, 12, 72)
+    blf.size(0, font_size, 72)
+    # Take maximum font height
+    _, font_height = blf.dimensions(0, "A")
+    # font_height = font_height * 0.8
 
     x_horizontal_offset = 80
 
-    shotsList = props.getShotsUsingCamera(cam)
-    if 0 == len(shotsList):
+    shotsList_allCams = props.getShotsUsingCamera(cam)
+    if 0 == len(shotsList_allCams):
         return ()
+
+    # keep only shots with visible cameras
+    shotsList = list()
+    for shot in shotsList_allCams:
+        if shot.isCameraValid() and shot.camera.visible_get():
+            shotsList.append(shot)
 
     shot_names_by_camera = defaultdict(list)
     for shot in shotsList:
@@ -97,10 +110,8 @@ def draw_all_shots_names(context, cam, pos_x, pos_y, vertical=False):
         if after_range < len(shots):
             shot_trim_info[c][1] = True
 
-    font_size = 10
-
     # For all camera which have a shot draw on the ui a list of shots associated with it
-    blf.size(0, font_size, 72)
+    # blf.size(0, font_size, 72)
 
     blf.color(0, 0.9, 0.9, 0.9, 0.9)
 
@@ -120,7 +131,13 @@ def draw_all_shots_names(context, cam, pos_x, pos_y, vertical=False):
     # Draw the shot names.
     for s in shot_names_by_camera[cam.name]:
         drawShotName(
-            pos_x + x_offset, pos_y + y_offset, s.name, s.color, is_current=current_shot == s, is_disabled=not s.enabled
+            pos_x + x_offset,
+            pos_y + y_offset,
+            s.name,
+            s.color,
+            font_height,
+            is_current=current_shot == s,
+            is_disabled=not s.enabled,
         )
         if vertical:
             y_offset -= font_size  # Seems to do the trick for this value
@@ -138,10 +155,17 @@ def draw_all_shots_names(context, cam, pos_x, pos_y, vertical=False):
     # blf.draw(0, str(num_cams))
 
 
-def drawShotName(pos_x, pos_y, shot_name, shot_color, is_current=False, is_disabled=False):
+def drawShotName(pos_x, pos_y, shot_name, shot_color, font_height, is_current=False, is_disabled=False):
     square_size = 4.0
+    square_size = font_height * 1.2
 
-    blf.position(0, pos_x, pos_y, 0)
+    # square
+    gamma = 1.0 / 2.2
+    linColor = (pow(shot_color[0], gamma), pow(shot_color[1], gamma), pow(shot_color[2], gamma), shot_color[3])
+    Rect(pos_x, pos_y - square_size * 0.1, square_size, square_size, linColor, "BOTTOM_LEFT").draw()
+
+    # shot name
+    blf.position(0, pos_x + square_size * 1.25, pos_y, 0)
     if is_current:
         blf.color(0, 0.4, 0.9, 0.1, 1)
     elif is_disabled:
@@ -149,10 +173,6 @@ def drawShotName(pos_x, pos_y, shot_name, shot_color, is_current=False, is_disab
     else:
         blf.color(0, 0.9, 0.9, 0.9, 0.9)
     blf.draw(0, shot_name)
-
-    gamma = 1.0 / 2.2
-    linColor = (pow(shot_color[0], gamma), pow(shot_color[1], gamma), pow(shot_color[2], gamma), shot_color[3])
-    Square(pos_x - 7, pos_y + 3, square_size, square_size, linColor).draw()
 
 
 def view3d_camera_border(context):

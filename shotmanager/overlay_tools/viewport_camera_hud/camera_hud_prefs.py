@@ -21,8 +21,7 @@ Settings panel for the camera HUD tool
 
 
 def draw_settings(context, layout):
-    """Used in Shot Manager Feature Toggles panel
-    """
+    """Used in Shot Manager Feature Toggles panel"""
     props = context.scene.UAS_shot_manager_props
     prefs = context.preferences.addons["shotmanager"].preferences
 
@@ -37,4 +36,4 @@ def draw_settings(context, layout):
 
     col.prop(props, "camera_hud_display_in_viewports", text="Display Shot name in 3D Viewport")
     col.prop(props, "camera_hud_display_in_pov", text="Display HUD in 3D Viewport")
-
+    col.prop(prefs, "cameraHUD_shotNameSize", text="Size of the shot names")
