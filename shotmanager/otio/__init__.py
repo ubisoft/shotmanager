@@ -60,7 +60,7 @@ if (2, 93, 0) <= bpy.app.version:
     try:
         import opentimelineio
 
-        _logger.debug_ext(f"OTIO correctly imported: {opentimelineio.__version___}", col="GREEN")
+        _logger.debug_ext(f"OTIO correctly imported: {opentimelineio.__version__}", col="GREEN")
 
     except ModuleNotFoundError:
         _logger.error("*** Error - OpenTimelineIO import failed - Installing provided version")

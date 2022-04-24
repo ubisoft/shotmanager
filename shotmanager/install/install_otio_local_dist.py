@@ -34,40 +34,59 @@ _logger = sm_logging.getLogger(__name__)
 def install_otio_local_dist():
     """Return True if OTIO is already installed or if the installation of the local distribution succeeded"""
 
-    # for versions of Blender after 2.93:
-    # if (2, 93, 0) <= bpy.app.version:
-
-    if (3, 1, 0) <= bpy.app.version and platform.system() == "Windows":
+    try:
         # forces an exception so that this package (otio) cannot be imported and then the function
         # used everywhere in ShotManager to see if the atio package is available fails
         # (namely module_can_be_imported("shotmanager.otio"))
-        #
-        # import opentimelineio
+        import opentimelineio
 
-        # if not platform.system() == "Windows":
-        #     import opentimelineio
-        # else:
+        _logger.debug_ext(f"OTIO already installed: {opentimelineio.__version__}", col="GREEN")
 
-        try:
-            import opentimelineio
+        return True
 
-            _logger.debug_ext(f"OTIO already installed: {opentimelineio.__version___}", col="GREEN")
-
-            return True
-
-        except ModuleNotFoundError:
-            # we install the provided wheel
-
+    except ModuleNotFoundError:
+        # for versions of Blender equal to or after 3.1 we install the provided wheel
+        # for previous versions we follow the online check of the appropriate wheel (cf function install_dependencies()
+        # alled in .init)
+        if (3, 1, 0) <= bpy.app.version:
             pyExeFile = sys.executable
             # localPyDir = str(Path(pyExeFile).parent) + "\\lib\\site-packages\\"
 
             try:
-                print(
-                    "Installing provided distribution of OpenTimelineIO 0.15 for Python 3.10 for Ubisoft Shot Manager..."
+                _logger.info_ext(
+                    "Installing provided distribution of OpenTimelineIO 0.15 for Python 3.10 for Ubisoft Shot Manager...",
+                    col="GREEN",
                 )
-                package_path = os.path.join(
-                    os.path.dirname(__file__), "..\\distr\\OpenTimelineIO-0.15.0.dev1-cp310-cp310-win_amd64.whl"
-                )
+
+                is_64bits = sys.maxsize > 2**32
+                if "Windows" == platform.system():
+                    if is_64bits:
+                        package_path = os.path.join(
+                            os.path.dirname(__file__), "..\\distr\\OpenTimelineIO-0.15.0.dev1-cp310-cp310-win_amd64.whl"
+                        )
+                    else:
+                        package_path = os.path.join(
+                            os.path.dirname(__file__), "..\\distr\\OpenTimelineIO-0.15.0.dev1-cp310-cp310-win32.whl"
+                        )
+
+                elif "Darwin" == platform.system():
+                    package_path = os.path.join(
+                        os.path.dirname(__file__),
+                        "..\\distr\\OpenTimelineIO-0.15.0.dev1-cp310-cp310-macosx_10_9_x86_64.whl",
+                    )
+
+                elif "Linux" == platform.system():
+                    if is_64bits:
+                        package_path = os.path.join(
+                            os.path.dirname(__file__),
+                            "..\\distr\\OpenTimelineIO-0.15.0.dev1-cp310-cp310-manylinux_2_12_x86_64.manylinux2010_x86_64.whl",
+                        )
+                    else:
+                        package_path = os.path.join(
+                            os.path.dirname(__file__),
+                            "..\\distr\\OpenTimelineIO-0.15.0.dev1-cp310-cp310-manylinux_2_12_i686.manylinux2010_i686.whl",
+                        )
+
                 subprocess.run(
                     [
                         pyExeFile,
@@ -86,3 +105,5 @@ def install_otio_local_dist():
             except ModuleNotFoundError:
                 _logger.error("*** Error - Installation of OpenTimelineIO from provided distribution failed ***")
                 return False
+
+    return False

@@ -36,7 +36,7 @@
 - Refactored the Render Settings properties initialization
 # 1.7.12 (2022-03-23)
 
-- Intregration of a Windows wheel for OpenTimelineIO for Python 3.10.
+- Integration of a Windows wheel for OpenTimelineIO for Python 3.10.
 This package will be installed on the user Blender Python environment if no
 wheel can be downloaded from the network.
 
@@ -46,10 +46,10 @@ wheel can be downloaded from the network.
 
 ## Fixed:
 
-- Fixed implicit conversions from float to int for some Blender parameters because this is not
+- Fixed implicit conversions from float to integer for some Blender parameters because this is not
 supported anymore with Python 3.10
 
-- Fixed float framerate values: now noninteger framerates such as 29.97 are supported thanks to a
+- Fixed float framerate values: now non-integer framerates such as 29.97 are supported thanks to a
 new set of functions in utils.py: convertFramerateToSceneFPS, setSceneFps, getSceneEffectiveFps
 
 
@@ -149,10 +149,10 @@ Added debug function to fix entities parent in old blender files
 
 ## UI
 
-- Rewamped all the Settings panels
+- Re-vamped all the Settings panels
 
 - Added a viewport target to specify which view will receive the camera and sequence timeline
-- Added a nodesheet target to specify which timeline or node sheet editor will receive the interactive
+- Added a node sheet target to specify which timeline or node sheet editor will receive the interactive
 shots stack
 
 - Added a button to toggle the scene sound

@@ -22,18 +22,18 @@ Utility functions that may require os/platform specific adjustments
 import subprocess
 import os
 from pathlib import Path
-import sys
+import platform
 
 
 def open_folder(path):
     """
     Open a path or an URL with the application specified by the os
     """
-    if sys.platform == "darwin":
+    if "Darwin" == platform.system():
         subprocess.check_call(["open", "--", path])
-    elif sys.platform == "linux":
+    elif "Linux" == platform.system():
         subprocess.check_call(["xdg-open", path])
-    elif sys.platform == "win32":
+    elif "Windows " == platform.system():
         subprocess.Popen(f'explorer "{Path(path)}"')
 
 
@@ -68,7 +68,7 @@ def internet_on():
     url = "https://google.com"
 
     # Mac specific:
-    if sys.platform == "darwin":
+    if "Darwin" == platform.system():
         # return True
         import ssl
 
@@ -103,8 +103,7 @@ def module_can_be_imported(name):
 
 
 def is_admin():
-    """Return True if the current session is run in Admin mode
-    """
+    """Return True if the current session is run in Admin mode"""
     import ctypes
     import os
 
