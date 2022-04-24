@@ -376,6 +376,16 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
     ###################################
     # Camera HUD ######################
     ###################################
+
+    cameraHUD_shotNameSize: IntProperty(
+        name="Shot Name Size",
+        description="Size of the shot name displayed in the viewport over the cameras" "\n(Add-on preference)",
+        min=8,
+        soft_max=26,
+        max=180,
+        default=12,
+    )
+
     cameraHUD_settings_expanded: BoolProperty(
         name="Expand Panel Settings",
         default=False,

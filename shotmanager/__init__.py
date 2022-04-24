@@ -78,7 +78,7 @@ bl_info = {
     "author": "Ubisoft - Julien Blervaque (aka Werwack), Romain Carriquiry Borchiari",
     "description": "Easily manage shots and cameras in the 3D View and see the resulting edit in real-time",
     "blender": (2, 93, 0),
-    "version": (1, 7, 15),
+    "version": (1, 7, 16),
     "location": "View3D > Shot Manager",
     "doc_url": "https://ubisoft-shotmanager.readthedocs.io",
     # "warning": "BETA Version",
@@ -130,20 +130,20 @@ def register():
         else:
             print("  OpenTimelineIO correctly installed for Ubisoft Shot Manager")
 
-        # otio
-        try:
-            from . import otio
+    # otio
+    try:
+        from . import otio
 
-            otio.register()
+        otio.register()
 
-            # from shotmanager.otio import importOpenTimelineIOLib
+        # from shotmanager.otio import importOpenTimelineIOLib
 
-            # if importOpenTimelineIOLib():
-            #     otio.register()
-            # else:
-            #     print("       *** OTIO Package import failed ***")
-        except ModuleNotFoundError:
-            print("       *** OTIO Package import failed ****")
+        # if importOpenTimelineIOLib():
+        #     otio.register()
+        # else:
+        #     print("       *** OTIO Package import failed ***")
+    except ModuleNotFoundError:
+        print("       *** OTIO Package import failed ****")
 
     # register other packages
     ###################

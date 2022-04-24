@@ -145,8 +145,8 @@ def register():
     from . import blender
 
     # custom version used to track this package if used in several add-ons
-    package_version = "1.0.1"
-    package_last_update = "2022/01/19"
+    package_version = "1.0.2"
+    package_last_update = "2022/04/24"
 
     try:
         import opentimelineio as otio
@@ -157,7 +157,7 @@ def register():
         otioVersionStr = " - OpenTimelineIO not available"
 
     _logger.debug_ext(
-        f"       - Registering OTIO Package (V. {package_version}, {package_last_update})" + otioVersionStr, form="REG"
+        f"       - Registering OTIO Package (V. {package_version}, {package_last_update}){otioVersionStr}", form="REG"
     )
 
     blender.register()

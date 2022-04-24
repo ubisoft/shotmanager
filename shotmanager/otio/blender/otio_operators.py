@@ -1030,10 +1030,31 @@ _classes = (
 
 
 def register():
+    _logger.debug_ext("           - Registering Blender package in OTIO Package", form="REG")
+
     for cls in _classes:
         bpy.utils.register_class(cls)
 
 
 def unregister():
-    for cls in reversed(_classes):
-        bpy.utils.unregister_class(cls)
+    # for cls in reversed(_classes):
+    #     bpy.utils.unregister_class(cls)
+
+    _logger.debug_ext("           - Unregistering Blender package in OTIO Package", form="UNREG")
+
+    try:
+        bpy.utils.unregister_class(UAS_OTIO_ImportEditFile)
+    except Exception as e:
+        _logger.error_ext(f"Cannot unregister UAS_OTIO_ImportEditFile: {e}", col="RED")
+    try:
+        bpy.utils.unregister_class(UAS_ShotManager_OT_CompareOtioAndCurrentMontage)
+    except Exception as e:
+        _logger.error_ext(f"Cannot unregister UAS_ShotManager_OT_CompareOtioAndCurrentMontage: {e}", col="RED")
+    try:
+        bpy.utils.unregister_class(UAS_ShotManager_OT_Create_Shots_From_OTIO_Adv)
+    except Exception as e:
+        _logger.error_ext(f"Cannot unregister UAS_ShotManager_OT_Create_Shots_From_OTIO_Adv: {e}", col="RED")
+    try:
+        bpy.utils.unregister_class(UAS_ShotManager_Export_OTIO)
+    except Exception as e:
+        _logger.error_ext(f"Cannot unregister UAS_ShotManager_Export_OTIO: {e}", col="RED")

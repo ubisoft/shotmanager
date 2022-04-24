@@ -42,7 +42,6 @@ def draw_shotmanager_addon_prefs(self, context):
     box = layout.box()
     collapsable_panel(box, self, "addonPrefs_settings_expanded", text="Settings")
     if self.addonPrefs_settings_expanded:
-        box.use_property_decorate = False
 
         split = box.split(factor=splitFactor)
         rowLeft = split.row()
@@ -79,6 +78,13 @@ def draw_shotmanager_addon_prefs(self, context):
         rowLeft = split.row()
         rowRight = split.row()
         rowRight.prop(self, "separatedRenderPanel", text="Make Render Panel a Separated Tab in the Viewport N-Panel")
+
+        split = col.split(factor=uiSplitFactor)
+        rowLeft = split.row()
+        rowRight = split.row(align=False)
+        subRowRight = rowRight.row(align=False)
+        subRowRight.label(text="Camera HUD: Size of the shot names")
+        subRowRight.prop(self, "cameraHUD_shotNameSize", text="", slider=True)
 
     # Tools
     ###############

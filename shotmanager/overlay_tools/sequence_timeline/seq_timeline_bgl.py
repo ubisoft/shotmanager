@@ -228,8 +228,7 @@ class BL_UI_Cursor:
         return False
 
     def handle_event(self, event):
-        """handle event for BL_UI_Cursor
-        """
+        """handle event for BL_UI_Cursor"""
         _logger.debug_ext(f"*** handle event for BL_UI_Cursor", col="GREEN", tag="TIMELINE_EVENT")
 
         x = event.mouse_x
@@ -378,7 +377,7 @@ class BL_UI_Shot:
             line_thickness,
             self.height,
             color=self._bg_color,
-            origin="LEFT_BOTTOM",
+            origin="BOTTOM_LEFT",
         )
         currentBboxBG.draw()
 
@@ -390,7 +389,7 @@ class BL_UI_Shot:
             self.width,
             line_thickness,
             color=self._bg_color,
-            origin="LEFT_BOTTOM",
+            origin="BOTTOM_LEFT",
         )
         currentBboxBG.draw()
 
@@ -402,7 +401,7 @@ class BL_UI_Shot:
                 self.width,
                 line_thickness,
                 color=self.color_selectedShot_border,
-                origin="LEFT_BOTTOM",
+                origin="BOTTOM_LEFT",
             )
             currentBbox.draw()
 
@@ -414,7 +413,7 @@ class BL_UI_Shot:
                     self.width,
                     line_thickness // 2 + 1,
                     color=self.color_currentShot_border,
-                    origin="LEFT_BOTTOM",
+                    origin="BOTTOM_LEFT",
                 )
                 currentBbox.draw()
             else:
@@ -424,7 +423,7 @@ class BL_UI_Shot:
                     self.width,
                     line_thickness,
                     color=self.color_currentShot_border,
-                    origin="LEFT_BOTTOM",
+                    origin="BOTTOM_LEFT",
                 )
                 currentBbox.draw()
 
@@ -443,8 +442,7 @@ class BL_UI_Shot:
         blf.draw(0, self.name)
 
     def handle_event(self, event):
-        """handle event for BL_UI_Shot
-        """
+        """handle event for BL_UI_Shot"""
         _logger.debug_ext(f"*** handle event for BL_UI_Shot", col="GREEN", tag="TIMELINE_EVENT")
 
         x = event.mouse_region_x
@@ -691,8 +689,7 @@ class BL_UI_Timeline:
             self.frame_cursor.draw()
 
     def handle_event(self, event):
-        """handle event for BL_UI_Timeline
-        """
+        """handle event for BL_UI_Timeline"""
         _logger.debug_ext(f"*** handle event for BL_UI_Timeline", col="GREEN", tag="TIMELINE_EVENT")
 
         prefs = bpy.context.preferences.addons["shotmanager"].preferences
@@ -808,4 +805,3 @@ class BL_UI_Timeline:
 
     def mouse_move(self, x, y):
         pass
-
