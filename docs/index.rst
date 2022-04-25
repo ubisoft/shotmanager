@@ -10,7 +10,7 @@ Ubisoft Shot Manager: Creative narration and editing with Blender
 
 **Manage the cameras and the editing of your scenes inside Blender in real time and with great simplicity.**
 
-**Current version is 1.6. The currently supported Blender versions are 2.93.x and 3.0.x.**
+**Current version is 1.7. The currently supported Blender versions are 2.93.x, 3.0.x. and 3.1.x.**
 
 ..  image:: /img/ShotManager_screen.jpg
     :align: center

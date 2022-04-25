@@ -6,14 +6,10 @@ Frequently asked questions
 General
 -------
 
-Why is Shot Manager still not working on Blender 2.93 on Mac and Linux?
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Wis there so few questions in the FAQ?
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Several functionalities of Shot Manager rely on OpenTimelineIO, a Python framework developped
-by Pixar and dedicated to the transfert of editings from one video application to another.
-
-Currently this library is available for Python 3.9 but we build the package for Windows only.
-
-This should be fixed soon.
+That's because very few users ask questions. Feel free to share with us your questions, comments, feedback on this page:
+`issue <https://github.com/ubisoft/shotmanager/issues>`_ on GitHub.
 
 

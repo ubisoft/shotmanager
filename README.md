@@ -27,7 +27,7 @@
 
 ## Disclaimer
 
->**This tool is currently supported for LTS version of Blender 2.93 and up to Blender 3.0**
+>**This tool is currently supported for Blender 3.1, 3.0 and LTS 2.93**
 >
 >It was initially developed for an animated TV series production in 2020 on Blender 2.83. It has the features that were needed at the time but it
 may not be considered as feature complete for a more generic purpose. In spite of all our efforts to make it reliable some troubles may occur in use cases we have not faced.
