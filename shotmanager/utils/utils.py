@@ -25,6 +25,7 @@ from pathlib import Path
 from urllib.parse import unquote_plus, urlparse
 
 from random import uniform
+from xmlrpc.client import Boolean
 
 import bpy
 
@@ -607,6 +608,9 @@ def getViewportAreaView(context, viewport_index=0):
     return None
 
 
+########################
+
+
 def findFirstUniqueName(originalItem, name, itemsArray):
     """Return a string that correspont to name.xxx as the first unique name in the array"""
     itemInd = 0
@@ -663,98 +667,62 @@ def getSceneVSE(vsm_sceneName, createVseTab=False):
 ###################
 
 
-def duplicateObject(sourceObject, newName=None):
+def duplicateObject(sourceObject, newName=None, duplicateHierarchy=False):
     """Duplicate (deepcopy) an object and place it in the same collection
     Can be any 3D object, camera...
     """
-    newObject = sourceObject.copy()
-    if newObject.animation_data is not None:
-        newObject.animation_data.action = sourceObject.animation_data.action.copy()
 
-    newObject.data = sourceObject.data.copy()
-    if newObject.data.animation_data is not None:
-        newObject.data.animation_data.action = sourceObject.data.animation_data.action.copy()
+    def _duplicateObjectRec(sourceObject, sourceParent, dupHierarchy):
 
-    sourceCollections = sourceObject.users_collection
-    if len(sourceCollections):
-        sourceCollections[0].objects.link(newObject)
-    else:
-        (sourceObject.users_scene)[0].collection.objects.link(newObject)
+        newObject = sourceObject.copy()
+        if newObject.animation_data is not None:
+            newObject.animation_data.action = sourceObject.animation_data.action.copy()
 
+        # empty objects don't have data
+        if sourceObject.data is not None:
+            newObject.data = sourceObject.data.copy()
+            if newObject.data.animation_data is not None:
+                newObject.data.animation_data.action = sourceObject.data.animation_data.action.copy()
+
+        sourceCollections = sourceObject.users_collection
+        if len(sourceCollections):
+            sourceCollections[0].objects.link(newObject)
+        else:
+            (sourceObject.users_scene)[0].collection.objects.link(newObject)
+
+        newObject.parent = sourceParent
+
+        if dupHierarchy:
+            for child in sourceObject.children:
+                _duplicateObjectRec(child, newObject, True)
+
+        return newObject
+
+    rootNewObject = _duplicateObjectRec(sourceObject, None, duplicateHierarchy)
     if newName is not None and "" != newName:
-        newObject.name = newName
-        newObject.data.name = newName
+        rootNewObject.name = newName
+        rootNewObject.data.name = newName
 
-    return newObject
+    return rootNewObject
 
 
 ###################
-# Grease Pencil
+# Collections
 ###################
 
 
-def create_new_greasepencil(gp_name, parent_object=None, location=None, locate_on_cursor=False):
-    new_gp_data = bpy.data.grease_pencils.new(gp_name)
-    new_gp_obj = bpy.data.objects.new(new_gp_data.name, new_gp_data)
-    new_gp_obj.name = new_gp_data.name
+def excludeLayerCollection(scene, collectionName, value: Boolean):
+    """Exclude a collection from the view_layer (= check the little Exclude checkbox)"""
+    # NOTE: A Layer Collection is different from a Collection and the Exclude parameter is
+    # only available on a Layer Collection, which is related to a view_layer
+    # Layer Collection: https://docs.blender.org/api/current/bpy.types.LayerCollection.html
+    # Collection: https://docs.blender.org/api/current/bpy.types.Collection.html#bpy.types.Collection
 
-    # add to main collection
-    # bpy.context.collection.objects.link(new_gp_obj)
-
-    # add to a collection named "Cameras"
-    gpCollName = "GreasePencil"
-    cpColl = None
-    if gpCollName not in bpy.context.scene.collection.children:
-        cpColl = bpy.data.collections.new(name=gpCollName)
-        bpy.context.scene.collection.children.link(cpColl)
-    else:
-        cpColl = bpy.context.scene.collection.children[gpCollName]
-    cpColl.objects.link(new_gp_obj)
-
-    if parent_object is not None:
-        new_gp_obj.parent = parent_object
-
-    if location is None:
-        new_gp_obj.location = [0, 0, 0]
-    else:
-        new_gp_obj.location = location
-
-    if locate_on_cursor:
-        new_gp_obj.location = bpy.context.scene.cursor.location
-
-    from math import radians
-
-    new_gp_obj.rotation_euler = (radians(90), 0.0, radians(90))
-
-    # import math
-    # import mathutils
-
-    # eul = mathutils.Euler((math.radians(90.0), 0.0, 0.0), "XYZ")
-
-    # if new_gp_obj.rotation_mode == "QUATERNION":
-    #     new_gp_obj.rotation_quaternion = eul.to_quaternion()
-    # elif new_gp_obj.rotation_mode == "AXIS_ANGLE":
-    #     q = eul.to_quaternion()
-    #     new_gp_obj.rotation_axis_angle[0] = q.angle
-    #     new_gp_obj.rotation_axis_angle[1:] = q.axis
-    # else:
-    #     new_gp_obj.rotation_euler = (
-    #         eul if eul.order == new_gp_obj.rotation_mode else (eul.to_quaternion().to_euler(new_gp_obj.rotation_mode))
-    #     )
-
-    return new_gp_obj
-
-
-def get_greasepencil_child(obj, name_filter=""):
-    """Return the first child of the specifed object that is of type GPENCIL"""
-    gpChild = None
-
-    if obj is not None:
-        if len(obj.children):
-            for c in obj.children:
-                if "GPENCIL" == c.type:
-                    return c
-    return gpChild
+    for viewLayer in scene.view_layers:
+        for col in viewLayer.layer_collection.children:
+            if col.name == collectionName:
+                col.exclude = value
+                return
 
 
 ###################
@@ -944,6 +912,9 @@ def create_new_camera(camera_name, location=[0, 0, 0], locate_on_cursor=False):
 
     bpy.data.cameras[cam_data.name].lens = 40
 
+    # bpy.data.cameras[cam_data.name].lens = 40
+    cam_data.lens = 40
+    cam_data.clip_start = 0.01
     cam.color[0] = uniform(0, 1)
     cam.color[1] = uniform(0, 1)
     cam.color[2] = uniform(0, 1)
@@ -954,7 +925,14 @@ def create_new_camera(camera_name, location=[0, 0, 0], locate_on_cursor=False):
 
     from math import radians
 
-    cam.rotation_euler = (radians(90), 0.0, radians(90))
+    # align along the Y axis, as in Front view
+    # cam_ob.rotation_euler = (radians(90), 0.0, radians(90))
+    cam.rotation_euler = (radians(90), 0.0, 0.0)
+
+    # import math
+    # import mathutils
+
+    # eul = mathutils.Euler((math.radians(90.0), 0.0, 0.0), "XYZ")
 
     return cam
 
@@ -1067,7 +1045,6 @@ def select_object(obj: bpy.types.Object, clear_sel=True):
 
 def add_to_selection(obj: bpy.types.Object):
     # bpy.data.objects[obj.name].select_set(True)
-    # bpy.context.view_layer.objects.active = bpy.data.objects['Sphere']
     obj.select_set(True)
     # to set the active object
     if bpy.context.active_object is None or "OBJECT" == bpy.context.active_object.mode:
@@ -1123,6 +1100,12 @@ def sRGBColor(color):
     gamma = 1.0 / 0.45
     d_color = (pow(color[0], gamma), pow(color[1], gamma), pow(color[2], gamma), color[3] * 1.0)
     return d_color
+
+
+# to refactor
+def to_sRGB(value):
+    gamma = 1.0 / 0.45
+    return pow(value, gamma)
 
 
 def gamma_color(color):

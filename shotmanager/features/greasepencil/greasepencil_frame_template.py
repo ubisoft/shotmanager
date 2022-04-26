@@ -51,7 +51,6 @@ class UAS_GreasePencil_FrameTemplate(PropertyGroup):
 
         _logger.debug_ext(f"Initializing storyboard template preset list for {mode}", col="GREEN")
         self.updatePresets(mode=mode)
-        print("herehere 02")
 
     def updatePresets(self, mode="SCENE"):
         """
@@ -66,9 +65,8 @@ class UAS_GreasePencil_FrameTemplate(PropertyGroup):
         else:
             props = prefs
 
-        print("herehere 01")
         if "ADDON_PREFS" == mode:
-            _logger.debug_ext(f"   In ADDON PREFS Add Presets", col="GREEN")
+            _logger.debug_ext("   In ADDON PREFS Add Presets", col="GREEN")
             # initialize the add-on preferences set of presets
             # wkipwkipwkip
             # Canvas
@@ -133,8 +131,6 @@ class UAS_GreasePencil_FrameTemplate(PropertyGroup):
             presets = ["ROUGH", "FG_LINES", "FG_FILLS", "MG_LINES", "MG_FILLS", "BG_LINES", "BG_FILLS", "CANVAS"]
             for p in reversed(presets):
                 _createPreset(p)
-
-        print("herehere 03")
 
     def getPresetByID(self, id):
         preset = None

@@ -23,6 +23,8 @@ Useful functions related to the use of Grease Pencil
 
 import bpy
 
+import mathutils
+from shotmanager.utils import utils
 
 from shotmanager.config import sm_logging
 
@@ -76,39 +78,6 @@ def get_grease_pencil(gpencil_obj_name="GPencil") -> bpy.types.GreasePencil:
     return gpencil
 
 
-def get_grease_pencil_layer(
-    gpencil: bpy.types.GreasePencil, gpencil_layer_name="GP_Layer", create_layer=True, clear_layer=False
-) -> bpy.types.GPencilLayer:
-    """
-    Return the grease-pencil layer with the given name. Create one if not already present.
-    :param gpencil: grease-pencil object for the layer data
-    :param gpencil_layer_name: name/key of the grease pencil layer
-    :param clear_layer: whether to clear all previous layer data
-    """
-    gpencil_layer = None
-
-    # Get grease pencil layer or create one if none exists
-    if gpencil.data.layers and gpencil_layer_name in gpencil.data.layers:
-        gpencil_layer = gpencil.data.layers[gpencil_layer_name]
-    else:
-        if create_layer:
-            gpencil_layer = gpencil.data.layers.new(gpencil_layer_name, set_active=True)
-
-    if clear_layer:
-        gpencil_layer.clear()  # clear all previous layer data
-
-    if "BOTTOM" == order:
-        # < len(gpencil.data.layers)
-        while 0 < gpencil.data.layers.find(gpencil_layer_name):
-            gpencil.data.layers.move(gpencil_layer, "DOWN")
-
-    addLayerKeyFrameAtTime(gpencil_layer, 0)
-
-    # bpy.ops.gpencil.paintmode_toggle()  # need to trigger otherwise there is no frame
-
-    return gpencil_layer
-
-
 def add_grease_pencil_layer(
     gpencil: bpy.types.GreasePencil, gpencil_layer_name="GP_Layer", clear_layer=False, order="TOP"
 ) -> bpy.types.GPencilLayer:
@@ -135,7 +104,34 @@ def add_grease_pencil_layer(
         while 0 < gpencil.data.layers.find(gpencil_layer_name):
             gpencil.data.layers.move(gpencil_layer, "DOWN")
 
-    gp_frame = gpencil_layer.frames.new(0)
+    addLayerKeyFrameAtTime(gpencil_layer, 0)
+
+    # bpy.ops.gpencil.paintmode_toggle()  # need to trigger otherwise there is no frame
+
+    return gpencil_layer
+
+
+def get_grease_pencil_layer(
+    gpencil: bpy.types.GreasePencil, gpencil_layer_name="GP_Layer", create_layer=True, clear_layer=False
+) -> bpy.types.GPencilLayer:
+    """
+    Return the grease-pencil layer with the given name. Create one if not already present.
+    :param gpencil: grease-pencil object for the layer data
+    :param gpencil_layer_name: name/key of the grease pencil layer
+    :param clear_layer: whether to clear all previous layer data
+    """
+    gpencil_layer = None
+
+    # Get grease pencil layer or create one if none exists
+    if gpencil.data.layers and gpencil_layer_name in gpencil.data.layers:
+        gpencil_layer = gpencil.data.layers[gpencil_layer_name]
+    else:
+        if create_layer:
+            # gpencil_layer = gpencil.data.layers.new(gpencil_layer_name, set_active=True)
+            add_grease_pencil_layer(gpencil, gpencil_layer_name=gpencil_layer_name)
+
+    if clear_layer:
+        gpencil_layer.clear()  # clear all previous layer data
 
     # bpy.ops.gpencil.paintmode_toggle()  # need to trigger otherwise there is no frame
 
@@ -149,15 +145,15 @@ def get_grease_pencil_material(mat_name):
     return gp_mat
 
 
-def create_grease_pencil_material(gpencil, mat_type, materialName):
+def create_grease_pencil_material(gpencil, mat_type="CANVAS"):
     """Create - or get if it already exists - the specified material type and assign it to the specified grease pencil object"""
     gp_mat = None
 
     if "LINES" == mat_type:
-        if materialName in bpy.data.materials.keys():
-            gp_mat = bpy.data.materials[materialName]
+        if "Lines Mat" in bpy.data.materials.keys():
+            gp_mat = bpy.data.materials["Lines Mat"]
         else:
-            gp_mat = bpy.data.materials.new(materialName)
+            gp_mat = bpy.data.materials.new("Lines Mat")
 
         if not gp_mat.is_grease_pencil:
             bpy.data.materials.create_gpencil_data(gp_mat)
@@ -166,10 +162,10 @@ def create_grease_pencil_material(gpencil, mat_type, materialName):
             gp_mat.grease_pencil.color = utils.sRGBColor((0.1, 0.1, 0.1, 1))
 
     elif "FILLS" == mat_type:
-        if materialName in bpy.data.materials.keys():
-            gp_mat = bpy.data.materials[materialName]
+        if "Fills Mat" in bpy.data.materials.keys():
+            gp_mat = bpy.data.materials["Fills Mat"]
         else:
-            gp_mat = bpy.data.materials.new(materialName)
+            gp_mat = bpy.data.materials.new("Fills Mat")
 
         if not gp_mat.is_grease_pencil:
             bpy.data.materials.create_gpencil_data(gp_mat)
@@ -178,10 +174,10 @@ def create_grease_pencil_material(gpencil, mat_type, materialName):
             gp_mat.grease_pencil.show_stroke = False
 
     elif "CANVAS" == mat_type:
-        if materialName in bpy.data.materials.keys():
-            gp_mat = bpy.data.materials[materialName]
+        if "Canvas Mat" in bpy.data.materials.keys():
+            gp_mat = bpy.data.materials["Canvas Mat"]
         else:
-            gp_mat = bpy.data.materials.new(materialName)
+            gp_mat = bpy.data.materials.new("Canvas Mat")
 
         if True or not gp_mat.is_grease_pencil:
             bpy.data.materials.create_gpencil_data(gp_mat)
@@ -210,7 +206,7 @@ def add_grease_pencil_canvas_layer(
     gpencil_layer_name = "_Canvas_" if canvasPreset is None else canvasPreset.layerName
 
     # Create material for grease pencil
-    gp_mat = create_grease_pencil_material(gpencil, "CANVAS", "_Canvas_Mat")
+    gp_mat = create_grease_pencil_material(gpencil, "CANVAS")
 
     # get the material index in the grease pencil material list:
     # Create a lookup-dict for the object materials:
@@ -233,6 +229,10 @@ def add_grease_pencil_canvas_layer(
     ptBottomRight = (0.5, 0.5, zDistance)
     gpStroke = draw_canvas_rect(keyFrame, ptTopLeft, ptBottomRight)
     gpStroke.material_index = mat_index
+
+    fitCanvasToFrustum(gpStroke, camera)
+
+    gpencil_layer.lock = True
 
     return gpencil_layer
 
@@ -390,28 +390,28 @@ def getCameraCorners(context, camera, distance=None):
 
 def draw_line(gp_frame, p0: tuple, p1: tuple) -> bpy.types.GPencilStroke:
     # Init new stroke
-    gp_stroke = gp_frame.strokes.new()
-    gp_stroke.display_mode = "3DSPACE"  # allows for editing
+    gpStroke = gp_frame.strokes.new()
+    gpStroke.display_mode = "3DSPACE"  # allows for editing
 
     # Define stroke geometry
-    gp_stroke.points.add(count=2)
-    gp_stroke.points[0].co = p0
-    gp_stroke.points[1].co = p1
-    return gp_stroke
+    gpStroke.points.add(count=2)
+    gpStroke.points[0].co = p0
+    gpStroke.points[1].co = p1
+    return gpStroke
 
 
-def draw_canvas_rect(gp_frame, top_left: tuple, bottom_right: tuple):
+def draw_canvas_rect(gp_frame, top_left: tuple, bottom_right: tuple) -> bpy.types.GPencilStroke:
     # Init new stroke
-    gp_stroke = gp_frame.strokes.new()
-    gp_stroke.display_mode = "3DSPACE"  # allows for editing
+    gpStroke = gp_frame.strokes.new()
+    gpStroke.display_mode = "3DSPACE"  # allows for editing
 
     # Define stroke geometry
-    gp_stroke.points.add(count=4)
-    gp_stroke.points[0].co = top_left
-    gp_stroke.points[1].co = (top_left[0], top_left[1], bottom_right[2])
-    gp_stroke.points[2].co = bottom_right
-    gp_stroke.points[3].co = (bottom_right[0], top_left[1], top_left[2])
-    return gp_stroke
+    gpStroke.points.add(count=4)
+    gpStroke.points[0].co = top_left
+    gpStroke.points[1].co = (bottom_right[0], top_left[1], top_left[2])
+    gpStroke.points[2].co = bottom_right
+    gpStroke.points[3].co = (top_left[0], bottom_right[1], bottom_right[2])
+    return gpStroke
 
 
 def switchToObjectMode():
@@ -767,24 +767,29 @@ def deleteLayerKeyFrame(gpencil: bpy.types.GreasePencil, currentFrame, layerMode
 #################################
 
 
-def activeGpLayerAndMat(gpencil: bpy.types.GreasePencil, layerID):
+def activeGpLayerAndMat(gpencil: bpy.types.GreasePencil, layerName, materialName):
     """If the specified layer is found then active it on the specified grease pencil object"""
 
     # Create a lookup-dict for the object materials:
     # mat_dict = {mat.name: i for i, mat in enumerate(context.object.data.materials)}
     mat_dict = {mat.name: i for i, mat in enumerate(gpencil.material_slots)}
 
-    # get the preset with the specified id
-    props = bpy.context.scene.UAS_shot_manager_props
-    preset = props.stb_frameTemplate.getPresetByID(layerID)
+    if layerName in gpencil.data.layers:
+        gpencil.data.layers.active = gpencil.data.layers[layerName]
 
-    if preset is not None:
+    if materialName in mat_dict:
+        gpencil.active_material_index = mat_dict[materialName]
 
-        if preset.layerName in gpencil.data.layers:
-            gpencil.data.layers.active = gpencil.data.layers[preset.layerName]
-
-        if preset.materialName in mat_dict:
-            gpencil.active_material_index = mat_dict[preset.materialName]
+    # wkip do more generic
+    # if "GP_Canvas" == layerName:
+    #     if "Canvas Mat" in mat_dict:
+    #         gpencil.active_material_index = mat_dict["Canvas Mat"]
+    # elif "Lines" == layerName:
+    #     if "Lines Mat" in mat_dict:
+    #         gpencil.active_material_index = mat_dict["Lines Mat"]
+    # elif "Fills" == layerName:
+    #     if "Fills Mat" in mat_dict:
+    #         gpencil.active_material_index = mat_dict["Fills Mat"]
 
 
 def gpLayerIsActive(gpencil: bpy.types.GreasePencil, layerName):

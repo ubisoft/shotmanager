@@ -35,6 +35,19 @@ from shotmanager.config import sm_logging
 _logger = sm_logging.getLogger(__name__)
 
 
+def list_greasepencil_layers(self, context):
+    res = list()
+    if context.object is not None and "GPENCIL" == context.object.type:
+        if len(context.object.data.layers):
+            for i, layer in enumerate(context.object.data.layers):
+                res.append((layer.info, layer.info, "", i))
+        else:
+            res = (("NOLAYER", "No Layer", "", 0),)
+    else:
+        res = (("ALL", "ALL", "", 0), ("DISABLED", "DISABLED", "", 1))
+    return res
+
+
 class UAS_ShotManager_AddonPrefs(AddonPreferences):
     """
     Use this to get these prefs:
@@ -506,6 +519,40 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
             ("PLAYBLAST", "PLAYBLAST", ""),
         ),
         default="STILL",
+    )
+
+    # items=(list_target_takes)
+    # targetTakes = list_target_takes(self, context)
+    #     self.targetTake = targetTakes[0][0]
+    # layersListDropdown: EnumProperty(name="Layers", items=(("ALL", "ALL", ""), ("DISABLED", "DISABLED", "")))
+    def _get_layersListDropdown(self):
+        # val = self.get("layersListDropdown", 0)
+        val = 0
+        # if bpy.context.object is not None and "GPENCIL" == bpy.context.object.type:
+        #     if len(bpy.context.object.data.layers):
+        #         for i, layer in enumerate(bpy.context.object.data.layers):
+        #             print(f"layer: {layer.info}, {i}")
+        #             if layer.info == bpy.context.object.data.layers.active.info:
+        #                 self["layersListDropdown"] = layer.info
+        #                 print(f"layer ret: {layer.info}, {i}")
+        #                 return 0
+        return val
+
+    def _set_layersListDropdown(self, value):
+        self["layersListDropdown"] = value
+
+    def _update_layersListDropdown(self, context):
+        if bpy.context.object is not None and "GPENCIL" == bpy.context.object.type:
+            if len(bpy.context.object.data.layers):
+                bpy.context.object.data.layers.active = bpy.context.object.data.layers[self.layersListDropdown]
+        print("\n*** layersListDropdown updated. New state: ", self.layersListDropdown)
+
+    layersListDropdown: EnumProperty(
+        name="Layers",
+        items=(list_greasepencil_layers),
+        # get=_get_layersListDropdown,
+        # set=_set_layersListDropdown,
+        update=_update_layersListDropdown,
     )
 
     ########################################################################

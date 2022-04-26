@@ -3,7 +3,6 @@
 ## Storyboard
 
 - Improved presets panel to support materials + fixes
-
 - Fixed issue on current object material list
 
 # 2.0.13 (2022-04-20)
@@ -11,18 +10,14 @@
 ## Storyboard
 
 - Added a "storyboard" layout with a lightened UI for the shots items in the shot list
-
 - Added a property "Type" to define the role of each shot (storyboard, previz...)
 
-## Camera HUD:
 # 2.0.12 (2022-04-15)
 
 ## Storyboard
 
 - Improvement of the storyboard frames entry to draw mode
-
 - Added a Pin mode to maintain the selected grease pencil object referenced in the panel
-
 - Added a panel to set up the usages and context of each layer, and support for up to 8 usage presets
 
 ## General
@@ -33,9 +28,7 @@
 # 2.0.10 (2022-04-11)
 
 - Added a checkbox to set the current shot camera to the viewport when a free grease pencil object enters into draw mode
-
 - Added a dropdown to set the stroke placement and origin when a free grease pencil object enters into draw mode
-
 - Modified the alternative behaviors for the Set Current Shot button in order to change the current shot
 without changing the current viewport
 
@@ -47,6 +40,15 @@ allow animated frames
 
 
 # 2.0.5 (2022-04-05)
+
+- Exposed the size of the shot names displayed over the cameras in the viewport
+in the add-on Preferences panel as well as in the Features panel preferences
+- Fix: The name of the shots is not displayed anymore for hidden cameras
+
+
+# 1.7.16 (2022-04-24)
+
+## Camera HUD:
 
 - Exposed the size of the shot names displayed over the cameras in the viewport
 in the add-on Preferences panel as well as in the Features panel preferences

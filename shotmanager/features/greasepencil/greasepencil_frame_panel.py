@@ -34,16 +34,14 @@ _logger = sm_logging.getLogger(__name__)
 
 class UAS_ShotManager_GpTemplatePanel(Operator):
     bl_idname = "uas_shot_manager.greasepencil_template_panel"
-    bl_label = "Configure Frame Template..."
-    bl_description = "Specify what are the various layers to create and activate for Storyboard Frames"
+    bl_label = "Frame Template"
+    bl_description = "Frame Template"
     bl_options = {"INTERNAL", "UNDO"}
-
-    mode: StringProperty(name="Context of the presets", description="Can be SCENE or ADDON_PREFS", default="SCENE")
 
     # rough #############
     use_layer_Rough: BoolProperty(name="Use Layer Rough", default=True)
     layer_Rough_name: StringProperty(default="Rough")
-    layer_Rough_material: StringProperty(default="Stb_Lines")
+    layer_Rough_material: StringProperty(default="Lines")
 
     # FG #############
     use_layer_FG_Lines: BoolProperty(name="Use Foreground Lines Layer", default=True)
@@ -78,44 +76,11 @@ class UAS_ShotManager_GpTemplatePanel(Operator):
     layer_Canvas_material: StringProperty(default="_Canvas_Mat")
 
     def invoke(self, context, event):
-        # get add-on prefs preset
-        prefs = bpy.context.preferences.addons["shotmanager"].preferences
-        if "SCENE" == self.mode:
-            props = bpy.context.scene.UAS_shot_manager_props
-        else:
-            props = prefs
-
-        _logger.debug_ext(f"Invoking preset panel for {self.mode}", col="GREEN")
-        template = props.stb_frameTemplate
-
-        # rough #############
-        template.getPreset(self, "ROUGH", "use_layer_Rough", "layer_Rough_name", "layer_Rough_material")
-
-        # FG #############
-        template.getPreset(self, "FG_LINES", "use_layer_FG_Lines", "layer_FG_Lines_name", "layer_FG_Lines_material")
-        template.getPreset(self, "FG_FILLS", "use_layer_FG_Fills", "layer_FG_Fills_name", "layer_FG_Fills_material")
-
-        # MG #############
-        template.getPreset(self, "MG_LINES", "use_layer_MG_Lines", "layer_MG_Lines_name", "layer_MG_Lines_material")
-        template.getPreset(self, "MG_FILLS", "use_layer_MG_Fills", "layer_MG_Fills_name", "layer_MG_Fills_material")
-
-        # BG #############
-        template.getPreset(self, "BG_LINES", "use_layer_BG_Lines", "layer_BG_Lines_name", "layer_BG_Lines_material")
-        template.getPreset(self, "BG_FILLS", "use_layer_BG_Fills", "layer_BG_Fills_name", "layer_BG_Fills_material")
-
-        # Canvas
-        template.getPreset(self, "CANVAS", "use_layer_Canvas", "layer_Canvas_name", "layer_Canvas_material")
-
         return context.window_manager.invoke_props_dialog(self, width=450)
 
     def draw(self, context):
         layout = self.layout
         layout = layout.box()
-
-        if "SCENE" == self.mode:
-            layout.label(text="Configure the presets for this scene:")
-        else:
-            layout.label(text="Configure the presets for new scenes:")
 
         def _drawUsageProps(layout, useProp, layerNameProp, matNameProp=None):
             layout.prop(self, useProp)
@@ -160,12 +125,7 @@ class UAS_ShotManager_GpTemplatePanel(Operator):
         _drawUsageProps(layout, "use_layer_Canvas", "layer_Canvas_name", "layer_Canvas_material")
 
     def execute(self, context):
-        # TOFIX: the bpy.context calls should be double-checked
-        prefs = bpy.context.preferences.addons["shotmanager"].preferences
-        if "SCENE" == self.mode:
-            props = bpy.context.scene.UAS_shot_manager_props
-        else:
-            props = prefs
+        props = context.scene.UAS_shot_manager_props
 
         # order of creation is important to have a relevant layer stack
 

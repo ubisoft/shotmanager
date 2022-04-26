@@ -131,10 +131,16 @@ picture
 
 
 
-
-
-
 To do dans le support des noms de seq:
     - bug dans le path donné sur les shots
         - faire un test alert qd le nom de la seq est vide
     - otio import
+
+
+Fichiers récupérés de 166 - 2.0.15 B:
+
+    properties
+        props.py
+
+    ui
+        sm_shot_settings_ui.py

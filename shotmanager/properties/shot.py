@@ -39,6 +39,7 @@ from shotmanager.features.greasepencil.greasepencil_props import GreasePencilPro
 
 from shotmanager.features.greasepencil import greasepencil as gp
 from shotmanager.utils import utils
+from shotmanager.utils import utils_greasepencil
 from .montage_interface import ShotInterface
 
 from shotmanager.config import sm_logging
@@ -61,6 +62,7 @@ class UAS_ShotManager_Shot(ShotInterface, PropertyGroup):
 
     # parentScene: PointerProperty(type=Scene, get=_get_parentScene, set=_set_parentScene)
     parentScene: PointerProperty(type=Scene)
+
     # parentTakeIndex: IntProperty(name="Parent Take Index", default=-1)
 
     def getParentTakeIndex(self):
@@ -87,6 +89,8 @@ class UAS_ShotManager_Shot(ShotInterface, PropertyGroup):
                             self.parentScene = scn
                             return scn
         return None
+
+    # gpStoryboard: PointerProperty(type=GreasePencilStoryboard)
 
     def getOutputMediaPath(
         self,

@@ -41,7 +41,7 @@ class UAS_ShotManager_ShotsGlobalSettings(PropertyGroup):
     def _update_backgroundAlpha(self, context):
         props = context.scene.UAS_shot_manager_props
         take = props.getCurrentTake()
-        shotList = take.getShotList(ignoreDisabled=False)
+        shotList = take.getShotsList(ignoreDisabled=False)
 
         for shot in shotList:
             if shot.enabled or props.shotsGlobalSettings.alsoApplyToDisabledShots:
@@ -115,7 +115,7 @@ class UAS_ShotManager_ShotsGlobalSettings(PropertyGroup):
     def _update_backgroundVolume(self, context):
         props = context.scene.UAS_shot_manager_props
         take = props.getCurrentTake()
-        shotList = take.getShotList(ignoreDisabled=False)
+        shotList = take.getShotsList(ignoreDisabled=False)
 
         for shot in shotList:
             if shot.enabled or props.shotsGlobalSettings.alsoApplyToDisabledShots:
@@ -144,7 +144,7 @@ class UAS_ShotManager_ShotsGlobalSettings(PropertyGroup):
     def _update_greasepencilAlpha(self, context):
         props = context.scene.UAS_shot_manager_props
         take = props.getCurrentTake()
-        shotList = take.getShotList(ignoreDisabled=False)
+        shotList = take.getShotsList(ignoreDisabled=False)
 
         for shot in shotList:
             if shot.enabled or props.shotsGlobalSettings.alsoApplyToDisabledShots:
@@ -183,7 +183,7 @@ class UAS_ShotsSettings_UseBackground(Operator):
         props = context.scene.UAS_shot_manager_props
 
         take = props.getCurrentTake()
-        shotList = take.getShotList(ignoreDisabled=False)
+        shotList = take.getShotsList(ignoreDisabled=False)
 
         for shot in shotList:
             if shot.enabled or props.shotsGlobalSettings.alsoApplyToDisabledShots:
@@ -225,12 +225,12 @@ class UAS_ShotsSettings_UseGreasePencil(Operator):
         props = context.scene.UAS_shot_manager_props
 
         take = props.getCurrentTake()
-        shotList = take.getShotList(ignoreDisabled=False)
+        shotList = take.getShotsList(ignoreDisabled=False)
 
         for shot in shotList:
             if shot.enabled or props.shotsGlobalSettings.alsoApplyToDisabledShots:
                 if shot.camera is not None:
-                    gp_child = utils.get_greasepencil_child(shot.camera)
+                    gp_child = utils_greasepencil.get_greasepencil_child(shot.camera)
                     if gp_child is not None:
                         gp_child.hide_viewport = not self.useGreasepencil
                         gp_child.hide_render = not self.useGreasepencil
@@ -249,7 +249,7 @@ class UAS_ShotsSettings_UseGreasePencil(Operator):
 #     def execute(self, context):
 #         props = context.scene.UAS_shot_manager_props
 #         take = props.getCurrentTake()
-#         shotList = take.getShotList(ignoreDisabled=False)
+#         shotList = take.getShotsList(ignoreDisabled=False)
 
 #         for shot in shotList:
 #             if shot.camera is not None and len(shot.camera.data.background_images):
@@ -280,7 +280,7 @@ class UAS_ShotsSettings_UseGreasePencil(Operator):
 #     def execute(self, context):
 #         props = context.scene.UAS_shot_manager_props
 #         take = props.getCurrentTake()
-#         shotList = take.getShotList(ignoreDisabled=False)
+#         shotList = take.getShotsList(ignoreDisabled=False)
 
 #         for shot in shotList:
 #             if shot.camera is not None and len(shot.camera.data.background_images):

@@ -98,14 +98,19 @@ class UAS_UL_ShotManager_Items(bpy.types.UIList):
                     # row.operator(
                     #     "uas_shot_manager.shots_shownotes", text="", icon_value=emptyIcon.icon_id
                     # ).index = index
-                row.scale_x = 0.9
-
-            if props.display_cameraBG_in_shotlist:
-                row = row.row(align=True)
                 row.scale_x = 1.0
-                icon = "VIEW_CAMERA" if item.hasBGImage() else "BLANK1"
-                row.operator("uas_shot_manager.cambgitem", text="", icon=icon).index = index
+
+            if props.display_cameraBG_in_properties and props.display_cameraBG_in_shotlist:
+                row = row.row(align=True)
                 row.scale_x = 0.9
+                # icon = "VIEW_CAMERA" if item.hasBGImage() else "BLANK1"
+                icon = (
+                    config.icons_col["ShotManager_CamBGShot_32"]
+                    if item.hasBGImage()
+                    else config.icons_col["ShotManager_CamBGNoShot_32"]
+                )
+                row.operator("uas_shot_manager.cambgitem", text="", icon_value=icon.icon_id).index = index
+                row.scale_x = 1
 
             if props.display_storyboard_in_properties and props.display_greasepencil_in_shotlist:
                 row = row.row(align=True)
@@ -120,9 +125,12 @@ class UAS_UL_ShotManager_Items(bpy.types.UIList):
                     if gp.mode == "PAINT_GPENCIL":
                         icon = "GREASEPENCIL"
                         row.alert = True
+                        row.operator("uas_shot_manager.greasepencilitem", text="", icon=icon).index = index
                     else:
-                        icon = "OUTLINER_OB_GREASEPENCIL"
-                row.operator("uas_shot_manager.greasepencilitem", text="", icon=icon).index = index
+                        icon = config.icons_col["ShotManager_CamGPShot_32"]
+                        row.operator(
+                            "uas_shot_manager.greasepencilitem", text="", icon_value=icon.icon_id
+                        ).index = index
                 row.scale_x = 0.9
 
             if takeContainsSharedCameras:
@@ -188,7 +196,7 @@ class UAS_UL_ShotManager_Items(bpy.types.UIList):
                 if props.highlight_all_shot_frames or current_shot_index == index:
                     grid_flow.alert = True
             grid_flow.prop(item, "start", text="")
-            grid_flow.alert = False
+            grid_flow.alert = item.camera is None or itemHasWarnings
 
         # duration
         ###########
@@ -214,7 +222,7 @@ class UAS_UL_ShotManager_Items(bpy.types.UIList):
             else:
                 grid_flow.scale_x = 0.05
                 grid_flow.operator("uas_shot_manager.shot_duration", text="").index = index
-            grid_flow.alert = False
+            grid_flow.alert = item.camera is None or itemHasWarnings
         else:
             grid_flow.scale_x = 1.5
 
@@ -240,7 +248,7 @@ class UAS_UL_ShotManager_Items(bpy.types.UIList):
                 if props.highlight_all_shot_frames or current_shot_index == index:
                     grid_flow.alert = True
             grid_flow.prop(item, "end", text="")
-            grid_flow.alert = False
+            grid_flow.alert = item.camera is None or itemHasWarnings
 
             grid_flow.scale_x = button_x_factor - 0.2
             if display_getsetcurrentframe_in_shotlist:
@@ -320,7 +328,7 @@ class UAS_MT_ShotManager_Shots_ToolsMenu(Menu):
     # bl_description = "Shots Tools"
 
     def draw(self, context):
-        # props = context.scene.UAS_shot_manager_props
+        props = context.scene.UAS_shot_manager_props
 
         # Copy menu entries[ ---
         layout = self.layout
@@ -370,8 +378,6 @@ class UAS_MT_ShotManager_Shots_ToolsMenu(Menu):
         # tools for shots
         #############
         layout.separator()
-
-        # tools for shots ###
         row = layout.row(align=True)
         row.label(text="Tools for Shots:")
 
