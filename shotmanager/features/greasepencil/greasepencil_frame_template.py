@@ -37,6 +37,13 @@ class UAS_ShotManager_FrameUsagePreset(PropertyGroup):
     materialName: StringProperty(default="")
 
 
+class UAS_ShotManager_GreasepencilObjSettings(PropertyGroup):
+    """Store the active layer used by an edited grease pencil object"""
+
+    gpName: StringProperty(default="")
+    refLayerName: StringProperty(default="")
+
+
 class UAS_GreasePencil_FrameTemplate(PropertyGroup):
     """Contains the grease pencil related to the shot"""
 
@@ -169,9 +176,48 @@ class UAS_GreasePencil_FrameTemplate(PropertyGroup):
             setattr(prop, layerName, preset.layerName)
             setattr(prop, materialName, preset.materialName)
 
+    ###############################
+    # edited grease pencil settings
+    ###############################
+
+    editedGPSettings: CollectionProperty(type=UAS_ShotManager_GreasepencilObjSettings)
+
+    def getEditedGPByName(self, gpName):
+        """Return the instance of UAS_ShotManager_GreasepencilObjSettings for the grease pencil
+        with the specified name, None if the instance is not found"""
+        for item in self.editedGPSettings:
+            if gpName == item.gpName:
+                return item
+        return None
+
+    def getEditedGPLayerName(self, gpName, refLayerName):
+        """Return the name of the specifed edited grease pencil object, 'ALL' if the object is not found"""
+        gpSettings = self.getEditedGPByName(gpName)
+        if gpSettings is None:
+            # return "ACTIVE"
+            return "ALL"
+        else:
+            return gpSettings.refLayerName
+
+    def storeEditedGPSettings(self, gpName, refLayerName):
+        """Update, or add if not found, the settings of the specifed edited grease pencil object
+        Return the corresponding settings instance"""
+        _logger.debug_ext(f"storeEditedGPSettings: {gpName}{refLayerName}")
+
+        if gpName is None or "" == gpName:
+            return None
+        gpSettings = self.getEditedGPByName(gpName)
+        if gpSettings is None:
+            gpSettings = self.editedGPSettings.add()
+            gpSettings.gpName = gpName
+        gpSettings.refLayerName = refLayerName
+
+        return gpSettings
+
 
 _classes = (
     UAS_ShotManager_FrameUsagePreset,
+    UAS_ShotManager_GreasepencilObjSettings,
     UAS_GreasePencil_FrameTemplate,
 )
 

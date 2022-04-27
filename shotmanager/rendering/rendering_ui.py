@@ -16,7 +16,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 """
-To do: module description here.
+Rendering UI
 """
 
 from pathlib import Path
@@ -31,8 +31,8 @@ from shotmanager.ui.warnings_ui import drawWarnings
 
 
 class UAS_PT_ShotManagerRenderPanelStdalone(Panel):
-    bl_label = "Shot Manager - Render"
     bl_idname = "UAS_PT_ShotManagerRenderPanelStdalone"
+    bl_label = "Shot Manager - Render"
     bl_space_type = "VIEW_3D"
     bl_region_type = "UI"
     bl_category = "Shot Mng - Render"

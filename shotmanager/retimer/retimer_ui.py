@@ -20,10 +20,11 @@ Retimer UI
 """
 
 import bpy
-from bpy.types import Panel, Operator
-from bpy.props import IntProperty, EnumProperty, BoolProperty, FloatProperty, StringProperty
+from bpy.types import Panel
 
-from . import retimer
+# from bpy.props import IntProperty, EnumProperty, BoolProperty, FloatProperty, StringProperty
+
+# from . import retimer
 from shotmanager.config import config
 
 

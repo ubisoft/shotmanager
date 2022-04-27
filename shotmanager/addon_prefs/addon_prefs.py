@@ -383,8 +383,17 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
 
     def _update_layout_mode(self, context):
         #   print("\n*** Prefs _update_layout_mode updated. New state: ", self._update_layout_mode)
-        self.layout_but_storyboard = "STORYBOARD" == self._update_layout_mode
-        self.layout_but_previez = "PREVIZ" == self._update_layout_mode
+        # self.layout_but_storyboard = "STORYBOARD" == self.layout_mode
+        # self.layout_but_previz = "PREVIZ" == self.layout_mode
+        if "STORYBOARD" == self.layout_mode:
+            self.display_storyboard_in_properties = True
+            self.display_notes_in_properties = True
+            self.display_greasepenciltools_in_properties = True
+        else:
+            self.display_storyboard_in_properties = False
+            self.display_notes_in_properties = False
+            self.display_greasepenciltools_in_properties = False
+        pass
 
     layout_mode: EnumProperty(
         name="Layout Mode",
@@ -405,6 +414,11 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
         return val
 
     def _set_layout_but_storyboard(self, value):
+        # if not self["layout_but_storyboard"]:
+        #     if value:
+        #         self.layout_mode = "STORYBOARD"
+        #         self["layout_but_storyboard"] = True
+        #         self["layout_but_previz"] = False
         if value:
             self.layout_mode = "STORYBOARD"
         self["layout_but_storyboard"] = "STORYBOARD" == value
@@ -424,7 +438,7 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
     def _set_layout_but_previz(self, value):
         if value:
             self.layout_mode = "PREVIZ"
-        self["layout_but_storyboard"] = "PREVIZ" == value
+        self["layout_but_previz"] = "PREVIZ" == value
 
     def _update_layout_but_previz(self, context):
         print("\n*** layout_but_storyboard updated. New state: ", self.layout_but_previz)
@@ -484,6 +498,19 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
         name="Display Advanced Infos",
         description="Display technical information and feedback in the UI",
         default=False,
+    )
+
+    ########################################################################
+    # grease pencil tools ui   ###
+    ########################################################################
+
+    # ****** settings exposed to the user in the prefs panel:
+    # ------------------------------
+
+    display_greasepenciltools_in_properties: BoolProperty(
+        name="Display 2.5d Grease Pencil",
+        description="Display the 2.5D Grease Pencil sub-panel in the Shot Manager panel.\n(saved in the add-on preferences)",
+        default=True,
     )
 
     ########################################################################

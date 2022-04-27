@@ -738,9 +738,10 @@ class UAS_ShotManager_ShotAdd(Operator):
         utils.clear_selection()
 
         if props.display_storyboard_in_properties:
-            gp_child = newShot.getGreasePencilObject()
-            utils.add_to_selection(gp_child)
-            utils.setPropertyPanelContext(bpy.context, "DATA")
+            if self.addStoryboardGP:
+                gp_child = newShot.getGreasePencilObject()
+                utils.add_to_selection(gp_child)
+                utils.setPropertyPanelContext(bpy.context, "DATA")
         else:
             utils.add_to_selection(cam)
 

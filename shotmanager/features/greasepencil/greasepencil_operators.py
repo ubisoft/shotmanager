@@ -792,7 +792,7 @@ class UAS_ShotManager_GreasePencil_SetLayerAndMat(Operator):
         default="",
     )
 
-    materilaName: StringProperty(
+    materialName: StringProperty(
         name="Material Name",
         default="",
     )

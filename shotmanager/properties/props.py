@@ -59,6 +59,75 @@ from shotmanager.config import sm_logging
 _logger = sm_logging.getLogger(__name__)
 
 
+def list_greasepencil_layer_modes(self, context):
+    # warning: use context.object, not context.active_object cause active_object can be None if
+    # the active object is not visible in the viewport
+    res = list()
+    res.append(("ALL", "All", "", 0))
+    res.append(("ACTIVE", "Active", "", 1))
+
+    _logger.debug_ext(
+        f"Layers Mode: context.object: {context.object.name}, context.active_object: {context.active_object}",
+        col="RED",
+    )
+
+    if context.object is not None and "GPENCIL" == context.object.type:
+
+        _logger.debug_ext(f"toto", col="RED")
+        numLayers = len(context.object.data.layers)
+        if numLayers:
+            for i, layer in reversed(list(enumerate(context.object.data.layers))):
+                res.append((layer.info, layer.info, "", numLayers - 1 - i + 2))
+        else:
+            res = (("NOLAYER", "No Layer", "", 0),)
+
+    # res = [
+    #     ("ALL", "All", "", 0),
+    #     ("ACTIVE", "Active", "", 1),
+    #     ("Rough", "Rough", "", 2),
+    #     ("FG Lines", "FG Lines", "", 3),
+    #     ("FG Fills", "FG Fills", "", 4),
+    #     ("MiddleG Lines", "MiddleG Lines", "", 5),
+    #     ("MiddleG Fills", "MiddleG Fills", "", 6),
+    #     ("BG Lines", "BG Lines", "", 7),
+    #     ("BG Fills", "BG Fills", "", 8),
+    #     ("_Canvas_", "_Canvas_", "", 9),
+    # ]
+    _logger.debug_ext(f"Layers Mode: res: {res}", col="RED")
+    return res
+
+
+def list_greasepencil_layer_modesB(self, context):
+    res = list()
+    res.append(("ALL", "All", "", 0))
+    res.append(("ACTIVE", "Active", "", 1))
+
+    #  _logger.debug_ext(f"Layers Mode: context.object: {context.object.name}", col="RED")
+
+    if context.active_object is not None and "GPENCIL" == context.active_object.type:
+        numLayers = len(context.active_object.data.layers)
+        if numLayers:
+            for i, layer in reversed(list(enumerate(context.active_object.data.layers))):
+                res.append((layer.info, layer.info, "", numLayers - 1 - i + 2))
+        else:
+            res = (("NOLAYER", "No Layer", "", 0),)
+
+    # res = [
+    #     ("ALL", "All", "", 0),
+    #     ("ACTIVE", "Active", "", 1),
+    #     ("Rough", "Rough", "", 2),
+    #     ("FG Lines", "FG Lines", "", 3),
+    #     ("FG Fills", "FG Fills", "", 4),
+    #     ("MiddleG Lines", "MiddleG Lines", "", 5),
+    #     ("MiddleG Fills", "MiddleG Fills", "", 6),
+    #     ("BG Lines", "BG Lines", "", 7),
+    #     ("BG Fills", "BG Fills", "", 8),
+    #     ("_Canvas_", "_Canvas_", "", 9),
+    # ]
+    #    _logger.debug_ext(f"Layers Mode: res: {res}", col="RED")
+    return res
+
+
 class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
     # marche pas
     # def __init__(self):
@@ -944,9 +1013,19 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
     # not visible in the UI because radiobuttons are more suitable
 
     def _update_layout_mode(self, context):
+        prefs = context.preferences.addons["shotmanager"].preferences
         # print("\n*** Props _update_layout_mode updated. New state: ", self._update_layout_mode)
-        self.layout_but_storyboard = "STORYBOARD" == self._update_layout_mode
-        self.layout_but_previez = "PREVIZ" == self._update_layout_mode
+        # self.layout_but_storyboard = "STORYBOARD" == self._update_layout_mode
+        # self.layout_but_previez = "PREVIZ" == self._update_layout_mode
+        if "STORYBOARD" == self.layout_mode:
+            self.display_storyboard_in_properties = True
+            self.display_notes_in_properties = True
+            prefs.display_greasepenciltools_in_properties = True
+        else:
+            self.display_storyboard_in_properties = False
+            self.display_notes_in_properties = False
+            prefs.display_greasepenciltools_in_properties = False
+        pass
 
     layout_mode: EnumProperty(
         name="Layout Mode",
@@ -986,7 +1065,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
     def _set_layout_but_previz(self, value):
         if value:
             self.layout_mode = "PREVIZ"
-        self["layout_but_storyboard"] = "PREVIZ" == value
+        self["layout_but_previz"] = "PREVIZ" == value
 
     def _update_layout_but_previz(self, context):
         print("\n*** layout_but_storyboard updated. New state: ", self.layout_but_previz)
@@ -1172,25 +1251,157 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         options=set(),
     )
 
-    def list_greasepencil_layer_modes(self, context):
-        res = list()
-        res.append(("ALL", "All", "", 0))
-        res.append(("ACTIVE", "Active", "", 1))
+    # def list_greasepencil_layer_modes(self, context):
+    #     res = list()
+    #     res.append(("ALL", "All", "", 0))
+    #     res.append(("ACTIVE", "Active", "", 1))
 
-        # _logger.debug_ext(f"context.object: {context.object.name}", col="RED")
+    #     #  _logger.debug_ext(f"Layers Mode: context.object: {context.object.name}", col="RED")
+
+    #     if context.active_object is not None and "GPENCIL" == context.active_object.type:
+    #         numLayers = len(context.active_object.data.layers)
+    #         if numLayers:
+    #             for i, layer in reversed(list(enumerate(context.active_object.data.layers))):
+    #                 res.append((layer.info, layer.info, "", numLayers - 1 - i + 2))
+    #         else:
+    #             res = (("NOLAYER", "No Layer", "", 0),)
+
+    #     # res = [
+    #     #     ("ALL", "All", "", 0),
+    #     #     ("ACTIVE", "Active", "", 1),
+    #     #     ("Rough", "Rough", "", 2),
+    #     #     ("FG Lines", "FG Lines", "", 3),
+    #     #     ("FG Fills", "FG Fills", "", 4),
+    #     #     ("MiddleG Lines", "MiddleG Lines", "", 5),
+    #     #     ("MiddleG Fills", "MiddleG Fills", "", 6),
+    #     #     ("BG Lines", "BG Lines", "", 7),
+    #     #     ("BG Fills", "BG Fills", "", 8),
+    #     #     ("_Canvas_", "_Canvas_", "", 9),
+    #     # ]
+    #     #    _logger.debug_ext(f"Layers Mode: res: {res}", col="RED")
+    #     return res
+
+    def _get_greasePencil_layersModeB(self):
+        #  val = self.get("greasePencil_layersMode", 0)
+        # return val
+        # print(f" context.object.name: {bpy.context.object.name}")
+        val = 0  # "NOLAYER"
+        if bpy.context.active_object is not None and "GPENCIL" == bpy.context.active_object.type:
+            gpencil = bpy.context.active_object
+            if len(gpencil.data.layers):
+                pass
+                val = self.get("greasePencil_layersModeB", 0)
+                print(f" gpencil.name: {gpencil.name}, val:{val}")
+                gpSettings = self.stb_frameTemplate.getEditedGPByName(gpencil.name)
+            # if gpSettings is not None:
+            #     # Create a lookup-dict for the object layers
+            #     # layers_dict = {layer.info: i for i, layer in enumerate(gpencil.data.layers)}
+            #     layers_list = list()
+            #     layers_list.append("ALL")
+            #     layers_list.append("ACTIVE")
+            #     for i, layer in reversed(list(enumerate(gpencil.data.layers))):
+            #         layers_list.append(layer.info)
+
+            #         ind = -1
+            #         for i, name in enumerate(layers_list):
+            #             if gpSettings.refLayerName == name:
+            #                 ind = i
+            #                 break
+            #         if -1 != ind:
+            #             val = ind
+            # print(mat_dict["Material"]) # 0
+        #  print(f"Val: {val}")
+        return val
+
+    def _set_greasePencil_layersModeB(self, value):
+        self["greasePencil_layersModeB"] = value
+        print(f" set Value: {value}")
+
+    def _update_greasePencil_layersModeB(self, context):
+        # print("\n*** greasePencil_layersModeB updated. New state: ", self.greasePencil_layersModeB)
+        pass
+        # if context.active_object is not None and "GPENCIL" == context.active_object.type:
+        #     if len(context.active_object.data.layers):
+        #         self.stb_frameTemplate.storeEditedGPSettings(
+        #             context.active_object.name, context.active_object.data.layers.active.info
+        #         )
+
+    greasePencil_layersModeB: EnumProperty(
+        name="Apply to:",
+        items=(list_greasepencil_layer_modesB),
+        # get=_get_greasePencil_layersModeB,
+        # set=_set_greasePencil_layersModeB,
+        update=_update_greasePencil_layersModeB,
+        default=0,
+        options=set(),
+    )
+
+    def _get_greasePencil_layersMode(self):
+        # warning: use context.object, not context.active_object cause active_object can be None if
+        # the active object is not visible in the viewport
+
+        val = self.get("greasePencil_layersMode", 0)
+        if bpy.context.object is not None and "GPENCIL" == bpy.context.object.type:
+            gpencil = bpy.context.object
+            if val >= len(gpencil.data.layers):
+                val = 0
+
+        # return val
+        # print(f" context.object.name: {bpy.context.object.name}")
+        # val = 0  # "NOLAYER"
+        if bpy.context.object is not None and "GPENCIL" == bpy.context.object.type:
+            gpencil = bpy.context.object
+            if len(gpencil.data.layers):
+                pass
+                #         val = self.get("greasePencil_layersMode", 0)
+                #         print(f" gpencil.name: {gpencil.name}, val:{val}")
+                gpSettings = self.stb_frameTemplate.getEditedGPByName(gpencil.name)
+                if gpSettings is not None:
+                    #     # Create a lookup-dict for the object layers
+                    #     # layers_dict = {layer.info: i for i, layer in enumerate(gpencil.data.layers)}
+                    layers_list = list()
+                    layers_list.append("ALL")
+                    layers_list.append("ACTIVE")
+                    for i, layer in reversed(list(enumerate(gpencil.data.layers))):
+                        layers_list.append(layer.info)
+
+                        ind = -1
+                        for i, name in enumerate(layers_list):
+                            if gpSettings.refLayerName == name:
+                                ind = i
+                                break
+                        if -1 != ind:
+                            val = ind
+
+                    if val >= len(gpencil.data.layers):
+                        val = 1
+        # print(mat_dict["Material"]) # 0
+        #  print(f"Val: {val}")
+        return val
+
+    def _set_greasePencil_layersMode(self, value):
+        self["greasePencil_layersMode"] = value
+        print(f" set Value: {value}")
+
+    def _update_greasePencil_layersMode(self, context):
+        print("\n*** greasePencil_layersMode updated. New state: ", self.greasePencil_layersMode)
+        # warning: use context.object, not context.active_object cause active_object can be None if
+        # the active object is not visible in the viewport
 
         # if context.object is not None and "GPENCIL" == context.object.type:
-        #     if len(context.object.data.layers):
-        #         for i, layer in reversed(list(enumerate(context.object.data.layers))):
-        #             res.append((layer.info, layer.info, "", i + 2))
-        #     else:
-        #         res = (("NOLAYER", "No Layer", "", 0),)
-        return res
+        #     gpencil = context.object
+        #     if len(gpencil.data.layers):
+        #         self.stb_frameTemplate.storeEditedGPSettings(
+        #             gpencil.name, gpencil.data.layers.active.info
+        #         )
 
     greasePencil_layersMode: EnumProperty(
         name="Apply to:",
         items=(list_greasepencil_layer_modes),
-        default=1,
+        get=_get_greasePencil_layersMode,
+        set=_set_greasePencil_layersMode,
+        update=_update_greasePencil_layersMode,
+        default=0,
         options=set(),
     )
 

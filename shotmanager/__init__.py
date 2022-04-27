@@ -32,6 +32,8 @@ from .overlay_tools.workspace_info.workspace_info import toggle_workspace_info_d
 from .features import cameraBG
 from .features import soundBG
 from .features import greasepencil
+from .features.greasepencil import greasepencil_toolspanel_ui
+from .features import storyboard
 
 from .operators import takes
 from .operators import shots
@@ -177,6 +179,7 @@ def register():
     cameraBG.register()
     soundBG.register()
     greasepencil.register()
+    storyboard.register()
     frame_range.register()
     rendering.register()
     takes.register()
@@ -185,15 +188,15 @@ def register():
     precut_tools.register()
     playbar.register()
     retimer.register()
-    #  greasepencil.register()
     props.register()
     shots_toolbar.register()
 
     # ui
     sm_ui.register()
-    rrs.register()
+    greasepencil_toolspanel_ui.register()
     retimer_ui.register()
     rendering_ui.register()
+    rrs.register()
 
     utils_vse_render.register()
     # try:
@@ -348,9 +351,10 @@ def unregister():
     # except Exception:
     #     print("*** Paf for utils_vse_render.unregister")
 
+    rrs.unregister()
     rendering_ui.unregister()
     retimer_ui.unregister()
-    rrs.unregister()
+    greasepencil_toolspanel_ui.unregister()
     sm_ui.unregister()
 
     # operators
@@ -365,6 +369,7 @@ def unregister():
     takes.unregister()
     utils_operators.unregister()
     frame_range.unregister()
+    storyboard.unregister()
     greasepencil.unregister()
     soundBG.unregister()
     cameraBG.unregister()
