@@ -28,11 +28,12 @@ from shotmanager.prefs.features import draw_features_prefs
 ##################################################################################
 # Draw
 ##################################################################################
+
+
 def draw_shotmanager_addon_prefs(self, context):
     layout = self.layout
     layout = layout.column(align=False)
     # prefs = context.preferences.addons["shotmanager"].preferences
-    splitFactor = 0.3
 
     # Dependencies
     ###############
@@ -67,6 +68,105 @@ def draw_shotmanager_addon_prefs(self, context):
 
     # Dev and debug
     ###############
+    drawDevAndDebug(context, self, layout)
+
+
+##################################################################
+# Draw functions
+##################################################################
+
+
+def drawSettings(context, prefs, layout):
+    box = layout.box()
+    collapsable_panel(box, prefs, "addonPrefs_settings_expanded", text="Settings")
+    if prefs.addonPrefs_settings_expanded:
+        settingsSplitFactor = 0.5
+        col = box.column(align=False)
+
+        row = col.row()
+        split = row.split(factor=settingsSplitFactor)
+        rowLeft = split.row()
+        rowLeft.alignment = "RIGHT"
+        rowLeft.label(text="Output First Frame Index")
+        rowRight = split.row()
+        rowRight.prop(prefs, "output_first_frame", text="Start Frame")
+
+        row = col.row()
+        split = row.split(factor=settingsSplitFactor)
+        rowLeft = split.row()
+        rowLeft.alignment = "RIGHT"
+        rowLeft.label(text="Image Name Digit Padding")
+        rowRight = split.row()
+        rowRight.prop(prefs, "img_name_digits_padding", text="Padding")
+
+        row = col.row()
+        split = row.split(factor=settingsSplitFactor)
+        rowLeft = split.row()
+        rowLeft.alignment = "RIGHT"
+        rowLeft.label(text="Default Shot Duration")
+        rowRight = split.row()
+        rowRight.prop(prefs, "new_shot_duration", text="Frames")
+
+        # Storyboard
+        ################
+        # sepRow = col.row()
+        # sepRow.separator(factor=1.0)
+
+        row = col.row()
+        row.label(text="Storyboard:")
+
+        row = col.row()
+        split = row.split(factor=settingsSplitFactor)
+        rowLeft = split.row()
+        rowLeft.alignment = "RIGHT"
+        rowLeft.label(text="Storyboard Default Canvas Opacity")
+        rowRight = split.row()
+        rowRight.prop(prefs, "storyboard_default_canvas_opacity", slider=True, text="Opacity")
+
+        row = col.row()
+        split = row.split(factor=settingsSplitFactor)
+        rowLeft = split.row()
+        rowLeft.alignment = "RIGHT"
+        rowLeft.label(text="Storyboard Frame Default Start Time")
+        rowRight = split.row()
+        rowRight.prop(prefs, "storyboard_default_start_frame", slider=True, text="Frame")
+
+        row = col.row()
+        split = row.split(factor=settingsSplitFactor)
+        rowLeft = split.row()
+        rowLeft.alignment = "RIGHT"
+        rowLeft.label(text="Storyboard Default Shot Duration")
+        rowRight = split.row()
+        rowRight.prop(prefs, "storyboard_new_shot_duration", slider=True, text="Frames")
+
+
+def drawGeneralUI(context, prefs, layout):
+    box = layout.box()
+    collapsable_panel(box, prefs, "addonPrefs_ui_expanded", text="UI")
+    if prefs.addonPrefs_ui_expanded:
+        uiSplitFactor = 0.15
+
+        # column component here is technicaly not necessary but reduces the space between lines
+        col = box.column()
+
+        split = col.split(factor=uiSplitFactor)
+        rowLeft = split.row()
+        rowRight = split.row()
+        rowRight.prop(prefs, "separatedRenderPanel", text="Make Render Panel a Separated Tab in the Viewport N-Panel")
+
+
+def drawFeatures(context, prefs, layout):
+    box = layout.box()
+    collapsable_panel(box, prefs, "addonPrefs_features_expanded", text="Layout and Features to Display in New Scenes")
+    if prefs.addonPrefs_features_expanded:
+        uiSplitFactor = 0.15
+
+        draw_features_prefs("ADDON_PREFS", box)
+
+
+def drawDevAndDebug(context, self, layout):
+    splitFactor = 0.3
+
     box = layout.box()
 
     split = box.split(factor=0.5)
@@ -120,63 +220,3 @@ def draw_shotmanager_addon_prefs(self, context):
             rowRight = split.row()
             rowRight.prop(self, "addShot_start")
             rowRight.prop(self, "addShot_end")
-
-
-def drawSettings(context, prefs, layout):
-    box = layout.box()
-    collapsable_panel(box, prefs, "addonPrefs_settings_expanded", text="Settings")
-    if prefs.addonPrefs_settings_expanded:
-        settingsSplitFactor = 0.5
-        box.use_property_decorate = False
-
-        split = box.split(factor=settingsSplitFactor)
-        rowLeft = split.row()
-        rowLeft.alignment = "RIGHT"
-        rowLeft.label(text="Output First Frame Index")
-        rowRight = split.row()
-        rowRight.prop(prefs, "output_first_frame", text="Start Frame")
-
-        split = box.split(factor=settingsSplitFactor)
-        rowLeft = split.row()
-        rowLeft.alignment = "RIGHT"
-        rowLeft.label(text="Image Name Digit Padding")
-        rowRight = split.row()
-        rowRight.prop(prefs, "img_name_digits_padding", text="Padding")
-
-        split = box.split(factor=settingsSplitFactor)
-        rowLeft = split.row()
-        rowLeft.alignment = "RIGHT"
-        rowLeft.label(text="Default Shot Duration")
-        rowRight = split.row()
-        rowRight.prop(prefs, "new_shot_duration", text="Frames")
-
-        split = box.split(factor=settingsSplitFactor)
-        rowLeft = split.row()
-        rowLeft.alignment = "RIGHT"
-        rowLeft.label(text="Storyboard Default Canvas Opacity")
-        rowRight = split.row()
-        rowRight.prop(prefs, "storyboard_default_canvas_opacity", slider=True, text="Opacity")
-
-
-def drawGeneralUI(context, prefs, layout):
-    box = layout.box()
-    collapsable_panel(box, prefs, "addonPrefs_ui_expanded", text="UI")
-    if prefs.addonPrefs_ui_expanded:
-        uiSplitFactor = 0.15
-
-        # column component here is technicaly not necessary but reduces the space between lines
-        col = box.column()
-
-        split = col.split(factor=uiSplitFactor)
-        rowLeft = split.row()
-        rowRight = split.row()
-        rowRight.prop(prefs, "separatedRenderPanel", text="Make Render Panel a Separated Tab in the Viewport N-Panel")
-
-
-def drawFeatures(context, prefs, layout):
-    box = layout.box()
-    collapsable_panel(box, prefs, "addonPrefs_features_expanded", text="Layout and Features to Display in New Scenes")
-    if prefs.addonPrefs_features_expanded:
-        uiSplitFactor = 0.15
-
-        draw_features_prefs("ADDON_PREFS", box)

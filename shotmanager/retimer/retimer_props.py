@@ -16,12 +16,13 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 """
-To do: module description here.
+Retimer properties
 """
 
 import bpy
-from bpy.types import Operator, PropertyGroup
+from bpy.types import PropertyGroup
 from bpy.props import IntProperty, EnumProperty, BoolProperty, FloatProperty
+
 
 # a function is used here so that the returned items tupple can also be called by the quick help components
 def list_retime_modes(self, context):
@@ -167,7 +168,8 @@ class UAS_Retimer_Properties(PropertyGroup):
     """
     start_frame: IntProperty(
         name="Start Frame",
-        description="The time operation will occur right AFTER this frame." "\nThis frame is then NOT MODIFIED (except during a Time Rescale)",
+        description="The time operation will occur right AFTER this frame."
+        "\nThis frame is then NOT MODIFIED (except during a Time Rescale)",
         get=_get_start_frame,
         set=_set_start_frame,
         # update=_update_start_frame,
@@ -202,7 +204,9 @@ class UAS_Retimer_Properties(PropertyGroup):
     )
 
     move_current_frame: BoolProperty(
-        "Move Current Frame", default=False, options=set(),
+        "Move Current Frame",
+        default=False,
+        options=set(),
     )
 
     # Offset specific
@@ -231,7 +235,9 @@ class UAS_Retimer_Properties(PropertyGroup):
 
     # Remove specific
     gap: BoolProperty(
-        name="Remove Gap", default=True, options=set(),
+        name="Remove Gap",
+        default=True,
+        options=set(),
     )
 
     # Rescale specific
@@ -244,7 +250,9 @@ class UAS_Retimer_Properties(PropertyGroup):
         options=set(),
     )
 
-    pivot: IntProperty(name="Pivot",)
+    pivot: IntProperty(
+        name="Pivot",
+    )
 
     onlyOnSelection: BoolProperty(
         name="Apply Only on Selection",
@@ -266,17 +274,29 @@ class UAS_Retimer_Properties(PropertyGroup):
         options=set(),
     )
     applyToShapeKeys: BoolProperty(
-        name="Shape Keys", description="Apply time change to objects with shape keys", default=True, options=set(),
+        name="Shape Keys",
+        description="Apply time change to objects with shape keys",
+        default=True,
+        options=set(),
     )
     applytToGreasePencil: BoolProperty(
-        name="Grease Pencil", description="Apply time change to Grease Pencil objects", default=True, options=set(),
+        name="Grease Pencil",
+        description="Apply time change to Grease Pencil objects",
+        default=True,
+        options=set(),
     )
 
     applyToShots: BoolProperty(
-        name="Shots", description="Apply time change to the shot ranges", default=True, options=set(),
+        name="Shots",
+        description="Apply time change to the shot ranges",
+        default=True,
+        options=set(),
     )
     applyToVSE: BoolProperty(
-        name="VSE", description="Apply time change to the content of the VSE", default=True, options=set(),
+        name="VSE",
+        description="Apply time change to the content of the VSE",
+        default=True,
+        options=set(),
     )
 
     # moved to add-on preferences
@@ -301,4 +321,3 @@ def register():
 def unregister():
     for cls in reversed(_classes):
         bpy.utils.unregister_class(cls)
-

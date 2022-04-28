@@ -25,6 +25,8 @@ from shotmanager.utils import utils_greasepencil
 
 from shotmanager.config import config
 
+from . import storyboard_drawing_ui as drawing_ui
+
 
 def draw_greasepencil_shot_properties(layout, context, shot):
     props = context.scene.UAS_shot_manager_props
@@ -187,6 +189,22 @@ def draw_greasepencil_shot_properties(layout, context, shot):
         row = col.row()
         row.separator(factor=hSepFactor)
 
+        gpIsStoryboardFrame = True
+        editedGpencil = gp_child
+        leftSepFactor = 0.1
+        drawing_ui.drawDrawingToolbarRow(
+            context, col, props, editedGpencil, gpIsStoryboardFrame, shotIndex, leftSepFactor
+        )
+
+        objIsGP = True
+        drawing_ui.drawDrawingPlaybarRow(context, col, props, editedGpencil, leftSepFactor, objIsGP)
+
+        row = col.row()
+        row.separator(factor=hSepFactor)
+
+        #####################
+        # Canvas
+        #####################
         row = col.row()
 
         canvasSplitRow = row.split(factor=0.3)
@@ -309,12 +327,13 @@ def draw_greasepencil_global_properties(layout, context):
     grid_flow = subRow.grid_flow(align=False, columns=4, even_columns=False)
     # grid_flow.label(text="Grease Pencil:")
     grid_flow.label(text="")
+    grid_flow.operator("uas_shot_manager.update_storyboard_grid", text="", icon="LIGHTPROBE_GRID")
     grid_flow.prop(prefs, "stb_global_visibility", text="")
     # grid_flow.operator("uas_shots_settings.use_greasepencil", text="Turn On").useGreasepencil = True
     # grid_flow.operator("uas_shots_settings.use_greasepencil", text="Turn Off").useGreasepencil = False
     # grid_flow.prop(props.shotsGlobalSettings, "greasepencilAlpha", text="Alpha")
-    c = row.column()
-    c.operator(
+    rowCol = row.column()
+    rowCol.operator(
         "uas_shot_manager.remove_grease_pencil", text="", icon="PANEL_CLOSE"
     ).alsoApplyToDisabledShots = props.shotsGlobalSettings.alsoApplyToDisabledShots
 

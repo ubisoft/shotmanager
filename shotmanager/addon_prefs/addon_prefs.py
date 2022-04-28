@@ -101,7 +101,7 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
 
     new_shot_duration: IntProperty(
         name="Default Shot Duration",
-        description="Default duration for new shots, in frames",
+        description="Default duration (in frames) for new shots",
         min=1,
         soft_max=250,
         subtype="TIME",
@@ -115,6 +115,25 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
         max=1.0,
         step=0.1,
         default=1.0,
+    )
+
+    storyboard_default_start_frame: IntProperty(
+        name="Storyboard Default Start Time",
+        description="Time (in frames) at which a new storyboard frame starts",
+        min=0,
+        soft_max=250,
+        step=1,
+        subtype="TIME",
+        default=100,
+    )
+
+    storyboard_new_shot_duration: IntProperty(
+        name="Storyboard Default Shot Duration",
+        description="Default duration (in frames) for new storyboard frames",
+        min=1,
+        soft_max=250,
+        subtype="TIME",
+        default=100,
     )
 
     displaySMDebugPanel: BoolProperty(

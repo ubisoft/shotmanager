@@ -50,6 +50,7 @@ from ..functions import warnings
 from ..operators.shots_global_settings import UAS_ShotManager_ShotsGlobalSettings
 from ..retimer.retimer_props import UAS_Retimer_Properties
 from ..features.greasepencil.greasepencil_frame_template import UAS_GreasePencil_FrameTemplate
+from ..features.greasepencil.greasepencil_tools_props import UAS_GreasePencil_Tools_Properties
 
 from shotmanager.utils import utils
 
@@ -66,20 +67,44 @@ def list_greasepencil_layer_modes(self, context):
     res.append(("ALL", "All", "", 0))
     res.append(("ACTIVE", "Active", "", 1))
 
-    _logger.debug_ext(
-        f"Layers Mode: context.object: {context.object.name}, context.active_object: {context.active_object}",
-        col="RED",
-    )
+    # _logger.debug_ext(
+    #     f"Layers Mode: context.object: {context.object.name}, context.active_object: {context.active_object}",
+    #     col="RED",
+    # )
 
-    if context.object is not None and "GPENCIL" == context.object.type:
+    # if context.object is not None and "GPENCIL" == context.object.type:
 
-        _logger.debug_ext(f"toto", col="RED")
-        numLayers = len(context.object.data.layers)
-        if numLayers:
-            for i, layer in reversed(list(enumerate(context.object.data.layers))):
-                res.append((layer.info, layer.info, "", numLayers - 1 - i + 2))
-        else:
-            res = (("NOLAYER", "No Layer", "", 0),)
+    #     _logger.debug_ext(f"toto", col="RED")
+    #     numLayers = len(context.object.data.layers)
+    #     if numLayers:
+    #         for i, layer in reversed(list(enumerate(context.object.data.layers))):
+    #             res.append((layer.info, layer.info, "", numLayers - 1 - i + 2))
+    #     else:
+    #         res = (("NOLAYER", "No Layer", "", 0),)
+
+    # framePreset = self.stb_frameTemplate
+    usedPresets = self.stb_frameTemplate.getUsedPresets()
+    numPresets = len(usedPresets)
+    if numPresets:
+        for i, preset in reversed(list(enumerate(usedPresets))):
+            res.append((preset.id, preset.layerName, "", numPresets - 1 - i + 2))
+    else:
+        res = (("NOLAYER", "No Layer", "", 0),)
+
+    # # canvas layer #####
+    # preset_canvas = framePreset.getPresetByID("CANVAS")
+    # if preset_lines.used
+    # # BG layers #########
+    # preset_lines = framePreset.getPresetByID("BG_LINES")
+    # preset_fills = framePreset.getPresetByID("BG_FILLS")
+    # # MG layers #########
+    # preset_lines = framePreset.getPresetByID("MG_LINES")
+    # preset_fills = framePreset.getPresetByID("MG_FILLS")
+    # # FG layers #########
+    # preset_lines = framePreset.getPresetByID("FG_LINES")
+    # preset_fills = framePreset.getPresetByID("FG_FILLS")
+    #  # Rough layer #######
+    # preset_lines = framePreset.getPresetByID("ROUGH")
 
     # res = [
     #     ("ALL", "All", "", 0),
@@ -93,7 +118,7 @@ def list_greasepencil_layer_modes(self, context):
     #     ("BG Fills", "BG Fills", "", 8),
     #     ("_Canvas_", "_Canvas_", "", 9),
     # ]
-    _logger.debug_ext(f"Layers Mode: res: {res}", col="RED")
+    #   _logger.debug_ext(f"Presets Layers Mode: res: {res}", col="RED")
     return res
 
 
@@ -252,7 +277,10 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
 
     retimer: PointerProperty(
         type=UAS_Retimer_Properties,
-        options=set(),
+    )
+
+    greasepencil25DTools: PointerProperty(
+        type=UAS_GreasePencil_Tools_Properties,
     )
 
     def getWarnings(self, scene):
@@ -1005,6 +1033,40 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         options=set(),
     )
 
+    def updateStoryboardGrid(self):
+        """Set the camera of the storyboard frames on the 3D grid
+        Only cameras related to storyboard frames, and not shots, are affected"""
+
+        grid = self.stb_frameTemplate.frameGrid
+        frameList = self.getStoryboardFramesList(ignoreDisabled=False)
+
+        for i, shot in enumerate(frameList):
+            if shot.isCameraValid():
+                # x_offset = grid.offset_x  # 1.5
+                # y_offset = grid.offset_y  # -1.2
+                shot.camera.location[0] = grid.origin[0] + grid.offset_x * (i % grid.numShotsPerRow)
+                shot.camera.location[1] = grid.origin[1]  # + grid.offset_z * ((i - 1) % grid.numShotsPerRow)
+                shot.camera.location[2] = grid.origin[2] + grid.offset_y * (i // grid.numShotsPerRow)
+
+    def getStoryboardFramesList(self, ignoreDisabled=False, takeIndex=-1):
+        """Return a list of the shots that are flagged as storyboard frames"""
+        takeInd = (
+            self.getCurrentTakeIndex()
+            if -1 == takeIndex
+            else (takeIndex if 0 <= takeIndex and takeIndex < len(self.getTakes()) else -1)
+        )
+        shotList = []
+        if -1 == takeInd:
+            return shotList
+
+        for shot in self.takes[takeInd].shots:
+            # if shot.enabled or self.context.scene.UAS_shot_manager_props.seqTimeline_displayDisabledShots:
+            if not ignoreDisabled or shot.enabled:
+                if "STORYBOARD" == shot.shotType:
+                    shotList.append(shot)
+
+        return shotList
+
     ########################################################################
     # layout   ###
     ########################################################################
@@ -1398,8 +1460,8 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
     greasePencil_layersMode: EnumProperty(
         name="Apply to:",
         items=(list_greasepencil_layer_modes),
-        get=_get_greasePencil_layersMode,
-        set=_set_greasePencil_layersMode,
+        # get=_get_greasePencil_layersMode,
+        # set=_set_greasePencil_layersMode,
         update=_update_greasePencil_layersMode,
         default=0,
         options=set(),

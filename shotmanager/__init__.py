@@ -32,7 +32,7 @@ from .overlay_tools.workspace_info.workspace_info import toggle_workspace_info_d
 from .features import cameraBG
 from .features import soundBG
 from .features import greasepencil
-from .features.greasepencil import greasepencil_toolspanel_ui
+from .features.greasepencil import greasepencil_tools_ui
 from .features import storyboard
 
 from .operators import takes
@@ -193,7 +193,7 @@ def register():
 
     # ui
     sm_ui.register()
-    greasepencil_toolspanel_ui.register()
+    greasepencil_tools_ui.register()
     retimer_ui.register()
     rendering_ui.register()
     rrs.register()
@@ -354,7 +354,7 @@ def unregister():
     rrs.unregister()
     rendering_ui.unregister()
     retimer_ui.unregister()
-    greasepencil_toolspanel_ui.unregister()
+    greasepencil_tools_ui.unregister()
     sm_ui.unregister()
 
     # operators

@@ -22,7 +22,15 @@ Shot Manager grease pencil operators
 
 import bpy
 from bpy.types import PropertyGroup
-from bpy.props import CollectionProperty, StringProperty, BoolProperty
+from bpy.props import (
+    PointerProperty,
+    CollectionProperty,
+    StringProperty,
+    BoolProperty,
+    IntProperty,
+    FloatProperty,
+    FloatVectorProperty,
+)
 
 from shotmanager.config import sm_logging
 
@@ -42,6 +50,20 @@ class UAS_ShotManager_GreasepencilObjSettings(PropertyGroup):
 
     gpName: StringProperty(default="")
     refLayerName: StringProperty(default="")
+
+
+class UAS_ShotManager_FrameGrid(PropertyGroup):
+    """3D grid to place the storyboard frames in space"""
+
+    origin: FloatVectorProperty(size=3, description="Top left corner of the grid", default=(10, 0, 10))
+
+    offset_x: FloatProperty(default=1.5)
+    offset_y: FloatProperty(default=-1.2)
+    offset_z: FloatProperty(default=2.0)
+
+    numShotsPerRow: IntProperty(default=5)
+    # numShots_y: IntProperty(default=1)
+    # numShots_z: IntProperty(default=1)
 
 
 class UAS_GreasePencil_FrameTemplate(PropertyGroup):
@@ -135,9 +157,24 @@ class UAS_GreasePencil_FrameTemplate(PropertyGroup):
                     prefsTemplate.getPreset(preset, preset.id, "used", "layerName", "materialName")
 
             # order is important
-            presets = ["ROUGH", "FG_LINES", "FG_FILLS", "MG_LINES", "MG_FILLS", "BG_LINES", "BG_FILLS", "CANVAS"]
+            presets = self.getPresetIDs()
             for p in reversed(presets):
                 _createPreset(p)
+
+    def getPresetIDs(self):
+        """Return a list with the supported presets"""
+        # order is important
+        return ["ROUGH", "FG_LINES", "FG_FILLS", "MG_LINES", "MG_FILLS", "BG_LINES", "BG_FILLS", "CANVAS"]
+
+    def getUsedPresets(self):
+        """Return a list with the existing used presets"""
+        presets = self.getPresetIDs()
+        usedPresets = list()
+        for presetID in reversed(presets):
+            preset = self.getPresetByID(presetID)
+            if preset is not None and preset.used:
+                usedPresets.append(preset)
+        return usedPresets
 
     def getPresetByID(self, id):
         preset = None
@@ -175,6 +212,12 @@ class UAS_GreasePencil_FrameTemplate(PropertyGroup):
             setattr(prop, used, preset.used)
             setattr(prop, layerName, preset.layerName)
             setattr(prop, materialName, preset.materialName)
+
+    ###############################
+    # frame grid
+    ###############################
+
+    frameGrid: PointerProperty(type=UAS_ShotManager_FrameGrid)
 
     ###############################
     # edited grease pencil settings
@@ -218,6 +261,7 @@ class UAS_GreasePencil_FrameTemplate(PropertyGroup):
 _classes = (
     UAS_ShotManager_FrameUsagePreset,
     UAS_ShotManager_GreasepencilObjSettings,
+    UAS_ShotManager_FrameGrid,
     UAS_GreasePencil_FrameTemplate,
 )
 
