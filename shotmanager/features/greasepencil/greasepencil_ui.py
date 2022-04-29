@@ -19,9 +19,6 @@
 Shot Manager grease pencil tools and specific operators
 """
 
-import bpy
-
-# from shotmanager.utils import utils
 from shotmanager.utils import utils_ui
 from shotmanager.utils import utils_greasepencil
 
@@ -89,13 +86,15 @@ def draw_greasepencil_play_tools(self, context, shot, layersListDropdown=None):
     parentShot = props.getParentShotFromGpChild(editedGpencil)
     objIsValid = parentShot is None
 
-    if True and objIsGP:
+    if True:
+        # if objIsGP:
         gp_child = None
         if shot is not None:
             gp_child = utils_greasepencil.get_greasepencil_child(shot.camera)
         gpIsStoryboardFrame = gp_child is not None and gp_child.name == editedGpencil.name
 
         col = box.column()
+        col.enabled = objIsGP
         if not gpIsStoryboardFrame:
             freeGPRow = col.row(align=True)
 
@@ -105,7 +104,7 @@ def draw_greasepencil_play_tools(self, context, shot, layersListDropdown=None):
                 "uas_shot_manager.pin_grease_pencil_object", text="", icon=pinIcon, depress=gpObjectIsPinned
             )
             pinOp.pin = not gpObjectIsPinned
-            pinOp.pinnedObjName = editedGpencil.name
+            pinOp.pinnedObjName = "-" if editedGpencil is None else editedGpencil.name
 
             freeGPRow.separator(factor=2)
 
@@ -264,20 +263,21 @@ def drawGpToolbar(context, layout, editedGpencil, gpIsStoryboardFrame, shotIndex
     # gpOpsLeftRow.alignment = "RIGHT"
 
     # if gpIsStoryboardFrame:
-    if editedGpencil.mode == "PAINT_GPENCIL":
+    if editedGpencil is not None and editedGpencil.mode == "PAINT_GPENCIL":
         gpToolsRow.operator("uas_shot_manager.select_grease_pencil_object", text="", icon="RESTRICT_SELECT_ON")
     else:
         gpToolsRow.operator(
             "uas_shot_manager.select_shot_grease_pencil", text="", icon="RESTRICT_SELECT_OFF"
         )  # .index = shotIndex
 
-    if editedGpencil.mode == "PAINT_GPENCIL":
+    if editedGpencil is not None and editedGpencil.mode == "PAINT_GPENCIL":
         icon = "GREASEPENCIL"
         gpToolsRow.alert = True
         gpToolsRow.operator("uas_shot_manager.toggle_grease_pencil_draw_mode", text="", icon=icon)
         gpToolsRow.alert = False
     else:
-        icon = "OUTLINER_OB_GREASEPENCIL"
+        # icon = "OUTLINER_OB_GREASEPENCIL"
+        icon = "GREASEPENCIL"
         if gpIsStoryboardFrame:
             gpToolsRow.operator("uas_shot_manager.draw_on_grease_pencil", text="", icon=icon)
         else:
@@ -362,25 +362,34 @@ def drawLayersRow(context, props, layout, editedGpencil, objIsGP):
         if "CANVAS" != preset.id and not preset.used:
             return
 
-        if preset.layerName is not None:
-            currentFrameIsOnLayerKeyFrame = utils_greasepencil.isCurrentFrameOnLayerKeyFrame(
-                editedGpencil, currentFrame, preset.layerName
-            )
-            icon_frame = icon_OnFrame if currentFrameIsOnLayerKeyFrame else icon_OnprevFrame
-            depressBut = utils_greasepencil.gpLayerIsActive(editedGpencil, preset.layerName)
+        if editedGpencil is None:
             op = layout.operator(
-                "uas_shot_manager.greasepencil_setlayerandmat", depress=depressBut, icon=icon_frame, text=""
+                "uas_shot_manager.greasepencil_setlayerandmat", depress=False, icon=icon_OnprevFrame, text=""
             )
-            op.layerID = preset.id
-            op.layerName = preset.layerName
-            op.gpObjName = editedGpencil.name
         else:
-            warningRow = layout.row(align=True)
-            warningRow.alert = True
-            warningRow.enabled = False
-            warningRow.operator(
-                "uas_shot_manager.greasepencil_setlayerandmat", depress=depressBut, icon=icon_frame, text=""
-            ).layerID = f"{preset.id}_WARNING"
+            layerExists = utils_greasepencil.gpLayerExists(editedGpencil, preset.layerName)
+
+            if preset.layerName is not None and layerExists:
+                currentFrameIsOnLayerKeyFrame = utils_greasepencil.isCurrentFrameOnLayerKeyFrame(
+                    editedGpencil, currentFrame, preset.layerName
+                )
+                icon_frame = icon_OnFrame if currentFrameIsOnLayerKeyFrame else icon_OnprevFrame
+                depressBut = utils_greasepencil.gpLayerIsActive(editedGpencil, preset.layerName)
+                op = layout.operator(
+                    "uas_shot_manager.greasepencil_setlayerandmat", depress=depressBut, icon=icon_frame, text=""
+                )
+                op.layerID = preset.id
+                op.layerName = preset.layerName
+                op.materialName = preset.materialName
+                op.gpObjName = editedGpencil.name
+            else:
+                warningRow = layout.row(align=True)
+                icon_frame = icon_OnprevFrame
+                warningRow.alert = True
+                warningRow.enabled = False
+                warningRow.operator(
+                    "uas_shot_manager.greasepencil_setlayerandmat", depress=False, icon=icon_frame, text=""
+                ).layerID = f"{preset.id}_WARNING"
 
     usageButsRow = layout.row(align=True)
     # row.scale_x = 2.0

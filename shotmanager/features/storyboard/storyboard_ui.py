@@ -38,7 +38,7 @@ def draw_greasepencil_shot_properties(layout, context, shot):
     propertiesModeStr = "Selected " if "SELECTED" == props.current_shot_properties_mode else "Current "
     hSepFactor = 0.5
 
-    devDebug_displayAdv = config.devDebug and True
+    devDebug_displayAdv = config.devDebug and False
 
     gp_child = None
     cameraIsValid = shot.isCameraValid()
@@ -111,26 +111,46 @@ def draw_greasepencil_shot_properties(layout, context, shot):
         subRow.operator("uas_shot_manager.remove_grease_pencil", text="", icon="PANEL_CLOSE").shotIndex = shotIndex
         subRow.prop(props, "display_greasepencil_in_shotlist", text="")
 
-        # name and visibility tools
+        ################
+        # Name and visibility tools
         ################
         # extendSubRow.alignment = "EXPAND"
+        row = col.row()
+        row.separator(factor=0.2)
 
         subRow = col.row(align=False)
         # subRow.scale_x = 0.8
         leftSubRow = subRow.row(align=True)
         leftSubRow.alignment = "LEFT"
-        leftSubRow.separator(factor=1)
+        # leftSubRow.separator(factor=1)
 
         gpToolsRow = leftSubRow.row(align=True)
         # gpToolsRow.alignment = "RIGHT"
-        gpToolsRow.scale_x = 1
+        gpToolsRow.scale_x = 2
         gpToolsRow.operator(
             "uas_shot_manager.select_shot_grease_pencil", text="", icon="RESTRICT_SELECT_OFF"
         ).index = shotIndex
+        if config.devDebug:
+            gpToolsRow.operator(
+                "uas_shot_manager.update_grease_pencil", text="", icon="FILE_REFRESH"
+            ).shotIndex = shotIndex
+        gpToolsRow.scale_x = 1
 
+        textSubRow = subRow.row(align=True)
+        textSubRow.alignment = "LEFT"
+        # gpToolsRow.scale_x = 2
         # leftSubRow.separator(factor=1)
-        leftSubRow.label(text="  GP: ")
-        leftSubRow.label(text=gp_child.name)
+        textSubRow.label(text="  GP: ")
+        textSubRow.label(text=gp_child.name)
+
+        if config.devDebug:
+            infoRow = textSubRow.row()
+            infoRow.alignment = "RIGHT"
+            if gp_child == context.object:
+                infoRow.label(text="Same as Context")
+            else:
+                infoRow.alert = True
+                infoRow.label(text="Diff from Context")
 
         rightSubRow = subRow.row(align=True)
         rightSubRow.alignment = "RIGHT"
@@ -138,6 +158,7 @@ def draw_greasepencil_shot_properties(layout, context, shot):
         # Grease Pencil tools
         ################
         if devDebug_displayAdv:
+
             # subSubRow = rightSubRow.row()
             # subSubRow.alignment = "RIGHT"
             # gpToolsSplit = subSubRow.split(factor=0.4)
@@ -175,36 +196,48 @@ def draw_greasepencil_shot_properties(layout, context, shot):
 
         # Debug settings
         ################
-        if devDebug_displayAdv:
-            subRow = box.row(align=False)
-            leftSubRow = subRow.row(align=True)
-            leftSubRow.alignment = "LEFT"
+        # if devDebug_displayAdv:
+        #     subRow = box.row(align=False)
+        #     leftSubRow = subRow.row(align=True)
+        #     leftSubRow.alignment = "LEFT"
 
-            rightSubRow = subRow.row(align=True)
-            rightSubRow.alignment = "RIGHT"
-            rightSubRow.prop(gp_child, "hide_select", text="")
-            rightSubRow.prop(gp_child, "hide_viewport", text="")
-            rightSubRow.prop(gp_child, "hide_render", text="")
+        #     rightSubRow = subRow.row(align=True)
+        #     rightSubRow.alignment = "RIGHT"
+        #     rightSubRow.prop(gp_child, "hide_select", text="")
+        #     rightSubRow.prop(gp_child, "hide_viewport", text="")
+        #     rightSubRow.prop(gp_child, "hide_render", text="")
 
-        row = col.row()
-        row.separator(factor=hSepFactor)
-
+        #####################
+        # Drawing tools
+        #####################
         gpIsStoryboardFrame = True
         editedGpencil = gp_child
         leftSepFactor = 0.1
+        objIsGP = True
+
+        row = col.row()
+        row.separator(factor=1.0)
         drawing_ui.drawDrawingToolbarRow(
             context, col, props, editedGpencil, gpIsStoryboardFrame, shotIndex, leftSepFactor
         )
 
-        objIsGP = True
+        row = col.row()
+        row.separator(factor=0.5)
         drawing_ui.drawDrawingPlaybarRow(context, col, props, editedGpencil, leftSepFactor, objIsGP)
 
         row = col.row()
-        row.separator(factor=hSepFactor)
+        row.separator(factor=0.5)
+        drawing_ui.drawDrawingMatRow(context, col, props, objIsGP)
 
         #####################
         # Canvas
         #####################
+
+        # row = col.row()
+        # row.separator(factor=hSepFactor)
+
+        utils_ui.drawSeparatorLine(col, lower_height=1.4, higher_height=0.6)
+
         row = col.row()
 
         canvasSplitRow = row.split(factor=0.3)
@@ -319,22 +352,53 @@ def draw_greasepencil_global_properties(layout, context):
 
     row = box.row()
     row.use_property_decorate = False
-    row.separator()
+    # row.separator()
 
     col = row.column()
     subRow = col.row()
 
-    grid_flow = subRow.grid_flow(align=False, columns=4, even_columns=False)
+    grid_flow = subRow.grid_flow(align=False, columns=3, even_columns=False)
     # grid_flow.label(text="Grease Pencil:")
-    grid_flow.label(text="")
+    # grid_flow.label(text="rr")
     grid_flow.operator("uas_shot_manager.update_storyboard_grid", text="", icon="LIGHTPROBE_GRID")
+    grid_flow.separator(factor=1.0)
     grid_flow.prop(prefs, "stb_global_visibility", text="")
     # grid_flow.operator("uas_shots_settings.use_greasepencil", text="Turn On").useGreasepencil = True
     # grid_flow.operator("uas_shots_settings.use_greasepencil", text="Turn Off").useGreasepencil = False
     # grid_flow.prop(props.shotsGlobalSettings, "greasepencilAlpha", text="Alpha")
-    rowCol = row.column()
+    rowCol = subRow.row()
     rowCol.operator(
         "uas_shot_manager.remove_grease_pencil", text="", icon="PANEL_CLOSE"
     ).alsoApplyToDisabledShots = props.shotsGlobalSettings.alsoApplyToDisabledShots
 
-    col.separator(factor=0.5)
+    utils_ui.drawSeparatorLine(col, lower_height=1.4, higher_height=0.4)
+
+    # overlay tools
+    #########################
+    spaceDataViewport = props.getValidTargetViewportSpaceData(context)
+    onionSkinIsActive = False
+    gridIsActive = False
+    if spaceDataViewport is not None:
+        onionSkinIsActive = spaceDataViewport.overlay.use_gpencil_onion_skin
+        gridIsActive = spaceDataViewport.overlay.use_gpencil_grid
+
+    row = col.row(align=False)
+    overlayCol = row.column()
+    overlaySplit = overlayCol.split(factor=0.2)
+    overlaySplit.label(text="Overlay: ")
+    overlayRighRow = overlaySplit.row()
+    overlayRighRow.operator("uas_shot_manager.greasepencil_toggleonionskin", depress=onionSkinIsActive)
+    overlayRighRow.operator("uas_shot_manager.greasepencil_togglecanvas", depress=gridIsActive)
+
+    row = col.row(align=False)
+    overlaySplit = row.split(factor=0.2)
+    overlaySplit.separator()
+    overlayRighRow = overlaySplit.row()
+    overlayRighRow.prop(spaceDataViewport.overlay, "use_gpencil_fade_layers", text="")
+    # row.prop(spaceDataViewport.overlay, "gpencil_fade_layer")
+    subOverlayRighRow = overlayRighRow.row()
+    subOverlayRighRow.enabled = spaceDataViewport.overlay.use_gpencil_fade_layers
+    subOverlayRighRow.prop(prefs, "stb_overlay_layers_opacity", text="Fade Layers", slider=True)
+
+    row = col.row(align=True)
+    row.separator(factor=0.5)

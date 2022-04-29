@@ -39,12 +39,19 @@ from .utils_os import open_folder
 ###################
 
 
-def drawSeparatorLine(layout, lower_height=1.0):
+def drawSeparatorLine(layout, lower_height=1.0, higher_height=0.0):
     col = layout.column()
+
+    if 0 < higher_height:
+        row = col.row()
+        row.scale_y = higher_height
+        row.separator()
+
     row = col.row()
     row.scale_y = 0.2
     row.alignment = "CENTER"
     row.label(text="_____________________")
+
     row = col.row()
     row.scale_y = lower_height
     row.separator()

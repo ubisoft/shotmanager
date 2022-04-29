@@ -1,3 +1,21 @@
+# 2.0.18 (2022-04-29)
+
+## Storyboard
+
+- Fixed UI and storyboard frame behaviors
+
+
+# 2.0.17 (2022-04-29)
+
+## Storyboard
+
+- Added a frame grid to order the storyboard frames in space
+
+
+# 2.0.16 (2022-04-26)
+
+- Support for Blender 3.1 and Python 3.10
+
 # 2.0.15 (2022-04-20)
 
 ## Storyboard

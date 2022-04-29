@@ -1467,6 +1467,16 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         options=set(),
     )
 
+    def getLayerModeFromID(self, layerID):
+        layerMode = layerID
+        if "ALL" != layerID and "ACTIVE" != layerID and "NOLAYER" != layerID:
+            preset = self.stb_frameTemplate.getPresetByID(layerID)
+            if preset is not None:
+                layerMode = preset.layerName
+            else:
+                layerMode = "ALL"
+        return layerMode
+
     def list_greasepencil_materials(self, context):
         res = list()
 

@@ -522,8 +522,8 @@ class UAS_PT_ShotManager_ShotProperties(Panel):
         if props.display_storyboard_in_properties and props.expand_greasepencil_properties:
             gp.draw_greasepencil_shot_properties(self.layout, context, shot)
 
-            if config.devDebug:
-                gpTools.draw_storyboard_drawing_tools(self, context, shot, layersListDropdown=prefs.layersListDropdown)
+            # if config.devDebug:
+            #     gpTools.draw_storyboard_drawing_tools(self, context, shot, layersListDropdown=prefs.layersListDropdown)
 
             gp.draw_greasepencil_global_properties(self.layout, context)
 

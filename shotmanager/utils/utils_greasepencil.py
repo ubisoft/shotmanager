@@ -767,8 +767,8 @@ def deleteLayerKeyFrame(gpencil: bpy.types.GreasePencil, currentFrame, layerMode
 #################################
 
 
-def activeGpLayerAndMat(gpencil: bpy.types.GreasePencil, layerName, materialName):
-    """If the specified layer is found then active it on the specified grease pencil object"""
+def activateGpLayerAndMat(gpencil: bpy.types.GreasePencil, layerName, materialName):
+    """If the specified layer is found then activate it on the specified grease pencil object"""
 
     # Create a lookup-dict for the object materials:
     # mat_dict = {mat.name: i for i, mat in enumerate(context.object.data.materials)}
@@ -790,6 +790,18 @@ def activeGpLayerAndMat(gpencil: bpy.types.GreasePencil, layerName, materialName
     # elif "Fills" == layerName:
     #     if "Fills Mat" in mat_dict:
     #         gpencil.active_material_index = mat_dict["Fills Mat"]
+
+
+def gpLayerExists(gpencil: bpy.types.GreasePencil, layerName):
+    """Return True if the specified layer is foundon the specified grease pencil object
+    Args:
+        layerID:    Can be "CANVAS", "BG_INK", "BG_FILL"
+    """
+    layerExists = False
+    if layerName in gpencil.data.layers:
+        layerExists = True
+
+    return layerExists
 
 
 def gpLayerIsActive(gpencil: bpy.types.GreasePencil, layerName):

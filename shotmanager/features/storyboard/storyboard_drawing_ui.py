@@ -19,8 +19,6 @@
 Shot Manager grease pencil tools and specific operators
 """
 
-import bpy
-
 # from shotmanager.utils import utils
 from shotmanager.utils import utils_ui
 from shotmanager.utils import utils_greasepencil
@@ -36,6 +34,8 @@ def draw_storyboard_drawing_tools(self, context, shot, layersListDropdown=None):
 
     # if shot is None:
     #     return
+
+    devDebug_displayAdv = config.devDebug and True
 
     shotIndex = props.getShotIndex(shot)
 
@@ -106,7 +106,9 @@ def draw_storyboard_drawing_tools(self, context, shot, layersListDropdown=None):
 
         col = box.column()
 
-        if config.devDebug:
+        # Debug settings
+        ################
+        if devDebug_displayAdv:
             debugInfoRow = col.row(align=True)
             debugInfoRow.alert = True
             if shot is not None:
@@ -115,6 +117,18 @@ def draw_storyboard_drawing_tools(self, context, shot, layersListDropdown=None):
                 debugInfoRow.label(text="*** Free Scene GP: ")
             debugInfoRow.alert = False
             debugInfoRow.label(text=f"{editedGpencil.name if objIsGP else '-'}")
+
+            # show/hide outliner buttons
+            ################
+            # subRow = box.row(align=False)
+            # leftSubRow = subRow.row(align=True)
+            # leftSubRow.alignment = "LEFT"
+
+            # rightSubRow = subRow.row(align=True)
+            # rightSubRow.alignment = "RIGHT"
+            # rightSubRow.prop(gp_child, "hide_select", text="")
+            # rightSubRow.prop(gp_child, "hide_viewport", text="")
+            # rightSubRow.prop(gp_child, "hide_render", text="")
 
         if True or not gpIsStoryboardFrame:
             freeGPRow = col.row(align=True)
@@ -156,95 +170,20 @@ def draw_storyboard_drawing_tools(self, context, shot, layersListDropdown=None):
         ###################
         sepRow = col.row(align=True)
         sepRow.separator(factor=1)
-
         drawDrawingToolbarRow(context, col, props, editedGpencil, gpIsStoryboardFrame, shotIndex, leftSepFactor)
 
-        ###################
         # play bar row ###
         ###################
         sepRow = col.row(align=True)
         sepRow.separator(factor=0.5)
-
         drawDrawingPlaybarRow(context, col, props, editedGpencil, leftSepFactor, objIsGP)
 
         # layers ##
         ##################
         sepRow = col.row(align=True)
         sepRow.separator(factor=0.5)
+        drawDrawingMatRow(context, col, props, objIsGP)
 
-        matRow = col.row(align=False)
-        layersRow = matRow.row(align=True)
-        layersRow.alignment = "RIGHT"
-        # layersRow.prop(editedGpencil.data, "layers")
-        layersRow.label(text="Layer:")
-        # layersRow.prop(prefs, "layersListDropdown", text="Layers")
-
-        # Grease pencil layer.
-        gpl = context.active_gpencil_layer
-        if gpl and gpl.info is not None:
-            text = gpl.info
-            maxw = 25
-            if len(text) > maxw:
-                text = text[: maxw - 5] + ".." + text[-3:]
-        else:
-            text = ""
-
-        # layout.label(text="Layer:")
-        sub = layersRow.row(align=True)
-        # sub.alignment = "LEFT"
-        # sub.scale_x = 0.8
-        sub.ui_units_x = 6
-        sub.popover(
-            panel="TOPBAR_PT_gpencil_layers",
-            text=text,
-        )
-        if gpl and gpl.info is not None:
-            sub.alert = gpl.lock
-            sub.prop(gpl, "lock", text="")
-            sub.alert = False
-        else:
-            sub.label(text="", icon="LOCKED")
-
-        # Active material ###
-        ###################
-
-        if objIsGP:
-            materialsRow = matRow.row(align=True)
-            materialsRow.alignment = "RIGHT"
-            materialsRow.label(text="Material:")
-            # materialsRow.prop(editedGpencil, "material_slots")
-            materialsRow.prop(props, "greasePencil_activeMaterial", text="")
-
-        utils_ui.drawSeparatorLine(box)
-
-    # overlay tools
-    #########################
-    spaceDataViewport = props.getValidTargetViewportSpaceData(context)
-    onionSkinIsActive = False
-    gridIsActive = False
-    if spaceDataViewport is not None:
-        onionSkinIsActive = spaceDataViewport.overlay.use_gpencil_onion_skin
-        gridIsActive = spaceDataViewport.overlay.use_gpencil_grid
-
-    row = box.row(align=True)
-    overlayCol = row.column()
-    overlaySplit = overlayCol.split(factor=0.2)
-    overlaySplit.label(text="Overlay: ")
-    overlayRighRow = overlaySplit.row()
-    overlayRighRow.operator("uas_shot_manager.greasepencil_toggleonionskin", depress=onionSkinIsActive)
-    overlayRighRow.operator("uas_shot_manager.greasepencil_togglecanvas", depress=gridIsActive)
-
-    overlaySplit = overlayCol.split(factor=0.2)
-    overlaySplit.separator()
-    overlayRighRow = overlaySplit.row()
-    overlayRighRow.prop(spaceDataViewport.overlay, "use_gpencil_fade_layers", text="")
-    # row.prop(spaceDataViewport.overlay, "gpencil_fade_layer")
-    subOverlayRighRow = overlayRighRow.row()
-    subOverlayRighRow.enabled = spaceDataViewport.overlay.use_gpencil_fade_layers
-    subOverlayRighRow.prop(prefs, "stb_overlay_layers_opacity", text="Fade Layers", slider=True)
-
-
-#     utils_ui.drawSeparatorLine(layout, lower_height=0.6)
 
 # box.operator("uas_shot_manager.draw_on_grease_pencil", text="", icon="GP_SELECT_STROKES")
 
@@ -259,13 +198,18 @@ def drawDrawingToolbarRow(context, layout, props, editedGpencil, gpIsStoryboardF
     gpOpsRow = layout.row(align=True)
     gpOpsRow.scale_y = scale_y_pgOpsRow
     gpOpsRow.separator(factor=leftSepFactor)
-    gpOpsSplit = gpOpsRow.split(factor=0.3)
-    leftgpOpsRow = gpOpsSplit.row(align=True)
-    drawGpToolbar(context, leftgpOpsRow, editedGpencil, gpIsStoryboardFrame, shotIndex)
+
+    # not nice when num buttons is 1:
+    # gpOpsSplit = gpOpsRow.split(factor=0.3)
+    gpOpsSplit = gpOpsRow.grid_flow(align=False, columns=3)
+
+    # leftgpOpsRow = gpOpsSplit.row(align=True)
+    # leftgpOpsRow.alignment = "LEFT"
+    drawGpToolbar(context, gpOpsSplit, editedGpencil, gpIsStoryboardFrame, shotIndex)
 
     rightgpOpsRow = gpOpsSplit.row(align=True)
     autokeyRow = rightgpOpsRow.row(align=True)
-    # rightgpOpsRow.alignment = "LEFT"
+    rightgpOpsRow.alignment = "CENTER"
     # autokeyRow.scale_x = 0.75
     drawAutokey(context, autokeyRow)
 
@@ -274,7 +218,7 @@ def drawDrawingToolbarRow(context, layout, props, editedGpencil, gpIsStoryboardF
     # rightgpOpsRow.alignment = "RIGHT"
     drawLayersRow(context, props, layersRow, editedGpencil)
 
-    drawClearLayer(context, rightgpOpsRow)
+    drawClearLayer(context, gpOpsSplit, editedGpencil)
 
 
 def drawDrawingPlaybarRow(context, layout, props, editedGpencil, leftSepFactor, objIsGP):
@@ -291,6 +235,51 @@ def drawDrawingPlaybarRow(context, layout, props, editedGpencil, leftSepFactor, 
     drawKeyFrameMessage(context, rightNavRow, editedGpencil, objIsGP)
 
 
+def drawDrawingMatRow(context, layout, props, objIsGP):
+    matRow = layout.row(align=False)
+    layersRow = matRow.row(align=True)
+    layersRow.alignment = "RIGHT"
+    # layersRow.prop(editedGpencil.data, "layers")
+    layersRow.label(text="Layer:")
+    # layersRow.prop(prefs, "layersListDropdown", text="Layers")
+
+    # Grease pencil layer.
+    gpl = context.active_gpencil_layer
+    if gpl and gpl.info is not None:
+        text = gpl.info
+        maxw = 25
+        if len(text) > maxw:
+            text = text[: maxw - 5] + ".." + text[-3:]
+    else:
+        text = ""
+
+    # layout.label(text="Layer:")
+    sub = layersRow.row(align=True)
+    # sub.alignment = "LEFT"
+    # sub.scale_x = 0.8
+    sub.ui_units_x = 6
+    sub.popover(
+        panel="TOPBAR_PT_gpencil_layers",
+        text=text,
+    )
+    if gpl and gpl.info is not None:
+        sub.alert = gpl.lock
+        sub.prop(gpl, "lock", text="")
+        sub.alert = False
+    else:
+        sub.label(text="", icon="LOCKED")
+
+    # Active material ###
+    ###################
+
+    if objIsGP:
+        materialsRow = matRow.row(align=True)
+        materialsRow.alignment = "RIGHT"
+        materialsRow.label(text="Material:")
+        # materialsRow.prop(editedGpencil, "material_slots")
+        materialsRow.prop(props, "greasePencil_activeMaterial", text="")
+
+
 ##########################################################
 # buttons
 ##########################################################
@@ -303,13 +292,16 @@ def drawGpToolbar(context, layout, editedGpencil, gpIsStoryboardFrame, shotIndex
     gpToolsRow.scale_x = 2.0
     # gpOpsLeftRow.alignment = "RIGHT"
 
+    devDebug_displayAdv = False
+
     # if gpIsStoryboardFrame:
-    if editedGpencil.mode == "PAINT_GPENCIL":
-        gpToolsRow.operator("uas_shot_manager.select_grease_pencil_object", text="", icon="RESTRICT_SELECT_ON")
-    else:
-        gpToolsRow.operator(
-            "uas_shot_manager.select_shot_grease_pencil", text="", icon="RESTRICT_SELECT_OFF"
-        )  # .index = shotIndex
+    if devDebug_displayAdv:
+        if editedGpencil.mode == "PAINT_GPENCIL":
+            gpToolsRow.operator("uas_shot_manager.select_grease_pencil_object", text="", icon="RESTRICT_SELECT_ON")
+        else:
+            gpToolsRow.operator(
+                "uas_shot_manager.select_shot_grease_pencil", text="", icon="RESTRICT_SELECT_OFF"
+            )  # .index = shotIndex
 
     if editedGpencil.mode == "PAINT_GPENCIL":
         icon = "GREASEPENCIL"
@@ -317,22 +309,27 @@ def drawGpToolbar(context, layout, editedGpencil, gpIsStoryboardFrame, shotIndex
         gpToolsRow.operator("uas_shot_manager.toggle_grease_pencil_draw_mode", text="", icon=icon)
         gpToolsRow.alert = False
     else:
-        icon = "OUTLINER_OB_GREASEPENCIL"
-        if gpIsStoryboardFrame:
-            gpToolsRow.operator("uas_shot_manager.draw_on_grease_pencil", text="", icon=icon)
-        else:
-            gpToolsRow.operator("uas_shot_manager.toggle_grease_pencil_draw_mode", text="", icon=icon)
+        # icon = "OUTLINER_OB_GREASEPENCIL"
+        icon = "GREASEPENCIL"
+        # if gpIsStoryboardFrame:
+        gpToolsRow.operator("uas_shot_manager.draw_on_grease_pencil", text="", icon=icon)
+        # else:
+        #     gpToolsRow.operator("uas_shot_manager.toggle_grease_pencil_draw_mode", text="", icon=icon)
 
-    if config.devDebug:
+    if devDebug_displayAdv:
         gpToolsRow.operator("uas_shot_manager.update_grease_pencil", text="", icon="FILE_REFRESH").shotIndex = shotIndex
 
+    gpToolsRow.scale_x = 1.0
 
-def drawClearLayer(context, layout):
+
+def drawClearLayer(context, layout, editedGpencil):
     gpOpsRightRow = layout.row(align=False)
     gpOpsRightRow.alignment = "RIGHT"
     gpOpsRightRow.scale_x = 1.2
     # gpOpsRightRow.separator(factor=0.1)
-    gpOpsRightRow.operator("uas_shot_manager.clear_layer", text="", icon="MESH_PLANE")
+    gpOpsRightRow.operator_context = "INVOKE_DEFAULT"
+    gpOpsRightRow.operator("uas_shot_manager.clear_layer", text="", icon="MESH_PLANE").gpName = editedGpencil.name
+    # gpOpsRightRow.operator("uas_shot_manager.clear_layer", text="", icon="MESH_PLANE").mode = "CURRENT_STB_FRAME"
     # gpOpsRightRow.separator(factor=0.1)
 
 
@@ -407,7 +404,9 @@ def drawLayersRow(context, props, layout, editedGpencil):
         if "CANVAS" != preset.id and not preset.used:
             return
 
-        if preset.layerName is not None:
+        layerExists = utils_greasepencil.gpLayerExists(editedGpencil, preset.layerName)
+
+        if preset.layerName is not None and layerExists:
             currentFrameIsOnLayerKeyFrame = utils_greasepencil.isCurrentFrameOnLayerKeyFrame(
                 editedGpencil, currentFrame, preset.layerName
             )
@@ -418,14 +417,17 @@ def drawLayersRow(context, props, layout, editedGpencil):
             )
             op.layerID = preset.id
             op.layerName = preset.layerName
+            op.materialName = preset.materialName
             op.gpObjName = editedGpencil.name
         else:
             warningRow = layout.row(align=True)
+            icon_frame = icon_OnprevFrame
             warningRow.alert = True
             warningRow.enabled = False
-            warningRow.operator(
-                "uas_shot_manager.greasepencil_setlayerandmat", depress=depressBut, icon=icon_frame, text=""
-            ).layerID = f"{preset.id}_WARNING"
+            op = warningRow.operator(
+                "uas_shot_manager.greasepencil_setlayerandmat", depress=False, icon=icon_frame, text=""
+            )
+            op.layerID = f"{preset.id}_WARNING"
 
     usageButsRow = layout.row(align=True)
     # row.scale_x = 2.0
@@ -480,7 +482,9 @@ def drawKeysRow(context, props, layout, editedGpencil, objIsGP):
     keysRow.scale_x = 1.4
     keysRow.alignment = "CENTER"
     keysRow.enabled = objIsGP
-    keysRow.operator("uas_shot_manager.greasepencil_previouskey", icon="PREV_KEYFRAME", text="")
+    keysRow.operator(
+        "uas_shot_manager.greasepencil_previouskey", icon="PREV_KEYFRAME", text=""
+    ).gpName = editedGpencil.name
 
     isCurrentFrameOnGPFrame = False
     if objIsGP:
@@ -507,7 +511,7 @@ def drawKeysRow(context, props, layout, editedGpencil, objIsGP):
     delFrameOpRow.operator("uas_shot_manager.greasepencil_deletekeyframe", icon="PANEL_CLOSE", text="")
 
     # keysRow.enabled = True
-    keysRow.operator("uas_shot_manager.greasepencil_nextkey", icon="NEXT_KEYFRAME", text="")
+    keysRow.operator("uas_shot_manager.greasepencil_nextkey", icon="NEXT_KEYFRAME", text="").gpName = editedGpencil.name
 
     # subRow = mainRow.row(align=False)
     # subRow.scale_x = 1.5

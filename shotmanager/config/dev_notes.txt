@@ -52,6 +52,9 @@ OTIO advanced doc: https://sandflow.github.io/otio-core-specification/
 
 Grease Pencil for boarding:
     - Urgent:
+
+        - faire marcher les add / remove / duplicate pour les stb frames
+        
         - check the materials for the presets and add them in the preset panel
 
         - remove operator duplicate "uas_shot_manager.draw_on_grease_pencil"
