@@ -71,10 +71,11 @@ class UAS_PT_ShotManager(Panel):
         import addon_utils
 
         if "STORYBOARD" == props.layout_mode:
-            icon_stb = "IMAGE_RGB"
-            row.operator("uas_shot_manager.about", text="", icon=icon_stb)
+            # icon_stb = "IMAGE_RGB"
+            icon = config.icons_col["ShotManager_Storyboard_32"]
+            row.operator("uas_shot_manager.about", text="", icon_value=icon.icon_id)
         else:
-            icon = config.icons_col["Ubisoft_32"]
+            # icon = config.icons_col["Ubisoft_32"]
             icon = config.icons_col["ShotManager_32"]
             row.operator("uas_shot_manager.about", text="", icon_value=icon.icon_id)
 

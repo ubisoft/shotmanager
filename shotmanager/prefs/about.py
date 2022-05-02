@@ -46,7 +46,7 @@ class UAS_ShotManager_OT_About(Operator):
         ###############
         row = col.row()
         row.separator()
-        row.label(text="Version: " + props.version()[0] + " - (" + "Dec. 04th 2021" + ")" + " -  Ubisoft")
+        row.label(text="Version: " + props.version()[0] + " - (" + "May 2022" + ")" + " -  Ubisoft")
 
         # Category
         ###############

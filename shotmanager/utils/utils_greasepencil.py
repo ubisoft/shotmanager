@@ -792,6 +792,17 @@ def activateGpLayerAndMat(gpencil: bpy.types.GreasePencil, layerName, materialNa
     #         gpencil.active_material_index = mat_dict["Fills Mat"]
 
 
+def toggleLayerVisibility(gpencil: bpy.types.GreasePencil, layerName):
+    if layerName in gpencil.data.layers:
+        gpencil.data.layers[layerName].hide = not gpencil.data.layers[layerName].hide
+
+
+def isLayerVisibile(gpencil: bpy.types.GreasePencil, layerName):
+    if layerName in gpencil.data.layers:
+        return not gpencil.data.layers[layerName].hide
+    return False
+
+
 def gpLayerExists(gpencil: bpy.types.GreasePencil, layerName):
     """Return True if the specified layer is foundon the specified grease pencil object
     Args:

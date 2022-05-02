@@ -1,8 +1,10 @@
-# 2.0.18 (2022-04-29)
+# 2.0.18 (2022-05-02)
 
 ## Storyboard
 
 - Fixed UI and storyboard frame behaviors
+- Added buttons to add, duplicate or remove grease pencil key frames
+- Changed the alternative behaviors of the storyboard frame action to toggle layer visibility
 
 
 # 2.0.17 (2022-04-29)

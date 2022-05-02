@@ -690,23 +690,33 @@ class UAS_ShotManager_GreasePencil_NewKeyFrame(Operator):
         default="",
     )
 
+    gpName: StringProperty(default="")
+
     def execute(self, context):
-        gp = context.active_object
-        props = context.scene.UAS_shot_manager_props
-        if "" == self.layersMode:
-            if gp is not None:
-                props = context.scene.UAS_shot_manager_props
-                if "" == props.greasePencil_layersMode:
-                    if len(gp.data.layers):
-                        props.greasePencil_layersMode = "ACTIVE"
-                    else:
-                        props.greasePencil_layersMode = "NOLAYER"
-                    self.layersMode = props.greasePencil_layersMode
-        _logger.debug_ext(
-            f"On a frame for mode {self.layersMode}: {utils_greasepencil.isCurrentFrameOnLayerKeyFrame(gp, context.scene.frame_current, self.layersMode)}"
-        )
-        layerMode = props.getLayerModeFromID(props.greasePencil_layersMode)
-        utils_greasepencil.addKeyFrameToLayer(gp, context.scene.frame_current, layerMode)
+        gp = None
+        if "" == self.gpName:
+            gp = context.object
+        else:
+            if self.gpName in context.scene.objects:
+                gp = context.scene.objects[self.gpName]
+
+        if gp is not None:
+            props = context.scene.UAS_shot_manager_props
+            if "" == self.layersMode:
+                if gp is not None:
+                    props = context.scene.UAS_shot_manager_props
+                    if "" == props.greasePencil_layersMode:
+                        if len(gp.data.layers):
+                            props.greasePencil_layersMode = "ACTIVE"
+                        else:
+                            props.greasePencil_layersMode = "NOLAYER"
+                        self.layersMode = props.greasePencil_layersMode
+            _logger.debug_ext(
+                f"On a frame for mode {self.layersMode}: {utils_greasepencil.isCurrentFrameOnLayerKeyFrame(gp, context.scene.frame_current, self.layersMode)}"
+            )
+
+            layerMode = props.getLayerModeFromID(self.layersMode)
+            utils_greasepencil.addKeyFrameToLayer(gp, context.scene.frame_current, layerMode)
 
         return {"FINISHED"}
 
@@ -722,23 +732,33 @@ class UAS_ShotManager_GreasePencil_DuplicateKeyFrame(Operator):
         default="",
     )
 
+    gpName: StringProperty(default="")
+
     def execute(self, context):
-        gp = context.active_object
-        props = context.scene.UAS_shot_manager_props
-        if "" == self.layersMode:
-            if gp is not None:
-                props = context.scene.UAS_shot_manager_props
-                if "" == props.greasePencil_layersMode:
-                    if len(gp.data.layers):
-                        props.greasePencil_layersMode = "ACTIVE"
-                    else:
-                        props.greasePencil_layersMode = "NOLAYER"
-                self.layersMode = props.greasePencil_layersMode
-        _logger.debug_ext(
-            f"On a frame for mode {self.layersMode}: {utils_greasepencil.isCurrentFrameOnLayerKeyFrame(gp, context.scene.frame_current, self.layersMode)}"
-        )
-        layerMode = props.getLayerModeFromID(props.greasePencil_layersMode)
-        utils_greasepencil.duplicateLayerKeyFrame(gp, context.scene.frame_current, layerMode)
+        gp = None
+        if "" == self.gpName:
+            gp = context.object
+        else:
+            if self.gpName in context.scene.objects:
+                gp = context.scene.objects[self.gpName]
+
+        if gp is not None:
+            props = context.scene.UAS_shot_manager_props
+            if "" == self.layersMode:
+                if gp is not None:
+                    props = context.scene.UAS_shot_manager_props
+                    if "" == props.greasePencil_layersMode:
+                        if len(gp.data.layers):
+                            props.greasePencil_layersMode = "ACTIVE"
+                        else:
+                            props.greasePencil_layersMode = "NOLAYER"
+                    self.layersMode = props.greasePencil_layersMode
+            _logger.debug_ext(
+                f"On a frame for mode {self.layersMode}: {utils_greasepencil.isCurrentFrameOnLayerKeyFrame(gp, context.scene.frame_current, self.layersMode)}"
+            )
+
+            layerMode = props.getLayerModeFromID(self.layersMode)
+            utils_greasepencil.duplicateLayerKeyFrame(gp, context.scene.frame_current, layerMode)
 
         return {"FINISHED"}
 
@@ -754,23 +774,31 @@ class UAS_ShotManager_GreasePencil_DeleteKeyFrame(Operator):
         default="",
     )
 
+    gpName: StringProperty(default="")
+
     def execute(self, context):
-        gp = context.active_object
-        props = context.scene.UAS_shot_manager_props
-        if "" == self.layersMode:
-            if gp is not None:
-                props = context.scene.UAS_shot_manager_props
+        gp = None
+        if "" == self.gpName:
+            gp = context.object
+        else:
+            if self.gpName in context.scene.objects:
+                gp = context.scene.objects[self.gpName]
+
+        if gp is not None:
+            props = context.scene.UAS_shot_manager_props
+            if "" == self.layersMode:
                 if "" == props.greasePencil_layersMode:
                     if len(gp.data.layers):
                         props.greasePencil_layersMode = "ACTIVE"
                     else:
                         props.greasePencil_layersMode = "NOLAYER"
                     self.layersMode = props.greasePencil_layersMode
-        _logger.debug_ext(
-            f"On a frame for mode {self.layersMode}: {utils_greasepencil.isCurrentFrameOnLayerKeyFrame(gp, context.scene.frame_current, self.layersMode)}"
-        )
-        layerMode = props.getLayerModeFromID(props.greasePencil_layersMode)
-        utils_greasepencil.deleteLayerKeyFrame(gp, context.scene.frame_current, layerMode)
+                _logger.debug_ext(
+                    f"On a frame for mode {self.layersMode}: {utils_greasepencil.isCurrentFrameOnLayerKeyFrame(gp, context.scene.frame_current, self.layersMode)}"
+                )
+
+            layerMode = props.getLayerModeFromID(self.layersMode)
+            utils_greasepencil.deleteLayerKeyFrame(gp, context.scene.frame_current, layerMode)
 
         return {"FINISHED"}
 
@@ -834,27 +862,15 @@ class UAS_ShotManager_GreasePencil_SetLayerAndMat(Operator):
 
     @classmethod
     def description(self, context, properties):
-
         warningStrInd = properties.layerID.find("_WARNING")
         if -1 != warningStrInd:
             currentLayerID = properties.layerID[:warningStrInd]
         else:
             currentLayerID = properties.layerID
-
         descr = ""
         descr += " *** Layer not found ***\n" if -1 != warningStrInd else ""
         descr += f"Activate the layer of the mode {currentLayerID} and pick the associated material"
-        # print("properties: ", properties)
-
-        # if "CANVAS" in properties.layerID:
-        #     descr = f"Canvas Layer{warningStr}\n{descr}"
-        # elif "BG_INK" in properties.layerID:
-        #     descr = f"BG Ink Layer{warningStr}\n{descr}"
-        # elif "BG_FILL" in properties.layerID:
-        #     descr = f"BG Fill Layer{warningStr}\n{descr}"
-
         descr += "\n+ Ctrl: Add key frame" "\n+ Shift: Duplicate previous key frame" "\n+ Alt: Delete key frame"
-
         return descr
 
     def invoke(self, context, event):
@@ -872,6 +888,147 @@ class UAS_ShotManager_GreasePencil_SetLayerAndMat(Operator):
             bpy.ops.uas_shot_manager.greasepencil_duplicatekeyframe(layersMode="ACTIVE")
         elif event.alt and not event.shift and not event.ctrl:
             bpy.ops.uas_shot_manager.greasepencil_deletekeyframe(layersMode="ACTIVE")
+
+        return {"FINISHED"}
+
+
+class UAS_ShotManager_GreasePencil_SetLayerAndMatAndVisib(Operator):
+    bl_idname = "uas_shot_manager.greasepencil_setlayerandmatandvisib"
+    bl_label = ""
+    bl_description = "Set active layer and current material"
+    bl_options = {"INTERNAL", "UNDO"}
+
+    "layerID:    Can be CANVAS, BG_INK, BG_FILL"
+    layerID: StringProperty(
+        name="Layer ID",
+        default="",
+    )
+
+    layerName: StringProperty(
+        name="Layer Name",
+        default="",
+    )
+
+    materialName: StringProperty(
+        name="Material Name",
+        default="",
+    )
+
+    gpObjName: StringProperty(
+        name="grease Pencil Object Name",
+        default="",
+    )
+
+    @classmethod
+    def description(self, context, properties):
+        warningStrInd = properties.layerID.find("_WARNING")
+        if -1 != warningStrInd:
+            currentLayerID = properties.layerID[:warningStrInd]
+        else:
+            currentLayerID = properties.layerID
+        descr = ""
+        descr += " *** Layer not found ***\n" if -1 != warningStrInd else ""
+        descr += f"Activate the layer of the mode {currentLayerID} and pick the associated material"
+        descr += "\n+ Ctrl: Toggle layer visibility"
+        return descr
+
+    def invoke(self, context, event):
+        # prefs = context.preferences.addons["shotmanager"].preferences
+        props = context.scene.UAS_shot_manager_props
+        # print(f"Layer and mat - ID: {self.layerID}, name:{self.gpObjName}")
+
+        if not event.ctrl and not event.shift and not event.alt:
+            utils_greasepencil.activateGpLayerAndMat(
+                bpy.context.scene.objects[self.gpObjName], self.layerName, self.materialName
+            )
+        elif event.ctrl and not event.shift and not event.alt:
+            utils_greasepencil.toggleLayerVisibility(bpy.context.scene.objects[self.gpObjName], self.layerName)
+        # elif event.shift and not event.ctrl and not event.alt:
+        #     bpy.ops.uas_shot_manager.greasepencil_duplicatekeyframe(layersMode="ACTIVE")
+        elif event.alt and not event.shift and not event.ctrl:
+            props.stb_frameTemplate.toggleSoloLayersVisibility(
+                bpy.context.scene.objects[self.gpObjName], self.layerName
+            )
+
+        return {"FINISHED"}
+
+
+class UAS_ShotManager_GreasePencil_SetKeyframe(Operator):
+    bl_idname = "uas_shot_manager.greasepencil_setkeyframe"
+    bl_label = ""
+    bl_description = "Set active layer and current material"
+    bl_options = {"INTERNAL", "UNDO"}
+
+    "Mode:    Can be ADD, DUPLICATE, REMOVE"
+    mode: StringProperty(
+        name="Mode",
+        default="ADD",
+    )
+
+    "layerID:    Can be CANVAS, BG_INK, BG_FILL"
+    layerID: StringProperty(
+        name="Layer ID",
+        default="",
+    )
+
+    layerName: StringProperty(
+        name="Layer Name",
+        default="ACTIVE",
+    )
+
+    gpName: StringProperty(
+        name="grease Pencil Object Name",
+        default="",
+    )
+
+    @classmethod
+    def description(self, context, properties):
+
+        warningStrInd = properties.layerID.find("_WARNING")
+        if -1 != warningStrInd:
+            currentLayerID = properties.layerID[:warningStrInd]
+        else:
+            currentLayerID = properties.layerID
+
+        descr = ""
+        descr += " *** Layer not found ***\n" if -1 != warningStrInd else ""
+
+        if "ADD" == properties.mode:
+            descr += "Insert blank keyframe to the active layer"
+            descr += "\n+ Shift: Insert on every layer"
+        elif "DUPLICATE" == properties.mode:
+            descr += "Duplicate active keyframe at the current time onto the specified layer"
+            descr += "\n+ Shift: Duplicate for every layer"
+        elif "REMOVE" == properties.mode:
+            descr += "Delete active keyframe from the specified layer"
+            descr += "\n+ Shift: Delete on every layers"
+
+        return descr
+
+    def invoke(self, context, event):
+        # prefs = context.preferences.addons["shotmanager"].preferences
+        # props = context.scene.UAS_shot_manager_props
+        # print(f"Layer and mat - ID: {self.layerID}, name:{self.gpObjName}")
+
+        # if not event.ctrl and not event.shift and not event.alt:
+
+        layerMode = None
+        if not event.ctrl and not event.shift and not event.alt:
+            layerMode = self.layerName
+        # elif event.ctrl and not event.shift and not event.alt:
+        #     bpy.ops.uas_shot_manager.greasepencil_newkeyframe(layersMode="ACTIVE")
+        elif event.shift and not event.ctrl and not event.alt:
+            layerMode = "ALL"
+        # elif event.alt and not event.shift and not event.ctrl:
+        #     bpy.ops.uas_shot_manager.greasepencil_deletekeyframe(layersMode="ACTIVE")
+
+        if layerMode is not None:
+            if "ADD" == self.mode:
+                bpy.ops.uas_shot_manager.greasepencil_newkeyframe(layersMode=layerMode, gpName=self.gpName)
+            elif "DUPLICATE" == self.mode:
+                bpy.ops.uas_shot_manager.greasepencil_duplicatekeyframe(layersMode=layerMode, gpName=self.gpName)
+            elif "REMOVE" == self.mode:
+                bpy.ops.uas_shot_manager.greasepencil_deletekeyframe(layersMode=layerMode, gpName=self.gpName)
 
         return {"FINISHED"}
 
@@ -897,6 +1054,8 @@ _classes = (
     UAS_ShotManager_GreasePencil_ToggleOnionSkin,
     UAS_ShotManager_GreasePencil_ToggleCanvas,
     UAS_ShotManager_GreasePencil_SetLayerAndMat,
+    UAS_ShotManager_GreasePencil_SetLayerAndMatAndVisib,
+    UAS_ShotManager_GreasePencil_SetKeyframe,
     #   UAS_ShotManager_OT_ChangeGreasePencilOpacity,
 )
 

@@ -42,9 +42,28 @@ from shotmanager.utils import utils
 from shotmanager.utils import utils_greasepencil
 from .montage_interface import ShotInterface
 
+from shotmanager.config import config
+
 from shotmanager.config import sm_logging
 
 _logger = sm_logging.getLogger(__name__)
+
+
+def list_shot_types(self, context):
+    # res = list()
+    # res.append(("NEW_CAMERA", "Create New Camera", "Create new camera", 0))
+    # for i, cam in enumerate([c for c in context.scene.objects if c.type == "CAMERA"]):
+    #     res.append(
+    #         (cam.name, cam.name, 'Use the exising scene camera named "' + cam.name + '"\nfor the new shot', i + 1)
+    #     )
+    icon_previz = config.icons_col["ShotManager_CamGPShot_32"]
+    icon_stb = config.icons_col["ShotManager_CamGPStb_32"]
+    res = (
+        ("PREVIZ", "Camera Shot", "Shot based on the record of a camera", icon_previz.icon_id, 0),
+        ("STORYBOARD", "Storyboard Frame", "2D drawing used for storyboarding", icon_stb.icon_id, 1),
+    )
+
+    return res
 
 
 class UAS_ShotManager_Shot(ShotInterface, PropertyGroup):
@@ -153,11 +172,8 @@ class UAS_ShotManager_Shot(ShotInterface, PropertyGroup):
     shotType: EnumProperty(
         name="Type",
         description="Usage of the shot",
-        items=(
-            ("PREVIZ", "Camera Shot", "Shot based on the record of a camera"),
-            ("STORYBOARD", "Storyboard Frame", "2D drawing used for storyboarding"),
-        ),
-        default="PREVIZ",
+        items=list_shot_types,
+        default=0,
     )
 
     #############

@@ -218,16 +218,16 @@ def draw_greasepencil_shot_properties(layout, context, shot):
         row = col.row()
         row.separator(factor=1.0)
         drawing_ui.drawDrawingToolbarRow(
-            context, col, props, editedGpencil, gpIsStoryboardFrame, shotIndex, leftSepFactor
+            context, col, props, editedGpencil, gpIsStoryboardFrame, shotIndex, leftSepFactor, objIsGP
         )
 
         row = col.row()
-        row.separator(factor=0.5)
+        row.separator(factor=1.2)
         drawing_ui.drawDrawingPlaybarRow(context, col, props, editedGpencil, leftSepFactor, objIsGP)
 
-        row = col.row()
-        row.separator(factor=0.5)
-        drawing_ui.drawDrawingMatRow(context, col, props, objIsGP)
+        # row = col.row()
+        # row.separator(factor=0.5)
+        # drawing_ui.drawDrawingMatRow(context, col, props, objIsGP)
 
         #####################
         # Canvas

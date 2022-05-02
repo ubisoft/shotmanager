@@ -127,7 +127,10 @@ class UAS_UL_ShotManager_Items(bpy.types.UIList):
                         row.alert = True
                         row.operator("uas_shot_manager.greasepencilitem", text="", icon=icon).index = index
                     else:
-                        icon = config.icons_col["ShotManager_CamGPShot_32"]
+                        if "STORYBOARD" == item.shotType:
+                            icon = config.icons_col["ShotManager_CamGPStb_32"]
+                        else:
+                            icon = config.icons_col["ShotManager_CamGPShot_32"]
                         row.operator(
                             "uas_shot_manager.greasepencilitem", text="", icon_value=icon.icon_id
                         ).index = index

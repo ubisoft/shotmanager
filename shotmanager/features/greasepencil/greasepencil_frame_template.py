@@ -32,6 +32,7 @@ from bpy.props import (
     FloatVectorProperty,
 )
 
+from shotmanager.utils import utils_greasepencil
 from shotmanager.config import sm_logging
 
 _logger = sm_logging.getLogger(__name__)
@@ -218,6 +219,36 @@ class UAS_GreasePencil_FrameTemplate(PropertyGroup):
     ###############################
 
     frameGrid: PointerProperty(type=UAS_ShotManager_FrameGrid)
+
+    ###############################
+    # layers visibility
+    ###############################
+
+    # frameGrid: PointerProperty(type=StringProperty)
+    layerNameUsedForVisibilityToggle: StringProperty(default="")
+
+    def toggleSoloLayersVisibility(self, gpencil, layerName):
+        """Can work on any grease pencil object"""
+        if gpencil is None or "GPENCIL" != gpencil.type:
+            return
+        if layerName in gpencil.data.layers:
+            if utils_greasepencil.isLayerVisibile(gpencil, layerName):
+                # hide all layers
+                # NOTE: should probably hide only supported layers
+                if layerName == self.layerNameUsedForVisibilityToggle:
+                    # then unhide
+                    for layer in gpencil.data.layers:
+                        layer.hide = False
+                    self.layerNameUsedForVisibilityToggle = ""
+                else:
+                    # hide
+                    for layer in gpencil.data.layers:
+                        if layer.info != layerName:
+                            layer.hide = True
+                    self.layerNameUsedForVisibilityToggle = layerName
+            else:
+                # we unhide only the layer
+                gpencil.data.layers[layerName].hide = False
 
     ###############################
     # edited grease pencil settings
