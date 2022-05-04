@@ -34,7 +34,7 @@ def drawShotManagerMenu(context, layout, panelType="SM_MAIN"):
 
     row = layout.row(align=True)
     row.operator_context = "INVOKE_DEFAULT"
-    row.operator("shot_manager.features", text="Feature Toggles...")
+    row.operator("shot_manager.features", text="Feature Toggles...", icon="PROPERTIES")
 
     layout.separator()
 
@@ -73,7 +73,7 @@ def drawShotManagerMenu(context, layout, panelType="SM_MAIN"):
         resetOp.function_name = "reset_render_properties"
 
     row = layout.row(align=True)
-    row.operator("preferences.addon_show", text="Add-on Preferences...").module = "shotmanager"
+    row.operator("preferences.addon_show", text="Add-on Preferences...", icon="PREFERENCES").module = "shotmanager"
 
     # if config.devDebug:
     #     layout.separator()
@@ -95,7 +95,7 @@ def drawShotManagerMenu(context, layout, panelType="SM_MAIN"):
     layout.separator()
 
     row = layout.row(align=True)
-    doc_op = row.operator("shotmanager.open_documentation_url", text="Documentation")
+    doc_op = row.operator("shotmanager.open_documentation_url", text="Documentation", icon="HELP")
     doc_op.path = "https://ubisoft-shotmanager.readthedocs.io"
     doc_op.tooltip = "Open online documentation: " + doc_op.path
 

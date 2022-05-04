@@ -63,6 +63,20 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
         default=False,
     )
 
+    def version(self):
+        """Return the add-on version in the form of a tupple made by:
+            - a string x.y.z (eg: "1.21.3")
+            - an integer. x.y.z becomes xxyyyzzz (eg: "1.21.3" becomes 1021003)
+        Return None if the addon has not been found
+        """
+        return utils.addonVersion("Shot Manager")
+
+    newAvailableVersion: IntProperty(
+        description="Store the version of the latest release of the add-on as an integer if there is an online release"
+        "\nthat is more recent than this version. If there is none then the value is 0",
+        default=2005001,
+    )
+
     isInitialized: BoolProperty(
         default=False,
     )
@@ -70,6 +84,26 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
     def initialize_shot_manager_prefs(self):
         print("\nInitializing Shot Manager Preferences...")
         self.stb_frameTemplate.initialize(mode="ADDON_PREFS")
+
+        # check for updates on GitHub
+        import requests
+
+        url = "https://github.com/ubisoft/shotmanager/releases/latest"
+        r = requests.get(url)
+        versionStr = r.url.split("/")[-1]
+
+        # version string from the tags used by our releases on GitHub is formated as this: v<int>.<int>.<int>
+        version = utils.convertVersionStrToInt(versionStr)
+
+        _logger.debug_ext(
+            f"Checking for updates: Latest version of Ubisoft Shot Manager online is: {versionStr}", col="BLUE"
+        )
+        if self.version()[1] < version:
+            _logger.debug_ext("   New version available online...", col="BLUE")
+            self.newAvailableVersion = version
+        else:
+            self.newAvailableVersion = 0
+
         self.isInitialized = True
 
     ########################################################################

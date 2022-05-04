@@ -33,6 +33,7 @@ from bpy.props import StringProperty
 from bpy_extras.io_utils import ImportHelper
 
 from .utils_os import open_folder
+from .utils import convertVersionIntToStr
 
 ###################
 # UI
@@ -232,11 +233,63 @@ class UAS_ShotManager_OT_Querybox(Operator):
 
 ####################################################################
 
+
+class UAS_ShotManager_UpdateDialog(Operator):
+    bl_idname = "uas_shot_manager.update_dialog"
+    bl_label = "Add-on Update Available"
+    bl_description = "Open a dialog window presenting the available update of the add-on"
+
+    # can be a web url or an intranet path
+    url: StringProperty(default="")
+
+    addonName: StringProperty(default="")
+
+    def invoke(self, context, event):
+        self.addonName = "Ubisoft Shot Manager"
+        self.url = "https://github.com/ubisoft/shotmanager/releases/latest"
+
+        return context.window_manager.invoke_props_dialog(self, width=450)
+
+    def draw(self, context):
+        prefs = context.preferences.addons["shotmanager"].preferences
+
+        layout = self.layout
+        box = layout.box()
+        col = box.column()
+
+        sepRow = col.row()
+        sepRow.separator(factor=0.5)
+
+        row = col.row()
+        newVersionStr = f"V. {convertVersionIntToStr(prefs.newAvailableVersion)}"
+        row.label(text=f"A new version of {self.addonName} is available on GitHub: {newVersionStr}")
+
+        sepRow = col.row()
+        sepRow.separator(factor=0.5)
+
+        row = col.row()
+        row.label(text="You can download it here:")
+
+        doc_op = row.operator("shotmanager.open_documentation_url", text="Download Latest", icon="URL")
+        doc_op.path = self.url
+        doc_op.tooltip = "Open latest Shot Manager download page: " + doc_op.path
+
+        sepRow = col.row()
+        sepRow.separator(factor=0.5)
+
+    def execute(self, context):
+        return {"FINISHED"}
+
+
+####################################################################
+
+
 _classes = (
     UAS_ShotManager_OpenExplorer,
     UAS_SM_Open_Documentation_Url,
     UAS_ShotManager_OpenFileBrowser,
     UAS_ShotManager_OT_Querybox,
+    UAS_ShotManager_UpdateDialog,
 )
 
 

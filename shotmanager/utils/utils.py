@@ -45,8 +45,16 @@ def unique_object_name(obj_name):
 
 
 def convertVersionStrToInt(versionStr):
-    """Convert a string formated like "1.23.48" to a version integer such as 1023048"""
+    """Convert a string formated like "1.23.48" to a version integer such as 1023048
+    Any text or space placed before the first digit is ignored
+    """
     formatedVersion = "{:02}{:03}{:03}"
+    firstDigitInd = 0
+    for i, c in enumerate(versionStr):
+        if c.isdigit():
+            firstDigitInd = i
+            break
+    versionStr = versionStr[firstDigitInd:]
     versionSplitted = versionStr.split(".")
     return int(formatedVersion.format(int(versionSplitted[0]), int(versionSplitted[1]), int(versionSplitted[2])))
 

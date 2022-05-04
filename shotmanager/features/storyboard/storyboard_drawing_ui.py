@@ -19,8 +19,6 @@
 Shot Manager grease pencil tools and specific operators
 """
 
-# from shotmanager.utils import utils
-from shotmanager.utils import utils_ui
 from shotmanager.utils import utils_greasepencil
 
 from shotmanager.config import config
@@ -156,13 +154,13 @@ def drawGpToolbar(context, layout, editedGpencil, gpIsStoryboardFrame, shotIndex
     devDebug_displayAdv = False
 
     # if gpIsStoryboardFrame:
-    if devDebug_displayAdv:
-        if editedGpencil.mode == "PAINT_GPENCIL":
-            gpToolsRow.operator("uas_shot_manager.select_grease_pencil_object", text="", icon="RESTRICT_SELECT_ON")
-        else:
-            gpToolsRow.operator(
-                "uas_shot_manager.select_shot_grease_pencil", text="", icon="RESTRICT_SELECT_OFF"
-            )  # .index = shotIndex
+    # if devDebug_displayAdv:
+    #     if editedGpencil.mode == "PAINT_GPENCIL":
+    #         gpToolsRow.operator("uas_shot_manager.select_grease_pencil_object", text="", icon="RESTRICT_SELECT_ON")
+    #     else:
+    #         gpToolsRow.operator(
+    #             "uas_shot_manager.select_shot_grease_pencil", text="", icon="RESTRICT_SELECT_OFF"
+    #         )  # .index = shotIndex
 
     if editedGpencil.mode == "PAINT_GPENCIL":
         icon = "GREASEPENCIL"

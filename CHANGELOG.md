@@ -1,3 +1,8 @@
+# 2.0.19 (2022-05-04)
+
+- Added a UI information to inform the user of a new available version
+
+
 # 2.0.18 (2022-05-02)
 
 ## Storyboard

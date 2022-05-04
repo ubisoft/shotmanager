@@ -33,7 +33,7 @@ def open_folder(path):
         subprocess.check_call(["open", "--", path])
     elif "Linux" == platform.system():
         subprocess.check_call(["xdg-open", path])
-    elif "Windows " == platform.system():
+    elif "Windows" == platform.system():
         subprocess.Popen(f'explorer "{Path(path)}"')
 
 

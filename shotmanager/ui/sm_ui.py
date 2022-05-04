@@ -98,6 +98,7 @@ class UAS_PT_ShotManager(Panel):
             betaRow.label(text=f" *** {addonWarning[0]} ***")
 
     def draw_header_preset(self, context):
+        prefs = context.preferences.addons["shotmanager"].preferences
         layout = self.layout
         layout.emboss = "NONE"
 
@@ -126,6 +127,13 @@ class UAS_PT_ShotManager(Panel):
 
         row.separator(factor=0.5)
         row.menu("UAS_MT_Shot_Manager_prefs_mainmenu", icon="PREFERENCES", text="")
+
+        if prefs.newAvailableVersion:
+            row.separator(factor=0.5)
+            subRow = row.row()
+            subRow.alert = True
+            subRow.operator("uas_shot_manager.update_dialog", text="", icon="WORLD_DATA")
+
         row.separator(factor=1.0)
 
     def draw(self, context):

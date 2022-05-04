@@ -173,8 +173,10 @@ class UAS_ShotManager_OT_SelectShotGreasePencil(Operator):
 class UAS_ShotManager_OT_SelectGreasePencilObject(Operator):
     bl_idname = "uas_shot_manager.select_grease_pencil_object"
     bl_label = "Select the grease pencil object being drawn"
-    # bl_description = "Select Grease Pencil object"
+    bl_description = "Select Grease Pencil object"
     bl_options = {"INTERNAL", "UNDO"}
+
+    gpName: bpy.props.StringProperty(default="")
 
     # @classmethod
     # def poll(self, context):
@@ -184,16 +186,20 @@ class UAS_ShotManager_OT_SelectGreasePencilObject(Operator):
     def execute(self, context):
         # bpy.ops.outliner.item_activate(extend=True, deselect_all=True)
 
+        gp = None
+        if self.gpName in bpy.context.scene.objects:
+            gp = bpy.context.scene.objects[self.gpName]
+
         # bpy.ops.object.select_all(action="DESELECT")
-        if context.object is None:
+        if gp is None:
             bpy.ops.object.select_all(action="DESELECT")
         else:
             # bpy.data.objects["Cube"].select_get()
             for obj in context.selected_objects:
                 obj.select_set(False)
-            bpy.context.view_layer.objects.active = context.object
-            bpy.data.objects[context.object.name].select_set(True)
-            # utils.select_object(context.object)
+            bpy.context.view_layer.objects.active = gp
+            bpy.data.objects[gp.name].select_set(True)
+            # utils.select_object(gp)
 
             utils.setPropertyPanelContext(bpy.context, "DATA")
 
