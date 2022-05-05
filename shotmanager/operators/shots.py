@@ -734,7 +734,6 @@ class UAS_ShotManager_ShotAdd(Operator):
             cam.name = "Cam_" + newShot.name
             cam.data.name = cam.name
 
-        bpy.ops.object.select_all(action="DESELECT")
         utils.clear_selection()
 
         if props.display_storyboard_in_properties:

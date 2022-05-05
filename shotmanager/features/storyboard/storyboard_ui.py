@@ -333,7 +333,7 @@ def draw_greasepencil_shot_properties(layout, context, shot):
         # row.separator(factor=0.5)
 
     # row = box.row()
-    # row.operator("uas_shot_manager.change_grease_pencil_opacity").gpObjectName = gp_child
+    # row.operator("uas_shot_manager.change_grease_pencil_opacity").gpName = gp_child
 
 
 def draw_greasepencil_global_properties(layout, context):

@@ -126,6 +126,9 @@ def draw_greasepencil_play_tools(self, context, shot, layersListDropdown=None):
             subrightFreeGPRow = rightFreeGPRow.row(align=True)
             subrightFreeGPRow.enabled = props.shotsGlobalSettings.stb_camPOV_forFreeGP
             subrightFreeGPRow.prop(props.shotsGlobalSettings, "stb_strokePlacement_forFreeGP", text="")
+            subrightFreeGPRow.prop(
+                props.shotsGlobalSettings, "stb_changeCursorPlacement_forFreeGP", text="", icon="CURSOR"
+            )
 
         # toolbar row ###
         ###################
@@ -139,7 +142,7 @@ def draw_greasepencil_play_tools(self, context, shot, layersListDropdown=None):
         # gpOpsSplit = gpOpsRow.split(factor=0.3)
         gpOpsSplit = gpOpsRow.grid_flow(align=False, columns=4)
         leftgpOpsRow = gpOpsSplit.row(align=True)
-        drawGpToolbar(context, leftgpOpsRow, editedGpencil, gpIsStoryboardFrame, shotIndex)
+        drawGpToolbar(context, leftgpOpsRow, props, editedGpencil, gpIsStoryboardFrame, shotIndex)
 
         rightgpOpsRow = gpOpsSplit.row(align=True)
         rightgpOpsRow.alignment = "LEFT"
@@ -271,7 +274,7 @@ def drawMatRow(context, layout, props, objIsGP):
         materialsRow.prop(props, "greasePencil_activeMaterial", text="")
 
 
-def drawGpToolbar(context, layout, editedGpencil, gpIsStoryboardFrame, shotIndex):
+def drawGpToolbar(context, layout, props, editedGpencil, gpIsStoryboardFrame, shotIndex):
 
     gpToolsRow = layout.row(align=True)
     #   gpToolsRow.ui_units_x = 3
@@ -294,7 +297,9 @@ def drawGpToolbar(context, layout, editedGpencil, gpIsStoryboardFrame, shotIndex
     if editedGpencil is not None and editedGpencil.mode == "PAINT_GPENCIL":
         icon = "GREASEPENCIL"
         gpToolsRow.alert = True
-        gpToolsRow.operator("uas_shot_manager.toggle_grease_pencil_draw_mode", text="", icon=icon)
+        op = gpToolsRow.operator("uas_shot_manager.toggle_grease_pencil_draw_mode", text="", icon=icon)
+        op.gpName = objName
+        op.layerName = props.greasePencil_layersModeB
         gpToolsRow.alert = False
     else:
         # icon = "OUTLINER_OB_GREASEPENCIL"
@@ -302,7 +307,9 @@ def drawGpToolbar(context, layout, editedGpencil, gpIsStoryboardFrame, shotIndex
         if gpIsStoryboardFrame:
             gpToolsRow.operator("uas_shot_manager.draw_on_grease_pencil", text="", icon=icon)
         else:
-            gpToolsRow.operator("uas_shot_manager.toggle_grease_pencil_draw_mode", text="", icon=icon)
+            op = gpToolsRow.operator("uas_shot_manager.toggle_grease_pencil_draw_mode", text="", icon=icon)
+            op.gpName = objName
+            op.layerName = props.greasePencil_layersModeB
     gpToolsRow.scale_x = 1.0
 
 

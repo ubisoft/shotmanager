@@ -253,7 +253,7 @@ def fitGreasePencilToFrustum(camera, distance=None):
     # removed to allow frame panning
     # gpencil.location[0] = gpencil.location[1] = 0.0
 
-    ######################################""""""
+    ######################################
     # prevX = gpencil.location[0]
     # prevY = gpencil.location[1]
     # gpencil.location[0] = gpencil.location[1] = 0.0
@@ -481,7 +481,7 @@ def switchToDrawMode(context, gpencil: bpy.types.GreasePencil):
 
 
 def getLayerPreviousFrame(gpencil: bpy.types.GreasePencil, currentFrame, layerMode):
-    """Return the frame value of the previous key of the specified layer
+    """Return the time frame value of the previous key of the specified layer
     Args:
         layerMode: Can be "NOLAYER", "ACTIVE", "ALL" or the name of the layer
         Usually comes from props.greasePencil_layersMode
@@ -871,3 +871,39 @@ def gpLayerIsActive(gpencil: bpy.types.GreasePencil, layerName):
 #             layerIsActive = True
 
 #     return layerIsActive
+
+
+def place3DCursor(gpencil, currentFrame, layerName):
+    from mathutils import Vector
+
+    if layerName in gpencil.data.layers:
+        if isCurrentFrameOnLayerKeyFrame(gpencil, currentFrame, layerName):
+            timeOfFrame = currentFrame
+        else:
+            prevFrame = getLayerPreviousFrame(gpencil, currentFrame, layerName)
+            if prevFrame != currentFrame:
+                timeOfFrame = prevFrame
+            else:
+                # no key frame exists
+                return
+
+        gp_frame = getLayerKeyFrameAtFrame(gpencil, timeOfFrame, layerName)
+
+        # get the average center of mass, optimized by everyNPoints
+
+        everyNPoints = 4
+        totalNumPoints = 0
+        for s in gp_frame.strokes:
+            #    totalNumPoints += len(s.points)
+            totalNumPoints += len(s.points) // everyNPoints
+
+        # numStrokes = len(gp_frame.strokes)
+        averagePos = Vector([0, 0, 0])
+        for s in gp_frame.strokes:
+            # numPoints = len(s.points)
+            for ind in range(0, len(s.points), everyNPoints):
+                averagePos += s.points[ind].co / totalNumPoints
+
+        # newLoc = [0, 0, 0]
+        newLoc = averagePos + gpencil.location
+        bpy.context.scene.cursor.location = newLoc

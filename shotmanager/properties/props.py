@@ -3489,20 +3489,20 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
             # get current shot in the WHOLE list (= even disabled)
             currentShotInd = self.getCurrentShotIndex()
             currentShot = self.getShotByIndex(currentShotInd)
-            print("    current Shot: ", currentShotInd)
+            _logger.debug_ext(f"    current Shot: {currentShotInd}")
             if not currentShot.enabled:
                 print("    current Shot is disabled")
                 previousShotInd = self.getPreviousEnabledShotIndex(currentShotInd)
                 if -1 < previousShotInd:
-                    print("    previous Shot ind is ", previousShotInd)
+                    #        print("    previous Shot ind is ", previousShotInd)
                     newFrame = self.getShotByIndex(previousShotInd).end
             else:
-                print("    current Shot is ENabled")
+                #    print("    current Shot is ENabled")
                 if currentFrame == currentShot.start:
-                    print("      current frame is start")
+                    #        print("      current frame is start")
                     previousShotInd = self.getPreviousEnabledShotIndex(currentShotInd)
                     if -1 < previousShotInd:
-                        print("      previous Shot ind is ", previousShotInd)
+                        #            print("      previous Shot ind is ", previousShotInd)
                         newFrame = self.getShotByIndex(previousShotInd).end
                     else:  # case of the very first shot
                         previousShotInd = currentShotInd
@@ -3510,7 +3510,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
                 #  elif currentFrame == currentShot.end:
                 #      newFrame = currentShot.start
                 else:
-                    print("      current frame is middle or end")
+                    #        print("      current frame is middle or end")
                     previousShotInd = currentShotInd
                     newFrame = currentShot.start
 
@@ -3518,19 +3518,19 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
             # get current shot in the WHOLE list (= even disabled)
             currentShotInd = self.getCurrentShotIndex()
             currentShot = self.getShotByIndex(currentShotInd)
-            print("    current Shot: ", currentShotInd)
+            # print("    current Shot: ", currentShotInd)
             if not currentShot.enabled:
-                print("    current Shot is disabled")
+                # print("    current Shot is disabled")
                 previousShotInd = self.getPreviousEnabledShotIndex(currentShotInd)
                 if -1 < previousShotInd:
-                    print("    previous Shot ind is ", previousShotInd)
+                    #     print("    previous Shot ind is ", previousShotInd)
                     newFrame = self.getShotByIndex(previousShotInd).start
             else:
-                print("    current Shot is ENabled")
+                # print("    current Shot is ENabled")
 
                 previousShotInd = self.getPreviousEnabledShotIndex(currentShotInd)
                 if -1 < previousShotInd:
-                    print("      previous Shot ind is ", previousShotInd)
+                    #   print("      previous Shot ind is ", previousShotInd)
                     newFrame = self.getShotByIndex(previousShotInd).start
                 else:  # case of the very first shot
                     previousShotInd = currentShotInd
@@ -3540,20 +3540,20 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
             # get current shot in the WHOLE list (= even disabled)
             currentShotInd = self.getCurrentShotIndex()
             currentShot = self.getShotByIndex(currentShotInd)
-            print("    current Shot: ", currentShotInd)
+            #  print("    current Shot: ", currentShotInd)
             if not currentShot.enabled:
-                print("    current Shot is disabled")
+                #     print("    current Shot is disabled")
                 previousShotInd = self.getPreviousEnabledShotIndex(currentShotInd)
                 if -1 < previousShotInd:
-                    print("    previous Shot ind is ", previousShotInd)
+                    #        print("    previous Shot ind is ", previousShotInd)
                     newFrame = self.getShotByIndex(previousShotInd).end
             else:
-                print("    current Shot is ENabled")
+                #   print("    current Shot is ENabled")
                 # if currentFrame == currentShot.start:
                 #     print("      current frame is start")
                 previousShotInd = self.getPreviousEnabledShotIndex(currentShotInd)
                 if -1 < previousShotInd:
-                    print("      previous Shot ind is ", previousShotInd)
+                    #     print("      previous Shot ind is ", previousShotInd)
                     newFrame = self.getShotByIndex(previousShotInd).end
                 else:  # case of the very first shot
                     previousShotInd = currentShotInd
@@ -3588,20 +3588,20 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
             # get current shot in the WHOLE list (= even disabled)
             currentShotInd = self.getCurrentShotIndex()
             currentShot = self.getShotByIndex(currentShotInd)
-            print("    current Shot: ", currentShotInd)
+            #    print("    current Shot: ", currentShotInd)
             if not currentShot.enabled:
-                print("    current Shot is disabled")
+                #       print("    current Shot is disabled")
                 nextShotInd = self.getNextEnabledShotIndex(currentShotInd)
                 if -1 < nextShotInd:
-                    print("    next Shot ind is ", nextShotInd)
+                    #          print("    next Shot ind is ", nextShotInd)
                     newFrame = self.getShotByIndex(nextShotInd).start
             else:
-                print("    current Shot is ENabled")
+                #     print("    current Shot is ENabled")
                 if currentFrame == currentShot.end:
-                    print("      current frame is end")
+                    #        print("      current frame is end")
                     nextShotInd = self.getNextEnabledShotIndex(currentShotInd)
                     if -1 < nextShotInd:
-                        print("      next Shot ind is ", nextShotInd)
+                        #         print("      next Shot ind is ", nextShotInd)
                         newFrame = self.getShotByIndex(nextShotInd).start
                     else:  # case of the very last shot
                         nextShotInd = currentShotInd
@@ -3609,7 +3609,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
                 #  elif currentFrame == currentShot.end:
                 #      newFrame = currentShot.start
                 else:
-                    print("      current frame is middle or start")
+                    #      print("      current frame is middle or start")
                     nextShotInd = currentShotInd
                     newFrame = currentShot.end
 
@@ -3617,20 +3617,20 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
             # get current shot in the WHOLE list (= even disabled)
             currentShotInd = self.getCurrentShotIndex()
             currentShot = self.getShotByIndex(currentShotInd)
-            print("    current Shot: ", currentShotInd)
+            #    print("    current Shot: ", currentShotInd)
             if not currentShot.enabled:
-                print("    current Shot is disabled")
+                #        print("    current Shot is disabled")
                 nextShotInd = self.getNextEnabledShotIndex(currentShotInd)
                 if -1 < nextShotInd:
-                    print("    next Shot ind is ", nextShotInd)
+                    #           print("    next Shot ind is ", nextShotInd)
                     newFrame = self.getShotByIndex(nextShotInd).start
             else:
-                print("    current Shot is ENabled")
+                #      print("    current Shot is ENabled")
                 # if currentFrame == currentShot.end:
                 #    print("      current frame is end")
                 nextShotInd = self.getNextEnabledShotIndex(currentShotInd)
                 if -1 < nextShotInd:
-                    print("      next Shot ind is ", nextShotInd)
+                    #         print("      next Shot ind is ", nextShotInd)
                     newFrame = self.getShotByIndex(nextShotInd).start
                 else:  # case of the very last shot
                     nextShotInd = currentShotInd
@@ -3640,20 +3640,20 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
             # get current shot in the WHOLE list (= even disabled)
             currentShotInd = self.getCurrentShotIndex()
             currentShot = self.getShotByIndex(currentShotInd)
-            print("    current Shot: ", currentShotInd)
+            # print("    current Shot: ", currentShotInd)
             if not currentShot.enabled:
-                print("    current Shot is disabled")
+                #    print("    current Shot is disabled")
                 nextShotInd = self.getNextEnabledShotIndex(currentShotInd)
                 if -1 < nextShotInd:
-                    print("    next Shot ind is ", nextShotInd)
+                    #       print("    next Shot ind is ", nextShotInd)
                     newFrame = self.getShotByIndex(nextShotInd).end
             else:
-                print("    current Shot is ENabled")
+                #    print("    current Shot is ENabled")
                 if currentFrame == currentShot.end:
-                    print("      current frame is end")
+                    #       print("      current frame is end")
                     nextShotInd = self.getNextEnabledShotIndex(currentShotInd)
                     if -1 < nextShotInd:
-                        print("      next Shot ind is ", nextShotInd)
+                        #          print("      next Shot ind is ", nextShotInd)
                         newFrame = self.getShotByIndex(nextShotInd).end
                     else:  # case of the very last shot
                         nextShotInd = currentShotInd
@@ -3661,7 +3661,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
                 #  elif currentFrame == currentShot.end:
                 #      newFrame = currentShot.start
                 else:
-                    print("      current frame is middle or start")
+                    #     print("      current frame is middle or start")
                     nextShotInd = currentShotInd
                     newFrame = currentShot.end
 

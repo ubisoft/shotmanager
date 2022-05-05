@@ -37,8 +37,14 @@ def register():
     wm = bpy.context.window_manager
     kc = wm.keyconfigs.addon
     if kc:
+        _logger.debug_ext("          - Using Key Config", form="REG")
 
-        # shots_play_mode ################
+        ###############################
+        # General
+        ###############################
+
+        # shots_play_mode operator
+        ###############################
 
         # VIEW_3D works also for timeline
         km = wm.keyconfigs.addon.keymaps.new(name="3D View", space_type="VIEW_3D")
@@ -53,14 +59,14 @@ def register():
         kmi = km.keymap_items.new("uas_shot_manager.shots_play_mode", type="SPACE", value="PRESS", alt=True)
         addon_keymaps.append((km, kmi))
 
-        # does not exist anymore on 2.83+, use VIEW_3D instead
+        # NOTE: Does not exist anymore on 2.83+, use VIEW_3D instead
         # km = wm.keyconfigs.addon.keymaps.new(name="Timeline", space_type="TIMELINE")
         # kmi = km.keymap_items.new("uas_shot_manager.shots_play_mode", type="SPACE", value="PRESS", alt=True)
         # addon_keymaps.append((km, kmi))
 
-        # shots_play_mode ################
+        # display_overlay_tools operator
+        ###############################
 
-        # VIEW_3D works also for timeline
         km = wm.keyconfigs.addon.keymaps.new(name="3D View", space_type="VIEW_3D")
         kmi = km.keymap_items.new("uas_shot_manager.display_overlay_tools", type="NONE", value="PRESS")
         addon_keymaps.append((km, kmi))
@@ -72,6 +78,90 @@ def register():
         # km = wm.keyconfigs.addon.keymaps.new(name="Graph Editor", space_type="GRAPH_EDITOR")
         # kmi = km.keymap_items.new("uas_shot_manager.display_overlay_tools", type="NONE", value="PRESS")
         # addon_keymaps.append((km, kmi))
+
+        ###############################
+        # Storyboard
+        ###############################
+
+        # previous key frame
+        ###############################
+
+        # VIEW_3D works also for timeline
+        km = wm.keyconfigs.addon.keymaps.new(name="3D View", space_type="VIEW_3D")
+        kmi = km.keymap_items.new(
+            "uas_shot_manager.greasepencil_previouskey", type="DOWN_ARROW", value="PRESS", shift=True
+        )
+        addon_keymaps.append((km, kmi))
+
+        km = wm.keyconfigs.addon.keymaps.new(name="Dopesheet", space_type="DOPESHEET_EDITOR")
+        kmi = km.keymap_items.new(
+            "uas_shot_manager.greasepencil_previouskey", type="DOWN_ARROW", value="PRESS", shift=True
+        )
+        addon_keymaps.append((km, kmi))
+
+        km = wm.keyconfigs.addon.keymaps.new(name="Graph Editor", space_type="GRAPH_EDITOR")
+        kmi = km.keymap_items.new(
+            "uas_shot_manager.greasepencil_previouskey", type="DOWN_ARROW", value="PRESS", shift=True
+        )
+        addon_keymaps.append((km, kmi))
+
+        # next key frame
+        ###############################
+
+        km = wm.keyconfigs.addon.keymaps.new(name="3D View", space_type="VIEW_3D")
+        kmi = km.keymap_items.new("uas_shot_manager.greasepencil_nextkey", type="UP_ARROW", value="PRESS", shift=True)
+        addon_keymaps.append((km, kmi))
+
+        km = wm.keyconfigs.addon.keymaps.new(name="Dopesheet", space_type="DOPESHEET_EDITOR")
+        kmi = km.keymap_items.new("uas_shot_manager.greasepencil_nextkey", type="UP_ARROW", value="PRESS", shift=True)
+        addon_keymaps.append((km, kmi))
+
+        km = wm.keyconfigs.addon.keymaps.new(name="Graph Editor", space_type="GRAPH_EDITOR")
+        kmi = km.keymap_items.new("uas_shot_manager.greasepencil_nextkey", type="UP_ARROW", value="PRESS", shift=True)
+        addon_keymaps.append((km, kmi))
+
+        # previous shot
+        ###############################
+
+        # VIEW_3D works also for timeline
+        km = wm.keyconfigs.addon.keymaps.new(name="3D View", space_type="VIEW_3D")
+        kmi = km.keymap_items.new(
+            "uas_shot_manager.greasepencil_previouskey", type="DOWN_ARROW", value="PRESS", ctrl=True
+        )
+        setattr(kmi.properties, "mode", "SHOT")
+        addon_keymaps.append((km, kmi))
+
+        km = wm.keyconfigs.addon.keymaps.new(name="Dopesheet", space_type="DOPESHEET_EDITOR")
+        kmi = km.keymap_items.new(
+            "uas_shot_manager.greasepencil_previouskey", type="DOWN_ARROW", value="PRESS", ctrl=True
+        )
+        setattr(kmi.properties, "mode", "SHOT")
+        addon_keymaps.append((km, kmi))
+
+        km = wm.keyconfigs.addon.keymaps.new(name="Graph Editor", space_type="GRAPH_EDITOR")
+        kmi = km.keymap_items.new(
+            "uas_shot_manager.greasepencil_previouskey", type="DOWN_ARROW", value="PRESS", ctrl=True
+        )
+        setattr(kmi.properties, "mode", "SHOT")
+        addon_keymaps.append((km, kmi))
+
+        # next shot
+        ###############################
+
+        km = wm.keyconfigs.addon.keymaps.new(name="3D View", space_type="VIEW_3D")
+        kmi = km.keymap_items.new("uas_shot_manager.greasepencil_nextkey", type="UP_ARROW", value="PRESS", ctrl=True)
+        setattr(kmi.properties, "mode", "SHOT")
+        addon_keymaps.append((km, kmi))
+
+        km = wm.keyconfigs.addon.keymaps.new(name="Dopesheet", space_type="DOPESHEET_EDITOR")
+        kmi = km.keymap_items.new("uas_shot_manager.greasepencil_nextkey", type="UP_ARROW", value="PRESS", shift=True)
+        setattr(kmi.properties, "mode", "SHOT")
+        addon_keymaps.append((km, kmi))
+
+        km = wm.keyconfigs.addon.keymaps.new(name="Graph Editor", space_type="GRAPH_EDITOR")
+        kmi = km.keymap_items.new("uas_shot_manager.greasepencil_nextkey", type="UP_ARROW", value="PRESS", shift=True)
+        setattr(kmi.properties, "mode", "SHOT")
+        addon_keymaps.append((km, kmi))
 
 
 def unregister():

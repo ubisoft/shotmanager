@@ -108,6 +108,12 @@ class UAS_ShotManager_ShotsGlobalSettings(PropertyGroup):
         default="ORIGIN",
     )
 
+    stb_changeCursorPlacement_forFreeGP: BoolProperty(
+        name="3D Cursor Placement for Free Grease Pencil",
+        description="Place the 3D cursor when starting to draw on a grease pencil object",
+        default=True,
+    )
+
     #########################
     # Sound
     #########################

@@ -364,7 +364,7 @@ def drawLayersRow(context, props, layout, editedGpencil):
 
 def drawKeyFrameActionsRow(context, props, layout, editedGpencil, gpIsStoryboardFrame):
     # prefs = context.preferences.addons["shotmanager"].preferences
-    framePreset = context.scene.UAS_shot_manager_props.stb_frameTemplate
+    # framePreset = context.scene.UAS_shot_manager_props.stb_frameTemplate
     currentFrame = context.scene.frame_current
 
     layerMode = "ACTIVE"  # preset.layerName

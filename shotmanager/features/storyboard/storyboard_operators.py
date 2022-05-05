@@ -147,6 +147,7 @@ class UAS_ShotManager_CreateNStoryboardShots(Operator):
         # grid = props.stb_frameTemplate.frameGrid
         selectedShotInd = props.getSelectedShotIndex()
         newShotInd = selectedShotInd + 1
+        firstCreatedShotInd = newShotInd
 
         cam = None
 
@@ -186,8 +187,10 @@ class UAS_ShotManager_CreateNStoryboardShots(Operator):
             newShotInd += 1
 
         props.updateStoryboardGrid()
-        props.setCurrentShotByIndex(newShotInd - 1)
-        props.setSelectedShotByIndex(newShotInd - 1)
+        # props.setCurrentShotByIndex(newShotInd - 1)
+        # props.setSelectedShotByIndex(newShotInd - 1)
+        props.setCurrentShotByIndex(firstCreatedShotInd)
+        props.setSelectedShotByIndex(firstCreatedShotInd)
         bpy.ops.uas_shot_manager.scenerangefromtake("INVOKE_DEFAULT")
         bpy.ops.uas_shot_manager.frame_time_range("INVOKE_DEFAULT")
         bpy.ops.ed.undo_push()
