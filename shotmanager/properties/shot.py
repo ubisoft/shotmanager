@@ -56,7 +56,8 @@ def list_shot_types(self, context):
     #     res.append(
     #         (cam.name, cam.name, 'Use the exising scene camera named "' + cam.name + '"\nfor the new shot', i + 1)
     #     )
-    icon_previz = config.icons_col["ShotManager_CamGPShot_32"]
+    # icon_previz = config.icons_col["ShotManager_CamGPShot_32"]
+    icon_previz = config.icons_col["ShotManager_32"]
     icon_stb = config.icons_col["ShotManager_CamGPStb_32"]
     res = (
         ("PREVIZ", "Camera Shot", "Shot based on the record of a camera", icon_previz.icon_id, 0),

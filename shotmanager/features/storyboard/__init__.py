@@ -19,8 +19,6 @@
 Grease Pencil
 """
 
-from shotmanager.config import config
-
 from . import storyboard_operators
 
 from shotmanager.config import sm_logging

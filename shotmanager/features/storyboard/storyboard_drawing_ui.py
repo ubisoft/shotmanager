@@ -122,9 +122,9 @@ def drawDrawingMatRow(context, layout, props, objIsGP):
         text=text,
     )
     if gpl and gpl.info is not None:
-        sub.alert = gpl.lock
+        # sub.alert = gpl.lock
         sub.prop(gpl, "lock", text="")
-        sub.alert = False
+    # sub.alert = False
     else:
         sub.label(text="", icon="LOCKED")
 
@@ -203,8 +203,10 @@ def drawPlayBar(context, layout):
     navRow = layout.row(align=True)
     navRow.scale_y = 1.2
     navRow.scale_x = 2.0
-    navRow.operator("uas_shot_manager.greasepencil_previouskey", icon="PREV_KEYFRAME", text="")
-    navRow.operator("uas_shot_manager.greasepencil_nextkey", icon="NEXT_KEYFRAME", text="")
+    op = navRow.operator("uas_shot_manager.greasepencil_ui_navigation_keys", icon="PREV_KEYFRAME", text="")
+    op.navigateDirection = "NEXT"
+    op = navRow.operator("uas_shot_manager.greasepencil_ui_navigation_keys", icon="NEXT_KEYFRAME", text="")
+    op.navigateDirection = "NEXT"
     navRow.scale_x = 1.0
 
 

@@ -68,7 +68,7 @@ def initGlobalVariables():
     global gModulePath
     gModulePath = None
 
-    # otio ############
+    # otio #############
 
     global gImportOpenTimelineIO
     gImportOpenTimelineIO = True
@@ -82,6 +82,9 @@ def initGlobalVariables():
     global gTracksEnumList
     gTracksEnumList = None
 
+    # keymaps ##########
+    global gAddonKeymaps
+    gAddonKeymaps = []
 
 def releaseGlobalVariables():
 

@@ -1,7 +1,10 @@
+# 2.0.20 (2022-05-06)
+
+- Added key mapping for previous and next shots, previous and next grease pencil key frame
+
 # 2.0.19 (2022-05-04)
 
 - Added a UI information to inform the user of a new available version
-- Added key mapping for previous and next shots, previous and next grease pencil key frame
 
 # 2.0.18 (2022-05-02)
 

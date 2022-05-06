@@ -74,7 +74,8 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
     newAvailableVersion: IntProperty(
         description="Store the version of the latest release of the add-on as an integer if there is an online release"
         "\nthat is more recent than this version. If there is none then the value is 0",
-        default=2005001,
+        # default=2005001,
+        default=1007016,
     )
 
     isInitialized: BoolProperty(
@@ -89,8 +90,30 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
         import requests
 
         url = "https://github.com/ubisoft/shotmanager/releases/latest"
-        r = requests.get(url)
+
+        # NOTE: read https://docs.python-requests.org/en/latest/user/quickstart/#timeouts
+        # and https://stackoverflow.com/questions/21965484/timeout-for-python-requests-get-entire-response
+
+        # NOTE: timeout is not a time limit on the entire response download; rather, an exception is
+        # raised if the server has not issued a response for timeout seconds (more precisely,
+        # if no bytes have been received on the underlying socket for timeout seconds).
+        # If no timeout is specified explicitly, requests do not time out.
+
+        # r = requests.get(url)
+        timeoutInSec = 2
+        versionStr = "1.0.0"
+
+        # dirty fix to avoir HTTPS warning
+        requests.packages.urllib3.disable_warnings()
+
+        # wkipwkipwkip some work and test to do here...
+        r = requests.get(url, verify=False, timeout=timeoutInSec)
         versionStr = r.url.split("/")[-1]
+        try:
+            r = requests.get(url, verify=False, timeout=timeoutInSec)
+            versionStr = r.url.split("/")[-1]
+        except Exception as requestExcept:
+            _logger.info_ext(f"Exception in Update Check: {requestExcept}", col="RED")
 
         # version string from the tags used by our releases on GitHub is formated as this: v<int>.<int>.<int>
         version = utils.convertVersionStrToInt(versionStr)

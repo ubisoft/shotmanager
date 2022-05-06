@@ -255,9 +255,9 @@ def drawDrawingMatRow(context, layout, props, objIsValid, objIsGP):
         text=text,
     )
     if gpl and gpl.info is not None:
-        sub.alert = gpl.lock
+        # sub.alert = gpl.lock
         sub.prop(gpl, "lock", text="")
-        sub.alert = False
+    # sub.alert = False
     else:
         sub.label(text="", icon="LOCKED")
 
@@ -326,8 +326,10 @@ def drawPlayBar(context, layout):
     navRow = layout.row(align=True)
     navRow.scale_y = 1.2
     navRow.scale_x = 2.0
-    navRow.operator("uas_shot_manager.greasepencil_previouskey", icon="PREV_KEYFRAME", text="")
-    navRow.operator("uas_shot_manager.greasepencil_nextkey", icon="NEXT_KEYFRAME", text="")
+    op = navRow.operator("uas_shot_manager.greasepencil_ui_navigation_keys", icon="PREV_KEYFRAME", text="")
+    op.navigateDirection = "PREVIOUS"
+    op = navRow.operator("uas_shot_manager.greasepencil_ui_navigation_keys", icon="NEXT_KEYFRAME", text="")
+    op.navigateDirection = "NEXT"
     navRow.scale_x = 1.0
 
 
@@ -469,68 +471,6 @@ def drawLayersRow(context, props, layout, editedGpencil, objIsGP):
     # Rough layer #######
     preset_lines = framePreset.getPresetByID("ROUGH")
     _draw_layer_button(usageButsSubRow, preset_lines)
-
-
-def drawKeysRow(context, props, layout, editedGpencil, objIsGP):
-    keysRow = layout.row(align=True)
-    keysRow.scale_x = 1.4
-    keysRow.alignment = "CENTER"
-    keysRow.enabled = objIsGP
-    keysRow.operator("uas_shot_manager.greasepencil_previouskey", icon="PREV_KEYFRAME", text="")
-
-    isCurrentFrameOnGPFrame = False
-    if objIsGP:
-        isCurrentFrameOnGPFrame = utils_greasepencil.isCurrentFrameOnLayerKeyFrame(
-            editedGpencil, context.scene.frame_current, props.greasePencil_layersMode
-        )
-    else:
-        keysRow.enabled = False
-
-    if isCurrentFrameOnGPFrame:
-        # iconFrame = "HANDLETYPE_FREE_VEC"
-        iconFrame = "ADD"
-        iconFrame = "KEYFRAME_HLT"
-    else:
-        iconFrame = "KEYTYPE_MOVING_HOLD_VEC"
-        iconFrame = "KEYFRAME"
-    # iconFrame = "ADD"
-    frameOpRow = keysRow.row(align=True)
-    frameOpRow.operator("uas_shot_manager.greasepencil_newkeyframe", icon=iconFrame, text="")
-    frameOpRow.operator("uas_shot_manager.greasepencil_duplicatekeyframe", icon=iconFrame, text="")
-
-    delFrameOpRow = frameOpRow.row(align=True)
-    delFrameOpRow.enabled = isCurrentFrameOnGPFrame
-    delFrameOpRow.operator("uas_shot_manager.greasepencil_deletekeyframe", icon="PANEL_CLOSE", text="")
-
-    # keysRow.enabled = True
-    keysRow.operator("uas_shot_manager.greasepencil_nextkey", icon="NEXT_KEYFRAME", text="")
-
-    # subRow = mainRow.row(align=False)
-    # subRow.scale_x = 1.5
-    # subRow.alignment = "RIGHT"
-    # mainRow.scale_x = 2
-    settingsRow = layout.row(align=False)
-    subsubRow = settingsRow.row(align=True)
-    # subsubRow.label(text="Apply to:")
-    subsubRow.scale_x = 0.9
-    # subRow.ui_units_x = 14
-    subsubRow.alignment = "LEFT"
-    subsubRow.prop(props, "greasePencil_layersMode", text="Apply to")
-
-    # settingsRow = settingsRow.row(align=True)
-    subsubRow = settingsRow.row(align=True)
-    subsubRow.alignment = "CENTER"
-    subsubRow.label(text="Drawing on key frame: ")
-    gpFrameStr = "-"
-    if objIsGP:
-        if isCurrentFrameOnGPFrame:
-            gpFrameStr = "Current"
-        else:
-            subsubRow.alert = True
-            gpFrameStr = str(
-                utils_greasepencil.getLayerPreviousFrame(editedGpencil, context.scene.frame_current, "ACTIVE")
-            )
-    subsubRow.label(text=gpFrameStr)
 
 
 def drawKeyFrameActionsRow(context, props, layout, editedGpencil, objIsGP):

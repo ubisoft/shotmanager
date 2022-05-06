@@ -1023,10 +1023,26 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
     )
     stb_editedGPencilName: StringProperty(
         name="Edited Grease Pencil",
-        description="Edited or pinned grease pencil object",
+        description="Edited or pinned grease pencil object. Empty string if no grease pencil is being edited",
         default="",
         options=set(),
     )
+
+    def getPinnedGPObjectName(self):
+        """Return the name of the pinned object, an empty string if no object is currently pinned
+        If the pinned object appears to be invalid then an empty string is returned"""
+        pinnedGpencilName = ""
+        if self.stb_hasPinnedObject:
+            if "" != self.stb_editedGPencilName:
+                if self.stb_editedGPencilName in self.parentScene.objects and "GPENCIL" == self.parentScene.objects[self.stb_editedGPencilName].type:
+                    pinnedGpencilName = self.parentScene.objects[self.stb_editedGPencilName].name
+                else:
+                    self.stb_editedGPencilName = ""
+                    self.stb_hasPinnedObject = False
+            else:
+                self.stb_hasPinnedObject = False
+
+        return pinnedGpencilName
 
     stb_frameTemplate: PointerProperty(
         type=UAS_GreasePencil_FrameTemplate,
