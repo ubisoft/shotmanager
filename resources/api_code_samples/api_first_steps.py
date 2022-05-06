@@ -122,12 +122,24 @@ shot.set_camera(my_first_shot, cam_shot_1)
 
 # Create another shot with a camera, before the first one
 my_second_shot = shot_manager.add_shot(
-    sm_props, at_index=1, name="My Second Shot", start=80, end=98, camera=cam_shot_2, color=(0.1, 0.8, 0.3, 1),
+    sm_props,
+    at_index=1,
+    name="My Second Shot",
+    start=80,
+    end=98,
+    camera=cam_shot_2,
+    color=(0.1, 0.8, 0.3, 1),
 )
 
 # And another one
 my_third_shot = shot_manager.add_shot(
-    sm_props, at_index=1, name="My third Shot", start=62, end=120, camera=cam_shot_2, color=(0.9, 0.2, 0.3, 1),
+    sm_props,
+    at_index=1,
+    name="My third Shot",
+    start=62,
+    end=120,
+    camera=cam_shot_2,
+    color=(0.9, 0.2, 0.3, 1),
 )
 
 # Get the number of takes
@@ -165,9 +177,8 @@ shot_manager.remove_shot(sm_props, my_first_shot)
 
 # Get the Shots Play Mode state
 playShotsOn = shot_manager.get_shots_play_mode(sm_props)
-print("Shot Play Mode is: ", playShotsOn)
+print("Shots Play Mode is: ", playShotsOn)
 
 # Set the Shots Play Mode state
 shot_manager.set_shots_play_mode(sm_props, True)
-print("Shot Play Mode is: ", shot_manager.get_shots_play_mode(sm_props))
-
+print("Shots Play Mode is: ", shot_manager.get_shots_play_mode(sm_props))

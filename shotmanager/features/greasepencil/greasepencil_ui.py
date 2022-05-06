@@ -112,7 +112,7 @@ def draw_greasepencil_play_tools(self, context, shot, layersListDropdown=None):
             if parentShot is not None:
                 freeGPRow.label(text="*** Not a valid Free Scene GP: " + parentShot.name)
             else:
-                freeGPRow.label(text="*** Free Scene GP: ")
+                freeGPRow.label(text="Free Scene GP : ")
             freeGPRow.alert = False
             freeGPRow.label(text=f"{editedGpencil.name if objIsGP else '-'}")
             # freeGPRow.alert = True
@@ -324,12 +324,12 @@ def drawClearLayer(context, layout):
 
 def drawPlayBar(context, layout):
     navRow = layout.row(align=True)
-    navRow.scale_y = 1.2
+    navRow.scale_y = 1.0
     navRow.scale_x = 2.0
     op = navRow.operator("uas_shot_manager.greasepencil_ui_navigation_keys", icon="PREV_KEYFRAME", text="")
-    op.navigateDirection = "PREVIOUS"
+    op.navigDirection = "PREVIOUS"
     op = navRow.operator("uas_shot_manager.greasepencil_ui_navigation_keys", icon="NEXT_KEYFRAME", text="")
-    op.navigateDirection = "NEXT"
+    op.navigDirection = "NEXT"
     navRow.scale_x = 1.0
 
 
@@ -341,7 +341,7 @@ def drawLayersMode(context, layout, props):
     # row.alignment = "LEFT"
     split = row.split(factor=0.4)
     # row.prop(props, "greasePencil_layersMode", text="Apply ")
-    split.label(text="Apply to:")
+    split.label(text="Navigate on:")
     split.prop(props, "greasePencil_layersModeB", text="")
 
 

@@ -74,3 +74,188 @@ def registerKeymaps():
         # km = wm.keyconfigs.addon.keymaps.new(name="Graph Editor", space_type="GRAPH_EDITOR")
         # kmi = km.keymap_items.new("uas_shot_manager.display_overlay_tools", type="NONE", value="PRESS")
         # config.gAddonKeymaps.append((km, kmi))
+
+        ###############################
+        # Navigate between shots
+        ###############################
+
+        # previous shot
+        ###############################
+
+        usePreviousShot = True
+        if usePreviousShot:
+
+            # START ##############
+
+            # VIEW_3D works also for timeline
+            km = wm.keyconfigs.addon.keymaps.new(name="3D View", space_type="VIEW_3D")
+            kmi = km.keymap_items.new(
+                "uas_shot_manager.playbar_gotoshotboundary", type="UP_ARROW", value="PRESS", ctrl=True
+            )
+            kmi.properties.navigDirection = "PREVIOUS"
+            kmi.properties.boundaryMode = "START"
+            config.gAddonKeymaps.append((km, kmi))
+
+            km = wm.keyconfigs.addon.keymaps.new(name="Dopesheet", space_type="DOPESHEET_EDITOR")
+            kmi = km.keymap_items.new(
+                "uas_shot_manager.playbar_gotoshotboundary", type="UP_ARROW", value="PRESS", ctrl=True
+            )
+            kmi.properties.navigDirection = "PREVIOUS"
+            kmi.properties.boundaryMode = "START"
+            config.gAddonKeymaps.append((km, kmi))
+
+            km = wm.keyconfigs.addon.keymaps.new(name="Graph Editor", space_type="GRAPH_EDITOR")
+            kmi = km.keymap_items.new(
+                "uas_shot_manager.playbar_gotoshotboundary", type="UP_ARROW", value="PRESS", ctrl=True
+            )
+            kmi.properties.navigDirection = "PREVIOUS"
+            kmi.properties.boundaryMode = "START"
+            config.gAddonKeymaps.append((km, kmi))
+
+            # END ##############
+
+            # VIEW_3D works also for timeline
+            km = wm.keyconfigs.addon.keymaps.new(name="3D View", space_type="VIEW_3D")
+            kmi = km.keymap_items.new(
+                "uas_shot_manager.playbar_gotoshotboundary", type="UP_ARROW", value="PRESS", alt=True
+            )
+            kmi.properties.navigDirection = "PREVIOUS"
+            kmi.properties.boundaryMode = "END"
+            config.gAddonKeymaps.append((km, kmi))
+
+            km = wm.keyconfigs.addon.keymaps.new(name="Dopesheet", space_type="DOPESHEET_EDITOR")
+            kmi = km.keymap_items.new(
+                "uas_shot_manager.playbar_gotoshotboundary", type="UP_ARROW", value="PRESS", alt=True
+            )
+            kmi.properties.navigDirection = "PREVIOUS"
+            kmi.properties.boundaryMode = "END"
+            config.gAddonKeymaps.append((km, kmi))
+
+            km = wm.keyconfigs.addon.keymaps.new(name="Graph Editor", space_type="GRAPH_EDITOR")
+            kmi = km.keymap_items.new(
+                "uas_shot_manager.playbar_gotoshotboundary", type="UP_ARROW", value="PRESS", alt=True
+            )
+            kmi.properties.navigDirection = "PREVIOUS"
+            kmi.properties.boundaryMode = "END"
+            config.gAddonKeymaps.append((km, kmi))
+
+            # ANY ##############
+
+            # VIEW_3D works also for timeline
+            km = wm.keyconfigs.addon.keymaps.new(name="3D View", space_type="VIEW_3D")
+            kmi = km.keymap_items.new(
+                "uas_shot_manager.playbar_gotoshotboundary", type="UP_ARROW", value="PRESS", ctrl=True, alt=True
+            )
+            kmi.properties.navigDirection = "PREVIOUS"
+            kmi.properties.boundaryMode = "ANY"
+            config.gAddonKeymaps.append((km, kmi))
+
+            km = wm.keyconfigs.addon.keymaps.new(name="Dopesheet", space_type="DOPESHEET_EDITOR")
+            kmi = km.keymap_items.new(
+                "uas_shot_manager.playbar_gotoshotboundary", type="UP_ARROW", value="PRESS", ctrl=True, alt=True
+            )
+            kmi.properties.navigDirection = "PREVIOUS"
+            kmi.properties.boundaryMode = "ANY"
+            config.gAddonKeymaps.append((km, kmi))
+
+            km = wm.keyconfigs.addon.keymaps.new(name="Graph Editor", space_type="GRAPH_EDITOR")
+            kmi = km.keymap_items.new(
+                "uas_shot_manager.playbar_gotoshotboundary", type="UP_ARROW", value="PRESS", ctrl=True, alt=True
+            )
+            kmi.properties.navigDirection = "PREVIOUS"
+            kmi.properties.boundaryMode = "ANY"
+            config.gAddonKeymaps.append((km, kmi))
+
+        # next shot
+        ###############################
+
+        useNextShot = True
+        if useNextShot:
+
+            # START ##############
+
+            # VIEW_3D works also for timeline
+            km = wm.keyconfigs.addon.keymaps.new(name="3D View", space_type="VIEW_3D")
+            kmi = km.keymap_items.new(
+                "uas_shot_manager.playbar_gotoshotboundary", type="DOWN_ARROW", value="PRESS", ctrl=True
+            )
+            kmi.properties.navigDirection = "NEXT"
+            kmi.properties.boundaryMode = "START"
+            config.gAddonKeymaps.append((km, kmi))
+
+            km = wm.keyconfigs.addon.keymaps.new(name="Dopesheet", space_type="DOPESHEET_EDITOR")
+            kmi = km.keymap_items.new(
+                "uas_shot_manager.playbar_gotoshotboundary", type="DOWN_ARROW", value="PRESS", ctrl=True
+            )
+            kmi.properties.navigDirection = "NEXT"
+            kmi.properties.boundaryMode = "START"
+            config.gAddonKeymaps.append((km, kmi))
+
+            km = wm.keyconfigs.addon.keymaps.new(name="Graph Editor", space_type="GRAPH_EDITOR")
+            kmi = km.keymap_items.new(
+                "uas_shot_manager.playbar_gotoshotboundary", type="DOWN_ARROW", value="PRESS", ctrl=True
+            )
+            kmi.properties.navigDirection = "NEXT"
+            kmi.properties.boundaryMode = "START"
+            config.gAddonKeymaps.append((km, kmi))
+
+            # END ##############
+
+            # VIEW_3D works also for timeline
+            km = wm.keyconfigs.addon.keymaps.new(name="3D View", space_type="VIEW_3D")
+            kmi = km.keymap_items.new(
+                "uas_shot_manager.playbar_gotoshotboundary",
+                type="DOWN_ARROW",
+                value="PRESS",
+                alt=True,
+            )
+            kmi.properties.navigDirection = "NEXT"
+            kmi.properties.boundaryMode = "END"
+            config.gAddonKeymaps.append((km, kmi))
+
+            km = wm.keyconfigs.addon.keymaps.new(name="Dopesheet", space_type="DOPESHEET_EDITOR")
+            kmi = km.keymap_items.new(
+                "uas_shot_manager.playbar_gotoshotboundary", type="DOWN_ARROW", value="PRESS", alt=True
+            )
+            kmi.properties.navigDirection = "NEXT"
+            kmi.properties.boundaryMode = "END"
+            config.gAddonKeymaps.append((km, kmi))
+
+            km = wm.keyconfigs.addon.keymaps.new(name="Graph Editor", space_type="GRAPH_EDITOR")
+            kmi = km.keymap_items.new(
+                "uas_shot_manager.playbar_gotoshotboundary", type="DOWN_ARROW", value="PRESS", alt=True
+            )
+            kmi.properties.navigDirection = "NEXT"
+            kmi.properties.boundaryMode = "END"
+            config.gAddonKeymaps.append((km, kmi))
+
+            # ANY ##############
+
+            # VIEW_3D works also for timeline
+            km = wm.keyconfigs.addon.keymaps.new(name="3D View", space_type="VIEW_3D")
+            kmi = km.keymap_items.new(
+                "uas_shot_manager.playbar_gotoshotboundary", type="DOWN_ARROW", value="PRESS", ctrl=True, alt=True
+            )
+            kmi.properties.navigDirection = "NEXT"
+            kmi.properties.boundaryMode = "ANY"
+            config.gAddonKeymaps.append((km, kmi))
+
+            km = wm.keyconfigs.addon.keymaps.new(name="Dopesheet", space_type="DOPESHEET_EDITOR")
+            kmi = km.keymap_items.new(
+                "uas_shot_manager.playbar_gotoshotboundary", type="DOWN_ARROW", value="PRESS", ctrl=True, alt=True
+            )
+            kmi.properties.navigDirection = "NEXT"
+            kmi.properties.boundaryMode = "ANY"
+            config.gAddonKeymaps.append((km, kmi))
+
+            km = wm.keyconfigs.addon.keymaps.new(name="Graph Editor", space_type="GRAPH_EDITOR")
+            kmi = km.keymap_items.new(
+                "uas_shot_manager.playbar_gotoshotboundary",
+                type="DOWN_ARROW",
+                value="PRESS",
+                ctrl=True,
+                alt=True,
+            )
+            kmi.properties.navigDirection = "NEXT"
+            kmi.properties.boundaryMode = "ANY"
+            config.gAddonKeymaps.append((km, kmi))

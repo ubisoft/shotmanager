@@ -627,9 +627,7 @@ class UAS_ShotManager_GreasePencil_UINavigationKeys(Operator):
     bl_idname = "uas_shot_manager.greasepencil_ui_navigation_keys"
     bl_label = ""
     bl_description = (
-        "Jump to the previous key frame of the specified layer"
-        "\n+ Ctrl: Jump to the start of the current shot, then to"
-        "\nthe start of the previous shot"
+        "Jump between key frames of the specified layer of the grease pencil object" "\n+ Ctrl: Jump between shots"
     )
     bl_options = {"INTERNAL", "UNDO"}
 
@@ -639,11 +637,28 @@ class UAS_ShotManager_GreasePencil_UINavigationKeys(Operator):
     mode: StringProperty(default="GPKEYFRAME")
 
     # can be PREVIOUS or NEXT
-    navigateDirection: StringProperty(default="PREVIOUS")
+    navigDirection: StringProperty(default="PREVIOUS")
+
+    @classmethod
+    def description(self, context, properties):
+        descr = "_"
+        if "PREVIOUS" == properties.navigDirection:
+            descr = (
+                "Navigate to the previous key frame of the specified layer"
+                "\n+ Ctrl: Jump to the start of the current shot, then to"
+                "\nthe start of each previous shot"
+            )
+            descr += "\n\nShortcut: Ctrl Left Arrow"
+        elif "NEXT" == properties.navigDirection:
+            descr = (
+                "Navigate to the next key frame of the specified layer" "\n+ Ctrl: Jump to the start of each next shot"
+            )
+            descr += "\n\nShortcut: Ctrl Right Arrow"
+        return descr
 
     def invoke(self, context, event):
         _logger.debug_ext(
-            f"Op greasepencil_ui_navigation_keys Invoke: name: {self.gpName}, dir: {self.navigateDirection} - event.shift: {event.shift}",
+            f"Op greasepencil_ui_navigation_keys Invoke: name: {self.gpName}, dir: {self.navigDirection} - event.shift: {event.shift}",
             col="RED",
         )
         if not event.ctrl and not event.shift and not event.alt:
@@ -656,36 +671,28 @@ class UAS_ShotManager_GreasePencil_UINavigationKeys(Operator):
 
     def execute(self, context):
         if "GPKEYFRAME" == self.mode:
-            bpy.ops.uas_shot_manager.greasepencil_navigateinkeyframes(
-                gpName=self.gpName, navigateDirection=self.navigateDirection
-            )
+            bpy.ops.uas_shot_manager.greasepencil_navigateinkeyframes(navigDirection=self.navigDirection)
         elif "SHOT" == self.mode:
-            bpy.ops.uas_shot_manager.greasepencil_navigateinshots(
-                gpName=self.gpName, navigateDirection=self.navigateDirection
-            )
+            bpy.ops.uas_shot_manager.playbar_gotoshotboundary(navigDirection=self.navigDirection, boundaryMode="START")
         return {"FINISHED"}
 
 
 class UAS_ShotManager_GreasePencil_NavigateInKeyFrames(Operator):
     bl_idname = "uas_shot_manager.greasepencil_navigateinkeyframes"
-    bl_label = ""
-    bl_description = (
-        "Jump to the previous key frame of the specified layer"
-        "\n+ Ctrl: Jump to the start of the current shot, then to"
-        "\nthe start of the previous shot"
-    )
+    bl_label = "Shot Manager - Navigate in grease pencil key frames"
+    bl_description = "Jump from key frame to key frame on the specified grease pencil layer"
     bl_options = {"INTERNAL", "UNDO"}
 
     gpName: StringProperty(default="")
 
     # can be PREVIOUS or NEXT
-    navigateDirection: StringProperty(default="PREVIOUS")
+    navigDirection: StringProperty(default="PREVIOUS")
 
     def invoke(self, context, event):
-        _logger.debug_ext(
-            f"Op greasepencil_navigateinkeyframes Invoke: name: {self.gpName}, dir: {self.navigateDirection} - event.shift: {event.shift}",
-            col="RED",
-        )
+        # _logger.debug_ext(
+        #     f"Op greasepencil_navigateinkeyframes Invoke: name: {self.gpName}, dir: {self.navigDirection} - event.shift: {event.shift}",
+        #     col="RED",
+        # )
         return self.execute(context)
 
     def execute(self, context):
@@ -743,9 +750,9 @@ class UAS_ShotManager_GreasePencil_NavigateInKeyFrames(Operator):
                 layerMode = props.greasePencil_layersModeB
 
             currentFrame = context.scene.frame_current
-            if "PREVIOUS" == self.navigateDirection:
+            if "PREVIOUS" == self.navigDirection:
                 newFrame = utils_greasepencil.getLayerPreviousFrame(gp, currentFrame, layerMode)
-            elif "NEXT" == self.navigateDirection:
+            elif "NEXT" == self.navigDirection:
                 newFrame = utils_greasepencil.getLayerNextFrame(gp, currentFrame, layerMode)
             context.scene.frame_current = newFrame
 
@@ -756,38 +763,39 @@ class UAS_ShotManager_GreasePencil_NavigateInKeyFrames(Operator):
         return {"FINISHED"}
 
 
-class UAS_ShotManager_GreasePencil_NavigateInShots(Operator):
-    bl_idname = "uas_shot_manager.greasepencil_navigateinshots"
-    bl_label = ""
-    bl_description = (
-        "Jump to the previous key frame of the specified layer"
-        "\n+ Ctrl: Jump to the start of the current shot, then to"
-        "\nthe start of the previous shot"
-    )
-    bl_options = {"INTERNAL", "UNDO"}
+# wkip to delete
+# class UAS_ShotManager_GreasePencil_NavigateInShots(Operator):
+#     bl_idname = "uas_shot_manager.greasepencil_navigateinshots"
+#     bl_label = ""
+#     bl_description = (
+#         "Jump to the previous key frame of the specified layer"
+#         "\n+ Ctrl: Jump to the start of the current shot, then to"
+#         "\nthe start of the previous shot"
+#     )
+#     bl_options = {"INTERNAL", "UNDO"}
 
-    gpName: StringProperty(default="")
+#     gpName: StringProperty(default="")
 
-    # can be PREVIOUS or NEXT
-    navigateDirection: StringProperty(default="PREVIOUS")
+#     # can be PREVIOUS or NEXT
+#     navigDirection: StringProperty(default="PREVIOUS")
 
-    def invoke(self, context, event):
-        _logger.debug_ext(
-            f"Op greasepencil_navigateinshots Invoke: name: {self.gpName}, dir: {self.navigateDirection} - event.shift: {event.shift}",
-            col="RED",
-        )
-        return self.execute(context)
+#     def invoke(self, context, event):
+#         _logger.debug_ext(
+#             f"Op greasepencil_navigateinshots Invoke: name: {self.gpName}, dir: {self.navigDirection} - event.shift: {event.shift}",
+#             col="RED",
+#         )
+#         return self.execute(context)
 
-    def execute(self, context):
-        props = context.scene.UAS_shot_manager_props
+#     def execute(self, context):
+#         props = context.scene.UAS_shot_manager_props
 
-        currentFrame = context.scene.frame_current
-        if "PREVIOUS" == self.navigateDirection:
-            props.goToPreviousShotBoundary(currentFrame, ignoreDisabled=True, boundaryMode="START")
-        elif "NEXT" == self.navigateDirection:
-            props.goToNextShotBoundary(currentFrame, ignoreDisabled=True, boundaryMode="START")
+#         currentFrame = context.scene.frame_current
+#         if "PREVIOUS" == self.navigDirection:
+#             props.goToPreviousShotBoundary(currentFrame, ignoreDisabled=True, boundaryMode="START")
+#         elif "NEXT" == self.navigDirection:
+#             props.goToNextShotBoundary(currentFrame, ignoreDisabled=True, boundaryMode="START")
 
-        return {"FINISHED"}
+#         return {"FINISHED"}
 
 
 # https://blender.stackexchange.com/questions/142190/how-do-i-access-grease-pencil-data
@@ -1162,7 +1170,7 @@ _classes = (
     UAS_ShotManager_GreasePencilItem,
     UAS_ShotManager_GreasePencil_UINavigationKeys,
     UAS_ShotManager_GreasePencil_NavigateInKeyFrames,
-    UAS_ShotManager_GreasePencil_NavigateInShots,
+    # UAS_ShotManager_GreasePencil_NavigateInShots,
     UAS_ShotManager_GreasePencil_NewKeyFrame,
     UAS_ShotManager_GreasePencil_DuplicateKeyFrame,
     UAS_ShotManager_GreasePencil_DeleteKeyFrame,

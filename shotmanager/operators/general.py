@@ -38,8 +38,8 @@ _logger = sm_logging.getLogger(__name__)
 
 class UAS_ShotManager_OT_ShotsPlayMode(Operator):
     bl_idname = "uas_shot_manager.shots_play_mode"
-    bl_label = "Toggle Shots Play Mode"
-    # bl_description = "Bla"
+    bl_label = "Shot Manager - Toggle Shots Play Mode"
+    bl_description = "Enable / disable the Shots Play Mode"
     bl_options = {"INTERNAL"}
 
     def invoke(self, context, event):
@@ -52,7 +52,7 @@ class UAS_ShotManager_OT_ShotsPlayMode(Operator):
 
 class UAS_ShotManager_OT_DisplayOverlayTools(Operator):
     bl_idname = "uas_shot_manager.display_overlay_tools"
-    bl_label = "Toggle Overlay Tools Display"
+    bl_label = "Shot Manager - Toggle Overlay Tools Display"
     bl_description = "Show or hide the Sequence Timeline, Interactive Shots Stack and some other tools"
     bl_options = {"INTERNAL"}
 

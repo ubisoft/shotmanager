@@ -226,7 +226,7 @@ def register():
         install_handler_for_shot(self, context)
 
     bpy.types.WindowManager.UAS_shot_manager_shots_play_mode = BoolProperty(
-        name="Enable Shot Play Mode",
+        name="Enable Shots Play Mode",
         description="Override the standard animation Play mode to play the enabled shots" "\nin the specified order",
         update=_update_UAS_shot_manager_shots_play_mode,
         default=False,

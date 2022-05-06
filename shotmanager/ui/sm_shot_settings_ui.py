@@ -355,6 +355,7 @@ class UAS_PT_ShotManager_ShotProperties(Panel):
             subRowCam.label(text="Duration: ")
 
             subRowCam.use_property_split = False
+            subRowCam.prop(shot, "duration_fp", text="")
             subRowCam.prop(
                 shot,
                 "durationLocked",
@@ -362,8 +363,6 @@ class UAS_PT_ShotManager_ShotProperties(Panel):
                 icon="DECORATE_LOCKED" if shot.durationLocked else "DECORATE_UNLOCKED",
                 toggle=True,
             )
-
-            subRowCam.prop(shot, "duration_fp", text="")
 
             #    grid_flow.label(text=str(shot.getDuration()) + " frames")
             subRowCam.separator(factor=1.0)

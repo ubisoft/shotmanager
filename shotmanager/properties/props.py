@@ -1034,7 +1034,10 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         pinnedGpencilName = ""
         if self.stb_hasPinnedObject:
             if "" != self.stb_editedGPencilName:
-                if self.stb_editedGPencilName in self.parentScene.objects and "GPENCIL" == self.parentScene.objects[self.stb_editedGPencilName].type:
+                if (
+                    self.stb_editedGPencilName in self.parentScene.objects
+                    and "GPENCIL" == self.parentScene.objects[self.stb_editedGPencilName].type
+                ):
                     pinnedGpencilName = self.parentScene.objects[self.stb_editedGPencilName].name
                 else:
                     self.stb_editedGPencilName = ""
@@ -3499,13 +3502,13 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         previousShotInd = -1
         newFrame = currentFrame
 
-        # in shot play mode the current frame is supposed to be in the current shot
+        # in shots play mode the current frame is supposed to be in the current shot
         # if True or bpy.context.window_manager.UAS_shot_manager_shots_play_mode:
         if "ANY" == boundaryMode:
             # get current shot in the WHOLE list (= even disabled)
             currentShotInd = self.getCurrentShotIndex()
             currentShot = self.getShotByIndex(currentShotInd)
-            _logger.debug_ext(f"    current Shot: {currentShotInd}")
+            # _logger.debug_ext(f"    current Shot: {currentShotInd}")
             if not currentShot.enabled:
                 print("    current Shot is disabled")
                 previousShotInd = self.getPreviousEnabledShotIndex(currentShotInd)
@@ -3597,7 +3600,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         nextShotInd = -1
         newFrame = currentFrame
 
-        # in shot play mode the current frame is supposed to be in the current shot
+        # in shots play mode the current frame is supposed to be in the current shot
         # if True or bpy.context.window_manager.UAS_shot_manager_shots_play_mode:
 
         if "ANY" == boundaryMode:
@@ -3704,7 +3707,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         previousShotInd = -1
         newFrame = currentFrame
 
-        # in shot play mode the current frame is supposed to be in the current shot
+        # in shots play mode the current frame is supposed to be in the current shot
         if bpy.context.window_manager.UAS_shot_manager_shots_play_mode:
 
             # get current shot in the WHOLE list (= even disabled)
@@ -3756,7 +3759,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         nextShotInd = -1
         newFrame = currentFrame
 
-        # in shot play mode the current frame is supposed to be in the current shot
+        # in shots play mode the current frame is supposed to be in the current shot
         if bpy.context.window_manager.UAS_shot_manager_shots_play_mode:
 
             # get current shot in the WHOLE list (= even disabled)

@@ -28,7 +28,7 @@ Limitations
 -----------
 
 .. warning::
-    - Shot Manager is not compatible with camera binding. Indeed the *Shot Play Mode* overrides the standant play mode and has its own
+    - Shot Manager is not compatible with camera binding. Indeed the *Shots Play Mode* overrides the standant play mode and has its own
       way of changing the viewport camera. Good news is this mode is far more powerfull than the camera binding approach :)
       
       Use the convertion tools available in the Warning area of the add-on panel to convert the bound markers to shots.

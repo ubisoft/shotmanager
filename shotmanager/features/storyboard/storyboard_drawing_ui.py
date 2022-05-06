@@ -201,12 +201,12 @@ def drawClearLayer(context, layout, editedGpencil):
 
 def drawPlayBar(context, layout):
     navRow = layout.row(align=True)
-    navRow.scale_y = 1.2
+    navRow.scale_y = 1.0
     navRow.scale_x = 2.0
     op = navRow.operator("uas_shot_manager.greasepencil_ui_navigation_keys", icon="PREV_KEYFRAME", text="")
-    op.navigateDirection = "NEXT"
+    op.navigDirection = "NEXT"
     op = navRow.operator("uas_shot_manager.greasepencil_ui_navigation_keys", icon="NEXT_KEYFRAME", text="")
-    op.navigateDirection = "NEXT"
+    op.navigDirection = "NEXT"
     navRow.scale_x = 1.0
 
 
@@ -216,7 +216,9 @@ def drawLayersMode(context, layout, props):
     # row.scale_x = 2
     # row.ui_units_x = 14
     # row.alignment = "LEFT"
-    row.prop(props, "greasePencil_layersMode", text="Apply ")
+    split = row.split(factor=0.4)
+    split.label(text="Navigate on:")
+    split.prop(props, "greasePencil_layersMode", text="")
 
 
 #  row.prop(props, "greasePencil_layersModeB", text="Apply ")

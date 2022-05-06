@@ -48,21 +48,21 @@ def registerKeymaps():
         kmi = km.keymap_items.new(
             "uas_shot_manager.greasepencil_navigateinkeyframes", type="LEFT_ARROW", value="PRESS", ctrl=True
         )
-        setattr(kmi.properties, "navigateDirection", "PREVIOUS")
+        kmi.properties.navigDirection = "PREVIOUS"
         config.gAddonKeymaps.append((km, kmi))
 
         km = wm.keyconfigs.addon.keymaps.new(name="Dopesheet", space_type="DOPESHEET_EDITOR")
         kmi = km.keymap_items.new(
             "uas_shot_manager.greasepencil_navigateinkeyframes", type="LEFT_ARROW", value="PRESS", ctrl=True
         )
-        setattr(kmi.properties, "navigateDirection", "PREVIOUS")
+        kmi.properties.navigDirection = "PREVIOUS"
         config.gAddonKeymaps.append((km, kmi))
 
         km = wm.keyconfigs.addon.keymaps.new(name="Graph Editor", space_type="GRAPH_EDITOR")
         kmi = km.keymap_items.new(
             "uas_shot_manager.greasepencil_navigateinkeyframes", type="LEFT_ARROW", value="PRESS", ctrl=True
         )
-        setattr(kmi.properties, "navigateDirection", "PREVIOUS")
+        kmi.properties.navigDirection = "PREVIOUS"
         config.gAddonKeymaps.append((km, kmi))
 
         # next key frame
@@ -72,69 +72,19 @@ def registerKeymaps():
         kmi = km.keymap_items.new(
             "uas_shot_manager.greasepencil_navigateinkeyframes", type="RIGHT_ARROW", value="PRESS", ctrl=True
         )
-        setattr(kmi.properties, "navigateDirection", "NEXT")
+        kmi.properties.navigDirection = "NEXT"
         config.gAddonKeymaps.append((km, kmi))
 
         km = wm.keyconfigs.addon.keymaps.new(name="Dopesheet", space_type="DOPESHEET_EDITOR")
         kmi = km.keymap_items.new(
             "uas_shot_manager.greasepencil_navigateinkeyframes", type="RIGHT_ARROW", value="PRESS", ctrl=True
         )
-        setattr(kmi.properties, "navigateDirection", "NEXT")
+        kmi.properties.navigDirection = "NEXT"
         config.gAddonKeymaps.append((km, kmi))
 
         km = wm.keyconfigs.addon.keymaps.new(name="Graph Editor", space_type="GRAPH_EDITOR")
         kmi = km.keymap_items.new(
             "uas_shot_manager.greasepencil_navigateinkeyframes", type="RIGHT_ARROW", value="PRESS", ctrl=True
         )
-        setattr(kmi.properties, "navigateDirection", "NEXT")
-        config.gAddonKeymaps.append((km, kmi))
-
-        # previous shot
-        ###############################
-
-        # VIEW_3D works also for timeline
-        km = wm.keyconfigs.addon.keymaps.new(name="3D View", space_type="VIEW_3D")
-        kmi = km.keymap_items.new(
-            "uas_shot_manager.greasepencil_navigateinshots", type="UP_ARROW", value="PRESS", ctrl=True
-        )
-        setattr(kmi.properties, "navigateDirection", "PREVIOUS")
-        # kmi.properties.navigateDirection = "PREVIOUS"
-        config.gAddonKeymaps.append((km, kmi))
-
-        km = wm.keyconfigs.addon.keymaps.new(name="Dopesheet", space_type="DOPESHEET_EDITOR")
-        kmi = km.keymap_items.new(
-            "uas_shot_manager.greasepencil_navigateinshots", type="UP_ARROW", value="PRESS", ctrl=True
-        )
-        setattr(kmi.properties, "navigateDirection", "PREVIOUS")
-        config.gAddonKeymaps.append((km, kmi))
-
-        km = wm.keyconfigs.addon.keymaps.new(name="Graph Editor", space_type="GRAPH_EDITOR")
-        kmi = km.keymap_items.new(
-            "uas_shot_manager.greasepencil_navigateinshots", type="UP_ARROW", value="PRESS", ctrl=True
-        )
-        setattr(kmi.properties, "navigateDirection", "PREVIOUS")
-        config.gAddonKeymaps.append((km, kmi))
-
-        # next shot
-        ###############################
-
-        km = wm.keyconfigs.addon.keymaps.new(name="3D View", space_type="VIEW_3D")
-        kmi = km.keymap_items.new(
-            "uas_shot_manager.greasepencil_navigateinshots", type="DOWN_ARROW", value="PRESS", ctrl=True
-        )
-        setattr(kmi.properties, "navigateDirection", "NEXT")
-        config.gAddonKeymaps.append((km, kmi))
-
-        km = wm.keyconfigs.addon.keymaps.new(name="Dopesheet", space_type="DOPESHEET_EDITOR")
-        kmi = km.keymap_items.new(
-            "uas_shot_manager.greasepencil_navigateinshots", type="DOWN_ARROW", value="PRESS", shift=True
-        )
-        setattr(kmi.properties, "navigateDirection", "NEXT")
-        config.gAddonKeymaps.append((km, kmi))
-
-        km = wm.keyconfigs.addon.keymaps.new(name="Graph Editor", space_type="GRAPH_EDITOR")
-        kmi = km.keymap_items.new(
-            "uas_shot_manager.greasepencil_navigateinshots", type="DOWN_ARROW", value="PRESS", shift=True
-        )
-        setattr(kmi.properties, "navigateDirection", "NEXT")
+        kmi.properties.navigDirection = "NEXT"
         config.gAddonKeymaps.append((km, kmi))
