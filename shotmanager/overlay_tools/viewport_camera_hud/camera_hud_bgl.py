@@ -39,20 +39,23 @@ from shotmanager.utils.utils_ogl import get_region_at_xy, Square, Rect
 
 
 def draw_shots_names(context):
+    """Draw shot names on cameras visible in 3D in the viewport"""
     scn = context.scene
-
+    # return
     # For all camera which have a shot draw on the ui a list of shots associated with it.
     for obj in scn.objects:
         if obj.type == "CAMERA":
-            if not (context.space_data.region_3d.view_perspective == "CAMERA" and obj == context.scene.camera):
-                pos_2d = view3d_utils.location_3d_to_region_2d(
-                    context.region, context.space_data.region_3d, mathutils.Vector(obj.location)
-                )
-                if pos_2d is not None:
-                    # print("pos x:", pos_2d[0])
-                    # print("pos y:", pos_2d[1])
-                    pass
-                    draw_all_shots_names(context, obj, pos_2d[0], pos_2d[1], vertical=True)
+            # print(f"obj: {obj.name}, obj.visible_get(): {obj.visible_get()}")
+            if obj.visible_get():
+                if not (context.space_data.region_3d.view_perspective == "CAMERA" and obj == context.scene.camera):
+                    pos_2d = view3d_utils.location_3d_to_region_2d(
+                        context.region, context.space_data.region_3d, mathutils.Vector(obj.location)
+                    )
+                    if pos_2d is not None:
+                        # print("pos x:", pos_2d[0])
+                        # print("pos y:", pos_2d[1])
+                        pass
+                        draw_all_shots_names(context, obj, pos_2d[0], pos_2d[1], vertical=True)
 
 
 def draw_all_shots_names(context, cam, pos_x, pos_y, vertical=False):
@@ -81,7 +84,8 @@ def draw_all_shots_names(context, cam, pos_x, pos_y, vertical=False):
     # keep only shots with visible cameras
     shotsList = list()
     for shot in shotsList_allCams:
-        if shot.isCameraValid() and shot.camera.visible_get():
+        if shot.isCameraValid() and (shot.camera.visible_get() or shot.camera.name == cam.name):
+            # if shot.camera is not None and shot.camera.visible_get():
             shotsList.append(shot)
 
     shot_names_by_camera = defaultdict(list)

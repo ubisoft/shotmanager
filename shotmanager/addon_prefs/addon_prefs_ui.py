@@ -119,15 +119,23 @@ def drawSettings(context, prefs, layout):
         split = row.split(factor=settingsSplitFactor)
         rowLeft = split.row()
         rowLeft.alignment = "RIGHT"
-        rowLeft.label(text="Storyboard Default Canvas Opacity")
+        rowLeft.label(text="Default Canvas Opacity")
         rowRight = split.row()
-        rowRight.prop(prefs, "storyboard_default_canvas_opacity", slider=True, text="Opacity")
+        rowRight.prop(prefs, "storyboard_default_canvasOpacity", slider=True, text="Opacity")
 
         row = col.row()
         split = row.split(factor=settingsSplitFactor)
         rowLeft = split.row()
         rowLeft.alignment = "RIGHT"
-        rowLeft.label(text="Storyboard Frame Default Start Time")
+        rowLeft.label(text="Default Distance to Camera")
+        rowRight = split.row()
+        rowRight.prop(prefs, "storyboard_default_distanceFromOrigin", slider=True, text="Distance")
+
+        row = col.row()
+        split = row.split(factor=settingsSplitFactor)
+        rowLeft = split.row()
+        rowLeft.alignment = "RIGHT"
+        rowLeft.label(text="Frame Default Start Time")
         rowRight = split.row()
         rowRight.prop(prefs, "storyboard_default_start_frame", slider=True, text="Frame")
 
@@ -135,7 +143,7 @@ def drawSettings(context, prefs, layout):
         split = row.split(factor=settingsSplitFactor)
         rowLeft = split.row()
         rowLeft.alignment = "RIGHT"
-        rowLeft.label(text="Storyboard Default Shot Duration")
+        rowLeft.label(text="Default Shot Duration")
         rowRight = split.row()
         rowRight.prop(prefs, "storyboard_new_shot_duration", slider=True, text="Frames")
 

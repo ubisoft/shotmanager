@@ -165,13 +165,25 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
         default=50,
     )
 
-    storyboard_default_canvas_opacity: FloatProperty(
+    storyboard_default_canvasOpacity: FloatProperty(
         name="Storyboard Default Canvas Opacity",
         description="Opacity of the Canvas layer for new storyboard frames",
         min=0.0,
         max=1.0,
         step=0.1,
         default=1.0,
+    )
+
+    storyboard_default_distanceFromOrigin: FloatProperty(
+        name="Storyboard Default Frame Distance",
+        description="Distance between a new storyboard frame and its parent camera",
+        subtype="DISTANCE",
+        soft_min=0.02,
+        min=0.001,
+        soft_max=10.0,
+        # max=1.0,
+        step=0.1,
+        default=2.0,
     )
 
     storyboard_default_start_frame: IntProperty(

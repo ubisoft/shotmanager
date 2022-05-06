@@ -108,7 +108,7 @@ class UAS_ShotManager_OpenFileBrowserForCamBG(Operator):  # from bpy_extras.io_u
         return {"RUNNING_MODAL"}
 
     def execute(self, context):
-        """Open image or video file """
+        """Open image or video file"""
         filename, extension = os.path.splitext(self.filepath)
         print("ex Selected file:", self.filepath)
         # print("ex File name:", filename)
@@ -143,7 +143,7 @@ class UAS_ShotManager_RemoveBGImages(Operator):
         for shot in shotList:
             shot.removeBGImages()
             # #    print("   shot name: ", shot.name)
-            # if shot.camera is not None and len(shot.camera.data.background_images):
+            # if shot.isCameraValid() and len(shot.camera.data.background_images):
             #     # if shot.camera.data.background_images[0].clip is not None:
             #     shot.camera.data.show_background_images = False
             #     # shot.camera.data.background_images[0].clip = None

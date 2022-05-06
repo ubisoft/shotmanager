@@ -197,8 +197,8 @@ class UAS_ShotManager_CreateNStoryboardShots(Operator):
         return {"INTERFACE"}
 
 
-class UAS_ShotManager_UpdateStoryboardGrid(Operator):
-    bl_idname = "uas_shot_manager.update_storyboard_grid"
+class UAS_ShotManager_StoryboardGridUpdate(Operator):
+    bl_idname = "uas_shot_manager.storyboard_grid_update"
     bl_label = "Update Storyboard Grid"
     bl_description = "Update the position of the storyboard frames on the grid"
     bl_options = {"REGISTER", "UNDO"}
@@ -211,9 +211,27 @@ class UAS_ShotManager_UpdateStoryboardGrid(Operator):
         return {"FINISHED"}
 
 
+class UAS_ShotManager_StoryboardGridDisplaySettings(Operator):
+    bl_idname = "uas_shot_manager.storyboard_grid_display_settings"
+    bl_label = "Storyboard Grid settings"
+    bl_description = "Display the storyboard grid settings"
+    bl_options = {"REGISTER", "UNDO"}
+
+    def invoke(self, context, event):
+        wm = context.window_manager
+        return wm.invoke_props_dialog(self, width=360)
+
+    def execute(self, context):
+        scene = context.scene
+        props = scene.UAS_shot_manager_props
+
+        return {"FINISHED"}
+
+
 _classes = (
     UAS_ShotManager_CreateNStoryboardShots,
-    UAS_ShotManager_UpdateStoryboardGrid,
+    UAS_ShotManager_StoryboardGridUpdate,
+    UAS_ShotManager_StoryboardGridDisplaySettings,
 )
 
 

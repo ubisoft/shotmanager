@@ -51,7 +51,8 @@ class GreasePencilProperties(PropertyGroup):
 
         self.parentCamera = parentShot.camera
         self.frameMode = mode
-        self.canvasOpacity = prefs.storyboard_default_canvas_opacity
+        self.canvasOpacity = prefs.storyboard_default_canvasOpacity
+        self.distanceFromOrigin = prefs.storyboard_default_distanceFromOrigin
 
     def getParentShot(self):
         props = bpy.context.scene.UAS_shot_manager_props
@@ -68,7 +69,7 @@ class GreasePencilProperties(PropertyGroup):
 
     distanceFromOrigin: FloatProperty(
         name="Distance",
-        description="Distance between the storyboard frame and the parent camera",
+        description="Distance between the storyboard frame and its parent camera",
         subtype="DISTANCE",
         soft_min=0.02,
         min=0.001,

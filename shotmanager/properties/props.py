@@ -45,9 +45,9 @@ from shotmanager.rendering.rendering_props import UAS_ShotManager_RenderSettings
 from .output_params import UAS_ShotManager_OutputParams_Resolution
 
 from .shot import UAS_ShotManager_Shot
+from .shots_global_settings import UAS_ShotManager_ShotsGlobalSettings
 from .take import UAS_ShotManager_Take
 from ..functions import warnings
-from ..operators.shots_global_settings import UAS_ShotManager_ShotsGlobalSettings
 from ..retimer.retimer_props import UAS_Retimer_Properties
 from ..features.greasepencil.greasepencil_frame_template import UAS_GreasePencil_FrameTemplate
 from ..features.greasepencil.greasepencil_tools_props import UAS_GreasePencil_Tools_Properties

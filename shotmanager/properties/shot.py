@@ -337,17 +337,17 @@ class UAS_ShotManager_Shot(ShotInterface, PropertyGroup):
         Return True if the camera is really there, False otherwise
         Note: This doesn't change the camera attribute of the shot
         """
-        cameraIsInvalid = self.camera is not None
+        cameraIsValid = self.camera is not None
         if self.camera is not None:
             try:
                 if bpy.context.scene.objects[self.camera.name] is None:
                     self.camera = None
             except Exception:
                 # item.camera = None     # not working, often invalid context to write in
-                cameraIsInvalid = False
+                cameraIsValid = False
             # _logger.error(f"Error: Shot {self.name} uses a camera {self.camera.name} not found in the scene")
 
-        return cameraIsInvalid
+        return cameraIsValid
 
     def makeCameraUnique(self):
         if self.camera is not None:
@@ -610,7 +610,7 @@ class UAS_ShotManager_Shot(ShotInterface, PropertyGroup):
         return (gpProps, gpObj)
 
     def getGreasePencilProps(self, mode="STORYBOARD"):
-        """Return the GreasePencilProperties instance of the specified mode
+        """Return the GreasePencilProperties instance of the specified mode, None otherwise
         Args:
             mode: "STORYBOARD"
         """
@@ -660,7 +660,7 @@ class UAS_ShotManager_Shot(ShotInterface, PropertyGroup):
 
         gp_child = utils_greasepencil.get_greasepencil_child(self.camera)
         if gp_child is not None:
-            gpProps = self.greasePencils[0]
+            gpProps = self.getGreasePencilProps(mode="STORYBOARD")
             props = self.parentScene.UAS_shot_manager_props
 
             # if visible is None:

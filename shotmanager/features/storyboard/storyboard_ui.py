@@ -55,10 +55,8 @@ def draw_greasepencil_shot_properties(layout, context, shot):
         return
 
     shotIndex = props.getShotIndex(shot)
-    #    gpProperties = shot.gpStoryboard if hasattr(shot, "gpStoryboard") else None
-    gpProperties = None
-    if len(shot.greasePencils):
-        gpProperties = shot.greasePencils[0]
+
+    gpProperties = shot.getGreasePencilProps(mode="STORYBOARD")
 
     gp_child = utils_greasepencil.get_greasepencil_child(shot.camera)
 
@@ -360,7 +358,12 @@ def draw_greasepencil_global_properties(layout, context):
     grid_flow = subRow.grid_flow(align=False, columns=3, even_columns=False)
     # grid_flow.label(text="Grease Pencil:")
     # grid_flow.label(text="rr")
-    grid_flow.operator("uas_shot_manager.update_storyboard_grid", text="", icon="LIGHTPROBE_GRID")
+    gridRow = grid_flow.row(align=True)
+    gridRow.scale_x = 1.5
+    gridRow.operator("uas_shot_manager.storyboard_grid_update", text="", icon="LIGHTPROBE_GRID")
+    gridRow.operator("uas_shot_manager.storyboard_grid_display_settings", text="", icon="SETTINGS")
+    gridRow.scale_x = 1
+
     grid_flow.separator(factor=1.0)
     grid_flow.prop(prefs, "stb_global_visibility", text="")
     # grid_flow.operator("uas_shots_settings.use_greasepencil", text="Turn On").useGreasepencil = True
@@ -371,7 +374,14 @@ def draw_greasepencil_global_properties(layout, context):
         "uas_shot_manager.remove_grease_pencil", text="", icon="PANEL_CLOSE"
     ).alsoApplyToDisabledShots = props.shotsGlobalSettings.alsoApplyToDisabledShots
 
-    utils_ui.drawSeparatorLine(col, lower_height=1.4, higher_height=0.4)
+    sepRow = col.row()
+    sepRow.separator(factor=0.5)
+
+    subRow = col.row()
+    subRow.label(text="Distance:")
+    subRow.prop(props.shotsGlobalSettings, "stb_distanceFromOrigin", text="")
+
+    utils_ui.drawSeparatorLine(col, lower_height=1.4, higher_height=0.8)
 
     # overlay tools
     #########################

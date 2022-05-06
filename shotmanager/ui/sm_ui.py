@@ -27,6 +27,7 @@ from shotmanager.config import config
 # from shotmanager.viewport_3d.ogl_ui import UAS_ShotManager_sequenceTimeline
 
 from shotmanager.utils import utils
+from shotmanager.utils import utils_ui
 
 from . import sm_shots_ui
 from . import sm_shots_ui_storyboard_layout
@@ -278,9 +279,7 @@ class UAS_PT_ShotManager(Panel):
         subrow.enabled = 0 < len(props.get_shots())
         subrow.operator("uas_shot_manager.playbar_gotofirstshot", text="", icon="REW")
         icon = config.icons_col["ShotManager_Play_GoToPrevEnd_32"]
-        op = subrow.operator(
-            "uas_shot_manager.playbar_gotoshotboundary", text="", icon_value=icon.icon_id
-        )
+        op = subrow.operator("uas_shot_manager.playbar_gotoshotboundary", text="", icon_value=icon.icon_id)
         op.eventsEnabled = True
         op.navigDirection = "PREVIOUS"
         subrow.operator("uas_shot_manager.playbar_gotopreviousframe", text="", icon="FRAME_PREV")
@@ -303,9 +302,7 @@ class UAS_PT_ShotManager(Panel):
         subrow.enabled = 0 < len(props.get_shots())
         subrow.operator("uas_shot_manager.playbar_gotonextframe", text="", icon="FRAME_NEXT")
         icon = config.icons_col["ShotManager_Play_GoToNextStart_32"]
-        op = subrow.operator(
-            "uas_shot_manager.playbar_gotoshotboundary", text="", icon_value=icon.icon_id
-        )
+        op = subrow.operator("uas_shot_manager.playbar_gotoshotboundary", text="", icon_value=icon.icon_id)
         op.eventsEnabled = True
         op.navigDirection = "NEXT"
         subrow.operator("uas_shot_manager.playbar_gotolastshot", text="", icon="FF")
@@ -325,27 +322,20 @@ class UAS_PT_ShotManager(Panel):
         row.prop(props, "playSpeedGlobal", text="")
         row.alert = False
 
-        layout.separator(factor=0.5)
-
         ################
         # stop draw here if perfs are required
         ################
         if props.dontRefreshUI():
+            layout.separator(factor=0.4)
             return None
+
+        utils_ui.drawSeparatorLine(layout, lower_height=0.8, higher_height=0.6)
 
         # sequence name
         ################
         seqrow = layout.row()
         seqcol = seqrow.column(align=True)
 
-        # if False:
-        #     spacerrow = seqcol.row()
-        #     spacerrow.scale_y = 0.3
-        #     spacerrow.alignment = "CENTER"
-        #     spacerrow.label(text="           -------------------------------------------------------")
-        #     # spacerrow.scale_y = 1.0
-
-        seqcol.separator(factor=0.8)
         namerow = seqcol.row(align=True)
         namerow.scale_y = 1.2
         leftrow = namerow.row()

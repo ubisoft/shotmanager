@@ -389,7 +389,7 @@ class UAS_ShotManager_OT_RemoveGreasePencil(Operator):
         for shot in shotList:
             # print("   del gp for shot ", shot.name)
             shot.removeGreasePencil()
-            # if shot.camera is not None:
+            # if shot.isCameraValid():
             #     gp_child = utils_greasepencil.get_greasepencil_child(shot.camera)
             #     if gp_child is not None:
             #         bpy.data.objects.remove(gp_child, do_unlink=True)

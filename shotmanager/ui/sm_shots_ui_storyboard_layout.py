@@ -286,7 +286,7 @@ class UAS_UL_ShotManager_Storyboard_Items(bpy.types.UIList):
         if props.display_lens_in_shotlist:
             grid_flow.scale_x = 0.4
             grid_flow.use_property_decorate = True
-            if item.camera is not None:
+            if item.isCameraValid():
                 grid_flow.prop(item.camera.data, "lens", text="Lens")
             else:
                 grid_flow.alert = True

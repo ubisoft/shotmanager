@@ -37,13 +37,14 @@ from .features import storyboard
 
 from .operators import takes
 from .operators import shots
-from .operators import shots_global_settings
+from .operators import shots_global_settings_operators
 
 from .operators import general
 from .operators import playbar
 from .operators import shots_toolbar
 
 from .properties import props
+from .properties import shots_global_settings
 
 from . import prefs
 
@@ -185,6 +186,7 @@ def register():
     takes.register()
     shots.register()
     shots_global_settings.register()
+    shots_global_settings_operators.register()
     precut_tools.register()
     playbar.register()
     retimer.register()
@@ -364,6 +366,7 @@ def unregister():
     retimer.unregister()
     playbar.unregister()
     precut_tools.unregister()
+    shots_global_settings_operators.unregister()
     shots_global_settings.unregister()
     shots.unregister()
     takes.unregister()
