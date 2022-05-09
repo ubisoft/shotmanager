@@ -1060,7 +1060,6 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         frameList = self.getStoryboardFramesList(ignoreDisabled=False)
 
         grid.updateStoryboardGrid(frameList)
-        
 
     def getStoryboardFramesList(self, ignoreDisabled=False, takeIndex=-1):
         """Return a list of the shots that are flagged as storyboard frames"""
