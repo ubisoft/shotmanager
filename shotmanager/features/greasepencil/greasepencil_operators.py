@@ -1205,6 +1205,7 @@ class UAS_ShotManager_LockAnimChannel(Operator):
         return {"FINISHED"}
 
 
+
 _classes = (
     UAS_ShotManager_OT_AddGreasePencil,
     UAS_ShotManager_OT_SelectShotGreasePencil,

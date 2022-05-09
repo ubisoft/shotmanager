@@ -1116,6 +1116,12 @@ def to_sRGB(value):
     return pow(value, gamma)
 
 
+# to refactor
+def to_linear(value):
+    gamma = 0.45
+    return pow(value, gamma)
+
+
 def gamma_color(color):
     gamma = 0.45
     d_color = (pow(color[0], gamma), pow(color[1], gamma), pow(color[2], gamma), color[3] * 1.0)

@@ -495,9 +495,14 @@ def draw_greasepencil_global_properties(layout, context):
     col = row.column()
     subRow = col.row()
 
-    grid_flow = subRow.grid_flow(align=False, columns=3, even_columns=False)
+    grid_flow = subRow.grid_flow(align=False, columns=2, even_columns=True)
 
-    grid_flow.separator(factor=1.0)
+    draw_distance(grid_flow, props)
+
+    # grid_flow.separator(factor=1.0)
+    # subSubRow = grid_flow.row()
+    # subSubRow.scale_x = 0.6
+    # grid_flow.use_property_split = False
     grid_flow.prop(prefs, "stb_global_visibility", text="")
     # grid_flow.operator("uas_shots_settings.use_greasepencil", text="Turn On").useGreasepencil = True
     # grid_flow.operator("uas_shots_settings.use_greasepencil", text="Turn Off").useGreasepencil = False
@@ -506,12 +511,6 @@ def draw_greasepencil_global_properties(layout, context):
     rowCol.operator(
         "uas_shot_manager.remove_grease_pencil", text="", icon="PANEL_CLOSE"
     ).alsoApplyToDisabledShots = props.shotsGlobalSettings.alsoApplyToDisabledShots
-
-    sepRow = col.row()
-    sepRow.separator(factor=0.5)
-
-    subRow = col.row()
-    draw_distance(subRow, props)
 
     sepRow = col.row()
     sepRow.separator(factor=0.5)
@@ -548,6 +547,16 @@ def draw_greasepencil_global_properties(layout, context):
     subOverlayRighRow.enabled = spaceDataViewport.overlay.use_gpencil_fade_layers
     subOverlayRighRow.prop(prefs, "stb_overlay_layers_opacity", text="Fade Layers", slider=True)
 
+    row = col.row(align=False)
+    overlaySplit = row.split(factor=0.2)
+    overlaySplit.separator()
+    overlayRighRow = overlaySplit.row()
+    subOverlayRighRow = overlayRighRow.row()
+    subOverlayRighRow.prop(props.shotsGlobalSettings, "stb_show_passepartout", text="", slider=True)
+    subsubOverlayRighRow = subOverlayRighRow.row()
+    subsubOverlayRighRow.enabled = props.shotsGlobalSettings.stb_show_passepartout
+    subsubOverlayRighRow.prop(props.shotsGlobalSettings, "stb_passepartout_alpha", text="Passepartout", slider=True)
+
     row = col.row(align=True)
     row.separator(factor=0.5)
 
@@ -567,7 +576,10 @@ def draw_frame_grid(layout):
 def draw_distance(layout, props):
     row = layout.row(align=True)
     row.label(text="Distance:")
+    # subRow = layout.row(align=True)
+    # subRow.scale_x = 1.0
     row.prop(props.shotsGlobalSettings, "stb_distanceFromOrigin", text="")
+    # row.label(text="    |")
 
 
 def collapsable_panel_animateTransformations(

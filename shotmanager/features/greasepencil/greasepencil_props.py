@@ -21,11 +21,12 @@ Grease pencil shot class
 
 import bpy
 from bpy.types import PropertyGroup
-from bpy.props import PointerProperty, FloatProperty, FloatVectorProperty, EnumProperty, BoolProperty
+from bpy.props import PointerProperty, FloatProperty, FloatVectorProperty, EnumProperty
 
 # from shotmanager.properties.shot import UAS_ShotManager_Shot
 
-from shotmanager.utils import utils_greasepencil, utils
+from shotmanager.utils import utils
+from shotmanager.utils import utils_greasepencil
 from shotmanager.features.greasepencil import greasepencil as gp
 
 from shotmanager.config import sm_logging

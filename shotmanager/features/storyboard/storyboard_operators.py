@@ -197,10 +197,7 @@ class UAS_ShotManager_CreateNStoryboardShots(Operator):
         return {"INTERFACE"}
 
 
-
-_classes = (
-    UAS_ShotManager_CreateNStoryboardShots,
-)
+_classes = (UAS_ShotManager_CreateNStoryboardShots,)
 
 
 def register():

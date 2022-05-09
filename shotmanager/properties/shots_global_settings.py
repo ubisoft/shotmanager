@@ -23,7 +23,7 @@ import bpy
 from bpy.types import PropertyGroup
 from bpy.props import EnumProperty, BoolProperty, FloatProperty
 
-from ..utils import utils_greasepencil
+from shotmanager.utils import utils
 
 
 class UAS_ShotManager_ShotsGlobalSettings(PropertyGroup):
@@ -141,6 +141,44 @@ class UAS_ShotManager_ShotsGlobalSettings(PropertyGroup):
         step=0.1,
         update=_update_stb_distanceFromOrigin,
         default=2.0,
+    )
+
+    def _update_stb_show_passepartout(self, context):
+        props = context.scene.UAS_shot_manager_props
+        take = props.getCurrentTake()
+        shotList = take.getShotsList(ignoreDisabled=False)
+
+        for shot in shotList:
+            if shot.enabled or props.shotsGlobalSettings.alsoApplyToDisabledShots:
+                if "STORYBOARD" == shot.shotType and shot.isCameraValid():
+                    shot.camera.data.show_passepartout = self.stb_show_passepartout
+
+    stb_show_passepartout: BoolProperty(
+        name="Storyboard Global Passepartout",
+        description="Show passepartout opacity on storygoard frame cameras",
+        update=_update_stb_show_passepartout,
+        default=True,
+    )
+
+    def _update_stb_passepartout_alpha(self, context):
+        props = context.scene.UAS_shot_manager_props
+        take = props.getCurrentTake()
+        shotList = take.getShotsList(ignoreDisabled=False)
+
+        for shot in shotList:
+            if shot.enabled or props.shotsGlobalSettings.alsoApplyToDisabledShots:
+                if "STORYBOARD" == shot.shotType and shot.isCameraValid():
+                    shot.camera.data.show_passepartout = True
+                    shot.camera.data.passepartout_alpha = pow(self.stb_passepartout_alpha, 0.3)
+
+    stb_passepartout_alpha: FloatProperty(
+        name="Storyboard Global Passepartout Alpha",
+        description="Set the value of the passepartout opacity on storygoard frame cameras",
+        min=0.0,
+        max=1.0,
+        step=0.05,
+        update=_update_stb_passepartout_alpha,
+        default=0.2,
     )
 
     #########################
