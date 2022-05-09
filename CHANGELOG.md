@@ -2,6 +2,7 @@
 
 - Added key mapping for previous and next shots, previous and next grease pencil key frame
 - Added a frame grid and a frame grid panel to update the way storyboard frames are placed in 3D space
+- Added a passepartout global value on storyboard frames
 
 # 2.0.19 (2022-05-04)
 
