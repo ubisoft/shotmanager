@@ -591,13 +591,13 @@ class UAS_ShotManager_Shot(ShotInterface, PropertyGroup):
         """Create a Grease Pencil object parented to the camera of the shot.
         Return a tupple with the grease pencil properties and the created object.
         """
-        if len(self.greasePencils):
-            gpProps = self.greasePencils[0]
-        else:
-            gpProps = self.greasePencils.add()
-            gpProps.initialize(self)
+        gpProps = self.getGreasePencilProps(mode)
 
-        gpObj = self.getGreasePencilObject()
+        if gpProps is None:
+            gpProps = self.greasePencils.add()
+            gpProps.initialize(self, mode)
+
+        gpObj = self.getGreasePencilObject(mode)
 
         if gpObj is None:
             framePreset = self.parentScene.UAS_shot_manager_props.stb_frameTemplate
@@ -605,7 +605,7 @@ class UAS_ShotManager_Shot(ShotInterface, PropertyGroup):
             gpName = self.camera.name + "_GP"
             gpObj = gp.createStoryboarFrameGP(gpName, framePreset, parentCamera=self.camera, location=[0, 0, -0.5])
 
-        gpProps.updateGreasePencil()
+            gpProps.updateGreasePencil()
 
         return (gpProps, gpObj)
 
@@ -638,7 +638,15 @@ class UAS_ShotManager_Shot(ShotInterface, PropertyGroup):
             return False
 
     # wkip to update with the gp list
-    def getGreasePencilObject(self, mode="STORYBOARD"):
+    def getGreasePencilObject(self, mode):
+        """Set the grease pencil object of the specified mode associated to the camera.
+        Return the created - or corresponding if one existed - grease pencil object, or None if the camera was invalid
+        Args:
+            mode: can be "STORYBOARD"
+        """
+        # TOFIX: At the moment there is only one child (or child hierarchy rather, since there is the empty and then the
+        # grease pencil) for the camera, which is the storyboard frame. This may change in a future version to have other
+        # grease pencil modes
         gp_child = None
         if self.isCameraValid():
             gp_child = utils_greasepencil.get_greasepencil_child(self.camera)

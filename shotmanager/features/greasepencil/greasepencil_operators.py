@@ -563,7 +563,7 @@ class UAS_ShotManager_GreasePencilItem(Operator):
         framePreset = props.stb_frameTemplate
         props.setSelectedShotByIndex(self.index)
         shot = props.getShotByIndex(self.index)
-        gp_child = shot.getGreasePencilObject()
+        gp_child = shot.getGreasePencilObject("STORYBOARD")
 
         # try:
         #     bpy.ops.object.select_all(action="DESELECT")
@@ -579,7 +579,7 @@ class UAS_ShotManager_GreasePencilItem(Operator):
             gp.createStoryboarFrameGP(
                 shot.camera.name + "_GP", framePreset, parentCamera=shot.camera, location=[0, 0, 0]
             )
-            gp_child = shot.getGreasePencilObject()
+            gp_child = shot.getGreasePencilObject("STORYBOARD")
 
         if gp_child is not None:
             # if not event.shift or event.alt:

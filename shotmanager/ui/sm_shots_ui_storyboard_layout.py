@@ -119,7 +119,7 @@ class UAS_UL_ShotManager_Storyboard_Items(bpy.types.UIList):
                 gpRow = row.row(align=True)
                 gpRow.scale_x = 1.1
 
-                gp = item.getGreasePencilObject()
+                gp = item.getGreasePencilObject("STORYBOARD")
                 if gp is None:
                     icon = config.icons_col["ShotManager_CamGPNoShot_32"]
                     gpRow.operator("uas_shot_manager.greasepencilitem", text="", icon_value=icon.icon_id).index = index

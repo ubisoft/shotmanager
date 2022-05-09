@@ -738,7 +738,7 @@ class UAS_ShotManager_ShotAdd(Operator):
 
         if props.display_storyboard_in_properties:
             if self.addStoryboardGP:
-                gp_child = newShot.getGreasePencilObject()
+                gp_child = newShot.getGreasePencilObject("STORYBOARD")
                 utils.add_to_selection(gp_child)
                 utils.setPropertyPanelContext(bpy.context, "DATA")
         else:
