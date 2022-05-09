@@ -1059,13 +1059,8 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         grid = self.stb_frameTemplate.frameGrid
         frameList = self.getStoryboardFramesList(ignoreDisabled=False)
 
-        for i, shot in enumerate(frameList):
-            if shot.isCameraValid():
-                # x_offset = grid.offset_x  # 1.5
-                # y_offset = grid.offset_y  # -1.2
-                shot.camera.location[0] = grid.origin[0] + grid.offset_x * (i % grid.numShotsPerRow)
-                shot.camera.location[1] = grid.origin[1]  # + grid.offset_z * ((i - 1) % grid.numShotsPerRow)
-                shot.camera.location[2] = grid.origin[2] + grid.offset_y * (i // grid.numShotsPerRow)
+        grid.updateStoryboardGrid(frameList)
+        
 
     def getStoryboardFramesList(self, ignoreDisabled=False, takeIndex=-1):
         """Return a list of the shots that are flagged as storyboard frames"""

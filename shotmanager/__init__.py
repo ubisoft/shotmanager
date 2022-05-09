@@ -154,6 +154,7 @@ def register():
     # debug tools
     sm_debug.register()
 
+    from .features.storyboard import frame_grid
     from .features.greasepencil import greasepencil_frame_template
     from .addon_prefs import addon_prefs
     from .utils import utils_vse_render
@@ -170,6 +171,7 @@ def register():
         name="Add-on Version Int", description="Add-on version as integer", default=versionTupple[1]
     )
 
+    frame_grid.register()
     greasepencil_frame_template.register()
     addon_prefs.register()
 
@@ -333,6 +335,7 @@ def unregister():
     # Unregister packages that were registered if the install went right
     ###################
 
+    from .features.storyboard import frame_grid
     from .features.greasepencil import greasepencil_frame_template
 
     from .addon_prefs import addon_prefs
@@ -377,8 +380,9 @@ def unregister():
     soundBG.unregister()
     cameraBG.unregister()
 
-    greasepencil_frame_template.unregister()
     addon_prefs.unregister()
+    greasepencil_frame_template.unregister()
+    frame_grid.unregister()
 
     del bpy.types.WindowManager.UAS_shot_manager_shots_play_mode
     del bpy.types.WindowManager.UAS_shot_manager_display_overlay_tools

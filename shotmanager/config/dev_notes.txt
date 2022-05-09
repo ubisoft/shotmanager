@@ -53,6 +53,8 @@ OTIO advanced doc: https://sandflow.github.io/otio-core-specification/
 Grease Pencil for boarding:
     - Urgent:
 
+        - faire le AddPreset pour les preferences
+        
         - finir grid
         - checkbox to lock canvas
 

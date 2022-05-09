@@ -51,7 +51,8 @@ class UAS_ShotManager_Features(Operator):
 
 
 def draw_features_prefs(mode, layout):
-    """
+    """Display the panel to configure each supported preset. This function is called by a scene operator
+    and by the add-on Preferences UI, each one having its own properties to store the configuration.
     Args:
         mode:   Can be SCENE or ADDON_PREFS
     """
@@ -109,6 +110,7 @@ def draw_features_prefs(mode, layout):
     icon = config.icons_col["ShotManager_CamGPVisible_32"]
     subrow.prop(props, "display_storyboard_in_properties", text="", icon_value=icon.icon_id)
     subSubrow = subrow.row()
+    subSubrow.enabled = props != prefs
     subSubrow.scale_x = 0.9
     subSubrow.operator("uas_shot_manager.greasepencil_template_panel", text="", icon="LONGDISPLAY")
     subrow.label(text="Storyboard")

@@ -35,7 +35,7 @@ _logger = sm_logging.getLogger(__name__)
 class UAS_ShotManager_GpTemplatePanel(Operator):
     bl_idname = "uas_shot_manager.greasepencil_template_panel"
     bl_label = "Frame Template"
-    bl_description = "Frame Template"
+    bl_description = "Define the name of the layers and materials supported on storyboard frames"
     bl_options = {"INTERNAL", "UNDO"}
 
     # rough #############

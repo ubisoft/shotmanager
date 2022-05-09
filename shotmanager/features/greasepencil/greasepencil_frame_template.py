@@ -32,6 +32,7 @@ from bpy.props import (
     FloatVectorProperty,
 )
 
+from shotmanager.features.storyboard.frame_grid.storyboard_frame_grid_props import UAS_ShotManager_FrameGrid
 from shotmanager.utils import utils_greasepencil
 from shotmanager.config import sm_logging
 
@@ -51,20 +52,6 @@ class UAS_ShotManager_GreasepencilObjSettings(PropertyGroup):
 
     gpName: StringProperty(default="")
     refLayerName: StringProperty(default="")
-
-
-class UAS_ShotManager_FrameGrid(PropertyGroup):
-    """3D grid to place the storyboard frames in space"""
-
-    origin: FloatVectorProperty(size=3, description="Top left corner of the grid", default=(10, 0, 10))
-
-    offset_x: FloatProperty(default=1.5)
-    offset_y: FloatProperty(default=-1.2)
-    offset_z: FloatProperty(default=2.0)
-
-    numShotsPerRow: IntProperty(default=5)
-    # numShots_y: IntProperty(default=1)
-    # numShots_z: IntProperty(default=1)
 
 
 class UAS_GreasePencil_FrameTemplate(PropertyGroup):
@@ -292,7 +279,6 @@ class UAS_GreasePencil_FrameTemplate(PropertyGroup):
 _classes = (
     UAS_ShotManager_FrameUsagePreset,
     UAS_ShotManager_GreasepencilObjSettings,
-    UAS_ShotManager_FrameGrid,
     UAS_GreasePencil_FrameTemplate,
 )
 

@@ -356,13 +356,6 @@ def draw_greasepencil_global_properties(layout, context):
     subRow = col.row()
 
     grid_flow = subRow.grid_flow(align=False, columns=3, even_columns=False)
-    # grid_flow.label(text="Grease Pencil:")
-    # grid_flow.label(text="rr")
-    gridRow = grid_flow.row(align=True)
-    gridRow.scale_x = 1.5
-    gridRow.operator("uas_shot_manager.storyboard_grid_update", text="", icon="LIGHTPROBE_GRID")
-    gridRow.operator("uas_shot_manager.storyboard_grid_display_settings", text="", icon="SETTINGS")
-    gridRow.scale_x = 1
 
     grid_flow.separator(factor=1.0)
     grid_flow.prop(prefs, "stb_global_visibility", text="")
@@ -378,8 +371,13 @@ def draw_greasepencil_global_properties(layout, context):
     sepRow.separator(factor=0.5)
 
     subRow = col.row()
-    subRow.label(text="Distance:")
-    subRow.prop(props.shotsGlobalSettings, "stb_distanceFromOrigin", text="")
+    draw_distance(subRow, props)
+
+    sepRow = col.row()
+    sepRow.separator(factor=0.5)
+
+    subRow = col.row()
+    draw_frame_grid(subRow)
 
     utils_ui.drawSeparatorLine(col, lower_height=1.4, higher_height=0.8)
 
@@ -412,3 +410,21 @@ def draw_greasepencil_global_properties(layout, context):
 
     row = col.row(align=True)
     row.separator(factor=0.5)
+
+
+def draw_frame_grid(layout):
+    row = layout.row(align=True)
+    row.scale_x = 1.5
+    row.label(text="Frame Grid:")
+
+    subRow = row.row(align=True)
+    subRow.scale_x = 3.0
+    subRow.operator("uas_shot_manager.storyboard_grid_update", text="", icon="LIGHTPROBE_GRID")
+    row.operator("uas_shot_manager.storyboard_grid_display_settings", text="", icon="SETTINGS")
+    row.scale_x = 1
+
+
+def draw_distance(layout, props):
+    row = layout.row(align=True)
+    row.label(text="Distance:")
+    row.prop(props.shotsGlobalSettings, "stb_distanceFromOrigin", text="")

@@ -16,11 +16,11 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 """
-Grease Pencil
+Storyboard frame grid
 """
 
-# from . import storyboard_frame_grid_props
-from . import storyboard_operators
+from . import storyboard_frame_grid_props
+from . import storyboard_frame_grid_operators
 
 from shotmanager.config import sm_logging
 
@@ -33,10 +33,9 @@ _logger = sm_logging.getLogger(__name__)
 def register():
     _logger.debug_ext("       - Registering Feature: Storyboard Package", form="REG")
 
-    # frame grid props is initialized in greasepencil_frame_template init
-    # storyboard_frame_grid_props.register()
-
-    storyboard_operators.register()
+    # frame grid props has to be initialized early to be used in greasepencil_frame_template
+    storyboard_frame_grid_props.register()
+    storyboard_frame_grid_operators.register()
 
 
 #  greasepencil_toolbox_ui.register()
@@ -48,6 +47,6 @@ def unregister():
 
     # rendering_ui.unregister()   # done in shotmanager.__init__ in order to display the panel in the right order
     # greasepencil_toolbox_ui.unregister()
-    storyboard_operators.unregister()
 
-    # storyboard_frame_grid_props.unregister()
+    storyboard_frame_grid_operators.unregister()
+    storyboard_frame_grid_props.unregister()
