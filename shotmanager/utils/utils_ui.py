@@ -59,20 +59,23 @@ def drawSeparatorLine(layout, lower_height=1.0, higher_height=0.0):
 
 
 def collapsable_panel(
-    layout: bpy.types.UILayout, data: bpy.types.AnyType, property: str, alert: bool = False, text=None
+    layout: bpy.types.UILayout, data: bpy.types.AnyType, property: str, alert: bool = False, text=None,
 ):
-    """Draw an arrow to collapse or extend a panel
+    """Draw an arrow to collapse or extend a panel.
+    Return the title row
     Args:
         layout: parent component
         data: the object with the properties
         property: the boolean used to store the rolled-down state of the panel
         alert: is the title bar of the panel is drawn in alert mode
+        text: the title of the panel
     eg: collapsable_panel(layout, addon_props, "display_users", text="Server Users")
         if addon_props.addonPrefs_ui_expanded: ...
     """
     row = layout.row(align=True)
     row.alignment = "LEFT"
     # row.scale_x = 0.9
+    row.alert = alert
     row.prop(
         data,
         property,
@@ -82,11 +85,13 @@ def collapsable_panel(
         text=text,
     )
     if alert:
-        row.alert = True
         row.label(text="", icon="ERROR")
+    row.alert = False
+
     # if text is not None:
     #     row.label(text=text)
-    return getattr(data, property)
+    # return getattr(data, property)
+    return row
 
 
 ###################

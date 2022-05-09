@@ -92,11 +92,11 @@ def createStoryboarFrameGP(gp_name, framePreset, parentCamera=None, location=Non
     else:
         gpencil.location = location
 
-    # gpencil.lock_location = [True, True, True]
-    # gpencil.lock_rotation = [True, True, True]
-    # gpencil.lock_scale = [True, True, True]
-    gpencil.lock_rotation[0] = True
-    gpencil.lock_rotation[1] = True
+    gpencil.lock_location = [True, True, True]
+    gpencil.lock_rotation = [True, True, True]
+    gpencil.lock_scale = [True, True, True]
+    # gpencil.lock_rotation[0] = True
+    # gpencil.lock_rotation[1] = True
 
     # from math import radians
 

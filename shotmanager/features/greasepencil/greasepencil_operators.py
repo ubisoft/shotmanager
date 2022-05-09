@@ -1155,6 +1155,56 @@ class UAS_ShotManager_GreasePencil_SetKeyframe(Operator):
         return {"FINISHED"}
 
 
+class UAS_ShotManager_LockAnimChannel(Operator):
+    bl_idname = "uas_shot_manager.lock_anim_channel"
+    bl_label = "Lock Channel"
+    bl_description = "Set active layer and current material"
+    bl_options = {"INTERNAL", "UNDO"}
+
+    gpName: StringProperty(default="")
+
+    # Can be LOCK_LOCATION_X... but also ALL
+    lockItem: StringProperty(default="")
+    lockValue: BoolProperty(default=True)
+
+    def invoke(self, context, event):
+        if "LOCK_LOCATION_X" == self.lockItem:
+            context.scene.objects[self.gpName].lock_location[0] = self.lockValue
+        elif "LOCK_LOCATION_Y" == self.lockItem:
+            context.scene.objects[self.gpName].lock_location[1] = self.lockValue
+        elif "LOCK_LOCATION_Z" == self.lockItem:
+            context.scene.objects[self.gpName].lock_location[2] = self.lockValue
+
+        elif "LOCK_ROTATION_X" == self.lockItem:
+            # has to be locked !!!
+            context.scene.objects[self.gpName].lock_rotation[0] = self.lockValue
+        elif "LOCK_ROTATION_Y" == self.lockItem:
+            # has to be locked !!!
+            context.scene.objects[self.gpName].lock_rotation[1] = self.lockValue
+        elif "LOCK_ROTATION_Z" == self.lockItem:
+            context.scene.objects[self.gpName].lock_rotation[2] = self.lockValue
+
+        elif "LOCK_SCALE_X" == self.lockItem:
+            context.scene.objects[self.gpName].lock_scale[0] = self.lockValue
+        elif "LOCK_SCALE_Y" == self.lockItem:
+            context.scene.objects[self.gpName].lock_scale[1] = self.lockValue
+        elif "LOCK_SCALE_Z" == self.lockItem:
+            context.scene.objects[self.gpName].lock_scale[2] = self.lockValue
+
+        elif "ALL" == self.lockItem:
+            context.scene.objects[self.gpName].lock_location[0] = self.lockValue
+            context.scene.objects[self.gpName].lock_location[1] = self.lockValue
+            context.scene.objects[self.gpName].lock_location[2] = self.lockValue
+            context.scene.objects[self.gpName].lock_rotation[0] = True
+            context.scene.objects[self.gpName].lock_rotation[1] = True
+            context.scene.objects[self.gpName].lock_rotation[2] = self.lockValue
+            context.scene.objects[self.gpName].lock_scale[0] = self.lockValue
+            context.scene.objects[self.gpName].lock_scale[1] = self.lockValue
+            context.scene.objects[self.gpName].lock_scale[2] = self.lockValue
+
+        return {"FINISHED"}
+
+
 _classes = (
     UAS_ShotManager_OT_AddGreasePencil,
     UAS_ShotManager_OT_SelectShotGreasePencil,
@@ -1180,6 +1230,7 @@ _classes = (
     UAS_ShotManager_GreasePencil_SetLayerAndMatAndVisib,
     UAS_ShotManager_GreasePencil_SetKeyframe,
     #   UAS_ShotManager_OT_ChangeGreasePencilOpacity,
+    UAS_ShotManager_LockAnimChannel,
 )
 
 

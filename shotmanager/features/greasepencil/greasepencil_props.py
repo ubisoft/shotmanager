@@ -21,7 +21,7 @@ Grease pencil shot class
 
 import bpy
 from bpy.types import PropertyGroup
-from bpy.props import PointerProperty, FloatProperty, FloatVectorProperty, EnumProperty
+from bpy.props import PointerProperty, FloatProperty, FloatVectorProperty, EnumProperty, BoolProperty
 
 # from shotmanager.properties.shot import UAS_ShotManager_Shot
 
@@ -234,6 +234,13 @@ class GreasePencilProperties(PropertyGroup):
             gp_child, gpencil_layer_name=canvasName, create_layer=False
         )
         return canvasLayer
+
+    # lockAnimChannels: BoolProperty(
+    #     name="Lock Transform Channels",
+    #     description="Lock the Transform animation channels to prevent unwanted manipulations"
+    #     "\nof the storyboard frame in the 3D viewports",
+    #     default=True,
+    # )
 
     # def __init__(self, parent, shot):
     #     self._distance = 0

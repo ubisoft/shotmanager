@@ -69,9 +69,11 @@ class UAS_UL_ShotManager_Items(bpy.types.UIList):
         if item.camera is None or itemHasWarnings:
             layout.alert = True
 
-        row = layout.row()
+        mainRow = layout.row(align=True)
 
-        row.operator("uas_shot_manager.set_current_shot", icon_value=icon.icon_id, text="").index = index
+        mainRow.operator("uas_shot_manager.set_current_shot", icon_value=icon.icon_id, text="").index = index
+
+        mainRow.separator(factor=0.8)
 
         if (
             props.display_selectbut_in_shotlist
@@ -79,7 +81,7 @@ class UAS_UL_ShotManager_Items(bpy.types.UIList):
             or props.display_cameraBG_in_shotlist
             or props.display_greasepencil_in_shotlist
         ):
-            row = layout.row(align=True)
+            row = mainRow.row(align=True)
             row.scale_x = 1.0
             if props.display_selectbut_in_shotlist:
                 row.operator("uas_shot_manager.shots_selectcamera", text="", icon="RESTRICT_SELECT_OFF").index = index
@@ -149,20 +151,14 @@ class UAS_UL_ShotManager_Items(bpy.types.UIList):
                 row.prop(item, "color", text="")
                 row.scale_x = 0.45
 
-        row = layout.row(align=True)
-
-        row.scale_x = 1.0
-        if props.display_enabled_in_shotlist:
-            row.prop(item, "enabled", text="")
-            row.separator(factor=0.9)
-        row.scale_x = 0.8
-        row.label(text=item.name)
+        mainRow.separator(factor=0.6)
+        drawShotName(mainRow, props, item)
 
         ###########
         # shot values
         ###########
 
-        row = layout.row(align=True)
+        row = mainRow.row(align=True)
         row.scale_x = 2.0
         grid_flow = row.grid_flow(align=True, columns=7, even_columns=False)
         grid_flow.use_property_split = False
@@ -206,6 +202,7 @@ class UAS_UL_ShotManager_Items(bpy.types.UIList):
 
         # display_duration_after_time_range
         if not props.display_duration_after_time_range:
+            grid_flow.separator(factor=0.8)
             grid_flow.scale_x = button_x_factor - 0.1
             grid_flow.prop(
                 item,
@@ -260,7 +257,8 @@ class UAS_UL_ShotManager_Items(bpy.types.UIList):
                 ).shotSource = f"[{index},1]"
 
         if props.display_duration_after_time_range:
-            row = layout.row(align=True)
+            mainRow.separator(factor=0.8)
+            row = mainRow.row(align=True)
             grid_flow = row.grid_flow(align=True, columns=2, even_columns=False)
             grid_flow.use_property_split = False
             # grid_flow.scale_x = button_x_factor - 0.1
@@ -289,7 +287,7 @@ class UAS_UL_ShotManager_Items(bpy.types.UIList):
 
         # camera
         ###########
-        row = layout.row(align=True)
+        row = mainRow.row(align=True)
         grid_flow = row.grid_flow(align=True, columns=3, even_columns=False)
         grid_flow.use_property_split = False
         grid_flow.scale_x = 2.6
@@ -318,6 +316,21 @@ class UAS_UL_ShotManager_Items(bpy.types.UIList):
                 grid_flow.operator("uas_shot_manager.nolens", text="-").index = index
                 grid_flow.alert = False
             grid_flow.scale_x = 1.0
+
+
+#####################################################################
+# Functions
+#####################################################################
+
+
+def drawShotName(layout, props, item):
+    row = layout.row(align=True)
+    row.scale_x = 1.0
+    if props.display_enabled_in_shotlist:
+        row.prop(item, "enabled", text="")
+        row.separator(factor=0.9)
+    row.scale_x = 0.8
+    row.label(text=item.name)
 
 
 #################

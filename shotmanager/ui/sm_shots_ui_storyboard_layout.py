@@ -72,6 +72,8 @@ class UAS_UL_ShotManager_Storyboard_Items(bpy.types.UIList):
 
         mainRow.operator("uas_shot_manager.set_current_shot", icon_value=icon.icon_id, text="").index = index
 
+        mainRow.separator(factor=0.8)
+
         if (
             props.display_selectbut_in_shotlist
             or props.display_color_in_shotlist

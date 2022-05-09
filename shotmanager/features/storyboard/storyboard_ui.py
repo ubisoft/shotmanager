@@ -278,29 +278,97 @@ def draw_greasepencil_shot_properties(layout, context, shot):
         # animation
         ################
         # panelIcon = "TRIA_DOWN" if prefs.stb_anim_props_expanded else "TRIA_RIGHT"
-        animRow = col.row()
-        utils_ui.collapsable_panel(
-            animRow, prefs, "stb_anim_props_expanded", alert=False, text="Animate Frame Transformation"
+        animRowTitle = col.row()
+
+        channelsLocked = (
+            gp_child.lock_location[0]
+            and gp_child.lock_location[1]
+            and gp_child.lock_location[2]
+            and gp_child.lock_rotation[0]
+            and gp_child.lock_rotation[1]
+            and gp_child.lock_rotation[2]
+            and gp_child.lock_scale[0]
+            and gp_child.lock_scale[1]
+            and gp_child.lock_scale[2]
+        )
+
+        collapsable_panel_animateTransformations(
+            animRowTitle,
+            prefs,
+            "stb_anim_props_expanded",
+            text="Animate Frame Transformation",
+            gp_child=gp_child,
+            lockItem="ALL",
+            depressedOp=not channelsLocked,
         )
         if prefs.stb_anim_props_expanded:
-            transformRow = col.row()
+
+            animRow = col.row()
+
+            transformCol = animRow.column()
+
+            transformRow = transformCol.row()
             transformRow.separator(factor=hSepFactor)
-            # or prefs.shot_greasepencil_expanded:
-            transformRow = col.row()
+
+            # transformRow = transformCol.row()
+            # transformRow.separator(factor=hSepFactor)
+            # # or prefs.shot_greasepencil_expanded:
+
+            lockSplitFactor = 0.7
+
+            # location
+            ###################
+            transformRow = transformCol.row()
             # transformRow.label(text="Location:")
             transformRow.use_property_split = True
             transformRow.use_property_decorate = True
-            transformRow.prop(gp_child, "location")
 
-            transformRow = col.row()
+            split = transformRow.split(factor=lockSplitFactor)
+            split.prop(gp_child, "location")
+            splitRightCol = split.column()
+
+            subCol = splitRightCol.column(align=True)
+            draw_lock_but(subCol, gp_child, "LOCK_LOCATION_X")
+            draw_lock_but(subCol, gp_child, "LOCK_LOCATION_Y")
+            draw_lock_but(subCol, gp_child, "LOCK_LOCATION_Z")
+
+            # rotation
+            ###################
+
+            transformRow = transformCol.row()
+            transformRow.separator(factor=hSepFactor)
+
+            transformRow = transformCol.row()
             transformRow.use_property_split = True
             transformRow.use_property_decorate = True
-            transformRow.prop(gp_child, "rotation_euler")
 
-            transformRow = col.row()
+            split = transformRow.split(factor=lockSplitFactor)
+            split.prop(gp_child, "rotation_euler")
+            splitRightCol = split.column()
+
+            subCol = splitRightCol.column(align=True)
+            draw_lock_but(subCol, gp_child, "LOCK_ROTATION_X")
+            draw_lock_but(subCol, gp_child, "LOCK_ROTATION_Y")
+            draw_lock_but(subCol, gp_child, "LOCK_ROTATION_Z")
+
+            # scale
+            ###################
+
+            transformRow = transformCol.row()
+            transformRow.separator(factor=hSepFactor)
+
+            transformRow = transformCol.row()
             transformRow.use_property_split = True
             transformRow.use_property_decorate = True
-            transformRow.prop(gp_child, "scale")
+
+            split = transformRow.split(factor=lockSplitFactor)
+            split.prop(gp_child, "scale")
+            splitRightCol = split.column()
+
+            subCol = splitRightCol.column(align=True)
+            draw_lock_but(subCol, gp_child, "LOCK_SCALE_X")
+            draw_lock_but(subCol, gp_child, "LOCK_SCALE_Y")
+            draw_lock_but(subCol, gp_child, "LOCK_SCALE_Z")
 
             # transformRow = col.row()
             # transformRow.label(text="test")
@@ -308,9 +376,13 @@ def draw_greasepencil_shot_properties(layout, context, shot):
             # transformRow.use_property_decorate = True
             # transformRow.prop(gp_child.location, "x")
 
-            transformRow = col.row()
-            transformRow.separator(factor=0.6)
-            transformRow = col.row(align=True)
+            transformRow = transformCol.row()
+            transformRow.separator(factor=hSepFactor)
+
+            # motion path
+            ###################
+
+            transformRow = col.row(align=False)
             transformRow.separator(factor=5)
             transformRowSplit = transformRow.split(factor=0.32)
             # transformRow.alignment = "RIGHT"
@@ -332,6 +404,74 @@ def draw_greasepencil_shot_properties(layout, context, shot):
 
     # row = box.row()
     # row.operator("uas_shot_manager.change_grease_pencil_opacity").gpName = gp_child
+
+
+def draw_lock_but(layout, gp_child, lockItem):
+    """lockItem can be LOCK_LOCATION_X, ..."""
+    embossOp = True
+    depressedOp = True
+    alertOp = False
+    enableOp = True
+    icon = "DECORATE_UNLOCKED"
+
+    if "LOCK_LOCATION_X" == lockItem:
+        if gp_child.lock_location[0]:
+            depressedOp = False
+            icon = "DECORATE_LOCKED"
+    elif "LOCK_LOCATION_Y" == lockItem:
+        if gp_child.lock_location[1]:
+            depressedOp = False
+            icon = "DECORATE_LOCKED"
+    elif "LOCK_LOCATION_Z" == lockItem:
+        if gp_child.lock_location[2]:
+            depressedOp = False
+            icon = "DECORATE_LOCKED"
+
+    elif "LOCK_ROTATION_X" == lockItem:
+        # has to be locked !!!
+        if gp_child.lock_rotation[0]:
+            depressedOp = False
+            icon = "DECORATE_LOCKED"
+            enableOp = False
+        else:
+            alertOp = False
+    elif "LOCK_ROTATION_Y" == lockItem:
+        # has to be locked !!!
+        if gp_child.lock_rotation[1]:
+            depressedOp = False
+            icon = "DECORATE_LOCKED"
+            enableOp = False
+        else:
+            alertOp = False
+    elif "LOCK_ROTATION_Z" == lockItem:
+        if gp_child.lock_rotation[2]:
+            depressedOp = False
+            icon = "DECORATE_LOCKED"
+
+    elif "LOCK_SCALE_X" == lockItem:
+        if gp_child.lock_scale[0]:
+            depressedOp = False
+            icon = "DECORATE_LOCKED"
+    elif "LOCK_SCALE_Y" == lockItem:
+        if gp_child.lock_scale[1]:
+            depressedOp = False
+            icon = "DECORATE_LOCKED"
+    elif "LOCK_SCALE_Z" == lockItem:
+        if gp_child.lock_scale[2]:
+            depressedOp = False
+            icon = "DECORATE_LOCKED"
+
+    subCol_axisRow = layout.row()
+    subCol_axisRow.alert = alertOp
+    subCol_axisRow.enabled = enableOp
+    op = subCol_axisRow.operator(
+        "uas_shot_manager.lock_anim_channel", text="", icon=icon, emboss=embossOp, depress=depressedOp
+    )
+    op.gpName = gp_child.name
+    op.lockItem = lockItem
+    op.lockValue = depressedOp
+    if alertOp:
+        subCol_axisRow.label(text="Should be locked")
 
 
 def draw_greasepencil_global_properties(layout, context):
@@ -428,3 +568,50 @@ def draw_distance(layout, props):
     row = layout.row(align=True)
     row.label(text="Distance:")
     row.prop(props.shotsGlobalSettings, "stb_distanceFromOrigin", text="")
+
+
+def collapsable_panel_animateTransformations(
+    layout, data, property: str, alert: bool = False, text=None, gp_child=None, lockItem="ALL", depressedOp=True
+):
+    """Draw an arrow to collapse or extend a panel.
+    Return the title row
+    Args:
+        layout: parent component
+        data: the object with the properties
+        property: the boolean used to store the rolled-down state of the panel
+        alert: is the title bar of the panel is drawn in alert mode
+        text: the title of the panel
+    eg: collapsable_panel(layout, addon_props, "display_users", text="Server Users")
+        if addon_props.addonPrefs_ui_expanded: ...
+    """
+    row = layout.row(align=False)
+    row.alignment = "LEFT"
+    # row.scale_x = 0.9
+    row.alert = alert
+    row.prop(
+        data,
+        property,
+        icon="TRIA_DOWN" if getattr(data, property) else "TRIA_RIGHT",
+        icon_only=True,
+        emboss=False,
+        text="",
+    )
+
+    icon = "DECORATE_UNLOCKED" if depressedOp else "DECORATE_LOCKED"
+
+    op = row.operator("uas_shot_manager.lock_anim_channel", text="", icon=icon, emboss=True, depress=depressedOp)
+    op.gpName = gp_child.name
+    op.lockItem = lockItem
+    op.lockValue = depressedOp
+    # lockAnimChannels
+
+    row.label(text=text)
+
+    if alert:
+        row.label(text="", icon="ERROR")
+    row.alert = False
+
+    # if text is not None:
+    #     row.label(text=text)
+    # return getattr(data, property)
+    return row

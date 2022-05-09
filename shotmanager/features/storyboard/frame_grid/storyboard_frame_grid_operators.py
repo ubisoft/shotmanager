@@ -94,6 +94,7 @@ def draw_frame_grid_prefs(mode, parentOperator, layout):
     col = box.column()
 
     row = col.row()
+    row.use_property_split = True
     row.prop(parentOperator, "numShotsPerRow")
 
     sepRow = col.row()
