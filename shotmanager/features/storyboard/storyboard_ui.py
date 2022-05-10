@@ -424,9 +424,13 @@ def draw_lock_but(layout, gp_child, lockItem):
             depressedOp = False
             icon = "DECORATE_LOCKED"
     elif "LOCK_LOCATION_Z" == lockItem:
+        # has to be locked !!!
         if gp_child.lock_location[2]:
             depressedOp = False
             icon = "DECORATE_LOCKED"
+            enableOp = False
+        else:
+            alertOp = False
 
     elif "LOCK_ROTATION_X" == lockItem:
         # has to be locked !!!

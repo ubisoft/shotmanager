@@ -984,6 +984,14 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
                     parentShot = shotsUsingCam[0]
         return parentShot
 
+    def isStoryboardFrame(self, obj):
+        """Return True if the specified object is a storyboard frame, whatever the take it belongs to."""
+        gpIsStoryboardFrame = False
+        if obj is not None and "GPENCIL" == obj.type:
+            parentShot = self.getParentShotFromGpChild(obj)
+            gpIsStoryboardFrame = parentShot is not None
+        return gpIsStoryboardFrame
+
     use_greasepencil: BoolProperty(
         name="Use Grease Pencil",
         description="Toggle the display of storyboard frames in the scene",

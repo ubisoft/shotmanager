@@ -490,7 +490,7 @@ def drawKeyFrameActionsRow(context, props, layout, editedGpencil, objIsGP):
     actionsButsRow.scale_x = 1.4
 
     actionsButsSubRow = actionsButsRow.row(align=True)
-    actionsButsSubRow.enabled = not currentFrameIsOnLayerKeyFrame and objIsGP
+    # actionsButsSubRow.enabled = not currentFrameIsOnLayerKeyFrame and objIsGP
     icon = config.icons_col["ShotManager_GPTools_Add_32"]
     op = actionsButsSubRow.operator(
         "uas_shot_manager.greasepencil_setkeyframe", depress=False, icon_value=icon.icon_id, text=""
@@ -501,7 +501,7 @@ def drawKeyFrameActionsRow(context, props, layout, editedGpencil, objIsGP):
         op.layerName = layerMode
 
     actionsButsSubRow = actionsButsRow.row(align=True)
-    actionsButsSubRow.enabled = not currentFrameIsOnLayerKeyFrame and objIsGP
+    # actionsButsSubRow.enabled = not currentFrameIsOnLayerKeyFrame and objIsGP
     icon = config.icons_col["ShotManager_GPTools_Duplicate_32"]
     op = actionsButsSubRow.operator(
         "uas_shot_manager.greasepencil_setkeyframe", depress=False, icon_value=icon.icon_id, text=""
@@ -512,7 +512,7 @@ def drawKeyFrameActionsRow(context, props, layout, editedGpencil, objIsGP):
         op.layerName = layerMode
 
     actionsButsSubRow = actionsButsRow.row(align=True)
-    actionsButsSubRow.enabled = currentFrameIsOnLayerKeyFrame and objIsGP
+    #  actionsButsSubRow.enabled = currentFrameIsOnLayerKeyFrame and objIsGP
     icon = config.icons_col["ShotManager_GPTools_Remove_32"]
     op = actionsButsSubRow.operator(
         "uas_shot_manager.greasepencil_setkeyframe", depress=False, icon_value=icon.icon_id, text=""

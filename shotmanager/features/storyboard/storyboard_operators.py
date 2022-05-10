@@ -35,7 +35,6 @@ class UAS_ShotManager_CreateNStoryboardShots(Operator):
     bl_options = {"REGISTER", "UNDO"}
 
     name: StringProperty(name="Name")
-    # cameraName: EnumProperty(items=list_cameras, name="Camera", description="Select a Camera")
     start: IntProperty(
         name="Start",
         subtype="TIME",
@@ -165,12 +164,13 @@ class UAS_ShotManager_CreateNStoryboardShots(Operator):
 
             col = (uniform(0, 1), uniform(0, 1), uniform(0, 1), 1.0)
 
+            shotName = props.getShotPrefix((len(props.getShotsList()) + 1) * 10)
             cam = utils.create_new_camera("Cam_" + self.name)
 
             newShot = props.addShot(
                 shotType="STORYBOARD",
                 atIndex=newShotInd,
-                name=props.getShotPrefix((len(props.getShotsList()) + 1) * 10),
+                name=shotName,
                 # name=props.getUniqueShotName(props.project_shot_format.split("_")[2]).format(
                 #     (len(props.getShotsList()) + 1) * 10
                 # ),
@@ -180,6 +180,9 @@ class UAS_ShotManager_CreateNStoryboardShots(Operator):
                 color=col,
                 addGreasePencilStoryboard=True,
             )
+
+            # shot name may not have been unique
+            cam.name = "Cam_" + newShot.name
 
             # create storyboard grease pencil
             # newShot.addGreasePencil(mode="STORYBOARD")

@@ -693,7 +693,9 @@ class UAS_ShotManager_GreasePencil_UINavigationKeys(Operator):
 
     def execute(self, context):
         if "GPKEYFRAME" == self.mode:
-            bpy.ops.uas_shot_manager.greasepencil_navigateinkeyframes(navigDirection=self.navigDirection)
+            bpy.ops.uas_shot_manager.greasepencil_navigateinkeyframes(
+                navigDirection=self.navigDirection, gpName=self.gpName
+            )
         elif "SHOT" == self.mode:
             bpy.ops.uas_shot_manager.playbar_gotoshotboundary(navigDirection=self.navigDirection, boundaryMode="START")
         return {"FINISHED"}
@@ -754,6 +756,11 @@ class UAS_ShotManager_GreasePencil_NavigateInKeyFrames(Operator):
                     gpIsStoryboardFrame = gp_child is not None
                     if gpIsStoryboardFrame:
                         gp = gp_child
+
+        else:
+            if self.gpName in context.scene.objects:
+                gp = context.scene.objects[self.gpName]
+                gpIsStoryboardFrame = props.isStoryboardFrame(gp)
 
         if gp is not None:
             layerMode = "ACTIVE"
@@ -1074,6 +1081,7 @@ class UAS_ShotManager_GreasePencil_SetLayerAndMatAndVisib(Operator):
         descr += " *** Layer not found ***\n" if -1 != warningStrInd else ""
         descr += f"Activate the layer of the mode {currentLayerID} and pick the associated material"
         descr += "\n+ Ctrl: Toggle layer visibility"
+        descr += "\n+ Alt: Toggle between Solo and All layer visibility"
         return descr
 
     def invoke(self, context, event):
@@ -1195,6 +1203,7 @@ class UAS_ShotManager_LockAnimChannel(Operator):
         elif "LOCK_LOCATION_Y" == self.lockItem:
             context.scene.objects[self.gpName].lock_location[1] = self.lockValue
         elif "LOCK_LOCATION_Z" == self.lockItem:
+            # has to be locked !!!
             context.scene.objects[self.gpName].lock_location[2] = self.lockValue
 
         elif "LOCK_ROTATION_X" == self.lockItem:
@@ -1216,7 +1225,7 @@ class UAS_ShotManager_LockAnimChannel(Operator):
         elif "ALL" == self.lockItem:
             context.scene.objects[self.gpName].lock_location[0] = self.lockValue
             context.scene.objects[self.gpName].lock_location[1] = self.lockValue
-            context.scene.objects[self.gpName].lock_location[2] = self.lockValue
+            context.scene.objects[self.gpName].lock_location[2] = True
             context.scene.objects[self.gpName].lock_rotation[0] = True
             context.scene.objects[self.gpName].lock_rotation[1] = True
             context.scene.objects[self.gpName].lock_rotation[2] = self.lockValue

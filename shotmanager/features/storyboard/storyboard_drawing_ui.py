@@ -85,7 +85,7 @@ def drawDrawingPlaybarRow(context, layout, props, editedGpencil, leftSepFactor, 
     navRow.separator(factor=leftSepFactor)
     navSplit = navRow.split(factor=0.6)
     leftNavRow = navSplit.row(align=True)
-    drawPlayBar(context, leftNavRow)
+    drawPlayBar(context, leftNavRow, editedGpencil, objIsGP)
     leftNavRow.separator(factor=1.45)
     drawLayersMode(context, leftNavRow, props)
 
@@ -200,14 +200,16 @@ def drawClearLayer(context, layout, editedGpencil):
     # gpOpsRightRow.separator(factor=0.1)
 
 
-def drawPlayBar(context, layout):
+def drawPlayBar(context, layout, editedGpencil, objIsGP):
     navRow = layout.row(align=True)
     navRow.scale_y = 1.0
     navRow.scale_x = 2.0
     op = navRow.operator("uas_shot_manager.greasepencil_ui_navigation_keys", icon="PREV_KEYFRAME", text="")
-    op.navigDirection = "NEXT"
+    op.navigDirection = "PREVIOUS"
+    op.gpName = editedGpencil.name
     op = navRow.operator("uas_shot_manager.greasepencil_ui_navigation_keys", icon="NEXT_KEYFRAME", text="")
     op.navigDirection = "NEXT"
+    op.gpName = editedGpencil.name
     navRow.scale_x = 1.0
 
 
@@ -331,7 +333,7 @@ def drawLayersRow(context, props, layout, editedGpencil):
     usageButsSubRow = usageButsRow.row(align=True)
     usageButsSubRow.scale_x = 2.0
 
-    doubleLine_scale_y = 0.52
+    doubleLine_scale_y = 0.54
     # BG layers #########
     preset_lines = framePreset.getPresetByID("BG_LINES")
     preset_fills = framePreset.getPresetByID("BG_FILLS")
@@ -381,7 +383,7 @@ def drawKeyFrameActionsRow(context, props, layout, editedGpencil, gpIsStoryboard
     actionsButsRow.scale_x = 1.4
 
     actionsButsSubRow = actionsButsRow.row(align=True)
-    actionsButsSubRow.enabled = not currentFrameIsOnLayerKeyFrame
+    # actionsButsSubRow.enabled = not currentFrameIsOnLayerKeyFrame
     icon = config.icons_col["ShotManager_GPTools_Add_32"]
     op = actionsButsSubRow.operator(
         "uas_shot_manager.greasepencil_setkeyframe", depress=False, icon_value=icon.icon_id, text=""
@@ -391,7 +393,7 @@ def drawKeyFrameActionsRow(context, props, layout, editedGpencil, gpIsStoryboard
     op.layerName = layerMode
 
     actionsButsSubRow = actionsButsRow.row(align=True)
-    actionsButsSubRow.enabled = not currentFrameIsOnLayerKeyFrame
+    # actionsButsSubRow.enabled = not currentFrameIsOnLayerKeyFrame
     icon = config.icons_col["ShotManager_GPTools_Duplicate_32"]
     op = actionsButsSubRow.operator(
         "uas_shot_manager.greasepencil_setkeyframe", depress=False, icon_value=icon.icon_id, text=""
@@ -401,7 +403,7 @@ def drawKeyFrameActionsRow(context, props, layout, editedGpencil, gpIsStoryboard
     op.layerName = layerMode
 
     actionsButsSubRow = actionsButsRow.row(align=True)
-    actionsButsSubRow.enabled = currentFrameIsOnLayerKeyFrame
+    # actionsButsSubRow.enabled = currentFrameIsOnLayerKeyFrame
     icon = config.icons_col["ShotManager_GPTools_Remove_32"]
     op = actionsButsSubRow.operator(
         "uas_shot_manager.greasepencil_setkeyframe", depress=False, icon_value=icon.icon_id, text=""
