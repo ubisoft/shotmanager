@@ -59,7 +59,11 @@ def drawSeparatorLine(layout, lower_height=1.0, higher_height=0.0):
 
 
 def collapsable_panel(
-    layout: bpy.types.UILayout, data: bpy.types.AnyType, property: str, alert: bool = False, text=None,
+    layout: bpy.types.UILayout,
+    data: bpy.types.AnyType,
+    property: str,
+    alert: bool = False,
+    text=None,
 ):
     """Draw an arrow to collapse or extend a panel.
     Return the title row
@@ -86,6 +90,7 @@ def collapsable_panel(
     )
     if alert:
         row.label(text="", icon="ERROR")
+    # row.label(text=text)
     row.alert = False
 
     # if text is not None:

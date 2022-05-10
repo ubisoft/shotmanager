@@ -961,7 +961,9 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
     #     to do
 
     def getParentShotFromGpChild(self, obj):
-        """obj can be a gp object or an empty or even whatever"""
+        """Return the shot using the specified object as achild of its camera, None if nothing found.
+        Args:
+            obj: can be a gp object or an empty or even whatever"""
 
         # wkip case where a cam has a parent cam is not taken into account here
         parentShot = None
@@ -985,6 +987,14 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
     use_greasepencil: BoolProperty(
         name="Use Grease Pencil",
         description="Toggle the display of storyboard frames in the scene",
+        #  update=_update_use_greasepencil,
+        default=True,
+        options=set(),
+    )
+
+    use_stb_cameras: BoolProperty(
+        name="Use Storyboard Cameras",
+        description="Toggle the display of the storyboard frames cameras in the scene",
         #  update=_update_use_greasepencil,
         default=True,
         options=set(),
@@ -1543,6 +1553,63 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         get=_get_greasePencil_activeMaterial,
         set=_set_greasePencil_activeMaterial,
         update=_update_greasePencil_activeMaterial,
+        default=0,
+        options=set(),
+    )
+
+    def list_greasepencil_materialsB(self, context):
+        res = list()
+
+        if context.object is not None and "GPENCIL" == context.object.type:
+            #   if len(context.object.data.layers):
+            if len(context.object.material_slots):
+                for i, mat in list(enumerate(context.object.material_slots)):
+                    res.append((mat.name, mat.name, "", i))
+            else:
+                res = (("NOMAT", "No Material", "", 0),)
+        return res
+
+    def _get_greasePencil_activeMaterialB(self):
+        val = self.get("_get_greasePencil_activeMaterialB", 0)
+        # print(" _get_greasePencil_activeMaterial")
+        # props = bpy.context.scene.UAS_shot_manager_props
+        # spaceDataViewport = props.getValidTargetViewportSpaceData(bpy.context)
+        # if spaceDataViewport is not None:
+        #     val = spaceDataViewport.overlay.gpencil_fade_layer
+        # else:
+        #     val = 1.0
+        val = 0  # "NOMAT"
+        if bpy.context.object is not None and "GPENCIL" == bpy.context.object.type:
+            # if len(bpy.context.object.data.layers):
+            # mats = list_greasepencil_materials()
+            # mats = list()
+            # for i, mat in list(enumerate(bpy.context.object.material_slots)):
+            #     mats.append((mat.name, mat.name, "", i))
+            # mat_dict = {mat.name: i for i, mat in enumerate(bpy.context.object.data.materials)}
+            # val = mat_dict[self.greasePencil_activeMaterial]
+            val = bpy.context.object.active_material_index
+
+        return val
+
+    def _set_greasePencil_activeMaterialB(self, value):
+        #  print(" _set_greasePencil_activeMaterial: value: ", value)
+        self["greasePencil_activeMaterialB"] = value
+
+    def _update_greasePencil_activeMaterialB(self, context):
+        if self.greasePencil_activeMaterialB != "NOMAT":
+            if context.object is not None and "GPENCIL" == context.object.type:
+                # Create a lookup-dict for the object materials:
+                # mat_dict = {mat.name: i for i, mat in enumerate(context.object.data.materials)}
+                mat_dict = {mat.name: i for i, mat in enumerate(context.object.material_slots)}
+                # then map names to indices:
+                context.object.active_material_index = mat_dict[self.greasePencil_activeMaterialB]
+
+    greasePencil_activeMaterialB: EnumProperty(
+        name="Active Material B",
+        items=(list_greasepencil_materialsB),
+        get=_get_greasePencil_activeMaterialB,
+        set=_set_greasePencil_activeMaterialB,
+        update=_update_greasePencil_activeMaterialB,
         default=0,
         options=set(),
     )

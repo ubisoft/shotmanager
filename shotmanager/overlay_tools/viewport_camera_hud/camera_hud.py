@@ -21,7 +21,7 @@ Camera HUD
 
 import bpy
 
-from .camera_hud_bgl import draw_shots_names, draw_all_shots_names, drawShotName, view3d_camera_border
+from .camera_hud_bgl import draw_shots_names, draw_all_shots_names, drawShotName, view3d_camera_border, drawCameraPlane
 
 
 class UAS_ShotManager_DrawCameras_UI(bpy.types.Operator):
@@ -68,7 +68,8 @@ class UAS_ShotManager_DrawCameras_UI(bpy.types.Operator):
 
         if bpy.context.space_data.overlay.show_overlays:
             draw_shots_names(context)
-
+        #     drawCameraPlane(context, camera=context.scene.camera)
+        # drawCameraPlane(context)
         # try:
         #     if bpy.context.space_data.overlay.show_overlays:
         #         draw_shots_names(context)

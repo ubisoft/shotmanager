@@ -41,7 +41,7 @@ def drawDrawingToolbarRow(
 
         scale_y_pgOpsRow
         gpOpsRow.scale_y = 1.0
-        drawDrawingMatRow(context, gpOpsRow, props, objIsGP)
+        drawDrawingMatRow(context, gpOpsRow, props, editedGpencil, objIsGP)
 
         sepRow = layout.row(align=True)
         sepRow.separator(factor=1.0)
@@ -94,7 +94,7 @@ def drawDrawingPlaybarRow(context, layout, props, editedGpencil, leftSepFactor, 
     drawKeyFrameMessage(context, rightNavRow, editedGpencil, objIsGP)
 
 
-def drawDrawingMatRow(context, layout, props, objIsGP):
+def drawDrawingMatRow(context, layout, props, editedGpencil, objIsGP):
     matRow = layout.row(align=False)
     layersRow = matRow.row(align=True)
     layersRow.alignment = "RIGHT"
@@ -103,7 +103,8 @@ def drawDrawingMatRow(context, layout, props, objIsGP):
     # layersRow.prop(prefs, "layersListDropdown", text="Layers")
 
     # Grease pencil layer.
-    gpl = context.active_gpencil_layer
+    # gpl = context.active_gpencil_layer
+    gpl = editedGpencil.data.layers.active
     if gpl and gpl.info is not None:
         text = gpl.info
         maxw = 25

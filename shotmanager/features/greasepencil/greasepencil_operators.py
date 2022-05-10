@@ -415,6 +415,28 @@ class UAS_ShotManager_OT_EnableDisableGreasePencil(Operator):
         return {"FINISHED"}
 
 
+class UAS_ShotManager_OT_EnableDisableCameras(Operator):
+    bl_idname = "uas_shot_manager.enabledisablecameras"
+    bl_label = "Enable / Disable Cameras"
+    bl_description = "Alternatively enable or disable the cameras used by the storyboard frames"
+    bl_options = {"INTERNAL", "UNDO"}
+
+    hide: BoolProperty(default=True)
+
+    def invoke(self, context, event):
+        props = context.scene.UAS_shot_manager_props
+        take = props.getCurrentTake()
+        shotList = take.shots
+
+        props.use_stb_cameras = not self.hide
+        for shot in shotList:
+            if "STORYBOARD" == shot.shotType and shot.isCameraValid():
+                shot.camera.hide_select = self.hide
+                shot.camera.hide_viewport = self.hide
+
+        return {"FINISHED"}
+
+
 # class UAS_ShotManager_OT_ChangeGreasePencilOpacity(Operator):
 #     bl_idname = "uas_shot_manager.change_grease_pencil_opacity"
 #     bl_label = "Opacity"
@@ -1205,7 +1227,6 @@ class UAS_ShotManager_LockAnimChannel(Operator):
         return {"FINISHED"}
 
 
-
 _classes = (
     UAS_ShotManager_OT_AddGreasePencil,
     UAS_ShotManager_OT_SelectShotGreasePencil,
@@ -1216,6 +1237,7 @@ _classes = (
     UAS_ShotManager_OT_UpdateGreasePencil,
     UAS_ShotManager_OT_RemoveGreasePencil,
     UAS_ShotManager_OT_EnableDisableGreasePencil,
+    UAS_ShotManager_OT_EnableDisableCameras,
     UAS_ShotManager_OT_ClearLayer,
     UAS_ShotManager_OT_PinGreasePencilObject,
     UAS_ShotManager_GreasePencilItem,

@@ -37,7 +37,10 @@ _logger = sm_logging.getLogger(__name__)
 
 
 def get_greasepencil_child(obj, childType="GPENCIL", name_filter=""):
-    """Return the first child of the specifed object that is of type GPENCIL or EMPTY"""
+    """Return the first child of the specifed object that is of type GPENCIL or EMPTY
+    Args:
+        childType: can be "GPENCIL" or "EMPTY"
+    """
     gpChild = None
 
     if obj is not None:
@@ -334,26 +337,74 @@ def fitCanvasToFrustum(gpStroke: bpy.types.GPencilStroke, camera, distance=None,
     return applied_scale_factor
 
 
-def getCameraCorners(context, camera, distance=None):
+def getCanvasCorners(context, camera, distance=None, coordSys=None, zOffset=0.0):
+    if distance is not None:
+        corners = getCameraCorners(bpy.context, camera, -1.0 * distance, coordSys=coordSys)
+    else:
+        corners = getCameraCorners(bpy.context, camera)
+
+    top_left = corners[2]
+    # top_left[2] = 0.0
+    # top_left[2] -= zOffset
+    bottom_right = corners[0]
+    # bottom_right[2] = 0.0
+    # bottom_right[2] -= zOffset
+
+    # gpStroke.points[0].co = top_left
+    # gpStroke.points[1].co = (bottom_right[0], top_left[1], top_left[2])
+    # gpStroke.points[2].co = bottom_right
+    # gpStroke.points[3].co = (top_left[0], bottom_right[1], bottom_right[2])
+
+    # wkipwkipwkip to fix
+    #  applied_scale_factor = top_left_previous_x / top_left[0]
+
+    # return applied_scale_factor
+
+    distRef = getDistRef(camera)
+    gpWidth = distance / distRef
+
+    vec = mathutils.Vector((gpWidth, gpWidth, gpWidth))
+
+    CanvasCorners = list()
+    CanvasCorners.append(top_left)
+    CanvasCorners.append((bottom_right[0], top_left[1], top_left[2]))
+    CanvasCorners.append(bottom_right)
+    CanvasCorners.append((top_left[0], bottom_right[1], bottom_right[2]))
+
+    return CanvasCorners
+
+
+def getCameraCorners(context, camera, distance=None, coordSys=None, fixRotation=True):
     mw = camera.matrix_world
 
-    # sizeRef is an arbitrary ref for the frustum width of the camera
-    sizeRef = 1.0
     # point of the frustum when width is 1
-    distRef = camera.data.view_frame(scene=context.scene)[0][2]
+    # distRef = camera.data.view_frame(scene=context.scene)[0][2]
+    distRef = 1.0
+    if distance is not None:
+        distRef = getDistRef(camera)
+        sizeAtDistance = distance / distRef
 
     # camera.data.display_size is the width of the frustum for a given lens
     # f = 1 if camera.type == "ORTHO" else distance if distance is not None else camera.data.display_size
     f = (
         1
         if camera.type == "ORTHO"
-        else distance * sizeRef / distRef
+        # else distance * sizeRef / distRef
+        else sizeAtDistance
         if distance is not None
         else camera.data.display_size
     )
 
-    corners = [(f * p) for p in camera.data.view_frame(scene=context.scene)]
-    # corners = [mw @ (f * p) for p in camera.data.view_frame(scene=context.scene)]
+    import math
+
+    if coordSys is None:
+        corners = [(f * p) for p in camera.data.view_frame(scene=context.scene)]
+    else:
+        if fixRotation:
+            mat_rot = mathutils.Matrix.Rotation(math.radians(180.0), 4, 'Y')
+            corners = [mw @ mat_rot @ (f * p) for p in camera.data.view_frame(scene=context.scene)]
+        else:
+            corners = [mw @ (f * p) for p in camera.data.view_frame(scene=context.scene)]
 
     """
     # add empties at corners

@@ -696,6 +696,16 @@ class UAS_PT_ShotManager(Panel):
 
                 if props.display_storyboard_in_properties:
                     icon = (
+                        config.icons_col["ShotManager_CamBGShot_32"]
+                        # if not prefs.enableGreasePencil
+                        if props.use_stb_cameras
+                        else config.icons_col["ShotManager_CamBGHidden_32"]
+                    )
+                    subrowtools.operator(
+                        "uas_shot_manager.enabledisablecameras", text="", icon_value=icon.icon_id, emboss=False
+                    ).hide = props.use_stb_cameras
+
+                    icon = (
                         config.icons_col["ShotManager_CamGPVisible_32"]
                         # if not prefs.enableGreasePencil
                         if props.use_greasepencil
