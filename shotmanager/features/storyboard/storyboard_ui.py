@@ -40,7 +40,6 @@ def draw_greasepencil_shot_properties(layout, context, shot):
 
     devDebug_displayAdv = config.devDebug and False
 
-    gp_child = None
     cameraIsValid = shot.isCameraValid()
     if not cameraIsValid:
         box = layout.box()
@@ -58,6 +57,7 @@ def draw_greasepencil_shot_properties(layout, context, shot):
 
     gpProperties = shot.getGreasePencilProps(mode="STORYBOARD")
 
+    gp_child = None
     gp_child = utils_greasepencil.get_greasepencil_child(shot.camera)
 
     box = layout.box()
@@ -128,7 +128,7 @@ def draw_greasepencil_shot_properties(layout, context, shot):
         gpToolsRow.operator(
             "uas_shot_manager.select_shot_grease_pencil", text="", icon="RESTRICT_SELECT_OFF"
         ).index = shotIndex
-        if config.devDebug:
+        if config.devDebug or True:
             gpToolsRow.operator(
                 "uas_shot_manager.update_grease_pencil", text="", icon="FILE_REFRESH"
             ).shotIndex = shotIndex
@@ -145,10 +145,10 @@ def draw_greasepencil_shot_properties(layout, context, shot):
             infoRow = textSubRow.row()
             infoRow.alignment = "RIGHT"
             if gp_child == context.object:
-                infoRow.label(text="Same as Context")
+                infoRow.label(text="   Same as Context")
             else:
                 infoRow.alert = True
-                infoRow.label(text="Diff from Context")
+                infoRow.label(text="   Diff from Context")
 
         rightSubRow = subRow.row(align=True)
         rightSubRow.alignment = "RIGHT"
@@ -238,7 +238,7 @@ def draw_greasepencil_shot_properties(layout, context, shot):
 
         row = col.row()
 
-        canvasSplitRow = row.split(factor=0.3)
+        canvasSplitRow = row.split(factor=0.32)
         utils_ui.collapsable_panel(canvasSplitRow, prefs, "stb_canvas_props_expanded", alert=False, text="Canvas")
         # canvasSplitRow.label(text=" ")
         # canvasSplitRow.separator(factor=0.1)
@@ -304,6 +304,7 @@ def draw_greasepencil_shot_properties(layout, context, shot):
         if prefs.stb_anim_props_expanded:
 
             animRow = col.row()
+            #  animRow.enabled = not channelsLocked
 
             transformCol = animRow.column()
 
@@ -596,7 +597,8 @@ def collapsable_panel_animateTransformations(
     eg: collapsable_panel(layout, addon_props, "display_users", text="Server Users")
         if addon_props.addonPrefs_ui_expanded: ...
     """
-    row = layout.row(align=False)
+    row = layout.row(align=True)
+
     row.alignment = "LEFT"
     # row.scale_x = 0.9
     row.alert = alert
@@ -606,22 +608,27 @@ def collapsable_panel_animateTransformations(
         icon="TRIA_DOWN" if getattr(data, property) else "TRIA_RIGHT",
         icon_only=True,
         emboss=False,
-        text="",
+        text=text,
     )
 
     icon = "DECORATE_UNLOCKED" if depressedOp else "DECORATE_LOCKED"
 
-    op = row.operator("uas_shot_manager.lock_anim_channel", text="", icon=icon, emboss=True, depress=depressedOp)
-    op.gpName = gp_child.name
-    op.lockItem = lockItem
-    op.lockValue = depressedOp
+    row.separator(factor=0.2)
     # lockAnimChannels
 
-    row.label(text=text)
+    # row.label(text=text)
 
     if alert:
         row.label(text="", icon="ERROR")
     row.alert = False
+
+    subRow = layout.row()
+    subRow.alignment = "RIGHT"
+
+    op = subRow.operator("uas_shot_manager.lock_anim_channel", text="", icon=icon, emboss=True, depress=depressedOp)
+    op.gpName = gp_child.name
+    op.lockItem = lockItem
+    op.lockValue = depressedOp
 
     # if text is not None:
     #     row.label(text=text)
