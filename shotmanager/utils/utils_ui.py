@@ -93,9 +93,6 @@ def collapsable_panel(
     # row.label(text=text)
     row.alert = False
 
-    # if text is not None:
-    #     row.label(text=text)
-    # return getattr(data, property)
     return row
 
 

@@ -166,7 +166,6 @@ def register():
     # update data
     ###################
 
-    # bpy.context.window_manager.UAS_shot_manager_version
     bpy.types.WindowManager.UAS_shot_manager_version = IntProperty(
         name="Add-on Version Int", description="Add-on version as integer", default=versionTupple[1]
     )

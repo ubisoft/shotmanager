@@ -70,4 +70,3 @@ def unregister():
     dialog_menu.unregister()
     features.unregister()
     about.unregister()
-

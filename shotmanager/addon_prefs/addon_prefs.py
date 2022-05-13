@@ -25,7 +25,7 @@ from bpy.props import StringProperty, IntProperty, BoolProperty, EnumProperty, F
 
 # from ..config import config
 
-from .addon_prefs_ui import draw_shotmanager_addon_prefs
+from .addon_prefs_ui import draw_addon_prefs
 
 from shotmanager.features.greasepencil.greasepencil_frame_template import UAS_GreasePencil_FrameTemplate
 from shotmanager.utils import utils
@@ -960,7 +960,7 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
     # Draw
     ##################################################################################
     def draw(self, context):
-        draw_shotmanager_addon_prefs(self, context)
+        draw_addon_prefs(self, context)
 
 
 _classes = (UAS_ShotManager_AddonPrefs,)
