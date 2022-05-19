@@ -72,7 +72,7 @@ class BL_UI_ShotClip:
         self._name_color_disabled = (0.6, 0.6, 0.6, 1)
 
         self._shot_color = (0.8, 0.3, 0.3, 1.0)
-        self._shot_color_disabled = (0.23, 0.23, 0.23, 1)
+        self._shot_color_disabled = (0.1, 0.1, 0.1, 0.5)
 
         # self.color_selectedShot_border = (0.9, 0.9, 0.2, 0.99)
         #    self.color_selectedShot_border = (0.2, 0.2, 0.2, 0.99)  # dark gray
@@ -150,7 +150,8 @@ class BL_UI_ShotClip:
         color = gamma_color(self.shot_color)
 
         if not shot.enabled:
-            color = (0.15, 0.15, 0.15, 0.5)
+            color = self._shot_color_disabled
+            # color = (0.15, 0.15, 0.15, 0.5)
 
         if self.highlight:
             _logger.debug_ext(f"highlight Shot in draw", col="RED", tag="SHOTSTACK_EVENT")
@@ -285,25 +286,29 @@ class BL_UI_ShotStack:
 
     def draw_shots(self):
         props = self.context.scene.UAS_shot_manager_props
-
         shots = props.get_shots()
-        currentShotIndex = props.getCurrentShotIndex()
-        selectedShotIndex = props.getSelectedShotIndex()
+
+        # create an array of tupples (ind, shot) to keep the association between the shot and its position
+        shotTupples = []
+        for i, shot in enumerate(shots):
+            shotTupples.append((i, shot))
 
         self.ui_shots.clear()
 
         if props.interactShotsStack_displayInCompactMode:
-            shots = sorted(
-                shots,
-                key=lambda s: s.start,
+            shotTupplesSorted = sorted(
+                shotTupples,
+                key=lambda shotTupple: shotTupple[1].start,
             )
+            #  print(f"Tupples sorted: {shotTupplesSorted}")
             shots_from_lane = defaultdict(list)
 
-            for i, shot in enumerate(shots):
+            for ind, shotTupple in enumerate(shotTupplesSorted):
+                shot = shotTupple[1]
                 if not props.interactShotsStack_displayDisabledShots and not shot.enabled:
                     continue
                 lane = 0
-                if i > 0:
+                if ind > 0:
                     for ln, shots_in_lane in shots_from_lane.items():
                         for s in shots_in_lane:
                             if s.start <= shot.start <= s.end:
@@ -315,27 +320,26 @@ class BL_UI_ShotStack:
                         if len(shots_from_lane):
                             lane = max(shots_from_lane) + 1  # No free lane, make a new one.
                         else:
-                            lane = 1
+                            lane = ln
+                            pass
                 shots_from_lane[lane].append(shot)
 
-                s = BL_UI_ShotClip(self.context, lane, i)
+                s = BL_UI_ShotClip(self.context, lane, shotTupple[0])
                 s.shot_color = gamma_color(shot.color)
                 s.update()
                 self.ui_shots.append(s)
-
                 s.draw()
         else:
+            shots = props.get_shots()
             numShots = -1
             for i, shot in enumerate(shots):
                 if not props.interactShotsStack_displayDisabledShots and not shot.enabled:
                     continue
                 numShots += 1
-                # print(f"   i: {i}")
                 s = BL_UI_ShotClip(self.context, numShots, i)
                 s.shot_color = gamma_color(shot.color)
                 s.update()
                 self.ui_shots.append(s)
-
                 s.draw()
 
     def draw(self):

@@ -354,9 +354,9 @@ class UAS_ShotManager_InteractiveShotsStack(Operator):
                         for s in shots_in_lane:
                             if s.start <= shot.start <= s.end:
                                 break
-                        else:
-                            lane = ln
-                            break
+                            else:
+                                lane = ln
+                                break
                     else:
                         if len(shots_from_lane):
                             lane = max(shots_from_lane) + 1  # No free lane, make a new one.
