@@ -107,6 +107,14 @@ class SM_Logger(logging.getLoggerClass()):
 
         self.tags = config.getLoggingTags()
 
+    @property
+    def prefix(self):
+        return self._prefix
+
+    @prefix.setter
+    def prefix(self, value):
+        self._prefix = value
+
     def _getFormatter(self, col="", form="DEFAULT"):
         color = self._colors[col] if col != "" else ""
         _ENDCOLOR = "\033[0m"
@@ -128,7 +136,7 @@ class SM_Logger(logging.getLoggerClass()):
         elif "WARNING" == form:
             if "" == col:
                 color = self._colors["ORANGE"]
-            f = Formatter(color + "SM  *** Warning" + " {message:<140}" + _ENDCOLOR, style="{")
+            f = Formatter(color + self._prefix + " *** Warning" + " {message:<140}" + _ENDCOLOR, style="{")
         elif "ERROR" == form:
             if "" == col:
                 color = self._colors["RED"]
@@ -294,7 +302,7 @@ def initialize():
         formatter = Formatter("\33[36m" + ch + " {message:<140}" + "\033[0m", style="{")
     else:
         # formatter = Formatter("{asctime} {levelname[0]} {name:<30}  - {message:<80}", style="{")
-        formatter = Formatter("SM " + " {message:<80}", style="{")
+        formatter = Formatter(_logger._prefix + "   {message:<80}", style="{")
 
     if len(_logger.handlers) == 0:
         handler = logging.StreamHandler()

@@ -23,6 +23,8 @@ from . import sm_debug_operators
 from . import sm_debug_ui
 from . import sm_debug
 
+from .scripts import WkTimelineModalRect
+
 from ..config import sm_logging
 
 _logger = sm_logging.getLogger(__name__)
@@ -34,11 +36,13 @@ def register():
     sm_debug_operators.register()
     sm_debug.register()
     sm_debug_ui.register()
+    WkTimelineModalRect.register()
 
 
 def unregister():
     _logger.debug_ext("       - Unregistering Debug Package", form="UNREG")
 
+    WkTimelineModalRect.unregister()
     sm_debug_ui.unregister()
     sm_debug.unregister()
     sm_debug_operators.unregister()

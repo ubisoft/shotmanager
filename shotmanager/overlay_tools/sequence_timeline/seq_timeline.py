@@ -26,7 +26,7 @@ from bpy.types import Operator
 from shotmanager.config import config
 from shotmanager.utils import utils
 
-from .seq_timeline_bgl import BL_UI_Timeline
+from .seq_timeline_widgets import BL_UI_Timeline
 
 from shotmanager.config import sm_logging
 
@@ -77,41 +77,42 @@ class UAS_ShotManager_sequenceTimeline(Operator):
 
     def init_widgets(self, context, widgets, target_area=None):
         self.widgets = widgets
-        # print(f"init_widgets, num widgets: {len(widgets)}")
         for widget in self.widgets:
-            # print(f"Widget: {str(widget)}")
             widget.init(context)
 
+    ###################################
+    # invoke
+    ###################################
+
     def invoke(self, context, event):
-        _logger.debug_ext(f"Invoke uas_shot_manager.sequence_timeline", col="RED")
+        _logger.debug_ext("Invoke op uas_shot_manager.sequence_timeline", col="RED")
 
         if ignoreWidget(context):
-            _logger.debug_ext(f"Canceled uas_shot_manager.sequence_timeline", col="RED")
+            _logger.debug_ext("Canceled op uas_shot_manager.sequence_timeline", col="RED")
             return {"CANCELLED"}
 
         props = context.scene.UAS_shot_manager_props
 
         # get the area index of invocation
-        source_area_ind = utils.getAreaIndex(context, context.area, "VIEW_3D")
-        expected_target_area_ind = props.getTargetViewportIndex(context, only_valid=False)
-        target_area_ind = props.getTargetViewportIndex(context, only_valid=True)
+        # source_area = context.area
+        # source_area_ind = utils.getAreaIndex(context, context.area, "VIEW_3D")
+        # expected_target_area_ind = props.getTargetViewportIndex(context, only_valid=False)
+        # target_area_ind = props.getTargetViewportIndex(context, only_valid=True)
         target_area = props.getValidTargetViewport(context)
         # print(
         #     f"Invoke Timeline area ind: {source_area_ind}, expected target: {expected_target_area_ind}, valid target: {target_area_ind}"
         # )
 
         self.target_area_index = props.getTargetViewportIndex(context, only_valid=True)
-        #     self.target_area = props.getValidTargetViewport(context)
+        # self.target_area = props.getValidTargetViewport(context)
 
-        # print("Invoke timeline")
         if target_area is None:
-            # print("Invoke timeline cancelled")
-            _logger.debug_ext(f"Canceled uas_shot_manager.sequence_timeline area", col="RED")
+            _logger.debug_ext("Canceled op uas_shot_manager.sequence_timeline area", col="RED")
             return {"CANCELLED"}
         else:
             self.init_widgets(
                 context, [BL_UI_Timeline(0, context.area.height - 25, context.area.width, 25, target_area=target_area)]
-            )  # , target_area=target_area
+            )
 
             args = (self, context, self.widgets)
             self.register_handlers(args, context)
@@ -127,14 +128,12 @@ class UAS_ShotManager_sequenceTimeline(Operator):
     def unregister_handlers(self, context):
         context.window_manager.event_timer_remove(self.draw_event)
         bpy.types.SpaceView3D.draw_handler_remove(self.draw_handle, "WINDOW")
-
         self.draw_handle = None
         self.draw_event = None
 
     def handle_widget_events(self, event):
-        """handle event for sequence_timeline operator
-        """
-        _logger.debug_ext(f"*-- handle event for sequence_timeline operator", col="GREEN", tag="TIMELINE_EVENT")
+        """handle event for sequence_timeline operator"""
+        _logger.debug_ext("*-- handle event for sequence_timeline operator", col="GREEN", tag="TIMELINE_EVENT")
 
         result = False
 
@@ -147,28 +146,32 @@ class UAS_ShotManager_sequenceTimeline(Operator):
 
         return result
 
+    ###################################
+    # modal
+    ###################################
+
     def modal(self, context, event):
         props = context.scene.UAS_shot_manager_props
         prefs = context.preferences.addons["shotmanager"].preferences
+
         # _logger.debug_ext(f"uas_shot_manager.sequence_timeline  Modal", col="RED")
-        # print(f"playint: {bpy.context.screen.is_animation_playing}, scrubbing: {bpy.context.screen.is_scrubbing}")
-        # return {"PASS_THROUGH"}
 
         # if not context.window_manager.UAS_shot_manager_display_overlay_tools:
         if (
             not context.window_manager.UAS_shot_manager_display_overlay_tools
             or not prefs.toggle_overlays_turnOn_sequenceTimeline
-            or not len(props.get_shots())
+            #   or not len(props.get_shots())
             or self.target_area_index != props.getTargetViewportIndex(context, only_valid=True)
         ):
             # _logger.debug_ext(f"sequence_timeline In Modal - for Cancel", col="RED")
             self.unregister_handlers(context)
-            return {"CANCELLED"}
+            # return {"CANCELLED"}
+            return {"FINISHED"}
 
         if context.area:
             # _logger.debug_ext(f"    context.area", col="YELLOW")
             if ignoreWidget(context):
-                #    _logger.debug_ext(f"         ignore widget", col="PURPLE")
+                #    _logger.debug_ext(f"         ignore widget in sequence_timeline", col="RED")
                 return {"PASS_THROUGH"}
 
             # print(f"playint: {bpy.context.screen.is_animation_playing}, scrubbing: {bpy.context.screen.is_scrubbing}")
@@ -190,7 +193,7 @@ class UAS_ShotManager_sequenceTimeline(Operator):
                 #     return {"PASS_THROUGH"}
 
             if self.handle_widget_events(event):
-                _logger.debug_ext(f"       handle widget events", col="PURPLE", tag="TIMELINE_EVENT")
+                _logger.debug_ext("       handle widget events", col="PURPLE", tag="TIMELINE_EVENT")
                 return {"RUNNING_MODAL"}
 
         #   _logger.debug_ext(f"      Pass Through", col="PURPLE")
@@ -199,8 +202,8 @@ class UAS_ShotManager_sequenceTimeline(Operator):
     def cancel(self, context):
         self.unregister_handlers(context)
 
-    # Draw handler to paint onto the screen
     def draw_callback_px(self, op, context, widgets):
+        """Draw handler to paint onto the screen"""
         # print(
         #     f"*** context.window_manager.UAS_shot_manager_display_overlay_tools: {context.window_manager.UAS_shot_manager_display_overlay_tools}"
         # )

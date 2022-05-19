@@ -1,3 +1,9 @@
+# 2.0.24 (2022-05-xx)
+
+- Fixed issue in the offset of camera background video
+
+- 
+
 # 2.0.21 (2022-05-10)
 
 - Display the shots names over the storyboard frames when the camera is hidden

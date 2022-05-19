@@ -993,6 +993,10 @@ def add_background_video_to_cam(
         # print("   Finished block")
         # clip = bpy.data.movieclips[movie_path.name]
         clip = getMovieClipByPath(movie_path)
+
+        # required since Blender 3.0 (or earlier?) for the frame_start to be taken into account in the viewport
+        clip.use_proxy_custom_directory = True
+        
         clip.frame_start = frame_start
         camera.show_background_images = True
         bg = camera.background_images.new()

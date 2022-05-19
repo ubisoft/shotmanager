@@ -29,6 +29,7 @@ from .addon_prefs_ui import draw_addon_prefs
 
 from shotmanager.features.greasepencil.greasepencil_frame_template import UAS_GreasePencil_FrameTemplate
 from shotmanager.utils import utils
+from shotmanager.utils.utils_os import get_latest_release_version
 
 from shotmanager.config import sm_logging
 
@@ -84,46 +85,25 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
 
     def initialize_shot_manager_prefs(self):
         print("\nInitializing Shot Manager Preferences...")
+
         self.stb_frameTemplate.initialize(mode="ADDON_PREFS")
 
-        # check for updates on GitHub
-        import requests
-
-        url = "https://github.com/ubisoft/shotmanager/releases/latest"
-
-        # NOTE: read https://docs.python-requests.org/en/latest/user/quickstart/#timeouts
-        # and https://stackoverflow.com/questions/21965484/timeout-for-python-requests-get-entire-response
-
-        # NOTE: timeout is not a time limit on the entire response download; rather, an exception is
-        # raised if the server has not issued a response for timeout seconds (more precisely,
-        # if no bytes have been received on the underlying socket for timeout seconds).
-        # If no timeout is specified explicitly, requests do not time out.
-
-        # r = requests.get(url)
-        timeoutInSec = 2
-        versionStr = "1.0.0"
-
-        # dirty fix to avoir HTTPS warning
-        requests.packages.urllib3.disable_warnings()
-
-        # wkipwkipwkip some work and test to do here...
-        r = requests.get(url, verify=False, timeout=timeoutInSec)
-        versionStr = r.url.split("/")[-1]
-        try:
-            r = requests.get(url, verify=False, timeout=timeoutInSec)
-            versionStr = r.url.split("/")[-1]
-        except Exception as requestExcept:
-            _logger.info_ext(f"Exception in Update Check: {requestExcept}", col="RED")
-
-        # version string from the tags used by our releases on GitHub is formated as this: v<int>.<int>.<int>
-        version = utils.convertVersionStrToInt(versionStr)
-
-        _logger.debug_ext(
-            f"Checking for updates: Latest version of Ubisoft Shot Manager online is: {versionStr}", col="BLUE"
+        versionStr = get_latest_release_version(
+            "https://github.com/ubisoft/shotmanager/releases/latest", verbose=True, use_debug=True
         )
-        if self.version()[1] < version:
-            _logger.debug_ext("   New version available online...", col="BLUE")
-            self.newAvailableVersion = version
+
+        if versionStr is not None:
+            # version string from the tags used by our releases on GitHub is formated as this: v<int>.<int>.<int>
+            version = utils.convertVersionStrToInt(versionStr)
+
+            _logger.debug_ext(
+                f"Checking for updates: Latest version of Ubisoft Shot Manager online is: {versionStr}", col="BLUE"
+            )
+            if self.version()[1] < version:
+                _logger.debug_ext("   New version available online...", col="BLUE")
+                self.newAvailableVersion = version
+            else:
+                self.newAvailableVersion = 0
         else:
             self.newAvailableVersion = 0
 
@@ -208,7 +188,7 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
     displaySMDebugPanel: BoolProperty(
         name="Display Debug Panel",
         description="Display the debug panel and debug tools of Shot Manager.\nIt will be as a tab in the viewport N-Panel",
-        default=False,
+        default=True,
     )
 
     # ****** hidden settings:

@@ -505,6 +505,7 @@ class BL_UI_Shot:
 
 class BL_UI_Timeline:
     def __init__(self, x, y, width, height, target_area=None):
+        self.context = None
         self.x = x
         self.y = y
         self.x_screen = x
@@ -513,7 +514,6 @@ class BL_UI_Timeline:
         self.width = width
         self.height = height
         self._mouse_y = 0
-        self.context = None
         self.target_area = target_area
         self.__inrect = False
         self._mouse_down = False
@@ -602,14 +602,14 @@ class BL_UI_Timeline:
         bgl.glDisable(bgl.GL_BLEND)
 
     def draw_shots(self):
-        total_range = 0
         props = self.context.scene.UAS_shot_manager_props
+
         shots = props.get_shots()
-        # currentShotIndex = props.getCurrentShotIndex(ignoreDisabled=not props.seqTimeline_displayDisabledShots)
         currentShotIndex = props.getCurrentShotIndex()
         selectedShotIndex = props.getSelectedShotIndex()
 
         self.ui_shots.clear()
+
         total_range = props.getEditDuration(ignoreDisabled=not props.seqTimeline_displayDisabledShots)
         offset_x = 0
         for i, shot in enumerate(shots):
@@ -690,12 +690,12 @@ class BL_UI_Timeline:
 
     def handle_event(self, event):
         """handle event for BL_UI_Timeline"""
-        _logger.debug_ext(f"*** handle event for BL_UI_Timeline", col="GREEN", tag="TIMELINE_EVENT")
+        _logger.debug_ext("*** handle event for BL_UI_Timeline", col="GREEN", tag="TIMELINE_EVENT")
 
         prefs = bpy.context.preferences.addons["shotmanager"].preferences
         if hasattr(bpy.context.space_data, "overlay"):
             if prefs.seqTimeline_not_disabled_with_overlays and not bpy.context.space_data.overlay.show_overlays:
-                _logger.debug_ext(f"   Canceled cause overlays hidden", col="RED")
+                _logger.debug_ext("   Canceled cause overlays hidden", col="RED")
                 return False
 
         # if self.target_area is not None and bpy.context.area != self.target_area:

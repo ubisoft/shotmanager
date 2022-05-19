@@ -54,7 +54,7 @@ from ..features.greasepencil.greasepencil_tools_props import UAS_GreasePencil_To
 
 from shotmanager.utils import utils
 
-# from shotmanager.config import config
+from shotmanager.config import config
 from shotmanager.config import sm_logging
 
 _logger = sm_logging.getLogger(__name__)
@@ -178,10 +178,11 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
     )
 
     def initialize_shot_manager(self):
-        print(f"\nInitializing Shot Manager in the current scene ({bpy.context.scene.name})...")
+        _logger.info_ext(f"\nInitializing Shot Manager in the current scene ({bpy.context.scene.name})...")
+        prefs = bpy.context.preferences.addons["shotmanager"].preferences
+
         # self.parentScene = self.getParentScene()
 
-        prefs = bpy.context.preferences.addons["shotmanager"].preferences
         if not prefs.isInitialized:
             prefs.initialize_shot_manager_prefs()
 
@@ -204,7 +205,6 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
 
         # layout and features
         ############################
-        prefs = bpy.context.preferences.addons["shotmanager"].preferences
         self.layout_mode = prefs.layout_mode
         self.display_storyboard_in_properties = prefs.display_storyboard_in_properties
         self.display_notes_in_properties = prefs.display_notes_in_properties
@@ -833,7 +833,8 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
     )
 
     def getTargetViewportIndex(self, context, only_valid=False):
-        """Return the index of the viewport where all the actions of the Shot Manager should occur.
+        """Return the index of the viewport where all the actions of the Shot Manager should occur,
+        -1 if no suitable viewport is found.
         This viewport is called the target viewport and is defined in the UI by the user thanks
         to the variable props.target_viewport_index.
         A viewport is an area of type VIEW_3D.
@@ -1712,11 +1713,22 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
 
     # sequence timeline properties
     #################################
-    seqTimeline_displayDisabledShots: BoolProperty(default=False, options=set())
+    def _update_seqTimeline_displayDisabledShots(self, context):
+        config.gRedrawShotStack = True
+
+    seqTimeline_displayDisabledShots: BoolProperty(
+        default=False, update=_update_seqTimeline_displayDisabledShots, options=set()
+    )
 
     # interact shots stack properties
     #################################
-    interactShotsStack_displayDisabledShots: BoolProperty(default=False, options=set())
+
+    def _update_interactShotsStack_displayDisabledShots(self, context):
+        config.gRedrawShotStack = True
+
+    interactShotsStack_displayDisabledShots: BoolProperty(
+        default=False, update=_update_interactShotsStack_displayDisabledShots, options=set()
+    )
     interactShotsStack_displayInCompactMode: BoolProperty(default=False, options=set())
 
     def list_target_dopesheets(self, context):

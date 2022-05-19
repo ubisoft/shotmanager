@@ -346,6 +346,26 @@ class UAS_ShotManager_OT_EnableDebug(Operator):
         return {"FINISHED"}
 
 
+class UAS_ShotManager_OT_RedrawUI(Operator):
+    bl_idname = "uas_shot_manager.redrawui"
+    bl_label = "Redraw ui"
+    bl_description = "-"
+    bl_options = {"INTERNAL"}
+
+    def execute(self, context):
+
+        # bpy.ops.wm.redraw_timer(type="DRAW_WIN_SWAP", iterations=1)
+
+        # redraw all
+        # for area in context.screen.areas:
+        #     area.tag_redraw()
+        # # context.scene.frame_current = context.scene.frame_current
+
+        config.gRedrawShotStack = True
+
+        return {"FINISHED"}
+
+
 _classes = (
     UAS_ShotManager_OT_ShotsPlayMode,
     UAS_ShotManager_OT_DisplayDisabledShotsInOverlays,
@@ -356,6 +376,7 @@ _classes = (
     UAS_ShotManager_OT_GoToVideoShotManager,
     UAS_ShotManager_OT_FileInfo,
     UAS_ShotManager_OT_EnableDebug,
+    UAS_ShotManager_OT_RedrawUI,
 )
 
 

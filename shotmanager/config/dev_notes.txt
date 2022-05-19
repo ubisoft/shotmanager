@@ -159,3 +159,10 @@ Fichiers récupérés de 166 - 2.0.15 B:
 
     ui
         sm_shot_settings_ui.py
+
+
+Amanda:
+    - 1001
+    - new layer for perps
+    - timing the notes
+

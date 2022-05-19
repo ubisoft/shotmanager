@@ -203,6 +203,7 @@ class UAS_ShotManager_Shot(ShotInterface, PropertyGroup):
     def _update_start(self, context):
         self.selectShotInUI()
         self.updateClipLinkToShotStart()
+        config.gRedrawShotStack = True
 
     start: IntProperty(
         name="Shot Start",
@@ -237,6 +238,7 @@ class UAS_ShotManager_Shot(ShotInterface, PropertyGroup):
 
     def _update_end(self, context):
         self.selectShotInUI()
+        config.gRedrawShotStack = True
 
     end: IntProperty(
         name="Shot End",
@@ -443,6 +445,8 @@ class UAS_ShotManager_Shot(ShotInterface, PropertyGroup):
     def updateClipLinkToShotStart(self):
         if self.camera is not None and len(self.camera.data.background_images):
             bgClip = self.camera.data.background_images[0].clip
+            bgClip.use_proxy_custom_directory = True
+
             bgSoundSequence = self.getSoundSequence()
 
             if self.bgImages_linkToShotStart:

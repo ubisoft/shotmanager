@@ -189,6 +189,10 @@ class UAS_PT_ShotManager(Panel):
             row.prop(props, "useBGSounds")
             row.alert = False
 
+            row = layout.row()
+            row.operator("uas_shot_manager.redrawui")
+
+        # NOTE: Shot Manager Prefs and Shot Manager scene instance are initialized here:
         if not props.isInitialized:
             layout.separator()
             row = layout.row()

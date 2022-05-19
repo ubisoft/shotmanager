@@ -142,6 +142,10 @@ class UAS_PT_Shot_Manager_Debug(Panel):
         row.operator("uas.debug_print_text_color")
 
         layout.separator()
+        row = layout.row()
+        row.operator("uas_debug.timeline_modal_rect")
+
+        layout.separator()
 
 
 _classes = (UAS_PT_Shot_Manager_Debug,)
