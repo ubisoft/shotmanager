@@ -29,7 +29,14 @@ from mathutils import Vector
 
 from shotmanager.utils.utils import gamma_color, color_is_dark
 
-from .shots_stack_bgl import Image2D, Mesh2D, build_rectangle_mesh, get_lane_origin_y
+from .shots_stack_bgl import (
+    Image2D,
+    Mesh2D,
+    build_rectangle_mesh,
+    get_lane_origin_y,
+    get_lane_height,
+    get_prefs_ui_scale,
+)
 
 from shotmanager.config import config
 from shotmanager.config import sm_logging
@@ -37,7 +44,6 @@ from shotmanager.config import sm_logging
 _logger = sm_logging.getLogger(__name__)
 
 UNIFORM_SHADER_2D = gpu.shader.from_builtin("2D_UNIFORM_COLOR")
-LANE_HEIGHT = 18
 
 
 class BL_UI_ShotClip:
@@ -47,9 +53,10 @@ class BL_UI_ShotClip:
         """
         self.context = context
 
-        self.height = LANE_HEIGHT
+        self.origin = None
         self.width = 0
         self.lane = lane
+        self.font_size = 12
 
         self._highlight = False
         self._active_region = None
@@ -61,14 +68,13 @@ class BL_UI_ShotClip:
         self.camIcon = None
         self.start_interaction_mesh = None
         self.end_interaction_mesh = None
-        self.origin = None
 
         self.color_currentShot_border = (0.92, 0.55, 0.18, 0.99)
         self.color_currentShot_border_mix = (0.94, 0.3, 0.1, 0.99)
 
         self._shot_index = shot_index
         self._name_color_light = (0.9, 0.9, 0.9, 1)
-        self._name_color_dark = (0.12, 0.12, 0.12, 1)
+        self._name_color_dark = (0.07, 0.07, 0.07, 1)
         self._name_color_disabled = (0.6, 0.6, 0.6, 1)
 
         self._shot_color = (0.8, 0.3, 0.3, 1.0)
@@ -96,6 +102,10 @@ class BL_UI_ShotClip:
         #     Vector([self.origin.x - 1, self.origin.y - 1]), self.width + 2, self.height + 2, True
         # )
         self.camIcon = Image2D(self.origin, self.width, self.height)
+
+    @property
+    def height(self):
+        return get_lane_height()
 
     @property
     def shot_index(self):
@@ -154,7 +164,7 @@ class BL_UI_ShotClip:
             # color = (0.15, 0.15, 0.15, 0.5)
 
         if self.highlight:
-            _logger.debug_ext(f"highlight Shot in draw", col="RED", tag="SHOTSTACK_EVENT")
+            _logger.debug_ext("highlight Shot in draw", col="RED", tag="SHOTSTACK_EVENT")
             color = (0.9, 0.9, 0.9, 0.5)
         UNIFORM_SHADER_2D.uniform_float("color", color)
         self.clip_mesh.draw(UNIFORM_SHADER_2D, context.region)
@@ -197,9 +207,12 @@ class BL_UI_ShotClip:
             self.contour_mesh.draw(UNIFORM_SHADER_2D, context.region, "LINES")
 
         # draw a camera icon on the current shot
+        ##########################
         # TODO finish and clean
         #   self.camIcon.draw(context.region)
 
+        # draw shot name
+        ##########################
         bgl.glDisable(bgl.GL_BLEND)
 
         if shot.enabled:
@@ -210,8 +223,10 @@ class BL_UI_ShotClip:
         else:
             blf.color(0, *self._name_color_disabled)
 
-        blf.size(0, 11, 72)
-        blf.position(0, *context.region.view2d.view_to_region(self.origin.x + 1.3, self.origin.y + 5), 0)
+        blf.size(0, self.font_size * get_prefs_ui_scale(), 72)
+        blf.position(
+            0, *context.region.view2d.view_to_region(self.origin.x + 1.4, self.origin.y + 6 * get_prefs_ui_scale()), 0
+        )
         blf.draw(0, shot.name)
 
     def get_handle(self, x, y):
@@ -277,6 +292,7 @@ class BL_UI_ShotStack:
     def init(self, context):
         self.context = context
 
+        # debug
         height = 20
         lane = 3
         startframe = 120

@@ -21,10 +21,10 @@ Draw an interactive stack of shots in the Timeline editor
 #TODO: clean code
 """
 
-from collections import defaultdict
 
 import gpu
-import bgl, blf
+import bgl
+import blf
 import bpy
 from gpu_extras.batch import batch_for_shader
 

@@ -19,6 +19,7 @@
 UI in BGL for the Interactive Shots Stack overlay tool
 """
 
+import math
 
 import bpy
 import bgl
@@ -39,51 +40,35 @@ _logger = sm_logging.getLogger(__name__)
 
 UNIFORM_SHADER_2D = gpu.shader.from_builtin("2D_UNIFORM_COLOR")
 
-LANE_HEIGHT = 18
+
+def get_prefs_ui_scale():
+    # ui_scale has a very weird behavior, especially between 0.79 and 0.8. We try to compensate it as
+    # much as possible
+    factor = 0
+    if bpy.context.preferences.view.ui_scale >= 1.1:
+        factor = 0.2
+    elif bpy.context.preferences.view.ui_scale >= 0.89:
+        factor = 1.6
+    elif bpy.context.preferences.view.ui_scale >= 0.79:
+        factor = 0.0
+    elif bpy.context.preferences.view.ui_scale >= 0.69:
+        factor = 0.1
+    else:
+        factor = 0.15
+
+    return bpy.context.preferences.view.ui_scale + abs(bpy.context.preferences.view.ui_scale - 1) * factor
 
 
 def get_lane_origin_y(lane):
-    return -LANE_HEIGHT * lane - 39  # an offset to put it under timeline ruler.
+    """Return the offset to put under the timeline ruler"""
+    RULER_HEIGHT = 52
+    return math.floor(-1.0 * get_lane_height() * lane - (RULER_HEIGHT * bpy.context.preferences.view.ui_scale))
 
-def draw_shots_stack(context):
-    ## with dico
-    # print(f" suis dans draw_shots_stack: config.gShotsStackInfos: {config.gShotsStackInfos}")
 
-    # _logger.debug_colored("Here 80 - config.gShotsStackInfos Clips len: " + str(len(config.gShotsStackInfos["clips"])))
-
-    if config.gShotsStackInfos is not None:
-        # _logger.debug_ext("Redraw in draw_shots_stack", col="PURPLE")
-        #    _logger.debug_colored("Here 82")
-        for i, clip in enumerate(config.gShotsStackInfos["clips"]):
-            # _logger.debug_ext(
-            #     f"highlight Shot handle over loop, clip {i}{config.gShotsStackInfos['active_clip_index']} region: {config.gShotsStackInfos['active_clip_region']}",
-            #     col="BLUE",
-            # )
-
-            clip.highlight = i == config.gShotsStackInfos["active_clip_index"]
-            clip.active_region = config.gShotsStackInfos["active_clip_region"]
-            clip.active_clip_over = config.gShotsStackInfos["active_clip_over"]
-            clip.draw(context)
-            # try:
-            #     clip.draw(context)
-            # except Exception as e:
-            #     # wkip wkip
-            #     pass
-        #    _logger.debug_colored("Here 84")
-        if config.gShotsStackInfos["frame_under_mouse"] != -1:
-            blf.color(0, 0.99, 0.99, 0.99, 1)
-            blf.size(0, 11, 72)
-            blf.position(
-                0, config.gShotsStackInfos["prev_mouse_x"] + 4, config.gShotsStackInfos["prev_mouse_y"] + 10, 0
-            )
-            blf.draw(0, str(config.gShotsStackInfos["frame_under_mouse"]))
-
-        if config.devDebug:
-            blf.color(0, 0.99, 0.1, 0.1, 1)
-            blf.size(0, 35, 72)
-            blf.position(0, 100, 100, 0)
-            # blf.draw(0, "Toto")
-        #  blf.draw(0, f"Last: {config.devDebug_lastRedrawTime}")
+def get_lane_height():
+    """Return the offset to put under the timeline ruler"""
+    LANE_HEIGHT = 22.5
+    return LANE_HEIGHT * get_prefs_ui_scale()
 
 
 def clamp_to_region(x, y, region):
