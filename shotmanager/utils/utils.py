@@ -996,7 +996,7 @@ def add_background_video_to_cam(
 
         # required since Blender 3.0 (or earlier?) for the frame_start to be taken into account in the viewport
         clip.use_proxy_custom_directory = True
-        
+
         clip.frame_start = frame_start
         camera.show_background_images = True
         bg = camera.background_images.new()
@@ -1099,6 +1099,12 @@ def color_is_dark(color, threshold):
 def darken_color(color):
     factor = 0.6
     d_color = (color[0] * factor, color[1] * factor, color[2] * factor, color[3] * 1.0)
+    return d_color
+
+
+def lighten_color(color, value=0.1):
+    """Do a ADD"""
+    d_color = (min(color[0] + value, 1.0), min(color[1] + value, 1.0), min(color[2] + value, 1.0), color[3])
     return d_color
 
 

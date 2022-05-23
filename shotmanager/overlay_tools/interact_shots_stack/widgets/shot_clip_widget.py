@@ -19,7 +19,7 @@
 UI in BGL for the Interactive Shots Stack overlay tool
 """
 
-from collections import defaultdict
+import time
 
 import bpy
 import bgl
@@ -27,18 +27,18 @@ import blf
 import gpu
 from mathutils import Vector
 
-from shotmanager.utils.utils import gamma_color, color_is_dark
+from shotmanager.utils.utils import gamma_color, color_is_dark, lighten_color
 
-from .shots_stack_bgl import (
+from ..shots_stack_bgl import (
     Image2D,
-    Mesh2D,
+    #    Mesh2D,
     build_rectangle_mesh,
     get_lane_origin_y,
     get_lane_height,
     get_prefs_ui_scale,
 )
 
-from shotmanager.config import config
+# from shotmanager.config import config
 from shotmanager.config import sm_logging
 
 _logger = sm_logging.getLogger(__name__)
@@ -47,7 +47,7 @@ UNIFORM_SHADER_2D = gpu.shader.from_builtin("2D_UNIFORM_COLOR")
 
 
 class BL_UI_ShotClip:
-    def __init__(self, context, lane, shot_index):
+    def __init__(self, context, shot_index):
         """
         shot_index is the index of the shot in the whole take list
         """
@@ -55,12 +55,16 @@ class BL_UI_ShotClip:
 
         self.origin = None
         self.width = 0
-        self.lane = lane
         self.font_size = 12
 
-        self._highlight = False
         self._active_region = None
         self._active_clip_over = False
+        self._highlight = False
+        self._mouseover = False
+
+        # self.prev_mouse_x = 0
+        # self.prev_mouse_y = 0
+        self.prev_click = 0
 
         self.clip_mesh = None
         self.contour_mesh = None
@@ -86,11 +90,12 @@ class BL_UI_ShotClip:
 
         # self.update()
 
-    def update(self):
+    def update(self, lane):
         props = bpy.context.scene.UAS_shot_manager_props
         shots = props.get_shots()
         shot = shots[self._shot_index]
 
+        self.lane = lane
         self.width = shot.end - shot.start + 1
         self.origin = Vector([shot.start, get_lane_origin_y(self.lane)])
         self.clip_mesh = build_rectangle_mesh(self.origin, self.width, self.height)
@@ -132,6 +137,14 @@ class BL_UI_ShotClip:
         self._highlight = value
 
     @property
+    def mouseover(self):
+        return self._mouseover
+
+    @mouseover.setter
+    def mouseover(self, value: bool):
+        self._mouseover = value
+
+    @property
     def active_region(self):
         return self._active_region
 
@@ -166,6 +179,10 @@ class BL_UI_ShotClip:
         if self.highlight:
             _logger.debug_ext("highlight Shot in draw", col="RED", tag="SHOTSTACK_EVENT")
             color = (0.9, 0.9, 0.9, 0.5)
+        # if self.mouseover:
+        #     _logger.debug_ext(f"mouseover Shot in draw {shot.name}", col="RED", tag="SHOTSTACK_EVENT")
+        #     color = lighten_color(color, 0.3)
+
         UNIFORM_SHADER_2D.uniform_float("color", color)
         self.clip_mesh.draw(UNIFORM_SHADER_2D, context.region)
 
@@ -251,7 +268,84 @@ class BL_UI_ShotClip:
 
         return None
 
-    ### #TODO: wkip undo doesn't work here !!!
+    def handle_event(self, context, event, region):
+        """Return True if the event is handled for BL_UI_ShotStack
+
+        Notes:
+            - self.mouseover is not working perfectly since the over color is left on the last
+              overed shot when the mouse is out of every shots. This is because when leaving shots
+              the event is not returned as being handled.
+        """
+
+        ########
+        # REMOVED
+        ########
+
+        context = self.context
+        props = context.scene.UAS_shot_manager_props
+        shots = props.get_shots()
+        shot = shots[self._shot_index]
+
+        event_handled = False
+
+        # self.mouseover = True
+
+        # if event.type not in ["MOUSEMOVE", "INBETWEEN_MOUSEMOVE", "TIMER"]:
+        _logger.debug_ext(f"     *** event in BL_UI_Shot: {event.type}", col="GREEN", tag="SHOTSTACK_EVENT")
+
+        mouse_x, mouse_y = region.view2d.region_to_view(event.mouse_x - region.x, event.mouse_y - region.y)
+        active_clip_region = self.get_handle(mouse_x, mouse_y)
+
+        # _logger.debug_ext(f"over Shot {shot.name} active_clip_region: {active_clip_region}", col="RED")
+        if active_clip_region is not None:
+
+            # mouse over #################
+            # NOTE: mouseover works but is not used (= desactivated in draw function) because it has to be associated
+            # with a redraw when no events are handle, which is hardware greedy (moreover reactive components are not
+            # in the philosophy of Blender)
+            self.mouseover = True
+
+            if event.type in ["MOUSEMOVE", "INBETWEEN_MOUSEMOVE"]:
+
+                #  _logger.debug_ext(f"over Shot {shot.name}", col="RED")
+                #    self.mouseover = True
+                self.highlight = True
+                # config.gShotsStackInfos["active_clip_index"] = i
+                # config.gShotsStackInfos["active_clip_region"] = active_clip_region
+                # self.active_clip = clip
+                # self.active_clip_region = active_clip_region
+                # props = context.scene.UAS_shot_manager_props
+                #  props.setSelectedShotByIndex(self.shot_index)
+
+                # event_handled = True
+                # else:
+                #     self.mouseover = False
+                #     pass
+                pass
+
+            elif event.type == "LEFTMOUSE":
+                if event.value == "PRESS":
+                    props.setSelectedShotByIndex(self.shot_index)
+
+                    # double click
+                    counter = time.perf_counter()
+                    print(f"pref clic: {self.prev_click}")
+                    if counter - self.prev_click < 0.3:  # Double click.
+                        props.setCurrentShotByIndex(self.shot_index, changeTime=False)
+                        mouse_frame = int(region.view2d.region_to_view(event.mouse_x - region.x, 0)[0])
+                        context.scene.frame_current = mouse_frame
+                        # bpy.ops.uas_shot_manager.set_current_shot(index=self.shot_index)
+                    self.prev_click = counter
+                    event_handled = True
+
+        else:
+            self.highlight = False
+            self.mouseover = False
+            pass
+
+        return event_handled
+
+    # TODO: wkip undo doesn't work here !!!
     def handle_mouse_interaction(self, region, mouse_disp):
         """
         region: if region == -1:    left clip handle (start)
@@ -278,104 +372,3 @@ class BL_UI_ShotClip:
             else:
                 shot.start += mouse_disp
                 shot.end += mouse_disp
-
-
-class BL_UI_ShotStack:
-    def __init__(self, target_area=None):
-        self.context = None
-        self.target_area = target_area
-
-        self.ui_shots = list()
-
-        self.debug_mesh = None
-
-    def init(self, context):
-        self.context = context
-
-        # debug
-        height = 20
-        lane = 3
-        startframe = 120
-        numFrames = 15
-        origin = Vector([startframe, get_lane_origin_y(lane)])
-        self.debug_mesh = build_rectangle_mesh(origin, numFrames, height)
-
-    def draw_shots(self):
-        props = self.context.scene.UAS_shot_manager_props
-        shots = props.get_shots()
-
-        # create an array of tupples (ind, shot) to keep the association between the shot and its position
-        shotTupples = []
-        for i, shot in enumerate(shots):
-            shotTupples.append((i, shot))
-
-        self.ui_shots.clear()
-
-        if props.interactShotsStack_displayInCompactMode:
-            shotTupplesSorted = sorted(
-                shotTupples,
-                key=lambda shotTupple: shotTupple[1].start,
-            )
-            #  print(f"Tupples sorted: {shotTupplesSorted}")
-            shots_from_lane = defaultdict(list)
-
-            for ind, shotTupple in enumerate(shotTupplesSorted):
-                shot = shotTupple[1]
-                if not props.interactShotsStack_displayDisabledShots and not shot.enabled:
-                    continue
-                lane = 0
-                if ind > 0:
-                    for ln, shots_in_lane in shots_from_lane.items():
-                        for s in shots_in_lane:
-                            if s.start <= shot.start <= s.end:
-                                break
-                        else:
-                            lane = ln
-                            break
-                    else:
-                        if len(shots_from_lane):
-                            lane = max(shots_from_lane) + 1  # No free lane, make a new one.
-                        else:
-                            lane = ln
-                            pass
-                shots_from_lane[lane].append(shot)
-
-                s = BL_UI_ShotClip(self.context, lane, shotTupple[0])
-                s.shot_color = gamma_color(shot.color)
-                s.update()
-                self.ui_shots.append(s)
-                s.draw()
-        else:
-            shots = props.get_shots()
-            numShots = -1
-            for i, shot in enumerate(shots):
-                if not props.interactShotsStack_displayDisabledShots and not shot.enabled:
-                    continue
-                numShots += 1
-                s = BL_UI_ShotClip(self.context, numShots, i)
-                s.shot_color = gamma_color(shot.color)
-                s.update()
-                self.ui_shots.append(s)
-                s.draw()
-
-    def draw(self):
-        if self.target_area is not None and self.context.area != self.target_area:
-            return
-
-        # Debug - red rectangle ####################
-        drawDebugRect = False
-        if drawDebugRect:
-            print("ogl draw shot stack")
-            bgl.glEnable(bgl.GL_BLEND)
-            UNIFORM_SHADER_2D.bind()
-            color = (0.9, 0.0, 0.0, 0.9)
-            UNIFORM_SHADER_2D.uniform_float("color", color)
-            self.debug_mesh.draw(UNIFORM_SHADER_2D, self.context.region)
-
-            return
-
-        self.draw_shots()
-
-    def handle_event(self, event):
-        """handle event for BL_UI_ShotStack"""
-        _logger.debug_ext("*** handle event for BL_UI_ShotStack", col="GREEN", tag="SHOTSTACK_EVENT")

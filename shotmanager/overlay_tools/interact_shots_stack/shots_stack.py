@@ -20,11 +20,12 @@ UI for the Interactive Shots Stack overlay tool
 """
 
 
-from .shots_stack_widgets import BL_UI_ShotStack
+from .widgets.shots_stack_widget import BL_UI_ShotStack
 
 import bpy
 from bpy.types import Operator
 
+from shotmanager.utils.utils_ogl import get_region_at_xy
 from shotmanager.config import config
 from shotmanager.config import sm_logging
 
@@ -155,20 +156,27 @@ class UAS_ShotManager_InteractiveShotsStack(Operator):
         self.draw_handle = None
         self.draw_event = None
 
-    def handle_widget_events(self, event):
+    def handle_widget_events(self, context, event):
         """handle event for interactive_shots_stack operator"""
-        _logger.debug_ext("*-- handle event for interactive_shots_stack operator", col="GREEN", tag="SHOTSTACK_EVENT")
+        # _logger.debug_ext(" handle_widget_events", col="PURPLE", tag="SHOTSTACK_EVENT")
 
-        result = False
+        event_handled = False
+        region, area = get_region_at_xy(context, event.mouse_x, event.mouse_y, "DOPESHEET_EDITOR")
 
-        # if ignoreWidget(bpy.context):
-        #     return False
-        # else:
-        for widget in self.widgets:
-            if widget.handle_event(event):
-                result = True
+        # get only events in the target area
+        # wkip: mouse release out of the region have to be taken into account
+        if self.target_area is not None and area == self.target_area:
+            if region:
 
-        return result
+                # if ignoreWidget(bpy.context):
+                #     return False
+                # else:
+                for widget in self.widgets:
+                    if widget.handle_event(context, event, region):
+                        event_handled = True
+                        break
+
+        return event_handled
 
     ###################################
     # modal
@@ -204,8 +212,9 @@ class UAS_ShotManager_InteractiveShotsStack(Operator):
             # return {"CANCELLED"}
             return {"FINISHED"}
 
+        # _logger.debug_ext(f"    context.area: {context.area}, self.target_area: {self.target_area}", col="YELLOW")
         if context.area:
-            #  _logger.debug_ext("    context.area", col="YELLOW")
+            # _logger.debug_ext("    context.area", col="YELLOW")
             if ignoreWidget(context):
                 _logger.debug_ext("         ignore widget in interactive_shots_stack", col="PURPLE")
 
@@ -216,16 +225,20 @@ class UAS_ShotManager_InteractiveShotsStack(Operator):
                 #     print("Ignioring...")
                 return {"PASS_THROUGH"}
 
-            if self.handle_widget_events(event):
-                _logger.debug_ext("       handle widget events", col="PURPLE", tag="SHOTSTACK_EVENT")
-                return {"RUNNING_MODAL"}
+            event_handled = self.handle_widget_events(context, event)
+            if event_handled:
+                config.gRedrawShotStack = True
+            #   return {"RUNNING_MODAL"}
 
         # bpy.ops.wm.redraw_timer(type="DRAW_WIN_SWAP", iterations=1)
 
-        if config.gRedrawShotStack:
+        if config.gRedrawShotStack or event_handled:
             for area in context.screen.areas:
                 area.tag_redraw()
             config.gRedrawShotStack = False
+
+        if event_handled:
+            return {"RUNNING_MODAL"}
 
         return {"PASS_THROUGH"}
 

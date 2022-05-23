@@ -112,7 +112,7 @@ def getLoggingTags():
     tags["EDIT_IO"] = True
 
     tags["TIMELINE_EVENT"] = False
-    tags["SHOTSTACK_EVENT"] = False
+    tags["SHOTSTACK_EVENT"] = True
 
     # info tags
     tags["RENDERTIME"] = True
