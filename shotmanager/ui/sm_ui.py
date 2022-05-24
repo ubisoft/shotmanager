@@ -33,7 +33,7 @@ from . import sm_shots_ui
 from . import sm_shots_ui_storyboard_layout
 from . import sm_takes_ui
 from . import sm_shot_settings_ui
-from .warnings_ui import drawWarnings
+from shotmanager.warnings.warnings_ui import drawWarnings
 
 # from shotmanager.features.greasepencil import greasepencil_ui as gp
 
@@ -63,14 +63,13 @@ class UAS_PT_ShotManager(Panel):
 
     def draw_header(self, context):
         import addon_utils
-        
+
         props = context.scene.UAS_shot_manager_props
         # prefs = context.preferences.addons["shotmanager"].preferences
         layout = self.layout
         layout.emboss = "NONE"
 
         row = layout.row(align=True)
-
 
         if "STORYBOARD" == props.layout_mode:
             # icon_stb = "IMAGE_RGB"

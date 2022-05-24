@@ -50,9 +50,6 @@ class UAS_PT_Shot_Manager_Debug(Panel):
     def draw(self, context):
         layout = self.layout
 
-        row = layout.row()
-        #     row.prop(scene.UAS_StampInfo_Settings, "debugMode")
-
         row = layout.row(align=True)
         row.separator(factor=3)
         # if not props.isRenderRootPathValid():

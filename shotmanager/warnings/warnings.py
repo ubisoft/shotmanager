@@ -35,6 +35,7 @@ def getWarnings(props, scene):
         An array of tupples made of the warning message and the warning index
         eg: [("Current file in Read-Only", 1), ("Current scene fps and project fps are different !!", 2)]
     """
+    prefs = bpy.context.preferences.addons["shotmanager"].preferences
     warningList = []
 
     # check if the current file is saved and not read only
@@ -133,6 +134,24 @@ def getWarnings(props, scene):
                 110,
             )
         )
+
+    ##############################
+    # dependencies - 7x
+    ##############################
+
+    # check if the installed version of Stamp Info is supported
+    ###########
+    stampInfoInstalledVersion = utils.addonVersion("Stamp Info")
+    if stampInfoInstalledVersion:
+        stampInfoMinVersion = prefs.dependency_min_supported_version("Stamp Info")
+        if stampInfoInstalledVersion[1] < stampInfoMinVersion[1]:
+            warningList.append(
+                (
+                    f"Installed version of Stamp Info add-on is too old: {stampInfoInstalledVersion[0]}"
+                    f"\nSupported version: {stampInfoMinVersion[0]}",
+                    71,
+                )
+            )
 
     # if props.use_project_settings and "Scene" in scene.name:
     #     warningList.append("Scene Name is Invalid !!!")

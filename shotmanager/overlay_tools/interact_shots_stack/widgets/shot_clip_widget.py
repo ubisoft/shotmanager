@@ -19,8 +19,6 @@
 UI in BGL for the Interactive Shots Stack overlay tool
 """
 
-import time
-
 import bpy
 import bgl
 import blf
@@ -241,9 +239,9 @@ class BL_UI_ShotClip:
             blf.color(0, *self._name_color_disabled)
 
         blf.size(0, self.font_size * get_prefs_ui_scale(), 72)
-        blf.position(
-            0, *context.region.view2d.view_to_region(self.origin.x + 1.4, self.origin.y + 6 * get_prefs_ui_scale()), 0
-        )
+        textPos_y = self.origin.y + 6 * get_prefs_ui_scale()
+        textPos_y = self.origin.y + get_lane_height() * 0.2 * get_prefs_ui_scale()
+        blf.position(0, *context.region.view2d.view_to_region(self.origin.x + 1.4, textPos_y), 0)
         blf.draw(0, shot.name)
 
     def get_clip_handle(self, x, y):

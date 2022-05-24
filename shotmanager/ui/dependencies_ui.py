@@ -26,6 +26,7 @@ from ..utils import utils
 
 
 def drawDependencies(context, layout: bpy.types.UILayout, **kwargs):
+    prefs = bpy.context.preferences.addons["shotmanager"].preferences
 
     box = layout.box()
     col = box.column()
@@ -89,22 +90,39 @@ def drawDependencies(context, layout: bpy.types.UILayout, **kwargs):
     row.separator()
     split = row.split(factor=splitFactor)
     split.label(text="- Stamp Info:")
-    stampInfo_versionStr = utils.addonVersion("Stamp Info")
+    stampInfoInstalledVersion = utils.addonVersion("Stamp Info")
+
+    def _displayHelp():
+        subRow2 = rightRow.row()
+        subRow2.alignment = "RIGHT"
+
+        doc_op = subRow2.operator("shotmanager.open_documentation_url", text="", icon="HELP")
+        doc_op.path = "https://github.com/ubisoft/stampinfo"
+        doc_op.tooltip = "Open Stamp Info project on GitHub: " + doc_op.path
+
+    def _displayDownloadLatest():
+        subRow2 = rightRow.row()
+        subRow2.alignment = "RIGHT"
+        subRow2.alert = True
+
+        doc_op = subRow2.operator("shotmanager.open_documentation_url", text="Latest", icon="WORLD_DATA")
+        doc_op.path = "https://github.com/ubisoft/stampinfo/releases/latest"
+        doc_op.tooltip = "Open Stamp Info latest release page on GitHub: " + doc_op.path
 
     rightRow = split.row()
     subRow = rightRow.row()
     # stampInfoAvailable = getattr(bpy.context.scene, "UAS_StampInfo_Settings", None) is not None
-    if stampInfo_versionStr is not None:
-        subRow.label(text=f"V. {stampInfo_versionStr[0]} installed")
-    else:
+    if stampInfoInstalledVersion is None:
         subRow.alert = True
-        subRow.label(text="Add-on not found  - Related features disabled")
-
-    subRow2 = rightRow.row()
-    subRow2.alignment = "RIGHT"
-
-    doc_op = subRow2.operator("shotmanager.open_documentation_url", text="", icon="HELP")
-    doc_op.path = "https://github.com/ubisoft/stampinfo"
-    doc_op.tooltip = "Open Stamp Info project on GitHub: " + doc_op.path
+        subRow.label(text="Add-on not found - Related features disabled")
+    else:
+        stampInfoMinVersion = prefs.dependency_min_supported_version("Stamp Info")
+        if stampInfoInstalledVersion[1] < stampInfoMinVersion[1]:
+            subRow.alert = True
+            subRow.label(text=f"V. {stampInfoInstalledVersion[0]} too old - Related features disabled")
+            _displayDownloadLatest()
+        else:
+            subRow.label(text=f"V. {stampInfoInstalledVersion[0]} installed")
+            _displayHelp()
 
     col.separator(factor=0.4)

@@ -239,7 +239,6 @@ class UAS_ShotManager_SetProjectLogo(Operator, ImportHelper):
         #   print('Selected file:', self.filepath)
         #   print('File name:', filename)
         #   print('File extension:', extension)
-        # bpy.context.scene.UAS_StampInfo_Settings.logoFilepath = self.filepath
         props.project_logo_path = self.filepath
 
         return {"FINISHED"}

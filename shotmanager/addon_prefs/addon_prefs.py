@@ -65,7 +65,7 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
     )
 
     def version(self):
-        """Return the add-on version in the form of a tupple made by:
+        """Return the add-on version in the form of a tuple made by:
             - a string x.y.z (eg: "1.21.3")
             - an integer. x.y.z becomes xxyyyzzz (eg: "1.21.3" becomes 1021003)
         Return None if the addon has not been found
@@ -78,6 +78,17 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
         # default=2005001,
         default=1007016,
     )
+
+    def dependency_min_supported_version(self, addon_name):
+        """Return a tuple with the version minimum of a dependency add-on supported by this add-on:
+            - a string x.y.z (eg: "1.21.3")
+            - an integer. x.y.z becomes xxyyyzzz (eg: "1.21.3" becomes 1021003)
+        Return None if the addon has not been found in the listed dependencies
+        """
+        if "Stamp Info" == addon_name:
+            return ("1.2.1", 1002001)
+
+        return None
 
     isInitialized: BoolProperty(
         default=False,
@@ -119,7 +130,8 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
     output_first_frame: IntProperty(
         name="Output First Frame Index",
         description="Index of the first frame for rendered image sequences and videos."
-        "\nThis is 0 in most editing applications, sometimes 1."
+        "\nThis is 0 in most editing applications, sometimes 1. Can sometimes be a very custom"
+        "\nvalue such as 1000 or 1001."
         "\nIf the Project Settings are active then the value provided there is used instead",
         min=0,
         soft_max=1001,

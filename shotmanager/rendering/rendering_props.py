@@ -29,20 +29,6 @@ _logger = sm_logging.getLogger(__name__)
 
 class UAS_ShotManager_RenderGlobalContext(PropertyGroup):
 
-    # # removed
-    # renderComputationMode: EnumProperty(
-    #     name="Render Mode",
-    #     description="Use the specified render engine or the playblast mode",
-    #     items=(
-    #         ("PLAYBLAST_ANIM", "Playblast Anim.", "Use OpenGL render playblast (animation mode)"),
-    #         ("PLAYBLAST_LOOP", "Playblast Loop", "Use OpenGL render playblast, images are computed in a custom loop"),
-    #         ("ENGINE_ANIM", "Engine Anim", "Use specified renderer (animation mode)"),
-    #         ("ENGINE_LOOP", "Engine Loop", "Use specified renderer, images are computed in a custom loop"),
-    #     ),
-    #     default="PLAYBLAST_ANIM",
-    #     options=set(),
-    # )
-
     renderHardwareMode: EnumProperty(
         name="Render Mode",
         description="Use the specified render engine or the OpenGL mode",
@@ -133,13 +119,6 @@ class UAS_ShotManager_RenderGlobalContext(PropertyGroup):
         ),
         default="LOW",
         update=_update_renderQualityOpengl,
-    )
-
-    useOverlays: BoolProperty(
-        name="With Overlays",
-        description="Also render overlays when the rendering is a playblast",
-        default=False,
-        options=set(),
     )
 
     def applyRenderQualitySettings(self, context, renderQuality=None):
@@ -486,6 +465,7 @@ class UAS_ShotManager_RenderSettings(PropertyGroup):
         elif "ANIMATION" == renderMode:
             self.name = "Animation Preset"
             self.renderMode = "ANIMATION"
+            self.renderHandles = True
 
         # All shots
         elif "ALL" == renderMode:
@@ -495,7 +475,7 @@ class UAS_ShotManager_RenderSettings(PropertyGroup):
             self.renderAllTakes = False
             self.renderAllShots = False
             self.renderAlsoDisabled = False
-            self.renderHandles = False
+            self.renderHandles = True
             self.renderOtioFile = True
             self.otioFileType = "XML"
             self.generateEditVideo = True
@@ -512,3 +492,4 @@ class UAS_ShotManager_RenderSettings(PropertyGroup):
             self.name = "Playblast Preset"
             self.renderMode = "PLAYBLAST"
             self.useStampInfo = False
+            self.openPlayblastInPlayer = False
