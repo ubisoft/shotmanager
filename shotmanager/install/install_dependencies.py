@@ -49,7 +49,7 @@ def install_library(lib_names, pip_retries=2, pip_timeout=-100):
         if not internet_on():
             errorInd = 1
             errorMess = f"Err.{errorInd}: Cannot connect to Internet. Blocked by firewall?"
-            print(outputMess + errorMess)
+            _logger.error_ext(outputMess + errorMess)
             error_messages.append((errorMess, errorInd))
             return error_messages
 
@@ -73,12 +73,12 @@ def install_library(lib_names, pip_retries=2, pip_timeout=-100):
                 except Exception:
                     errorInd = 21
                     errorMess = f"Err.{errorInd}: Cannot modify to Blender Python folder. Need Admin rights?"
-                    print(outputMess + errorMess)
+                    _logger.error_ext(outputMess + errorMess)
                     error_messages.append((errorMess, errorInd))
                     return error_messages
 
             if not os.access(localPyDir, os.W_OK):
-                print(f"No access to: {localPyDir}")
+                _logger.warning_ext(f"No access to: {localPyDir}")
                 # we try to create a file to see if we can write into the folder
                 # this allows the unzipped versions of blender to receive the installation
 
@@ -87,26 +87,26 @@ def install_library(lib_names, pip_retries=2, pip_timeout=-100):
                     f.write("Temp file for Ubisoft Shot Managero")
                     f.close()
                 except Exception as e:
-                    print(f"e: {e}")
+                    _logger.error_ext(f"e: {e}")
                     errorInd = 22
                     errorMess = f"Err.{errorInd}: Cannot write to Blender Python folder. Need Admin rights?"
-                    print(outputMess + errorMess)
+                    _logger.error_ext(outputMess + errorMess)
                     error_messages.append((errorMess, errorInd))
                     return error_messages
             else:
-                print(f"Not in Admin mode but Has access to: {localPyDir}")
+                _logger.warning_ext(f"Not in Admin mode but Has access to: {localPyDir}")
 
                 try:
                     f = open(tmp_file, "w")
                     f.write("Temp file for Ubisoft Shot Manager")
                     f.close()
                 except Exception as e:
-                    print(f"e: {e}")
+                    _logger.error_ext(f"e: {e}")
                     errorInd = 23
                     errorMess = (
                         f"Err.{errorInd}: Has access but cannot write to Blender Python folder. Need Admin rights?"
                     )
-                    print(outputMess + errorMess)
+                    _logger.error_ext(outputMess + errorMess)
                     error_messages.append((errorMess, errorInd))
                     return error_messages
 
@@ -142,15 +142,15 @@ def install_library(lib_names, pip_retries=2, pip_timeout=-100):
                 else:
                     errorInd = 3
                     errorMess = f"Err.{errorInd}: Library {lib_name} installed but cannot be imported"
-                    print(f"    subError: {subError}")
-                    print(outputMess + errorMess)
-                    print("    Possibly installed in a wrong Python instance folder - Contact the support")
+                    _logger.error_ext(f"    subError: {subError}")
+                    _logger.error_ext(outputMess + errorMess)
+                    _logger.error_ext("    Possibly installed in a wrong Python instance folder - Contact the support")
                     error_messages.append((errorMess, errorInd))
             else:
                 errorInd = 4
                 errorMess = f"Err.{errorInd}: Library {lib_name} cannot be downloaded"
-                print(f"    subError: {subError}")
-                print(outputMess + errorMess)
+                _logger.error_ext(f"    subError: {subError}")
+                _logger.error_ext(outputMess + errorMess)
                 error_messages.append((errorMess, errorInd))
 
                 # send the error
@@ -161,18 +161,18 @@ def install_library(lib_names, pip_retries=2, pip_timeout=-100):
         #     pass
 
         except subprocess.CalledProcessError as ex:
-            print(ex.output)
+            _logger.error_ext(ex.output)
             if 0 == ex.returncode:
                 errorInd = 5
                 errorMess = f"Err.{errorInd}: Error during installation of library {lib_name}"
             else:
                 # template = "An exception of type {0} occurred. Arguments:\n{1!r}"
                 # message = template.format(type(ex).__name__, ex.args)
-                # print(f"message: {message}")
+                # _logger.error_ext(f"message: {message}")
 
                 errorInd = 6
                 errorMess = f"Err.{errorInd}: Error during installation of library {lib_name}"
-            print(outputMess + errorMess)
+            _logger.error_ext(outputMess + errorMess)
             error_messages.append((errorMess, errorInd))
 
     return error_messages
@@ -192,7 +192,7 @@ def install_dependencies(dependencies_list, retries=2, timeout=100):
         installation_errors = install_library(dependencyLib, pip_retries=retries, pip_timeout=timeout)
 
         if 0 < len(installation_errors):
-            print(
+            _logger.error_ext(
                 "   !!! Something went wrong during the installation of the add-on - Check the Shot Manager add-on Preferences panel !!!\n"
             )
             addon_error_prefs.register()
@@ -208,7 +208,7 @@ def unregister_from_failed_install():
     if hasattr(prefs_addon, "install_failed") and prefs_addon.install_failed:
         from . import addon_error_prefs
 
-        print("\n*** --- Unregistering Failed Install for Shot Manager Add-on --- ***")
+        _logger.error_ext("\n*** --- Unregistering Failed Install for Shot Manager Add-on --- ***")
         addon_error_prefs.unregister()
         return True
     return False

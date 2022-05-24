@@ -29,8 +29,7 @@ _logger = sm_logging.getLogger(__name__)
 
 
 def install_handler_for_shot(self, context):
-    """Called in the update function of WindowManager.UAS_shot_manager_shots_play_mode
-    """
+    """Called in the update function of WindowManager.UAS_shot_manager_shots_play_mode"""
     scene = context.scene
 
     scene.UAS_shot_manager_props.setResolutionToScene()
@@ -63,7 +62,7 @@ def install_handler_for_shot(self, context):
 def toggle_overlay_tools_display(context):
     # print("  toggle_overlay_tools_display:  self.UAS_shot_manager_display_overlay_tools: ", self.UAS_shot_manager_display_overlay_tools)
     prefs = context.preferences.addons["shotmanager"].preferences
-    from shotmanager.overlay_tools.interact_shots_stack.shots_stack_operators import display_state_changed_intShStack
+    from shotmanager.overlay_tools.interact_shots_stack.shots_stack import display_state_changed_intShStack
 
     if context.window_manager.UAS_shot_manager_display_overlay_tools:
         if prefs.toggle_overlays_turnOn_sequenceTimeline:
@@ -92,6 +91,12 @@ def toggle_overlay_tools_display(context):
     #   - faire un return Cancel dans le contenu
     #   - killer, d'une maniere ou d'une autre
 
+    # redraw all
+    # print("REdraw all attempt **********************************")
+    # for area in context.screen.areas:
+    #     area.tag_redraw()
+    # context.scene.frame_current = context.scene.frame_current
+
 
 def shotMngHandler_frame_change_pre_jumpToShot(scene):
     props = scene.UAS_shot_manager_props
@@ -112,8 +117,7 @@ def shotMngHandler_frame_change_pre_jumpToShot(scene):
         return None
 
     def _get_next_shot(shots, current_shot_index):
-        """If next shot is out of the anim range then return None
-        """
+        """If next shot is out of the anim range then return None"""
         index = current_shot_index + 1
         # if index < len(shots) - 1:
         #     next_shots = [s for s in shots[index + 1 :] if s.enabled]
@@ -131,8 +135,7 @@ def shotMngHandler_frame_change_pre_jumpToShot(scene):
         return None
 
     def _get_max_start_frame(shot):
-        """Return the max between the start of the shot and the start of the anim range
-        """
+        """Return the max between the start of the shot and the start of the anim range"""
         time = _get_range_start()
         if shot.start >= _get_range_start() and shot.start <= _get_range_end():
             time = shot.start

@@ -33,35 +33,90 @@ import bpy
 from bpy_extras.view3d_utils import location_3d_to_region_2d
 
 
-from shotmanager.utils.utils_ogl import get_region_at_xy, Square, Rect
+from shotmanager.utils.utils_ogl import get_region_at_xy, Square, Rect, Quadrilater
+from shotmanager.utils import utils_greasepencil
 
 # font_info = {"font_id": 0, "handler": None}
 
 
 def draw_shots_names(context):
+    """Draw shot names on cameras visible in 3D in the viewport"""
     scn = context.scene
+    props = context.scene.UAS_shot_manager_props
 
+    # return
     # For all camera which have a shot draw on the ui a list of shots associated with it.
     for obj in scn.objects:
         if obj.type == "CAMERA":
-            if not (context.space_data.region_3d.view_perspective == "CAMERA" and obj == context.scene.camera):
-                pos_2d = view3d_utils.location_3d_to_region_2d(
-                    context.region, context.space_data.region_3d, mathutils.Vector(obj.location)
-                )
-                if pos_2d is not None:
-                    # print("pos x:", pos_2d[0])
-                    # print("pos y:", pos_2d[1])
-                    pass
-                    draw_all_shots_names(context, obj, pos_2d[0], pos_2d[1], vertical=True)
+            # print(f"obj: {obj.name}, obj.visible_get(): {obj.visible_get()}")
+
+            if obj.visible_get():
+                if not (context.space_data.region_3d.view_perspective == "CAMERA" and obj == context.scene.camera):
+                    pos_2d = location_3d_to_region_2d(
+                        context.region, context.space_data.region_3d, mathutils.Vector(obj.location)
+                    )
+                    if pos_2d is not None:
+                        # print("pos x:", pos_2d[0])
+                        # print("pos y:", pos_2d[1])
+                        draw_all_shots_names(context, obj, pos_2d[0], pos_2d[1], vertical=True)
+            else:
+
+                # if True:
+                gp_child = utils_greasepencil.get_greasepencil_child(obj, childType="GPENCIL")
+                parentShot = props.getParentShotFromGpChild(gp_child)
+                distance = 0.5
+                if parentShot is not None:
+                    gp_props = parentShot.getGreasePencilProps(mode="STORYBOARD")
+                    if gp_props is not None:
+                        distance = gp_props.distanceFromOrigin
+
+                # corners = utils_greasepencil.getCameraCorners(context, obj, distance=0.5, coordSys="WORLD")
+                corners = utils_greasepencil.getCanvasCorners(context, obj, distance=distance, coordSys="WORLD")
+                frame_px = [location_3d_to_region_2d(context.region, context.space_data.region_3d, v) for v in corners]
+                top_left = corners[3]
+                if gp_child is not None and gp_child.visible_get():
+                    # if not (context.space_data.region_3d.view_perspective == "CAMERA" and obj == context.scene.camera):
+                    pos_2d = location_3d_to_region_2d(
+                        # context.region, context.space_data.region_3d, mathutils.Vector(gp_child.location + obj.location)
+                        context.region,
+                        context.space_data.region_3d,
+                        # mathutils.Vector(gp_child.matrix_world.translation),
+                        top_left,
+                    )
+                    if pos_2d is not None:
+                        # print("pos x:", pos_2d[0])
+                        # print("pos y:", pos_2d[1])
+                        # print("frame_px x:", frame_px[0])
+                        # print("frame_px y:", frame_px[1])
+
+                        # debug:
+                        # col = (1.0, 1.0, 0.0, 1.0)
+                        # Quadrilater(frame_px[0], frame_px[1], frame_px[2], frame_px[3], col).draw()
+                        # drawCameraPlane(context, distance=0.5, camera=obj)
+
+                        draw_all_shots_names(
+                            context, obj, frame_px[0][0], frame_px[0][1], vertical=True, screen_offset=[0, 4]
+                        )
 
 
-def draw_all_shots_names(context, cam, pos_x, pos_y, vertical=False):
+def draw_all_shots_names(context, cam, pos_x, pos_y, vertical=False, screen_offset=None):
+    """
+    Args:
+        screen_offset: array [x, y] to offset the drawing origin
+    """
     props = context.scene.UAS_shot_manager_props
     prefs = context.preferences.addons["shotmanager"].preferences
     current_shot = props.getCurrentShot()
     # hud_offset_x = 19
-    hud_offset_x = 8
-    hud_offset_y = 0
+
+    if screen_offset is None:
+        hud_offset_x = 8
+        hud_offset_y = 0
+        x_horizontal_offset = 80
+    else:
+        hud_offset_x = screen_offset[0]
+        hud_offset_y = screen_offset[1]
+        x_horizontal_offset = 0
 
     font_size = prefs.cameraHUD_shotNameSize
 
@@ -72,8 +127,6 @@ def draw_all_shots_names(context, cam, pos_x, pos_y, vertical=False):
     _, font_height = blf.dimensions(0, "A")
     # font_height = font_height * 0.8
 
-    x_horizontal_offset = 80
-
     shotsList_allCams = props.getShotsUsingCamera(cam)
     if 0 == len(shotsList_allCams):
         return ()
@@ -81,7 +134,14 @@ def draw_all_shots_names(context, cam, pos_x, pos_y, vertical=False):
     # keep only shots with visible cameras
     shotsList = list()
     for shot in shotsList_allCams:
-        if shot.isCameraValid() and shot.camera.visible_get():
+        gp_child = utils_greasepencil.get_greasepencil_child(shot.camera, childType="GPENCIL")
+        # if shot.isCameraValid() and (shot.camera.visible_get() or shot.camera.name == cam.name):
+        if shot.isCameraValid() and (
+            shot.camera.visible_get()
+            or shot.camera.name == cam.name
+            or (gp_child is not None and gp_child.visible_get())
+        ):
+            # if shot.camera is not None and shot.camera.visible_get():
             shotsList.append(shot)
 
     shot_names_by_camera = defaultdict(list)
@@ -188,3 +248,40 @@ def view3d_camera_border(context):
 
     frame_px = [location_3d_to_region_2d(context.region, context.space_data.region_3d, v) for v in frame]
     return frame_px
+
+
+def drawCameraPlane(context, distance=None, camera=None):
+    """Draw the rectangle display area of the current camera
+    Debug function"""
+    props = context.scene.UAS_shot_manager_props
+    cam = camera
+    currentShot = props.getCurrentShot()
+    if currentShot is not None:
+        if currentShot.isCameraValid():
+            cam = currentShot.camera
+
+    if currentShot is not None:
+        if currentShot.isCameraValid():
+
+            # gpWidth = 1.0
+            # if distance is not None:
+            #     distRef = utils_greasepencil.getDistRef(cam)
+            #     gpWidth = distance / distRef
+            #     vec = mathutils.Vector((gpWidth, gpWidth, gpWidth))
+
+            # corners = utils_greasepencil.getCameraCorners(context, currentShot.camera)
+            # corners = [gpWidth * r for r in corners]
+            # # move from object-space into world-space
+            # corners = [currentShot.camera.matrix_world @ v for v in corners]
+
+            corners = utils_greasepencil.getCameraCorners(
+                context, cam, distance=distance, coordSys="WORLD", fixRotation=False
+            )
+
+            # move into pixelspace
+            frame_px = [location_3d_to_region_2d(context.region, context.space_data.region_3d, v) for v in corners]
+
+            # corners = view3d_camera_border(context)
+
+            col = (1.0, 0.0, 0.0, 1.0)
+            Quadrilater(frame_px[0], frame_px[1], frame_px[2], frame_px[3], col).draw()

@@ -144,6 +144,8 @@ class UAS_ShotManager_SetCurrentShot(Operator):
         prefs = bpy.context.preferences.addons["shotmanager"].preferences
         shot = props.getShotByIndex(self.index)
 
+        _logger.debug_ext(f"Set Current Shot invoke: event type: {event.type}", col="RED")
+
         def _updateEditors(changeTime=True, zoom_mode=""):
             # change time range to match shot range
             if prefs.current_shot_changes_time_range:
@@ -212,6 +214,11 @@ class UAS_ShotManager_SetCurrentShot(Operator):
 
         else:
             pass
+
+        return self.execute(context)
+
+    def execute(self, context):
+        _logger.debug_ext(f"Set Current Shot exec: ", col="RED")
 
         return {"FINISHED"}
 
@@ -421,7 +428,7 @@ class UAS_ShotManager_ShotAdd_GetCurrentFrameFor(Operator):
 
 class UAS_ShotManager_ShotAdd(Operator):
     bl_idname = "uas_shot_manager.shot_add"
-    bl_label = "Add New Shot..."
+    bl_label = "Add New..."
     bl_description = (
         "Add a new shot starting at the current frame and using the selected camera"
         "\nThe new shot is put after the selected shot"
@@ -472,7 +479,7 @@ class UAS_ShotManager_ShotAdd(Operator):
     def description(self, context, properties):
         descr = ""
         if "STORYBOARD" == properties.layout_mode:
-            descr = "Add a new shot as a Storyboard Frame"
+            descr = "Add a new Storyboard Frame to the current take"
         else:
             descr = "Add a new shot as a Camera Shot"
         #        descr += "\n+ Ctrl: Add key frame" "\n+ Shift: Duplicate previous key frame" "\n+ Alt: Delete key frame"
@@ -538,12 +545,19 @@ class UAS_ShotManager_ShotAdd(Operator):
         col = layout.box()
         # col = box.column(align=False)
 
+        row = col.row()
+        if "PREVIZ" == self.layout_mode:
+            text = "Add a new shot to the current take:"
+        else:
+            text = "Add a new storyboard frame to the current take:"
+        row.label(text=text)
+
         # row name #########################
         row = col.row()
         split = row.split(factor=splitFactor)
         subrow = split.row()
         subrow.alignment = "RIGHT"
-        subrow.label(text="New Shot Name:")
+        subrow.label(text="Shot Name:")
         split.prop(self, "name", text="")
 
         if "PREVIZ" == self.layout_mode:
@@ -734,13 +748,17 @@ class UAS_ShotManager_ShotAdd(Operator):
             cam.name = "Cam_" + newShot.name
             cam.data.name = cam.name
 
-        bpy.ops.object.select_all(action="DESELECT")
+        # update the frame grid
+        if "STORYBOARD" == self.layout_mode:
+            props.updateStoryboardGrid()
+
         utils.clear_selection()
 
         if props.display_storyboard_in_properties:
-            gp_child = newShot.getGreasePencilObject()
-            utils.add_to_selection(gp_child)
-            utils.setPropertyPanelContext(bpy.context, "DATA")
+            if self.addStoryboardGP:
+                gp_child = newShot.getGreasePencilObject("STORYBOARD")
+                utils.add_to_selection(gp_child)
+                utils.setPropertyPanelContext(bpy.context, "DATA")
         else:
             utils.add_to_selection(cam)
 

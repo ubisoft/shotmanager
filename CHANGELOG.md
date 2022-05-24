@@ -1,3 +1,44 @@
+# 2.0.24 (2022-05-xx)
+
+- Fixed issue in the offset of camera background video
+
+- 
+
+# 2.0.21 (2022-05-10)
+
+- Display the shots names over the storyboard frames when the camera is hidden
+
+
+# 2.0.20 (2022-05-06)
+
+- Added key mapping for previous and next shots, previous and next grease pencil key frame
+- Added a frame grid and a frame grid panel to update the way storyboard frames are placed in 3D space
+- Added a passepartout global value on storyboard frames
+
+# 2.0.19 (2022-05-04)
+
+- Added a UI information to inform the user of a new available version
+
+# 2.0.18 (2022-05-02)
+
+## Storyboard
+
+- Fixed UI and storyboard frame behaviors
+- Added buttons to add, duplicate or remove grease pencil key frames
+- Changed the alternative behaviors of the storyboard frame action to toggle layer visibility
+
+
+# 2.0.17 (2022-04-29)
+
+## Storyboard
+
+- Added a frame grid to order the storyboard frames in space
+
+
+# 2.0.16 (2022-04-26)
+
+- Support for Blender 3.1 and Python 3.10
+
 # 2.0.15 (2022-04-20)
 
 ## Storyboard

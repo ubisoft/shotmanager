@@ -16,306 +16,511 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 """
-Grease pencil UI
+Shot Manager grease pencil tools and specific operators
 """
 
-# from shotmanager.utils import utils
 from shotmanager.utils import utils_ui
 from shotmanager.utils import utils_greasepencil
 
 from shotmanager.config import config
 
 
-def draw_greasepencil_shot_properties(layout, context, shot):
+def draw_greasepencil_play_tools(self, context, shot, layersListDropdown=None):
     props = context.scene.UAS_shot_manager_props
     prefs = context.preferences.addons["shotmanager"].preferences
+    scene = context.scene
+    layout = self.layout
 
-    if shot is None:
-        return
-
-    propertiesModeStr = "Selected " if "SELECTED" == props.current_shot_properties_mode else "Current "
-    hSepFactor = 0.5
-
-    devDebug_displayAdv = config.devDebug and True
-
-    gp_child = None
-    cameraIsValid = shot.isCameraValid()
-    if not cameraIsValid:
-        box = layout.box()
-        row = box.row()
-        row.label(text=propertiesModeStr + "Shot Grease Pencil:")
-        row.alert = True
-        if shot.camera is None:
-            row.label(text="*** Camera not defined ! ***")
-        else:
-            row.scale_x = 1.1
-            row.label(text="*** Referenced camera not in scene ! ***")
-        return
+    # if shot is None:
+    #     return
 
     shotIndex = props.getShotIndex(shot)
-    #    gpProperties = shot.gpStoryboard if hasattr(shot, "gpStoryboard") else None
-    gpProperties = None
-    if len(shot.greasePencils):
-        gpProperties = shot.greasePencils[0]
 
-    gp_child = utils_greasepencil.get_greasepencil_child(shot.camera)
+    scale_y_pgOpsRow = 1.4
 
-    box = layout.box()
-    box.use_property_decorate = False
-    col = box.column()
-    row = col.row(align=True)
+    # Object and layers ###
+    ###################
+    objIsGP = False
+    selObjName = "-"
+    gpObjectIsPinned = False
 
-    # grease pencil
-    ################
-
-    extendSubRow = row.row(align=True)
-    # extendSubRow.alignment = "RIGHT"
-    subrowleft = extendSubRow.row()
-    subrowleft.alignment = "EXPAND"
-    # subrowleft.scale_x = 0.8
-    subrowleft.label(text=propertiesModeStr + "Shot Storyboard Frame:")
-
-    # panelIcon = "TRIA_DOWN" if prefs.shot_greasepencil_expanded and gp_child is not None else "TRIA_RIGHT"
-    # extendSubRow.prop(prefs, "shot_greasepencil_expanded", text="", icon=panelIcon, emboss=False)
-    # row.separator(factor=1.0)
-
-    # subRow.scale_x = 0.6
-    # subRow.label(text="Grease Pencil:")
-
-    if gp_child is None:
-        # extendSubRow.enabled = False
-        row.operator("uas_shot_manager.add_grease_pencil", text="", icon="ADD", emboss=True).shotName = shot.name
-        row.separator(factor=1.4)
-        row.prop(props, "display_greasepencil_in_shotlist", text="")
-        # subSubRow.separator(factor=0.5)  # prevents stange look when panel is narrow
-
-    elif gpProperties is None:
-        subRow = extendSubRow.row(align=False)
-        subRow.alert = True
-        subRow.label(text="*** No gpStoryboard property on shot ***")
-        subRow = extendSubRow.row(align=False)
-        subRow.operator("uas_shot_manager.add_grease_pencil", text="", icon="ADD", emboss=True).shotName = shot.name
+    editedGpencil = None
+    if "" == props.stb_editedGPencilName or props.stb_editedGPencilName not in scene.objects:
+        gpObjectIsPinned = False
+        if context.object is not None:
+            selObjName = context.object.name
+            objIsGP = "GPENCIL" == context.object.type
+            if objIsGP:
+                editedGpencil = context.object
+        # mainRow.label(text=f"Sel: {selObjName}, GP: {objIsGP}")
 
     else:
-        extendSubRow.alignment = "EXPAND"
-        subRow = extendSubRow.row(align=False)
-        subRow.separator(factor=0.9)
-        subRow.ui_units_x = 8
-
-        propSubRow = subRow.row(align=True)
-        propSubRow.prop(gpProperties, "visibility", text="")
-        propSubRow.prop(gp_child, "hide_select", text="")
-
-        subRow.operator("uas_shot_manager.remove_grease_pencil", text="", icon="PANEL_CLOSE").shotIndex = shotIndex
-        subRow.prop(props, "display_greasepencil_in_shotlist", text="")
-
-        # name and visibility tools
-        ################
-        # extendSubRow.alignment = "EXPAND"
-
-        subRow = col.row(align=False)
-        # subRow.scale_x = 0.8
-        leftSubRow = subRow.row(align=True)
-        leftSubRow.alignment = "LEFT"
-        leftSubRow.separator(factor=1)
-
-        gpToolsRow = leftSubRow.row(align=True)
-        # gpToolsRow.alignment = "RIGHT"
-        gpToolsRow.scale_x = 1
-        gpToolsRow.operator(
-            "uas_shot_manager.select_shot_grease_pencil", text="", icon="RESTRICT_SELECT_OFF"
-        ).index = shotIndex
-
-        # leftSubRow.separator(factor=1)
-        leftSubRow.label(text="  GP: ")
-        leftSubRow.label(text=gp_child.name)
-
-        rightSubRow = subRow.row(align=True)
-        rightSubRow.alignment = "RIGHT"
-
-        # Grease Pencil tools
-        ################
-        if devDebug_displayAdv:
-            # subSubRow = rightSubRow.row()
-            # subSubRow.alignment = "RIGHT"
-            # gpToolsSplit = subSubRow.split(factor=0.4)
-            # gpToolsRow = gpToolsSplit.row(align=True)
-
-            gpToolsRow = rightSubRow
-            gpToolsRow.alignment = "RIGHT"
-            gpToolsRow.scale_x = 2
-            gpToolsRow.operator(
-                "uas_shot_manager.select_shot_grease_pencil", text="", icon="RESTRICT_SELECT_OFF"
-            ).index = shotIndex
-
-            if gp_child.mode == "PAINT_GPENCIL":
-                icon = "GREASEPENCIL"
-                gpToolsRow.alert = True
-                gpToolsRow.operator("uas_shot_manager.toggle_grease_pencil_draw_mode", text="", icon=icon)
-                gpToolsRow.alert = False
-                # bpy.ops.gpencil.paintmode_toggle()
-            else:
-                gpToolsRow.operator("uas_shot_manager.draw_on_grease_pencil", text="", icon="OUTLINER_OB_GREASEPENCIL")
-
-            gpToolsRow.operator(
-                "uas_shot_manager.update_grease_pencil", text="", icon="FILE_REFRESH"
-            ).shotIndex = shotIndex
-
-        # distance ##############
-        #############
-        # subRow.alignment = "LEFT"
-        # gpDistRow = gpToolsSplit.row(align=True)
-        # gpDistRow.scale_x = 1.2
-        # gpDistRow.use_property_split = True
-        # gpDistRow.alignment = "RIGHT"
-        # # gpDistRow.label(text="Distance:")
-        # gpDistRow.prop(gpProperties, "distanceFromOrigin", text="Distance:", slider=True)
-
-        # Debug settings
-        ################
-        if devDebug_displayAdv:
-            subRow = box.row(align=False)
-            leftSubRow = subRow.row(align=True)
-            leftSubRow.alignment = "LEFT"
-
-            rightSubRow = subRow.row(align=True)
-            rightSubRow.alignment = "RIGHT"
-            rightSubRow.prop(gp_child, "hide_select", text="")
-            rightSubRow.prop(gp_child, "hide_viewport", text="")
-            rightSubRow.prop(gp_child, "hide_render", text="")
-
-        row = col.row()
-        row.separator(factor=hSepFactor)
-
-        row = col.row()
-
-        canvasSplitRow = row.split(factor=0.3)
-        utils_ui.collapsable_panel(canvasSplitRow, prefs, "stb_canvas_props_expanded", alert=False, text="Canvas")
-        # canvasSplitRow.label(text=" ")
-        # canvasSplitRow.separator(factor=0.1)
-
-        props = context.scene.UAS_shot_manager_props
-        canvasPreset = props.stb_frameTemplate.getPresetByID("CANVAS")
-        canvasName = "_Canvas_" if canvasPreset is None else canvasPreset.layerName
-
-        canvasLayer = utils_greasepencil.get_grease_pencil_layer(
-            gp_child, gpencil_layer_name=canvasName, create_layer=False
-        )
-        if canvasLayer is None:
-            # utils_greasepencil.get_grease_pencil_layer
-            canvasSplitRow.operator("uas_shot_manager.add_canvas_to_grease_pencil", text="+").gpName = gp_child.name
+        if props.stb_hasPinnedObject:
+            gpObjectIsPinned = True
+            editedGpencil = scene.objects[props.stb_editedGPencilName]
+            objIsGP = "GPENCIL" == editedGpencil.type
         else:
-            rightCanvasSplitRow = canvasSplitRow.row()
-            rightCanvasSplitRow.prop(gpProperties, "canvasOpacity", slider=True, text="Opacity")
-            rightCanvasSplitRow.prop(canvasLayer, "hide", text="")
+            gpObjectIsPinned = False
 
-        if prefs.stb_canvas_props_expanded:
+            gpFound = False
+            if len(context.selected_objects) and context.object is not None:
 
-            sepRow = col.row()
-            sepRow.separator(factor=0.5)
+                selObjName = context.object.name
+                if "GPENCIL" == context.object.type:
+                    # parentShot = props.getParentShotFromGpChild(context.object)
+                    # if parentShot is None:
+                    if True:
+                        objIsGP = True
+                        editedGpencil = context.object
+                        gpFound = True
 
-            splitRow = col.split(factor=0.3)
-            splitRow.label(text="   Size:")
-            rightSplitRow = splitRow.row(align=True)
-            # rightSplitRow.use_property_split = False
-            # rightSplitRow.use_property_decorate = False
-            rightSplitRow.prop(gpProperties, "canvasSize", text="", slider=True)
+            if not gpFound:
+                editedGpencil = scene.objects[props.stb_editedGPencilName]
+                objIsGP = "GPENCIL" == editedGpencil.type
 
-            splitRow = col.split(factor=0.3)
-            # splitRow.separator(factor=2)
-            splitRow.label(text="   Distance:")
-            splitRow.prop(gpProperties, "distanceFromOrigin", text="", slider=True)
-
-        # animation
-        ################
-        # panelIcon = "TRIA_DOWN" if prefs.stb_anim_props_expanded else "TRIA_RIGHT"
-        animRow = col.row()
-        utils_ui.collapsable_panel(
-            animRow, prefs, "stb_anim_props_expanded", alert=False, text="Animate Frame Transformation"
-        )
-        if prefs.stb_anim_props_expanded:
-            transformRow = col.row()
-            transformRow.separator(factor=hSepFactor)
-            # or prefs.shot_greasepencil_expanded:
-            transformRow = col.row()
-            # transformRow.label(text="Location:")
-            transformRow.use_property_split = True
-            transformRow.use_property_decorate = True
-            transformRow.prop(gp_child, "location")
-
-            transformRow = col.row()
-            transformRow.use_property_split = True
-            transformRow.use_property_decorate = True
-            transformRow.prop(gp_child, "rotation_euler")
-
-            transformRow = col.row()
-            transformRow.use_property_split = True
-            transformRow.use_property_decorate = True
-            transformRow.prop(gp_child, "scale")
-
-            # transformRow = col.row()
-            # transformRow.label(text="test")
-            # transformRow.use_property_split = True
-            # transformRow.use_property_decorate = True
-            # transformRow.prop(gp_child.location, "x")
-
-            transformRow = col.row()
-            transformRow.separator(factor=0.6)
-            transformRow = col.row(align=True)
-            transformRow.separator(factor=5)
-            transformRowSplit = transformRow.split(factor=0.32)
-            # transformRow.alignment = "RIGHT"
-            # transformRow.ui_units_x = 2
-            transformRowSplit.label(text="Motion Path:")
-            if gp_child.motion_path is None:
-                transformRowSplit.operator("object.paths_calculate", text="Calculate...", icon="OBJECT_DATA")
-            else:
-                transformRowSplitRow = transformRowSplit.row()
-                # transformRow.operator("object.paths_update", text="Update Paths", icon="OBJECT_DATA")
-                transformRowSplitRow.operator("object.paths_update_visible", text="Update All Paths", icon="WORLD")
-                transformRowSplitRow.operator("object.paths_clear", text="", icon="X")
-
-            row = col.row()
-            row.separator(factor=0.4)
-
-        # row = col.row()
-        # row.separator(factor=0.5)
-
-    # row = box.row()
-    # row.operator("uas_shot_manager.change_grease_pencil_opacity").gpObjectName = gp_child
-
-
-def draw_greasepencil_global_properties(layout, context):
-    props = context.scene.UAS_shot_manager_props
-    prefs = context.preferences.addons["shotmanager"].preferences
+    leftSepFactor = 0.1
 
     box = layout.box()
-    row = box.row()
-    row.label(text="Storyboard Frames Global Control:")
-    rightRow = row.row()
-    rightRow.alignment = "RIGHT"
-    rightRow.prop(props.shotsGlobalSettings, "alsoApplyToDisabledShots")
+    # utils_ui.drawSeparatorLine(layout)
 
-    # Grease pencil
-    # ######################
+    parentShot = props.getParentShotFromGpChild(editedGpencil)
+    objIsValid = parentShot is None
 
-    row = box.row()
-    row.use_property_decorate = False
-    row.separator()
+    if True:
+        # if objIsGP:
+        gp_child = None
+        if shot is not None:
+            gp_child = utils_greasepencil.get_greasepencil_child(shot.camera)
+        gpIsStoryboardFrame = gp_child is not None and gp_child.name == editedGpencil.name
 
-    col = row.column()
-    subRow = col.row()
+        col = box.column()
+        col.enabled = objIsGP
+        if not gpIsStoryboardFrame:
+            freeGPRow = col.row(align=True)
 
-    grid_flow = subRow.grid_flow(align=False, columns=4, even_columns=False)
-    # grid_flow.label(text="Grease Pencil:")
-    grid_flow.label(text="")
-    grid_flow.prop(prefs, "stb_global_visibility", text="")
-    # grid_flow.operator("uas_shots_settings.use_greasepencil", text="Turn On").useGreasepencil = True
-    # grid_flow.operator("uas_shots_settings.use_greasepencil", text="Turn Off").useGreasepencil = False
-    # grid_flow.prop(props.shotsGlobalSettings, "greasepencilAlpha", text="Alpha")
-    c = row.column()
-    c.operator(
-        "uas_shot_manager.remove_grease_pencil", text="", icon="PANEL_CLOSE"
-    ).alsoApplyToDisabledShots = props.shotsGlobalSettings.alsoApplyToDisabledShots
+            pinIcon = "PINNED" if gpObjectIsPinned else "UNPINNED"
+            # freeGPRow.prop(props, "stb_hasPinnedObject", text="", icon=pinIcon)
+            pinOp = freeGPRow.operator(
+                "uas_shot_manager.pin_grease_pencil_object", text="", icon=pinIcon, depress=gpObjectIsPinned
+            )
+            pinOp.pin = not gpObjectIsPinned
+            pinOp.pinnedObjName = "-" if editedGpencil is None else editedGpencil.name
 
-    col.separator(factor=0.5)
+            freeGPRow.separator(factor=2)
+
+            freeGPRow.alert = True
+            if parentShot is not None:
+                freeGPRow.label(text="*** Not a valid Free Scene GP: " + parentShot.name)
+            else:
+                freeGPRow.label(text="Free Scene GP : ")
+            freeGPRow.alert = False
+            freeGPRow.label(text=f"{editedGpencil.name if objIsGP else '-'}")
+            # freeGPRow.alert = True
+            # freeGPRow.label(text=" ***")
+            # freeGPRow.alert = False
+
+            rightFreeGPRow = freeGPRow.row(align=True)
+            rightFreeGPRow.alignment = "RIGHT"
+            rightFreeGPRow.ui_units_x = 8
+            rightFreeGPRow.prop(props.shotsGlobalSettings, "stb_camPOV_forFreeGP", text="")
+            subrightFreeGPRow = rightFreeGPRow.row(align=True)
+            subrightFreeGPRow.enabled = props.shotsGlobalSettings.stb_camPOV_forFreeGP
+            subrightFreeGPRow.prop(props.shotsGlobalSettings, "stb_strokePlacement_forFreeGP", text="")
+            subrightFreeGPRow.prop(
+                props.shotsGlobalSettings, "stb_changeCursorPlacement_forFreeGP", text="", icon="CURSOR"
+            )
+
+        # toolbar row ###
+        ###################
+        sepRow = col.row(align=True)
+        sepRow.separator(factor=1)
+
+        gpOpsRow = col.row(align=True)
+        gpOpsRow.enabled = objIsValid
+        # gpOpsRow.scale_y = scale_y_pgOpsRow
+        gpOpsRow.separator(factor=leftSepFactor)
+        # gpOpsSplit = gpOpsRow.split(factor=0.3)
+        gpOpsSplit = gpOpsRow.grid_flow(align=False, columns=4)
+        leftgpOpsRow = gpOpsSplit.row(align=True)
+        drawGpToolbar(context, leftgpOpsRow, props, editedGpencil, gpIsStoryboardFrame, shotIndex)
+
+        rightgpOpsRow = gpOpsSplit.row(align=True)
+        rightgpOpsRow.alignment = "LEFT"
+
+        drawDrawingMatRow(context, rightgpOpsRow, props, objIsValid, objIsGP)
+
+        # autokeyRow.scale_x = 0.75
+        autokeyRow = rightgpOpsRow.row(align=True)
+        autokeyRow.separator(factor=2.0)
+        drawAutokey(context, autokeyRow)
+
+        drawKeyFrameActionsRow(context, props, gpOpsSplit, editedGpencil, objIsGP)
+        # rightgpOpsRow.separator(factor=1.0)
+
+        # layersRow = rightgpOpsRow.row(align=True)
+        # rightgpOpsRow.alignment = "RIGHT"
+        # drawLayersRow(context, props, layersRow, editedGpencil, objIsGP)
+
+        layersRow = gpOpsSplit.row(align=True)
+        layersRow.alignment = "RIGHT"
+        drawClearLayer(context, layersRow)
+
+        ###################
+        # play bar row ###
+        ###################
+        sepRow = col.row(align=True)
+        sepRow.separator(factor=0.5)
+
+        navRow = col.row(align=True)
+        navRow.enabled = objIsValid
+        navRow.separator(factor=leftSepFactor)
+        navSplit = navRow.split(factor=0.6)
+        leftNavRow = navSplit.row(align=True)
+        drawPlayBar(context, leftNavRow)
+        leftNavRow.separator(factor=1.45)
+        drawLayersMode(context, leftNavRow, props)
+
+        rightNavRow = navSplit.row(align=True)
+        rightNavRow.separator(factor=1.45)
+        drawKeyFrameMessage(context, rightNavRow, editedGpencil, objIsGP)
+
+        ##################
+        # layers ##
+        ##################
+        sepRow = col.row(align=True)
+        sepRow.separator(factor=0.5)
+
+        drawMatRow(context, col, props, objIsGP)
+
+        utils_ui.drawSeparatorLine(box)
+
+    # overlay tools
+    #########################
+    spaceDataViewport = props.getValidTargetViewportSpaceData(context)
+    onionSkinIsActive = False
+    gridIsActive = False
+    if spaceDataViewport is not None:
+        onionSkinIsActive = spaceDataViewport.overlay.use_gpencil_onion_skin
+        gridIsActive = spaceDataViewport.overlay.use_gpencil_grid
+
+    row = box.row(align=True)
+    overlayCol = row.column()
+    overlaySplit = overlayCol.split(factor=0.2)
+    overlaySplit.label(text="Overlay: ")
+    overlayRighRow = overlaySplit.row()
+    overlayRighRow.operator("uas_shot_manager.greasepencil_toggleonionskin", depress=onionSkinIsActive)
+    overlayRighRow.operator("uas_shot_manager.greasepencil_togglecanvas", depress=gridIsActive)
+
+    overlaySplit = overlayCol.split(factor=0.2)
+    overlaySplit.separator()
+    overlayRighRow = overlaySplit.row()
+    overlayRighRow.prop(spaceDataViewport.overlay, "use_gpencil_fade_layers", text="")
+    # row.prop(spaceDataViewport.overlay, "gpencil_fade_layer")
+    subOverlayRighRow = overlayRighRow.row()
+    subOverlayRighRow.enabled = spaceDataViewport.overlay.use_gpencil_fade_layers
+    subOverlayRighRow.prop(prefs, "stb_overlay_layers_opacity", text="Fade Layers", slider=True)
+
+
+#     utils_ui.drawSeparatorLine(layout, lower_height=0.6)
+
+# box.operator("uas_shot_manager.draw_on_grease_pencil", text="", icon="GP_SELECT_STROKES")
+
+
+def drawDrawingMatRow(context, layout, props, objIsValid, objIsGP):
+    matRow = layout.row(align=False)
+    matRow.enabled = objIsValid
+    layersRow = matRow.row(align=True)
+    layersRow.alignment = "RIGHT"
+    # layersRow.prop(editedGpencil.data, "layers")
+    layersRow.label(text="Layer:")
+    # layersRow.prop(prefs, "layersListDropdown", text="Layers")
+
+    # Grease pencil layer.
+    gpl = context.active_gpencil_layer
+    if gpl and gpl.info is not None:
+        text = gpl.info
+        maxw = 25
+        if len(text) > maxw:
+            text = text[: maxw - 5] + ".." + text[-3:]
+    else:
+        text = ""
+
+    # layout.label(text="Layer:")
+    sub = layersRow.row(align=True)
+    # sub.alignment = "LEFT"
+    # sub.scale_x = 0.8
+    sub.ui_units_x = 6
+    sub.popover(
+        panel="TOPBAR_PT_gpencil_layers",
+        text=text,
+    )
+    if gpl and gpl.info is not None:
+        # sub.alert = gpl.lock
+        sub.prop(gpl, "lock", text="")
+    # sub.alert = False
+    else:
+        sub.label(text="", icon="LOCKED")
+
+
+def drawMatRow(context, layout, props, objIsGP):
+    # Active material ###
+    ###################
+
+    if objIsGP:
+        materialsRow = layout.row(align=True)
+        materialsRow.alignment = "RIGHT"
+        materialsRow.label(text="Material:")
+        # materialsRow.prop(editedGpencil, "material_slots")
+        materialsRow.prop(props, "greasePencil_activeMaterial", text="")
+
+
+def drawGpToolbar(context, layout, props, editedGpencil, gpIsStoryboardFrame, shotIndex):
+
+    gpToolsRow = layout.row(align=True)
+    #   gpToolsRow.ui_units_x = 3
+    gpToolsRow.scale_x = 2.0
+    # gpOpsLeftRow.alignment = "RIGHT"
+
+    # if gpIsStoryboardFrame:
+    objName = ""
+    if editedGpencil is not None:
+        objName = editedGpencil.name
+
+    gpToolsRow.operator(
+        "uas_shot_manager.select_grease_pencil_object", text="", icon="RESTRICT_SELECT_OFF"
+    ).gpName = objName
+    # else:
+    #     gpToolsRow.operator(
+    #         "uas_shot_manager.select_shot_grease_pencil", text="", icon="RESTRICT_SELECT_OFF"
+    #     )  # .index = shotIndex
+
+    if editedGpencil is not None and editedGpencil.mode == "PAINT_GPENCIL":
+        icon = "GREASEPENCIL"
+        gpToolsRow.alert = True
+        op = gpToolsRow.operator("uas_shot_manager.toggle_grease_pencil_draw_mode", text="", icon=icon)
+        op.gpName = objName
+        op.layerName = props.greasePencil_layersModeB
+        gpToolsRow.alert = False
+    else:
+        # icon = "OUTLINER_OB_GREASEPENCIL"
+        icon = "GREASEPENCIL"
+        if gpIsStoryboardFrame:
+            gpToolsRow.operator("uas_shot_manager.draw_on_grease_pencil", text="", icon=icon)
+        else:
+            op = gpToolsRow.operator("uas_shot_manager.toggle_grease_pencil_draw_mode", text="", icon=icon)
+            op.gpName = objName
+            op.layerName = props.greasePencil_layersModeB
+    gpToolsRow.scale_x = 1.0
+
+
+def drawClearLayer(context, layout):
+    gpOpsRightRow = layout.row(align=False)
+    gpOpsRightRow.alignment = "RIGHT"
+    gpOpsRightRow.scale_x = 1.2
+    # gpOpsRightRow.separator(factor=0.1)
+    gpOpsRightRow.operator("uas_shot_manager.clear_layer", text="", icon="MESH_PLANE")
+    # gpOpsRightRow.separator(factor=0.1)
+
+
+def drawPlayBar(context, layout):
+    navRow = layout.row(align=True)
+    navRow.scale_y = 1.0
+    navRow.scale_x = 2.0
+    op = navRow.operator("uas_shot_manager.greasepencil_ui_navigation_keys", icon="PREV_KEYFRAME", text="")
+    op.navigDirection = "PREVIOUS"
+    op = navRow.operator("uas_shot_manager.greasepencil_ui_navigation_keys", icon="NEXT_KEYFRAME", text="")
+    op.navigDirection = "NEXT"
+    navRow.scale_x = 1.0
+
+
+def drawLayersMode(context, layout, props):
+    row = layout.row(align=False)
+    # row.label(text="Apply to:")
+    # row.scale_x = 2
+    # row.ui_units_x = 14
+    # row.alignment = "LEFT"
+    split = row.split(factor=0.4)
+    # row.prop(props, "greasePencil_layersMode", text="Apply ")
+    split.label(text="Navigate on:")
+    split.prop(props, "greasePencil_layersModeB", text="")
+
+
+def drawKeyFrameMessage(context, layout, editedGpencil, objIsGP):
+    keyFrameRow = layout.row(align=True)
+
+    isCurrentFrameOnGPFrame = False
+    if objIsGP:
+        isCurrentFrameOnGPFrame = utils_greasepencil.isCurrentFrameOnLayerKeyFrame(
+            editedGpencil, context.scene.frame_current, "ACTIVE"
+        )
+    else:
+        keyFrameRow.enabled = False
+
+    subsubRow = keyFrameRow.row(align=True)
+    subsubRow.alignment = "CENTER"
+
+    subsubRow.label(text="Drawing on fr.: ")
+    gpFrameStr = "-"
+    if objIsGP:
+        if isCurrentFrameOnGPFrame:
+            gpFrameStr = f"{context.scene.frame_current} (Current)"
+        else:
+            subsubRow.alert = True
+            prevFrame = utils_greasepencil.getLayerPreviousFrame(editedGpencil, context.scene.frame_current, "ACTIVE")
+            gpFrameStr = f"{prevFrame}".rjust(6, " ")
+    subsubRow.label(text=gpFrameStr)
+
+
+def drawAutokey(context, layout):
+    # auto key (code from the timeline of Blender)
+
+    # subsubRow = keysRow.row(align=True)
+    subsubRow = layout
+    # subsubRow.separator(factor=1.0)
+    subsubRow.prop(context.tool_settings, "use_keyframe_insert_auto", text="", toggle=True)
+    subsubRow.separator(factor=1.0)
+    # subsubRow = keysRow.row(align=True)
+    # subsubRow.active = bpy.context.tool_settings.use_keyframe_insert_auto
+    # subsubRow.popover(
+    #     panel="TIME_PT_auto_keyframing",
+    #     text="",
+    # )
+
+
+def drawLayersRow(context, props, layout, editedGpencil, objIsGP):
+    # prefs = context.preferences.addons["shotmanager"].preferences
+    framePreset = context.scene.UAS_shot_manager_props.stb_frameTemplate
+    currentFrame = context.scene.frame_current
+
+    def _draw_layer_button(layout, preset):
+        if "CANVAS" != preset.id and not preset.used:
+            return
+
+        if editedGpencil is None:
+            op = layout.operator(
+                "uas_shot_manager.greasepencil_setlayerandmat", depress=False, icon=icon_OnprevFrame, text=""
+            )
+        else:
+            layerExists = utils_greasepencil.gpLayerExists(editedGpencil, preset.layerName)
+
+            if preset.layerName is not None and layerExists:
+                currentFrameIsOnLayerKeyFrame = utils_greasepencil.isCurrentFrameOnLayerKeyFrame(
+                    editedGpencil, currentFrame, preset.layerName
+                )
+                icon_frame = icon_OnFrame if currentFrameIsOnLayerKeyFrame else icon_OnprevFrame
+                depressBut = utils_greasepencil.gpLayerIsActive(editedGpencil, preset.layerName)
+                op = layout.operator(
+                    "uas_shot_manager.greasepencil_setlayerandmat", depress=depressBut, icon=icon_frame, text=""
+                )
+                op.layerID = preset.id
+                op.layerName = preset.layerName
+                op.materialName = preset.materialName
+                op.gpObjName = editedGpencil.name
+            else:
+                warningRow = layout.row(align=True)
+                icon_frame = icon_OnprevFrame
+                warningRow.alert = True
+                warningRow.enabled = False
+                warningRow.operator(
+                    "uas_shot_manager.greasepencil_setlayerandmat", depress=False, icon=icon_frame, text=""
+                ).layerID = f"{preset.id}_WARNING"
+
+    usageButsRow = layout.row(align=True)
+    # row.scale_x = 2.0
+    # row.alignment = "EXPAND"
+    # row.ui_units_x = 10
+
+    icon_OnprevFrame = "KEYFRAME"
+    icon_OnFrame = "KEYFRAME_HLT"
+
+    # canvas layer #####
+    preset = framePreset.getPresetByID("CANVAS")
+    if preset is not None:
+        _draw_layer_button(usageButsRow, preset)
+
+    usageButsSubRow = usageButsRow.row(align=True)
+    usageButsSubRow.scale_x = 2.0
+
+    # BG layers #########
+    preset_lines = framePreset.getPresetByID("BG_LINES")
+    preset_fills = framePreset.getPresetByID("BG_FILLS")
+    if preset_lines.used or preset_fills.used:
+        layerCol = usageButsSubRow.column(align=True)
+        layerCol.scale_y = 0.5 if preset_lines.used and preset_fills.used else 1.0
+        _draw_layer_button(layerCol, preset_lines)
+        _draw_layer_button(layerCol, preset_fills)
+
+    # MG layers #########
+    preset_lines = framePreset.getPresetByID("MG_LINES")
+    preset_fills = framePreset.getPresetByID("MG_FILLS")
+    if preset_lines.used or preset_fills.used:
+        layerCol = usageButsSubRow.column(align=True)
+        layerCol.scale_y = 0.5 if preset_lines.used and preset_fills.used else 1.0
+        _draw_layer_button(layerCol, preset_lines)
+        _draw_layer_button(layerCol, preset_fills)
+
+    # FG layers #########
+    preset_lines = framePreset.getPresetByID("FG_LINES")
+    preset_fills = framePreset.getPresetByID("FG_FILLS")
+    if preset_lines.used or preset_fills.used:
+        layerCol = usageButsSubRow.column(align=True)
+        layerCol.scale_y = 0.5 if preset_lines.used and preset_fills.used else 1.0
+        _draw_layer_button(layerCol, preset_lines)
+        _draw_layer_button(layerCol, preset_fills)
+
+    # Rough layer #######
+    preset_lines = framePreset.getPresetByID("ROUGH")
+    _draw_layer_button(usageButsSubRow, preset_lines)
+
+
+def drawKeyFrameActionsRow(context, props, layout, editedGpencil, objIsGP):
+    # prefs = context.preferences.addons["shotmanager"].preferences
+    # framePreset = context.scene.UAS_shot_manager_props.stb_frameTemplate
+    currentFrame = context.scene.frame_current
+
+    layerMode = "ACTIVE"  # preset.layerName
+    if editedGpencil is None:
+        currentFrameIsOnLayerKeyFrame = False
+    else:
+        currentFrameIsOnLayerKeyFrame = utils_greasepencil.isCurrentFrameOnLayerKeyFrame(
+            editedGpencil, currentFrame, layerMode
+        )
+
+    actionsButsRow = layout.row(align=True)
+    actionsButsRow.scale_x = 1.4
+
+    actionsButsSubRow = actionsButsRow.row(align=True)
+    # actionsButsSubRow.enabled = not currentFrameIsOnLayerKeyFrame and objIsGP
+    icon = config.icons_col["ShotManager_GPTools_Add_32"]
+    op = actionsButsSubRow.operator(
+        "uas_shot_manager.greasepencil_setkeyframe", depress=False, icon_value=icon.icon_id, text=""
+    )
+    op.mode = "ADD"
+    if objIsGP:
+        op.gpName = editedGpencil.name
+        op.layerName = layerMode
+
+    actionsButsSubRow = actionsButsRow.row(align=True)
+    # actionsButsSubRow.enabled = not currentFrameIsOnLayerKeyFrame and objIsGP
+    icon = config.icons_col["ShotManager_GPTools_Duplicate_32"]
+    op = actionsButsSubRow.operator(
+        "uas_shot_manager.greasepencil_setkeyframe", depress=False, icon_value=icon.icon_id, text=""
+    )
+    op.mode = "DUPLICATE"
+    if objIsGP:
+        op.gpName = editedGpencil.name
+        op.layerName = layerMode
+
+    actionsButsSubRow = actionsButsRow.row(align=True)
+    #  actionsButsSubRow.enabled = currentFrameIsOnLayerKeyFrame and objIsGP
+    icon = config.icons_col["ShotManager_GPTools_Remove_32"]
+    op = actionsButsSubRow.operator(
+        "uas_shot_manager.greasepencil_setkeyframe", depress=False, icon_value=icon.icon_id, text=""
+    )
+    op.mode = "REMOVE"
+    if objIsGP:
+        op.gpName = editedGpencil.name
+        op.layerName = layerMode
+
+
+# actionsButsRow.scale_x = 1.0

@@ -69,7 +69,7 @@ def draw_soundBG_shot_properties(sm_ui, context, shot):
                 row.prop(shot, "bgImages_offset")
 
             if config.devDebug:
-                if shot.camera is not None and len(shot.camera.data.background_images):
+                if shot.isCameraValid() and len(shot.camera.data.background_images):
                     bgClip = shot.camera.data.background_images[0].clip
                     row = box.row()
                     row.separator(factor=1.0)

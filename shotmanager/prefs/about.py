@@ -46,7 +46,7 @@ class UAS_ShotManager_OT_About(Operator):
         ###############
         row = col.row()
         row.separator()
-        row.label(text="Version: " + props.version()[0] + " - (" + "Dec. 04th 2021" + ")" + " -  Ubisoft")
+        row.label(text="Version: " + props.version()[0] + " - (" + "May 2022" + ")" + " -  Ubisoft")
 
         # Category
         ###############
@@ -82,15 +82,15 @@ class UAS_ShotManager_OT_About(Operator):
         row.label(text="Documentation:")
         row = box.row()
         row.separator()
-        doc_op = row.operator("shotmanager.open_documentation_url", text="Online Doc")
+        doc_op = row.operator("shotmanager.open_documentation_url", text="Online Doc", icon="HELP")
         doc_op.path = "https://ubisoft-shotmanager.readthedocs.io"
         doc_op.tooltip = "Open online documentation: " + doc_op.path
 
-        doc_op = row.operator("shotmanager.open_documentation_url", text="Source Code")
+        doc_op = row.operator("shotmanager.open_documentation_url", text="Source Code", icon="SCRIPTPLUGINS")
         doc_op.path = "https://github.com/ubisoft/shotmanager"
         doc_op.tooltip = "Open GitHub project: " + doc_op.path
 
-        doc_op = row.operator("shotmanager.open_documentation_url", text="Video Tutorials")
+        doc_op = row.operator("shotmanager.open_documentation_url", text="Video Tutorials", icon="URL")
         doc_op.path = "https://www.youtube.com/channel/UCF6RsOpvCUGQozRlOO_-dDQ"
         doc_op.tooltip = "Watch video tutorials on Youtube: " + doc_op.path
 

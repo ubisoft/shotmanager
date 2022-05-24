@@ -45,18 +45,112 @@ from shotmanager.rendering.rendering_props import UAS_ShotManager_RenderSettings
 from .output_params import UAS_ShotManager_OutputParams_Resolution
 
 from .shot import UAS_ShotManager_Shot
+from .shots_global_settings import UAS_ShotManager_ShotsGlobalSettings
 from .take import UAS_ShotManager_Take
 from ..functions import warnings
-from ..operators.shots_global_settings import UAS_ShotManager_ShotsGlobalSettings
 from ..retimer.retimer_props import UAS_Retimer_Properties
 from ..features.greasepencil.greasepencil_frame_template import UAS_GreasePencil_FrameTemplate
+from ..features.greasepencil.greasepencil_tools_props import UAS_GreasePencil_Tools_Properties
 
 from shotmanager.utils import utils
 
-# from shotmanager.config import config
+from shotmanager.config import config
 from shotmanager.config import sm_logging
 
 _logger = sm_logging.getLogger(__name__)
+
+
+def list_greasepencil_layer_modes(self, context):
+    # warning: use context.object, not context.active_object cause active_object can be None if
+    # the active object is not visible in the viewport
+    res = list()
+    res.append(("ALL", "All", "", 0))
+    res.append(("ACTIVE", "Active", "", 1))
+
+    # _logger.debug_ext(
+    #     f"Layers Mode: context.object: {context.object.name}, context.active_object: {context.active_object}",
+    #     col="RED",
+    # )
+
+    # if context.object is not None and "GPENCIL" == context.object.type:
+
+    #     _logger.debug_ext(f"toto", col="RED")
+    #     numLayers = len(context.object.data.layers)
+    #     if numLayers:
+    #         for i, layer in reversed(list(enumerate(context.object.data.layers))):
+    #             res.append((layer.info, layer.info, "", numLayers - 1 - i + 2))
+    #     else:
+    #         res = (("NOLAYER", "No Layer", "", 0),)
+
+    # framePreset = self.stb_frameTemplate
+    usedPresets = self.stb_frameTemplate.getUsedPresets()
+    numPresets = len(usedPresets)
+    if numPresets:
+        for i, preset in reversed(list(enumerate(usedPresets))):
+            res.append((preset.id, preset.layerName, "", numPresets - 1 - i + 2))
+    else:
+        res = (("NOLAYER", "No Layer", "", 0),)
+
+    # # canvas layer #####
+    # preset_canvas = framePreset.getPresetByID("CANVAS")
+    # if preset_lines.used
+    # # BG layers #########
+    # preset_lines = framePreset.getPresetByID("BG_LINES")
+    # preset_fills = framePreset.getPresetByID("BG_FILLS")
+    # # MG layers #########
+    # preset_lines = framePreset.getPresetByID("MG_LINES")
+    # preset_fills = framePreset.getPresetByID("MG_FILLS")
+    # # FG layers #########
+    # preset_lines = framePreset.getPresetByID("FG_LINES")
+    # preset_fills = framePreset.getPresetByID("FG_FILLS")
+    #  # Rough layer #######
+    # preset_lines = framePreset.getPresetByID("ROUGH")
+
+    # res = [
+    #     ("ALL", "All", "", 0),
+    #     ("ACTIVE", "Active", "", 1),
+    #     ("Rough", "Rough", "", 2),
+    #     ("FG Lines", "FG Lines", "", 3),
+    #     ("FG Fills", "FG Fills", "", 4),
+    #     ("MiddleG Lines", "MiddleG Lines", "", 5),
+    #     ("MiddleG Fills", "MiddleG Fills", "", 6),
+    #     ("BG Lines", "BG Lines", "", 7),
+    #     ("BG Fills", "BG Fills", "", 8),
+    #     ("_Canvas_", "_Canvas_", "", 9),
+    # ]
+    #   _logger.debug_ext(f"Presets Layers Mode: res: {res}", col="RED")
+    return res
+
+
+def list_greasepencil_layer_modesB(self, context):
+    res = list()
+    res.append(("ALL", "All", "", 0))
+    res.append(("ACTIVE", "Active", "", 1))
+
+    #  _logger.debug_ext(f"Layers Mode: context.object: {context.object.name}", col="RED")
+
+    if context.active_object is not None and "GPENCIL" == context.active_object.type:
+        numLayers = len(context.active_object.data.layers)
+        if numLayers:
+            for i, layer in reversed(list(enumerate(context.active_object.data.layers))):
+                res.append((layer.info, layer.info, "", numLayers - 1 - i + 2))
+        else:
+            res = (("NOLAYER", "No Layer", "", 0),)
+
+    # res = [
+    #     ("ALL", "All", "", 0),
+    #     ("ACTIVE", "Active", "", 1),
+    #     ("Rough", "Rough", "", 2),
+    #     ("FG Lines", "FG Lines", "", 3),
+    #     ("FG Fills", "FG Fills", "", 4),
+    #     ("MiddleG Lines", "MiddleG Lines", "", 5),
+    #     ("MiddleG Fills", "MiddleG Fills", "", 6),
+    #     ("BG Lines", "BG Lines", "", 7),
+    #     ("BG Fills", "BG Fills", "", 8),
+    #     ("_Canvas_", "_Canvas_", "", 9),
+    # ]
+    #    _logger.debug_ext(f"Layers Mode: res: {res}", col="RED")
+    return res
 
 
 class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
@@ -84,10 +178,11 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
     )
 
     def initialize_shot_manager(self):
-        print(f"\nInitializing Shot Manager in the current scene ({bpy.context.scene.name})...")
+        _logger.info_ext(f"\nInitializing Shot Manager in the current scene ({bpy.context.scene.name})...")
+        prefs = bpy.context.preferences.addons["shotmanager"].preferences
+
         # self.parentScene = self.getParentScene()
 
-        prefs = bpy.context.preferences.addons["shotmanager"].preferences
         if not prefs.isInitialized:
             prefs.initialize_shot_manager_prefs()
 
@@ -110,7 +205,6 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
 
         # layout and features
         ############################
-        prefs = bpy.context.preferences.addons["shotmanager"].preferences
         self.layout_mode = prefs.layout_mode
         self.display_storyboard_in_properties = prefs.display_storyboard_in_properties
         self.display_notes_in_properties = prefs.display_notes_in_properties
@@ -183,7 +277,10 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
 
     retimer: PointerProperty(
         type=UAS_Retimer_Properties,
-        options=set(),
+    )
+
+    greasepencil25DTools: PointerProperty(
+        type=UAS_GreasePencil_Tools_Properties,
     )
 
     def getWarnings(self, scene):
@@ -736,7 +833,8 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
     )
 
     def getTargetViewportIndex(self, context, only_valid=False):
-        """Return the index of the viewport where all the actions of the Shot Manager should occur.
+        """Return the index of the viewport where all the actions of the Shot Manager should occur,
+        -1 if no suitable viewport is found.
         This viewport is called the target viewport and is defined in the UI by the user thanks
         to the variable props.target_viewport_index.
         A viewport is an area of type VIEW_3D.
@@ -864,7 +962,9 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
     #     to do
 
     def getParentShotFromGpChild(self, obj):
-        """obj can be a gp object or an empty or even whatever"""
+        """Return the shot using the specified object as achild of its camera, None if nothing found.
+        Args:
+            obj: can be a gp object or an empty or even whatever"""
 
         # wkip case where a cam has a parent cam is not taken into account here
         parentShot = None
@@ -885,9 +985,25 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
                     parentShot = shotsUsingCam[0]
         return parentShot
 
+    def isStoryboardFrame(self, obj):
+        """Return True if the specified object is a storyboard frame, whatever the take it belongs to."""
+        gpIsStoryboardFrame = False
+        if obj is not None and "GPENCIL" == obj.type:
+            parentShot = self.getParentShotFromGpChild(obj)
+            gpIsStoryboardFrame = parentShot is not None
+        return gpIsStoryboardFrame
+
     use_greasepencil: BoolProperty(
         name="Use Grease Pencil",
         description="Toggle the display of storyboard frames in the scene",
+        #  update=_update_use_greasepencil,
+        default=True,
+        options=set(),
+    )
+
+    use_stb_cameras: BoolProperty(
+        name="Use Storyboard Cameras",
+        description="Toggle the display of the storyboard frames cameras in the scene",
         #  update=_update_use_greasepencil,
         default=True,
         options=set(),
@@ -926,15 +1042,62 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
     )
     stb_editedGPencilName: StringProperty(
         name="Edited Grease Pencil",
-        description="Edited or pinned grease pencil object",
+        description="Edited or pinned grease pencil object. Empty string if no grease pencil is being edited",
         default="",
         options=set(),
     )
+
+    def getPinnedGPObjectName(self):
+        """Return the name of the pinned object, an empty string if no object is currently pinned
+        If the pinned object appears to be invalid then an empty string is returned"""
+        pinnedGpencilName = ""
+        if self.stb_hasPinnedObject:
+            if "" != self.stb_editedGPencilName:
+                if (
+                    self.stb_editedGPencilName in self.parentScene.objects
+                    and "GPENCIL" == self.parentScene.objects[self.stb_editedGPencilName].type
+                ):
+                    pinnedGpencilName = self.parentScene.objects[self.stb_editedGPencilName].name
+                else:
+                    self.stb_editedGPencilName = ""
+                    self.stb_hasPinnedObject = False
+            else:
+                self.stb_hasPinnedObject = False
+
+        return pinnedGpencilName
 
     stb_frameTemplate: PointerProperty(
         type=UAS_GreasePencil_FrameTemplate,
         options=set(),
     )
+
+    def updateStoryboardGrid(self):
+        """Set the camera of the storyboard frames on the 3D grid
+        Only cameras related to storyboard frames, and not shots, are affected"""
+
+        grid = self.stb_frameTemplate.frameGrid
+        frameList = self.getStoryboardFramesList(ignoreDisabled=False)
+
+        grid.updateStoryboardGrid(frameList)
+
+    def getStoryboardFramesList(self, ignoreDisabled=False, takeIndex=-1):
+        """Return a list of the shots that are flagged as storyboard frames"""
+        takeInd = (
+            self.getCurrentTakeIndex()
+            if -1 == takeIndex
+            else (takeIndex if 0 <= takeIndex and takeIndex < len(self.getTakes()) else -1)
+        )
+        shotList = []
+        if -1 == takeInd:
+            return shotList
+
+        for shot in self.takes[takeInd].shots:
+            # if shot.enabled or self.context.scene.UAS_shot_manager_props.seqTimeline_displayDisabledShots:
+            if not ignoreDisabled or shot.enabled:
+                if "STORYBOARD" == shot.shotType:
+                    shotList.append(shot)
+
+        return shotList
 
     ########################################################################
     # layout   ###
@@ -944,9 +1107,19 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
     # not visible in the UI because radiobuttons are more suitable
 
     def _update_layout_mode(self, context):
+        prefs = context.preferences.addons["shotmanager"].preferences
         # print("\n*** Props _update_layout_mode updated. New state: ", self._update_layout_mode)
-        self.layout_but_storyboard = "STORYBOARD" == self._update_layout_mode
-        self.layout_but_previez = "PREVIZ" == self._update_layout_mode
+        # self.layout_but_storyboard = "STORYBOARD" == self._update_layout_mode
+        # self.layout_but_previez = "PREVIZ" == self._update_layout_mode
+        if "STORYBOARD" == self.layout_mode:
+            self.display_storyboard_in_properties = True
+            self.display_notes_in_properties = True
+            prefs.display_greasepenciltools_in_properties = True
+        else:
+            self.display_storyboard_in_properties = False
+            self.display_notes_in_properties = False
+            prefs.display_greasepenciltools_in_properties = False
+        pass
 
     layout_mode: EnumProperty(
         name="Layout Mode",
@@ -986,7 +1159,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
     def _set_layout_but_previz(self, value):
         if value:
             self.layout_mode = "PREVIZ"
-        self["layout_but_storyboard"] = "PREVIZ" == value
+        self["layout_but_previz"] = "PREVIZ" == value
 
     def _update_layout_but_previz(self, context):
         print("\n*** layout_but_storyboard updated. New state: ", self.layout_but_previz)
@@ -1172,27 +1345,169 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         options=set(),
     )
 
-    def list_greasepencil_layer_modes(self, context):
-        res = list()
-        res.append(("ALL", "All", "", 0))
-        res.append(("ACTIVE", "Active", "", 1))
+    # def list_greasepencil_layer_modes(self, context):
+    #     res = list()
+    #     res.append(("ALL", "All", "", 0))
+    #     res.append(("ACTIVE", "Active", "", 1))
 
-        # _logger.debug_ext(f"context.object: {context.object.name}", col="RED")
+    #     #  _logger.debug_ext(f"Layers Mode: context.object: {context.object.name}", col="RED")
+
+    #     if context.active_object is not None and "GPENCIL" == context.active_object.type:
+    #         numLayers = len(context.active_object.data.layers)
+    #         if numLayers:
+    #             for i, layer in reversed(list(enumerate(context.active_object.data.layers))):
+    #                 res.append((layer.info, layer.info, "", numLayers - 1 - i + 2))
+    #         else:
+    #             res = (("NOLAYER", "No Layer", "", 0),)
+
+    #     # res = [
+    #     #     ("ALL", "All", "", 0),
+    #     #     ("ACTIVE", "Active", "", 1),
+    #     #     ("Rough", "Rough", "", 2),
+    #     #     ("FG Lines", "FG Lines", "", 3),
+    #     #     ("FG Fills", "FG Fills", "", 4),
+    #     #     ("MiddleG Lines", "MiddleG Lines", "", 5),
+    #     #     ("MiddleG Fills", "MiddleG Fills", "", 6),
+    #     #     ("BG Lines", "BG Lines", "", 7),
+    #     #     ("BG Fills", "BG Fills", "", 8),
+    #     #     ("_Canvas_", "_Canvas_", "", 9),
+    #     # ]
+    #     #    _logger.debug_ext(f"Layers Mode: res: {res}", col="RED")
+    #     return res
+
+    def _get_greasePencil_layersModeB(self):
+        #  val = self.get("greasePencil_layersMode", 0)
+        # return val
+        # print(f" context.object.name: {bpy.context.object.name}")
+        val = 0  # "NOLAYER"
+        if bpy.context.active_object is not None and "GPENCIL" == bpy.context.active_object.type:
+            gpencil = bpy.context.active_object
+            if len(gpencil.data.layers):
+                pass
+                val = self.get("greasePencil_layersModeB", 0)
+                print(f" gpencil.name: {gpencil.name}, val:{val}")
+                gpSettings = self.stb_frameTemplate.getEditedGPByName(gpencil.name)
+            # if gpSettings is not None:
+            #     # Create a lookup-dict for the object layers
+            #     # layers_dict = {layer.info: i for i, layer in enumerate(gpencil.data.layers)}
+            #     layers_list = list()
+            #     layers_list.append("ALL")
+            #     layers_list.append("ACTIVE")
+            #     for i, layer in reversed(list(enumerate(gpencil.data.layers))):
+            #         layers_list.append(layer.info)
+
+            #         ind = -1
+            #         for i, name in enumerate(layers_list):
+            #             if gpSettings.refLayerName == name:
+            #                 ind = i
+            #                 break
+            #         if -1 != ind:
+            #             val = ind
+            # print(mat_dict["Material"]) # 0
+        #  print(f"Val: {val}")
+        return val
+
+    def _set_greasePencil_layersModeB(self, value):
+        self["greasePencil_layersModeB"] = value
+        print(f" set Value: {value}")
+
+    def _update_greasePencil_layersModeB(self, context):
+        # print("\n*** greasePencil_layersModeB updated. New state: ", self.greasePencil_layersModeB)
+        pass
+        # if context.active_object is not None and "GPENCIL" == context.active_object.type:
+        #     if len(context.active_object.data.layers):
+        #         self.stb_frameTemplate.storeEditedGPSettings(
+        #             context.active_object.name, context.active_object.data.layers.active.info
+        #         )
+
+    greasePencil_layersModeB: EnumProperty(
+        name="Apply to:",
+        items=(list_greasepencil_layer_modesB),
+        # get=_get_greasePencil_layersModeB,
+        # set=_set_greasePencil_layersModeB,
+        update=_update_greasePencil_layersModeB,
+        default=0,
+        options=set(),
+    )
+
+    def _get_greasePencil_layersMode(self):
+        # warning: use context.object, not context.active_object cause active_object can be None if
+        # the active object is not visible in the viewport
+
+        val = self.get("greasePencil_layersMode", 0)
+        if bpy.context.object is not None and "GPENCIL" == bpy.context.object.type:
+            gpencil = bpy.context.object
+            if val >= len(gpencil.data.layers):
+                val = 0
+
+        # return val
+        # print(f" context.object.name: {bpy.context.object.name}")
+        # val = 0  # "NOLAYER"
+        if bpy.context.object is not None and "GPENCIL" == bpy.context.object.type:
+            gpencil = bpy.context.object
+            if len(gpencil.data.layers):
+                pass
+                #         val = self.get("greasePencil_layersMode", 0)
+                #         print(f" gpencil.name: {gpencil.name}, val:{val}")
+                gpSettings = self.stb_frameTemplate.getEditedGPByName(gpencil.name)
+                if gpSettings is not None:
+                    #     # Create a lookup-dict for the object layers
+                    #     # layers_dict = {layer.info: i for i, layer in enumerate(gpencil.data.layers)}
+                    layers_list = list()
+                    layers_list.append("ALL")
+                    layers_list.append("ACTIVE")
+                    for i, layer in reversed(list(enumerate(gpencil.data.layers))):
+                        layers_list.append(layer.info)
+
+                        ind = -1
+                        for i, name in enumerate(layers_list):
+                            if gpSettings.refLayerName == name:
+                                ind = i
+                                break
+                        if -1 != ind:
+                            val = ind
+
+                    if val >= len(gpencil.data.layers):
+                        val = 1
+        # print(mat_dict["Material"]) # 0
+        #  print(f"Val: {val}")
+        return val
+
+    def _set_greasePencil_layersMode(self, value):
+        self["greasePencil_layersMode"] = value
+        print(f" set Value: {value}")
+
+    def _update_greasePencil_layersMode(self, context):
+        print("\n*** greasePencil_layersMode updated. New state: ", self.greasePencil_layersMode)
+        # warning: use context.object, not context.active_object cause active_object can be None if
+        # the active object is not visible in the viewport
 
         # if context.object is not None and "GPENCIL" == context.object.type:
-        #     if len(context.object.data.layers):
-        #         for i, layer in reversed(list(enumerate(context.object.data.layers))):
-        #             res.append((layer.info, layer.info, "", i + 2))
-        #     else:
-        #         res = (("NOLAYER", "No Layer", "", 0),)
-        return res
+        #     gpencil = context.object
+        #     if len(gpencil.data.layers):
+        #         self.stb_frameTemplate.storeEditedGPSettings(
+        #             gpencil.name, gpencil.data.layers.active.info
+        #         )
 
     greasePencil_layersMode: EnumProperty(
         name="Apply to:",
         items=(list_greasepencil_layer_modes),
-        default=1,
+        # get=_get_greasePencil_layersMode,
+        # set=_set_greasePencil_layersMode,
+        update=_update_greasePencil_layersMode,
+        default=0,
         options=set(),
     )
+
+    def getLayerModeFromID(self, layerID):
+        layerMode = layerID
+        if "ALL" != layerID and "ACTIVE" != layerID and "NOLAYER" != layerID:
+            preset = self.stb_frameTemplate.getPresetByID(layerID)
+            if preset is not None:
+                layerMode = preset.layerName
+            else:
+                layerMode = "ALL"
+        return layerMode
 
     def list_greasepencil_materials(self, context):
         res = list()
@@ -1247,6 +1562,63 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         get=_get_greasePencil_activeMaterial,
         set=_set_greasePencil_activeMaterial,
         update=_update_greasePencil_activeMaterial,
+        default=0,
+        options=set(),
+    )
+
+    def list_greasepencil_materialsB(self, context):
+        res = list()
+
+        if context.object is not None and "GPENCIL" == context.object.type:
+            #   if len(context.object.data.layers):
+            if len(context.object.material_slots):
+                for i, mat in list(enumerate(context.object.material_slots)):
+                    res.append((mat.name, mat.name, "", i))
+            else:
+                res = (("NOMAT", "No Material", "", 0),)
+        return res
+
+    def _get_greasePencil_activeMaterialB(self):
+        val = self.get("_get_greasePencil_activeMaterialB", 0)
+        # print(" _get_greasePencil_activeMaterial")
+        # props = bpy.context.scene.UAS_shot_manager_props
+        # spaceDataViewport = props.getValidTargetViewportSpaceData(bpy.context)
+        # if spaceDataViewport is not None:
+        #     val = spaceDataViewport.overlay.gpencil_fade_layer
+        # else:
+        #     val = 1.0
+        val = 0  # "NOMAT"
+        if bpy.context.object is not None and "GPENCIL" == bpy.context.object.type:
+            # if len(bpy.context.object.data.layers):
+            # mats = list_greasepencil_materials()
+            # mats = list()
+            # for i, mat in list(enumerate(bpy.context.object.material_slots)):
+            #     mats.append((mat.name, mat.name, "", i))
+            # mat_dict = {mat.name: i for i, mat in enumerate(bpy.context.object.data.materials)}
+            # val = mat_dict[self.greasePencil_activeMaterial]
+            val = bpy.context.object.active_material_index
+
+        return val
+
+    def _set_greasePencil_activeMaterialB(self, value):
+        #  print(" _set_greasePencil_activeMaterial: value: ", value)
+        self["greasePencil_activeMaterialB"] = value
+
+    def _update_greasePencil_activeMaterialB(self, context):
+        if self.greasePencil_activeMaterialB != "NOMAT":
+            if context.object is not None and "GPENCIL" == context.object.type:
+                # Create a lookup-dict for the object materials:
+                # mat_dict = {mat.name: i for i, mat in enumerate(context.object.data.materials)}
+                mat_dict = {mat.name: i for i, mat in enumerate(context.object.material_slots)}
+                # then map names to indices:
+                context.object.active_material_index = mat_dict[self.greasePencil_activeMaterialB]
+
+    greasePencil_activeMaterialB: EnumProperty(
+        name="Active Material B",
+        items=(list_greasepencil_materialsB),
+        get=_get_greasePencil_activeMaterialB,
+        set=_set_greasePencil_activeMaterialB,
+        update=_update_greasePencil_activeMaterialB,
         default=0,
         options=set(),
     )
@@ -1341,11 +1713,22 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
 
     # sequence timeline properties
     #################################
-    seqTimeline_displayDisabledShots: BoolProperty(default=False, options=set())
+    def _update_seqTimeline_displayDisabledShots(self, context):
+        config.gRedrawShotStack = True
+
+    seqTimeline_displayDisabledShots: BoolProperty(
+        default=False, update=_update_seqTimeline_displayDisabledShots, options=set()
+    )
 
     # interact shots stack properties
     #################################
-    interactShotsStack_displayDisabledShots: BoolProperty(default=False, options=set())
+
+    def _update_interactShotsStack_displayDisabledShots(self, context):
+        config.gRedrawShotStack = True
+
+    interactShotsStack_displayDisabledShots: BoolProperty(
+        default=False, update=_update_interactShotsStack_displayDisabledShots, options=set()
+    )
     interactShotsStack_displayInCompactMode: BoolProperty(default=False, options=set())
 
     def list_target_dopesheets(self, context):
@@ -3200,26 +3583,26 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         previousShotInd = -1
         newFrame = currentFrame
 
-        # in shot play mode the current frame is supposed to be in the current shot
+        # in shots play mode the current frame is supposed to be in the current shot
         # if True or bpy.context.window_manager.UAS_shot_manager_shots_play_mode:
         if "ANY" == boundaryMode:
             # get current shot in the WHOLE list (= even disabled)
             currentShotInd = self.getCurrentShotIndex()
             currentShot = self.getShotByIndex(currentShotInd)
-            print("    current Shot: ", currentShotInd)
+            # _logger.debug_ext(f"    current Shot: {currentShotInd}")
             if not currentShot.enabled:
                 print("    current Shot is disabled")
                 previousShotInd = self.getPreviousEnabledShotIndex(currentShotInd)
                 if -1 < previousShotInd:
-                    print("    previous Shot ind is ", previousShotInd)
+                    #        print("    previous Shot ind is ", previousShotInd)
                     newFrame = self.getShotByIndex(previousShotInd).end
             else:
-                print("    current Shot is ENabled")
+                #    print("    current Shot is ENabled")
                 if currentFrame == currentShot.start:
-                    print("      current frame is start")
+                    #        print("      current frame is start")
                     previousShotInd = self.getPreviousEnabledShotIndex(currentShotInd)
                     if -1 < previousShotInd:
-                        print("      previous Shot ind is ", previousShotInd)
+                        #            print("      previous Shot ind is ", previousShotInd)
                         newFrame = self.getShotByIndex(previousShotInd).end
                     else:  # case of the very first shot
                         previousShotInd = currentShotInd
@@ -3227,7 +3610,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
                 #  elif currentFrame == currentShot.end:
                 #      newFrame = currentShot.start
                 else:
-                    print("      current frame is middle or end")
+                    #        print("      current frame is middle or end")
                     previousShotInd = currentShotInd
                     newFrame = currentShot.start
 
@@ -3235,19 +3618,19 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
             # get current shot in the WHOLE list (= even disabled)
             currentShotInd = self.getCurrentShotIndex()
             currentShot = self.getShotByIndex(currentShotInd)
-            print("    current Shot: ", currentShotInd)
+            # print("    current Shot: ", currentShotInd)
             if not currentShot.enabled:
-                print("    current Shot is disabled")
+                # print("    current Shot is disabled")
                 previousShotInd = self.getPreviousEnabledShotIndex(currentShotInd)
                 if -1 < previousShotInd:
-                    print("    previous Shot ind is ", previousShotInd)
+                    #     print("    previous Shot ind is ", previousShotInd)
                     newFrame = self.getShotByIndex(previousShotInd).start
             else:
-                print("    current Shot is ENabled")
+                # print("    current Shot is ENabled")
 
                 previousShotInd = self.getPreviousEnabledShotIndex(currentShotInd)
                 if -1 < previousShotInd:
-                    print("      previous Shot ind is ", previousShotInd)
+                    #   print("      previous Shot ind is ", previousShotInd)
                     newFrame = self.getShotByIndex(previousShotInd).start
                 else:  # case of the very first shot
                     previousShotInd = currentShotInd
@@ -3257,20 +3640,20 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
             # get current shot in the WHOLE list (= even disabled)
             currentShotInd = self.getCurrentShotIndex()
             currentShot = self.getShotByIndex(currentShotInd)
-            print("    current Shot: ", currentShotInd)
+            #  print("    current Shot: ", currentShotInd)
             if not currentShot.enabled:
-                print("    current Shot is disabled")
+                #     print("    current Shot is disabled")
                 previousShotInd = self.getPreviousEnabledShotIndex(currentShotInd)
                 if -1 < previousShotInd:
-                    print("    previous Shot ind is ", previousShotInd)
+                    #        print("    previous Shot ind is ", previousShotInd)
                     newFrame = self.getShotByIndex(previousShotInd).end
             else:
-                print("    current Shot is ENabled")
+                #   print("    current Shot is ENabled")
                 # if currentFrame == currentShot.start:
                 #     print("      current frame is start")
                 previousShotInd = self.getPreviousEnabledShotIndex(currentShotInd)
                 if -1 < previousShotInd:
-                    print("      previous Shot ind is ", previousShotInd)
+                    #     print("      previous Shot ind is ", previousShotInd)
                     newFrame = self.getShotByIndex(previousShotInd).end
                 else:  # case of the very first shot
                     previousShotInd = currentShotInd
@@ -3298,27 +3681,27 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         nextShotInd = -1
         newFrame = currentFrame
 
-        # in shot play mode the current frame is supposed to be in the current shot
+        # in shots play mode the current frame is supposed to be in the current shot
         # if True or bpy.context.window_manager.UAS_shot_manager_shots_play_mode:
 
         if "ANY" == boundaryMode:
             # get current shot in the WHOLE list (= even disabled)
             currentShotInd = self.getCurrentShotIndex()
             currentShot = self.getShotByIndex(currentShotInd)
-            print("    current Shot: ", currentShotInd)
+            #    print("    current Shot: ", currentShotInd)
             if not currentShot.enabled:
-                print("    current Shot is disabled")
+                #       print("    current Shot is disabled")
                 nextShotInd = self.getNextEnabledShotIndex(currentShotInd)
                 if -1 < nextShotInd:
-                    print("    next Shot ind is ", nextShotInd)
+                    #          print("    next Shot ind is ", nextShotInd)
                     newFrame = self.getShotByIndex(nextShotInd).start
             else:
-                print("    current Shot is ENabled")
+                #     print("    current Shot is ENabled")
                 if currentFrame == currentShot.end:
-                    print("      current frame is end")
+                    #        print("      current frame is end")
                     nextShotInd = self.getNextEnabledShotIndex(currentShotInd)
                     if -1 < nextShotInd:
-                        print("      next Shot ind is ", nextShotInd)
+                        #         print("      next Shot ind is ", nextShotInd)
                         newFrame = self.getShotByIndex(nextShotInd).start
                     else:  # case of the very last shot
                         nextShotInd = currentShotInd
@@ -3326,7 +3709,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
                 #  elif currentFrame == currentShot.end:
                 #      newFrame = currentShot.start
                 else:
-                    print("      current frame is middle or start")
+                    #      print("      current frame is middle or start")
                     nextShotInd = currentShotInd
                     newFrame = currentShot.end
 
@@ -3334,20 +3717,20 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
             # get current shot in the WHOLE list (= even disabled)
             currentShotInd = self.getCurrentShotIndex()
             currentShot = self.getShotByIndex(currentShotInd)
-            print("    current Shot: ", currentShotInd)
+            #    print("    current Shot: ", currentShotInd)
             if not currentShot.enabled:
-                print("    current Shot is disabled")
+                #        print("    current Shot is disabled")
                 nextShotInd = self.getNextEnabledShotIndex(currentShotInd)
                 if -1 < nextShotInd:
-                    print("    next Shot ind is ", nextShotInd)
+                    #           print("    next Shot ind is ", nextShotInd)
                     newFrame = self.getShotByIndex(nextShotInd).start
             else:
-                print("    current Shot is ENabled")
+                #      print("    current Shot is ENabled")
                 # if currentFrame == currentShot.end:
                 #    print("      current frame is end")
                 nextShotInd = self.getNextEnabledShotIndex(currentShotInd)
                 if -1 < nextShotInd:
-                    print("      next Shot ind is ", nextShotInd)
+                    #         print("      next Shot ind is ", nextShotInd)
                     newFrame = self.getShotByIndex(nextShotInd).start
                 else:  # case of the very last shot
                     nextShotInd = currentShotInd
@@ -3357,20 +3740,20 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
             # get current shot in the WHOLE list (= even disabled)
             currentShotInd = self.getCurrentShotIndex()
             currentShot = self.getShotByIndex(currentShotInd)
-            print("    current Shot: ", currentShotInd)
+            # print("    current Shot: ", currentShotInd)
             if not currentShot.enabled:
-                print("    current Shot is disabled")
+                #    print("    current Shot is disabled")
                 nextShotInd = self.getNextEnabledShotIndex(currentShotInd)
                 if -1 < nextShotInd:
-                    print("    next Shot ind is ", nextShotInd)
+                    #       print("    next Shot ind is ", nextShotInd)
                     newFrame = self.getShotByIndex(nextShotInd).end
             else:
-                print("    current Shot is ENabled")
+                #    print("    current Shot is ENabled")
                 if currentFrame == currentShot.end:
-                    print("      current frame is end")
+                    #       print("      current frame is end")
                     nextShotInd = self.getNextEnabledShotIndex(currentShotInd)
                     if -1 < nextShotInd:
-                        print("      next Shot ind is ", nextShotInd)
+                        #          print("      next Shot ind is ", nextShotInd)
                         newFrame = self.getShotByIndex(nextShotInd).end
                     else:  # case of the very last shot
                         nextShotInd = currentShotInd
@@ -3378,7 +3761,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
                 #  elif currentFrame == currentShot.end:
                 #      newFrame = currentShot.start
                 else:
-                    print("      current frame is middle or start")
+                    #     print("      current frame is middle or start")
                     nextShotInd = currentShotInd
                     newFrame = currentShot.end
 
@@ -3405,7 +3788,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         previousShotInd = -1
         newFrame = currentFrame
 
-        # in shot play mode the current frame is supposed to be in the current shot
+        # in shots play mode the current frame is supposed to be in the current shot
         if bpy.context.window_manager.UAS_shot_manager_shots_play_mode:
 
             # get current shot in the WHOLE list (= even disabled)
@@ -3457,7 +3840,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         nextShotInd = -1
         newFrame = currentFrame
 
-        # in shot play mode the current frame is supposed to be in the current shot
+        # in shots play mode the current frame is supposed to be in the current shot
         if bpy.context.window_manager.UAS_shot_manager_shots_play_mode:
 
             # get current shot in the WHOLE list (= even disabled)

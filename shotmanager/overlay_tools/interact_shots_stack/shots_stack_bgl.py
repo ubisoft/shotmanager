@@ -19,8 +19,7 @@
 UI in BGL for the Interactive Shots Stack overlay tool
 """
 
-import time
-from collections import defaultdict
+import math
 
 import bpy
 import bgl
@@ -29,7 +28,9 @@ import gpu
 from gpu_extras.batch import batch_for_shader
 from mathutils import Vector
 
-from shotmanager.config import config
+from shotmanager.utils import utils
+from shotmanager.overlay_tools.workspace_info.workspace_info import draw_typo_2d
+
 from shotmanager.utils.utils import clamp, gamma_color, color_is_dark
 
 from shotmanager.config import config
@@ -40,45 +41,34 @@ _logger = sm_logging.getLogger(__name__)
 UNIFORM_SHADER_2D = gpu.shader.from_builtin("2D_UNIFORM_COLOR")
 
 
-def draw_shots_stack(context):
-    ## with dico
-    # print(f" suis dans draw_shots_stack: config.gShotsStackInfos: {config.gShotsStackInfos}")
+def get_prefs_ui_scale():
+    # ui_scale has a very weird behavior, especially between 0.79 and 0.8. We try to compensate it as
+    # much as possible
+    factor = 0
+    if bpy.context.preferences.view.ui_scale >= 1.1:
+        factor = 0.2
+    elif bpy.context.preferences.view.ui_scale >= 0.89:
+        factor = 1.6
+    elif bpy.context.preferences.view.ui_scale >= 0.79:
+        factor = 0.0
+    elif bpy.context.preferences.view.ui_scale >= 0.69:
+        factor = 0.1
+    else:
+        factor = 0.15
 
-    # _logger.debug_colored("Here 80 - config.gShotsStackInfos Clips len: " + str(len(config.gShotsStackInfos["clips"])))
+    return bpy.context.preferences.view.ui_scale + abs(bpy.context.preferences.view.ui_scale - 1) * factor
 
-    if config.gShotsStackInfos is not None:
-        # _logger.debug_ext("Redraw in draw_shots_stack", col="PURPLE")
-        #    _logger.debug_colored("Here 82")
-        for i, clip in enumerate(config.gShotsStackInfos["clips"]):
-            # _logger.debug_ext(
-            #     f"highlight Shot handle over loop, clip {i}{config.gShotsStackInfos['active_clip_index']} region: {config.gShotsStackInfos['active_clip_region']}",
-            #     col="BLUE",
-            # )
 
-            clip.highlight = i == config.gShotsStackInfos["active_clip_index"]
-            clip.active_region = config.gShotsStackInfos["active_clip_region"]
-            clip.active_clip_over = config.gShotsStackInfos["active_clip_over"]
-            clip.draw(context)
-            # try:
-            #     clip.draw(context)
-            # except Exception as e:
-            #     # wkip wkip
-            #     pass
-        #    _logger.debug_colored("Here 84")
-        if config.gShotsStackInfos["frame_under_mouse"] != -1:
-            blf.color(0, 0.99, 0.99, 0.99, 1)
-            blf.size(0, 11, 72)
-            blf.position(
-                0, config.gShotsStackInfos["prev_mouse_x"] + 4, config.gShotsStackInfos["prev_mouse_y"] + 10, 0
-            )
-            blf.draw(0, str(config.gShotsStackInfos["frame_under_mouse"]))
+def get_lane_origin_y(lane):
+    """Return the offset to put under the timeline ruler"""
+    RULER_HEIGHT = 52
+    return math.floor(-1.0 * get_lane_height() * lane - (RULER_HEIGHT * bpy.context.preferences.view.ui_scale))
 
-        if config.devDebug:
-            blf.color(0, 0.99, 0.1, 0.1, 1)
-            blf.size(0, 35, 72)
-            blf.position(0, 100, 100, 0)
-            # blf.draw(0, "Toto")
-        #  blf.draw(0, f"Last: {config.devDebug_lastRedrawTime}")
+
+def get_lane_height():
+    """Return the offset to put under the timeline ruler"""
+    LANE_HEIGHT = 22.5
+    return LANE_HEIGHT * get_prefs_ui_scale()
 
 
 def clamp_to_region(x, y, region):
@@ -130,7 +120,10 @@ class Image2D:
             ]
 
         verticesSquare = (
-            (transformed_vertices[0][0], transformed_vertices[0][1],),
+            (
+                transformed_vertices[0][0],
+                transformed_vertices[0][1],
+            ),
             (
                 transformed_vertices[0][0] + transformed_vertices[3][1] - transformed_vertices[0][1],
                 transformed_vertices[0][1],
@@ -139,11 +132,19 @@ class Image2D:
                 transformed_vertices[0][0] + transformed_vertices[3][1] - transformed_vertices[0][1],
                 transformed_vertices[3][1],
             ),
-            (transformed_vertices[0][0], transformed_vertices[3][1],),
+            (
+                transformed_vertices[0][0],
+                transformed_vertices[3][1],
+            ),
         )
 
         batch = batch_for_shader(
-            self._shader, "TRI_FAN", {"pos": verticesSquare, "texCoord": ((0, 0), (1, 0), (1, 1), (0, 1)),},
+            self._shader,
+            "TRI_FAN",
+            {
+                "pos": verticesSquare,
+                "texCoord": ((0, 0), (1, 0), (1, 1), (0, 1)),
+            },
         )
         self._shader.bind()
         self._shader.uniform_int("image", 0)
@@ -226,229 +227,109 @@ def build_rectangle_mesh(position, width, height, as_lines=False):
     return Mesh2D(vertices, indices)
 
 
-LANE_HEIGHT = 18
+##############################################################################################################
+##############################################################################################################
 
 
-def get_lane_origin_y(lane):
-    return -LANE_HEIGHT * lane - 39  # an offset to put it under timeline ruler.
+def drawAreaInfo(context, pos_y=90):
+    """Draw the information about the area
+    Calling area is given by context.area
+    Args:
+
+    See: https://blender.stackexchange.com/questions/55418/dopesheet-grapheditor-how-to-detect-change-with-api-displayed-frame-range
+
+    """
+    # # if not context.window_manager.UAS_shot_manager_identify_dopesheets:
+    # #     return
+
+    # dopesheets = utils.getDopesheets(context)
+
+    # contextDopesheetsInd = -1
+    # for i, screen_area in enumerate(dopesheets):
+    #     if context.area == dopesheets[i]:
+    #         contextDopesheetsInd = i
+    #         break
+
+    size = 20
+    color = (0.95, 0.95, 0.95, 1.0)
+    position = Vector([70, pos_y])
+    position2 = Vector([70, pos_y - size - 5])
+    position3 = Vector([70, pos_y - 2 * size - 5])
+    # for i, area in enumerate(context.screen.areas):
+    # if area.type == area_type:
+    #     areasList.append(area)
+    # draw_typo_2d(color, f"Area {i}: {area.type}", position, size)
+
+    region = context.area.regions[-1]
+    # print(f"SCREEN: {context.screen.name}")
+
+    h = region.height  # screen
+    w = region.width  #
+    bl = region.view2d.region_to_view(0, 0)
+    tr = region.view2d.region_to_view(w, h)
+    # tr = region.view2d.region_to_view(1, 1)
+
+    bl2 = region.view2d.view_to_region(0, 0)
+    tr2 = region.view2d.view_to_region(1, 1)
+
+    draw_typo_2d(color, f"Area {'x'}: width:{context.area.width}, region w: {region.width}", position, size)
+    # draw_typo_2d(color, f"screen: {context.screen.name}", position2, size)
+    draw_typo_2d(color, f"region top right: {tr}, bottom left: {bl}", position2, size)
+    draw_typo_2d(color, f"Number of frames displayed: {tr[0]}", position3, size)
 
 
-class BL_UI_ShotClip:
-    def __init__(self, lane, shot_index):
-        """
-        shot_index is the index of the shot in the whole take list
-        """
-        self.height = LANE_HEIGHT
-        self.width = 0
-        self.lane = lane
+#  draw_typo_2d(color, f"region top right: {tr2}, bottom left: {bl2}", position3, size)
 
-        self._highlight = False
-        self._active_region = None
-        self._active_clip_over = False
+# if len(dopesheets):
+# if targetDopesheetIndex == contextDopesheetsInd:
+#     color = (0.1, 0.95, 0.1, 1.0)
+# else:
 
-        self.clip_mesh = None
-        self.contour_mesh = None
-        self.contourCurrent_mesh = None
-        self.camIcon = None
-        self.start_interaction_mesh = None
-        self.end_interaction_mesh = None
-        self.origin = None
+# areaIndStr = "?" if -1 == contextDopesheetsInd else contextDopesheetsInd
+# draw_typo_2d(color, f"Dopesheet: {areaIndStr}", position, size)
 
-        self.color_currentShot_border = (0.92, 0.55, 0.18, 0.99)
-        self.color_currentShot_border_mix = (0.94, 0.3, 0.1, 0.99)
 
-        self._shot_index = shot_index
-        self._name_color_light = (0.9, 0.9, 0.9, 1)
-        self._name_color_dark = (0.12, 0.12, 0.12, 1)
-        self._name_color_disabled = (0.6, 0.6, 0.6, 1)
+## !!! not in the class !!!
+def draw_callback_modal_overlay(context, callingArea, targetAreaType="ALL", targetAreaIndex=-1, color=1):
+    """Everything in this function should be accessible globally
+    There can be only one registrer draw handler at at time
+    Args:
+        targetAreaType: can be DOPESHEET, VIEWPORT
+        targetAreaIndex: index of the target in the list of the areas of the specified type
+    """
+    print("ogl")
+    # if target_area is not None and context.area != target_area:
+    #     return False
 
-        self._shot_color = (0.8, 0.3, 0.3, 1.0)
-        self._shot_color_disabled = (0.23, 0.23, 0.23, 1)
+    # debug:
+    targetAreaType = "ALL"
 
-        # self.color_selectedShot_border = (0.9, 0.9, 0.2, 0.99)
-        #    self.color_selectedShot_border = (0.2, 0.2, 0.2, 0.99)  # dark gray
-        self.color_selectedShot_border = (0.95, 0.95, 0.95, 0.9)  # white
+    okForDrawing = False
+    if "ALL" == targetAreaType:
+        okForDrawing = True
 
-        # self.update()
+    elif "DOPESHEET" == targetAreaType:
+        dopesheets = utils.getDopesheets(context)
 
-    def update(self):
-        props = bpy.context.scene.UAS_shot_manager_props
-        shots = props.get_shots()
-        shot = shots[self._shot_index]
+        _contextDopesheetsInd = -1
+        for i, screen_area in enumerate(dopesheets):
+            if context.area == dopesheets[i]:
+                _contextDopesheetsInd = i
+                break
 
-        self.width = shot.end - shot.start + 1
-        self.origin = Vector([shot.start, get_lane_origin_y(self.lane)])
-        self.clip_mesh = build_rectangle_mesh(self.origin, self.width, self.height)
-        self.start_interaction_mesh = build_rectangle_mesh(self.origin, 1, self.height)
-        self.end_interaction_mesh = build_rectangle_mesh(self.origin + Vector([self.width - 1, 0]), 1, self.height)
-        self.contour_mesh = build_rectangle_mesh(self.origin, self.width, self.height, True)
-        self.contourCurrent_mesh = build_rectangle_mesh(self.origin, self.width, self.height, True)
-        # self.contourCurrent_mesh = build_rectangle_mesh(
-        #     Vector([self.origin.x - 1, self.origin.y - 1]), self.width + 2, self.height + 2, True
-        # )
-        self.camIcon = Image2D(self.origin, self.width, self.height)
+        if len(dopesheets):
+            okForDrawing = targetAreaIndex == _contextDopesheetsInd
 
-    @property
-    def shot_index(self):
-        return self._shot_index
+    if 1 == color:
+        drawAreaInfo(context)
+    else:
+        drawAreaInfo(context, pos_y=60)
+    # targetAreaType, targetAreaIndex
 
-    @shot_index.setter
-    def shot_index(self, value):
-        self._shot_index = value
-
-    @property
-    def shot_color(self):
-        return self._shot_color
-
-    @shot_color.setter
-    def shot_color(self, value):
-        self._shot_color = (value[0], value[1], value[2], 0.5)
-
-    @property
-    def highlight(self):
-        return self._highlight
-
-    @highlight.setter
-    def highlight(self, value: bool):
-        self._highlight = value
-
-    @property
-    def active_region(self):
-        return self._active_region
-
-    @active_region.setter
-    def active_region(self, value):
-        self._active_region = value
-
-    @property
-    def active_clip_over(self):
-        return self._active_clip_over
-
-    @active_clip_over.setter
-    def active_clip_over(self, value: bool):
-        self._active_clip_over = value
-
-    def draw(self, context):
-        props = context.scene.UAS_shot_manager_props
-        shots = props.get_shots()
-        shot = shots[self._shot_index]
-
+    if okForDrawing:
+        print("ogl2")
         bgl.glEnable(bgl.GL_BLEND)
         UNIFORM_SHADER_2D.bind()
-
-        self.shot_color = shot.color
-        color = gamma_color(self.shot_color)
-
-        if not shot.enabled:
-            color = (0.15, 0.15, 0.15, 0.5)
-
-        if self.highlight:
-            _logger.debug_ext(f"highlight Shot in draw", col="RED", tag="SHOTSTACK_EVENT")
-            color = (0.9, 0.9, 0.9, 0.5)
+        color = (0.9, 0.0, 0.0, 0.9)
         UNIFORM_SHADER_2D.uniform_float("color", color)
-        self.clip_mesh.draw(UNIFORM_SHADER_2D, context.region)
-
-        # handles highlight
-        if self.active_clip_over and self.highlight and 0 != self.active_region:
-            # left handle
-            if -1 == self.active_region:
-                self.end_interaction_mesh.draw(UNIFORM_SHADER_2D, context.region)
-                color = (0.9, 0.0, 0.0, 0.5)
-                UNIFORM_SHADER_2D.uniform_float("color", color)
-                self.start_interaction_mesh.draw(UNIFORM_SHADER_2D, context.region)
-            # right handle
-            elif 1 == self.active_region:
-                self.start_interaction_mesh.draw(UNIFORM_SHADER_2D, context.region)
-                color = (0.9, 0.0, 0.0, 0.5)
-                UNIFORM_SHADER_2D.uniform_float("color", color)
-                self.end_interaction_mesh.draw(UNIFORM_SHADER_2D, context.region)
-        else:
-            self.start_interaction_mesh.draw(UNIFORM_SHADER_2D, context.region)
-            self.end_interaction_mesh.draw(UNIFORM_SHADER_2D, context.region)
-
-        # current_shot = props.getCurrentShot()
-        # selected_shot = props.getSelectedShot()
-        current_shot_ind = props.getCurrentShotIndex()
-        selected_shot_ind = props.getSelectedShotIndex()
-
-        # current shot
-        # if current_shot != -1 and self.name == current_shot.name:
-        if self.shot_index == current_shot_ind:
-            UNIFORM_SHADER_2D.uniform_float("color", self.color_currentShot_border)
-            self.contourCurrent_mesh.linewidth = 4 if current_shot_ind == selected_shot_ind else 2
-            self.contourCurrent_mesh.draw(UNIFORM_SHADER_2D, context.region, "LINES")
-
-        # selected shot
-        # if current_shot != -1 and self.name == selected_shot.name:
-        if self.shot_index == selected_shot_ind:
-            UNIFORM_SHADER_2D.uniform_float("color", self.color_selectedShot_border)
-            self.contour_mesh.linewidth = 1 if current_shot_ind == selected_shot_ind else 2
-            self.contour_mesh.draw(UNIFORM_SHADER_2D, context.region, "LINES")
-
-        # draw a camera icon on the current shot
-        # TODO finish and clean
-        #   self.camIcon.draw(context.region)
-
-        bgl.glDisable(bgl.GL_BLEND)
-
-        if shot.enabled:
-            if color_is_dark(color, 0.4):
-                blf.color(0, *self._name_color_light)
-            else:
-                blf.color(0, *self._name_color_dark)
-        else:
-            blf.color(0, *self._name_color_disabled)
-
-        blf.size(0, 11, 72)
-        blf.position(0, *context.region.view2d.view_to_region(self.origin.x + 1.3, self.origin.y + 5), 0)
-        blf.draw(0, shot.name)
-
-    def get_handle(self, x, y):
-        """
-        Return the handle of the clip the mouse is on: -1 for start, 0 for move, 1 for end. None otherwise
-        :param x:
-        :param y:
-        :return:
-        """
-        props = bpy.context.scene.UAS_shot_manager_props
-        shots = props.get_shots()
-        shot = shots[self._shot_index]
-
-        if shot.start <= x < shot.end + 1 and self.origin.y <= y < self.origin.y + self.height:
-            # Test order is important for the case of start and end are the same. We want to prioritize moving the end.
-            if shot.end <= x < shot.end + 1:
-                return 1
-            elif shot.start <= x < shot.start + 1:
-                return -1
-            else:
-                return 0
-
-        return None
-
-    ### #TODO: wkip undo doesn't work here !!!
-    def handle_mouse_interaction(self, region, mouse_disp):
-        """
-        region: if region == -1:    left clip handle (start)
-                if region == 1:     right lip handle (end)
-        """
-        # from shotmanager.properties.shot import UAS_ShotManager_Shot
-
-        #  bpy.ops.ed.undo_push(message=f"Set Shot Start...")
-
-        props = bpy.context.scene.UAS_shot_manager_props
-        shots = props.get_shots()
-        shot = shots[self._shot_index]
-        # !! we have to be sure we work on the selected shot !!!
-        if region == 1:
-            shot.end += mouse_disp
-        elif region == -1:
-            shot.start += mouse_disp
-            # bpy.ops.uas_shot_manager.set_shot_start(newStart=self.start + mouse_disp)
-        else:
-            # Very important, don't use properties for changing both start and ends. Depending of the amount of displacement duration can change.
-            if mouse_disp > 0:
-                shot.end += mouse_disp
-                shot.start += mouse_disp
-            else:
-                shot.start += mouse_disp
-                shot.end += mouse_disp
+        config.tmpTimelineModalRect.draw(UNIFORM_SHADER_2D, context.region)

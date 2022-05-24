@@ -23,8 +23,11 @@ import bpy
 from bpy.props import BoolProperty
 
 from . import shots_stack_operators
+
+# from . import shots_stack_widgets
 from . import shots_stack_prefs
 from . import shots_stack_toolbar
+from . import shots_stack
 
 # from . import shots_stack_bgl
 
@@ -41,6 +44,8 @@ def register():
     shots_stack_operators.register()
     shots_stack_prefs.register()
     shots_stack_toolbar.register()
+    # shots_stack_widgets.register()
+    shots_stack.register()
     # shots_stack_bgl.register()
 
     # # # def _update_UAS_shot_manager__useInteracShotsStack(self, context):
@@ -68,10 +73,11 @@ def unregister():
     shots_stack_toolbar.display_shots_stack_toolbar_in_editor(False)
 
     # shots_stack_bgl.unregister()
+    shots_stack.unregister()
+    # shots_stack_widgets.unregister()
     shots_stack_toolbar.unregister()
     shots_stack_prefs.unregister()
     shots_stack_operators.unregister()
 
 
 ### del bpy.types.WindowManager.UAS_shot_manager__useInteracShotsStack
-

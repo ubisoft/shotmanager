@@ -42,9 +42,29 @@ from shotmanager.utils import utils
 from shotmanager.utils import utils_greasepencil
 from .montage_interface import ShotInterface
 
+from shotmanager.config import config
+
 from shotmanager.config import sm_logging
 
 _logger = sm_logging.getLogger(__name__)
+
+
+def list_shot_types(self, context):
+    # res = list()
+    # res.append(("NEW_CAMERA", "Create New Camera", "Create new camera", 0))
+    # for i, cam in enumerate([c for c in context.scene.objects if c.type == "CAMERA"]):
+    #     res.append(
+    #         (cam.name, cam.name, 'Use the exising scene camera named "' + cam.name + '"\nfor the new shot', i + 1)
+    #     )
+    # icon_previz = config.icons_col["ShotManager_CamGPShot_32"]
+    icon_previz = config.icons_col["ShotManager_32"]
+    icon_stb = config.icons_col["ShotManager_CamGPStb_32"]
+    res = (
+        ("PREVIZ", "Camera Shot", "Shot based on the record of a camera", icon_previz.icon_id, 0),
+        ("STORYBOARD", "Storyboard Frame", "2D drawing used for storyboarding", icon_stb.icon_id, 1),
+    )
+
+    return res
 
 
 class UAS_ShotManager_Shot(ShotInterface, PropertyGroup):
@@ -153,11 +173,8 @@ class UAS_ShotManager_Shot(ShotInterface, PropertyGroup):
     shotType: EnumProperty(
         name="Type",
         description="Usage of the shot",
-        items=(
-            ("PREVIZ", "Camera Shot", "Shot based on the record of a camera"),
-            ("STORYBOARD", "Storyboard Frame", "2D drawing used for storyboarding"),
-        ),
-        default="PREVIZ",
+        items=list_shot_types,
+        default=0,
     )
 
     #############
@@ -186,6 +203,7 @@ class UAS_ShotManager_Shot(ShotInterface, PropertyGroup):
     def _update_start(self, context):
         self.selectShotInUI()
         self.updateClipLinkToShotStart()
+        config.gRedrawShotStack = True
 
     start: IntProperty(
         name="Shot Start",
@@ -220,6 +238,7 @@ class UAS_ShotManager_Shot(ShotInterface, PropertyGroup):
 
     def _update_end(self, context):
         self.selectShotInUI()
+        config.gRedrawShotStack = True
 
     end: IntProperty(
         name="Shot End",
@@ -320,17 +339,17 @@ class UAS_ShotManager_Shot(ShotInterface, PropertyGroup):
         Return True if the camera is really there, False otherwise
         Note: This doesn't change the camera attribute of the shot
         """
-        cameraIsInvalid = self.camera is not None
+        cameraIsValid = self.camera is not None
         if self.camera is not None:
             try:
                 if bpy.context.scene.objects[self.camera.name] is None:
                     self.camera = None
             except Exception:
                 # item.camera = None     # not working, often invalid context to write in
-                cameraIsInvalid = False
+                cameraIsValid = False
             # _logger.error(f"Error: Shot {self.name} uses a camera {self.camera.name} not found in the scene")
 
-        return cameraIsInvalid
+        return cameraIsValid
 
     def makeCameraUnique(self):
         if self.camera is not None:
@@ -426,6 +445,8 @@ class UAS_ShotManager_Shot(ShotInterface, PropertyGroup):
     def updateClipLinkToShotStart(self):
         if self.camera is not None and len(self.camera.data.background_images):
             bgClip = self.camera.data.background_images[0].clip
+            bgClip.use_proxy_custom_directory = True
+
             bgSoundSequence = self.getSoundSequence()
 
             if self.bgImages_linkToShotStart:
@@ -574,13 +595,13 @@ class UAS_ShotManager_Shot(ShotInterface, PropertyGroup):
         """Create a Grease Pencil object parented to the camera of the shot.
         Return a tupple with the grease pencil properties and the created object.
         """
-        if len(self.greasePencils):
-            gpProps = self.greasePencils[0]
-        else:
-            gpProps = self.greasePencils.add()
-            gpProps.initialize(self)
+        gpProps = self.getGreasePencilProps(mode)
 
-        gpObj = self.getGreasePencilObject()
+        if gpProps is None:
+            gpProps = self.greasePencils.add()
+            gpProps.initialize(self, mode)
+
+        gpObj = self.getGreasePencilObject(mode)
 
         if gpObj is None:
             framePreset = self.parentScene.UAS_shot_manager_props.stb_frameTemplate
@@ -588,12 +609,12 @@ class UAS_ShotManager_Shot(ShotInterface, PropertyGroup):
             gpName = self.camera.name + "_GP"
             gpObj = gp.createStoryboarFrameGP(gpName, framePreset, parentCamera=self.camera, location=[0, 0, -0.5])
 
-        gpProps.updateGreasePencil()
+            gpProps.updateGreasePencil()
 
         return (gpProps, gpObj)
 
     def getGreasePencilProps(self, mode="STORYBOARD"):
-        """Return the GreasePencilProperties instance of the specified mode
+        """Return the GreasePencilProperties instance of the specified mode, None otherwise
         Args:
             mode: "STORYBOARD"
         """
@@ -621,7 +642,15 @@ class UAS_ShotManager_Shot(ShotInterface, PropertyGroup):
             return False
 
     # wkip to update with the gp list
-    def getGreasePencilObject(self, mode="STORYBOARD"):
+    def getGreasePencilObject(self, mode):
+        """Set the grease pencil object of the specified mode associated to the camera.
+        Return the created - or corresponding if one existed - grease pencil object, or None if the camera was invalid
+        Args:
+            mode: can be "STORYBOARD"
+        """
+        # TOFIX: At the moment there is only one child (or child hierarchy rather, since there is the empty and then the
+        # grease pencil) for the camera, which is the storyboard frame. This may change in a future version to have other
+        # grease pencil modes
         gp_child = None
         if self.isCameraValid():
             gp_child = utils_greasepencil.get_greasepencil_child(self.camera)
@@ -643,7 +672,7 @@ class UAS_ShotManager_Shot(ShotInterface, PropertyGroup):
 
         gp_child = utils_greasepencil.get_greasepencil_child(self.camera)
         if gp_child is not None:
-            gpProps = self.greasePencils[0]
+            gpProps = self.getGreasePencilProps(mode="STORYBOARD")
             props = self.parentScene.UAS_shot_manager_props
 
             # if visible is None:

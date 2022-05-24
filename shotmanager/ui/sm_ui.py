@@ -27,6 +27,7 @@ from shotmanager.config import config
 # from shotmanager.viewport_3d.ogl_ui import UAS_ShotManager_sequenceTimeline
 
 from shotmanager.utils import utils
+from shotmanager.utils import utils_ui
 
 from . import sm_shots_ui
 from . import sm_shots_ui_storyboard_layout
@@ -61,6 +62,8 @@ class UAS_PT_ShotManager(Panel):
         return True
 
     def draw_header(self, context):
+        import addon_utils
+        
         props = context.scene.UAS_shot_manager_props
         # prefs = context.preferences.addons["shotmanager"].preferences
         layout = self.layout
@@ -68,13 +71,13 @@ class UAS_PT_ShotManager(Panel):
 
         row = layout.row(align=True)
 
-        import addon_utils
 
         if "STORYBOARD" == props.layout_mode:
-            icon_stb = "IMAGE_RGB"
-            row.operator("uas_shot_manager.about", text="", icon=icon_stb)
+            # icon_stb = "IMAGE_RGB"
+            icon = config.icons_col["ShotManager_Storyboard_32"]
+            row.operator("uas_shot_manager.about", text="", icon_value=icon.icon_id)
         else:
-            icon = config.icons_col["Ubisoft_32"]
+            # icon = config.icons_col["Ubisoft_32"]
             icon = config.icons_col["ShotManager_32"]
             row.operator("uas_shot_manager.about", text="", icon_value=icon.icon_id)
 
@@ -97,6 +100,7 @@ class UAS_PT_ShotManager(Panel):
             betaRow.label(text=f" *** {addonWarning[0]} ***")
 
     def draw_header_preset(self, context):
+        prefs = context.preferences.addons["shotmanager"].preferences
         layout = self.layout
         layout.emboss = "NONE"
 
@@ -125,6 +129,13 @@ class UAS_PT_ShotManager(Panel):
 
         row.separator(factor=0.5)
         row.menu("UAS_MT_Shot_Manager_prefs_mainmenu", icon="PREFERENCES", text="")
+
+        if prefs.newAvailableVersion:
+            row.separator(factor=0.5)
+            subRow = row.row()
+            subRow.alert = True
+            subRow.operator("uas_shot_manager.update_dialog", text="", icon="WORLD_DATA")
+
         row.separator(factor=1.0)
 
     def draw(self, context):
@@ -179,6 +190,10 @@ class UAS_PT_ShotManager(Panel):
             row.prop(props, "useBGSounds")
             row.alert = False
 
+            row = layout.row()
+            row.operator("uas_shot_manager.redrawui")
+
+        # NOTE: Shot Manager Prefs and Shot Manager scene instance are initialized here:
         if not props.isInitialized:
             layout.separator()
             row = layout.row()
@@ -269,7 +284,9 @@ class UAS_PT_ShotManager(Panel):
         subrow.enabled = 0 < len(props.get_shots())
         subrow.operator("uas_shot_manager.playbar_gotofirstshot", text="", icon="REW")
         icon = config.icons_col["ShotManager_Play_GoToPrevEnd_32"]
-        subrow.operator("uas_shot_manager.playbar_gotopreviousshotboundary", text="", icon_value=icon.icon_id)
+        op = subrow.operator("uas_shot_manager.playbar_gotoshotboundary", text="", icon_value=icon.icon_id)
+        op.eventsEnabled = True
+        op.navigDirection = "PREVIOUS"
         subrow.operator("uas_shot_manager.playbar_gotopreviousframe", text="", icon="FRAME_PREV")
 
         split = row.split(align=True)
@@ -290,7 +307,9 @@ class UAS_PT_ShotManager(Panel):
         subrow.enabled = 0 < len(props.get_shots())
         subrow.operator("uas_shot_manager.playbar_gotonextframe", text="", icon="FRAME_NEXT")
         icon = config.icons_col["ShotManager_Play_GoToNextStart_32"]
-        subrow.operator("uas_shot_manager.playbar_gotonextshotboundary", text="", icon_value=icon.icon_id)
+        op = subrow.operator("uas_shot_manager.playbar_gotoshotboundary", text="", icon_value=icon.icon_id)
+        op.eventsEnabled = True
+        op.navigDirection = "NEXT"
         subrow.operator("uas_shot_manager.playbar_gotolastshot", text="", icon="FF")
 
         # separated frame spinner
@@ -308,27 +327,20 @@ class UAS_PT_ShotManager(Panel):
         row.prop(props, "playSpeedGlobal", text="")
         row.alert = False
 
-        layout.separator(factor=0.5)
-
         ################
         # stop draw here if perfs are required
         ################
         if props.dontRefreshUI():
+            layout.separator(factor=0.4)
             return None
+
+        utils_ui.drawSeparatorLine(layout, lower_height=0.8, higher_height=0.6)
 
         # sequence name
         ################
         seqrow = layout.row()
         seqcol = seqrow.column(align=True)
 
-        # if False:
-        #     spacerrow = seqcol.row()
-        #     spacerrow.scale_y = 0.3
-        #     spacerrow.alignment = "CENTER"
-        #     spacerrow.label(text="           -------------------------------------------------------")
-        #     # spacerrow.scale_y = 1.0
-
-        seqcol.separator(factor=0.8)
         namerow = seqcol.row(align=True)
         namerow.scale_y = 1.2
         leftrow = namerow.row()
@@ -688,6 +700,16 @@ class UAS_PT_ShotManager(Panel):
                 # subrowtools.scale_x = 0.9
 
                 if props.display_storyboard_in_properties:
+                    icon = (
+                        config.icons_col["ShotManager_CamBGShot_32"]
+                        # if not prefs.enableGreasePencil
+                        if props.use_stb_cameras
+                        else config.icons_col["ShotManager_CamBGHidden_32"]
+                    )
+                    subrowtools.operator(
+                        "uas_shot_manager.enabledisablecameras", text="", icon_value=icon.icon_id, emboss=False
+                    ).hide = props.use_stb_cameras
+
                     icon = (
                         config.icons_col["ShotManager_CamGPVisible_32"]
                         # if not prefs.enableGreasePencil

@@ -21,63 +21,26 @@ Key mappings for all the operators of the add-on
 Eg here: https://blender.stackexchange.com/questions/196483/create-keyboard-shortcut-for-an-operator-using-python
 """
 
-import bpy
+from . import general_keymaps
+from . import storyboard_keymaps
+
+from shotmanager import config
 
 from shotmanager.config import sm_logging
 
 _logger = sm_logging.getLogger(__name__)
 
-addon_keymaps = []
-
 
 def register():
     _logger.debug_ext("       - Registering Keymaps Package", form="REG")
-
-    # Add the hotkey
-    wm = bpy.context.window_manager
-    kc = wm.keyconfigs.addon
-    if kc:
-
-        # shots_play_mode ################
-
-        # VIEW_3D works also for timeline
-        km = wm.keyconfigs.addon.keymaps.new(name="3D View", space_type="VIEW_3D")
-        kmi = km.keymap_items.new("uas_shot_manager.shots_play_mode", type="SPACE", value="PRESS", alt=True)
-        addon_keymaps.append((km, kmi))
-
-        km = wm.keyconfigs.addon.keymaps.new(name="Dopesheet", space_type="DOPESHEET_EDITOR")
-        kmi = km.keymap_items.new("uas_shot_manager.shots_play_mode", type="SPACE", value="PRESS", alt=True)
-        addon_keymaps.append((km, kmi))
-
-        km = wm.keyconfigs.addon.keymaps.new(name="Graph Editor", space_type="GRAPH_EDITOR")
-        kmi = km.keymap_items.new("uas_shot_manager.shots_play_mode", type="SPACE", value="PRESS", alt=True)
-        addon_keymaps.append((km, kmi))
-
-        # does not exist anymore on 2.83+, use VIEW_3D instead
-        # km = wm.keyconfigs.addon.keymaps.new(name="Timeline", space_type="TIMELINE")
-        # kmi = km.keymap_items.new("uas_shot_manager.shots_play_mode", type="SPACE", value="PRESS", alt=True)
-        # addon_keymaps.append((km, kmi))
-
-        # shots_play_mode ################
-
-        # VIEW_3D works also for timeline
-        km = wm.keyconfigs.addon.keymaps.new(name="3D View", space_type="VIEW_3D")
-        kmi = km.keymap_items.new("uas_shot_manager.display_overlay_tools", type="NONE", value="PRESS")
-        addon_keymaps.append((km, kmi))
-
-        # km = wm.keyconfigs.addon.keymaps.new(name="Dopesheet", space_type="DOPESHEET_EDITOR")
-        # kmi = km.keymap_items.new("uas_shot_manager.display_overlay_tools", type="NONE", value="PRESS")
-        # addon_keymaps.append((km, kmi))
-
-        # km = wm.keyconfigs.addon.keymaps.new(name="Graph Editor", space_type="GRAPH_EDITOR")
-        # kmi = km.keymap_items.new("uas_shot_manager.display_overlay_tools", type="NONE", value="PRESS")
-        # addon_keymaps.append((km, kmi))
+    general_keymaps.registerKeymaps()
+    storyboard_keymaps.registerKeymaps()
 
 
 def unregister():
     _logger.debug_ext("       - Unregistering Keymaps Package", form="UNREG")
 
-    # Remove the hotkey
-    for km, kmi in addon_keymaps:
+    # Remove the hotkeys
+    for km, kmi in config.gAddonKeymaps:
         km.keymap_items.remove(kmi)
-    addon_keymaps.clear()
+    config.gAddonKeymaps.clear()

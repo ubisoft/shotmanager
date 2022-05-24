@@ -22,8 +22,18 @@ Shot Manager grease pencil operators
 
 import bpy
 from bpy.types import PropertyGroup
-from bpy.props import CollectionProperty, StringProperty, BoolProperty
+from bpy.props import (
+    PointerProperty,
+    CollectionProperty,
+    StringProperty,
+    BoolProperty,
+    IntProperty,
+    FloatProperty,
+    FloatVectorProperty,
+)
 
+from shotmanager.features.storyboard.frame_grid.storyboard_frame_grid_props import UAS_ShotManager_FrameGrid
+from shotmanager.utils import utils_greasepencil
 from shotmanager.config import sm_logging
 
 _logger = sm_logging.getLogger(__name__)
@@ -35,6 +45,13 @@ class UAS_ShotManager_FrameUsagePreset(PropertyGroup):
     used: BoolProperty(default=False)
     layerName: StringProperty(default="")
     materialName: StringProperty(default="")
+
+
+class UAS_ShotManager_GreasepencilObjSettings(PropertyGroup):
+    """Store the active layer used by an edited grease pencil object"""
+
+    gpName: StringProperty(default="")
+    refLayerName: StringProperty(default="")
 
 
 class UAS_GreasePencil_FrameTemplate(PropertyGroup):
@@ -128,9 +145,24 @@ class UAS_GreasePencil_FrameTemplate(PropertyGroup):
                     prefsTemplate.getPreset(preset, preset.id, "used", "layerName", "materialName")
 
             # order is important
-            presets = ["ROUGH", "FG_LINES", "FG_FILLS", "MG_LINES", "MG_FILLS", "BG_LINES", "BG_FILLS", "CANVAS"]
+            presets = self.getPresetIDs()
             for p in reversed(presets):
                 _createPreset(p)
+
+    def getPresetIDs(self):
+        """Return a list with the supported presets"""
+        # order is important
+        return ["ROUGH", "FG_LINES", "FG_FILLS", "MG_LINES", "MG_FILLS", "BG_LINES", "BG_FILLS", "CANVAS"]
+
+    def getUsedPresets(self):
+        """Return a list with the existing used presets"""
+        presets = self.getPresetIDs()
+        usedPresets = list()
+        for presetID in reversed(presets):
+            preset = self.getPresetByID(presetID)
+            if preset is not None and preset.used:
+                usedPresets.append(preset)
+        return usedPresets
 
     def getPresetByID(self, id):
         preset = None
@@ -169,9 +201,84 @@ class UAS_GreasePencil_FrameTemplate(PropertyGroup):
             setattr(prop, layerName, preset.layerName)
             setattr(prop, materialName, preset.materialName)
 
+    ###############################
+    # frame grid
+    ###############################
+
+    frameGrid: PointerProperty(type=UAS_ShotManager_FrameGrid)
+
+    ###############################
+    # layers visibility
+    ###############################
+
+    # frameGrid: PointerProperty(type=StringProperty)
+    layerNameUsedForVisibilityToggle: StringProperty(default="")
+
+    def toggleSoloLayersVisibility(self, gpencil, layerName):
+        """Can work on any grease pencil object"""
+        if gpencil is None or "GPENCIL" != gpencil.type:
+            return
+        if layerName in gpencil.data.layers:
+            if utils_greasepencil.isLayerVisibile(gpencil, layerName):
+                # hide all layers
+                # NOTE: should probably hide only supported layers
+                if layerName == self.layerNameUsedForVisibilityToggle:
+                    # then unhide
+                    for layer in gpencil.data.layers:
+                        layer.hide = False
+                    self.layerNameUsedForVisibilityToggle = ""
+                else:
+                    # hide
+                    for layer in gpencil.data.layers:
+                        if layer.info != layerName:
+                            layer.hide = True
+                    self.layerNameUsedForVisibilityToggle = layerName
+            else:
+                # we unhide only the layer
+                gpencil.data.layers[layerName].hide = False
+
+    ###############################
+    # edited grease pencil settings
+    ###############################
+
+    editedGPSettings: CollectionProperty(type=UAS_ShotManager_GreasepencilObjSettings)
+
+    def getEditedGPByName(self, gpName):
+        """Return the instance of UAS_ShotManager_GreasepencilObjSettings for the grease pencil
+        with the specified name, None if the instance is not found"""
+        for item in self.editedGPSettings:
+            if gpName == item.gpName:
+                return item
+        return None
+
+    def getEditedGPLayerName(self, gpName, refLayerName):
+        """Return the name of the specifed edited grease pencil object, 'ALL' if the object is not found"""
+        gpSettings = self.getEditedGPByName(gpName)
+        if gpSettings is None:
+            # return "ACTIVE"
+            return "ALL"
+        else:
+            return gpSettings.refLayerName
+
+    def storeEditedGPSettings(self, gpName, refLayerName):
+        """Update, or add if not found, the settings of the specifed edited grease pencil object
+        Return the corresponding settings instance"""
+        _logger.debug_ext(f"storeEditedGPSettings: {gpName}{refLayerName}")
+
+        if gpName is None or "" == gpName:
+            return None
+        gpSettings = self.getEditedGPByName(gpName)
+        if gpSettings is None:
+            gpSettings = self.editedGPSettings.add()
+            gpSettings.gpName = gpName
+        gpSettings.refLayerName = refLayerName
+
+        return gpSettings
+
 
 _classes = (
     UAS_ShotManager_FrameUsagePreset,
+    UAS_ShotManager_GreasepencilObjSettings,
     UAS_GreasePencil_FrameTemplate,
 )
 

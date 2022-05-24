@@ -35,7 +35,6 @@ class UAS_ShotManager_CreateNStoryboardShots(Operator):
     bl_options = {"REGISTER", "UNDO"}
 
     name: StringProperty(name="Name")
-    # cameraName: EnumProperty(items=list_cameras, name="Camera", description="Select a Camera")
     start: IntProperty(
         name="Start",
         subtype="TIME",
@@ -52,7 +51,6 @@ class UAS_ShotManager_CreateNStoryboardShots(Operator):
         default=1,
     )
     count: IntProperty(name="Number of Shots to Create", min=1, soft_max=20, default=10)
-    numCamsPerRow: IntProperty(name="Number of cameras per row", min=1, soft_max=20, default=5)
 
     # color: FloatVectorProperty(
     #     name="Color",
@@ -74,11 +72,17 @@ class UAS_ShotManager_CreateNStoryboardShots(Operator):
         # self.name = f"{props.new_shot_prefix}{len ( props.getShotsList() ) + 1:02}" + "0"
         # self.name = (props.project_shot_format.split("_")[2]).format((len(props.getShotsList()) + 1) * 10)
         self.name = props.getShotPrefix((len(props.getShotsList()) + 1) * 10)
-        self.start = max(context.scene.frame_current, 10)
-        self.duration = prefs.new_shot_duration
+
+        # self.start = max(context.scene.frame_current, 10)
+        self.start = prefs.storyboard_default_start_frame
+
+        self.duration = prefs.storyboard_new_shot_duration
 
         # default interval is set to 1 seconde
-        self.offsetFromPrevious = context.scene.render.fps
+        # self.offsetFromPrevious = context.scene.render.fps
+
+        # all the shots start at the same time
+        self.offsetFromPrevious = 0
 
         # camName = props.getActiveCameraName()
         # if "" != camName:
@@ -123,17 +127,10 @@ class UAS_ShotManager_CreateNStoryboardShots(Operator):
         col = grid_flow.column(align=False)
         col.prop(self, "duration", text="")
 
-        col = grid_flow.column(align=False)
-        col.label(text="Offset From Previous:")
-        col = grid_flow.column(align=False)
-        col.prop(self, "offsetFromPrevious", text="")
-
-        col.separator(factor=1)
-
-        col = grid_flow.column(align=False)
-        col.label(text="Num Cams Per Row:")
-        col = grid_flow.column(align=False)
-        col.prop(self, "numCamsPerRow", text="")
+        # col = grid_flow.column(align=False)
+        # col.label(text="Time Offset From Previous:")
+        # col = grid_flow.column(align=False)
+        # col.prop(self, "offsetFromPrevious", text="")
 
         # if not context.scene.UAS_shot_manager_props.use_camera_color:
         #     col = grid_flow.column(align=False)
@@ -146,8 +143,10 @@ class UAS_ShotManager_CreateNStoryboardShots(Operator):
     def execute(self, context):
         scene = context.scene
         props = scene.UAS_shot_manager_props
+        # grid = props.stb_frameTemplate.frameGrid
         selectedShotInd = props.getSelectedShotIndex()
         newShotInd = selectedShotInd + 1
+        firstCreatedShotInd = newShotInd
 
         cam = None
 
@@ -159,22 +158,19 @@ class UAS_ShotManager_CreateNStoryboardShots(Operator):
         #         col[2] = cam.color[2]
 
         for i in range(1, self.count + 1):
-            startFrame = self.start + (i - 1) * (self.duration - 1 + self.offsetFromPrevious)
+            # startFrame = self.start + (i - 1) * (self.duration - 1 + self.offsetFromPrevious)
+            startFrame = self.start
             endFrame = startFrame + self.duration - 1
 
             col = (uniform(0, 1), uniform(0, 1), uniform(0, 1), 1.0)
 
+            shotName = props.getShotPrefix((len(props.getShotsList()) + 1) * 10)
             cam = utils.create_new_camera("Cam_" + self.name)
-
-            x_offset = 1.5
-            y_offset = -1.2
-            cam.location[0] = x_offset * ((i - 1) % self.numCamsPerRow)
-            cam.location[2] = y_offset * ((i - 1) // self.numCamsPerRow)
 
             newShot = props.addShot(
                 shotType="STORYBOARD",
                 atIndex=newShotInd,
-                name=props.getShotPrefix((len(props.getShotsList()) + 1) * 10),
+                name=shotName,
                 # name=props.getUniqueShotName(props.project_shot_format.split("_")[2]).format(
                 #     (len(props.getShotsList()) + 1) * 10
                 # ),
@@ -185,14 +181,21 @@ class UAS_ShotManager_CreateNStoryboardShots(Operator):
                 addGreasePencilStoryboard=True,
             )
 
+            # shot name may not have been unique
+            cam.name = "Cam_" + newShot.name
+
             # create storyboard grease pencil
             # newShot.addGreasePencil(mode="STORYBOARD")
 
             newShotInd += 1
 
-        props.setCurrentShotByIndex(newShotInd - 1)
-        props.setSelectedShotByIndex(newShotInd - 1)
+        props.updateStoryboardGrid()
+        # props.setCurrentShotByIndex(newShotInd - 1)
+        # props.setSelectedShotByIndex(newShotInd - 1)
+        props.setCurrentShotByIndex(firstCreatedShotInd)
+        props.setSelectedShotByIndex(firstCreatedShotInd)
         bpy.ops.uas_shot_manager.scenerangefromtake("INVOKE_DEFAULT")
+        bpy.ops.uas_shot_manager.frame_time_range("INVOKE_DEFAULT")
         bpy.ops.ed.undo_push()
         return {"INTERFACE"}
 

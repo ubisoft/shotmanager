@@ -51,7 +51,8 @@ class UAS_ShotManager_Features(Operator):
 
 
 def draw_features_prefs(mode, layout):
-    """
+    """Display the panel to configure each supported preset. This function is called by a scene operator
+    and by the add-on Preferences UI, each one having its own properties to store the configuration.
     Args:
         mode:   Can be SCENE or ADDON_PREFS
     """
@@ -83,6 +84,8 @@ def draw_features_prefs(mode, layout):
     layoutRow.scale_y = 1.2
     layoutRow.prop(props, "layout_but_storyboard", toggle=1)
     layoutRow.prop(props, "layout_but_previz", toggle=1)
+    if config.devDebug:
+        layoutRow.prop(props, "layout_mode", text="")
 
     if "SCENE" == mode:
         layout.label(text="Display Takes and Shots additionnal features:")
@@ -107,8 +110,9 @@ def draw_features_prefs(mode, layout):
     icon = config.icons_col["ShotManager_CamGPVisible_32"]
     subrow.prop(props, "display_storyboard_in_properties", text="", icon_value=icon.icon_id)
     subSubrow = subrow.row()
+    # subSubrow.enabled = props != prefs
     subSubrow.scale_x = 0.9
-    subSubrow.operator("uas_shot_manager.greasepencil_template_panel", text="", icon="LONGDISPLAY")
+    subSubrow.operator("uas_shot_manager.greasepencil_template_panel", text="", icon="LONGDISPLAY").mode = mode
     subrow.label(text="Storyboard")
 
     ################
@@ -188,12 +192,20 @@ def draw_features_prefs(mode, layout):
     col = row.column()
 
     ################
-    # Retimer
+    # Grease pencil tools
+    subrow = col.row()
+    subrow.scale_x = 1.5
+    icon = config.icons_col["ShotManager_CamGPVisible_32"]
+    subrow.prop(prefs, "display_greasepenciltools_in_properties", text="", icon_value=icon.icon_id)
+    subrow.label(text="2.5D Grease Pencil Panel")
+
+    ################
+    # Renderer
     subrow = col.row()
     subrow.scale_x = 1.5
     icon = config.icons_col["ShotManager_Retimer_32"]
-    subrow.prop(prefs, "display_retimer_in_properties", text="", icon_value=icon.icon_id)
-    subrow.label(text="Retimer Panel")
+    subrow.prop(prefs, "display_render_in_properties", text="", icon="RENDER_ANIMATION")
+    subrow.label(text="Renderer Panel")
 
     ################################################################
     rightCol = boxSplit.column()
@@ -204,12 +216,12 @@ def draw_features_prefs(mode, layout):
     col = row.column()
 
     ################
-    # Renderer
+    # Retimer
     subrow = col.row()
     subrow.scale_x = 1.5
     icon = config.icons_col["ShotManager_Retimer_32"]
-    subrow.prop(prefs, "display_render_in_properties", text="", icon="RENDER_ANIMATION")
-    subrow.label(text="Renderer Panel")
+    subrow.prop(prefs, "display_retimer_in_properties", text="", icon_value=icon.icon_id)
+    subrow.label(text="Retimer Panel")
 
     if "ADDON_PREFS" == mode:
         return

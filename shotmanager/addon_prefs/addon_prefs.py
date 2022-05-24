@@ -25,10 +25,11 @@ from bpy.props import StringProperty, IntProperty, BoolProperty, EnumProperty, F
 
 # from ..config import config
 
-from .addon_prefs_ui import draw_shotmanager_addon_prefs
+from .addon_prefs_ui import draw_addon_prefs
 
 from shotmanager.features.greasepencil.greasepencil_frame_template import UAS_GreasePencil_FrameTemplate
 from shotmanager.utils import utils
+from shotmanager.utils.utils_os import get_latest_release_version
 
 from shotmanager.config import sm_logging
 
@@ -63,13 +64,49 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
         default=False,
     )
 
+    def version(self):
+        """Return the add-on version in the form of a tupple made by:
+            - a string x.y.z (eg: "1.21.3")
+            - an integer. x.y.z becomes xxyyyzzz (eg: "1.21.3" becomes 1021003)
+        Return None if the addon has not been found
+        """
+        return utils.addonVersion("Shot Manager")
+
+    newAvailableVersion: IntProperty(
+        description="Store the version of the latest release of the add-on as an integer if there is an online release"
+        "\nthat is more recent than this version. If there is none then the value is 0",
+        # default=2005001,
+        default=1007016,
+    )
+
     isInitialized: BoolProperty(
         default=False,
     )
 
     def initialize_shot_manager_prefs(self):
         print("\nInitializing Shot Manager Preferences...")
+
         self.stb_frameTemplate.initialize(mode="ADDON_PREFS")
+
+        versionStr = get_latest_release_version(
+            "https://github.com/ubisoft/shotmanager/releases/latest", verbose=True, use_debug=True
+        )
+
+        if versionStr is not None:
+            # version string from the tags used by our releases on GitHub is formated as this: v<int>.<int>.<int>
+            version = utils.convertVersionStrToInt(versionStr)
+
+            _logger.debug_ext(
+                f"Checking for updates: Latest version of Ubisoft Shot Manager online is: {versionStr}", col="BLUE"
+            )
+            if self.version()[1] < version:
+                _logger.debug_ext("   New version available online...", col="BLUE")
+                self.newAvailableVersion = version
+            else:
+                self.newAvailableVersion = 0
+        else:
+            self.newAvailableVersion = 0
+
         self.isInitialized = True
 
     ########################################################################
@@ -101,20 +138,51 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
 
     new_shot_duration: IntProperty(
         name="Default Shot Duration",
-        description="Default duration for new shots, in frames",
+        description="Default duration (in frames) for new shots",
         min=1,
         soft_max=250,
         subtype="TIME",
         default=50,
     )
 
-    storyboard_default_canvas_opacity: FloatProperty(
+    storyboard_default_canvasOpacity: FloatProperty(
         name="Storyboard Default Canvas Opacity",
         description="Opacity of the Canvas layer for new storyboard frames",
         min=0.0,
         max=1.0,
         step=0.1,
         default=1.0,
+    )
+
+    storyboard_default_distanceFromOrigin: FloatProperty(
+        name="Storyboard Default Frame Distance",
+        description="Distance between a new storyboard frame and its parent camera",
+        subtype="DISTANCE",
+        soft_min=0.02,
+        min=0.001,
+        soft_max=10.0,
+        # max=1.0,
+        step=0.1,
+        default=2.0,
+    )
+
+    storyboard_default_start_frame: IntProperty(
+        name="Storyboard Default Start Time",
+        description="Time (in frames) at which a new storyboard frame starts",
+        min=0,
+        soft_max=250,
+        step=1,
+        subtype="TIME",
+        default=100,
+    )
+
+    storyboard_new_shot_duration: IntProperty(
+        name="Storyboard Default Shot Duration",
+        description="Default duration (in frames) for new storyboard frames",
+        min=1,
+        soft_max=250,
+        subtype="TIME",
+        default=100,
     )
 
     displaySMDebugPanel: BoolProperty(
@@ -383,8 +451,17 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
 
     def _update_layout_mode(self, context):
         #   print("\n*** Prefs _update_layout_mode updated. New state: ", self._update_layout_mode)
-        self.layout_but_storyboard = "STORYBOARD" == self._update_layout_mode
-        self.layout_but_previez = "PREVIZ" == self._update_layout_mode
+        # self.layout_but_storyboard = "STORYBOARD" == self.layout_mode
+        # self.layout_but_previz = "PREVIZ" == self.layout_mode
+        if "STORYBOARD" == self.layout_mode:
+            self.display_storyboard_in_properties = True
+            self.display_notes_in_properties = True
+            self.display_greasepenciltools_in_properties = True
+        else:
+            self.display_storyboard_in_properties = False
+            self.display_notes_in_properties = False
+            self.display_greasepenciltools_in_properties = False
+        pass
 
     layout_mode: EnumProperty(
         name="Layout Mode",
@@ -405,6 +482,11 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
         return val
 
     def _set_layout_but_storyboard(self, value):
+        # if not self["layout_but_storyboard"]:
+        #     if value:
+        #         self.layout_mode = "STORYBOARD"
+        #         self["layout_but_storyboard"] = True
+        #         self["layout_but_previz"] = False
         if value:
             self.layout_mode = "STORYBOARD"
         self["layout_but_storyboard"] = "STORYBOARD" == value
@@ -424,7 +506,7 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
     def _set_layout_but_previz(self, value):
         if value:
             self.layout_mode = "PREVIZ"
-        self["layout_but_storyboard"] = "PREVIZ" == value
+        self["layout_but_previz"] = "PREVIZ" == value
 
     def _update_layout_but_previz(self, context):
         print("\n*** layout_but_storyboard updated. New state: ", self.layout_but_previz)
@@ -484,6 +566,19 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
         name="Display Advanced Infos",
         description="Display technical information and feedback in the UI",
         default=False,
+    )
+
+    ########################################################################
+    # grease pencil tools ui   ###
+    ########################################################################
+
+    # ****** settings exposed to the user in the prefs panel:
+    # ------------------------------
+
+    display_greasepenciltools_in_properties: BoolProperty(
+        name="Display 2.5d Grease Pencil",
+        description="Display the 2.5D Grease Pencil sub-panel in the Shot Manager panel.\n(saved in the add-on preferences)",
+        default=True,
     )
 
     ########################################################################
@@ -845,7 +940,7 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
     # Draw
     ##################################################################################
     def draw(self, context):
-        draw_shotmanager_addon_prefs(self, context)
+        draw_addon_prefs(self, context)
 
 
 _classes = (UAS_ShotManager_AddonPrefs,)

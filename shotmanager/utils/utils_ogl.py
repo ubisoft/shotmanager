@@ -206,3 +206,54 @@ class Rect:
 
     # def bbox(self):
     #     return (-self.sx + self.x, -self.sy + self.y), (self.sx + self.x, self.sy + self.y)
+
+
+class Quadrilater:
+    """Draw a quadrilater filled with the specifed color, from bottom left corner and with
+    width and height.
+    Origin of the object is at the center.
+    """
+
+    UNIFORM_SHADER_2D = gpu.shader.from_builtin("2D_UNIFORM_COLOR")
+
+    def __init__(self, pt0, pt1, pt2, pt3, color=(1.0, 1.0, 1.0, 1.0)):
+        self.pt0 = pt0
+        self.pt1 = pt1
+        self.pt2 = pt2
+        self.pt3 = pt3
+        self.color = color
+
+    def copy(self):
+        return Quadrilater(self.pt0, self.pt1, self.pt2, self.pt3, self.color)
+
+    def draw(self, position=None):
+        vertices = (
+            (self.pt0),
+            (self.pt1),
+            (self.pt2),
+            (self.pt3),
+        )
+        indices = ((0, 1, 2), (2, 3, 1))
+
+        verticesLine = (
+            (self.pt0),
+            (self.pt1),
+            (self.pt1),
+            (self.pt2),
+            (self.pt2),
+            (self.pt3),
+            (self.pt3),
+            (self.pt0),
+        )
+
+        # batch = batch_for_shader(self.UNIFORM_SHADER_2D, "TRIS", {"pos": vertices}, indices=indices)
+        fillMode = "LINES"  # "TRIS"
+        batch = batch_for_shader(self.UNIFORM_SHADER_2D, fillMode, {"pos": verticesLine})
+        # batch = batch_for_shader(shader = gpu.shader.from_builtin('3D_UNIFORM_COLOR'), fillMode, {"pos": vertices}, indices=indices)
+
+        self.UNIFORM_SHADER_2D.bind()
+        self.UNIFORM_SHADER_2D.uniform_float("color", self.color)
+        batch.draw(self.UNIFORM_SHADER_2D)
+
+    # def bbox(self):
+    #     return (-self.sx + self.x, -self.sy + self.y), (self.sx + self.x, self.sy + self.y)

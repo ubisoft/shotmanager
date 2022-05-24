@@ -16,10 +16,8 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 """
-To do: module description here.
+Handlers
 """
-
-# -*- coding: utf-8 -*-
 
 # werwack 2020/05/14
 # V 1.0.0
@@ -154,8 +152,7 @@ def removeAllHandlerOccurences(handlerFunction, handlerCateg=None):
 # returns first occurence
 # eg: getHandlerByFunction( wkhandlersops_renderInitHandlder, handlerCateg = bpy.app.handlers.render_init )
 def getHandlerByFunction(handlerFunction, handlerCateg=None):
-    """ returns the first occurence of the specified function found in the specified hanndler category
-    """
+    """returns the first occurence of the specified function found in the specified hanndler category"""
     handlerCat = handlerCateg
     myHandlerFunc = None
 

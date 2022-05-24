@@ -21,11 +21,17 @@ Grease pencil shot class
 
 import bpy
 from bpy.types import PropertyGroup
-from bpy.props import PointerProperty, FloatProperty, FloatVectorProperty, BoolProperty, EnumProperty
+from bpy.props import PointerProperty, FloatProperty, FloatVectorProperty, EnumProperty
 
 # from shotmanager.properties.shot import UAS_ShotManager_Shot
 
-from shotmanager.utils import utils_greasepencil, utils
+from shotmanager.utils import utils
+from shotmanager.utils import utils_greasepencil
+from shotmanager.features.greasepencil import greasepencil as gp
+
+from shotmanager.config import sm_logging
+
+_logger = sm_logging.getLogger(__name__)
 
 
 class GreasePencilProperties(PropertyGroup):
@@ -44,14 +50,44 @@ class GreasePencilProperties(PropertyGroup):
         default="STORYBOARD",
     )
 
-    def initialize(self, parentShot, mode="STORYBOARD"):
-        """Set the parent camera of the Grease Pencil Properties"""
+    def initialize(self, parentShot, mode):
+        """Set the parent camera of the Grease Pencil Properties as well as properties specific to the mode
+        of this Grease Pencil Properties instance
+        Return the created - or corresponding if one existed - grease pencil object, or None if the camera was invalid
+        Args:
+            mode: can be "STORYBOARD"
+        """
         prefs = bpy.context.preferences.addons["shotmanager"].preferences
         # print(f"\nInitializing new Grease Pencil Properties for shot {parentShot.name}...")
 
-        self.parentCamera = parentShot.camera
-        self.frameMode = mode
-        self.canvasOpacity = prefs.storyboard_default_canvas_opacity
+        if parentShot.isCameraValid():
+            self.parentCamera = parentShot.camera
+        else:
+            _logger.warning_ext(
+                f"*** New GreasePencilProperties: Specified camera for shot {parentShot.name} is invalid - Grease Pencil will not be created"
+            )
+
+        if "STORYBOARD" == mode:
+            self.frameMode = mode
+            framePreset = parentShot.parentScene.UAS_shot_manager_props.stb_frameTemplate
+
+            gpObj = parentShot.getGreasePencilObject("STORYBOARD")
+
+            if gpObj is None and parentShot.isCameraValid():
+                gpName = self.parentCamera.name + "_GP"
+                gpObj = gp.createStoryboarFrameGP(
+                    gpName, framePreset, parentCamera=self.parentCamera, location=[0, 0, -0.5]
+                )
+
+            self.canvasOpacity = prefs.storyboard_default_canvasOpacity
+            self.distanceFromOrigin = prefs.storyboard_default_distanceFromOrigin
+            self.updateGreasePencil()
+
+        return gpObj
+
+    def updateGreasePencil(self):
+        self.updateCanvas()
+        self.updateGreasePencilToFrustum()
 
     def getParentShot(self):
         props = bpy.context.scene.UAS_shot_manager_props
@@ -68,7 +104,7 @@ class GreasePencilProperties(PropertyGroup):
 
     distanceFromOrigin: FloatProperty(
         name="Distance",
-        description="Distance between the storyboard frame and the parent camera",
+        description="Distance between the storyboard frame and its parent camera",
         subtype="DISTANCE",
         soft_min=0.02,
         min=0.001,
@@ -149,10 +185,6 @@ class GreasePencilProperties(PropertyGroup):
 
         self.updateGreasePencil()
 
-    def updateGreasePencil(self):
-        self.updateCanvas()
-        self.updateGreasePencilToFrustum()
-
     def updateCanvas(self):
         props = bpy.context.scene.UAS_shot_manager_props
 
@@ -203,6 +235,13 @@ class GreasePencilProperties(PropertyGroup):
             gp_child, gpencil_layer_name=canvasName, create_layer=False
         )
         return canvasLayer
+
+    # lockAnimChannels: BoolProperty(
+    #     name="Lock Transform Channels",
+    #     description="Lock the Transform animation channels to prevent unwanted manipulations"
+    #     "\nof the storyboard frame in the 3D viewports",
+    #     default=True,
+    # )
 
     # def __init__(self, parent, shot):
     #     self._distance = 0

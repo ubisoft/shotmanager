@@ -52,6 +52,19 @@ OTIO advanced doc: https://sandflow.github.io/otio-core-specification/
 
 Grease Pencil for boarding:
     - Urgent:
+
+        - checkbox to lock canvas
+
+        - faire le AddPreset pour les preferences
+
+        - cacher les cams
+
+        - placer les textes sur les stb frames sur les types stb
+
+        - lorsque un layer est sur une frame courante le bouton est disabled et on ne peut pas ajouter des clés pour les autres layers
+
+        - faire marcher les add / remove / duplicate pour les stb frames
+
         - check the materials for the presets and add them in the preset panel
 
         - remove operator duplicate "uas_shot_manager.draw_on_grease_pencil"
@@ -61,6 +74,8 @@ Grease Pencil for boarding:
 
         - Quand un objet est pinné et qu'on entre en draw depuis un shot, faire sauter le pin???
             Non, dépinner suffit - mais ca fait une inconsistence avec le shot sélectionné
+
+        - frame grid settings
 
         - modes alt shift to add keys or delete
         - offset in time
@@ -144,3 +159,10 @@ Fichiers récupérés de 166 - 2.0.15 B:
 
     ui
         sm_shot_settings_ui.py
+
+
+Amanda:
+    - 1001
+    - new layer for perps
+    - timing the notes
+

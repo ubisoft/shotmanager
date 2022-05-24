@@ -33,38 +33,53 @@ from bpy.props import StringProperty
 from bpy_extras.io_utils import ImportHelper
 
 from .utils_os import open_folder
+from .utils import convertVersionIntToStr
 
 ###################
 # UI
 ###################
 
 
-def drawSeparatorLine(layout, lower_height=1.0):
+def drawSeparatorLine(layout, lower_height=1.0, higher_height=0.0):
     col = layout.column()
+
+    if 0 < higher_height:
+        row = col.row()
+        row.scale_y = higher_height
+        row.separator()
+
     row = col.row()
     row.scale_y = 0.2
     row.alignment = "CENTER"
     row.label(text="_____________________")
+
     row = col.row()
     row.scale_y = lower_height
     row.separator()
 
 
 def collapsable_panel(
-    layout: bpy.types.UILayout, data: bpy.types.AnyType, property: str, alert: bool = False, text=None
+    layout: bpy.types.UILayout,
+    data: bpy.types.AnyType,
+    property: str,
+    alert: bool = False,
+    text=None,
 ):
-    """Draw an arrow to collapse or extend a panel
+    """Draw an arrow to collapse or extend a panel.
+    Return the title row
     Args:
         layout: parent component
         data: the object with the properties
         property: the boolean used to store the rolled-down state of the panel
         alert: is the title bar of the panel is drawn in alert mode
+        text: the title of the panel
     eg: collapsable_panel(layout, addon_props, "display_users", text="Server Users")
         if addon_props.addonPrefs_ui_expanded: ...
     """
     row = layout.row(align=True)
     row.alignment = "LEFT"
     # row.scale_x = 0.9
+    row.alert = alert
     row.prop(
         data,
         property,
@@ -74,11 +89,11 @@ def collapsable_panel(
         text=text,
     )
     if alert:
-        row.alert = True
         row.label(text="", icon="ERROR")
-    # if text is not None:
-    #     row.label(text=text)
-    return getattr(data, property)
+    # row.label(text=text)
+    row.alert = False
+
+    return row
 
 
 ###################
@@ -225,11 +240,63 @@ class UAS_ShotManager_OT_Querybox(Operator):
 
 ####################################################################
 
+
+class UAS_ShotManager_UpdateDialog(Operator):
+    bl_idname = "uas_shot_manager.update_dialog"
+    bl_label = "Add-on Update Available"
+    bl_description = "Open a dialog window presenting the available update of the add-on"
+
+    # can be a web url or an intranet path
+    url: StringProperty(default="")
+
+    addonName: StringProperty(default="")
+
+    def invoke(self, context, event):
+        self.addonName = "Ubisoft Shot Manager"
+        self.url = "https://github.com/ubisoft/shotmanager/releases/latest"
+
+        return context.window_manager.invoke_props_dialog(self, width=450)
+
+    def draw(self, context):
+        prefs = context.preferences.addons["shotmanager"].preferences
+
+        layout = self.layout
+        box = layout.box()
+        col = box.column()
+
+        sepRow = col.row()
+        sepRow.separator(factor=0.5)
+
+        row = col.row()
+        newVersionStr = f"V. {convertVersionIntToStr(prefs.newAvailableVersion)}"
+        row.label(text=f"A new version of {self.addonName} is available on GitHub: {newVersionStr}")
+
+        sepRow = col.row()
+        sepRow.separator(factor=0.5)
+
+        row = col.row()
+        row.label(text="You can download it here:")
+
+        doc_op = row.operator("shotmanager.open_documentation_url", text="Download Latest", icon="URL")
+        doc_op.path = self.url
+        doc_op.tooltip = "Open latest Shot Manager download page: " + doc_op.path
+
+        sepRow = col.row()
+        sepRow.separator(factor=0.5)
+
+    def execute(self, context):
+        return {"FINISHED"}
+
+
+####################################################################
+
+
 _classes = (
     UAS_ShotManager_OpenExplorer,
     UAS_SM_Open_Documentation_Url,
     UAS_ShotManager_OpenFileBrowser,
     UAS_ShotManager_OT_Querybox,
+    UAS_ShotManager_UpdateDialog,
 )
 
 

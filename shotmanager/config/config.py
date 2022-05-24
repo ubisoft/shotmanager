@@ -31,6 +31,9 @@ def initGlobalVariables():
     # debug ############
     global devDebug
 
+    global tmpTimelineModalRect
+    tmpTimelineModalRect = None
+
     # wkip better code: devDebug = os.environ.get("devDebug", "0") == "1"
     if "devDebug" in os.environ.keys():
         devDebug = bool(int(os.environ["devDebug"]))
@@ -68,7 +71,7 @@ def initGlobalVariables():
     global gModulePath
     gModulePath = None
 
-    # otio ############
+    # otio #############
 
     global gImportOpenTimelineIO
     gImportOpenTimelineIO = True
@@ -81,6 +84,13 @@ def initGlobalVariables():
 
     global gTracksEnumList
     gTracksEnumList = None
+
+    global gRedrawShotStack
+    gRedrawShotStack = False
+
+    # keymaps ##########
+    global gAddonKeymaps
+    gAddonKeymaps = []
 
 
 def releaseGlobalVariables():
@@ -96,10 +106,13 @@ def getLoggingTags():
 
     # debug tags
     tags["DEPRECATED"] = False
-    tags["TIMELINE_EVENT"] = True
-    tags["SHOTSTACK_EVENT"] = True
+
     tags["SHOTS_PLAY_MODE"] = True
+
     tags["EDIT_IO"] = True
+
+    tags["TIMELINE_EVENT"] = False
+    tags["SHOTSTACK_EVENT"] = True
 
     # info tags
     tags["RENDERTIME"] = True

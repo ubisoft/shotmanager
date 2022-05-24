@@ -37,7 +37,10 @@ _logger = sm_logging.getLogger(__name__)
 
 
 def get_greasepencil_child(obj, childType="GPENCIL", name_filter=""):
-    """Return the first child of the specifed object that is of type GPENCIL or EMPTY"""
+    """Return the first child of the specifed object that is of type GPENCIL or EMPTY
+    Args:
+        childType: can be "GPENCIL" or "EMPTY"
+    """
     gpChild = None
 
     if obj is not None:
@@ -253,7 +256,7 @@ def fitGreasePencilToFrustum(camera, distance=None):
     # removed to allow frame panning
     # gpencil.location[0] = gpencil.location[1] = 0.0
 
-    ######################################""""""
+    ######################################
     # prevX = gpencil.location[0]
     # prevY = gpencil.location[1]
     # gpencil.location[0] = gpencil.location[1] = 0.0
@@ -334,26 +337,74 @@ def fitCanvasToFrustum(gpStroke: bpy.types.GPencilStroke, camera, distance=None,
     return applied_scale_factor
 
 
-def getCameraCorners(context, camera, distance=None):
+def getCanvasCorners(context, camera, distance=None, coordSys=None, zOffset=0.0):
+    if distance is not None:
+        corners = getCameraCorners(bpy.context, camera, -1.0 * distance, coordSys=coordSys)
+    else:
+        corners = getCameraCorners(bpy.context, camera)
+
+    top_left = corners[2]
+    # top_left[2] = 0.0
+    # top_left[2] -= zOffset
+    bottom_right = corners[0]
+    # bottom_right[2] = 0.0
+    # bottom_right[2] -= zOffset
+
+    # gpStroke.points[0].co = top_left
+    # gpStroke.points[1].co = (bottom_right[0], top_left[1], top_left[2])
+    # gpStroke.points[2].co = bottom_right
+    # gpStroke.points[3].co = (top_left[0], bottom_right[1], bottom_right[2])
+
+    # wkipwkipwkip to fix
+    #  applied_scale_factor = top_left_previous_x / top_left[0]
+
+    # return applied_scale_factor
+
+    distRef = getDistRef(camera)
+    gpWidth = distance / distRef
+
+    vec = mathutils.Vector((gpWidth, gpWidth, gpWidth))
+
+    CanvasCorners = list()
+    CanvasCorners.append(top_left)
+    CanvasCorners.append((bottom_right[0], top_left[1], top_left[2]))
+    CanvasCorners.append(bottom_right)
+    CanvasCorners.append((top_left[0], bottom_right[1], bottom_right[2]))
+
+    return CanvasCorners
+
+
+def getCameraCorners(context, camera, distance=None, coordSys=None, fixRotation=True):
     mw = camera.matrix_world
 
-    # sizeRef is an arbitrary ref for the frustum width of the camera
-    sizeRef = 1.0
     # point of the frustum when width is 1
-    distRef = camera.data.view_frame(scene=context.scene)[0][2]
+    # distRef = camera.data.view_frame(scene=context.scene)[0][2]
+    distRef = 1.0
+    if distance is not None:
+        distRef = getDistRef(camera)
+        sizeAtDistance = distance / distRef
 
     # camera.data.display_size is the width of the frustum for a given lens
     # f = 1 if camera.type == "ORTHO" else distance if distance is not None else camera.data.display_size
     f = (
         1
         if camera.type == "ORTHO"
-        else distance * sizeRef / distRef
+        # else distance * sizeRef / distRef
+        else sizeAtDistance
         if distance is not None
         else camera.data.display_size
     )
 
-    corners = [(f * p) for p in camera.data.view_frame(scene=context.scene)]
-    # corners = [mw @ (f * p) for p in camera.data.view_frame(scene=context.scene)]
+    import math
+
+    if coordSys is None:
+        corners = [(f * p) for p in camera.data.view_frame(scene=context.scene)]
+    else:
+        if fixRotation:
+            mat_rot = mathutils.Matrix.Rotation(math.radians(180.0), 4, 'Y')
+            corners = [mw @ mat_rot @ (f * p) for p in camera.data.view_frame(scene=context.scene)]
+        else:
+            corners = [mw @ (f * p) for p in camera.data.view_frame(scene=context.scene)]
 
     """
     # add empties at corners
@@ -481,7 +532,7 @@ def switchToDrawMode(context, gpencil: bpy.types.GreasePencil):
 
 
 def getLayerPreviousFrame(gpencil: bpy.types.GreasePencil, currentFrame, layerMode):
-    """Return the frame value of the previous key of the specified layer
+    """Return the time frame value of the previous key of the specified layer
     Args:
         layerMode: Can be "NOLAYER", "ACTIVE", "ALL" or the name of the layer
         Usually comes from props.greasePencil_layersMode
@@ -767,8 +818,8 @@ def deleteLayerKeyFrame(gpencil: bpy.types.GreasePencil, currentFrame, layerMode
 #################################
 
 
-def activeGpLayerAndMat(gpencil: bpy.types.GreasePencil, layerName, materialName):
-    """If the specified layer is found then active it on the specified grease pencil object"""
+def activateGpLayerAndMat(gpencil: bpy.types.GreasePencil, layerName, materialName):
+    """If the specified layer is found then activate it on the specified grease pencil object"""
 
     # Create a lookup-dict for the object materials:
     # mat_dict = {mat.name: i for i, mat in enumerate(context.object.data.materials)}
@@ -790,6 +841,29 @@ def activeGpLayerAndMat(gpencil: bpy.types.GreasePencil, layerName, materialName
     # elif "Fills" == layerName:
     #     if "Fills Mat" in mat_dict:
     #         gpencil.active_material_index = mat_dict["Fills Mat"]
+
+
+def toggleLayerVisibility(gpencil: bpy.types.GreasePencil, layerName):
+    if layerName in gpencil.data.layers:
+        gpencil.data.layers[layerName].hide = not gpencil.data.layers[layerName].hide
+
+
+def isLayerVisibile(gpencil: bpy.types.GreasePencil, layerName):
+    if layerName in gpencil.data.layers:
+        return not gpencil.data.layers[layerName].hide
+    return False
+
+
+def gpLayerExists(gpencil: bpy.types.GreasePencil, layerName):
+    """Return True if the specified layer is foundon the specified grease pencil object
+    Args:
+        layerID:    Can be "CANVAS", "BG_INK", "BG_FILL"
+    """
+    layerExists = False
+    if layerName in gpencil.data.layers:
+        layerExists = True
+
+    return layerExists
 
 
 def gpLayerIsActive(gpencil: bpy.types.GreasePencil, layerName):
@@ -848,3 +922,39 @@ def gpLayerIsActive(gpencil: bpy.types.GreasePencil, layerName):
 #             layerIsActive = True
 
 #     return layerIsActive
+
+
+def place3DCursor(gpencil, currentFrame, layerName):
+    from mathutils import Vector
+
+    if layerName in gpencil.data.layers:
+        if isCurrentFrameOnLayerKeyFrame(gpencil, currentFrame, layerName):
+            timeOfFrame = currentFrame
+        else:
+            prevFrame = getLayerPreviousFrame(gpencil, currentFrame, layerName)
+            if prevFrame != currentFrame:
+                timeOfFrame = prevFrame
+            else:
+                # no key frame exists
+                return
+
+        gp_frame = getLayerKeyFrameAtFrame(gpencil, timeOfFrame, layerName)
+
+        # get the average center of mass, optimized by everyNPoints
+
+        everyNPoints = 4
+        totalNumPoints = 0
+        for s in gp_frame.strokes:
+            #    totalNumPoints += len(s.points)
+            totalNumPoints += len(s.points) // everyNPoints
+
+        # numStrokes = len(gp_frame.strokes)
+        averagePos = Vector([0, 0, 0])
+        for s in gp_frame.strokes:
+            # numPoints = len(s.points)
+            for ind in range(0, len(s.points), everyNPoints):
+                averagePos += s.points[ind].co / totalNumPoints
+
+        # newLoc = [0, 0, 0]
+        newLoc = averagePos + gpencil.location
+        bpy.context.scene.cursor.location = newLoc

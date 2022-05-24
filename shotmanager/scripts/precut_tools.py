@@ -16,10 +16,8 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 """
-To do: module description here.
+Precut tools
 """
-
-# -*- coding: utf-8 -*-
 
 from random import uniform
 

@@ -28,8 +28,8 @@ from shotmanager.utils import utils
 
 # from shotmanager.features.soundBG import soundBG_ui as sBG
 from shotmanager.features.cameraBG import cameraBG_ui as cBG
-from shotmanager.features.greasepencil import greasepencil_ui as gp
-from shotmanager.features.greasepencil import greasepencil_toolspanel_ui as gpTools
+from shotmanager.features.storyboard import storyboard_ui as gp
+from shotmanager.features.storyboard import storyboard_drawing_ui as gpTools
 
 from shotmanager.config import sm_logging
 
@@ -355,6 +355,7 @@ class UAS_PT_ShotManager_ShotProperties(Panel):
             subRowCam.label(text="Duration: ")
 
             subRowCam.use_property_split = False
+            subRowCam.prop(shot, "duration_fp", text="")
             subRowCam.prop(
                 shot,
                 "durationLocked",
@@ -362,8 +363,6 @@ class UAS_PT_ShotManager_ShotProperties(Panel):
                 icon="DECORATE_LOCKED" if shot.durationLocked else "DECORATE_UNLOCKED",
                 toggle=True,
             )
-
-            subRowCam.prop(shot, "duration_fp", text="")
 
             #    grid_flow.label(text=str(shot.getDuration()) + " frames")
             subRowCam.separator(factor=1.0)
@@ -521,9 +520,6 @@ class UAS_PT_ShotManager_ShotProperties(Panel):
         ######################
         if props.display_storyboard_in_properties and props.expand_greasepencil_properties:
             gp.draw_greasepencil_shot_properties(self.layout, context, shot)
-            gpTools.draw_greasepencil_play_tools(
-                self.layout, context, shot, layersListDropdown=prefs.layersListDropdown
-            )
             gp.draw_greasepencil_global_properties(self.layout, context)
 
 

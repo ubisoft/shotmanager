@@ -45,8 +45,16 @@ def unique_object_name(obj_name):
 
 
 def convertVersionStrToInt(versionStr):
-    """Convert a string formated like "1.23.48" to a version integer such as 1023048"""
+    """Convert a string formated like "1.23.48" to a version integer such as 1023048
+    Any text or space placed before the first digit is ignored
+    """
     formatedVersion = "{:02}{:03}{:03}"
+    firstDigitInd = 0
+    for i, c in enumerate(versionStr):
+        if c.isdigit():
+            firstDigitInd = i
+            break
+    versionStr = versionStr[firstDigitInd:]
     versionSplitted = versionStr.split(".")
     return int(formatedVersion.format(int(versionSplitted[0]), int(versionSplitted[1]), int(versionSplitted[2])))
 
@@ -985,6 +993,10 @@ def add_background_video_to_cam(
         # print("   Finished block")
         # clip = bpy.data.movieclips[movie_path.name]
         clip = getMovieClipByPath(movie_path)
+
+        # required since Blender 3.0 (or earlier?) for the frame_start to be taken into account in the viewport
+        clip.use_proxy_custom_directory = True
+
         clip.frame_start = frame_start
         camera.show_background_images = True
         bg = camera.background_images.new()
@@ -1090,6 +1102,12 @@ def darken_color(color):
     return d_color
 
 
+def lighten_color(color, value=0.1):
+    """Do a ADD"""
+    d_color = (min(color[0] + value, 1.0), min(color[1] + value, 1.0), min(color[2] + value, 1.0), color[3])
+    return d_color
+
+
 def linearizeColor(color):
     gamma = 0.45
     d_color = (pow(color[0], gamma), pow(color[1], gamma), pow(color[2], gamma), color[3] * 1.0)
@@ -1105,6 +1123,12 @@ def sRGBColor(color):
 # to refactor
 def to_sRGB(value):
     gamma = 1.0 / 0.45
+    return pow(value, gamma)
+
+
+# to refactor
+def to_linear(value):
+    gamma = 0.45
     return pow(value, gamma)
 
 

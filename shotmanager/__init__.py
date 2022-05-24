@@ -32,16 +32,19 @@ from .overlay_tools.workspace_info.workspace_info import toggle_workspace_info_d
 from .features import cameraBG
 from .features import soundBG
 from .features import greasepencil
+from .features.greasepencil import greasepencil_tools_ui
+from .features import storyboard
 
 from .operators import takes
 from .operators import shots
-from .operators import shots_global_settings
+from .operators import shots_global_settings_operators
 
 from .operators import general
 from .operators import playbar
 from .operators import shots_toolbar
 
 from .properties import props
+from .properties import shots_global_settings
 
 from . import prefs
 
@@ -77,8 +80,8 @@ bl_info = {
     "name": "Shot Manager",
     "author": "Ubisoft - Julien Blervaque (aka Werwack), Romain Carriquiry Borchiari",
     "description": "Easily manage shots and cameras in the 3D View and see the resulting edit in real-time",
-    "blender": (2, 93, 0),
-    "version": (2, 0, 17),
+    "blender": (3, 1, 0),
+    "version": (2, 0, 24),
     "location": "View3D > Shot Manager",
     "doc_url": "https://ubisoft-shotmanager.readthedocs.io",
     "warning": "BETA Version",
@@ -151,6 +154,7 @@ def register():
     # debug tools
     sm_debug.register()
 
+    from .features.storyboard import frame_grid
     from .features.greasepencil import greasepencil_frame_template
     from .addon_prefs import addon_prefs
     from .utils import utils_vse_render
@@ -162,11 +166,11 @@ def register():
     # update data
     ###################
 
-    # bpy.context.window_manager.UAS_shot_manager_version
     bpy.types.WindowManager.UAS_shot_manager_version = IntProperty(
         name="Add-on Version Int", description="Add-on version as integer", default=versionTupple[1]
     )
 
+    frame_grid.register()
     greasepencil_frame_template.register()
     addon_prefs.register()
 
@@ -177,23 +181,25 @@ def register():
     cameraBG.register()
     soundBG.register()
     greasepencil.register()
+    storyboard.register()
     frame_range.register()
     rendering.register()
     takes.register()
     shots.register()
     shots_global_settings.register()
+    shots_global_settings_operators.register()
     precut_tools.register()
     playbar.register()
     retimer.register()
-    #  greasepencil.register()
     props.register()
     shots_toolbar.register()
 
     # ui
     sm_ui.register()
-    rrs.register()
+    greasepencil_tools_ui.register()
     retimer_ui.register()
     rendering_ui.register()
+    rrs.register()
 
     utils_vse_render.register()
     # try:
@@ -223,7 +229,7 @@ def register():
         install_handler_for_shot(self, context)
 
     bpy.types.WindowManager.UAS_shot_manager_shots_play_mode = BoolProperty(
-        name="Enable Shot Play Mode",
+        name="Enable Shots Play Mode",
         description="Override the standard animation Play mode to play the enabled shots" "\nin the specified order",
         update=_update_UAS_shot_manager_shots_play_mode,
         default=False,
@@ -328,6 +334,7 @@ def unregister():
     # Unregister packages that were registered if the install went right
     ###################
 
+    from .features.storyboard import frame_grid
     from .features.greasepencil import greasepencil_frame_template
 
     from .addon_prefs import addon_prefs
@@ -348,9 +355,10 @@ def unregister():
     # except Exception:
     #     print("*** Paf for utils_vse_render.unregister")
 
+    rrs.unregister()
     rendering_ui.unregister()
     retimer_ui.unregister()
-    rrs.unregister()
+    greasepencil_tools_ui.unregister()
     sm_ui.unregister()
 
     # operators
@@ -360,17 +368,20 @@ def unregister():
     retimer.unregister()
     playbar.unregister()
     precut_tools.unregister()
+    shots_global_settings_operators.unregister()
     shots_global_settings.unregister()
     shots.unregister()
     takes.unregister()
     utils_operators.unregister()
     frame_range.unregister()
+    storyboard.unregister()
     greasepencil.unregister()
     soundBG.unregister()
     cameraBG.unregister()
 
-    greasepencil_frame_template.unregister()
     addon_prefs.unregister()
+    greasepencil_frame_template.unregister()
+    frame_grid.unregister()
 
     del bpy.types.WindowManager.UAS_shot_manager_shots_play_mode
     del bpy.types.WindowManager.UAS_shot_manager_display_overlay_tools

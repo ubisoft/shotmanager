@@ -24,10 +24,12 @@ from shotmanager.config import config
 # from .greasepencil_props import UAS_ShotManager_RenderGlobalContext, UAS_ShotManager_RenderSettings
 from . import greasepencil_props
 from . import greasepencil_operators
-from . import storyboard_operators
+
+# from . import greasepencil_toolspanel_ui
 
 # from . import greasepencil_frame_template
 from . import greasepencil_frame_panel
+from . import greasepencil_tools_props
 
 # from . import greasepencil_toolboxTest_ui
 
@@ -40,16 +42,17 @@ _logger = sm_logging.getLogger(__name__)
 
 
 def register():
-    _logger.debug_ext("       - Registering Grease Pencil Package", form="REG")
-
-    # for cls in _classes:
-    #     bpy.utils.register_class(cls)
+    _logger.debug_ext("       - Registering Feature: Grease Pencil Package", form="REG")
 
     greasepencil_props.register()
     greasepencil_operators.register()
-    storyboard_operators.register()
+
+    # done in shot manager init
+    # greasepencil_toolspanel_ui.register()
+
     # greasepencil_frame_template.register()
     greasepencil_frame_panel.register()
+    greasepencil_tools_props.register()
 
 
 #  greasepencil_toolbox_ui.register()
@@ -57,15 +60,16 @@ def register():
 
 
 def unregister():
-    _logger.debug_ext("       - Unregistering Grease Pencil Package", form="UNREG")
+    _logger.debug_ext("       - Unregistering Feature: Grease Pencil Package", form="UNREG")
 
-    # for cls in reversed(_classes):
-    #     bpy.utils.unregister_class(cls)
-
+    greasepencil_tools_props.unregister()
     # rendering_ui.unregister()   # done in shotmanager.__init__ in order to display the panel in the right order
     # greasepencil_toolbox_ui.unregister()
     greasepencil_frame_panel.unregister()
     #  greasepencil_frame_template.unregister()
-    storyboard_operators.unregister()
+
+    # done in shot manager init
+    #  greasepencil_toolspanel_ui.unregister()
+
     greasepencil_operators.unregister()
     greasepencil_props.unregister()
