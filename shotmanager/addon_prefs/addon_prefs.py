@@ -188,7 +188,7 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
     displaySMDebugPanel: BoolProperty(
         name="Display Debug Panel",
         description="Display the debug panel and debug tools of Shot Manager.\nIt will be as a tab in the viewport N-Panel",
-        default=True,
+        default=False,
     )
 
     # ****** hidden settings:

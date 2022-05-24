@@ -23,13 +23,9 @@ from collections import defaultdict
 
 import time
 
-import bpy
 import bgl
-import blf
 import gpu
 from mathutils import Vector
-
-from shotmanager.utils.utils import gamma_color
 
 from .shot_clip_widget import BL_UI_ShotClip
 from ..shots_stack_bgl import build_rectangle_mesh, get_lane_origin_y
@@ -50,11 +46,16 @@ class BL_UI_ShotStack:
         self.ui_shots = list()
 
         self.manipulated_clip = None
-        self.manipulated_clip_region = None
+        self.manipulated_clip_handle = None
 
         self.prev_mouse_x = 0
         self.prev_mouse_y = 0
         self.frame_under_mouse = -1
+
+        self.mouseFrame = -1
+        self.previousMouseFrame = -1
+
+        self.previousDrawWasInAClip = False
 
         self.debug_mesh = None
 
@@ -136,11 +137,7 @@ class BL_UI_ShotStack:
 
                 s = _getUIShotFromShotIndex(i)
                 if s is None:
-                    # print("creating new ui shot")
                     s = BL_UI_ShotClip(self.context, i)
-                else:
-                    # print(f"Shot found: {shot.name}, s.mouseover: {s.mouseover}")
-                    pass
                 s.update(lane)
                 self.ui_shots.append(s)
                 s.draw()
@@ -164,6 +161,12 @@ class BL_UI_ShotStack:
         #  print("draw shot stack")
         self.draw_shots()
 
+    def cancelAction(self):
+        if self.manipulated_clip:
+            self.manipulated_clip.highlight = False
+            self.manipulated_clip = None
+            self.manipulated_clip_handle = None
+
     def handle_event(self, context, event, region):
         """Return True if the event is handled for BL_UI_ShotStack"""
         # _logger.debug_ext("*** handle event for BL_UI_ShotStack", col="GREEN", tag="SHOTSTACK_EVENT")
@@ -176,23 +179,30 @@ class BL_UI_ShotStack:
 
         context = self.context
         props = context.scene.UAS_shot_manager_props
-        shots = props.get_shots()
 
         mouse_x, mouse_y = region.view2d.region_to_view(event.mouse_x - region.x, event.mouse_y - region.y)
+
+        currentDrawIsInAClip = False
 
         for uiShot in self.ui_shots:
             # if uiShot.handle_event(context, event, region):
             #     event_handled = True
             #     break
-            manipulated_clip_region = uiShot.get_handle(mouse_x, mouse_y)
+            manipulated_clip_handle = uiShot.get_clip_handle(mouse_x, mouse_y)
+            uiShot.mouseover = False
 
-            if manipulated_clip_region is not None:
+            if manipulated_clip_handle is not None:
 
                 # mouse over #################
                 # NOTE: mouseover works but is not used (= desactivated in draw function) because it has to be associated
                 # with a redraw when no events are handle, which is hardware greedy (moreover reactive components are not
                 # in the philosophy of Blender)
+
+                # self.previousDrawWasInAClip = True
+                currentDrawIsInAClip = True
                 uiShot.mouseover = True
+                # event_handled = True
+                # config.gRedrawShotStack = True
 
                 if event.type == "LEFTMOUSE":
                     if event.value == "PRESS":
@@ -200,7 +210,9 @@ class BL_UI_ShotStack:
 
                         # active clip ##################
                         self.manipulated_clip = uiShot
-                        self.manipulated_clip_region = manipulated_clip_region
+                        self.manipulated_clip_handle = manipulated_clip_handle
+                        self.mouseFrame = int(region.view2d.region_to_view(event.mouse_x - region.x, 0)[0])
+                        self.previousMouseFrame = self.mouseFrame
 
                         # double click #################
                         counter = time.perf_counter()
@@ -215,70 +227,100 @@ class BL_UI_ShotStack:
 
                     elif event.value == "RELEASE":
                         #  bpy.ops.ed.undo_push(message=f"Change Shot...")
-                        self.manipulated_clip = None
-                        self.manipulated_clip_region = None
+                        # self.manipulated_clip = None
+                        # self.manipulated_clip_handle = None
+                        self.cancelAction()
+                    # event_handled = False
 
                 elif event.type in ["MOUSEMOVE", "INBETWEEN_MOUSEMOVE"]:
-                    uiShot.highlight = True
+                    pass
+                #  uiShot.highlight = True
 
-                    if event.value == "PRESS":
-                        #  _logger.debug_ext(f"   key pressed", col="BLUE", tag="SHOTSTACK_EVENT")
-                        if self.manipulated_clip:
-                            mouse_frame = int(region.view2d.region_to_view(event.mouse_x - region.x, 0)[0])
-                            prev_mouse_frame = int(region.view2d.region_to_view(self.prev_mouse_x, 0)[0])
-                            self.manipulated_clip.handle_mouse_interaction(
-                                self.manipulated_clip_region, mouse_frame - prev_mouse_frame
-                            )
-                            # self.manipulated_clip.update()
-                            if self.manipulated_clip_region != 0:
-                                self.frame_under_mouse = mouse_frame
-                            event_handled = True
-                    elif event.value == "RELEASE":
-                        #  _logger.debug_ext(f"   key released", col="BLUE", tag="SHOTSTACK_EVENT")
-                        if self.manipulated_clip:
-                            self.manipulated_clip.highlight = False
-                            self.manipulated_clip = None
-                            self.frame_under_mouse = None
-                            event_handled = True
+                # #_mouseMove()
+                # if event.value == "PRESS":
+                #     #  _logger.debug_ext(f"   key pressed", col="BLUE", tag="SHOTSTACK_EVENT")
+                #     if self.manipulated_clip:
+                #         mouse_frame = int(region.view2d.region_to_view(event.mouse_x - region.x, 0)[0])
+                #         prev_mouse_frame = int(region.view2d.region_to_view(self.prev_mouse_x, 0)[0])
+                #         self.manipulated_clip.handle_mouse_interaction(
+                #             self.manipulated_clip_handle, mouse_frame - prev_mouse_frame
+                #         )
+                #         # self.manipulated_clip.update()
+                #         if self.manipulated_clip_handle != 0:
+                #             self.frame_under_mouse = mouse_frame
+                #         event_handled = True
+                # elif event.value == "RELEASE":
+                #     #  _logger.debug_ext(f"   key released", col="BLUE", tag="SHOTSTACK_EVENT")
+                #     if self.manipulated_clip:
+                #         self.manipulated_clip.highlight = False
+                #         self.manipulated_clip = None
+                #         self.frame_under_mouse = None
+                #         event_handled = True
 
             else:
-                uiShot.highlight = False
-                uiShot.mouseover = False
-                pass
+                # events out of the shot clips
+                if event.type == "LEFTMOUSE":
+                    if event.value == "RELEASE":
+                        #  bpy.ops.ed.undo_push(message=f"Change Shot...")
+                        # uiShot.highlight = False
+                        # self.manipulated_clip = None
+                        # self.manipulated_clip_handle = None
+                        self.cancelAction()
+                        event_handled = True
+
+                # if self.previousDrawWasInAClip:
+                #     config.gRedrawShotStack = True
+                #     if not event_handled:
+                #         self.previousDrawWasInAClip = False
+
+            if event.type in ["MOUSEMOVE", "INBETWEEN_MOUSEMOVE"]:
+                #    uiShot.highlight = True
+                # _mouseMove()
+                if event.value == "PRESS":
+                    #  _logger.debug_ext(f"   key pressed", col="BLUE", tag="SHOTSTACK_EVENT")
+                    if self.manipulated_clip:
+                        self.manipulated_clip.highlight = True
+
+                        mouse_frame = int(region.view2d.region_to_view(event.mouse_x - region.x, 0)[0])
+                        prev_mouse_frame = int(region.view2d.region_to_view(self.prev_mouse_x, 0)[0])
+                        if mouse_frame != self.mouseFrame or prev_mouse_frame != self.previousMouseFrame:
+                            self.manipulated_clip.handle_mouse_interaction(
+                                self.manipulated_clip_handle, mouse_frame - prev_mouse_frame
+                            )
+                            self.mouseFrame = mouse_frame
+                            self.previousMouseFrame = prev_mouse_frame
+
+                        # _logger.debug_ext(
+                        #     f"   mouse frame: {mouse_frame}, prev_mouse_frame: {prev_mouse_frame}",
+                        #     col="BLUE",
+                        #     tag="SHOTSTACK_EVENT",
+                        # )
+
+                        # self.manipulated_clip.update()
+                        if self.manipulated_clip_handle != 0:
+                            self.frame_under_mouse = mouse_frame
+                        event_handled = True
+                    # elif event.value == "RELEASE":
+                    #     #  _logger.debug_ext(f"   key released", col="BLUE", tag="SHOTSTACK_EVENT")
+                    #     if self.manipulated_clip:
+                    #         self.manipulated_clip.highlight = False
+                    #         self.manipulated_clip = None
+                    #         self.frame_under_mouse = None
+                    #         event_handled = True
+
+                else:
+                    uiShot.highlight = False
+
+                    # do a draw when the mouse leave a clip
+                    if self.previousDrawWasInAClip and not currentDrawIsInAClip:
+                        _logger.debug_ext(f"   LEave clip", col="BLUE", tag="SHOTSTACK_EVENT")
+                        config.gRedrawShotStack = True
+                    # self.previousDrawWasInAClip = False
+                    self.previousDrawWasInAClip = currentDrawIsInAClip
+
+                #  uiShot.mouseover = False
 
         self.prev_mouse_x = event.mouse_x - region.x
         self.prev_mouse_y = event.mouse_y - region.y
-
-        # mouse_x, mouse_y = region.view2d.region_to_view(event.mouse_x - region.x, event.mouse_y - region.y)
-        # if event.type == "LEFTMOUSE":
-        #     if event.value == "PRESS":
-        #         # bpy.ops.ed.undo_push(message=f"Set Shot Start...")
-        #         for i, clip in enumerate(config.gShotsStackInfos["clips"]):
-        #             manipulated_clip_region = clip.get_handle(mouse_x, mouse_y)
-        #             if manipulated_clip_region is not None:
-        #                 _logger.debug_ext(f"highlight Shot", col="RED")
-        #                 clip.highlight = True
-        #                 config.gShotsStackInfos["manipulated_clip_index"] = i
-        #                 config.gShotsStackInfos["manipulated_clip_region"] = manipulated_clip_region
-        #                 self.manipulated_clip = clip
-        #                 self.manipulated_clip_region = manipulated_clip_region
-        #                 props.setSelectedShotByIndex(self.manipulated_clip.shot_index)
-        #                 event_handled = True
-        #                 continue
-        #             else:
-        #                 clip.highlight = False
-
-        #         counter = time.perf_counter()
-        #         if self.manipulated_clip and counter - self.prev_click < 0.3:  # Double click.
-        #             props.setCurrentShotByIndex(self.manipulated_clip.shot_index, changeTime=False)
-        #             mouse_frame = int(region.view2d.region_to_view(event.mouse_x - region.x, 0)[0])
-        #             context.scene.frame_current = mouse_frame
-        #             event_handled = True
-
-        #         self.prev_click = counter
-        #     elif event.value == "RELEASE":
-        #         bpy.ops.ed.undo_push(message=f"Change Shot...")
-        #         config.gShotsStackInfos["manipulated_clip_index"] = -1
-        #         config.gShotsStackInfos["manipulated_clip_region"] = None
 
         return event_handled

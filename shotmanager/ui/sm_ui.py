@@ -62,6 +62,8 @@ class UAS_PT_ShotManager(Panel):
         return True
 
     def draw_header(self, context):
+        import addon_utils
+        
         props = context.scene.UAS_shot_manager_props
         # prefs = context.preferences.addons["shotmanager"].preferences
         layout = self.layout
@@ -69,7 +71,6 @@ class UAS_PT_ShotManager(Panel):
 
         row = layout.row(align=True)
 
-        import addon_utils
 
         if "STORYBOARD" == props.layout_mode:
             # icon_stb = "IMAGE_RGB"

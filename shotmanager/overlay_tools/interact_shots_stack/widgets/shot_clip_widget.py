@@ -57,7 +57,7 @@ class BL_UI_ShotClip:
         self.width = 0
         self.font_size = 12
 
-        self._active_region = None
+        self._active_handle = None
         self._active_clip_over = False
         self._highlight = False
         self._mouseover = False
@@ -145,12 +145,12 @@ class BL_UI_ShotClip:
         self._mouseover = value
 
     @property
-    def active_region(self):
-        return self._active_region
+    def active_handle(self):
+        return self._active_handle
 
-    @active_region.setter
-    def active_region(self, value):
-        self._active_region = value
+    @active_handle.setter
+    def active_handle(self, value):
+        self._active_handle = value
 
     @property
     def active_clip_over(self):
@@ -179,23 +179,23 @@ class BL_UI_ShotClip:
         if self.highlight:
             _logger.debug_ext("highlight Shot in draw", col="RED", tag="SHOTSTACK_EVENT")
             color = (0.9, 0.9, 0.9, 0.5)
-        # if self.mouseover:
-        #     _logger.debug_ext(f"mouseover Shot in draw {shot.name}", col="RED", tag="SHOTSTACK_EVENT")
-        #     color = lighten_color(color, 0.3)
+        if self.mouseover:
+            #  _logger.debug_ext(f"mouseover Shot in draw {shot.name}", col="RED", tag="SHOTSTACK_EVENT")
+            color = lighten_color(color, 0.2)
 
         UNIFORM_SHADER_2D.uniform_float("color", color)
         self.clip_mesh.draw(UNIFORM_SHADER_2D, context.region)
 
         # handles highlight
-        if self.active_clip_over and self.highlight and 0 != self.active_region:
+        if self.active_clip_over and self.highlight and 0 != self.active_handle:
             # left handle
-            if -1 == self.active_region:
+            if -1 == self.active_handle:
                 self.end_interaction_mesh.draw(UNIFORM_SHADER_2D, context.region)
                 color = (0.9, 0.0, 0.0, 0.5)
                 UNIFORM_SHADER_2D.uniform_float("color", color)
                 self.start_interaction_mesh.draw(UNIFORM_SHADER_2D, context.region)
             # right handle
-            elif 1 == self.active_region:
+            elif 1 == self.active_handle:
                 self.start_interaction_mesh.draw(UNIFORM_SHADER_2D, context.region)
                 color = (0.9, 0.0, 0.0, 0.5)
                 UNIFORM_SHADER_2D.uniform_float("color", color)
@@ -246,12 +246,9 @@ class BL_UI_ShotClip:
         )
         blf.draw(0, shot.name)
 
-    def get_handle(self, x, y):
+    def get_clip_handle(self, x, y):
         """
         Return the handle of the clip the mouse is on: -1 for start, 0 for move, 1 for end. None otherwise
-        :param x:
-        :param y:
-        :return:
         """
         props = bpy.context.scene.UAS_shot_manager_props
         shots = props.get_shots()
@@ -268,88 +265,12 @@ class BL_UI_ShotClip:
 
         return None
 
-    def handle_event(self, context, event, region):
-        """Return True if the event is handled for BL_UI_ShotStack
-
-        Notes:
-            - self.mouseover is not working perfectly since the over color is left on the last
-              overed shot when the mouse is out of every shots. This is because when leaving shots
-              the event is not returned as being handled.
-        """
-
-        ########
-        # REMOVED
-        ########
-
-        context = self.context
-        props = context.scene.UAS_shot_manager_props
-        shots = props.get_shots()
-        shot = shots[self._shot_index]
-
-        event_handled = False
-
-        # self.mouseover = True
-
-        # if event.type not in ["MOUSEMOVE", "INBETWEEN_MOUSEMOVE", "TIMER"]:
-        _logger.debug_ext(f"     *** event in BL_UI_Shot: {event.type}", col="GREEN", tag="SHOTSTACK_EVENT")
-
-        mouse_x, mouse_y = region.view2d.region_to_view(event.mouse_x - region.x, event.mouse_y - region.y)
-        active_clip_region = self.get_handle(mouse_x, mouse_y)
-
-        # _logger.debug_ext(f"over Shot {shot.name} active_clip_region: {active_clip_region}", col="RED")
-        if active_clip_region is not None:
-
-            # mouse over #################
-            # NOTE: mouseover works but is not used (= desactivated in draw function) because it has to be associated
-            # with a redraw when no events are handle, which is hardware greedy (moreover reactive components are not
-            # in the philosophy of Blender)
-            self.mouseover = True
-
-            if event.type in ["MOUSEMOVE", "INBETWEEN_MOUSEMOVE"]:
-
-                #  _logger.debug_ext(f"over Shot {shot.name}", col="RED")
-                #    self.mouseover = True
-                self.highlight = True
-                # config.gShotsStackInfos["active_clip_index"] = i
-                # config.gShotsStackInfos["active_clip_region"] = active_clip_region
-                # self.active_clip = clip
-                # self.active_clip_region = active_clip_region
-                # props = context.scene.UAS_shot_manager_props
-                #  props.setSelectedShotByIndex(self.shot_index)
-
-                # event_handled = True
-                # else:
-                #     self.mouseover = False
-                #     pass
-                pass
-
-            elif event.type == "LEFTMOUSE":
-                if event.value == "PRESS":
-                    props.setSelectedShotByIndex(self.shot_index)
-
-                    # double click
-                    counter = time.perf_counter()
-                    print(f"pref clic: {self.prev_click}")
-                    if counter - self.prev_click < 0.3:  # Double click.
-                        props.setCurrentShotByIndex(self.shot_index, changeTime=False)
-                        mouse_frame = int(region.view2d.region_to_view(event.mouse_x - region.x, 0)[0])
-                        context.scene.frame_current = mouse_frame
-                        # bpy.ops.uas_shot_manager.set_current_shot(index=self.shot_index)
-                    self.prev_click = counter
-                    event_handled = True
-
-        else:
-            self.highlight = False
-            self.mouseover = False
-            pass
-
-        return event_handled
-
     # TODO: wkip undo doesn't work here !!!
-    def handle_mouse_interaction(self, region, mouse_disp):
+    def handle_mouse_interaction(self, handle, mouse_disp):
         """
-        region: if region == -1:    left clip handle (start)
-                if region == 1:     right lip handle (end)
+        handle: if handle == -1:    left clip handle (start)
+                if handle == 0:     clip (start and end)
+                if handle == 1:     right clip handle (end)
         """
         # from shotmanager.properties.shot import UAS_ShotManager_Shot
 
@@ -359,16 +280,101 @@ class BL_UI_ShotClip:
         shots = props.get_shots()
         shot = shots[self._shot_index]
         # !! we have to be sure we work on the selected shot !!!
-        if region == 1:
+        if handle == 1:
             shot.end += mouse_disp
-        elif region == -1:
+        elif handle == -1:
             shot.start += mouse_disp
             # bpy.ops.uas_shot_manager.set_shot_start(newStart=self.start + mouse_disp)
         else:
             # Very important, don't use properties for changing both start and ends. Depending of the amount of displacement duration can change.
-            if mouse_disp > 0:
-                shot.end += mouse_disp
-                shot.start += mouse_disp
+            if shot.durationLocked:
+                if mouse_disp > 0:
+                    shot.end += mouse_disp
+                # shot.start += mouse_disp
+                else:
+                    shot.start += mouse_disp
+                # shot.end += mouse_disp
             else:
-                shot.start += mouse_disp
-                shot.end += mouse_disp
+                if mouse_disp > 0:
+                    shot.end += mouse_disp
+                    shot.start += mouse_disp
+                else:
+                    shot.start += mouse_disp
+                    shot.end += mouse_disp
+
+    def handle_event(self, context, event, region):
+        """Return True if the event is handled for BL_UI_ShotStack
+
+        Notes:
+            - self.mouseover is not working perfectly since the over color is left on the last
+              overed shot when the mouse is out of every shots. This is because when leaving shots
+              the event is not returned as being handled.
+        """
+
+        event_handled = False
+
+        # ########
+        # # REMOVED
+        # ########
+
+        # context = self.context
+        # props = context.scene.UAS_shot_manager_props
+        # shots = props.get_shots()
+        # shot = shots[self._shot_index]
+
+        # # self.mouseover = True
+
+        # # if event.type not in ["MOUSEMOVE", "INBETWEEN_MOUSEMOVE", "TIMER"]:
+        # _logger.debug_ext(f"     *** event in BL_UI_Shot: {event.type}", col="GREEN", tag="SHOTSTACK_EVENT")
+
+        # mouse_x, mouse_y = region.view2d.region_to_view(event.mouse_x - region.x, event.mouse_y - region.y)
+        # active_clip_region = self.get_clip_handle(mouse_x, mouse_y)
+
+        # # _logger.debug_ext(f"over Shot {shot.name} active_clip_region: {active_clip_region}", col="RED")
+        # if active_clip_region is not None:
+
+        #     # mouse over #################
+        #     # NOTE: mouseover works but is not used (= desactivated in draw function) because it has to be associated
+        #     # with a redraw when no events are handle, which is hardware greedy (moreover reactive components are not
+        #     # in the philosophy of Blender)
+        #     self.mouseover = True
+
+        #     if event.type in ["MOUSEMOVE", "INBETWEEN_MOUSEMOVE"]:
+
+        #         #  _logger.debug_ext(f"over Shot {shot.name}", col="RED")
+        #         #    self.mouseover = True
+        #         self.highlight = True
+        #         # config.gShotsStackInfos["active_clip_index"] = i
+        #         # config.gShotsStackInfos["active_clip_region"] = active_clip_region
+        #         # self.active_clip = clip
+        #         # self.active_clip_region = active_clip_region
+        #         # props = context.scene.UAS_shot_manager_props
+        #         #  props.setSelectedShotByIndex(self.shot_index)
+
+        #         # event_handled = True
+        #         # else:
+        #         #     self.mouseover = False
+        #         #     pass
+        #         pass
+
+        #     elif event.type == "LEFTMOUSE":
+        #         if event.value == "PRESS":
+        #             props.setSelectedShotByIndex(self.shot_index)
+
+        #             # double click
+        #             counter = time.perf_counter()
+        #             print(f"pref clic: {self.prev_click}")
+        #             if counter - self.prev_click < 0.3:  # Double click.
+        #                 props.setCurrentShotByIndex(self.shot_index, changeTime=False)
+        #                 mouse_frame = int(region.view2d.region_to_view(event.mouse_x - region.x, 0)[0])
+        #                 context.scene.frame_current = mouse_frame
+        #                 # bpy.ops.uas_shot_manager.set_current_shot(index=self.shot_index)
+        #             self.prev_click = counter
+        #             event_handled = True
+
+        # else:
+        #     self.highlight = False
+        #     self.mouseover = False
+        #     pass
+
+        return event_handled

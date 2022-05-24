@@ -32,7 +32,7 @@ from shotmanager.ui.warnings_ui import drawWarnings
 
 class UAS_PT_ShotManagerRenderPanelStdalone(Panel):
     bl_idname = "UAS_PT_ShotManagerRenderPanelStdalone"
-    bl_label = "Shot Manager - Render"
+    bl_label = " Shot Manager - Render"
     bl_space_type = "VIEW_3D"
     bl_region_type = "UI"
     bl_category = "Shot Mng - Render"
@@ -48,6 +48,9 @@ class UAS_PT_ShotManagerRenderPanelStdalone(Panel):
         return displayPanel and prefs.display_render_in_properties
 
     def draw_header(self, context):
+        import addon_utils
+
+        props = context.scene.UAS_shot_manager_props
         layout = self.layout
         layout.emboss = "NONE"
 
@@ -55,6 +58,24 @@ class UAS_PT_ShotManagerRenderPanelStdalone(Panel):
         # icon = config.icons_col["ShotManager_Retimer_32"]
         # row.label(icon=icon.icon_id)
         row.label(icon="RENDER_ANIMATION")
+
+        if props.use_project_settings:
+            if "" == props.project_name:
+                row.alert = True
+                row.label(text="<No Project Name>")
+                row.alert = False
+            else:
+                row.label(text=props.project_name)
+
+        addonWarning = [
+            addon.bl_info.get("warning", "")
+            for addon in addon_utils.modules()
+            if addon.bl_info["name"] == "Shot Manager"
+        ]
+        if len(addonWarning):
+            betaRow = row.row()
+            betaRow.alert = True
+            betaRow.label(text=f" *** {addonWarning[0]} ***")
 
     def draw_header_preset(self, context):
         drawHeaderPreset(self, context)
