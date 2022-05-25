@@ -26,6 +26,7 @@ from bpy.types import Panel
 
 from ..config import config
 from ..utils import utils
+from ..utils import utils_ui
 
 from shotmanager.warnings.warnings_ui import drawWarnings
 
@@ -155,15 +156,15 @@ def drawRenderInfos(context, layout):
     props = context.scene.UAS_shot_manager_props
     iconExplorer = config.icons_col["General_Explorer_32"]
 
+    sepHeight = 0.2
+    sepFactor = 1
+
     # layout.separator(factor=-2.5)
     col = layout.column()
-    col.scale_y = 0.8
+    col.scale_y = 0.7
 
-    row = col.row()
-    row.alignment = "CENTER"
-    row.label(text="_____________________")
+    utils_ui.drawSeparatorLine(col, lower_height=1.5, higher_height=0.2)
 
-    sepFactor = 1
     titleRow = col.row()
     titleRow.label(text="Output Infos:")
     if props.use_project_settings:
@@ -181,6 +182,8 @@ def drawRenderInfos(context, layout):
     else:
         # fps = scene.render.fps
         fps = utils.getSceneEffectiveFps(scene)
+
+    col.separator(factor=0.5)
 
     row = col.row()
     row.separator(factor=sepFactor)
@@ -224,7 +227,7 @@ def drawRenderInfos(context, layout):
             row.separator(factor=sepFactor)
             row.label(text=infosStr)
 
-        col.separator()
+        col.separator(factor=sepHeight)
         row = col.row()
         filePath = props.getCurrentShot().getOutputMediaPath("SH_STILL", specificFrame=bpy.context.scene.frame_current)
         row.separator(factor=sepFactor)
@@ -254,7 +257,7 @@ def drawRenderInfos(context, layout):
             row.separator(factor=sepFactor)
             row.label(text=infosStr)
 
-        col.separator()
+        col.separator(factor=sepHeight)
         row = col.row()
         filePath = props.getCurrentShot().getOutputMediaPath("SH_VIDEO", provideName=False)
         row.separator(factor=sepFactor)
@@ -284,7 +287,7 @@ def drawRenderInfos(context, layout):
             row.separator(factor=sepFactor)
             row.label(text=infosStr)
 
-        col.separator()
+        col.separator(factor=sepHeight)
         row = col.row()
         filePath = props.getCurrentShot().getOutputMediaPath("SH_VIDEO", provideName=False)
         row.separator(factor=sepFactor)
@@ -329,7 +332,7 @@ def drawRenderInfos(context, layout):
             row.separator(factor=sepFactor)
             row.label(text=infosStr)
 
-        col.separator()
+        col.separator(factor=sepHeight)
         row = col.row()
         row.separator(factor=sepFactor)
         row.label(text="Playblast Video: " + filePath)

@@ -218,9 +218,9 @@ class UAS_ShotManager_SetCurrentShot(Operator):
         return self.execute(context)
 
     def execute(self, context):
-        _logger.debug_ext(f"Set Current Shot exec: ", col="RED")
+        _logger.debug_ext("Set Current Shot exec: ", col="RED")
 
-        return {"FINISHED"}
+        return {"INTERFACE"}
 
 
 class UAS_ShotManager_ShotDuration(Operator):

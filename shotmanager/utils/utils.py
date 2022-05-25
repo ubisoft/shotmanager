@@ -121,11 +121,20 @@ def addonVersion(addonName):
     return versions
 
 
-def display_addon_registered_version(addon_name, more_info=""):
+def display_addon_registered_version(addon_name, unregister=False, more_info=""):
+    """Display the register or unregister message of the add-on"""
+    _YELLOW = "\33[33m"
+    _GRAY = "\33[1;30m"
+    _WARNING = "\033[31m"
+    _ENDCOLOR = "\033[0m"
+
     versionTupple = addonVersion(addon_name)
     if versionTupple is not None:
-        print(
-            "\n*** *** Registering Ubisoft "
+
+        textReg = "Unr" if unregister else "R"
+        textColor = _GRAY if unregister else _YELLOW
+        text = (
+            f"\n*** *** {textReg}egistering Ubisoft "
             + addon_name
             + " Add-on - version: "
             + versionTupple[0]
@@ -133,8 +142,9 @@ def display_addon_registered_version(addon_name, more_info=""):
             + (f" - {more_info}" if more_info != "" else "")
             + " *** ***"
         )
+        print(f"{textColor}{text}{_ENDCOLOR}")
     else:
-        print('\n *** Cannot find registered version for add-on "' + addon_name + '" ***\n')
+        print(f"{_WARNING}\n *** Cannot find registered version for add-on {addon_name} ***\n{_ENDCOLOR}")
     return versionTupple
 
 
@@ -281,12 +291,14 @@ def openMedia(media_filepath, inExternalPlayer=False):
             filepath=media_filepath,
             relative_path=False,
             show_multiview=False,
+            use_sequence_detection=False,
+            use_udim_detecting=False,
         )
 
         # bpy.data.images.[image_name].reload()
 
-        #  print(f"media_filepath: {media_filepath}")
-        #  print(f"Path(media_filepath).name: {Path(media_filepath).name}")
+        _logger.debug_ext(f"media_filepath: {media_filepath}", col="RED")
+        _logger.debug_ext(f"Path(media_filepath).name: {Path(media_filepath).name}", col="RED")
         myImg = bpy.data.images[Path(media_filepath).name]
         #  print("myImg:" + str(myImg))
         bpy.context.area.spaces.active.image = myImg

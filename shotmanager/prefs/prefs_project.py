@@ -29,6 +29,7 @@ from bpy.props import StringProperty
 # for file browser:
 from bpy_extras.io_utils import ImportHelper
 
+from ..utils import utils_ui
 from ..config import config
 
 #############
@@ -50,6 +51,10 @@ class UAS_ShotManager_ProjectSettings_Prefs(Operator):
         scene = context.scene
         props = scene.UAS_shot_manager_props
 
+        sepLowerHeight = 1.0
+        sepHigherHeight = 0.4
+        sepPropsHeight = 0.7
+
         layout.alert = True
         layout.label(text="Any change is effective immediately")
         layout.alert = False
@@ -59,8 +64,10 @@ class UAS_ShotManager_ProjectSettings_Prefs(Operator):
         box.use_property_decorate = False
         box.enabled = props.use_project_settings
 
-        box.label(text="Project:")
-        col = box.column()
+        mainCol = box.column(align=False)
+
+        mainCol.label(text="Project:")
+        col = mainCol.column()
         col.use_property_split = True
         col.use_property_decorate = False
 
@@ -84,11 +91,13 @@ class UAS_ShotManager_ProjectSettings_Prefs(Operator):
         logoRow.prop(props, "project_logo_path", text="")
         propRowRight.operator("shotmanager.set_project_logo", text="", icon="FILEBROWSER")
 
-        # sequence name parts
         ############
+        # naming conventions
+        ############
+        utils_ui.drawSeparatorLine(mainCol, lower_height=sepLowerHeight, higher_height=sepHigherHeight)
 
-        box.label(text="Naming Conventions:")
-        col = box.column(align=False)
+        mainCol.label(text="Naming Conventions:")
+        col = mainCol.column(align=False)
         col.use_property_split = True
         col.use_property_decorate = False
 
@@ -119,35 +128,19 @@ class UAS_ShotManager_ProjectSettings_Prefs(Operator):
         ############
         # settings
         ############
+        utils_ui.drawSeparatorLine(mainCol, lower_height=sepLowerHeight, higher_height=sepHigherHeight)
 
-        box.label(text="Settings:")
-        col = box.column(align=False)
+        mainCol.label(text="Settings:")
+        col = mainCol.column(align=False)
         col.use_property_split = True
         col.use_property_decorate = False
 
-        col.separator(factor=1)
-        row = col.row()
-        row.prop(props, "project_use_shot_handles")
-        subrow = row.row()
-        subrow.enabled = props.project_use_shot_handles
-        subrow.prop(props, "project_shot_handle_duration", text="Handles")
-
-        stampInfoStr = "Use Stamp Info Add-on"
-        if not props.isStampInfoAvailable():
-            stampInfoStr += "  (Warning: Currently NOT installed)"
-        col.prop(props, "project_use_stampinfo", text=stampInfoStr)
-        row = col.row()
-        row.alignment = "RIGHT"
-        row.enabled = props.project_use_stampinfo
-        # row.separator(factor=0)
-
-        ############
         # resolution
         ############
-        col.separator(factor=2)
+        # col.separator(factor=2)
         col.prop(props, "project_fps")
 
-        col.separator(factor=0.5)
+        col.separator(factor=sepPropsHeight)
         row = col.row(align=False)
         row.use_property_split = False
         row.alignment = "RIGHT"
@@ -162,7 +155,15 @@ class UAS_ShotManager_ProjectSettings_Prefs(Operator):
         row.prop(props, "project_resolution_framed_x", text="Width:")
         row.prop(props, "project_resolution_framed_y", text="Height:")
 
+        # handles
         ############
+        col.separator(factor=sepPropsHeight)
+        row = col.row()
+        row.prop(props, "project_use_shot_handles")
+        subrow = row.row()
+        subrow.enabled = props.project_use_shot_handles
+        subrow.prop(props, "project_shot_handle_duration", text="Handles")
+
         # color space
         ############
         if config.devDebug:
@@ -172,22 +173,36 @@ class UAS_ShotManager_ProjectSettings_Prefs(Operator):
         ############
         # outputs
         ############
+        utils_ui.drawSeparatorLine(mainCol, lower_height=sepLowerHeight, higher_height=sepHigherHeight)
 
-        box.label(text="Outputs:")
-        col = box.column(align=False)
+        mainCol.label(text="Outputs:")
+        col = mainCol.column(align=False)
         col.use_property_split = True
         col.use_property_decorate = False
 
-        col.prop(props, "project_output_first_frame", text="Output First Frame Index")
-        col.prop(props, "project_img_name_digits_padding", text="Image Name Digit Padding")
+        stampInfoStr = "Use Stamp Info Add-on"
+        if not props.isStampInfoAvailable():
+            stampInfoStr += "  (Warning: Currently NOT installed)"
+        col.prop(props, "project_use_stampinfo", text=stampInfoStr)
+        # row = col.row()
+        # row.alignment = "RIGHT"
+        # row.enabled = props.project_use_stampinfo
+
+        col.separator(factor=sepPropsHeight)
+
+        col.prop(props, "project_output_first_frame", text="Video First Frame Index")
+        col.prop(props, "project_img_name_digits_padding", text="Frame Digits Padding")
+        col.separator(factor=sepPropsHeight)
         col.prop(props, "project_output_format", text="Video Output Format")
         col.prop(props, "project_images_output_format", text="Image Output Format")
         col.prop(props, "project_sounds_output_format", text="Sound Output Format")
 
         if config.devDebug:
             # additional settings
-            box.label(text="Additional Settings:")
-            col = box.column()
+            utils_ui.drawSeparatorLine(mainCol, lower_height=sepLowerHeight, higher_height=sepHigherHeight)
+
+            mainCol.label(text="Additional Settings:")
+            col = mainCol.column()
             col.enabled = props.use_project_settings
             col.use_property_split = True
             col.use_property_decorate = False

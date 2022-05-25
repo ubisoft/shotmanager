@@ -549,7 +549,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         description="Number of digits to use for the index of an output image in its name."
         "\nThis setting overrides the related Add-on Preference",
         min=0,
-        default=5,
+        default=4,
         options=set(),
     )
 

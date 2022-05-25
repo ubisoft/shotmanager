@@ -79,6 +79,7 @@ class SM_Logger(logging.getLoggerClass()):
         self._colors = {
             "BLUE": "\33[34m",
             "BLUE_LIGHT": "\33[1;34m",
+            "CYAN": "\033[96m",
             "GREEN": "\33[32m",
             "GREEN_LIGHT": "\33[1;32m",
             "GRAY": "\33[1;30m",

@@ -387,6 +387,7 @@ def launchRenderWithVSEComposite(
 
             print(infoStr)
 
+            # if False:  # debug
             _deleteTempFiles(newTempRenderPath)
 
             # wkip if bg sounds used
@@ -701,7 +702,7 @@ def launchRenderWithVSEComposite(
                 else:
                     deleteTempFiles = not renderPreset.keepIntermediateFiles
                 # ... or not config.devDebug_keepVSEContent
-
+                # deleteTempFiles = False
                 # deleteTempFiles = not config.devDebug_keepVSEContent and not renderPreset.keepIntermediateFiles
                 if deleteTempFiles:
                     _deleteTempFiles(newTempRenderPath)
@@ -812,6 +813,7 @@ def launchRenderWithVSEComposite(
             # ... or not config.devDebug_keepVSEContent
 
             # deleteTempFiles = not config.devDebug_keepVSEContent and not renderPreset.keepIntermediateFiles
+            deleteTempFiles = False
             if deleteTempFiles:
                 # _deleteTempFiles(newTempRenderPath)
                 for i in range(len(renderedShotSequencesArr)):
