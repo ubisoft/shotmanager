@@ -1,111 +1,119 @@
-# 2.0.25 (2022-05-xx)
+-----
+## 2.0.26 (2022-05-25)
+- Added a new layer support in Storyboard Frames for perspective - May not be stable !!!
 
+-----
+## 2.0.25 (2022-05-24)
 - Added the support for a minimal version of Stamp Info
 - Fixed color issue to maintain the view_transform mode (Filmic, Standard...)
 - Fixed issue with Keep Intermediate Rendering Images
 
+
 - Improved the support of the project setting Video First Frame to allow the rendering images to
   use offset indices
+
 
 - Fixed Interactive Shots Stack processor consumption
 - Fixed issue in the offset of camera background video
 
-# 2.0.21 (2022-05-10)
 
+-----
+## 2.0.24 (2022-05-23)
+- Fixed issue in the offset of camera background video
+
+
+-----
+## 2.0.21 (2022-05-10)
 - Display the shots names over the storyboard frames when the camera is hidden
 
 
-# 2.0.20 (2022-05-06)
-
+-----
+## 2.0.20 (2022-05-06)
 - Added key mapping for previous and next shots, previous and next grease pencil key frame
 - Added a frame grid and a frame grid panel to update the way storyboard frames are placed in 3D space
 - Added a passepartout global value on storyboard frames
 
-# 2.0.19 (2022-05-04)
 
+-----
+## 2.0.19 (2022-05-04)
 - Added a UI information to inform the user of a new available version
 
-# 2.0.18 (2022-05-02)
 
-## Storyboard
-
+-----
+## 2.0.18 (2022-05-02)
+#### Storyboard
 - Fixed UI and storyboard frame behaviors
 - Added buttons to add, duplicate or remove grease pencil key frames
 - Changed the alternative behaviors of the storyboard frame action to toggle layer visibility
 
-
-# 2.0.17 (2022-04-29)
-
-## Storyboard
-
+-----
+## 2.0.17 (2022-04-29)
+#### Storyboard
 - Added a frame grid to order the storyboard frames in space
 
 
-# 2.0.16 (2022-04-26)
-
+-----
+## 2.0.16 (2022-04-26)
 - Support for Blender 3.1 and Python 3.10
 
-# 2.0.15 (2022-04-20)
 
-## Storyboard
-
+-----
+## 2.0.15 (2022-04-20)
+#### Storyboard
 - Improved presets panel to support materials + fixes
 - Fixed issue on current object material list
 
-# 2.0.13 (2022-04-20)
 
-## Storyboard
-
+-----
+## 2.0.13 (2022-04-20)
+#### Storyboard
 - Added a "storyboard" layout with a lightened UI for the shots items in the shot list
 - Added a property "Type" to define the role of each shot (storyboard, previz...)
 
-# 2.0.12 (2022-04-15)
 
-## Storyboard
-
+-----
+## 2.0.12 (2022-04-15)
+#### Storyboard
 - Improvement of the storyboard frames entry to draw mode
 - Added a Pin mode to maintain the selected grease pencil object referenced in the panel
 - Added a panel to set up the usages and context of each layer, and support for up to 8 usage presets
 
-## General
-
+#### General
 - Patch to correctly update previous scenes with the usage template
 
 
-# 2.0.10 (2022-04-11)
-
+-----
+## 2.0.10 (2022-04-11)
 - Added a checkbox to set the current shot camera to the viewport when a free grease pencil object enters into draw mode
 - Added a dropdown to set the stroke placement and origin when a free grease pencil object enters into draw mode
 - Modified the alternative behaviors for the Set Current Shot button in order to change the current shot
 without changing the current viewport
 
 
-# 2.0.9 (2022-04-08)
-
+-----
+## 2.0.9 (2022-04-08)
 - Introduction of an Empty object between the shot camera and the storyboard grease pencil in order to
 allow animated frames
 
 
-# 2.0.5 (2022-04-05)
-
+-----
+## 2.0.5 (2022-04-05)
 - Exposed the size of the shot names displayed over the cameras in the viewport
 in the add-on Preferences panel as well as in the Features panel preferences
 - Fix: The name of the shots is not displayed anymore for hidden cameras
 
 
-# 1.7.16 (2022-04-24)
-
-## Camera HUD:
-
+-----
+## 1.7.16 (2022-04-24)
+#### Camera HUD:
 - Exposed the size of the shot names displayed over the cameras in the viewport
 in the add-on Preferences panel as well as in the Features panel preferences
 - Fix: The name of the shots is not displayed anymore for hidden cameras
 
 
-# 1.7.15 (2022-03-30)
-
-## Project:
-
+-----
+## 1.7.15 (2022-03-30)
+#### Project:
 - Improve support for sequence names when using the project settings
    In the Project Settings panel the shot name template has been replaced by 3 identifiers,
    one for the project or act, one for the sequence and one for the shot.
@@ -113,186 +121,167 @@ in the add-on Preferences panel as well as in the Features panel preferences
    In the main panel the name of the sequence, when the project settings are used, is now
    set thanks to a dedicated dialog box.
 
-## Tools:
-
+#### Tools:
 - Improve the shot tool named Create Specified Number of Shots
 
-## OTIO:
-
+#### OTIO:
 - Improve support for custom sequence names
 - Clean code for otio and xml exporters
 
-## Fixed:
-
+#### Fixed:
 - FPS variable issue when rendering and when exporting and importing edit file
 - Issue in rendered sequence video name: the name of the take was not added
 - Issue in OTIO export: the exported take was not the current one
 - Issue in Reset Render Settings: initial values were not all restored
 
-## Doc:
-
+#### Doc:
 - New page for naming of entities
 
-## Dev:
-
+#### Dev:
 - Improved output messages with logger
 - Added patch V1.7.15 to ensure the data compatibility
 - Refactored the Render Settings properties initialization
 
 
-# 1.7.12 (2022-04-24)
-
+-----
+## 1.7.12 (2022-04-24)
 - Integration of a Windows wheel for OpenTimelineIO for Python 3.10.
 This package will be installed on the user Blender Python environment if no
 wheel can be downloaded from the network.
 
 
-# 1.7.11 (2022-03-22)
-
+-----
+## 1.7.11 (2022-03-22)
 - Support for Blender 3.1 and Python 3.10
 
-## Fixed:
-
+#### Fixed:
 - Fixed implicit conversions from float to integer for some Blender parameters because this is not
 supported anymore with Python 3.10
-
 - Fixed float framerate values: now non-integer framerates such as 29.97 are supported thanks to a
 new set of functions in utils.py: convertFramerateToSceneFPS, setSceneFps, getSceneEffectiveFps
 
 
-# 1.7.10 (2022-03-03)
-
-## Fixed:
-
+-----
+## 1.7.10 (2022-03-03)
+#### Fixed:
 - Popup property panels appearing for several operators
 - Shots Play Mode was wrong in Blender 3.x
 
 
-# 1.7.08 (2022-03-04)
+-----
+## 1.7.08 (2022-03-04)
 
-## Rendering:
-
+#### Rendering:
 - Fixed rendering in Playblast mode
 
-## UI:
-
+#### UI:
 - "Render Shot Prefix" parameter was renamed Render Sequence Prefix
 
-## Code:
-
+#### Code:
 - Cleaned the debug folder to make it a well-integrated package
 - render_sequence_prefix renamed to render_sequence_prefix
 
 
-# 1.7.1 (2022-02-11)
+-----
+## 1.7.1 (2022-02-11)
 
-## Fixed:
-
+#### Fixed:
 - Image output were left in the rendering folder
 
-## Edit Files and OpenTimelineIO:
-
+#### Edit Files and OpenTimelineIO:
 - Fixed several bugs in Edit List File import and export
 - Improved the Import dialog window
 - Imported edit framerate and resolution can now be used to update the scene
 - Added a global and project value to control the index of the first frame in the output file names
 - Added a global and project value to control the number of digits in the output file names
 
-## Rendering:
-
+#### Rendering:
 - Added the ability to render image sequences for shots instead or in addition to the videos
 - Added a checkbox in the render panel to choose to keep the intermediate rendered images
 - Added a Reset Render Properties button
 
-## Grease Pencil:
+#### Grease Pencil:
 - Fixed bug when painting on hidden objects
 
-## UI:
-
+#### UI:
 - Added button to take range
 - Added information for output render
 - Added the main panel items menu in the Render Panel
 
-## Code:
-
+#### Code:
 - Code cleaning to match Flake8 rules
 - Refactor code for output media
 ***Warning: temp directory names have changed ***
 
-## Debug
+#### Debug
 - Added debug function to fix entities parent in old blender files
 
-Debug
-Added debug function to fix entities parent in old blender files
 
-# 1.6.9 (2021-12-04)
+-----
+## 1.6.9 (2021-12-04)
 
-## UX
-
+#### UX
 - Improved performances during animation play
 - Fixed crashes on undo and redo with the overlay tools
 - Improved warning messages
 - Exposed a render param to preserve rendered images
 - Added a button to convert camera binding to shots
 
-## Fixes
-
+#### Fixes
 - Fixed Make All Cameras Unique script
 
-## Preferences and user settings
-
+#### Preferences and user settings
 - Can show or hide overlay tools
 
-## Overlay tools
-
+#### Overlay tools
 - Added controls for the Interactive Shots Stack in a toolbar in the Timeline editor
+
 
 - Exposed preferences to display disabled shots in the timeline and shots stack
 - Exposed a Compact mode for the shots stack in the settings
+
 
 - Refactored code for the handlers
 - Improved the look and feel of the Interactive Shots Stack
 - Improved the look and feel of the Sequence Timeline
 
-## UI
-
+#### UI
 - Re-vamped all the Settings panels
+
 
 - Added a viewport target to specify which view will receive the camera and sequence timeline
 - Added a node sheet target to specify which timeline or node sheet editor will receive the interactive
 shots stack
 
+
 - Added a button to toggle the scene sound
+
 
 - Fixed the Frame Time Range button in the Timeline
 - improved behaviors when clicking on Set Current shot with modifier keys
 
-## Add-on preferences
-
+#### Add-on preferences
 - Added a Frame Shot in Timeline option to change the timeline zoom when a shot is selected
 - Added a render parameter in the Render Prefs panel to allow the generated files to be kept on disk
 
-## Documentation
-
+#### Documentation
 - Updated online documentation
 
-## Dev
-
+#### Dev
 - Import OpentimelineIO 0.14 from pip
 - Refactored Logger integration
 
 
-# 1.5.77 (2021-11-05)
+-----
+## 1.5.77 (2021-11-05)
 
-## Tools
-
+#### Tools
 - Removed Camera tools (Create Camera From Viewport and Move Selected Camera to Viewport)
 and introduced a button in the Shots section instead
 - Made the number of occurrences of each camera appear in red when the camera is used
 by several shots
 
-## UI
-
+#### UI
 - Introduced some new icons (Overlay Tools, Retimer, Camera to Viewport...)
 - Changed some custom icons, moved some buttons, improved responsive design
 - Exposed key mapping for:
@@ -300,7 +289,8 @@ by several shots
    - Toggle Overlay Tools: Not defined
 
 
-# 1.5.75 (2021-11-05)
+-----
+## 1.5.75 (2021-11-05)
 
 - Improved warnings display
 - Add a button tp convert camera bound markers to shots
@@ -308,7 +298,8 @@ by several shots
 - Fixed a bug in the play of the sequence timeline
 
 
-# 1.5.74 (2021-11-04)
+-----
+## 1.5.74 (2021-11-04)
 
 Due to heavy framerate drops when playing the animation with the timelines visible
 this version received a deep refactor on the opengl tools:
@@ -326,15 +317,17 @@ to prevent these tools to be drawn at play time in order to increase performance
 - Added settings to control which overlay tools should be disabled at play time
 
 
-# 1.5.73 (2021-09-19)
+-----
+## 1.5.73 (2021-09-19)
 
 - Integrated OpenTimelineIO for Blender 2.93 and higher (Windows only)
 - Small integration fixes
 
 
-# 1.5.70 (2021-10-19)
+-----
+## 1.5.70 (2021-10-19)
 
-## Features
+#### Features
 
 Added 2 new tools for cameras in the Shots Tools panel:
 - New Camera from View: Create a new camera from the current 3D view and put it in the viewport
@@ -345,10 +338,11 @@ New Shot dialog box:
 - Improved the UI
 - Added a label to indicate the number of shots using the selected camera
 
-# 1.5.69 (2021-10-15)
 
-## Retimer Tool
+-----
+## 1.5.69 (2021-10-15)
 
+#### Retimer Tool
 Many improvements / bug fixes / code cleaning on the Retimer:
 
 - Bug fix: Grease Pencil wasn't updated after a time change
@@ -364,85 +358,72 @@ New features:
 Code:
 - deep code refactoring and cleaning
 
-<br><br>
 
-# 1.5.66 (2021-09-23)
+-----
+## 1.5.66 (2021-09-23)
 
-## UI and Installation
-
+#### UI and Installation
 - Cleaned user feedback at install time in case of errors
 - Added a warning when scene contains camera binding and a Clear operator
 
 
-<br><br>
 
-# 1.5.65 (2021-09-20)
+-----
+## 1.5.65 (2021-09-20)
 
 **Shot Manager now works on Blender 2.93!! (with OpenTimelineIO features turn off though :S )**
 
-## UI and Installation
-
+#### UI and Installation
 - Better user feedback in case of installation errors
 
-## Documentation
-
+#### Documentation
 - Improved online documentation
 
 
-<br><br>
 
-# 1.5.62 (2021-09-02)
+-----
+## 1.5.62 (2021-09-02)
 
-## UI
-
+#### UI
 - Added a warning section at the top of the panel to display issues from the scene
 - Placed the debug mode toggle in the addon preferences
 
-## Fix
-
+#### Fix
 - Debug mode is set to off by default
 - Take resolution override has been refactored and fixed
 - Scene resolution is now updated correctly from Shot Manager settings
 
-## Code
-
+#### Code
 - Renamed the debug var from UASdebug to DevDebug
 
 
-<br><br>
+-----
+## 1.5.60 (2021-08-23)
 
-# 1.5.60 (2021-08-23)
-
-## Features
-
+#### Features
 - Added a project settings for the default take name
 
-## Fix
-
+#### Fix
 - Default resolution for new takes is now the same as the scene resolution
 
 
-<br><br>
 
-# 1.5.31 (2021-05-16)
+-----
+## 1.5.31 (2021-05-16)
 
-## Documentation:
-
+#### Documentation:
 - Updated documentation
 
 
-<br><br>
-
-# 1.5.10 (2021/01/30)
+-----
+## 1.5.10 (2021/01/30)
 
 - First version cleaned from production specific code and with major structural fixes.
 
 
-<br><br>
 
---------
-
-# 1.1.X - Production versions
+-----
+## 1.1.X - Production versions
 
 
 

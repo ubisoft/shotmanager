@@ -468,7 +468,11 @@ def drawLayersRow(context, props, layout, editedGpencil, objIsGP):
         _draw_layer_button(layerCol, preset_lines)
         _draw_layer_button(layerCol, preset_fills)
 
-    # Rough layer #######
+    # persp layer #######
+    preset_lines = framePreset.getPresetByID("PERSP")
+    _draw_layer_button(usageButsSubRow, preset_lines)
+
+    # rough layer #######
     preset_lines = framePreset.getPresetByID("ROUGH")
     _draw_layer_button(usageButsSubRow, preset_lines)
 

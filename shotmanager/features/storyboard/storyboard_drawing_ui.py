@@ -273,13 +273,19 @@ def drawLayersRow(context, props, layout, editedGpencil):
     framePreset = context.scene.UAS_shot_manager_props.stb_frameTemplate
     currentFrame = context.scene.frame_current
 
-    def _draw_layer_button(layout, preset):
+    def _draw_layer_button(layout, preset, row_scale_x=1.0):
+        if preset is None:
+            return
+
         if "CANVAS" != preset.id and not preset.used:
             return
 
         layerExists = utils_greasepencil.gpLayerExists(editedGpencil, preset.layerName)
 
         if preset.layerName is not None and layerExists:
+            layerRow = layout.row(align=True)
+            layerRow.scale_x = row_scale_x
+
             currentFrameIsOnLayerKeyFrame = utils_greasepencil.isCurrentFrameOnLayerKeyFrame(
                 editedGpencil, currentFrame, preset.layerName
             )
@@ -296,7 +302,7 @@ def drawLayersRow(context, props, layout, editedGpencil):
                 sm_icon_id = sm_icon.icon_id
 
             depressBut = utils_greasepencil.gpLayerIsActive(editedGpencil, preset.layerName)
-            op = layout.operator(
+            op = layerRow.operator(
                 "uas_shot_manager.greasepencil_setlayerandmatandvisib",
                 depress=depressBut,
                 icon=icon_frame,
@@ -310,6 +316,7 @@ def drawLayersRow(context, props, layout, editedGpencil):
         else:
             warningRow = layout.row(align=True)
             icon_frame = icon_OnprevFrame
+            warningRow.scale_x = row_scale_x
             warningRow.alert = True
             warningRow.enabled = False
             op = warningRow.operator(
@@ -361,10 +368,22 @@ def drawLayersRow(context, props, layout, editedGpencil):
         _draw_layer_button(layerCol, preset_lines)
         _draw_layer_button(layerCol, preset_fills)
 
-    # Rough layer #######
-    preset_lines = framePreset.getPresetByID("ROUGH")
-    _draw_layer_button(usageButsSubRow, preset_lines)
+    # # persp layer #######
+    # if preset_lines.used or preset_fills.used:
+    #     layerCol = usageButsSubRow.column(align=True)
+    #     layerCol.scale_y = doubleLine_scale_y if preset_lines.used and preset_fills.used else 1.0
 
+    preset_persp = framePreset.getPresetByID("PERSP")
+    if preset_persp is not None and preset_persp.used:
+        # layersubRow = usageButsSubRow.row(align=True)
+        # layersubRow.scale_x = 0.5
+        _draw_layer_button(usageButsSubRow, preset_persp, row_scale_x=0.75)
+
+    # rough layer #######
+    preset_rough = framePreset.getPresetByID("ROUGH")
+    _draw_layer_button(usageButsSubRow, preset_rough)
+
+    layout.separator(factor=1.0)
     # usageButsSubRow.scale_x = 1.0
     # layout.scale_x = 1.0
 

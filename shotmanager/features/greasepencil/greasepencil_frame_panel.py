@@ -46,6 +46,11 @@ class UAS_ShotManager_GpTemplatePanel(Operator):
     layer_Rough_name: StringProperty(default="Rough")
     layer_Rough_material: StringProperty(default="Lines")
 
+    # persp #############
+    use_layer_Persp: BoolProperty(name="Use Layer Perspective", default=True)
+    layer_Persp_name: StringProperty(default="Perspective")
+    layer_Persp_material: StringProperty(default="Lines")
+
     # FG #############
     use_layer_FG_Lines: BoolProperty(name="Use Foreground Lines Layer", default=True)
     layer_FG_Lines_name: StringProperty(default="FG Lines")
@@ -85,11 +90,21 @@ class UAS_ShotManager_GpTemplatePanel(Operator):
         else:
             props = prefs
 
-        # rough
+        # rough #############
         preset = props.stb_frameTemplate.getPresetByID("ROUGH")
         self.use_layer_Rough = preset.used
         self.layer_Rough_name = preset.layerName
         self.layer_Rough_material = preset.materialName
+
+        # persp #############
+        preset = props.stb_frameTemplate.getPresetByID("PERSP")
+        if preset is None:
+            # wkipwkipwkip dirty do a patch
+            props.stb_frameTemplate.addPreset("PERSP", True, "Perspective", "Stb_Lines")
+            preset = props.stb_frameTemplate.getPresetByID("PERSP")
+        self.use_layer_Persp = preset.used
+        self.layer_Persp_name = preset.layerName
+        self.layer_Persp_material = preset.materialName
 
         # FG #############
         preset = props.stb_frameTemplate.getPresetByID("FG_LINES")
@@ -154,8 +169,11 @@ class UAS_ShotManager_GpTemplatePanel(Operator):
 
             row.separator(factor=1.0)
 
-        # rough
+        # rough #############
         _drawUsageProps(layout, "use_layer_Rough", "layer_Rough_name", "layer_FG_Lines_material")
+
+        # persp #############
+        _drawUsageProps(layout, "use_layer_Persp", "layer_Persp_name", "layer_FG_Lines_material")
 
         layout.separator(factor=1)
 
@@ -216,7 +234,11 @@ class UAS_ShotManager_GpTemplatePanel(Operator):
             "FG_LINES", self.use_layer_FG_Lines, self.layer_FG_Lines_name, self.layer_FG_Lines_material
         )
 
-        # Rough #############
+        # persp #############
+        props.stb_frameTemplate.addPreset(
+            "PERSP", self.use_layer_Persp, self.layer_Persp_name, self.layer_Persp_material
+        )
+        # rough #############
         props.stb_frameTemplate.addPreset(
             "ROUGH", self.use_layer_Rough, self.layer_Rough_name, self.layer_Rough_material
         )

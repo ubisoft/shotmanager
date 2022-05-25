@@ -122,7 +122,13 @@ class UAS_GreasePencil_FrameTemplate(PropertyGroup):
             _matName = "Stb_Lines"
             props.stb_frameTemplate.addPreset("FG_LINES", _use, _layerName, _matName)
 
-            # Rough #############
+            # persp #############
+            _use = True
+            _layerName = "Perspective"
+            _matName = "Stb_Lines"
+            props.stb_frameTemplate.addPreset("PERSP", _use, _layerName, _matName)
+
+            # rough #############
             _use = True
             _layerName = "Rough"
             _matName = "Stb_Lines"
@@ -131,7 +137,7 @@ class UAS_GreasePencil_FrameTemplate(PropertyGroup):
         else:
             # SCENE
             # initialize the template presets of the scene from the add-on preferences
-            _logger.debug_ext(f"   In SCENE Add Presets", col="GREEN")
+            _logger.debug_ext("   In SCENE Add Presets", col="GREEN")
             # bpy.ops.uas_shot_manager.greasepencil_template_panel(mode=mode)
 
             prefsTemplate = prefs.stb_frameTemplate
@@ -152,7 +158,7 @@ class UAS_GreasePencil_FrameTemplate(PropertyGroup):
     def getPresetIDs(self):
         """Return a list with the supported presets"""
         # order is important
-        return ["ROUGH", "FG_LINES", "FG_FILLS", "MG_LINES", "MG_FILLS", "BG_LINES", "BG_FILLS", "CANVAS"]
+        return ["ROUGH", "PERSP", "FG_LINES", "FG_FILLS", "MG_LINES", "MG_FILLS", "BG_LINES", "BG_FILLS", "CANVAS"]
 
     def getUsedPresets(self):
         """Return a list with the existing used presets"""
@@ -177,7 +183,7 @@ class UAS_GreasePencil_FrameTemplate(PropertyGroup):
         If a preset with the same ID already exists then it is returned as is
         Args:
             id: Can be anything (nothing hardcoded in SM) but most common are:
-                "CANVAS", "BG_LINES", "BG_FILLS", "MG_LINES", "MG_FILLS", "FG_LINES", "FG_FILLS", "ROUGH"
+                "CANVAS", "BG_LINES", "BG_FILLS", "MG_LINES", "MG_FILLS", "FG_LINES", "FG_FILLS", "PERSP", "ROUGH"
         """
         preset = self.getPresetByID(id)
         isNewPreset = False
