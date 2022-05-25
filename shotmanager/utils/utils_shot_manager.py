@@ -19,6 +19,10 @@
 Functions to manipulate Shot Manager
 """
 
+import bpy
+
+from . import utils
+
 
 def sceneHasShotManagerData(scene):
     """Return True if the scene contains Shot Manager data"""
@@ -28,3 +32,19 @@ def sceneHasShotManagerData(scene):
     except Exception:
         propGrp = False
     return propGrp
+
+
+def getStampInfo():
+    """Return the Stamp Info settings instance, None if Stamp Info is not installed
+    or its version is not supported"""
+    prefs = bpy.context.preferences.addons["shotmanager"].preferences
+    stampInfoSettings = None
+
+    # if getattr(scene, "UAS_StampInfo_Settings", None) is None:
+
+    stampInfoInstalledVersion = utils.addonVersion("Stamp Info")
+    if stampInfoInstalledVersion:
+        stampInfoMinVersion = prefs.dependency_min_supported_version("Stamp Info")
+        if stampInfoInstalledVersion[1] >= stampInfoMinVersion[1]:
+            stampInfoSettings = bpy.context.scene.UAS_StampInfo_Settings
+    return stampInfoSettings

@@ -47,6 +47,8 @@ def get_prefs_ui_scale():
     factor = 0
     if bpy.context.preferences.view.ui_scale >= 1.1:
         factor = 0.2
+    if bpy.context.preferences.view.ui_scale >= 1.0:
+        factor = 0.0
     elif bpy.context.preferences.view.ui_scale >= 0.89:
         factor = 1.6
     elif bpy.context.preferences.view.ui_scale >= 0.79:
@@ -62,12 +64,14 @@ def get_prefs_ui_scale():
 def get_lane_origin_y(lane):
     """Return the offset to put under the timeline ruler"""
     RULER_HEIGHT = 52
+    RULER_HEIGHT = 40
     return math.floor(-1.0 * get_lane_height() * lane - (RULER_HEIGHT * bpy.context.preferences.view.ui_scale))
 
 
 def get_lane_height():
     """Return the offset to put under the timeline ruler"""
     LANE_HEIGHT = 22.5
+    LANE_HEIGHT = 18
     return LANE_HEIGHT * get_prefs_ui_scale()
 
 

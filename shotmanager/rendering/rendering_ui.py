@@ -27,7 +27,7 @@ from bpy.types import Panel
 from ..config import config
 from ..utils import utils
 
-from shotmanager.ui.warnings_ui import drawWarnings
+from shotmanager.warnings.warnings_ui import drawWarnings
 
 
 class UAS_PT_ShotManagerRenderPanelStdalone(Panel):

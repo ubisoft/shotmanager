@@ -32,6 +32,7 @@ from shotmanager.config import config
 from shotmanager.rendering.rendering_stampinfo import setStampInfoSettings, renderStampedInfoForShot
 
 from shotmanager.utils import utils
+from shotmanager.utils.utils_shot_manager import getStampInfo
 from shotmanager.utils import utils_store_context as utilsStore
 from shotmanager.utils.utils_os import module_can_be_imported
 
@@ -164,9 +165,10 @@ def launchRenderWithVSEComposite(
     stampInfoSettings = None
 
     if not fileListOnly:
-        if getattr(scene, "UAS_StampInfo_Settings", None) is not None:
-            stampInfoSettings = scene.UAS_StampInfo_Settings
-
+        # if getattr(scene, "UAS_StampInfo_Settings", None) is not None:
+        #     stampInfoSettings = scene.UAS_StampInfo_Settings
+        stampInfoSettings = getStampInfo()
+        if stampInfoSettings is not None:
             preset_useStampInfo = useStampInfo
             if not useStampInfo:
                 stampInfoSettings.stampInfoUsed = False
@@ -179,7 +181,7 @@ def launchRenderWithVSEComposite(
                     setStampInfoSettings(scene)
 
         context.window_manager.UAS_shot_manager_shots_play_mode = False
-        context.window_manager.UAS_shot_manager_display_overlay_tools = False
+    #  context.window_manager.UAS_shot_manager_display_overlay_tools = False
 
     renderFrameByFrame = "LOOP" == props.renderContext.renderFrameIterationMode
     renderWithOpengl = "OPENGL" == props.renderContext.renderHardwareMode
@@ -313,7 +315,8 @@ def launchRenderWithVSEComposite(
             props.renderContext.applyRenderQualitySettings(context)
 
     # change color tone mode to prevent washout bug (usually with "filmic" mode)
-    scene.view_settings.view_transform = "Standard"
+    _logger.debug_ext(f"Changing Color from {scene.view_settings.view_transform} to Standard", col="PINK")
+    # scene.view_settings.view_transform = "Standard"
 
     #######################
     # render each shots
@@ -691,7 +694,15 @@ def launchRenderWithVSEComposite(
                 # bpy.ops.render.render('INVOKE_DEFAULT', animation = True)
                 # bpy.ops.render.opengl ( animation = True )
 
-                deleteTempFiles = not config.devDebug_keepVSEContent and not renderPreset.keepIntermediateFiles
+                deleteTempFiles = True
+                if props.use_project_settings:
+                    if renderPreset.bypass_rendering_project_settings and renderPreset.keepIntermediateFiles:
+                        deleteTempFiles = False
+                else:
+                    deleteTempFiles = not renderPreset.keepIntermediateFiles
+                # ... or not config.devDebug_keepVSEContent
+
+                # deleteTempFiles = not config.devDebug_keepVSEContent and not renderPreset.keepIntermediateFiles
                 if deleteTempFiles:
                     _deleteTempFiles(newTempRenderPath)
 
@@ -792,7 +803,15 @@ def launchRenderWithVSEComposite(
                     sequenceOutputFullPath, handles, projectFps, mediaDictArr=renderedShotSequencesArr
                 )
 
-            deleteTempFiles = not config.devDebug_keepVSEContent and not renderPreset.keepIntermediateFiles
+            deleteTempFiles = True
+            if props.use_project_settings:
+                if renderPreset.bypass_rendering_project_settings and renderPreset.keepIntermediateFiles:
+                    deleteTempFiles = False
+            else:
+                deleteTempFiles = not renderPreset.keepIntermediateFiles
+            # ... or not config.devDebug_keepVSEContent
+
+            # deleteTempFiles = not config.devDebug_keepVSEContent and not renderPreset.keepIntermediateFiles
             if deleteTempFiles:
                 # _deleteTempFiles(newTempRenderPath)
                 for i in range(len(renderedShotSequencesArr)):
@@ -875,7 +894,8 @@ def launchRender(context, renderMode, rootPath, area=None):
 
         if "VIDEO" in preset.outputMediaMode or not config.devDebug:
             output_filepath = f"{props.getOutputMediaPath('TK_EDIT_VIDEO', take, rootPath=props.renderRootPath, insertSeqPrefix=True, provideExtension=False)}.{props.renderSettingsOtio.otioFileType.lower()}"
-            renderedOtioFile = exportTakeEditToOtio(
+            # renderedOtioFile = exportTakeEditToOtio(
+            exportTakeEditToOtio(
                 scene,
                 take,
                 props.renderRootPath,
@@ -887,7 +907,8 @@ def launchRender(context, renderMode, rootPath, area=None):
 
         if config.devDebug and "IMAGE_SEQ" in preset.outputMediaMode:
             output_filepath = f"{props.getOutputMediaPath('TK_EDIT_IMAGE_SEQ', take, rootPath=props.renderRootPath, insertSeqPrefix=True, provideExtension=False)}.{props.renderSettingsOtio.otioFileType.lower()}"
-            renderedOtioFile = exportTakeEditToOtio(
+            # renderedOtioFile = exportTakeEditToOtio(
+            exportTakeEditToOtio(
                 scene,
                 take,
                 props.renderRootPath,
@@ -964,7 +985,7 @@ def launchRender(context, renderMode, rootPath, area=None):
         return False
 
     context.window_manager.UAS_shot_manager_shots_play_mode = False
-    context.window_manager.UAS_shot_manager_display_overlay_tools = False
+    # context.window_manager.UAS_shot_manager_display_overlay_tools = False
 
     # if props.use_project_settings:
     #     props.applyProjectSettings()

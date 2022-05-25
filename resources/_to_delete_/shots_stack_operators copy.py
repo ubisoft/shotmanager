@@ -39,7 +39,7 @@ _logger = sm_logging.getLogger(__name__)
 
 
 def ignoreWidget(context):
-    props = context.scene.UAS_shot_manager_props
+    # props = context.scene.UAS_shot_manager_props
     prefs = bpy.context.preferences.addons["shotmanager"].preferences
 
     # if not len(props.get_shots()):

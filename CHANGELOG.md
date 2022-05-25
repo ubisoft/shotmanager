@@ -1,8 +1,14 @@
-# 2.0.24 (2022-05-xx)
+# 2.0.25 (2022-05-xx)
 
+- Added the support for a minimal version of Stamp Info
+- Fixed color issue to maintain the view_transform mode (Filmic, Standard...)
+- Fixed issue with Keep Intermediate Rendering Images
+
+- Improved the support of the project setting Video First Frame to allow the rendering images to
+  use offset indices
+
+- Fixed Interactive Shots Stack processor consumption
 - Fixed issue in the offset of camera background video
-
-- 
 
 # 2.0.21 (2022-05-10)
 

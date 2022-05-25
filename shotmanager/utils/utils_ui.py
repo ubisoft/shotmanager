@@ -40,6 +40,13 @@ from .utils import convertVersionIntToStr
 ###################
 
 
+def redrawAll(context):
+    """Redraw all"""
+    for area in context.screen.areas:
+        area.tag_redraw()
+    # context.scene.frame_current = context.scene.frame_current
+
+
 def drawSeparatorLine(layout, lower_height=1.0, higher_height=0.0):
     col = layout.column()
 
@@ -104,7 +111,9 @@ def collapsable_panel(
 class UAS_ShotManager_OpenExplorer(Operator):
     bl_idname = "uas_shot_manager.open_explorer"
     bl_label = "Open Explorer"
-    bl_description = "Open an Explorer window located at the render output directory.\nShift + Click: Copy the path into the clipboard"
+    bl_description = (
+        "Open an Explorer window located at the render output directory." "\n+ Shift: Copy the path into the clipboard"
+    )
 
     path: StringProperty()
 

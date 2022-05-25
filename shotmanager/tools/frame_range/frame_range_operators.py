@@ -24,6 +24,7 @@ from bpy.types import Operator
 from bpy.props import FloatProperty
 
 from shotmanager.utils.utils_time import zoom_dopesheet_view_to_range
+from shotmanager.utils import utils_ui
 
 
 class UAS_ShotManager_SetTimeRangeStart(Operator):
@@ -42,6 +43,7 @@ class UAS_ShotManager_SetTimeRangeStart(Operator):
             scene.frame_preview_start = scene.frame_current
         else:
             scene.frame_start = scene.frame_current
+        utils_ui.redrawAll(context)
         return {"FINISHED"}
 
 
@@ -61,6 +63,7 @@ class UAS_ShotManager_SetTimeRangeEnd(Operator):
             scene.frame_preview_end = scene.frame_current
         else:
             scene.frame_end = scene.frame_current
+        utils_ui.redrawAll(context)
         return {"FINISHED"}
 
 
@@ -89,6 +92,7 @@ class UAS_ShotManager_FrameTimeRange(Operator):
             zoom_dopesheet_view_to_range(context, context.scene.frame_preview_start, context.scene.frame_preview_end)
         else:
             zoom_dopesheet_view_to_range(context, context.scene.frame_start, context.scene.frame_end)
+        utils_ui.redrawAll(context)
         return {"FINISHED"}
 
 

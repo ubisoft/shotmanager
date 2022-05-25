@@ -138,10 +138,11 @@ class WkTimelineModalRect(bpy.types.Operator):
     def __init__(self):
         self._handle_draw_onDopeSheet = None
         self.start_interaction_mesh = None
-        print("Start")
+        # print("Start")
 
     def __del__(self):
-        print("End")
+        # print("End")
+        pass
 
     def invoke(self, context, event):
         self.init_loc_x = context.object.location.x

@@ -790,6 +790,9 @@ class ShotManager_Vse_Render(PropertyGroup):
         sequenceScene.render.filepath = outputFile
 
         # change color tone mode to prevent washout bug with "filmic" rendered image mode
+        _logger.debug_ext(
+            f"Changing sequenceScene Color from {sequenceScene.view_settings.view_transform} to Raw", col="PINK"
+        )
         sequenceScene.view_settings.view_transform = "Raw"
 
         if mediaDictArr is not None:
@@ -1204,7 +1207,11 @@ class ShotManager_Vse_Render(PropertyGroup):
         vse_scene.frame_end = frame_end
 
         # change color tone mode to prevent washout bug (usually with "filmic" mode)
-        vse_scene.view_settings.view_transform = "Filmic"  # "raw"
+        _logger.debug_ext(
+            f"Changing vse_scene Color from {vse_scene.view_settings.view_transform} to Standard", col="PINK"
+        )
+        vse_scene.view_settings.view_transform = "Standard"  # "Filmic"  # "raw"
+        _logger.debug_ext(f"new color mode: {vse_scene.view_settings.view_transform}", col="PINK")
 
         bgClip = None
         if "" != self.inputBGMediaPath:

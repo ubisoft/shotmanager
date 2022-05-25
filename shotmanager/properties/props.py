@@ -47,12 +47,13 @@ from .output_params import UAS_ShotManager_OutputParams_Resolution
 from .shot import UAS_ShotManager_Shot
 from .shots_global_settings import UAS_ShotManager_ShotsGlobalSettings
 from .take import UAS_ShotManager_Take
-from ..functions import warnings
+from shotmanager.warnings import warnings
 from ..retimer.retimer_props import UAS_Retimer_Properties
 from ..features.greasepencil.greasepencil_frame_template import UAS_GreasePencil_FrameTemplate
 from ..features.greasepencil.greasepencil_tools_props import UAS_GreasePencil_Tools_Properties
 
 from shotmanager.utils import utils
+from shotmanager.utils.utils_shot_manager import getStampInfo
 
 from shotmanager.config import config
 from shotmanager.config import sm_logging
@@ -534,7 +535,8 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
     project_output_first_frame: IntProperty(
         name="Project Output First Frame Index",
         description="Index of the first frame for rendered image sequences and videos."
-        "\nThis is 0 in most editing applications, sometimes 1."
+        "\nThis is 0 in most editing applications, sometimes 1. Can sometimes be a very custom"
+        "\nvalue such as 1000 or 1001."
         "\nThis setting overrides the related Add-on Preference",
         min=0,
         subtype="TIME",
@@ -670,10 +672,12 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         """
         scene = self.parentScene
 
-        if getattr(scene, "UAS_StampInfo_Settings", None) is None:
+        # if getattr(scene, "UAS_StampInfo_Settings", None) is None:
+        stampInfoSettings = getStampInfo()
+        if stampInfoSettings is None:
             return self.getRenderResolution()
 
-        stampInfoSettings = scene.UAS_StampInfo_Settings
+        # stampInfoSettings = scene.UAS_StampInfo_Settings
         if not stampInfoSettings.stampInfoUsed:
             return self.getRenderResolution()
 
@@ -713,11 +717,18 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
             renderResolutionFramedFull = self.getRenderResolutionForStampInfo()
         elif useStampInfo:
             scene = self.parentScene
-            if getattr(scene, "UAS_StampInfo_Settings", None) is None:
+
+            stampInfoSettings = getStampInfo()
+            if stampInfoSettings is None:
                 renderResolutionFramedFull = self.getRenderResolution()
             else:
-                stampInfoSettings = scene.UAS_StampInfo_Settings
                 renderResolutionFramedFull = stampInfoSettings.getRenderResolutionForStampInfo(scene)
+
+            # if getattr(scene, "UAS_StampInfo_Settings", None) is None:
+            #     renderResolutionFramedFull = self.getRenderResolution()
+            # else:
+            #     stampInfoSettings = scene.UAS_StampInfo_Settings
+            #     renderResolutionFramedFull = stampInfoSettings.getRenderResolutionForStampInfo(scene)
         else:
             renderResolutionFramedFull = self.getRenderResolution()
 
@@ -1249,6 +1260,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         description="Display the camera background image tools and controls in the Shot Properties panel",
         default=False,
     )
+
     # hidden UI parameter
     def _get_expand_cameraBG_properties(self):
         val = self.get("expand_cameraBG_properties", False)
@@ -2175,6 +2187,8 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
     def isStampInfoAvailable(self):
         """Return True if the add-on UAS Stamp Info is available, registred and ready to be used"""
         readyToUse = getattr(bpy.context.scene, "UAS_StampInfo_Settings", None) is not None
+        # stampInfoSettings = getStampInfo()
+        # readyToUse = stampInfoSettings is not None
         return readyToUse
 
     def isStampInfoAllowed(self):

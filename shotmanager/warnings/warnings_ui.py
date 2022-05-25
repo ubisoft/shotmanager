@@ -69,6 +69,21 @@ def drawWarnings(context, ui_component, warningsList, panelType=None):
                         )
                         butsrow.separator(factor=0.5)
 
+                ##############################
+                # dependencies - 7x
+                ##############################
+                # add go to stamp info download button
+                if 71 == w[1]:
+                    butsrow = warningCol.row()
+                    butsrow.separator(factor=0.5)
+                    butsrow.scale_y = 2.0
+                    doc_op = butsrow.operator(
+                        "shotmanager.open_documentation_url", text="Get Stamp Info Latest Release", icon="WORLD_DATA"
+                    )
+                    doc_op.path = "https://github.com/ubisoft/stampinfo/releases/latest"
+                    doc_op.tooltip = "Open Stamp Info latest release page on GitHub: " + doc_op.path
+                    butsrow.separator(factor=0.5)
+
                 # add render settings preset reset button
                 if 110 == w[1]:
                     warningCol.scale_y = 1.0

@@ -239,6 +239,10 @@ def renderStampedInfoForShot(
         stampInfoSettings.notesLine02 = shot.note02
         stampInfoSettings.notesLine03 = shot.note03
 
+        stampInfoSettings.videoFirstFrameIndexUsed = True
+        stampInfoSettings.videoFirstFrameIndex = props.project_output_first_frame
+        stampInfoSettings.frameDigitsPadding = props.project_img_name_digits_padding
+
     else:
         # set stamp info property values according to the scene
         stampInfoSettings.takeName = takeName
@@ -246,6 +250,8 @@ def renderStampedInfoForShot(
         stampInfoSettings.notesLine01 = shot.note01
         stampInfoSettings.notesLine02 = shot.note02
         stampInfoSettings.notesLine03 = shot.note03
+
+        # video_frame_start = prefs.output_first_frame
 
     if not shot.enabled:
         stampInfoSettings.cornerNote = " *** Shot Muted in the take ***"
