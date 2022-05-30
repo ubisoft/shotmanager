@@ -29,7 +29,7 @@ from shotmanager.config import config
 from shotmanager.utils import utils
 from shotmanager.utils import utils_ui
 
-from . import sm_shots_ui
+from . import sm_shots_ui_previz_layout
 from . import sm_shots_ui_storyboard_layout
 from . import sm_takes_ui
 from . import sm_shot_settings_ui
@@ -832,7 +832,7 @@ def register():
         bpy.utils.register_class(cls)
 
     sm_takes_ui.register()
-    sm_shots_ui.register()
+    sm_shots_ui_previz_layout.register()
     sm_shots_ui_storyboard_layout.register()
     sm_shot_settings_ui.register()
 
@@ -840,7 +840,7 @@ def register():
 def unregister():
     sm_shot_settings_ui.unregister()
     sm_shots_ui_storyboard_layout.unregister()
-    sm_shots_ui.unregister()
+    sm_shots_ui_previz_layout.unregister()
     sm_takes_ui.unregister()
 
     for cls in reversed(classes):

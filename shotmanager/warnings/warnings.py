@@ -32,8 +32,11 @@ def getWarnings(props, scene):
     A warning message can be on several lines when the separator \n is used.
 
     Return:
-        An array of tupples made of the warning message and the warning index
-        eg: [("Current file in Read-Only", 1), ("Current scene fps and project fps are different !!", 2)]
+        An array of tupples made of:
+            - the warning message
+            - the warning index
+            - the panel type, which can be 'ALL', 'MAIN' or 'RENDER'
+        eg: [("Current file in Read-Only", 1, 'ALL'), ("Current scene fps and project fps are different !!", 2, 'MAIN')]
     """
     prefs = bpy.context.preferences.addons["shotmanager"].preferences
     warningList = []
@@ -49,13 +52,13 @@ def getWarnings(props, scene):
         stat = Path(currentFilePath).stat()
         # print(f"Blender file Stats: {stat.st_mode}")
         if S_IMODE(stat.st_mode) & S_IWRITE == 0:
-            warningList.append(("Current file in Read-Only", 10))
+            warningList.append(("Current file in Read-Only", 10, "ALL"))
 
     # check if the current framerate is valid according to the project settings (wkip)
     ###########
     if props.use_project_settings:
         if utils.getSceneEffectiveFps(scene) != props.project_fps:
-            warningList.append(("Current scene fps and project fps are different !!", 20))
+            warningList.append(("Current scene fps and project fps are different !!", 20, "ALL"))
 
     # check if a negative render frame may be rendered
     ###########
@@ -73,6 +76,7 @@ def getWarnings(props, scene):
                     "Index of the output frame of a shot minus handle is negative !!"
                     "\nNegative time indicies are not supported by Shot Manager renderer.",
                     30,
+                    "ALL",
                 )
             )
         else:
@@ -81,18 +85,19 @@ def getWarnings(props, scene):
                     "At least one shot starts at a negative frame !!"
                     "\nNegative time indicies are not supported by Shot Manager renderer.",
                     31,
+                    "ALL",
                 )
             )
 
     # check if the resolution render percentage is at 100%
     ###########
     if 100 != scene.render.resolution_percentage:
-        warningList.append(("Render Resolution Percentage is not at 100%", 40))
+        warningList.append(("Render Resolution Percentage is not at 100%", 40, "ALL"))
 
     # check if the resolution render uses multiples of 2
     ###########
     if 0 != scene.render.resolution_x % 2 or 0 != scene.render.resolution_y % 2:
-        warningList.append(("Render Resolution must use multiples of 2", 42))
+        warningList.append(("Render Resolution must use multiples of 2", 42, "ALL"))
 
     # check is the data version is compatible with the current version
     # wkip obsolete code due to post register data version check
@@ -104,7 +109,7 @@ def getWarnings(props, scene):
             #     bpy.context.window_manager.UAS_shot_manager_version,
             # )
 
-            warningList.append(("Debug: Data version is lower than SM version. Save and reload the file.", 50))
+            warningList.append(("Debug: Data version is lower than SM version. Save and reload the file.", 50, "ALL"))
 
     # check if some camera markers bound to cameras are used in the scene
     ###########
@@ -114,8 +119,13 @@ def getWarnings(props, scene):
                 "Scene contains markers binded to cameras"
                 "\n*** Shot Manager is NOT compatible with camera binding ***",
                 60,
+                "ALL",
             )
         )
+
+    ##############################
+    # rendering - 1xx
+    ##############################
 
     # check rendering preset issue found on some old scenes
     ###########
@@ -132,8 +142,19 @@ def getWarnings(props, scene):
                 "Wrong initialization of Render Settings Presets"
                 "\n*** Reset the Render Presets (see in Render panel Tools menu) ***",
                 110,
+                "ALL",
             )
         )
+
+    # check rendering path validity
+    ###########
+    # NOTE: see isRenderRootPathValid()
+
+    if "" == props.renderRootPath:
+        warningList.append(("Rendering path is not defined", 120, "RENDER"))
+
+    elif not props.isRenderRootPathValid():
+        warningList.append(("Rendering path is invalid", 121, "RENDER"))
 
     ##############################
     # dependencies - 7x
@@ -141,6 +162,7 @@ def getWarnings(props, scene):
 
     # check if the installed version of Stamp Info is supported
     ###########
+
     stampInfoInstalledVersion = utils.addonVersion("Stamp Info")
     if stampInfoInstalledVersion:
         stampInfoMinVersion = prefs.dependency_min_supported_version("Stamp Info")
@@ -150,6 +172,7 @@ def getWarnings(props, scene):
                     f"Installed version of Stamp Info add-on is too old: {stampInfoInstalledVersion[0]}"
                     f"\nSupported version: {stampInfoMinVersion[0]}",
                     71,
+                    "ALL",
                 )
             )
 

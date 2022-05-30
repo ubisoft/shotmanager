@@ -16,7 +16,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 """
-UI for the shots in the shots list component
+UI for the shots - previz layout - in the shots list component
 """
 
 import bpy
@@ -24,6 +24,8 @@ from bpy.types import Menu
 
 from shotmanager.config import config
 from shotmanager.utils.utils_os import module_can_be_imported
+
+from . import sm_shots_ui_common
 
 from shotmanager.config import sm_logging
 
@@ -75,32 +77,11 @@ class UAS_UL_ShotManager_Items(bpy.types.UIList):
 
         mainRow.separator(factor=0.8)
 
-        if (
-            props.display_selectbut_in_shotlist
-            or props.display_color_in_shotlist
-            or props.display_cameraBG_in_shotlist
-            or props.display_greasepencil_in_shotlist
-        ):
+        if props.display_selectbut_in_shotlist or props.display_color_in_shotlist or props.display_cameraBG_in_shotlist:
             row = mainRow.row(align=True)
             row.scale_x = 1.0
             if props.display_selectbut_in_shotlist:
                 row.operator("uas_shot_manager.shots_selectcamera", text="", icon="RESTRICT_SELECT_OFF").index = index
-
-            if props.display_notes_in_properties and props.display_notes_in_shotlist:
-                row = row.row(align=True)
-                row.scale_x = 1.0
-
-                if item.hasNotes():
-                    icon = config.icons_col["ShotManager_NotesData_32"]
-                    row.operator("uas_shot_manager.shots_shownotes", text="", icon_value=icon.icon_id).index = index
-                else:
-                    icon = config.icons_col["ShotManager_NotesNoData_32"]
-                    row.operator("uas_shot_manager.shots_shownotes", text="", icon_value=icon.icon_id).index = index
-                    # emptyIcon = config.icons_col["General_Empty_32"]
-                    # row.operator(
-                    #     "uas_shot_manager.shots_shownotes", text="", icon_value=emptyIcon.icon_id
-                    # ).index = index
-                row.scale_x = 1.0
 
             if props.display_cameraBG_in_properties and props.display_cameraBG_in_shotlist:
                 row = row.row(align=True)
@@ -113,30 +94,6 @@ class UAS_UL_ShotManager_Items(bpy.types.UIList):
                 )
                 row.operator("uas_shot_manager.cambgitem", text="", icon_value=icon.icon_id).index = index
                 row.scale_x = 1
-
-            if props.display_storyboard_in_properties and props.display_greasepencil_in_shotlist:
-                row = row.row(align=True)
-                row.scale_x = 1.1
-
-                gp = item.getGreasePencilObject("STORYBOARD")
-                if gp is None:
-                    icon = config.icons_col["ShotManager_CamGPNoShot_32"]
-                    row.operator("uas_shot_manager.greasepencilitem", text="", icon_value=icon.icon_id).index = index
-                else:
-                    # if gp == context.active_object and context.active_object.mode == "PAINT_GPENCIL":
-                    if gp.mode == "PAINT_GPENCIL":
-                        icon = "GREASEPENCIL"
-                        row.alert = True
-                        row.operator("uas_shot_manager.greasepencilitem", text="", icon=icon).index = index
-                    else:
-                        if "STORYBOARD" == item.shotType:
-                            icon = config.icons_col["ShotManager_CamGPStb_32"]
-                        else:
-                            icon = config.icons_col["ShotManager_CamGPShot_32"]
-                        row.operator(
-                            "uas_shot_manager.greasepencilitem", text="", icon_value=icon.icon_id
-                        ).index = index
-                row.scale_x = 0.9
 
             if takeContainsSharedCameras:
                 camrow = row.row(align=True)
@@ -151,8 +108,20 @@ class UAS_UL_ShotManager_Items(bpy.types.UIList):
                 row.prop(item, "color", text="")
                 row.scale_x = 0.45
 
+        if props.display_greasepencil_in_shotlist or props.display_storyboard_in_properties:
+
+            mainRow.separator(factor=0.8)
+            stbRow = mainRow.row(align=True)
+            stbRow.scale_x = 1.0
+
+            if props.display_storyboard_in_properties and props.display_greasepencil_in_shotlist:
+                sm_shots_ui_common.drawStoryboardRow(stbRow, props, item, index)
+
+            if props.display_notes_in_properties and props.display_notes_in_shotlist:
+                sm_shots_ui_common.drawNotesRow(stbRow, props, item, index)
+
         mainRow.separator(factor=0.6)
-        drawShotName(mainRow, props, item)
+        sm_shots_ui_common.drawShotName(mainRow, props, item)
 
         ###########
         # shot values
@@ -316,21 +285,6 @@ class UAS_UL_ShotManager_Items(bpy.types.UIList):
                 grid_flow.operator("uas_shot_manager.nolens", text="-").index = index
                 grid_flow.alert = False
             grid_flow.scale_x = 1.0
-
-
-#####################################################################
-# Functions
-#####################################################################
-
-
-def drawShotName(layout, props, item):
-    row = layout.row(align=True)
-    row.scale_x = 1.0
-    if props.display_enabled_in_shotlist:
-        row.prop(item, "enabled", text="")
-        row.separator(factor=0.9)
-    row.scale_x = 0.8
-    row.label(text=item.name)
 
 
 #################

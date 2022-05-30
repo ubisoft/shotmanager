@@ -99,9 +99,7 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
 
         self.stb_frameTemplate.initialize(mode="ADDON_PREFS")
 
-        versionStr = get_latest_release_version(
-            "https://github.com/ubisoft/shotmanager/releases/latest", verbose=True, use_debug=True
-        )
+        versionStr = get_latest_release_version("https://github.com/ubisoft/shotmanager/releases/latest", verbose=True)
 
         if versionStr is not None:
             # version string from the tags used by our releases on GitHub is formated as this: v<int>.<int>.<int>

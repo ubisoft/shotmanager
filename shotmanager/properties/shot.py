@@ -607,9 +607,11 @@ class UAS_ShotManager_Shot(ShotInterface, PropertyGroup):
             framePreset = self.parentScene.UAS_shot_manager_props.stb_frameTemplate
 
             gpName = self.camera.name + "_GP"
-            gpObj = gp.createStoryboarFrameGP(gpName, framePreset, parentCamera=self.camera, location=[0, 0, -0.5])
 
-            gpProps.updateGreasePencil()
+            if "STORYBOARD" == mode:
+                gpObj = gp.createStoryboarFrameGP(gpName, framePreset, parentCamera=self.camera, location=[0, 0, -0.5])
+                self.shotType = "STORYBOARD"
+                gpProps.updateGreasePencil()
 
         return (gpProps, gpObj)
 

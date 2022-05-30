@@ -20,31 +20,56 @@ Draw the warnings component
 """
 
 
-def drawWarnings(context, ui_component, warningsList, panelType=None):
-    """panelType can be "MAIN" or "RENDERING" """
-    if len(warningsList):
-        prefs = context.preferences.addons["shotmanager"].preferences
-        panelIcon = "TRIA_DOWN" if prefs.general_warning_expanded else "TRIA_RIGHT"
+def drawWarnings(context, ui_component, warningsList, panelType="MAIN"):
+    """panelType can be 'MAIN' or 'RENDER'"""
 
-        box = ui_component.box()
-        panelRow = box.row()
-        panelRow.prop(prefs, "general_warning_expanded", text="", icon=panelIcon, emboss=False)
-        titleRow = panelRow.row()
-        titleRow.alert = True
-        warningStr = f"Warnings: {len(warningsList)}"
-        titleRow.label(text=warningStr)
+    if not len(warningsList):
+        return
 
-        # display text near warnings ############
-        # titleRowRight = panelRow.row()
-        # titleRowRight.alignment = "RIGHT"
-        # titleRowRight.alert = True
-        # titleRowRight.label(text="test")
+    numWarnings_All = 0
+    numWarnings_Main = 0
+    numWarnings_Render = 0
 
-        if prefs.general_warning_expanded:
-            mainRow = box.row()
-            mainRow.separator(factor=2.0)
-            warningsRow = mainRow.column(align=False)
-            for w in warningsList:
+    for i, w in enumerate(warningsList):
+        if "ALL" == w[2]:
+            numWarnings_All += 1
+        elif "MAIN" == w[2]:
+            numWarnings_Main += 1
+        elif "RENDER" == w[2]:
+            numWarnings_Render += 1
+
+    if "MAIN" == panelType:
+        numWarnings = numWarnings_All + numWarnings_Main
+    # elif "RENDER" == panelType:
+    else:
+        numWarnings = numWarnings_All + numWarnings_Render
+
+    if not numWarnings:
+        return
+
+    prefs = context.preferences.addons["shotmanager"].preferences
+    panelIcon = "TRIA_DOWN" if prefs.general_warning_expanded else "TRIA_RIGHT"
+
+    box = ui_component.box()
+    panelRow = box.row()
+    panelRow.prop(prefs, "general_warning_expanded", text="", icon=panelIcon, emboss=False)
+    titleRow = panelRow.row()
+    titleRow.alert = True
+    warningStr = f"Warnings: {len(warningsList)}"
+    titleRow.label(text=warningStr)
+
+    # display text near warnings ############
+    # titleRowRight = panelRow.row()
+    # titleRowRight.alignment = "RIGHT"
+    # titleRowRight.alert = True
+    # titleRowRight.label(text="test")
+
+    if prefs.general_warning_expanded:
+        mainRow = box.row()
+        mainRow.separator(factor=2.0)
+        warningsRow = mainRow.column(align=False)
+        for w in warningsList:
+            if "ALL" == w[2] or panelType == w[2]:
                 messages = w[0].split("\n")
 
                 row = warningsRow.row()
@@ -58,16 +83,15 @@ def drawWarnings(context, ui_component, warningsList, panelType=None):
                         warningCol.label(text="    " + mess)
 
                 # add camera binding conversion buttons
-                if "MAIN" == panelType:
-                    if 60 == w[1]:
-                        warningCol.scale_y = 1.0
-                        butsrow = warningCol.row()
-                        butsrow.separator(factor=0.5)
-                        butsrow.operator("uas_shot_manager.clear_markers_from_camera_binding", text="Clear Binding")
-                        butsrow.operator(
-                            "uas_shot_manager.convert_markers_from_camera_binding_to_shots", text="Convert Binding"
-                        )
-                        butsrow.separator(factor=0.5)
+                if 60 == w[1]:
+                    warningCol.scale_y = 1.0
+                    butsrow = warningCol.row()
+                    butsrow.separator(factor=0.5)
+                    butsrow.operator("uas_shot_manager.clear_markers_from_camera_binding", text="Clear Binding")
+                    butsrow.operator(
+                        "uas_shot_manager.convert_markers_from_camera_binding_to_shots", text="Convert Binding"
+                    )
+                    butsrow.separator(factor=0.5)
 
                 ##############################
                 # dependencies - 7x

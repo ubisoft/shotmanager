@@ -238,7 +238,7 @@ class BL_UI_ShotClip:
         else:
             blf.color(0, *self._name_color_disabled)
 
-        blf.size(0, self.font_size * get_prefs_ui_scale(), 72)
+        blf.size(0, round(self.font_size * get_prefs_ui_scale()), 72)
         textPos_y = self.origin.y + 6 * get_prefs_ui_scale()
         textPos_y = self.origin.y + get_lane_height() * 0.2 * get_prefs_ui_scale()
         blf.position(0, *context.region.view2d.view_to_region(self.origin.x + 1.4, textPos_y), 0)

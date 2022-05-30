@@ -1,6 +1,32 @@
 -----
+## 2.0.30 (2022-05-30)
+# Bug fix:
+- Shots Stack not working on Blender 3.0.x: Fixed an implicit Float to Int conversion
+- Camera passepartout is now working for all the cameras, not only storyboard frames
+- Fixed error message when render root path is invalid
+
+# Rendering
+- Improve warnings and added a dialog box when render root path is invalid
+- Fixed Stamp Info not rendered even when activated in the project settings
+
+
+-----
+## 2.0.28 (2022-05-25)
+- Fix message for json test file
+
+
+-----
+## 2.0.27 (2022-05-25)
+- Bug fixes on rendering
+
+- Bug NOT FIXED: When the number of digits is inferior to the effective number of digits in the
+  file name then the image or sequence are not recognized in the VSE Compositing function
+
+
+-----
 ## 2.0.26 (2022-05-25)
 - Added a new layer support in Storyboard Frames for perspective - May not be stable !!!
+
 
 -----
 ## 2.0.25 (2022-05-24)

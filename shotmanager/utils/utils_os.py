@@ -25,6 +25,7 @@ from pathlib import Path
 import platform
 import requests
 
+from shotmanager.config import config
 from shotmanager.config import sm_logging
 
 _logger = sm_logging.getLogger(__name__)
@@ -162,7 +163,7 @@ def get_latest_release_version(url, verbose=False, use_debug=False):
     # If no timeout is specified explicitly, requests do not time out.
 
     # r = requests.get(url)
-    timeoutInSec = 2
+    timeoutInSec = config.LATEST_VERSION_TIMEOUT
     # latestReleaseVersion = "1.0.0"
 
     # dirty fix to avoir HTTPS warning

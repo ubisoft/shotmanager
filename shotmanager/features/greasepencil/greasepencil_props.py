@@ -78,6 +78,7 @@ class GreasePencilProperties(PropertyGroup):
                 gpObj = gp.createStoryboarFrameGP(
                     gpName, framePreset, parentCamera=self.parentCamera, location=[0, 0, -0.5]
                 )
+                parentShot.shotType = mode
 
             self.canvasOpacity = prefs.storyboard_default_canvasOpacity
             self.distanceFromOrigin = prefs.storyboard_default_distanceFromOrigin

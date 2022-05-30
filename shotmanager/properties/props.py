@@ -22,6 +22,7 @@ Shot Manager properties
 import os
 import re
 import sys
+from pathlib import Path
 
 import bpy
 from bpy.types import Scene
@@ -294,22 +295,24 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         """
         return warnings.getWarnings(self, scene)
 
-    def sceneIsReady(self):
+    def sceneIsReady(self, displayDialogMessage=True):
         renderWarnings = ""
-        if self.renderRootPath.startswith("//"):
-            if "" == bpy.data.filepath:
-                renderWarnings = "*** Save file first ***"
+        if self.renderRootPath.startswith("//") and "" == bpy.data.filepath:
+            renderWarnings = "*** Save file first ***"
 
-        if "" == self.renderRootPath:
+        elif "" == self.renderRootPath:
             renderWarnings = "*** Invalid Output File Name ***"
 
-        if 0 != bpy.context.scene.render.resolution_x % 2 or 0 != bpy.context.scene.render.resolution_y % 2:
+        elif not self.isRenderRootPathValid():
+            renderWarnings = "*** Invalid Render Root Path ***"
+
+        elif 0 != bpy.context.scene.render.resolution_x % 2 or 0 != bpy.context.scene.render.resolution_y % 2:
             renderWarnings = "*** Output resolution must use multiples of 2 ***"
 
-        if len(self.get_shots()) <= 0:
+        elif len(self.get_shots()) <= 0:
             renderWarnings = "*** No shots in the current take ***"
 
-        if "" != renderWarnings:
+        if "" != renderWarnings and displayDialogMessage:
             utils.ShowMessageBox(renderWarnings, "Render Aborted", "ERROR")
             print("Render aborted before start: " + renderWarnings)
             return False
@@ -2175,12 +2178,32 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         default="//",
     )
 
-    def isRenderRootPathValid(self, renderRootFilePath=None):
+    def isRenderRootPathValid(self, renderRootFilePath=None, ignoreRelativePathIfFileNotSaved=True):
+        """Args:
+        ignoreRelativePathIfFileNotSaved: if True, return True as long as the file is not saved, otherwhise the path
+        is tested using the current Blender file path as parent for the path"""
+        rootPath = self.renderRootPath if renderRootFilePath is None else renderRootFilePath
+
+        if "" == rootPath:
+            return False
+
         pathIsValid = False
 
-        rootPath = self.renderRootPath if renderRootFilePath is None else renderRootFilePath
-        if "" != rootPath:
-            if os.path.exists(rootPath) or rootPath.startswith("//"):
+        if rootPath.startswith("//"):
+            if ignoreRelativePathIfFileNotSaved:
+                return True
+
+            currentFilePath = bpy.path.abspath(bpy.data.filepath)
+            # file not saved
+            if "" == currentFilePath:
+                return False
+
+            rootPathAbs = Path(currentFilePath).parent + rootPath[2:]
+            if rootPathAbs.exist():
+                pathIsValid = True
+        else:
+            # if os.path.exists(rootPath) or :
+            if Path(rootPath).exists():
                 pathIsValid = True
         return pathIsValid
 

@@ -19,6 +19,8 @@
 Render properties
 """
 
+import bpy
+
 from bpy.types import PropertyGroup
 from bpy.props import StringProperty, BoolProperty, EnumProperty, IntProperty
 
@@ -324,7 +326,22 @@ class UAS_ShotManager_RenderSettings(PropertyGroup):
         default=False,
     )
 
-    useStampInfo: BoolProperty(name="Use Stamp Info", default=True)
+    def _get_useStampInfo(self):
+        val = self.get("useStampInfo", True)
+
+        # warning! Maybe the returned props is not the right one!!
+        props = bpy.context.scene.UAS_shot_manager_props
+        if props.use_project_settings:
+            if not self.bypass_rendering_project_settings:
+                #     val = self.useStampInfo
+                # else:
+                val = props.project_use_stampinfo
+        return val
+
+    def _set_useStampInfo(self, value):
+        self["useStampInfo"] = value
+
+    useStampInfo: BoolProperty(name="Use Stamp Info", get=_get_useStampInfo, set=_set_useStampInfo, default=True)
 
     rerenderExistingShotVideos: BoolProperty(name="Re-render Exisiting Shot Videos", default=True)
 

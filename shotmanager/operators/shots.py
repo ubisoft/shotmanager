@@ -531,7 +531,8 @@ class UAS_ShotManager_ShotAdd(Operator):
         #         self.cameraName = cameras[0].name
 
         # self.alignCamToView = not props.display_storyboard_in_properties
-        self.addStoryboardGP = props.display_storyboard_in_properties
+
+        # self.addStoryboardGP = props.display_storyboard_in_properties
 
         return wm.invoke_props_dialog(self, width=360)
 

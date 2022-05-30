@@ -145,7 +145,7 @@ class UAS_PT_ShotManager_Render(Operator):
         elif "PLAYBLAST" == prefs.renderMode:
             props.displayPlayblastProps = True
 
-        if not props.sceneIsReady():
+        if not props.sceneIsReady(displayDialogMessage=True):
             return {"CANCELLED"}
 
         if "ANIMATION" == prefs.renderMode:

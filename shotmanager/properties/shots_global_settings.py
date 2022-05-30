@@ -167,7 +167,8 @@ class UAS_ShotManager_ShotsGlobalSettings(PropertyGroup):
 
         for shot in shotList:
             if shot.enabled or props.shotsGlobalSettings.alsoApplyToDisabledShots:
-                if "STORYBOARD" == shot.shotType and shot.isCameraValid():
+                # if "STORYBOARD" == shot.shotType and shot.isCameraValid():
+                if shot.isCameraValid():
                     shot.camera.data.show_passepartout = True
                     shot.camera.data.passepartout_alpha = pow(self.stb_passepartout_alpha, 0.3)
 

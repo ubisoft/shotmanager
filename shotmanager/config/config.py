@@ -54,6 +54,12 @@ def initGlobalVariables():
     global devDebug_ignoreLoggerFormatting
     devDebug_ignoreLoggerFormatting = True and devDebug
 
+    # installation #############
+    # internet/github timeout, in seconds
+
+    global LATEST_VERSION_TIMEOUT
+    LATEST_VERSION_TIMEOUT = 1
+
     # icons ############
     global icons_col
 

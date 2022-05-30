@@ -375,7 +375,7 @@ def draw3DRenderPanel(self, context):
     # scene warnings
     ################
     warningsList = props.getWarnings(scene)
-    drawWarnings(context, layout, warningsList, panelType="RENDERING")
+    drawWarnings(context, layout, warningsList, panelType="RENDER")
 
     row = layout.row()
 
