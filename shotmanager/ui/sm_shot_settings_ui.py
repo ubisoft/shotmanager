@@ -75,8 +75,8 @@ def drawShotPropertiesToolbar(layout, context, shot):
         if props.display_storyboard_in_properties:
             subrow = buttonsrow.row()
             subrow.scale_x = 0.9
-            panelIcon = "TRIA_DOWN" if props.expand_greasepencil_properties else "TRIA_RIGHT"
-            subrow.prop(props, "expand_greasepencil_properties", text="Storyboard", toggle=True, icon=panelIcon)
+            panelIcon = "TRIA_DOWN" if props.expand_storyboard_properties else "TRIA_RIGHT"
+            subrow.prop(props, "expand_storyboard_properties", text="Storyboard", toggle=True, icon=panelIcon)
         if props.display_notes_in_properties:
             subrow = buttonsrow.row()
             subrow.scale_x = 0.9
@@ -115,7 +115,7 @@ class UAS_PT_ShotManager_ShotProperties(Panel):
             props.expand_shot_properties
             or props.expand_notes_properties
             or props.expand_cameraBG_properties
-            or props.expand_greasepencil_properties
+            or props.expand_storyboard_properties
         )
         return val
 
@@ -518,7 +518,7 @@ class UAS_PT_ShotManager_ShotProperties(Panel):
         ######################
         # Grease pencil
         ######################
-        if props.display_storyboard_in_properties and props.expand_greasepencil_properties:
+        if props.display_storyboard_in_properties and props.expand_storyboard_properties:
             gp.draw_greasepencil_shot_properties(self.layout, context, shot)
             gp.draw_greasepencil_global_properties(self.layout, context)
 

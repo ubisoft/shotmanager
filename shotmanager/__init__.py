@@ -81,7 +81,7 @@ bl_info = {
     "author": "Ubisoft - Julien Blervaque (aka Werwack), Romain Carriquiry Borchiari",
     "description": "Easily manage shots and cameras in the 3D View and see the resulting edit in real-time",
     "blender": (3, 1, 0),
-    "version": (2, 0, 30),
+    "version": (2, 0, 31),
     "location": "View3D > Shot Manager",
     "doc_url": "https://ubisoft-shotmanager.readthedocs.io",
     "warning": "BETA Version",
@@ -119,15 +119,16 @@ def register():
     # Pillow lib is installed there
 
     from .install.install_otio_local_dist import install_otio_local_dist
+    from .install.install_dependencies import install_dependencies
 
     if not install_otio_local_dist():
-        from .install.install_dependencies import install_dependencies
 
         installErrorCode = install_dependencies([("opentimelineio", "opentimelineio")], retries=1, timeout=20)
         # installErrorCode = 0
         if 0 != installErrorCode:
             # utils_handlers.removeAllHandlerOccurences(shotMngHandler_frame_change_pre_jumpToShot, handlerCateg=bpy.app.handlers.frame_change_pre)
             # return installErrorCode
+
             print("  *** OpenTimelineIO install failed for Ubisoft Shot Manager ***")
             pass
         else:

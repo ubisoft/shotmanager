@@ -23,6 +23,8 @@ from collections import defaultdict
 
 import time
 
+import bpy
+
 import bgl
 import gpu
 from mathutils import Vector
@@ -169,6 +171,8 @@ class BL_UI_ShotStack:
 
     def handle_event(self, context, event, region):
         """Return True if the event is handled for BL_UI_ShotStack"""
+        prefs = bpy.context.preferences.addons["shotmanager"].preferences
+
         # _logger.debug_ext("*** handle event for BL_UI_ShotStack", col="GREEN", tag="SHOTSTACK_EVENT")
         if not context.window_manager.UAS_shot_manager_toggle_shots_stack_interaction:
             return False
@@ -206,7 +210,9 @@ class BL_UI_ShotStack:
 
                 if event.type == "LEFTMOUSE":
                     if event.value == "PRESS":
+                        prefs.shot_selected_from_shots_stack__flag = True
                         props.setSelectedShotByIndex(uiShot.shot_index)
+                        prefs.shot_selected_from_shots_stack__flag = False
 
                         # active clip ##################
                         self.manipulated_clip = uiShot
@@ -218,10 +224,17 @@ class BL_UI_ShotStack:
                         counter = time.perf_counter()
                         print(f"pref clic: {uiShot.prev_click}")
                         if counter - uiShot.prev_click < 0.3:  # Double click.
-                            props.setCurrentShotByIndex(uiShot.shot_index, changeTime=False)
+                            # props.setCurrentShotByIndex(uiShot.shot_index, changeTime=False)
                             mouse_frame = int(region.view2d.region_to_view(event.mouse_x - region.x, 0)[0])
                             context.scene.frame_current = mouse_frame
-                            # bpy.ops.uas_shot_manager.set_current_shot(index=uiShot.shot_index)
+                            bpy.ops.uas_shot_manager.set_current_shot(
+                                index=uiShot.shot_index,
+                                calledFromShotStack=True,
+                                event_ctrl=event.ctrl,
+                                event_alt=event.alt,
+                                event_shift=event.shift,
+                            )
+
                         uiShot.prev_click = counter
                         event_handled = True
 
@@ -313,7 +326,7 @@ class BL_UI_ShotStack:
 
                     # do a draw when the mouse leave a clip
                     if self.previousDrawWasInAClip and not currentDrawIsInAClip:
-                        _logger.debug_ext(f"   LEave clip", col="BLUE", tag="SHOTSTACK_EVENT")
+                        # _logger.debug_ext(f"   LEave clip", col="BLUE", tag="SHOTSTACK_EVENT")
                         config.gRedrawShotStack = True
                     # self.previousDrawWasInAClip = False
                     self.previousDrawWasInAClip = currentDrawIsInAClip

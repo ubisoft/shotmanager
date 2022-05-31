@@ -183,8 +183,9 @@ class UAS_ShotManager_CamsBGItem(Operator):
     index: bpy.props.IntProperty(default=0)
 
     def invoke(self, context, event):
-        context.scene.UAS_shot_manager_props.setSelectedShotByIndex(self.index)
-
+        props = context.scene.UAS_shot_manager_props
+        props.setSelectedShotByIndex(self.index)
+        props.expand_cameraBG_properties = True
         return {"FINISHED"}
 
 

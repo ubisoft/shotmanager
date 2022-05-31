@@ -401,7 +401,7 @@ def getCameraCorners(context, camera, distance=None, coordSys=None, fixRotation=
         corners = [(f * p) for p in camera.data.view_frame(scene=context.scene)]
     else:
         if fixRotation:
-            mat_rot = mathutils.Matrix.Rotation(math.radians(180.0), 4, 'Y')
+            mat_rot = mathutils.Matrix.Rotation(math.radians(180.0), 4, "Y")
             corners = [mw @ mat_rot @ (f * p) for p in camera.data.view_frame(scene=context.scene)]
         else:
             corners = [mw @ (f * p) for p in camera.data.view_frame(scene=context.scene)]
@@ -497,6 +497,24 @@ def isAnotherObjectInSubMode(obj):
     # when the eye icon of the object is closed (meaning object.hide_get() == True)
     # then context.active_object is None
     return bpy.context.object is not None and obj != bpy.context.object and "OBJECT" != bpy.context.object.mode
+
+
+def getObjectInSubMode():
+    """Return the object currently being edited (= in another mode
+    that OBJECT mode), None otherwise
+    Possible edit modes: 'EDIT', 'POSE', 'SCULPT', 'VERTEX_PAINT', 'WEIGHT_PAINT',
+                'TEXTURE_PAINT', 'PARTICLE_EDIT', 'EDIT_GPENCIL', 'SCULPT_GPENCIL',
+                'PAINT_GPENCIL', 'WEIGHT_GPENCIL', 'VERTEX_GPENCIL'
+                Not 'OBJECT'
+    """
+    # NOTE: we use context.object here instead of context.active_object because
+    # when the eye icon of the object is closed (meaning object.hide_get() == True)
+    # then context.active_object is None
+
+    if bpy.context.object is not None and "OBJECT" != bpy.context.object.mode:
+        return bpy.context.object
+    else:
+        return None
 
 
 def switchToDrawMode(context, gpencil: bpy.types.GreasePencil):

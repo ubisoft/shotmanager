@@ -1,11 +1,17 @@
 -----
+## 2.0.31 (2022-06-01)
+#### Storyboard
+- Continuous drawing mode while changing storyboard frames
+
+
+-----
 ## 2.0.30 (2022-05-30)
-# Bug fix:
+#### Bug fix:
 - Shots Stack not working on Blender 3.0.x: Fixed an implicit Float to Int conversion
 - Camera passepartout is now working for all the cameras, not only storyboard frames
 - Fixed error message when render root path is invalid
 
-# Rendering
+#### Rendering
 - Improve warnings and added a dialog box when render root path is invalid
 - Fixed Stamp Info not rendered even when activated in the project settings
 

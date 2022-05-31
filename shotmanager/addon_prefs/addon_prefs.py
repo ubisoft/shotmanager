@@ -19,11 +19,11 @@
 add-on global preferences
 """
 
+# from distutils.command.config import config
 import bpy
 from bpy.types import AddonPreferences
 from bpy.props import StringProperty, IntProperty, BoolProperty, EnumProperty, FloatProperty, PointerProperty
 
-# from ..config import config
 
 from .addon_prefs_ui import draw_addon_prefs
 
@@ -31,6 +31,7 @@ from shotmanager.features.greasepencil.greasepencil_frame_template import UAS_Gr
 from shotmanager.utils import utils
 from shotmanager.utils.utils_os import get_latest_release_version
 
+from shotmanager.config import config
 from shotmanager.config import sm_logging
 
 _logger = sm_logging.getLogger(__name__)
@@ -99,15 +100,18 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
 
         self.stb_frameTemplate.initialize(mode="ADDON_PREFS")
 
-        versionStr = get_latest_release_version("https://github.com/ubisoft/shotmanager/releases/latest", verbose=True)
+        versionStr = None
+        if not config.devDebug:
+            _logger.debug_ext("Checking for updates online...", col="BLUE")
+            versionStr = get_latest_release_version(
+                "https://github.com/ubisoft/shotmanager/releases/latest", verbose=True
+            )
 
         if versionStr is not None:
             # version string from the tags used by our releases on GitHub is formated as this: v<int>.<int>.<int>
             version = utils.convertVersionStrToInt(versionStr)
 
-            _logger.debug_ext(
-                f"Checking for updates: Latest version of Ubisoft Shot Manager online is: {versionStr}", col="BLUE"
-            )
+            _logger.debug_ext(f"   Latest version of Ubisoft Shot Manager online is: {versionStr}", col="BLUE")
             if self.version()[1] < version:
                 _logger.debug_ext("   New version available online...", col="BLUE")
                 self.newAvailableVersion = version
@@ -268,6 +272,11 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
         default=False,
     )
 
+    stb_global_props_expanded: BoolProperty(
+        name="Expand Global Properties",
+        default=False,
+    )
+
     def _get_stb_overlay_layers_opacity(self):
         # print(" get_projectSeqName")
         props = bpy.context.scene.UAS_shot_manager_props
@@ -416,6 +425,28 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
     current_shot_changes_time_zoom: BoolProperty(
         name="Zoom Timeline to Shot Range",
         description="Automatically zoom the timeline content to frame the shot when the current shot is changed.\n(Add-on preference)",
+        default=False,
+    )
+    current_shot_changes_edited_frame_in_stb: BoolProperty(
+        name="Set selected shot to edited",
+        description="When a shot is selected in the shot list, in Storyboard layout mode, and another one is being edited, then"
+        "\nthe shot becomes the new edited one",
+        default=True,
+    )
+
+    selected_shot_changes_current_shot_in_stb: BoolProperty(
+        name="Set selected shot to current",
+        description="When a shot is selected in the shot list, in Storyboard layout mode, the shot is also set to be the current one",
+        default=True,
+    )
+    selected_shot_in_shots_stack_changes_current_shot_in_stb: BoolProperty(
+        name="Set selected shot in Shots Stack to current",
+        description="When a shot is selected in the Interactive Shots Stack, in Storyboard layout mode, the shot is also set to be the current one",
+        default=False,
+    )
+    shot_selected_from_shots_stack__flag: BoolProperty(
+        description="Flag property (= not exposed in the UI) used When a shot is selected in the Interactive Shots Stack,"
+        "\nin Storyboard layout mode, the shot is also set to be the current one",
         default=False,
     )
 

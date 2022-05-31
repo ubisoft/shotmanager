@@ -19,7 +19,6 @@
 Shot Manager properties
 """
 
-import os
 import re
 import sys
 from pathlib import Path
@@ -55,6 +54,7 @@ from ..features.greasepencil.greasepencil_tools_props import UAS_GreasePencil_To
 
 from shotmanager.utils import utils
 from shotmanager.utils.utils_shot_manager import getStampInfo
+from shotmanager.utils import utils_greasepencil
 
 from shotmanager.config import config
 from shotmanager.config import sm_logging
@@ -1113,6 +1113,23 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
 
         return shotList
 
+    def getEditedStoryboardFrame(self):  # , takeIndex=-1):
+        """Return the edited storyboard frame, None if not are currently being edited"""
+        # takeInd = (
+        #     self.getCurrentTakeIndex()
+        #     if -1 == takeIndex
+        #     else (takeIndex if 0 <= takeIndex and takeIndex < len(self.getTakes()) else -1)
+        # )
+        # if -1 == takeInd:
+        #     return None
+
+        editedGP = utils_greasepencil.getObjectInSubMode()
+        if editedGP is not None and "GPENCIL" == editedGP.type:
+            parentShot = self.getParentShotFromGpChild(editedGP)
+            if parentShot is not None and "STORYBOARD" == parentShot.shotType:
+                return parentShot
+        return None
+
     ########################################################################
     # layout   ###
     ########################################################################
@@ -1204,7 +1221,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         if self.expand_shot_properties:
             self.expand_notes_properties = False
             self.expand_cameraBG_properties = False
-            self.expand_greasepencil_properties = False
+            self.expand_storyboard_properties = False
 
     expand_shot_properties: BoolProperty(
         name="Properties  ",
@@ -1246,7 +1263,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         if self.expand_notes_properties:
             self.expand_shot_properties = False
             self.expand_cameraBG_properties = False
-            self.expand_greasepencil_properties = False
+            self.expand_storyboard_properties = False
 
     expand_notes_properties: BoolProperty(
         name="Notes",
@@ -1277,7 +1294,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         if self.expand_cameraBG_properties:
             self.expand_shot_properties = False
             self.expand_notes_properties = False
-            self.expand_greasepencil_properties = False
+            self.expand_storyboard_properties = False
 
     expand_cameraBG_properties: BoolProperty(
         name="Camera BG",
@@ -1298,27 +1315,27 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
     )
 
     # hidden UI parameter
-    def _get_expand_greasepencil_properties(self):
-        val = self.get("expand_greasepencil_properties", False)
+    def _get_expand_storyboard_properties(self):
+        val = self.get("expand_storyboard_properties", False)
         return val
 
-    def _set_expand_greasepencil_properties(self, value):
-        self["expand_greasepencil_properties"] = value
+    def _set_expand_storyboard_properties(self, value):
+        self["expand_storyboard_properties"] = value
 
-    def _update_expand_greasepencil_properties(self, context):
-        #    print("\n*** expand_greasepencil_properties updated. New state: ", self.expand_greasepencil_properties)
-        if self.expand_greasepencil_properties:
+    def _update_expand_storyboard_properties(self, context):
+        #    print("\n*** expand_storyboard_properties updated. New state: ", self.expand_storyboard_properties)
+        if self.expand_storyboard_properties:
             self.expand_shot_properties = False
             self.expand_notes_properties = False
             self.expand_cameraBG_properties = False
 
-    expand_greasepencil_properties: BoolProperty(
+    expand_storyboard_properties: BoolProperty(
         name="Storyboard Frames",
         description="Expand the Storyboard Frame Properties panel for the selected shot",
         default=False,
-        get=_get_expand_greasepencil_properties,
-        set=_set_expand_greasepencil_properties,
-        update=_update_expand_greasepencil_properties,
+        get=_get_expand_storyboard_properties,
+        set=_set_expand_storyboard_properties,
+        update=_update_expand_storyboard_properties,
         options=set(),
     )
 
@@ -1699,7 +1716,25 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
 
     current_shot_index: IntProperty(default=-1)
 
-    selected_shot_index: IntProperty(name="Shot Name", default=-1)
+    selected_shot_index_call_update__flag: BoolProperty(default=True)
+
+    def _update_selected_shot_index(self, context):
+        if self.selected_shot_index_call_update__flag:
+            prefs = context.preferences.addons["shotmanager"].preferences
+            print("\n*** selected_shot_index. New state: ", self.selected_shot_index)
+
+            if "STORYBOARD" == self.layout_mode:
+                if prefs.shot_selected_from_shots_stack__flag:
+                    # print("   call from shots stack")
+                    if prefs.selected_shot_in_shots_stack_changes_current_shot_in_stb:
+                        #    print("   sel in shots stack")
+                        bpy.ops.uas_shot_manager.set_current_shot(index=self.selected_shot_index)
+                elif prefs.selected_shot_changes_current_shot_in_stb:
+                    print("   _update_selected_shot_index from shot list")
+                    # print("\n*** selected_shot_index. New state: ", self.selected_shot_index)
+                    bpy.ops.uas_shot_manager.set_current_shot(index=self.selected_shot_index)
+
+    selected_shot_index: IntProperty(name="Shot Name", update=_update_selected_shot_index, default=-1)
 
     current_shot_properties_mode: bpy.props.EnumProperty(
         name="Display Shot Properties Mode",
@@ -2651,7 +2686,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
 
         if len(shot.greasePencils):
             gpProps = newShot.greasePencils.add()
-            gpProps.initialize(newShot)
+            gpProps.initialize(newShot, "STORYBOARD")
             sourceGpProps = shot.getGreasePencilProps("STORYBOARD")
             if sourceGpProps is not None:
                 gpProps.copyPropertiesFrom(sourceGpProps)
@@ -3006,9 +3041,12 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         #     source_area = utils.getViewportAreaView(bpy.context, viewport_index=target_area_index)
 
         shotList = self.get_shots()
-        self.current_shot_index = currentShotIndex
 
-        if -1 < currentShotIndex and len(shotList) > currentShotIndex:
+        if not len(shotList):
+            self.current_shot_index = -1
+        elif -1 < currentShotIndex < len(shotList):
+            self.current_shot_index = currentShotIndex
+
             prefs = bpy.context.preferences.addons["shotmanager"].preferences
             currentShot = shotList[currentShotIndex]
 
@@ -3029,6 +3067,15 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
             #     scene.camera = currentShot.camera
             #     utils.setCurrentCameraToViewport2(bpy.context, target_area)
 
+            ##########################
+            # storyboard
+            ##########################
+            if "STORYBOARD" == self.layout_mode and prefs.current_shot_changes_edited_frame_in_stb:
+                if self.getEditedStoryboardFrame() is not None:
+                    bpy.ops.uas_shot_manager.greasepencilitem(
+                        index=currentShotIndex, action="SELECT_AND_DRAW", ignoreSetCurrentShot=True, toggleDrawEditing=False
+                    )
+
             #    self.updateGreasePencilVisibility(self.getCurrentTake())
             self.updateStoryboardFramesDisplay(self.getCurrentTake())
 
@@ -3044,8 +3091,6 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
             # self.enableBGSoundForShot(prefs.toggleCamsSoundBG, currentShot)
             if self.useBGSounds:
                 self.enableBGSoundForShot(True, currentShot)
-
-        # bpy.context.scene.objects["Camera_Sapin"]
 
     def setCurrentShot(self, currentShot, changeTime=None, source_area=None, setCamToViewport=True):
         shotInd = self.getShotIndex(currentShot)
@@ -3076,9 +3121,15 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
 
         return selectedShot
 
-    def setSelectedShotByIndex(self, selectedShotIndex):
+    def setSelectedShotByIndex(self, selectedShotIndex, callUpdateFunc=True):
+        """Args:
+        callUpdateFunc: if True (default), the update function for the property self.selected_shot_index
+        is called
+        """
         # print("setSelectedShotByIndex: selectedShotIndex:", selectedShotIndex)
+        self.selected_shot_index_call_update__flag = callUpdateFunc
         self.selected_shot_index = selectedShotIndex
+        self.selected_shot_index_call_update__flag = True
 
     def setSelectedShot(self, selectedShot):
         shotInd = self.getShotIndex(selectedShot)

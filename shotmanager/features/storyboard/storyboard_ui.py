@@ -239,8 +239,10 @@ def draw_greasepencil_shot_properties(layout, context, shot):
         row = col.row()
 
         canvasSplitRow = row.split(factor=0.32)
-        utils_ui.collapsable_panel(canvasSplitRow, prefs, "stb_canvas_props_expanded", alert=False, text="Canvas")
-        # canvasSplitRow.label(text=" ")
+        canvasTitleRow = utils_ui.collapsable_panel(
+            canvasSplitRow, prefs, "stb_canvas_props_expanded", alert=False, text="Canvas"
+        )
+        #  canvasTitleRow.label(text="Canvas")
         # canvasSplitRow.separator(factor=0.1)
 
         props = context.scene.UAS_shot_manager_props
@@ -260,20 +262,26 @@ def draw_greasepencil_shot_properties(layout, context, shot):
 
         if prefs.stb_canvas_props_expanded:
 
-            sepRow = col.row()
-            sepRow.separator(factor=0.5)
+            col.separator(factor=0.5)
 
-            splitRow = col.split(factor=0.3)
-            splitRow.label(text="   Size:")
+            canvasRow = col.row()
+            canvasRow.separator(factor=2.0)
+            canvasBox = canvasRow.box()
+            canvasCol = canvasBox.column()
+
+            splitRow = canvasCol.split(factor=0.3)
+            splitRow.label(text=" Size:")
             rightSplitRow = splitRow.row(align=True)
             # rightSplitRow.use_property_split = False
             # rightSplitRow.use_property_decorate = False
             rightSplitRow.prop(gpProperties, "canvasSize", text="", slider=True)
 
-            splitRow = col.split(factor=0.3)
+            splitRow = canvasCol.split(factor=0.3)
             # splitRow.separator(factor=2)
-            splitRow.label(text="   Distance:")
+            splitRow.label(text=" Distance:")
             splitRow.prop(gpProperties, "distanceFromOrigin", text="", slider=True)
+
+            col.separator(factor=0.9)
 
         # animation
         ################
@@ -303,10 +311,15 @@ def draw_greasepencil_shot_properties(layout, context, shot):
         )
         if prefs.stb_anim_props_expanded:
 
+            col.separator(factor=0.5)
+
             animRow = col.row()
+            animRow.separator(factor=2.0)
+            animBox = animRow.box()
+            # canvasCol = animBox.column()
             #  animRow.enabled = not channelsLocked
 
-            transformCol = animRow.column()
+            transformCol = animBox.column()
 
             transformRow = transformCol.row()
             transformRow.separator(factor=hSepFactor)
@@ -315,7 +328,7 @@ def draw_greasepencil_shot_properties(layout, context, shot):
             # transformRow.separator(factor=hSepFactor)
             # # or prefs.shot_greasepencil_expanded:
 
-            lockSplitFactor = 0.7
+            lockSplitFactor = 0.9
 
             # location
             ###################
@@ -383,22 +396,24 @@ def draw_greasepencil_shot_properties(layout, context, shot):
             # motion path
             ###################
 
-            transformRow = col.row(align=False)
-            transformRow.separator(factor=5)
+            transformRow = animBox.row(align=False)
+            transformRow.separator(factor=4)
             transformRowSplit = transformRow.split(factor=0.32)
             # transformRow.alignment = "RIGHT"
             # transformRow.ui_units_x = 2
             transformRowSplit.label(text="Motion Path:")
+
+            transformRowSubSplit = transformRowSplit.split(factor=lockSplitFactor)
+
             if gp_child.motion_path is None:
-                transformRowSplit.operator("object.paths_calculate", text="Calculate...", icon="OBJECT_DATA")
+                transformRowSubSplit.operator("object.paths_calculate", text="Calculate...", icon="OBJECT_DATA")
             else:
-                transformRowSplitRow = transformRowSplit.row()
+                transformRowSplitRow = transformRowSubSplit.row()
                 # transformRow.operator("object.paths_update", text="Update Paths", icon="OBJECT_DATA")
                 transformRowSplitRow.operator("object.paths_update_visible", text="Update All Paths", icon="WORLD")
                 transformRowSplitRow.operator("object.paths_clear", text="", icon="X")
 
-            row = col.row()
-            row.separator(factor=0.4)
+            col.separator(factor=0.3)
 
         # row = col.row()
         # row.separator(factor=0.5)
@@ -485,85 +500,91 @@ def draw_greasepencil_global_properties(layout, context):
 
     box = layout.box()
     row = box.row()
-    row.label(text="Storyboard Frames Global Control:")
-    rightRow = row.row()
-    rightRow.alignment = "RIGHT"
-    rightRow.prop(props.shotsGlobalSettings, "alsoApplyToDisabledShots")
+    titleRow = utils_ui.collapsable_panel(
+        row, prefs, "stb_global_props_expanded", alert=False, text="Storyboard Frames Global Control "
+    )
 
-    # Grease pencil
-    # ######################
+    # titleRow.label(text=" Storyboard Frames Global Control:")
 
-    row = box.row()
-    row.use_property_decorate = False
-    # row.separator()
+    if prefs.stb_global_props_expanded:
+        rightRow = row.row()
+        rightRow.alignment = "RIGHT"
+        rightRow.prop(props.shotsGlobalSettings, "alsoApplyToDisabledShots")
 
-    col = row.column()
-    subRow = col.row()
+        # Grease pencil
+        # ######################
 
-    grid_flow = subRow.grid_flow(align=False, columns=2, even_columns=True)
+        row = box.row()
+        row.use_property_decorate = False
+        row.separator(factor=1.8)
 
-    draw_distance(grid_flow, props)
+        col = row.column()
+        subRow = col.row()
 
-    # grid_flow.separator(factor=1.0)
-    # subSubRow = grid_flow.row()
-    # subSubRow.scale_x = 0.6
-    # grid_flow.use_property_split = False
-    grid_flow.prop(prefs, "stb_global_visibility", text="")
-    # grid_flow.operator("uas_shots_settings.use_greasepencil", text="Turn On").useGreasepencil = True
-    # grid_flow.operator("uas_shots_settings.use_greasepencil", text="Turn Off").useGreasepencil = False
-    # grid_flow.prop(props.shotsGlobalSettings, "greasepencilAlpha", text="Alpha")
-    rowCol = subRow.row()
-    rowCol.operator(
-        "uas_shot_manager.remove_grease_pencil", text="", icon="PANEL_CLOSE"
-    ).alsoApplyToDisabledShots = props.shotsGlobalSettings.alsoApplyToDisabledShots
+        grid_flow = subRow.grid_flow(align=False, columns=2, even_columns=True)
 
-    sepRow = col.row()
-    sepRow.separator(factor=0.5)
+        draw_distance(grid_flow, props)
 
-    subRow = col.row()
-    draw_frame_grid(subRow)
+        # grid_flow.separator(factor=1.0)
+        # subSubRow = grid_flow.row()
+        # subSubRow.scale_x = 0.6
+        # grid_flow.use_property_split = False
+        grid_flow.prop(prefs, "stb_global_visibility", text="")
+        # grid_flow.operator("uas_shots_settings.use_greasepencil", text="Turn On").useGreasepencil = True
+        # grid_flow.operator("uas_shots_settings.use_greasepencil", text="Turn Off").useGreasepencil = False
+        # grid_flow.prop(props.shotsGlobalSettings, "greasepencilAlpha", text="Alpha")
+        rowCol = subRow.row()
+        rowCol.operator(
+            "uas_shot_manager.remove_grease_pencil", text="", icon="PANEL_CLOSE"
+        ).alsoApplyToDisabledShots = props.shotsGlobalSettings.alsoApplyToDisabledShots
 
-    utils_ui.drawSeparatorLine(col, lower_height=1.4, higher_height=0.8)
+        sepRow = col.row()
+        sepRow.separator(factor=0.5)
 
-    # overlay tools
-    #########################
-    spaceDataViewport = props.getValidTargetViewportSpaceData(context)
-    onionSkinIsActive = False
-    gridIsActive = False
-    if spaceDataViewport is not None:
-        onionSkinIsActive = spaceDataViewport.overlay.use_gpencil_onion_skin
-        gridIsActive = spaceDataViewport.overlay.use_gpencil_grid
+        subRow = col.row()
+        draw_frame_grid(subRow)
 
-    row = col.row(align=False)
-    overlayCol = row.column()
-    overlaySplit = overlayCol.split(factor=0.2)
-    overlaySplit.label(text="Overlay: ")
-    overlayRighRow = overlaySplit.row()
-    overlayRighRow.operator("uas_shot_manager.greasepencil_toggleonionskin", depress=onionSkinIsActive)
-    overlayRighRow.operator("uas_shot_manager.greasepencil_togglecanvas", depress=gridIsActive)
+        utils_ui.drawSeparatorLine(col, lower_height=1.4, higher_height=0.8)
 
-    row = col.row(align=False)
-    overlaySplit = row.split(factor=0.2)
-    overlaySplit.separator()
-    overlayRighRow = overlaySplit.row()
-    overlayRighRow.prop(spaceDataViewport.overlay, "use_gpencil_fade_layers", text="")
-    # row.prop(spaceDataViewport.overlay, "gpencil_fade_layer")
-    subOverlayRighRow = overlayRighRow.row()
-    subOverlayRighRow.enabled = spaceDataViewport.overlay.use_gpencil_fade_layers
-    subOverlayRighRow.prop(prefs, "stb_overlay_layers_opacity", text="Fade Layers", slider=True)
+        # overlay tools
+        #########################
+        spaceDataViewport = props.getValidTargetViewportSpaceData(context)
+        onionSkinIsActive = False
+        gridIsActive = False
+        if spaceDataViewport is not None:
+            onionSkinIsActive = spaceDataViewport.overlay.use_gpencil_onion_skin
+            gridIsActive = spaceDataViewport.overlay.use_gpencil_grid
 
-    row = col.row(align=False)
-    overlaySplit = row.split(factor=0.2)
-    overlaySplit.separator()
-    overlayRighRow = overlaySplit.row()
-    subOverlayRighRow = overlayRighRow.row()
-    subOverlayRighRow.prop(props.shotsGlobalSettings, "stb_show_passepartout", text="", slider=True)
-    subsubOverlayRighRow = subOverlayRighRow.row()
-    subsubOverlayRighRow.enabled = props.shotsGlobalSettings.stb_show_passepartout
-    subsubOverlayRighRow.prop(props.shotsGlobalSettings, "stb_passepartout_alpha", text="Passepartout", slider=True)
+        row = col.row(align=False)
+        overlayCol = row.column()
+        overlaySplit = overlayCol.split(factor=0.2)
+        overlaySplit.label(text="Overlay: ")
+        overlayRighRow = overlaySplit.row()
+        overlayRighRow.operator("uas_shot_manager.greasepencil_toggleonionskin", depress=onionSkinIsActive)
+        overlayRighRow.operator("uas_shot_manager.greasepencil_togglecanvas", depress=gridIsActive)
 
-    row = col.row(align=True)
-    row.separator(factor=0.5)
+        row = col.row(align=False)
+        overlaySplit = row.split(factor=0.2)
+        overlaySplit.separator()
+        overlayRighRow = overlaySplit.row()
+        overlayRighRow.prop(spaceDataViewport.overlay, "use_gpencil_fade_layers", text="")
+        # row.prop(spaceDataViewport.overlay, "gpencil_fade_layer")
+        subOverlayRighRow = overlayRighRow.row()
+        subOverlayRighRow.enabled = spaceDataViewport.overlay.use_gpencil_fade_layers
+        subOverlayRighRow.prop(prefs, "stb_overlay_layers_opacity", text="Fade Layers", slider=True)
+
+        row = col.row(align=False)
+        overlaySplit = row.split(factor=0.2)
+        overlaySplit.separator()
+        overlayRighRow = overlaySplit.row()
+        subOverlayRighRow = overlayRighRow.row()
+        subOverlayRighRow.prop(props.shotsGlobalSettings, "stb_show_passepartout", text="", slider=True)
+        subsubOverlayRighRow = subOverlayRighRow.row()
+        subsubOverlayRighRow.enabled = props.shotsGlobalSettings.stb_show_passepartout
+        subsubOverlayRighRow.prop(props.shotsGlobalSettings, "stb_passepartout_alpha", text="Passepartout", slider=True)
+
+        row = col.row(align=True)
+        row.separator(factor=0.5)
 
 
 def draw_frame_grid(layout):

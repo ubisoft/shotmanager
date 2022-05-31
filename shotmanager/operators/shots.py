@@ -136,15 +136,30 @@ class UAS_ShotManager_SetCurrentShot(Operator):
 
     bl_options = {"REGISTER", "UNDO"}
 
-    index: bpy.props.IntProperty()
+    index: IntProperty(default=-1)
+
+    event_ctrl: BoolProperty(default=False)
+    event_alt: BoolProperty(default=False)
+    event_shift: BoolProperty(default=False)
+
+    calledFromShotStack: BoolProperty(default=False)
 
     def invoke(self, context, event):
+        _logger.debug_ext(f"Set Current Shot Operator invoke: event type: {event.type}", col="RED")
+
+        self.event_ctrl = event.ctrl
+        self.event_alt = event.alt
+        self.event_shift = event.shift
+
+        return self.execute(context)
+
+    def execute(self, context):
         scene = context.scene
         props = scene.UAS_shot_manager_props
         prefs = bpy.context.preferences.addons["shotmanager"].preferences
         shot = props.getShotByIndex(self.index)
 
-        _logger.debug_ext(f"Set Current Shot invoke: event type: {event.type}", col="RED")
+        _logger.debug_ext("Set Current Shot Operator exec: ", col="RED")
 
         def _updateEditors(changeTime=True, zoom_mode=""):
             # change time range to match shot range
@@ -174,11 +189,15 @@ class UAS_ShotManager_SetCurrentShot(Operator):
                 )
 
         # change shot
-        if not event.ctrl:
+        if not self.event_ctrl:
             props.setCurrentShotByIndex(
-                self.index, changeTime=not event.alt, source_area=context.area, setCamToViewport=not event.shift
+                self.index,
+                changeTime=not self.event_alt,
+                source_area=context.area,
+                setCamToViewport=not self.event_shift,
             )
-            props.setSelectedShotByIndex(self.index)
+            if self.index != props.selected_shot_index and not self.calledFromShotStack:
+                props.setSelectedShotByIndex(self.index)
             _updateEditors(changeTime=False)
         # else:
         #     props.setCurrentShotByIndex(self.index, source_area=context.area)
@@ -190,14 +209,14 @@ class UAS_ShotManager_SetCurrentShot(Operator):
         #     shot.enabled = not shot.enabled
 
         # frame shot range in timeline
-        elif event.ctrl and not event.alt:
+        elif self.event_ctrl and not self.event_alt:
             # if event.alt:
             #     props.setCurrentShotByIndex(self.index, changeTime=False, source_area=context.area)
             # else:
             props.setCurrentShotByIndex(self.index, source_area=context.area)
-            props.setSelectedShotByIndex(self.index)
-            scene.UAS_shot_manager_props.setSelectedShotByIndex(self.index)
-            if event.shift:
+            if self.index != props.selected_shot_index and not self.calledFromShotStack:
+                props.setSelectedShotByIndex(self.index)
+            if self.event_shift:
                 _updateEditors(zoom_mode="EDIT")
             else:
                 _updateEditors(zoom_mode="SHOT")
@@ -215,11 +234,6 @@ class UAS_ShotManager_SetCurrentShot(Operator):
         else:
             pass
 
-        return self.execute(context)
-
-    def execute(self, context):
-        _logger.debug_ext("Set Current Shot exec: ", col="RED")
-
         return {"INTERFACE"}
 
 
@@ -229,7 +243,7 @@ class UAS_ShotManager_ShotDuration(Operator):
     bl_description = "Shot Duration, given by end - start + 1"
     bl_options = {"INTERNAL"}
 
-    index: bpy.props.IntProperty(default=0)
+    index: IntProperty(default=0)
 
     # @classmethod
     # def poll(self, context):
@@ -335,6 +349,7 @@ class UAS_ShotManager_ShowNotes(Operator):
         shot = props.getShotByIndex(self.index)
         shot.selectShotInUI()
         prefs.shot_notes_expanded = True
+        props.expand_notes_properties = True
         return {"FINISHED"}
 
 
@@ -502,6 +517,7 @@ class UAS_ShotManager_ShotAdd(Operator):
         if "STORYBOARD" == self.layout_mode:
             prefs.addShot_start = 100
             prefs.addShot_end = prefs.addShot_start + 75
+            self.addStoryboardGP = True
         else:
             if selectedShot is None:
                 prefs.addShot_start = scene.frame_current
@@ -509,6 +525,8 @@ class UAS_ShotManager_ShotAdd(Operator):
                 prefs.addShot_start = selectedShot.end + 1
 
             prefs.addShot_end = prefs.addShot_start + prefs.new_shot_duration
+
+            # self.addStoryboardGP = props.display_storyboard_in_properties
 
         # self.cameraName = "NEW_CAMERA"
         # camName = props.getActiveCameraName()
@@ -903,7 +921,7 @@ class UAS_ShotManager_ShotMove(Operator):
     bl_description = "Move selected shot up or down in the take, in other words before or after in the edit"
     bl_options = {"REGISTER", "UNDO"}
 
-    action: bpy.props.EnumProperty(items=(("UP", "Up", ""), ("DOWN", "Down", "")))
+    action: EnumProperty(items=(("UP", "Up", ""), ("DOWN", "Down", "")))
 
     @classmethod
     def description(self, context, properties):
@@ -1429,7 +1447,7 @@ class UAS_ShotManager_Shots_SelectCamera(Operator):
     bl_description = "Deselect all and select specified camera"
     bl_options = {"REGISTER", "UNDO"}
 
-    index: bpy.props.IntProperty(default=0)
+    index: IntProperty(default=0)
 
     # @classmethod
     # def poll(self, context):

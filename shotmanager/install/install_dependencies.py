@@ -42,7 +42,13 @@ def install_library(lib_names, pip_retries=2, pip_timeout=-100):
     # return ["Debug message"]
 
     lib_name = lib_names[0]
-    if not module_can_be_imported(lib_name):
+    lib_already_installed = module_can_be_imported(lib_name)
+
+    _logger.debug_ext(
+        f"Checking for lib {lib_name}: {'' if lib_already_installed else 'Not yet '}installed", col="GREEN"
+    )
+
+    if not lib_already_installed:
 
         outputMess = f"   # {lib_name} Install Failed: "
         # NOTE: possible issue on Mac OS, check the content of the function internet_on()

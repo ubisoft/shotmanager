@@ -564,10 +564,12 @@ class UAS_ShotManager_GreasePencilItem(Operator):
     bl_options = {"INTERNAL", "UNDO"}
 
     index: IntProperty(default=0)
-
     action: StringProperty(default="DO_NOTHING")
+    ignoreSetCurrentShot: BoolProperty(default=False)
+    toggleDrawEditing: BoolProperty(default=False)
 
     def invoke(self, context, event):
+        props = context.scene.UAS_shot_manager_props
         self.action = "DO_NOTHING"
 
         if not event.ctrl and not event.shift and not event.alt:
@@ -577,13 +579,17 @@ class UAS_ShotManager_GreasePencilItem(Operator):
         if not event.ctrl and not event.shift and event.alt:
             self.action = "SELECT_AND_DRAW"
 
+        props.setSelectedShotByIndex(self.index, callUpdateFunc=False)
+        props.expand_storyboard_properties = True
+        self.ignoreSetCurrentShot = False
+
         return self.execute(context)
 
     def execute(self, context):
         scene = context.scene
         props = scene.UAS_shot_manager_props
         framePreset = props.stb_frameTemplate
-        props.setSelectedShotByIndex(self.index)
+        # props.setSelectedShotByIndex(self.index)
         shot = props.getShotByIndex(self.index)
         gp_child = shot.getGreasePencilObject("STORYBOARD")
 
@@ -593,6 +599,9 @@ class UAS_ShotManager_GreasePencilItem(Operator):
         #     pass
 
         if gp_child is None and "SELECT_AND_DRAW" == self.action:
+
+            utils_greasepencil.switchToObjectMode()
+            return {"FINISHED"}
 
             if shot.camera is None or shot.camera.name not in scene.objects or scene.objects[shot.camera.name] is None:
                 print("Camera is invalid for grease pencil parenting - Cancelling...")
@@ -618,24 +627,36 @@ class UAS_ShotManager_GreasePencilItem(Operator):
 
             # draw mode TOGGLE
             elif "SELECT_AND_DRAW" == self.action:
+
+                if self.toggleDrawEditing:
+                    # if the current shot is being edited then we go back to OBJECT mode
+                    editedGP = props.getEditedStoryboardFrame()
+                    if editedGP == shot:
+                        utils_greasepencil.switchToObjectMode()
+                        utils.select_object(gp_child)
+                        return {"FINISHED"}
+
                 if utils_greasepencil.isAnotherObjectInSubMode(gp_child):
                     utils_greasepencil.switchToObjectMode()
 
                 utils.select_object(gp_child)
 
                 # quit draw mode
+                # wkipwkipwkipwkip
                 if "OBJECT" != gp_child.mode:
-                    utils_greasepencil.switchToObjectMode()
+                    if self.toggleDrawEditing:
+                        utils_greasepencil.switchToObjectMode()
 
                 # enter draw mode
                 else:
-                    props.setCurrentShotByIndex(self.index)
+                    if not self.ignoreSetCurrentShot:
+                        props.setCurrentShotByIndex(self.index)
                     shot.updateGreasePencils()
                     # set ink layer, else topmost layer
                     gp.setInkLayerReadyToDraw(gp_child)
                     utils_greasepencil.switchToDrawMode(context, gp_child)
 
-        utils.setPropertyPanelContext(context, "DATA")
+        # utils.setPropertyPanelContext(context, "DATA")
 
         return {"FINISHED"}
 

@@ -45,13 +45,17 @@ def drawStoryboardRow(layout, props, item, index):
         if gp.mode == "PAINT_GPENCIL":
             icon = "GREASEPENCIL"
             row.alert = True
-            row.operator("uas_shot_manager.greasepencilitem", text="", icon=icon).index = index
+            op = row.operator("uas_shot_manager.greasepencilitem", text="", icon=icon)
+            op.index = index
+            op.toggleDrawEditing = True
         else:
             if "STORYBOARD" == item.shotType:
                 icon = config.icons_col["ShotManager_CamGPStb_32"]
             else:
                 icon = config.icons_col["ShotManager_CamGPShot_32"]
-            row.operator("uas_shot_manager.greasepencilitem", text="", icon_value=icon.icon_id).index = index
+            op = row.operator("uas_shot_manager.greasepencilitem", text="", icon_value=icon.icon_id)
+            op.index = index
+            op.toggleDrawEditing = True
     row.scale_x = 0.9
 
 
