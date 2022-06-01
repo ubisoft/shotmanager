@@ -21,7 +21,8 @@ To do: module description here.
 
 import bpy
 
-from .rendering_props import UAS_ShotManager_RenderGlobalContext, UAS_ShotManager_RenderSettings
+from .rendering_settings_props import UAS_ShotManager_RenderSettings
+from .rendering_global_props import UAS_ShotManager_RenderGlobalContext
 from .rendering_prefs import UAS_ShotManager_Render_Prefs
 from . import rendering_operators
 

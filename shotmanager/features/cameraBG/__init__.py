@@ -21,7 +21,6 @@ Camera BG
 
 # from shotmanager.config import config
 
-# from .greasepencil_props import UAS_ShotManager_RenderGlobalContext, UAS_ShotManager_RenderSettings
 from . import cameraBG_operators
 
 from shotmanager.config import sm_logging

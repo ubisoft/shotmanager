@@ -1,4 +1,12 @@
 -----
+## 2.0.32 (2022-06-01)
+#### General
+- Added a Shift modifier key on shot creation and deletion to skip the dialog box
+- Added an add-on preference to store the Delete Cameras of the Remove Shots operator
+- Moved the render warning UI component below in the panel to make it more visible
+
+
+-----
 ## 2.0.31 (2022-06-01)
 #### Storyboard
 - Continuous drawing mode while changing storyboard frames

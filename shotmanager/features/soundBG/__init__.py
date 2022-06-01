@@ -16,14 +16,13 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 """
-To do: module description here.
+Sounds init
 """
 
 import bpy
 
 from shotmanager.config import config
 
-# from .greasepencil_props import UAS_ShotManager_RenderGlobalContext, UAS_ShotManager_RenderSettings
 from . import soundBG_operators
 
 from shotmanager.config import sm_logging

@@ -957,6 +957,15 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
     )
 
     ##################
+    # remove shot ###
+    ##################
+    removeShot_deleteCameras: BoolProperty(
+        name="Delete Shots Cameras",
+        description="Store the user preference regarding the camera deletion",
+        default=False,
+    )
+
+    ##################
     # global temps values   ###
     ##################
 

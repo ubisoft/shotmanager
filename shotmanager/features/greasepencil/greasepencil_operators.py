@@ -144,8 +144,15 @@ class UAS_ShotManager_OT_SelectShotGreasePencil(Operator):
 
         # select SELECTED shot
         # if event.shift and not event.ctrl and not event.alt:
-        if context.active_object is not None and context.active_object.mode != "OBJECT":
-            bpy.ops.object.mode_set(mode="OBJECT")
+
+        # NOTE: we use context.object here instead of context.active_object because
+        # when the eye icon of the object is closed (meaning object.hide_get() == True)
+        # then context.active_object is None
+        # if context.active_object is not None and context.active_object.mode != "OBJECT":
+        if context.object is not None and context.object.mode != "OBJECT":
+            if not context.object.visible_get():
+                context.object.hide_viewport = False
+                bpy.ops.object.mode_set(mode="OBJECT")
 
         if -1 == self.index:
             shot = props.getShotByIndex(props.current_shot_index)
@@ -630,7 +637,9 @@ class UAS_ShotManager_GreasePencilItem(Operator):
 
                 if self.toggleDrawEditing:
                     # if the current shot is being edited then we go back to OBJECT mode
-                    editedGP = props.getEditedStoryboardFrame()
+                    # editedGP = props.getEditedStoryboardFrame()
+                    # editedGP = props.getEditedGPShot(shotType="STORYBOARD")
+                    editedGP = props.getEditedGPShot(shotType=None)
                     if editedGP == shot:
                         utils_greasepencil.switchToObjectMode()
                         utils.select_object(gp_child)

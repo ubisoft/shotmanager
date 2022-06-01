@@ -245,9 +245,10 @@ def launchRenderWithVSEComposite(
 
         if preset_useStampInfo:
             # getRenderResolutionForStampInfo already integrates the percentage_res value (*** found in the current scene ! ***)
-            renderResolutionFramed = stampInfoSettings.getRenderResolutionForStampInfo(scene)
-            # renderResolutionFramed[0] = int(renderResolutionFramedFull[0] * renderPreset.resolutionPercentage / 100)
-            # renderResolutionFramed[1] = int(renderResolutionFramedFull[1] * renderPreset.resolutionPercentage / 100)
+
+            ##   renderResolutionFramed = stampInfoSettings.getRenderResolutionForStampInfo(scene)
+            renderResolutionFramed[0] = int(renderResolutionFramed[0] * renderPreset.resolutionPercentage / 100)
+            renderResolutionFramed[1] = int(renderResolutionFramed[1] * renderPreset.resolutionPercentage / 100)
         else:
             renderResolutionFramed[0] = int(renderResolutionFramed[0] * renderPreset.resolutionPercentage / 100)
             renderResolutionFramed[1] = int(renderResolutionFramed[1] * renderPreset.resolutionPercentage / 100)
@@ -306,8 +307,17 @@ def launchRenderWithVSEComposite(
 
     if "PLAYBLAST" == renderMode:
         props.renderContext.applyRenderQualitySettingsOpengl(context, renderQuality="VERY_LOW")
-        if not preset_useStampInfo:
-            props.renderContext.applyBurnInfos(context)
+        # if (renderPreset.stampRenderInfo and preset_useStampInfo) or not renderPreset.stampRenderInfo:
+        #     # disable stamping from scene
+        # elif renderPreset.stampRenderInfo and not preset_useStampInfo:
+        #     # ensable stamping from scene
+        # NOTE: The display of the scene metadata is not turned off by design so that it is still
+        # used if turned on by the user
+        if renderPreset.stampRenderInfo and not preset_useStampInfo:
+            props.renderContext.applyBurnInfos(context, enabled=True)
+        elif not renderPreset.stampRenderInfo:
+            props.renderContext.applyBurnInfos(context, enabled=False)
+
     else:
         if renderWithOpengl:
             props.renderContext.applyRenderQualitySettingsOpengl(context)
@@ -446,10 +456,11 @@ def launchRenderWithVSEComposite(
                         print("      ------------------------------------------")
                         print("      \n" + textInfo + "  -  " + textInfo02)
 
-                        if "PLAYBLAST" == renderMode and renderPreset.stampRenderInfo and not preset_useStampInfo:
-                            bpy.context.scene.render.use_stamp_frame = False
-                            scene.render.use_stamp_note = True
-                            scene.render.stamp_note_text += textInfo02 + "\\n" + textInfo
+                        if "PLAYBLAST" == renderMode:
+                            if renderPreset.stampRenderInfo and not preset_useStampInfo:
+                                scene.render.use_stamp_frame = False
+                                scene.render.use_stamp_note = True
+                                scene.render.stamp_note_text += textInfo02 + "\\n" + textInfo
 
                         if renderWithOpengl:
                             #     _logger.debug("ici loop playblast")

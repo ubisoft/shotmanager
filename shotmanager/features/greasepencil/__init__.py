@@ -19,26 +19,17 @@
 Grease Pencil
 """
 
-from shotmanager.config import config
 
-# from .greasepencil_props import UAS_ShotManager_RenderGlobalContext, UAS_ShotManager_RenderSettings
 from . import greasepencil_props
 from . import greasepencil_operators
 
-# from . import greasepencil_toolspanel_ui
-
-# from . import greasepencil_frame_template
 from . import greasepencil_frame_panel
 from . import greasepencil_tools_props
 
-# from . import greasepencil_toolboxTest_ui
-
+# from shotmanager.config import config
 from shotmanager.config import sm_logging
 
 _logger = sm_logging.getLogger(__name__)
-
-
-# _classes = (UAS_ShotManager_OT_AddGreasePencil,)
 
 
 def register():

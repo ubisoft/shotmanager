@@ -36,11 +36,10 @@ from bpy.props import (
     PointerProperty,
 )
 
-# from shotmanager.operators import shots
 from .montage_interface import MontageInterface
 
-# from .media import UAS_ShotManager_Media
-from shotmanager.rendering.rendering_props import UAS_ShotManager_RenderSettings, UAS_ShotManager_RenderGlobalContext
+from shotmanager.rendering.rendering_settings_props import UAS_ShotManager_RenderSettings
+from shotmanager.rendering.rendering_global_props import UAS_ShotManager_RenderGlobalContext
 
 from .output_params import UAS_ShotManager_OutputParams_Resolution
 
@@ -1113,8 +1112,10 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
 
         return shotList
 
-    def getEditedStoryboardFrame(self):  # , takeIndex=-1):
-        """Return the edited storyboard frame, None if not are currently being edited"""
+    def getEditedGPShot(self, shotType=None):  # , takeIndex=-1):
+        """Return the edited grease pencil parent shot, None if no grease pencil child is currently being edited
+        Args:
+            shotType: can be None, PREVIZ or STORYBOARD"""
         # takeInd = (
         #     self.getCurrentTakeIndex()
         #     if -1 == takeIndex
@@ -1126,9 +1127,24 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         editedGP = utils_greasepencil.getObjectInSubMode()
         if editedGP is not None and "GPENCIL" == editedGP.type:
             parentShot = self.getParentShotFromGpChild(editedGP)
-            if parentShot is not None and "STORYBOARD" == parentShot.shotType:
-                return parentShot
+            if parentShot is not None:
+                if shotType is None:
+                    return parentShot
+                elif shotType == parentShot.shotType:
+                    return parentShot
         return None
+
+    def getEditedStoryboardFrame(self):  # , takeIndex=-1):
+        """Return the edited storyboard frame, None if not are currently being edited"""
+        # takeInd = (
+        #     self.getCurrentTakeIndex()
+        #     if -1 == takeIndex
+        #     else (takeIndex if 0 <= takeIndex and takeIndex < len(self.getTakes()) else -1)
+        # )
+        # if -1 == takeInd:
+        #     return None
+
+        return self.getEditedGPShot(shotType="STORYBOARD")
 
     ########################################################################
     # layout   ###
@@ -3073,7 +3089,10 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
             if "STORYBOARD" == self.layout_mode and prefs.current_shot_changes_edited_frame_in_stb:
                 if self.getEditedStoryboardFrame() is not None:
                     bpy.ops.uas_shot_manager.greasepencilitem(
-                        index=currentShotIndex, action="SELECT_AND_DRAW", ignoreSetCurrentShot=True, toggleDrawEditing=False
+                        index=currentShotIndex,
+                        action="SELECT_AND_DRAW",
+                        ignoreSetCurrentShot=True,
+                        toggleDrawEditing=False,
                     )
 
             #    self.updateGreasePencilVisibility(self.getCurrentTake())
@@ -4693,7 +4712,6 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
 
 
 _classes = (
-    #    UAS_ShotManager_Media,
     UAS_ShotManager_OutputParams_Resolution,
     UAS_ShotManager_Shot,
     UAS_ShotManager_Take,
