@@ -258,7 +258,7 @@ class UAS_ShotManager_ShotDuration(Operator):
 class UAS_ShotManager_GetSetCurrentFrame(Operator):
     bl_idname = "uas_shot_manager.getsetcurrentframe"
     bl_label = "Get/Set Current Frame"
-    bl_description = "Click: Set current frame with value.\nShift + Click: Get current frame for value"
+    bl_description = "Click: Set current frame with value.""\n+ Shift: Get current frame for value"
     bl_options = {"INTERNAL"}
 
     # shotSource is an array [index of shot, 0 (for start) or 1 (for end)]
@@ -447,6 +447,7 @@ class UAS_ShotManager_ShotAdd(Operator):
     bl_description = (
         "Add a new shot starting at the current frame and using the selected camera"
         "\nThe new shot is put after the selected shot"
+        "\n+ Shift: Skip the options dialog box"
     )
     bl_options = {"REGISTER", "UNDO"}
 
@@ -551,6 +552,9 @@ class UAS_ShotManager_ShotAdd(Operator):
         # self.alignCamToView = not props.display_storyboard_in_properties
 
         # self.addStoryboardGP = props.display_storyboard_in_properties
+
+        if event.shift and not event.ctrl and not event.alt:
+            return self.execute(context)
 
         return wm.invoke_props_dialog(self, width=360)
 
@@ -1333,8 +1337,8 @@ class UAS_ShotManager_DuplicateShotsToOtherTake(Operator):
 
 class UAS_ShotManager_ShotRemoveMultiple(Operator):
     bl_idname = "uas_shot_manager.remove_multiple_shots"
-    bl_label = "Remove Shot(s)"
-    bl_description = "Remove the specified shot(s) from the current take"
+    bl_label = "Remove Shot(s)..."
+    bl_description = "Remove the specified shot(s) from the current take" "\n+ Shift: Skip the confirmation dialog box"
     bl_options = {"REGISTER", "UNDO"}
 
     action: EnumProperty(
@@ -1348,6 +1352,8 @@ class UAS_ShotManager_ShotRemoveMultiple(Operator):
         default=False,
     )
 
+    skipDialogBox: BoolProperty(default=False)
+
     @classmethod
     def description(self, context, properties):
         descr = "_"
@@ -1359,6 +1365,7 @@ class UAS_ShotManager_ShotRemoveMultiple(Operator):
             descr = "Remove only disabled shots from the current take"
         elif "SELECTED" == properties.action:
             descr = "Remove the shot selected in the shot list"
+        descr += "\n+ Shift: Skip the confirmation dialog box"
         return descr
 
     @classmethod
@@ -1367,6 +1374,11 @@ class UAS_ShotManager_ShotRemoveMultiple(Operator):
         return len(shots)
 
     def invoke(self, context, event):
+        prefs = context.preferences.addons["shotmanager"].preferences
+        self.deleteCameras = prefs.removeShot_deleteCameras
+        if event.shift and not event.ctrl and not event.alt:
+            self.skipDialogBox = True
+            return self.execute(context)
         return context.window_manager.invoke_props_dialog(self, width=400)
 
     def draw(self, context):
@@ -1396,6 +1408,7 @@ class UAS_ShotManager_ShotRemoveMultiple(Operator):
     def execute(self, context):
         scene = context.scene
         props = scene.UAS_shot_manager_props
+        prefs = context.preferences.addons["shotmanager"].preferences
         shots = props.get_shots()
         currentShotInd = props.current_shot_index
         selectedShotInd = props.getSelectedShotIndex()
@@ -1435,6 +1448,9 @@ class UAS_ShotManager_ShotRemoveMultiple(Operator):
                     props.setSelectedShotByIndex(0)
             elif "SELECTED" == self.action:
                 props.removeShot_UIupdate(shots[selectedShotInd], deleteCamera=self.deleteCameras)
+
+            if not self.skipDialogBox:
+                prefs.removeShot_deleteCameras = self.deleteCameras
 
         #  print(" ** removed shots, len(props.get_shots()): ", len(props.get_shots()))
 

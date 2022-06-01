@@ -188,7 +188,7 @@ class UAS_Utils_CameraToView(Operator):
 class UAS_Utils_GetCurrentFrameForTimeRange(Operator):
     bl_idname = "uas_utils.get_current_frame_for_time_range"
     bl_label = "Get/Set Current Frame"
-    bl_description = "Click: Set time range with current frame value.\nShift + Click: Get value for current frame"
+    bl_description = "Click: Set time range with current frame value." "\n+ Shift: Get value for current frame"
     bl_options = {"REGISTER", "UNDO"}
 
     # opArgs is a dictionary containing this operator properties and dumped to a json string

@@ -372,11 +372,6 @@ def draw3DRenderPanel(self, context):
         subrow.alert = config.devDebug
         subrow.operator("uas_shot_manager.enable_debug", text="On").enable_debug = False
 
-    # scene warnings
-    ################
-    warningsList = props.getWarnings(scene)
-    drawWarnings(context, layout, warningsList, panelType="RENDER")
-
     row = layout.row()
 
     if props.use_project_settings:
@@ -490,7 +485,13 @@ def draw3DRenderPanel(self, context):
     row.prop(props, "displayPlayblastProps", text="", icon="FILE_MOVIE")  # AUTO
     row.operator("uas_shot_manager.render", text="Playblast").renderMode = "PLAYBLAST"
 
-    layout.separator(factor=1)
+    # scene warnings
+    ################
+    warningsList = props.getWarnings(scene)
+    if len(warningsList):
+        drawWarnings(context, layout, warningsList, panelType="RENDER")
+    else:
+        layout.separator(factor=0)
 
     # if config.devDebug:
     #     row = layout.row()
@@ -712,14 +713,23 @@ def draw3DRenderPanel(self, context):
 
         itemsRow = bypassItemsCol.row()
         col = itemsRow.column()
+
         row = col.row()
-        row.prop(props.renderSettingsPlayblast, "stampRenderInfo")
-        row = col.row()
-        row.separator(factor=subItemSeparator)
-        row.enabled = stampInfoAvailable and props.renderSettingsPlayblast.stampRenderInfo
-        row.prop(props.renderSettingsPlayblast, "useStampInfo")
+        split = row.split(factor=0.45)
+        split.prop(props.renderSettingsPlayblast, "stampRenderInfo")
+        if props.renderSettingsPlayblast.stampRenderInfo and (
+            not stampInfoAvailable or not props.renderSettingsPlayblast.useStampInfo
+        ):
+            # row.alert = True
+            splitRow = split.row()
+            splitRow.alignment = "RIGHT"
+            splitRow.label(text="(Scene Metadata will be used)")
+        stampInfoRow = col.row()
+        stampInfoRow.separator(factor=subItemSeparator)
+        stampInfoRow.enabled = stampInfoAvailable and props.renderSettingsPlayblast.stampRenderInfo
+        stampInfoRow.prop(props.renderSettingsPlayblast, "useStampInfo")
         if not stampInfoAvailable:
-            row.label(text="*** Add-on not available ***")
+            stampInfoRow.label(text="*** Add-on not available ***")
 
         _separatorRow(bypassItemsCol)
 
@@ -786,7 +796,7 @@ def draw3DRenderPanel(self, context):
     #     currentRenderResStr = f"SM Render Res: {props.getRenderResolution()}"
     #     debugCol.label(text="  " + currentRenderResStr)
 
-    self.layout.separator(factor=1)
+    self.layout.separator(factor=0.2)
 
 
 _classes = (UAS_PT_ShotManagerRenderPanel, UAS_PT_ShotManagerRenderPanelStdalone)

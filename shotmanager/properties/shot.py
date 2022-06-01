@@ -112,6 +112,8 @@ class UAS_ShotManager_Shot(ShotInterface, PropertyGroup):
 
     # gpStoryboard: PointerProperty(type=GreasePencilStoryboard)
 
+    tooltip: StringProperty(default="or change the name in the Properties panel below")
+
     def getOutputMediaPath(
         self,
         outputMedia,

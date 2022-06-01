@@ -781,7 +781,16 @@ class UAS_PT_ShotManager(Panel):
                 else "UAS_UL_ShotManager_Items"
             )
 
-            row.template_list(shots_layout, "", currentTake, "shots", props, "selected_shot_index", rows=6)
+            row.template_list(
+                shots_layout,
+                "",
+                currentTake,
+                "shots",
+                props,
+                "selected_shot_index",
+                rows=6,
+                item_dyntip_propname="tooltip",
+            )
 
             col = row.column(align=True)
             col.operator("uas_shot_manager.shot_add", icon="ADD", text="").layout_mode = props.layout_mode

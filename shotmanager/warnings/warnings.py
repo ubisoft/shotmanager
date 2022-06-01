@@ -156,6 +156,11 @@ def getWarnings(props, scene):
     elif not props.isRenderRootPathValid():
         warningList.append(("Rendering path is invalid", 121, "RENDER"))
 
+    # scene metadata activated and they will be written on rendered images
+    ###########
+    if scene.render.use_stamp:
+        warningList.append(("Scene Metadata Burning on Images is activated\nRendering will be affected", 130, "RENDER"))
+
     ##############################
     # dependencies - 7x
     ##############################
