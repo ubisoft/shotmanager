@@ -1472,7 +1472,13 @@ class UAS_ShotManager_Shots_SelectCamera(Operator):
 
     def execute(self, context):
         context.scene.UAS_shot_manager_props.setSelectedShotByIndex(self.index)
-        if context.active_object is not None and context.active_object.mode != "OBJECT":
+        # NOTE: we use context.object here instead of context.active_object because
+        # when the eye icon of the object is closed (meaning object.hide_get() == True)
+        # then context.active_object is None
+        # if context.active_object is not None and context.active_object.mode != "OBJECT":
+        if context.object is not None and context.object.mode != "OBJECT":
+            if not context.object.visible_get():
+                context.object.hide_viewport = False
             bpy.ops.object.mode_set(mode="OBJECT")
         context.scene.UAS_shot_manager_props.selectCamera(self.index)
         return {"INTERFACE"}

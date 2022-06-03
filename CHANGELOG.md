@@ -3,6 +3,11 @@
 #### UI
 - Added a button to better identify the current layout and easily toggle it
 
+#### Rendering
+- Added support for take note in the rendering of Stamp Info, when project settings are used
+- Added a button to disable the Blender metadata burning in the warnings
+- Fixes in rendering resolution, use of Stamp Info and display of grease pencil
+
 -----
 ## 2.0.32 (2022-06-01)
 #### General

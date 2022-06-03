@@ -740,9 +740,10 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
             else:
                 if self.isStampInfoAvailable():
                     stampInfoSettings = getStampInfo()
-                    renderResolutionFramed = stampInfoSettings.getRenderResolutionForStampInfo(
-                        scene, usePercentage=False
-                    )
+                    if renderPreset.useStampInfo:
+                        renderResolutionFramed = stampInfoSettings.getRenderResolutionForStampInfo(
+                            scene, usePercentage=False
+                        )
 
                 if "FINAL" in mode:
                     renderResolution[0] = int(renderResolution[0] * renderPreset.resolutionPercentage / 100)
@@ -1083,11 +1084,13 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
     # grease pencil
     # storyboard
     ####################
-    # def _update_use_greasepencil(self, context):
-    #     # print("use_greasepencil")
-    #     to do
 
-    # wkip here
+    useContinuousGPEditing: BoolProperty(
+        name="Continuous GP Editing",
+        description="When used, the current storyboard frame or shot grease pencil will be switched"
+        "\nto edit mode if the edit mode is activated on a shot in the scene",
+        default=False,
+    )
 
     def getParentShotFromGpChild(self, obj):
         """Return the shot using the specified object as achild of its camera, None if nothing found.
@@ -1137,16 +1140,30 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         options=set(),
     )
 
-    def updateStoryboardFramesDisplay(self, take):
+    def updateStoryboardFramesDisplay(self, forceHide=False, applyToAllTakes=True, takeIndex=-1):
         """Update the display of the grease pencil objects of the storyboard frames for the specified take"""
-        for sh in take.shots:
-            sh.showGreasePencil()
+        takeInd = (
+            self.getCurrentTakeIndex()
+            if -1 == takeIndex
+            else (takeIndex if 0 <= takeIndex and takeIndex < len(self.getTakes()) else -1)
+        )
+        if -1 == takeInd:
+            return ()
+
+        if applyToAllTakes:
+            for take in self.getTakes():
+                for sh in take.shots:
+                    sh.showGreasePencil(forceHide=forceHide)
+        else:
+            for sh in self.takes[takeInd].shots:
+                sh.showGreasePencil(forceHide=forceHide)
 
     # def updateGreasePencilVisibility(self, take):
     #     """Update the display of grease pencil objects of the specified take"""
     #     for sh in take.shots:
     #         sh.showGreasePencil()
 
+    # wkip should probably be applied to every takes
     def enableGreasePencil(self, enable, takeIndex=-1):
         """Toggle the display of grease pencil objects"""
         takeInd = (
@@ -1158,7 +1175,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
             return ()
 
         self.use_greasepencil = enable
-        self.updateStoryboardFramesDisplay(self.takes[takeInd])
+        self.updateStoryboardFramesDisplay(takeIndex=takeInd)
 
     #   self.updateGreasePencilVisibility(self.takes[takeInd])
 
@@ -3201,8 +3218,10 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
             ##########################
             # storyboard
             ##########################
-            if "STORYBOARD" == self.layout_mode and prefs.current_shot_changes_edited_frame_in_stb:
-                if self.getEditedStoryboardFrame() is not None:
+            # if "STORYBOARD" == self.layout_mode and prefs.current_shot_changes_edited_frame_in_stb:
+            if self.useContinuousGPEditing:
+                # if self.getEditedStoryboardFrame() is not None:
+                if self.getEditedGPShot() is not None:
                     bpy.ops.uas_shot_manager.greasepencilitem(
                         index=currentShotIndex,
                         action="SELECT_AND_DRAW",
@@ -3211,7 +3230,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
                     )
 
             #    self.updateGreasePencilVisibility(self.getCurrentTake())
-            self.updateStoryboardFramesDisplay(self.getCurrentTake())
+            self.updateStoryboardFramesDisplay(takeIndex=self.getCurrentTakeIndex())
 
             #  set current edit gp
             if not self.stb_hasPinnedObject:

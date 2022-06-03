@@ -223,6 +223,9 @@ def renderStampedInfoForShot(
     verbose = verbose or config.devDebug
     takeName = take.getName_PathCompliant()
 
+    #####################
+    # TOFIX Custom Stamp Info settings??????????????
+    #####################
     if stampInfoCustomSettingsDict is not None:
         print(f"*** customFileFullPath: {stampInfoCustomSettingsDict['customFileFullPath']}")
         if "customFileFullPath" in stampInfoCustomSettingsDict:

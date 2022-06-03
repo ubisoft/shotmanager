@@ -118,6 +118,24 @@ class UAS_ShotManager_OT_ChangeLayout(Operator):
 ###################
 
 
+class UAS_ShotManager_OT_TurnOffBurnIntoImage(Operator):
+    bl_idname = "uas_shot_manager.turn_off_burn_into_image"
+    bl_label = "Disable Metadata"
+    bl_description = (
+        "Turn off the use of Burn Into Image in the scene to prevent metadata" "\nto be written on output images"
+    )
+    bl_options = {"REGISTER", "UNDO"}
+
+    def execute(self, context):
+        context.scene.render.use_stamp = False
+        return {"FINISHED"}
+
+
+###################
+# Camera binding
+###################
+
+
 class UAS_ShotManager_OT_ClearMarkersFromCameraBinding(Operator):
     bl_idname = "uas_shot_manager.clear_markers_from_camera_binding"
     bl_label = "Clear Camera Binding"
@@ -398,6 +416,7 @@ _classes = (
     UAS_ShotManager_OT_DisplayDisabledShotsInOverlays,
     UAS_ShotManager_OT_DisplayOverlayTools,
     UAS_ShotManager_OT_ChangeLayout,
+    UAS_ShotManager_OT_TurnOffBurnIntoImage,
     UAS_ShotManager_OT_ClearMarkersFromCameraBinding,
     UAS_ShotManager_OT_ConvertMarkersFromCameraBindingToShots,
     UAS_ShotManager_OT_SetProjectSequenceName,

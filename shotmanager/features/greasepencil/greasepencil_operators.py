@@ -358,7 +358,14 @@ class UAS_ShotManager_OT_UpdateGreasePencil(Operator):
         props = scene.UAS_shot_manager_props
 
         props.setSelectedShotByIndex(self.shotIndex)
-        if context.active_object is not None and context.active_object.mode != "OBJECT":
+
+        # NOTE: we use context.object here instead of context.active_object because
+        # when the eye icon of the object is closed (meaning object.hide_get() == True)
+        # then context.active_object is None
+        # if context.active_object is not None and context.active_object.mode != "OBJECT":
+        if context.object is not None and context.object.mode != "OBJECT":
+            if not context.object.visible_get():
+                context.object.hide_viewport = False
             bpy.ops.object.mode_set(mode="OBJECT")
 
         shot = props.getShotByIndex(props.selected_shot_index)
@@ -635,6 +642,7 @@ class UAS_ShotManager_GreasePencilItem(Operator):
             # draw mode TOGGLE
             elif "SELECT_AND_DRAW" == self.action:
 
+                # get out of GP Draw mode for the edited shot
                 if self.toggleDrawEditing:
                     # if the current shot is being edited then we go back to OBJECT mode
                     # editedGP = props.getEditedStoryboardFrame()
@@ -645,6 +653,7 @@ class UAS_ShotManager_GreasePencilItem(Operator):
                         utils.select_object(gp_child)
                         return {"FINISHED"}
 
+                # get out of GP Draw mode for the edited shot
                 if utils_greasepencil.isAnotherObjectInSubMode(gp_child):
                     utils_greasepencil.switchToObjectMode()
 
@@ -653,6 +662,7 @@ class UAS_ShotManager_GreasePencilItem(Operator):
                 # quit draw mode
                 # wkipwkipwkipwkip
                 if "OBJECT" != gp_child.mode:
+                    # get out of GP Draw mode for the edited shot
                     if self.toggleDrawEditing:
                         utils_greasepencil.switchToObjectMode()
 

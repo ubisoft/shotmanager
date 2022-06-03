@@ -131,7 +131,7 @@ def getWarnings(props, scene):
     # scene metadata activated and they will be written on rendered images
     ###########
     if scene.render.use_stamp:
-        warningList.append(("Scene Metadata Burning on Images is activated\nRendering will be affected", 140, "RENDER"))
+        warningList.append(("Scene Metadata Burning Into Images is activated\nRendering will be affected", 140, "RENDER"))
 
     # check if a negative render frame may be rendered
     ###########

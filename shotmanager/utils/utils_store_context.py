@@ -19,13 +19,17 @@
 Utils - store context
 """
 
-# import bpy
+import bpy
+
+from shotmanager.config import sm_logging
+
+_logger = sm_logging.getLogger(__name__)
 
 
 def storeUserRenderSettings(context, userRenderSettings):
     scene = context.scene
 
-    #    userRenderSettings["show_overlays"] = bpy.context.space_data.overlay.show_overlays
+    userRenderSettings["show_overlays"] = bpy.context.space_data.overlay.show_overlays
     userRenderSettings["resolution_x"] = scene.render.resolution_x
     userRenderSettings["resolution_y"] = scene.render.resolution_y
     userRenderSettings["resolution_percentage"] = scene.render.resolution_percentage
@@ -41,6 +45,8 @@ def storeUserRenderSettings(context, userRenderSettings):
 
     userRenderSettings["render_use_compositing"] = scene.render.use_compositing
     userRenderSettings["render_use_sequencer"] = scene.render.use_sequencer
+
+    userRenderSettings["frame_current"] = scene.frame_current
 
     # eevee
     ##############
@@ -101,7 +107,10 @@ def storeUserRenderSettings(context, userRenderSettings):
 def restoreUserRenderSettings(context, userRenderSettings):
     scene = context.scene
     # wkip bug here dans certaines conditions vse
-    #    bpy.context.space_data.overlay.show_overlays = userRenderSettings["show_overlays"]
+    try:
+        bpy.context.space_data.overlay.show_overlays = userRenderSettings["show_overlays"]
+    except Exception as e:
+        _logger.error_ext(f"Cannot restore Overlay mode: {e}")
 
     scene.render.resolution_x = userRenderSettings["resolution_x"]
     scene.render.resolution_y = userRenderSettings["resolution_y"]
@@ -118,6 +127,8 @@ def restoreUserRenderSettings(context, userRenderSettings):
 
     scene.render.use_compositing = userRenderSettings["render_use_compositing"]
     scene.render.use_sequencer = userRenderSettings["render_use_sequencer"]
+
+    scene.frame_current = userRenderSettings["frame_current"]
 
     # eevee
     ##############
