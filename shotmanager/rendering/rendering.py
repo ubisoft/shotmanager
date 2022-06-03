@@ -565,7 +565,7 @@ def launchRenderWithVSEComposite(
                 renderStampedInfoForShot(
                     stampInfoSettings,
                     props,
-                    takeName,
+                    take,
                     shot,
                     rootPath,
                     newTempRenderPath,

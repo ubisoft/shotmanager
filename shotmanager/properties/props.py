@@ -1087,6 +1087,8 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
     #     # print("use_greasepencil")
     #     to do
 
+    # wkip here
+
     def getParentShotFromGpChild(self, obj):
         """Return the shot using the specified object as achild of its camera, None if nothing found.
         Args:
