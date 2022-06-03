@@ -35,6 +35,8 @@ from bpy_extras.io_utils import ImportHelper
 from .utils_os import open_folder
 from .utils import convertVersionIntToStr
 
+from shotmanager.config import config
+
 ###################
 # UI
 ###################
@@ -45,6 +47,26 @@ def redrawAll(context):
     for area in context.screen.areas:
         area.tag_redraw()
     # context.scene.frame_current = context.scene.frame_current
+
+
+def drawStampInfoBut(layout):
+    """Draw a button to toggle the display of Stamp Info panel in the 3D View tab
+    The button is disabled if Stamp Info is not available
+    Return True if Stamp Info is available, false otherwise"""
+    prefs_stampInfo = None
+    if bpy.context.scene.UAS_shot_manager_props.isStampInfoAvailable():
+        prefs_stampInfo = bpy.context.preferences.addons["stampinfo"].preferences
+    icon = config.icons_col["StampInfo_32"]
+    butsubrow = layout.row()
+    butsubrow.scale_x = 1.5
+    if prefs_stampInfo is not None:
+        butsubrow.prop(prefs_stampInfo, "display_main_panel", text="", icon_value=icon.icon_id)
+    else:
+        butsubrow.operator(
+            "uas.empty_operator", text="", icon_value=icon.icon_id
+        ).tooltip = "Display Stamp Info panel in the 3D View tabs.\n\n*** Ubisoft Stamp Info add-on is not installed or not activated ***"
+
+    return prefs_stampInfo is not None
 
 
 def drawSeparatorLine(layout, lower_height=1.0, higher_height=0.0):

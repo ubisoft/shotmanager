@@ -3,6 +3,11 @@
 #### General
 - Added a Shift modifier key on shot creation and deletion to skip the dialog box
 - Added an add-on preference to store the Delete Cameras of the Remove Shots operator
+- Added a button in Features to toggle the display of Stamp Info in the 3D view tab list
+
+#### Rendering
+- Added a Resolution Percentage parameter for each render preset
+- Added an Open in Player button for Render Current
 - Moved the render warning UI component below in the panel to make it more visible
 
 

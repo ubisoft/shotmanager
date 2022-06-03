@@ -41,7 +41,7 @@ def initGlobalVariables():
         devDebug = False
 
     # change this value to force debug at start time
-    devDebug = True
+    devDebug = False
 
     global devDebug_lastRedrawTime
     devDebug_lastRedrawTime = -1
@@ -70,6 +70,10 @@ def initGlobalVariables():
 
     icons_col = pcoll
 
+    # keymaps ##########
+    global gAddonKeymaps
+    gAddonKeymaps = []
+
     # interactive shots stack ############
     global gShotsStackInfos
     gShotsStackInfos = None
@@ -77,8 +81,11 @@ def initGlobalVariables():
     global gModulePath
     gModulePath = None
 
-    # otio #############
+    # dependencies #############
+    global STAMP_INFO_MIN_VERSION
+    STAMP_INFO_MIN_VERSION = ("1.3.1", 1003001)
 
+    # otio #############
     global gImportOpenTimelineIO
     gImportOpenTimelineIO = True
 
@@ -94,10 +101,6 @@ def initGlobalVariables():
     global gRedrawShotStack
     gRedrawShotStack = False
 
-    # keymaps ##########
-    global gAddonKeymaps
-    gAddonKeymaps = []
-
 
 def releaseGlobalVariables():
 
@@ -112,6 +115,9 @@ def getLoggingTags():
 
     # debug tags
     tags["DEPRECATED"] = False
+
+    tags["REG"] = False
+    tags["UNREG"] = False
 
     tags["SHOTS_PLAY_MODE"] = True
 

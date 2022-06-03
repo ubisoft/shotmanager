@@ -100,7 +100,7 @@ def register():
 
     utils_ui.register()
 
-    sm_logging.initialize()
+    sm_logging.initialize(addonName="Shot Manager", prefix="SM")
     if config.devDebug:
         _logger.setLevel("DEBUG")  # CRITICAL ERROR WARNING INFO DEBUG NOTSET
 

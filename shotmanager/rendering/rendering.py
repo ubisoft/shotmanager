@@ -177,8 +177,8 @@ def launchRenderWithVSEComposite(
                 stampInfoSettings.renderRootPath = rootPath
 
                 stampInfoSettings.stampInfoUsed = props.useStampInfoDuringRendering
-                if stampInfoSettings.stampInfoUsed:
-                    setStampInfoSettings(scene)
+                # if stampInfoSettings.stampInfoUsed:
+                #     setStampInfoSettings(scene, )
 
         context.window_manager.UAS_shot_manager_shots_play_mode = False
     #  context.window_manager.UAS_shot_manager_display_overlay_tools = False
@@ -207,55 +207,83 @@ def launchRenderWithVSEComposite(
     sequenceFileName = props.getSequenceName("FULL", addSeparator=True)
 
     scene.use_preview_range = False
-    renderResolution = [scene.render.resolution_x, scene.render.resolution_y]
-    renderResolutionFramed = [scene.render.resolution_x, scene.render.resolution_y]
-    renderResolutionFramed = [scene.render.resolution_x, scene.render.resolution_y]
-    if preset_useStampInfo:
-        renderResolutionFramedFull = stampInfoSettings.getRenderResolutionForStampInfo(scene)
-        renderResolutionFramed[0] = int(renderResolutionFramedFull[0] * renderPreset.resolutionPercentage / 100)
-        renderResolutionFramed[1] = int(renderResolutionFramedFull[1] * renderPreset.resolutionPercentage / 100)
+    # # # renderResolution = [scene.render.resolution_x, scene.render.resolution_y]
+    # # # renderResolutionFramed = [scene.render.resolution_x, scene.render.resolution_y]
+    # # # if preset_useStampInfo:
+    # # #     renderResolutionFramedFull = stampInfoSettings.getRenderResolutionForStampInfo(scene)
+    # # #     renderResolutionFramed[0] = int(renderResolutionFramedFull[0] * renderPreset.resolutionPercentage / 100)
+    # # #     renderResolutionFramed[1] = int(renderResolutionFramedFull[1] * renderPreset.resolutionPercentage / 100)
 
     # override local variables with project settings
     if props.use_project_settings:
         props.applyProjectSettings()
         scene.render.image_settings.file_format = props.project_images_output_format
         projectFps = props.project_fps
-        renderResolution = [props.project_resolution_x, props.project_resolution_y]
-        renderResolutionFramed = [props.project_resolution_framed_x, props.project_resolution_framed_y]
+        # # # renderResolution = [props.project_resolution_x, props.project_resolution_y]
+        # # # renderResolutionFramed = [props.project_resolution_framed_x, props.project_resolution_framed_y]
 
-    if "PLAYBLAST" == renderMode:
-        scene.render.resolution_percentage = int(renderPreset.resolutionPercentage)
-        renderResolution[0] = int(renderResolution[0] * renderPreset.resolutionPercentage / 100)
-        renderResolution[1] = int(renderResolution[1] * renderPreset.resolutionPercentage / 100)
+    # override project settings variables if bypass project settings is enabled
+    # if "PLAYBLAST" == renderMode:
+    # # # if renderPreset.bypass_rendering_project_settings:
+    # # #     scene.render.resolution_percentage = int(renderPreset.resolutionPercentage)
+    # # #     renderResolution[0] = int(renderResolution[0] * renderPreset.resolutionPercentage / 100)
+    # # #     renderResolution[1] = int(renderResolution[1] * renderPreset.resolutionPercentage / 100)
 
-        # renderResolution = props.getRenderResolutionForFinalOutput(resPercentage=renderPreset.resolutionPercentage)
+    # # #     # renderResolution = props.getRenderResolutionForFinalOutput(resPercentage=renderPreset.resolutionPercentage)
 
-        # wkipwkipwkip use that instead of the block below:
-        # renderResolutionFramed = props.getRenderResolutionForFinalOutput(
-        #     resPercentage=renderPreset.resolutionPercentage, useStampInfo=preset_useStampInfo
-        # )
+    # # #     # wkipwkipwkip use that instead of the block below:
+    # # #     # renderResolutionFramed = props.getRenderResolutionForFinalOutput(
+    # # #     #     resPercentage=renderPreset.resolutionPercentage, useStampInfo=preset_useStampInfo
+    # # #     # )
 
-        # if preset_useStampInfo:
-        #     renderResolutionFramedFull = stampInfoSettings.getRenderResolutionForStampInfo(scene)
-        #     renderResolutionFramed[0] = int(renderResolutionFramedFull[0] * renderPreset.resolutionPercentage / 100)
-        #     renderResolutionFramed[1] = int(renderResolutionFramedFull[1] * renderPreset.resolutionPercentage / 100)
-        # else:
-        #     renderResolutionFramed[0] = int(renderResolutionFramed[0] * renderPreset.resolutionPercentage / 100)
-        #     renderResolutionFramed[1] = int(renderResolutionFramed[1] * renderPreset.resolutionPercentage / 100)
+    # # #     # if preset_useStampInfo:
+    # # #     #     renderResolutionFramedFull = stampInfoSettings.getRenderResolutionForStampInfo(scene)
+    # # #     #     renderResolutionFramed[0] = int(renderResolutionFramedFull[0] * renderPreset.resolutionPercentage / 100)
+    # # #     #     renderResolutionFramed[1] = int(renderResolutionFramedFull[1] * renderPreset.resolutionPercentage / 100)
+    # # #     # else:
+    # # #     #     renderResolutionFramed[0] = int(renderResolutionFramed[0] * renderPreset.resolutionPercentage / 100)
+    # # #     #     renderResolutionFramed[1] = int(renderResolutionFramed[1] * renderPreset.resolutionPercentage / 100)
 
-        if preset_useStampInfo:
-            # getRenderResolutionForStampInfo already integrates the percentage_res value (*** found in the current scene ! ***)
+    # # #     if preset_useStampInfo:
+    # # #         # getRenderResolutionForStampInfo already integrates the percentage_res value (*** found in the current scene ! ***)
 
-            ##   renderResolutionFramed = stampInfoSettings.getRenderResolutionForStampInfo(scene)
-            renderResolutionFramed[0] = int(renderResolutionFramed[0] * renderPreset.resolutionPercentage / 100)
-            renderResolutionFramed[1] = int(renderResolutionFramed[1] * renderPreset.resolutionPercentage / 100)
-        else:
-            renderResolutionFramed[0] = int(renderResolutionFramed[0] * renderPreset.resolutionPercentage / 100)
-            renderResolutionFramed[1] = int(renderResolutionFramed[1] * renderPreset.resolutionPercentage / 100)
+    # # #         ##   renderResolutionFramed = stampInfoSettings.getRenderResolutionForStampInfo(scene)
+    # # #         renderResolutionFramed[0] = int(renderResolutionFramed[0] * renderPreset.resolutionPercentage / 100)
+    # # #         renderResolutionFramed[1] = int(renderResolutionFramed[1] * renderPreset.resolutionPercentage / 100)
+    # # #     else:
+    # # #         renderResolutionFramed[0] = int(renderResolutionFramed[0] * renderPreset.resolutionPercentage / 100)
+    # # #         renderResolutionFramed[1] = int(renderResolutionFramed[1] * renderPreset.resolutionPercentage / 100)
 
-        # print(
-        #     f"\ntoto renderResolutionFramed: {renderResolutionFramed}, resPercent: {renderPreset.resolutionPercentage}\n"
-        # )
+    # # # # make the resolutions valid
+    # # # renderResolution = utils.convertToSupportedRenderResolution(renderResolution)
+    # # # renderResolutionFramed = utils.convertToSupportedRenderResolution(renderResolutionFramed)
+
+    #############
+    # renderResolution_test = props.getOutputResolution(
+    #     scene, renderPreset, "FINAL_RENDERED_IMG_RES", forceMultiplesOf2=True
+    # )
+    # renderResolutionFramed_test = props.getOutputResolution(
+    #     scene, renderPreset, "FINAL_FRAMED_IMG_RES", forceMultiplesOf2=True
+    # )
+
+    # _logger.debug_ext(f"renderResolution: {renderResolution}", col="YELLOW")
+    # _logger.debug_ext(f"renderResolutionFramed: {renderResolutionFramed}", col="YELLOW")
+    # _logger.debug_ext(f"renderResolution_test: {renderResolution_test}", col="YELLOW")
+    # _logger.debug_ext(f"renderResolutionFramed_test: {renderResolutionFramed_test}", col="YELLOW")
+    #############
+
+    renderResolution = props.getOutputResolution(scene, renderPreset, "FINAL_RENDERED_IMG_RES", forceMultiplesOf2=True)
+    renderResolutionFramed = props.getOutputResolution(
+        scene, renderPreset, "FINAL_FRAMED_IMG_RES", forceMultiplesOf2=True
+    )
+    scene.render.resolution_percentage = int(renderPreset.resolutionPercentage)
+
+    if stampInfoSettings.stampInfoUsed:
+        setStampInfoSettings(scene, renderResolution, renderResolutionFramed)
+
+    # print(
+    #     f"\ntoto renderResolutionFramed: {renderResolutionFramed}, resPercent: {renderPreset.resolutionPercentage}\n"
+    # )
 
     # set output format settings
     #######################
@@ -432,7 +460,7 @@ def launchRenderWithVSEComposite(
             currentFrameRenderTime = previousFrameRenderTime
 
             #######################
-            # render image only
+            # render 3D images from scene
             #######################
 
             renderShotContent = True
@@ -533,8 +561,6 @@ def launchRenderWithVSEComposite(
                     "SH_INTERM_STAMPINFO_SEQ", providePath=False, genericFrame=True
                 )
                 infoImgSeq_resolution = renderResolutionFramed
-                #   print(f"\ntoto infoImgSeq_resolution: {infoImgSeq_resolution}\n")
-                # infoImgSeq_resolution = stampInfoSettings.getRenderResolutionForStampInfo(scene)
 
                 renderStampedInfoForShot(
                     stampInfoSettings,
@@ -543,6 +569,8 @@ def launchRenderWithVSEComposite(
                     shot,
                     rootPath,
                     newTempRenderPath,
+                    renderResolution,
+                    infoImgSeq_resolution,
                     handles,
                     render_handles=renderHandles,
                     specificFrame=specificFrame,
@@ -835,14 +863,19 @@ def launchRenderWithVSEComposite(
         renderInfo["resolution_x"] = scene.render.resolution_x
         renderInfo["resolution_y"] = scene.render.resolution_y
 
-        renderInfo["render_percentage"] = (
-            renderPreset.resolutionPercentage if "PLAYBLAST" == renderMode else scene.render.resolution_percentage
-        )
+        renderInfo[
+            "render_percentage"
+        ] = renderPreset.resolutionPercentage  # if "PLAYBLAST" == renderMode else scene.render.resolution_percentage
         renderInfo["renderSound"] = renderSound
 
         deltaTime = time.monotonic() - startSequenceRenderTime
         _logger.info_ext(f"Sequence video render time: {deltaTime:0.2f} sec.", tag="RENDERTIME")
         allRenderTimes["SequenceVideo"] = deltaTime
+    else:
+        # set the shot from the Animation rendering as the output sequence so that it can be opened
+        # in a player
+        if specificFrame is None and "VIDEO" in renderPreset.outputMediaMode:
+            sequenceOutputFullPath = compositedMediaPath
 
     # playblastInfos = {"startFrameIn3D": startFrameIn3D, "startFrameInEdit": startFrameInEdit}
     renderInfo["startFrameIn3D"] = startFrameIn3D
@@ -934,21 +967,27 @@ def launchRender(context, renderMode, rootPath, area=None):
     preset = None
     if "STILL" == renderMode:
         preset = props.renderSettingsStill
-        renderDisplayInfo += f"  Rendering with {preset.name}"
+        # presetName = preset.name
+        presetName = "Render Image"
     elif "ANIMATION" == renderMode:
         preset = props.renderSettingsAnim
-        renderDisplayInfo += f"  Rendering with {preset.name}"
+        presetName = "Render Current Shot"
     elif "ALL" == renderMode:
         preset = props.renderSettingsAll
-        renderDisplayInfo += f"  Rendering with {preset.name}"
+        presetName = "Render All"
     elif "OTIO" == renderMode:
         preset = props.renderSettingsOtio
-        renderDisplayInfo += f"  Rendering with {preset.name}"
+        presetName = "Edit File"
     elif "PLAYBLAST" == renderMode:
         preset = props.renderSettingsPlayblast
-        renderDisplayInfo += f"  Rendering with {preset.name}"
+        presetName = "Playblast"
     else:
-        _logger.error("No valid render preset found")
+        _logger.error_ext("No valid render preset found")
+
+    if preset is not None:
+        _YELLOW = "\33[33m"
+        _ENDCOLOR = "\033[0m"
+        renderDisplayInfo += f"  Rendering with {_YELLOW}{presetName}{_ENDCOLOR}"
 
     stampInfoSettings = None
     useStampInfo = preset.useStampInfo
@@ -1045,6 +1084,18 @@ def launchRender(context, renderMode, rootPath, area=None):
             area=area,
         )
 
+        # open rendered media in a player
+        if preset.openRenderedVideoInPlayer:
+            if len(renderedFilesDict["sequence_video_file"]):
+                utils.openMedia(renderedFilesDict["sequence_video_file"], inExternalPlayer=True)
+
+        # open rendered media in vse
+        # wkip removed until uas_videotracks works
+        if False and preset.updatePlayblastInVSM:
+            from shotmanager.scripts.rrs.rrs_playblast import rrs_playblast_to_vsm
+
+            rrs_playblast_to_vsm(playblastInfo=renderedFilesDict["playblastInfos"])
+
     elif "ALL" == preset.renderMode:
         _logger.debug(f"Render All: {str(props.renderSettingsAll.renderAllTakes)}")
         _logger.debug(f"Render All, preset.renderAllTakes: {preset.renderAllTakes}")
@@ -1092,6 +1143,19 @@ def launchRender(context, renderMode, rootPath, area=None):
 
                 # renderedFilesDict["edl_files"] = [renderedOtioFile]
 
+        # open rendered media in a player
+        if not preset.renderAllTakes:
+            if preset.openRenderedVideoInPlayer:
+                if len(renderedFilesDict["sequence_video_file"]):
+                    utils.openMedia(renderedFilesDict["sequence_video_file"], inExternalPlayer=True)
+
+        # open rendered media in vse
+        # wkip removed until uas_videotracks works
+        if False and preset.updatePlayblastInVSM:
+            from shotmanager.scripts.rrs.rrs_playblast import rrs_playblast_to_vsm
+
+            rrs_playblast_to_vsm(playblastInfo=renderedFilesDict["playblastInfos"])
+
     elif "OTIO" == renderMode:
         take = props.getCurrentTake()
         renderedFilesDict = dict()
@@ -1122,7 +1186,7 @@ def launchRender(context, renderMode, rootPath, area=None):
         )
 
         # open rendered media in a player
-        if preset.openPlayblastInPlayer:
+        if preset.openRenderedVideoInPlayer:
             if len(renderedFilesDict["sequence_video_file"]):
                 utils.openMedia(renderedFilesDict["sequence_video_file"], inExternalPlayer=True)
 

@@ -46,7 +46,7 @@ class UAS_PT_ShotManagerRenderPanelStdalone(Panel):
 
         displayPanel = displayPanel and props.getCurrentShot() is not None
 
-        return displayPanel and prefs.display_render_in_properties
+        return displayPanel and prefs.display_render_panel
 
     def draw_header(self, context):
         import addon_utils
@@ -99,7 +99,7 @@ class UAS_PT_ShotManagerRenderPanel(Panel):
         prefs = context.preferences.addons["shotmanager"].preferences
         val = not props.dontRefreshUI() and len(props.takes) and len(props.get_shots())
         val = val and not context.preferences.addons["shotmanager"].preferences.separatedRenderPanel
-        return val and prefs.display_render_in_properties
+        return val and prefs.display_render_panel
 
     # def check(self, context):
     #     # should we redraw when a button is pressed?
@@ -152,6 +152,11 @@ def drawHeaderPreset(self, context):
 
 
 def drawRenderInfos(context, layout):
+    def _getResText(imgRes_x, imgRes_y, finalRes_x, finalRes_y):
+        infosStr = f"Image Res: {imgRes_x} x {imgRes_y},  "
+        infosStr += f"Final Res: {finalRes_x} x {finalRes_y},  "
+        return infosStr
+
     scene = context.scene
     props = context.scene.UAS_shot_manager_props
     iconExplorer = config.icons_col["General_Explorer_32"]
@@ -159,7 +164,27 @@ def drawRenderInfos(context, layout):
     sepHeight = 0.2
     sepFactor = 1
 
-    # layout.separator(factor=-2.5)
+    if props.displayStillProps:
+        renderPreset = props.renderSettingsStill
+    elif props.displayAnimationProps:
+        renderPreset = props.renderSettingsAnim
+    elif props.displayAllEditsProps:
+        renderPreset = props.renderSettingsAll
+    elif props.displayOtioProps:
+        renderPreset = props.renderSettingsOtio
+    elif props.displayPlayblastProps:
+        renderPreset = props.renderSettingsPlayblast
+
+    # imgRes = props.getRenderResolution()
+    # imgRes = props.convertToSupportedRenderResolution(imgRes)
+    # finalRes = props.getRenderResolutionForFinalOutput(resPercentage=100)
+    # finalRes = props.convertToSupportedRenderResolution(finalRes)
+
+    imgRes = props.getOutputResolution(scene, renderPreset, "FINAL_RENDERED_IMG_RES", forceMultiplesOf2=True)
+    finalRes = props.getOutputResolution(scene, renderPreset, "FINAL_FRAMED_IMG_RES", forceMultiplesOf2=True)
+
+    ######################################
+
     col = layout.column()
     col.scale_y = 0.7
 
@@ -197,27 +222,21 @@ def drawRenderInfos(context, layout):
     #     # infosStr = f"{scene.render.fps} fps"
     #     infosStr = f"{utils.getSceneEffectiveFps(scene)} fps"
 
-    imgRes = props.getRenderResolution()
-    finalRes = props.getRenderResolutionForFinalOutput(resPercentage=100)
-
-    def _getResText(imgRes_x, imgRes_y, finalRes_x, finalRes_y):
-        infosStr = f"Image Res: {imgRes_x} x {imgRes_y},  "
-        infosStr += f"Final Res: {finalRes_x} x {finalRes_y},  "
-        return infosStr
-
     # STILL ###
     if props.displayStillProps:
-        if props.renderSettingsStill.bypass_rendering_project_settings:
-            finalRes = props.getRenderResolutionForFinalOutput(
-                resPercentage=100, useStampInfo=props.renderSettingsStill.useStampInfo
-            )
+        # if props.renderSettingsStill.bypass_rendering_project_settings:
+        #     finalRes = props.getRenderResolutionForFinalOutput(
+        #         resPercentage=props.renderSettingsStill.resolutionPercentage,
+        #         useStampInfo=props.renderSettingsStill.useStampInfo,
+        #     )
+        #     finalRes = props.convertToSupportedRenderResolution(finalRes)
 
         infosStr = _getResText(imgRes[0], imgRes[1], finalRes[0], finalRes[1])
         infosStr += f"{fps} fps"
         row.label(text=infosStr)
 
         # TODO wkip
-        if 100 != scene.render.resolution_percentage:
+        if not props.use_project_settings and 100 != scene.render.resolution_percentage:
             row = col.row()
             row.alert = True
             row.label(text="*** Warning: Resolution Percentage is not 100% ***")
@@ -236,18 +255,20 @@ def drawRenderInfos(context, layout):
         col.separator()
 
     # ANIMATION ###
-    if props.displayAnimationProps:
-        if props.renderSettingsAnim.bypass_rendering_project_settings:
-            finalRes = props.getRenderResolutionForFinalOutput(
-                resPercentage=100, useStampInfo=props.renderSettingsAnim.useStampInfo
-            )
+    elif props.displayAnimationProps:
+        # if props.renderSettingsAnim.bypass_rendering_project_settings:
+        #     finalRes = props.getRenderResolutionForFinalOutput(
+        #         resPercentage=props.renderSettingsAnim.resolutionPercentage,
+        #         useStampInfo=props.renderSettingsAnim.useStampInfo,
+        #     )
+        #     finalRes = props.convertToSupportedRenderResolution(finalRes)
 
         infosStr = _getResText(imgRes[0], imgRes[1], finalRes[0], finalRes[1])
         infosStr += f"{fps} fps"
         row.label(text=infosStr)
 
         # TODO wkip
-        if 100 != scene.render.resolution_percentage:
+        if not props.use_project_settings and 100 != scene.render.resolution_percentage:
             row = col.row()
             row.alert = True
             row.label(text="*** Warning: Resolution Percentage is not 100% ***")
@@ -267,17 +288,19 @@ def drawRenderInfos(context, layout):
 
     # ALL SHOTS ###
     elif props.displayAllEditsProps:
-        if props.renderSettingsAll.bypass_rendering_project_settings:
-            finalRes = props.getRenderResolutionForFinalOutput(
-                resPercentage=100, useStampInfo=props.renderSettingsAll.useStampInfo
-            )
+        # if props.renderSettingsAll.bypass_rendering_project_settings:
+        #     finalRes = props.getRenderResolutionForFinalOutput(
+        #         resPercentage=props.renderSettingsAll.resolutionPercentage,
+        #         useStampInfo=props.renderSettingsAll.useStampInfo,
+        #     )
+        #     finalRes = props.convertToSupportedRenderResolution(finalRes)
 
         infosStr = _getResText(imgRes[0], imgRes[1], finalRes[0], finalRes[1])
         infosStr += f"{fps} fps"
         row.label(text=infosStr)
 
         # TODO wkip
-        if 100 != scene.render.resolution_percentage:
+        if not props.use_project_settings and 100 != scene.render.resolution_percentage:
             row = col.row()
             row.alert = True
             row.label(text="*** Warning: Resolution Percentage is not 100% ***")
@@ -298,10 +321,11 @@ def drawRenderInfos(context, layout):
     # PLAYBLAST ###
     elif props.displayPlayblastProps:
         # if props.renderSettingsPlayblast.bypass_rendering_project_settings:
-        finalRes = props.getRenderResolutionForFinalOutput(
-            resPercentage=props.renderSettingsPlayblast.resolutionPercentage,
-            useStampInfo=props.renderSettingsPlayblast.useStampInfo,
-        )
+        # finalRes = props.getRenderResolutionForFinalOutput(
+        #     resPercentage=props.renderSettingsPlayblast.resolutionPercentage,
+        #     useStampInfo=props.renderSettingsPlayblast.useStampInfo,
+        # )
+        # finalRes = props.convertToSupportedRenderResolution(finalRes)
 
         infosStr = _getResText(imgRes[0], imgRes[1], finalRes[0], finalRes[1])
         infosStr += f"{fps} fps"
@@ -321,16 +345,16 @@ def drawRenderInfos(context, layout):
         take = props.getCurrentTake()
         filePath = props.getOutputMediaPath("TK_PLAYBLAST", take, rootPath=props.renderRootPath)
 
-        # TODO wkip
-        if 100 != scene.render.resolution_percentage:
-            row = col.row()
-            row.alert = True
-            row.label(text="*** Warning: Resolution Percentage is not 100% ***")
-            infosStr = _getResText(imgRes[0], imgRes[1], finalRes[0], finalRes[1])
-            row = col.row()
-            row.alert = True
-            row.separator(factor=sepFactor)
-            row.label(text=infosStr)
+        # # TODO wkip
+        # if 100 != scene.render.resolution_percentage:
+        #     row = col.row()
+        #     row.alert = True
+        #     row.label(text="*** Warning: Resolution Percentage is not 100% ***")
+        #     infosStr = _getResText(imgRes[0], imgRes[1], finalRes[0], finalRes[1])
+        #     row = col.row()
+        #     row.alert = True
+        #     row.separator(factor=sepFactor)
+        #     row.label(text=infosStr)
 
         col.separator(factor=sepHeight)
         row = col.row()
@@ -541,10 +565,19 @@ def draw3DRenderPanel(self, context):
             row.prop(props.renderSettingsStill, "useStampInfo")
             if not stampInfoAvailable:
                 row.label(text="*** Add-on not available ***")
+            if not props.use_project_settings:
+                utils_ui.drawStampInfoBut(row)
+
             row = col.row()
             row.separator(factor=subItemSeparator)
             row.enabled = props.renderSettingsStill.useStampInfo
             row.prop(props.renderSettingsStill, "keepIntermediateFiles")
+
+            col.separator(factor=0.5)
+
+            row = col.row()
+            row.label(text="Resolution %:")
+            row.prop(props.renderSettingsStill, "resolutionPercentage", text="")
 
         drawRenderInfos(context, box)
 
@@ -583,10 +616,19 @@ def draw3DRenderPanel(self, context):
             row.prop(props.renderSettingsAnim, "useStampInfo")
             if not stampInfoAvailable:
                 row.label(text="*** Add-on not available ***")
+            if not props.use_project_settings:
+                utils_ui.drawStampInfoBut(row)
+
             row = col.row()
             row.separator(factor=subItemSeparator)
             row.enabled = props.renderSettingsAnim.useStampInfo
             row.prop(props.renderSettingsAnim, "keepIntermediateFiles")
+
+            col.separator(factor=0.5)
+
+            row = col.row()
+            row.label(text="Resolution %:")
+            row.prop(props.renderSettingsAnim, "resolutionPercentage", text="")
 
             _separatorRow(bypassItemsCol)
 
@@ -594,6 +636,9 @@ def draw3DRenderPanel(self, context):
             col = itemsRow.column()
             row = col.row()
             row.prop(props.renderSettingsAnim, "renderHandles")
+
+        openButEnabled = not (display_bypass_options and "IMAGE_SEQ" == props.renderSettingsAnim.outputMediaMode)
+        drawAfterRendering(props.renderSettingsAnim, box, openButEnabled=openButEnabled)
 
         drawRenderInfos(context, box)
 
@@ -633,10 +678,19 @@ def draw3DRenderPanel(self, context):
             row.prop(props.renderSettingsAll, "useStampInfo")
             if not stampInfoAvailable:
                 row.label(text="*** Add-on not available ***")
+            if not props.use_project_settings:
+                utils_ui.drawStampInfoBut(row)
+
             row = col.row()
             row.separator(factor=subItemSeparator)
             row.enabled = props.renderSettingsAll.useStampInfo
             row.prop(props.renderSettingsAll, "keepIntermediateFiles")
+
+            col.separator(factor=0.5)
+
+            row = col.row()
+            row.label(text="Resolution %:")
+            row.prop(props.renderSettingsAll, "resolutionPercentage", text="")
 
             _separatorRow(bypassItemsCol)
 
@@ -660,6 +714,10 @@ def draw3DRenderPanel(self, context):
         row = col.row()
         row.prop(props.renderSettingsAll, "renderAllTakes")
         row.prop(props.renderSettingsAll, "renderAlsoDisabled")
+
+        openButEnabled = not (display_bypass_options and "IMAGE_SEQ" == props.renderSettingsAll.outputMediaMode)
+        openButEnabled = openButEnabled and not props.renderSettingsAll.renderAllTakes
+        drawAfterRendering(props.renderSettingsAll, box, openButEnabled=openButEnabled)
 
         drawRenderInfos(context, box)
 
@@ -730,29 +788,25 @@ def draw3DRenderPanel(self, context):
         stampInfoRow.prop(props.renderSettingsPlayblast, "useStampInfo")
         if not stampInfoAvailable:
             stampInfoRow.label(text="*** Add-on not available ***")
+        if not props.use_project_settings:
+            utils_ui.drawStampInfoBut(stampInfoRow)
 
         _separatorRow(bypassItemsCol)
 
+        # col.separator(factor=0.5)
+
         row = box.row()
-        colFlow = row.column_flow(columns=3)
+        row.label(text="Resolution %:")
+        row.prop(props.renderSettingsPlayblast, "resolutionPercentage", text="")
+
+        row = box.row()
+        colFlow = row.column_flow(columns=2)
         col = colFlow.row()
         col.prop(props.renderSettingsPlayblast, "renderSound")
         col = colFlow.row()
         col.prop(props.renderSettingsPlayblast, "disableCameraBG")
-        col = colFlow.row()
-        col.label(text="Resolution %:")
-        col.prop(props.renderSettingsPlayblast, "resolutionPercentage", text="")
-        # row.use_property_split = False
 
-        row = box.row()
-        row.label(text="After Rendering:")
-        row = box.row()
-        row.separator(factor=2)
-        subRow = row.row()
-        subRow.prop(props.renderSettingsPlayblast, "openPlayblastInPlayer")
-        subRow = row.row()
-        subRow.enabled = False
-        subRow.prop(props.renderSettingsPlayblast, "updatePlayblastInVSM", text="Open in Video Tracks")
+        drawAfterRendering(props.renderSettingsPlayblast, box)
 
         drawRenderInfos(context, box)
 
@@ -797,6 +851,21 @@ def draw3DRenderPanel(self, context):
     #     debugCol.label(text="  " + currentRenderResStr)
 
     self.layout.separator(factor=0.2)
+
+
+def drawAfterRendering(renderPreset, layout, openButEnabled=True):
+    col = layout.column()
+    # col.scale_y = 0.8
+    row = col.row()
+    row.label(text="After Rendering:")
+    row = col.row()
+    row.separator(factor=2)
+    subRow = row.row()
+    subRow.enabled = openButEnabled
+    subRow.prop(renderPreset, "openRenderedVideoInPlayer")
+    subRow = row.row()
+    subRow.enabled = False
+    subRow.prop(renderPreset, "updatePlayblastInVSM", text="Open in Video Tracks")
 
 
 _classes = (UAS_PT_ShotManagerRenderPanel, UAS_PT_ShotManagerRenderPanelStdalone)

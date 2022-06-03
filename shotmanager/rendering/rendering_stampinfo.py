@@ -27,7 +27,7 @@ from shotmanager.config import sm_logging
 _logger = sm_logging.getLogger(__name__)
 
 
-def setStampInfoSettings(scene):
+def setStampInfoSettings(scene, resolution, resolutionFramed):
 
     if bpy.context.scene.UAS_StampInfo_Settings is not None:
 
@@ -111,9 +111,13 @@ def setStampInfoSettings(scene):
             if props.use_project_settings:
                 projProp_Name = props.project_name
 
-                projProp_resolution_x = props.project_resolution_x
-                projProp_resolution_y = props.project_resolution_y
-                projProp_resolutionFramed = [props.project_resolution_framed_x, props.project_resolution_framed_y]
+                # projProp_resolution_x = props.project_resolution_x
+                # projProp_resolution_y = props.project_resolution_y
+                # projProp_resolutionFramed = [props.project_resolution_framed_x, props.project_resolution_framed_y]
+
+                # projProp_resolution_x = resolution[0]  # not used
+                projProp_resolution_y = resolution[1]
+                projProp_resolutionFramed = resolutionFramed
 
                 stampInfoSettings.stampInfoRenderMode = "OUTSIDE"
                 stampInfoSettings.stampRenderResYOutside_percentage = (
@@ -162,9 +166,8 @@ def setStampInfoSettings(scene):
 
             else:
                 pass
-
-                projProp_resolution_x = scene.render.resolution_x
-                projProp_resolution_y = scene.render.resolution_y
+                # projProp_resolution_x = scene.render.resolution_x
+                # projProp_resolution_y = scene.render.resolution_y
 
             stampInfoSettings.tmp_usePreviousValues = False
 
@@ -187,6 +190,8 @@ def renderStampedInfoForShot(
     shot,
     rootPath,
     newTempRenderPath,
+    resolution,
+    resolutionFramed,
     handles,
     render_handles=True,
     specificFrame=None,
@@ -199,8 +204,20 @@ def renderStampedInfoForShot(
     and the state of the scene.
     The display itself of the properties is NOT modified here, it is supposed to be already
     set thanks to a call to setStampInfoSettings
+
+    Args:
+        resolution: array [width, height], resolution of the image rendered in Blender
     """
-    _logger.debug("\n - * - *renderStampedInfoForShot *** ")
+    txtIntro = "\n  ---------------"
+    txtIntro += "\n  Rendering StampInfo image sequence:"
+    txtIntro += f"    Shot: {shot.name}, handles: {render_handles} ({handles})"
+    txtIntro += f"\n{'   - Rendered image resolution: ': <20}{resolution[0]} x {resolution[1]}"
+    txtIntro += f"\n{'   - Final frame resolution: ': <20}{resolutionFramed[0]} x {resolutionFramed[1]}"
+    txtIntro += f"\n{'   - Path: ': <20}{newTempRenderPath}"
+    txtIntro += "\n  ---------------"
+    _logger.print_ext(txtIntro, col="CYAN")
+    # scene.render.filepath
+
     props = shotManagerProps
     scene = props.parentScene
     verbose = verbose or config.devDebug
@@ -290,9 +307,12 @@ def renderStampedInfoForShot(
 
     numFramesInShot = scene.frame_end - scene.frame_start + 1
 
-    if props.use_project_settings:
-        scene.render.resolution_x = props.project_resolution_framed_x
-        scene.render.resolution_y = props.project_resolution_framed_y
+    # if props.use_project_settings:
+    #     scene.render.resolution_x = props.project_resolution_framed_x
+    #     scene.render.resolution_y = props.project_resolution_framed_y
+
+    # # scene.render.resolution_x = resolution[0]
+    # # scene.render.resolution_y = resolution[1]
 
     render_frame_start = scene.frame_start
     if specificFrame is not None:
@@ -342,21 +362,27 @@ def renderStampedInfoForShot(
             "SH_INTERM_STAMPINFO_SEQ", providePath=False, specificFrame=currentFrame
         )
         if verbose:
-            print("      ------------------------------------------")
-            print(
-                f"      \nStamp Info Frame: {currentFrame}    ( {f + 1} / {numFramesInShot} )    -     Shot: {shot.name}"
-                f"      \nscene.render.filepath: {scene.render.filepath}"
-                f"      \ntmpShotFilename: {tmpShotFilename}"
-                f"      \nstampInfoSettings.renderRootPath: {stampInfoSettings.renderRootPath}"
-            )
+            txt = "      ------------------------------------------"
+            txt += f"\nStamp Info Frame:  Shot: {shot.name} {currentFrame}    ( {f + 1} / {numFramesInShot} )"
+            # txt += f"\n    File path: {scene.render.filepath}"
+            txt += f"\n{'   - File name: ': <20}{tmpShotFilename}"
+            # txt += f"\n    stampInfoSettings.renderRootPath: {stampInfoSettings.renderRootPath}"
+
+            print(txt)
 
         stampInfoSettings.renderTmpImageWithStampedInfo(
             scene,
             currentFrame,
+            resolution=resolutionFramed,
+            innerHeight=resolution[1],
             renderPath=newTempRenderPath,
             renderFilename=tmpShotFilename,
             verbose=False,
         )
+
+    if verbose:
+        txt = "\n      ------------------------------------------\n"
+        print(txt)
 
     ##############
     # restore scene state

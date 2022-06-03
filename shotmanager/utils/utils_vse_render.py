@@ -282,7 +282,9 @@ class ShotManager_Vse_Render(PropertyGroup):
         if mediaExt in (".mp4", ".avi", ".mov", ".mkv"):
             mediaType = "MOVIE"
         elif mediaExt in (".exr", ".jpg", ".jpeg", ".png", ".tga", ".tif", ".tiff"):
-            if -1 != filePath.find("###"):
+            # wkipwkipwkipwkip
+            # if -1 != filePath.find("###"):
+            if -1 != filePath.find("#"):
                 mediaType = "IMAGES_SEQUENCE"
             else:
                 mediaType = "IMAGE"
@@ -1031,7 +1033,7 @@ class ShotManager_Vse_Render(PropertyGroup):
 
                 elif len(fileExt):
                     # if "JPG" == fileExt:
-                    #     vse_scene.render.image_settings.file_format = "JPG"
+                    #     vse_scene.render.image_settings.file_format = "JPEG"
                     #     ext = ".jpg"
                     # # if "PNG" == fileExt:
                     # else:
