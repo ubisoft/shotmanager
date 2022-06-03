@@ -1,4 +1,9 @@
 -----
+## 2.0.33 (2022-06-03)
+#### UI
+- Added a button to better identify the current layout and easily toggle it
+
+-----
 ## 2.0.32 (2022-06-01)
 #### General
 - Added a Shift modifier key on shot creation and deletion to skip the dialog box

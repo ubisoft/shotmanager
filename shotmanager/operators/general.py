@@ -86,6 +86,33 @@ class UAS_ShotManager_OT_DisplayDisabledShotsInOverlays(Operator):
         return {"FINISHED"}
 
 
+class UAS_ShotManager_OT_ChangeLayout(Operator):
+    bl_idname = "uas_shot_manager.change_layout"
+    bl_label = "Toggle layout between Storyboard and Previz"
+    # bl_description = " "
+    bl_options = {"INTERNAL"}
+
+    @classmethod
+    def description(self, context, properties):
+        props = context.scene.UAS_shot_manager_props
+        if "STORYBOARD" == props.layout_mode:
+            descr = "\nCurrent layout: Storyboard"
+        else:
+            descr = "\nCurrent layout: Previz"
+        return descr
+
+    def execute(self, context):
+        props = context.scene.UAS_shot_manager_props
+
+        if "STORYBOARD" == props.layout_mode:
+            props.layout_mode = "PREVIZ"
+        # elif "PREVIZ" == props.layout_mode:
+        else:
+            props.layout_mode = "STORYBOARD"
+
+        return {"FINISHED"}
+
+
 ###################
 # Various
 ###################
@@ -370,6 +397,7 @@ _classes = (
     UAS_ShotManager_OT_ShotsPlayMode,
     UAS_ShotManager_OT_DisplayDisabledShotsInOverlays,
     UAS_ShotManager_OT_DisplayOverlayTools,
+    UAS_ShotManager_OT_ChangeLayout,
     UAS_ShotManager_OT_ClearMarkersFromCameraBinding,
     UAS_ShotManager_OT_ConvertMarkersFromCameraBindingToShots,
     UAS_ShotManager_OT_SetProjectSequenceName,

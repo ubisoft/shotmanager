@@ -71,14 +71,9 @@ class UAS_PT_ShotManager(Panel):
 
         row = layout.row(align=True)
 
-        if "STORYBOARD" == props.layout_mode:
-            # icon_stb = "IMAGE_RGB"
-            icon = config.icons_col["ShotManager_Storyboard_32"]
-            row.operator("uas_shot_manager.about", text="", icon_value=icon.icon_id)
-        else:
-            # icon = config.icons_col["Ubisoft_32"]
-            icon = config.icons_col["ShotManager_32"]
-            row.operator("uas_shot_manager.about", text="", icon_value=icon.icon_id)
+        # icon = config.icons_col["Ubisoft_32"]
+        icon = config.icons_col["ShotManager_32"]
+        row.operator("uas_shot_manager.about", text="", icon_value=icon.icon_id)
 
         if props.use_project_settings:
             if "" == props.project_name:
@@ -635,6 +630,21 @@ class UAS_PT_ShotManager(Panel):
             shotsrowlefttxt = shotsrowleft.row(align=True)
             shotsrowlefttxt.alignment = "LEFT"
 
+            layoutIcon = (
+                config.icons_col["ShotManager_Storyboard_32"]
+                if "STORYBOARD" == props.layout_mode
+                else config.icons_col["ShotManager_32"]
+            )
+            layoutButPressed = "STORYBOARD" == props.layout_mode
+            shotsrowlefttxt.operator(
+                "uas_shot_manager.change_layout",
+                text="",
+                icon_value=layoutIcon.icon_id,
+                emboss=True,
+                depress=layoutButPressed,
+            )
+            shotsrowlefttxt.separator(factor=0.5)
+
             shotsStr = "Shots:" if not props.display_advanced_infos else f"Shots ({numEnabledShots}/{numShots}):"
             shotsrowlefttxt.label(text=shotsStr)
             #   shotsrowlefttxt.operator("uas_shot_manager.enabledisableall", text="", icon="TIME")
@@ -653,9 +663,9 @@ class UAS_PT_ShotManager(Panel):
             # spacer
             spacerrow = shotsrowleft.row(align=False)
             spacerrow.alignment = "LEFT"
-            spacerrow.scale_x = 1.26 if props.display_notes_in_properties else 0.92
-            spacerrow.label(text="")
-            # spacerrow.separator(factor=1)
+            # spacerrow.scale_x = 1.26 if props.display_notes_in_properties else 0.92
+            # spacerrow.label(text="")
+            spacerrow.separator(factor=1)
 
             # edit ############
             ###########################
