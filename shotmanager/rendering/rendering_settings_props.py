@@ -78,22 +78,27 @@ class UAS_ShotManager_RenderSettings(PropertyGroup):
         default=False,
     )
 
-    def _get_useStampInfo(self):
-        val = self.get("useStampInfo", True)
+    # def _get_useStampInfo(self):
+    #     val = self.get("useStampInfo", True)
 
-        # warning! Maybe the returned props is not the right one!!
-        props = bpy.context.scene.UAS_shot_manager_props
-        if "PLAYBLAST" != self.renderMode and props.use_project_settings:
-            if not self.bypass_rendering_project_settings:
-                #     val = self.useStampInfo
-                # else:
-                val = props.project_use_stampinfo
-        return val
+    #     # warning! Maybe the returned props is not the right one!!
+    #     props = bpy.context.scene.UAS_shot_manager_props
+    #     if "PLAYBLAST" != self.renderMode and props.use_project_settings:
+    #         if not self.bypass_rendering_project_settings:
+    #             #     val = self.useStampInfo
+    #             # else:
+    #             val = props.project_use_stampinfo
+    #     return val
 
-    def _set_useStampInfo(self, value):
-        self["useStampInfo"] = value
+    # def _set_useStampInfo(self, value):
+    #     self["useStampInfo"] = value
 
-    useStampInfo: BoolProperty(name="Use Stamp Info", get=_get_useStampInfo, set=_set_useStampInfo, default=True)
+    # get=_get_useStampInfo, set=_set_useStampInfo,
+    useStampInfo: BoolProperty(
+        name="Use Stamp Info",
+        description="Write metadata on the output images thanks to the add-on Stamp Info (if installed)",
+        default=True,
+    )
 
     rerenderExistingShotVideos: BoolProperty(name="Re-render Exisiting Shot Videos", default=True)
 
@@ -162,30 +167,35 @@ class UAS_ShotManager_RenderSettings(PropertyGroup):
     # image_settings_file_format = 'FFMPEG'
     # scene.render.ffmpeg.format = 'MPEG4'
 
-    # only used by PLAYBLAST
     resolutionPercentage: IntProperty(
-        name="Resolution Percentage", min=10, soft_max=100, max=300, subtype="PERCENTAGE", default=100
+        name="Resolution Percentage",
+        min=10,
+        soft_max=100,
+        max=300,
+        subtype="PERCENTAGE",
+        default=100,
+        options=set(),
     )
 
     updatePlayblastInVSM: BoolProperty(
         name="Open in Video Shot Manager",
         description="Open the rendered playblast in the VSE",
         default=False,
-        #    options=set(),
+        options=set(),
     )
 
-    openPlayblastInPlayer: BoolProperty(
+    openRenderedVideoInPlayer: BoolProperty(
         name="Open in Player",
-        description="Open the rendered playblast in the default OS media player",
+        description="Open the rendered video in the default system media player",
         default=False,
-        #    options=set(),
+        options=set(),
     )
 
     stampRenderInfo: BoolProperty(
         name="Stamp Render Info",
-        description="Open the rendered playblast in the default OS media player",
+        description="Write metadata onto the rendered images.\nBlender medatada are used if Stamp Info is not checked or not available",
         default=True,
-        #    options=set(),
+        options=set(),
     )
 
     # renderCameraBG: BoolProperty(
@@ -222,7 +232,7 @@ class UAS_ShotManager_RenderSettings(PropertyGroup):
         self.otioFileType = "XML"
         self.resolutionPercentage = 100
         self.updatePlayblastInVSM = False
-        self.openPlayblastInPlayer = False
+        self.openRenderedVideoInPlayer = False
         self.stampRenderInfo = True
 
         # Still
@@ -235,6 +245,7 @@ class UAS_ShotManager_RenderSettings(PropertyGroup):
             self.name = "Animation Preset"
             self.renderMode = "ANIMATION"
             self.renderHandles = True
+            self.openRenderedVideoInPlayer = False
 
         # All shots
         elif "ALL" == renderMode:
@@ -261,4 +272,4 @@ class UAS_ShotManager_RenderSettings(PropertyGroup):
             self.name = "Playblast Preset"
             self.renderMode = "PLAYBLAST"
             self.useStampInfo = False
-            self.openPlayblastInPlayer = False
+            self.openRenderedVideoInPlayer = False

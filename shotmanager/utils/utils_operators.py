@@ -16,14 +16,12 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 """
-To do: module description here.
+Utils operators
 """
 
-import os
-from pathlib import Path
-import subprocess
-
 import json
+
+# from tokenize import String
 
 import bpy
 from bpy.types import Operator
@@ -42,6 +40,12 @@ class UAS_OT_EmptyOperator(Operator):
     bl_label = " "
     # bl_description = "Bla"
     bl_options = {"INTERNAL"}
+
+    tooltip: StringProperty(default=" ")
+
+    @classmethod
+    def description(self, context, properties):
+        return properties.tooltip
 
     def invoke(self, context, event):
         pass
@@ -120,12 +124,14 @@ class UAS_Utils_QuickHelp(Operator):
 # Cameras
 ###################
 
-"""Create a camera from the current view (duplicate the current camera if needed) and set it
-in the viewport.
-"""
-
 # not used anymore since integrated in UAS_Utils_CameraToView
+
+
 class UAS_Utils_CreateCameraFromView(Operator):
+    """Create a camera from the current view (duplicate the current camera if needed) and set it
+    in the viewport.
+    """
+
     bl_idname = "uas_utils.create_camera_from_view"
     bl_label = "Cam From View"
     bl_description = (
@@ -136,8 +142,7 @@ class UAS_Utils_CreateCameraFromView(Operator):
     bl_options = {"REGISTER", "UNDO"}
 
     def execute(self, context):
-        scene = context.scene
-        print(f" Creating new camera from view")
+        print(" Creating new camera from view")
 
         # create new camera
         newCam = utils.create_new_camera("New_Camera")
@@ -158,8 +163,6 @@ class UAS_Utils_CameraToView(Operator):
     bl_options = {"REGISTER", "UNDO"}
 
     def invoke(self, context, event):
-        scene = context.scene
-
         if event.shift and not event.ctrl:
             # create a new camera
             newCam = utils.create_new_camera("New_Camera")

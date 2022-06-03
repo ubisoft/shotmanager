@@ -258,7 +258,7 @@ class UAS_ShotManager_ShotDuration(Operator):
 class UAS_ShotManager_GetSetCurrentFrame(Operator):
     bl_idname = "uas_shot_manager.getsetcurrentframe"
     bl_label = "Get/Set Current Frame"
-    bl_description = "Click: Set current frame with value.""\n+ Shift: Get current frame for value"
+    bl_description = "Click: Set current frame with value." "\n+ Shift: Get current frame for value"
     bl_options = {"INTERNAL"}
 
     # shotSource is an array [index of shot, 0 (for start) or 1 (for end)]
@@ -493,12 +493,12 @@ class UAS_ShotManager_ShotAdd(Operator):
 
     @classmethod
     def description(self, context, properties):
-        descr = ""
         if "STORYBOARD" == properties.layout_mode:
             descr = "Add a new Storyboard Frame to the current take"
         else:
             descr = "Add a new shot as a Camera Shot"
-        #        descr += "\n+ Ctrl: Add key frame" "\n+ Shift: Duplicate previous key frame" "\n+ Alt: Delete key frame"
+        descr += "\nThe new shot is put after the selected shot"
+        "\n+ Shift: Skip the options dialog box"
         return descr
 
     def invoke(self, context, event):

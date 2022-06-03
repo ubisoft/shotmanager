@@ -41,7 +41,7 @@ class UAS_PT_ShotManagerRetimer(Panel):
     def poll(cls, context):
         props = context.scene.UAS_shot_manager_props
         prefs = context.preferences.addons["shotmanager"].preferences
-        val = prefs.display_retimer_in_properties and not props.dontRefreshUI()
+        val = prefs.display_retimer_panel and not props.dontRefreshUI()
         return val
 
     def draw_header(self, context):

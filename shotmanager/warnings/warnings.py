@@ -54,51 +54,6 @@ def getWarnings(props, scene):
         if S_IMODE(stat.st_mode) & S_IWRITE == 0:
             warningList.append(("Current file in Read-Only", 10, "ALL"))
 
-    # check if the current framerate is valid according to the project settings (wkip)
-    ###########
-    if props.use_project_settings:
-        if utils.getSceneEffectiveFps(scene) != props.project_fps:
-            warningList.append(("Current scene fps and project fps are different !!", 20, "ALL"))
-
-    # check if a negative render frame may be rendered
-    ###########
-    shotList = props.get_shots()
-    hasNegativeFrame = False
-    shotInd = 0
-    handlesDuration = props.getHandlesDuration()
-    while shotInd < len(shotList) and not hasNegativeFrame:
-        hasNegativeFrame = shotList[shotInd].start - handlesDuration < 0
-        shotInd += 1
-    if hasNegativeFrame:
-        if props.areShotHandlesUsed():
-            warningList.append(
-                (
-                    "Index of the output frame of a shot minus handle is negative !!"
-                    "\nNegative time indicies are not supported by Shot Manager renderer.",
-                    30,
-                    "ALL",
-                )
-            )
-        else:
-            warningList.append(
-                (
-                    "At least one shot starts at a negative frame !!"
-                    "\nNegative time indicies are not supported by Shot Manager renderer.",
-                    31,
-                    "ALL",
-                )
-            )
-
-    # check if the resolution render percentage is at 100%
-    ###########
-    if 100 != scene.render.resolution_percentage:
-        warningList.append(("Render Resolution Percentage is not at 100%", 40, "ALL"))
-
-    # check if the resolution render uses multiples of 2
-    ###########
-    if 0 != scene.render.resolution_x % 2 or 0 != scene.render.resolution_y % 2:
-        warningList.append(("Render Resolution must use multiples of 2", 42, "ALL"))
-
     # check is the data version is compatible with the current version
     # wkip obsolete code due to post register data version check
     if config.devDebug:
@@ -156,10 +111,56 @@ def getWarnings(props, scene):
     elif not props.isRenderRootPathValid():
         warningList.append(("Rendering path is invalid", 121, "RENDER"))
 
+    # check if the resolution render percentage is at 100%
+    ###########
+    if not props.use_project_settings and 100 != scene.render.resolution_percentage:
+        warningList.append(("Render Resolution Percentage is not at 100%", 130, "ALL"))
+
+    # check if the resolution render uses multiples of 2
+    ###########
+    if not props.use_project_settings:
+        if 0 != scene.render.resolution_x % 2 or 0 != scene.render.resolution_y % 2:
+            warningList.append(("Render Resolution must use multiples of 2", 132, "ALL"))
+
+    # check if the current pfs is valid according to the project settings (wkip)
+    ###########
+    if props.use_project_settings:
+        if utils.getSceneEffectiveFps(scene) != props.project_fps:
+            warningList.append(("Current scene fps and project fps are different !!", 136, "ALL"))
+
     # scene metadata activated and they will be written on rendered images
     ###########
     if scene.render.use_stamp:
-        warningList.append(("Scene Metadata Burning on Images is activated\nRendering will be affected", 130, "RENDER"))
+        warningList.append(("Scene Metadata Burning on Images is activated\nRendering will be affected", 140, "RENDER"))
+
+    # check if a negative render frame may be rendered
+    ###########
+    shotList = props.get_shots()
+    hasNegativeFrame = False
+    shotInd = 0
+    handlesDuration = props.getHandlesDuration()
+    while shotInd < len(shotList) and not hasNegativeFrame:
+        hasNegativeFrame = shotList[shotInd].start - handlesDuration < 0
+        shotInd += 1
+    if hasNegativeFrame:
+        if props.areShotHandlesUsed():
+            warningList.append(
+                (
+                    "Index of the output frame of a shot minus handle is negative !!"
+                    "\nNegative time indicies are not supported by Shot Manager renderer.",
+                    150,
+                    "ALL",
+                )
+            )
+        else:
+            warningList.append(
+                (
+                    "At least one shot starts at a negative frame !!"
+                    "\nNegative time indicies are not supported by Shot Manager renderer.",
+                    151,
+                    "ALL",
+                )
+            )
 
     ##############################
     # dependencies - 7x

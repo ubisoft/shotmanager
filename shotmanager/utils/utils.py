@@ -369,6 +369,24 @@ def getSceneEffectiveFps(scene):
 
 
 ###################
+# Render
+###################
+
+
+def convertToSupportedRenderResolution(res):
+    """Return an array of int where the provided render resolution has been converted to multiples of 2
+    Args:
+        res:    array [w, h]"""
+    validRes_w = int(res[0])
+    if 0 != validRes_w % 2:
+        validRes_w += 1
+    validRes_h = int(res[1])
+    if 0 != validRes_h % 2:
+        validRes_h += 1
+    return [validRes_w, validRes_h]
+
+
+###################
 # Markers
 ###################
 

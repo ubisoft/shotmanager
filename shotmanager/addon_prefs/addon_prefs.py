@@ -87,7 +87,7 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
         Return None if the addon has not been found in the listed dependencies
         """
         if "Stamp Info" == addon_name:
-            return ("1.2.1", 1002001)
+            return config.STAMP_INFO_MIN_VERSION
 
         return None
 
@@ -497,11 +497,11 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
         if "STORYBOARD" == self.layout_mode:
             self.display_storyboard_in_properties = True
             self.display_notes_in_properties = True
-            self.display_greasepenciltools_in_properties = True
+            self.display_25D_greasepencil_panel = True
         else:
             self.display_storyboard_in_properties = False
             self.display_notes_in_properties = False
-            self.display_greasepenciltools_in_properties = False
+            self.display_25D_greasepencil_panel = False
         pass
 
     layout_mode: EnumProperty(
@@ -616,9 +616,9 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
     # ****** settings exposed to the user in the prefs panel:
     # ------------------------------
 
-    display_greasepenciltools_in_properties: BoolProperty(
-        name="Display 2.5d Grease Pencil",
-        description="Display the 2.5D Grease Pencil sub-panel in the Shot Manager panel.\n(saved in the add-on preferences)",
+    display_25D_greasepencil_panel: BoolProperty(
+        name="Display 2.5D Grease Pencil Panel",
+        description="Display the 2.5D Grease Pencil sub-panel in the Shot Manager panel.\n\n(saved in the add-on preferences)",
         default=True,
     )
 
@@ -629,15 +629,15 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
     # ****** settings exposed to the user in the prefs panel:
     # ------------------------------
 
-    display_render_in_properties: BoolProperty(
-        name="Display Renderer",
-        description="Display the Render sub-panel in the Shot Manager panel.\n(saved in the add-on preferences)",
+    display_render_panel: BoolProperty(
+        name="Display Render Panel",
+        description="Display the Render sub-panel in the Shot Manager panel.\n\n(saved in the add-on preferences)",
         default=True,
     )
 
     separatedRenderPanel: BoolProperty(
         name="Separated Render Panel",
-        description="If checked, the render panel will be a tab separated from Shot Manager panel",
+        description="If checked, the Pender panel will be a tab separated from Shot Manager panel",
         default=True,
     )
 
@@ -724,19 +724,19 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
     )
 
     ### Retimer
-    display_retimer_in_properties: BoolProperty(
+    display_retimer_panel: BoolProperty(
         name="Display Retimer",
-        description="Display the Retimer sub-panel in the Shot Manager panel.\n(saved in the add-on preferences)",
+        description="Display the Retimer sub-panel in the Shot Manager panel.\n\n(saved in the add-on preferences)",
         default=False,
     )
     applyToTimeCursor: BoolProperty(
         name="Apply to Time Cursor",
-        description="Apply retime operation to the time cursor.\n(saved in the add-on preferences)",
+        description="Apply retime operation to the time cursor.\n\n(saved in the add-on preferences)",
         default=True,
     )
     applyToSceneRange: BoolProperty(
         name="Apply to Scene Range",
-        description="Apply retime operation to the animation start and end of the scene.\n(saved in the add-on preferences)",
+        description="Apply retime operation to the animation start and end of the scene.\n\n(saved in the add-on preferences)",
         default=True,
     )
 
@@ -849,7 +849,9 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
 
     display_frame_range_tool: BoolProperty(
         name="Frame Time Range",
-        description="Easily get and set the time range from the Timeline editor.\nA tool from Ubisoft Shot Manager",
+        description="Easily get and set the time range from the Timeline editor."
+        "\nA tool from Ubisoft Shot Manager"
+        "\n\n(saved in the add-on preferences)",
         update=_update_display_frame_range_tool,
         default=True,
     )

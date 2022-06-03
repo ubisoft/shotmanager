@@ -690,10 +690,121 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
             renderResolutionFramedFull = [self.project_resolution_framed_x, self.project_resolution_framed_y]
             return (renderResolutionFramedFull[0], renderResolutionFramedFull[1])
         else:
-            # wkipwkipwkip use this instead:
-            # renderResolutionFramedFull = stampInfoSettings.evaluateRenderResolutionForStampInfo(renderMode=stampInfoSettings.stampInfoRenderMode, imageRes=
             renderResolutionFramedFull = stampInfoSettings.getRenderResolutionForStampInfo(scene)
             return (renderResolutionFramedFull[0], renderResolutionFramedFull[1])
+
+    # FIXME: add support for take custom res
+    def getOutputResolution(self, scene, renderPreset, mode, forceMultiplesOf2=False):
+        """Just compute the expected resolution
+
+        Note: the stamp info is involved here only if the project settings are not used
+
+        Args:
+            mode:
+                RENDERED_IMG_RES:       do not include Res Percentage
+                FINAL_RENDERED_IMG_RES: include Res Percentage
+                FRAMED_IMG_RES:         do not include Res Percentage
+                FINAL_FRAMED_IMG_RES:   include Res Percentage
+            forceMultiplesOf2
+        """
+        renderResolution = None
+        renderResolutionFramed = None
+
+        # if no project settings used we take the info from the scene
+        if not self.use_project_settings:
+            renderResolution = [scene.render.resolution_x, scene.render.resolution_y]
+            renderResolutionFramed = [scene.render.resolution_x, scene.render.resolution_y]
+
+            if "PLAYBLAST" == renderPreset.renderMode:
+                renderResolution[0] = int(renderResolution[0] * renderPreset.resolutionPercentage / 100)
+                renderResolution[1] = int(renderResolution[1] * renderPreset.resolutionPercentage / 100)
+
+                if renderPreset.stampRenderInfo and renderPreset.useStampInfo:
+                    if self.isStampInfoAvailable():
+                        stampInfoSettings = getStampInfo()
+                        renderResolutionFramed = stampInfoSettings.getRenderResolutionForStampInfo(
+                            scene, usePercentage=False
+                        )
+
+                        renderResolutionFramed[0] = int(
+                            renderResolutionFramed[0] * renderPreset.resolutionPercentage / 100
+                        )
+                        renderResolutionFramed[1] = int(
+                            renderResolutionFramed[1] * renderPreset.resolutionPercentage / 100
+                        )
+                    else:
+                        renderResolutionFramed = [renderResolution[0], renderResolution[1]]
+                else:
+                    renderResolutionFramed = [renderResolution[0], renderResolution[1]]
+
+            else:
+                if self.isStampInfoAvailable():
+                    stampInfoSettings = getStampInfo()
+                    renderResolutionFramed = stampInfoSettings.getRenderResolutionForStampInfo(
+                        scene, usePercentage=False
+                    )
+
+                if "FINAL" in mode:
+                    renderResolution[0] = int(renderResolution[0] * renderPreset.resolutionPercentage / 100)
+                    renderResolution[1] = int(renderResolution[1] * renderPreset.resolutionPercentage / 100)
+                    renderResolutionFramed[0] = int(renderResolutionFramed[0] * renderPreset.resolutionPercentage / 100)
+                    renderResolutionFramed[1] = int(renderResolutionFramed[1] * renderPreset.resolutionPercentage / 100)
+
+        # use project settings
+        else:
+            if "PLAYBLAST" == renderPreset.renderMode:
+                renderResolution = [-1, -1]
+                renderResolution[0] = int(self.project_resolution_x * renderPreset.resolutionPercentage / 100)
+                renderResolution[1] = int(self.project_resolution_y * renderPreset.resolutionPercentage / 100)
+
+                if renderPreset.stampRenderInfo and renderPreset.useStampInfo:
+                    renderResolutionFramed = [-1, -1]
+                    renderResolutionFramed[0] = int(
+                        self.project_resolution_framed_x * renderPreset.resolutionPercentage / 100
+                    )
+                    renderResolutionFramed[1] = int(
+                        self.project_resolution_framed_y * renderPreset.resolutionPercentage / 100
+                    )
+                else:
+                    renderResolutionFramed = [renderResolution[0], renderResolution[1]]
+
+            else:
+                renderResolution = [self.project_resolution_x, self.project_resolution_y]
+                if self.project_use_stampinfo:
+                    renderResolutionFramed = [self.project_resolution_framed_x, self.project_resolution_framed_y]
+                else:
+                    renderResolutionFramed = [self.project_resolution_x, self.project_resolution_y]
+
+                # override project settings variables if bypass project settings is enabled
+                if renderPreset.bypass_rendering_project_settings:
+                    if "FINAL" in mode:
+                        renderResolution[0] = int(renderResolution[0] * renderPreset.resolutionPercentage / 100)
+                        renderResolution[1] = int(renderResolution[1] * renderPreset.resolutionPercentage / 100)
+
+                    if "FINAL_FRAMED_IMG_RES" == mode:
+                        if renderPreset.useStampInfo:
+                            renderResolutionFramed = [
+                                self.project_resolution_framed_x,
+                                self.project_resolution_framed_y,
+                            ]
+                            renderResolutionFramed[0] = int(
+                                renderResolutionFramed[0] * renderPreset.resolutionPercentage / 100
+                            )
+                            renderResolutionFramed[1] = int(
+                                renderResolutionFramed[1] * renderPreset.resolutionPercentage / 100
+                            )
+                        else:
+                            renderResolutionFramed[0] = renderResolution[0]
+                            renderResolutionFramed[1] = renderResolution[1]
+
+        # make the resolutions valid for video rendering
+        if forceMultiplesOf2:
+            renderResolution = utils.convertToSupportedRenderResolution(renderResolution)
+            renderResolutionFramed = utils.convertToSupportedRenderResolution(renderResolutionFramed)
+
+        if "FRAMED" in mode:
+            return renderResolutionFramed
+        return renderResolution
 
     # FIXME: add support for take custom res
     def getRenderResolutionForFinalOutput(self, resPercentage=100, useStampInfo=None):
@@ -715,6 +826,8 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         Returns:
             tupple with the render resolution x and y of the take
         """
+
+        _logger.debug_ext("getRenderResolutionForFinalOutput", tag="DEPRECATED")
         if useStampInfo is None:
             renderResolutionFramedFull = self.getRenderResolutionForStampInfo()
         elif useStampInfo:
@@ -1161,11 +1274,11 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         if "STORYBOARD" == self.layout_mode:
             self.display_storyboard_in_properties = True
             self.display_notes_in_properties = True
-            prefs.display_greasepenciltools_in_properties = True
+            prefs.display_25D_greasepencil_panel = True
         else:
             self.display_storyboard_in_properties = False
             self.display_notes_in_properties = False
-            prefs.display_greasepenciltools_in_properties = False
+            prefs.display_25D_greasepencil_panel = False
         pass
 
     layout_mode: EnumProperty(
@@ -1377,7 +1490,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         options=set(),
     )
 
-    # display_retimer_in_properties: BoolProperty(
+    # display_retimer_panel: BoolProperty(
     #     name="Display Retimer sub-Panel",
     #     description="Display Retimer sub-panel in the Shot Manager panel",
     #     default=False,
@@ -4315,7 +4428,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
                         else:
                             fileExtension += "."
                             sceneFileFormat = self.parentScene.render.image_settings.file_format.lower()
-                            if "jpg" == sceneFileFormat:
+                            if "jpeg" == sceneFileFormat:
                                 fileExtension += "jpg"
                             elif "png" == sceneFileFormat:
                                 fileExtension += "png"

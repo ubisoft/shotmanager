@@ -47,8 +47,8 @@ class UAS_PT_ShotManagerGreasePencilPanelStdalone(Panel):
         prefs = context.preferences.addons["shotmanager"].preferences
         # displayPanel = context.preferences.addons["shotmanager"].preferences.separatedRenderPanel
         # displayPanel = displayPanel and props.getCurrentShot() is not None
-        # return displayPanel and prefs.display_greasepenciltools_in_properties
-        return prefs.display_greasepenciltools_in_properties
+        # return displayPanel and prefs.display_25D_greasepencil_panel
+        return prefs.display_25D_greasepencil_panel
 
     # def draw_header(self, context):
     #     layout = self.layout

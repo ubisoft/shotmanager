@@ -770,7 +770,7 @@ class UAS_ShotManager_GreasePencil_NavigateInKeyFrames(Operator):
             # otherwhise we do nothing
 
             # edited 2.5D object
-            if prefs.display_greasepenciltools_in_properties:
+            if prefs.display_25D_greasepencil_panel:
                 gpPinnedName = props.getPinnedGPObjectName()
                 if "" != gpPinnedName:
                     gp = context.scene.objects[gpPinnedName]
