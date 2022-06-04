@@ -676,7 +676,13 @@ class UAS_PT_ShotManager(Panel):
             iconCheckBoxes = "CHECKBOX_HLT" if not prefs.toggleShotsEnabledState else "CHECKBOX_DEHLT"
             subrowedit.operator("uas_shot_manager.enabledisableall", text="", icon=iconCheckBoxes, emboss=False)
 
-            subrowedit.prop(props, "useContinuousGPEditing", text="", icon="GREASEPENCIL")
+            if props.display_storyboard_in_properties:
+                subrowedit.operator(
+                    "uas_shot_manager.toggle_continuous_gp_editing_mode",
+                    text="",
+                    icon="GREASEPENCIL",
+                    depress=props.useContinuousGPEditing,
+                )
 
             if props.display_editmode_in_properties:
                 subrowedit.prop(

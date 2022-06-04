@@ -237,6 +237,32 @@ class UAS_ShotManager_SetCurrentShot(Operator):
         return {"INTERFACE"}
 
 
+class UAS_ShotManager_ToggleContinuousGPEditingMode(Operator):
+    """Set the specifed shot as current"""
+
+    bl_idname = "uas_shot_manager.toggle_continuous_gp_editing_mode"
+    bl_label = "Continuous GP Editing"
+    bl_description = (
+        "When used, the current storyboard frame or shot grease pencil will be switched"
+        "\nto edit mode if the edit mode is activated on a shot in the scene"
+    )
+    bl_options = {"REGISTER"}
+
+    def execute(self, context):
+        props = context.scene.UAS_shot_manager_props
+        prefs = context.preferences.addons["shotmanager"].preferences
+
+        props.useContinuousGPEditing = not props.useContinuousGPEditing
+
+        if props.useContinuousGPEditing:
+            prefs.selected_shot_changes_current_shot_in_stb = True
+
+        else:
+            prefs.selected_shot_changes_current_shot_in_stb = False
+
+        return {"FINISHED"}
+
+
 class UAS_ShotManager_ShotDuration(Operator):
     bl_idname = "uas_shot_manager.shot_duration"
     bl_label = "Shot Duration"
@@ -1585,6 +1611,7 @@ _classes = (
     UAS_ShotManager_SetShotStart,
     # # shot items
     UAS_ShotManager_SetCurrentShot,
+    UAS_ShotManager_ToggleContinuousGPEditingMode,
     UAS_ShotManager_ShotDuration,
     UAS_ShotManager_GetSetCurrentFrame,
     UAS_ShotManager_NoLens,

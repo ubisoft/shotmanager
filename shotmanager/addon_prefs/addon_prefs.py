@@ -427,12 +427,12 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
         description="Automatically zoom the timeline content to frame the shot when the current shot is changed.\n(Add-on preference)",
         default=False,
     )
-    current_shot_changes_edited_frame_in_stb: BoolProperty(
-        name="Set selected shot to edited",
-        description="When a shot is selected in the shot list, in Storyboard layout mode, and another one is being edited, then"
-        "\nthe shot becomes the new edited one",
-        default=True,
-    )
+    # current_shot_changes_edited_frame_in_stb: BoolProperty(
+    #     name="Set selected shot to edited",
+    #     description="When a shot is selected in the shot list, in Storyboard layout mode, and another one is being edited, then"
+    #     "\nthe shot becomes the new edited one",
+    #     default=True,
+    # )
 
     selected_shot_changes_current_shot_in_stb: BoolProperty(
         name="Set selected shot to current",

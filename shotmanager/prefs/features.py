@@ -81,8 +81,12 @@ def draw_features_prefs(mode, layout):
     # layoutRow.alignment = "CENTER"
     # layoutRow.scale_x = 0.8
     layoutRow.scale_y = 1.2
-    layoutRow.prop(props, "layout_but_storyboard", toggle=1)
-    layoutRow.prop(props, "layout_but_previz", toggle=1)
+
+    stbIcon = config.icons_col["ShotManager_Storyboard_32"]
+    layoutRow.prop(props, "layout_but_storyboard", toggle=1, icon_value=stbIcon.icon_id)
+    previzIcon = config.icons_col["ShotManager_32"]
+    layoutRow.prop(props, "layout_but_previz", text="Previz   ", toggle=1, icon_value=previzIcon.icon_id)
+
     if config.devDebug:
         layoutRow.prop(props, "layout_mode", text="")
 

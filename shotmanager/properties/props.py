@@ -1293,11 +1293,11 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         if "STORYBOARD" == self.layout_mode:
             self.display_storyboard_in_properties = True
             self.display_notes_in_properties = True
-            prefs.display_25D_greasepencil_panel = True
+        #  prefs.display_25D_greasepencil_panel = True
         else:
-            self.display_storyboard_in_properties = False
+            #   self.display_storyboard_in_properties = False
             self.display_notes_in_properties = False
-            prefs.display_25D_greasepencil_panel = False
+        # prefs.display_25D_greasepencil_panel = False
         pass
 
     layout_mode: EnumProperty(
@@ -1869,16 +1869,17 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
     def _update_selected_shot_index(self, context):
         if self.selected_shot_index_call_update__flag:
             prefs = context.preferences.addons["shotmanager"].preferences
-            print("\n*** selected_shot_index. New state: ", self.selected_shot_index)
+            _logger.debug_ext("\n*** selected_shot_index. New state: ", self.selected_shot_index)
 
-            if "STORYBOARD" == self.layout_mode:
+            # if "STORYBOARD" == self.layout_mode:
+            if True:
                 if prefs.shot_selected_from_shots_stack__flag:
                     # print("   call from shots stack")
                     if prefs.selected_shot_in_shots_stack_changes_current_shot_in_stb:
                         #    print("   sel in shots stack")
                         bpy.ops.uas_shot_manager.set_current_shot(index=self.selected_shot_index)
                 elif prefs.selected_shot_changes_current_shot_in_stb:
-                    print("   _update_selected_shot_index from shot list")
+                    _logger.debug_ext("   _update_selected_shot_index from shot list")
                     # print("\n*** selected_shot_index. New state: ", self.selected_shot_index)
                     bpy.ops.uas_shot_manager.set_current_shot(index=self.selected_shot_index)
 

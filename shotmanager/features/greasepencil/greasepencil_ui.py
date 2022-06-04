@@ -19,6 +19,8 @@
 Shot Manager grease pencil tools and specific operators
 """
 
+from . import greasepencil_overlay_ui
+
 from shotmanager.utils import utils_ui
 from shotmanager.utils import utils_greasepencil
 
@@ -196,34 +198,7 @@ def draw_greasepencil_play_tools(self, context, shot, layersListDropdown=None):
 
     # overlay tools
     #########################
-    spaceDataViewport = props.getValidTargetViewportSpaceData(context)
-    onionSkinIsActive = False
-    gridIsActive = False
-    if spaceDataViewport is not None:
-        onionSkinIsActive = spaceDataViewport.overlay.use_gpencil_onion_skin
-        gridIsActive = spaceDataViewport.overlay.use_gpencil_grid
-
-    row = box.row(align=True)
-    overlayCol = row.column()
-    overlaySplit = overlayCol.split(factor=0.2)
-    overlaySplit.label(text="Overlay: ")
-    overlayRighRow = overlaySplit.row()
-    overlayRighRow.operator("uas_shot_manager.greasepencil_toggleonionskin", depress=onionSkinIsActive)
-    overlayRighRow.operator("uas_shot_manager.greasepencil_togglecanvas", depress=gridIsActive)
-
-    overlaySplit = overlayCol.split(factor=0.2)
-    overlaySplit.separator()
-    overlayRighRow = overlaySplit.row()
-    overlayRighRow.prop(spaceDataViewport.overlay, "use_gpencil_fade_layers", text="")
-    # row.prop(spaceDataViewport.overlay, "gpencil_fade_layer")
-    subOverlayRighRow = overlayRighRow.row()
-    subOverlayRighRow.enabled = spaceDataViewport.overlay.use_gpencil_fade_layers
-    subOverlayRighRow.prop(prefs, "stb_overlay_layers_opacity", text="Fade Layers", slider=True)
-
-
-#     utils_ui.drawSeparatorLine(layout, lower_height=0.6)
-
-# box.operator("uas_shot_manager.draw_on_grease_pencil", text="", icon="GP_SELECT_STROKES")
+    greasepencil_overlay_ui.draw_greasepencil_overlay_tools(context, box, mode="GP")
 
 
 def drawDrawingMatRow(context, layout, props, objIsValid, objIsGP):

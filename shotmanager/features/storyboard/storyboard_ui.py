@@ -23,6 +23,8 @@ Grease pencil UI
 from shotmanager.utils import utils_ui
 from shotmanager.utils import utils_greasepencil
 
+from ..greasepencil import greasepencil_overlay_ui
+
 from shotmanager.config import config
 
 from . import storyboard_drawing_ui as drawing_ui
@@ -548,40 +550,7 @@ def draw_greasepencil_global_properties(layout, context):
 
         # overlay tools
         #########################
-        spaceDataViewport = props.getValidTargetViewportSpaceData(context)
-        onionSkinIsActive = False
-        gridIsActive = False
-        if spaceDataViewport is not None:
-            onionSkinIsActive = spaceDataViewport.overlay.use_gpencil_onion_skin
-            gridIsActive = spaceDataViewport.overlay.use_gpencil_grid
-
-        row = col.row(align=False)
-        overlayCol = row.column()
-        overlaySplit = overlayCol.split(factor=0.2)
-        overlaySplit.label(text="Overlay: ")
-        overlayRighRow = overlaySplit.row()
-        overlayRighRow.operator("uas_shot_manager.greasepencil_toggleonionskin", depress=onionSkinIsActive)
-        overlayRighRow.operator("uas_shot_manager.greasepencil_togglecanvas", depress=gridIsActive)
-
-        row = col.row(align=False)
-        overlaySplit = row.split(factor=0.2)
-        overlaySplit.separator()
-        overlayRighRow = overlaySplit.row()
-        overlayRighRow.prop(spaceDataViewport.overlay, "use_gpencil_fade_layers", text="")
-        # row.prop(spaceDataViewport.overlay, "gpencil_fade_layer")
-        subOverlayRighRow = overlayRighRow.row()
-        subOverlayRighRow.enabled = spaceDataViewport.overlay.use_gpencil_fade_layers
-        subOverlayRighRow.prop(prefs, "stb_overlay_layers_opacity", text="Fade Layers", slider=True)
-
-        row = col.row(align=False)
-        overlaySplit = row.split(factor=0.2)
-        overlaySplit.separator()
-        overlayRighRow = overlaySplit.row()
-        subOverlayRighRow = overlayRighRow.row()
-        subOverlayRighRow.prop(props.shotsGlobalSettings, "stb_show_passepartout", text="", slider=True)
-        subsubOverlayRighRow = subOverlayRighRow.row()
-        subsubOverlayRighRow.enabled = props.shotsGlobalSettings.stb_show_passepartout
-        subsubOverlayRighRow.prop(props.shotsGlobalSettings, "stb_passepartout_alpha", text="Passepartout", slider=True)
+        greasepencil_overlay_ui.draw_greasepencil_overlay_tools(context, col, mode="SHOT")
 
         row = col.row(align=True)
         row.separator(factor=0.5)
