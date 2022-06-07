@@ -23,8 +23,8 @@ Grease Pencil
 from . import greasepencil_props
 from . import greasepencil_operators
 
-from . import greasepencil_frame_panel
-from . import greasepencil_tools_props
+from . import greasepencil_frame_presets_ui
+from ...feature_panels.greasepencil_25D import greasepencil_25D_props
 
 # from shotmanager.config import config
 from shotmanager.config import sm_logging
@@ -35,15 +35,15 @@ _logger = sm_logging.getLogger(__name__)
 def register():
     _logger.debug_ext("       - Registering Feature: Grease Pencil Package", form="REG")
 
+    greasepencil_frame_presets_ui.register()
     greasepencil_props.register()
     greasepencil_operators.register()
 
-    # done in shot manager init
-    # greasepencil_toolspanel_ui.register()
-
+    # done in shot manager init:
+    # greasepencil_frame_usage_preset.register()
     # greasepencil_frame_template.register()
-    greasepencil_frame_panel.register()
-    greasepencil_tools_props.register()
+
+    greasepencil_25D_props.register()
 
 
 #  greasepencil_toolbox_ui.register()
@@ -53,14 +53,13 @@ def register():
 def unregister():
     _logger.debug_ext("       - Unregistering Feature: Grease Pencil Package", form="UNREG")
 
-    greasepencil_tools_props.unregister()
+    greasepencil_25D_props.unregister()
     # rendering_ui.unregister()   # done in shotmanager.__init__ in order to display the panel in the right order
-    # greasepencil_toolbox_ui.unregister()
-    greasepencil_frame_panel.unregister()
-    #  greasepencil_frame_template.unregister()
 
-    # done in shot manager init
-    #  greasepencil_toolspanel_ui.unregister()
+    # done in shot manager init:
+    # greasepencil_frame_template.register()
+    # greasepencil_frame_usage_preset.unregister()
 
     greasepencil_operators.unregister()
     greasepencil_props.unregister()
+    greasepencil_frame_presets_ui.unregister()

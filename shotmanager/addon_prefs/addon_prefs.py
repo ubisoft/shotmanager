@@ -19,7 +19,6 @@
 add-on global preferences
 """
 
-# from distutils.command.config import config
 import bpy
 from bpy.types import AddonPreferences
 from bpy.props import StringProperty, IntProperty, BoolProperty, EnumProperty, FloatProperty, PointerProperty
@@ -311,6 +310,9 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
         options=set(),
     )
 
+    ##############################
+    # grease pencil frame template
+    ##############################
     stb_frameTemplate: PointerProperty(
         type=UAS_GreasePencil_FrameTemplate,
     )

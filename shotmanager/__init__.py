@@ -32,7 +32,7 @@ from .overlay_tools.workspace_info.workspace_info import toggle_workspace_info_d
 from .features import cameraBG
 from .features import soundBG
 from .features import greasepencil
-from .features.greasepencil import greasepencil_tools_ui
+from .feature_panels.greasepencil_25D import greasepencil_25D_ui
 from .features import storyboard
 
 from .operators import takes
@@ -81,7 +81,7 @@ bl_info = {
     "author": "Ubisoft - Julien Blervaque (aka Werwack), Romain Carriquiry Borchiari",
     "description": "Easily manage shots and cameras in the 3D View and see the resulting edit in real-time",
     "blender": (3, 1, 0),
-    "version": (2, 0, 34),
+    "version": (2, 0, 35),
     "location": "View3D > Shot Manager",
     "doc_url": "https://ubisoft-shotmanager.readthedocs.io",
     "warning": "BETA Version",
@@ -156,7 +156,9 @@ def register():
     sm_debug.register()
 
     from .features.storyboard import frame_grid
+    from .features.greasepencil import greasepencil_frame_usage_preset
     from .features.greasepencil import greasepencil_frame_template
+
     from .addon_prefs import addon_prefs
     from .utils import utils_vse_render
     from .overlay_tools import sequence_timeline
@@ -172,6 +174,7 @@ def register():
     )
 
     frame_grid.register()
+    greasepencil_frame_usage_preset.register()
     greasepencil_frame_template.register()
     addon_prefs.register()
 
@@ -197,7 +200,7 @@ def register():
 
     # ui
     sm_ui.register()
-    greasepencil_tools_ui.register()
+    greasepencil_25D_ui.register()
     retimer_ui.register()
     rendering_ui.register()
     rrs.register()
@@ -338,6 +341,7 @@ def unregister():
     ###################
 
     from .features.storyboard import frame_grid
+    from .features.greasepencil import greasepencil_frame_usage_preset
     from .features.greasepencil import greasepencil_frame_template
 
     from .addon_prefs import addon_prefs
@@ -361,7 +365,7 @@ def unregister():
     rrs.unregister()
     rendering_ui.unregister()
     retimer_ui.unregister()
-    greasepencil_tools_ui.unregister()
+    greasepencil_25D_ui.unregister()
     sm_ui.unregister()
 
     # operators
@@ -384,6 +388,7 @@ def unregister():
 
     addon_prefs.unregister()
     greasepencil_frame_template.unregister()
+    greasepencil_frame_usage_preset.unregister()
     frame_grid.unregister()
 
     del bpy.types.WindowManager.UAS_shot_manager_shots_play_mode

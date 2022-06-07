@@ -186,6 +186,9 @@ class UAS_PT_ShotManager(Panel):
 
             row = layout.row()
             row.operator("uas_shot_manager.redrawui")
+            resetOp = row.operator("uas_shot_manager.resetusagepreset", text="", icon="LOOP_BACK")
+            resetOp.mode = "ADDON_PREFS"
+            resetOp.presetID = "ALL"
 
         # NOTE: Shot Manager Prefs and Shot Manager scene instance are initialized here:
         if not props.isInitialized:

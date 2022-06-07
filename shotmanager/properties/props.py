@@ -49,7 +49,7 @@ from .take import UAS_ShotManager_Take
 from shotmanager.warnings import warnings
 from ..retimer.retimer_props import UAS_Retimer_Properties
 from ..features.greasepencil.greasepencil_frame_template import UAS_GreasePencil_FrameTemplate
-from ..features.greasepencil.greasepencil_tools_props import UAS_GreasePencil_Tools_Properties
+from shotmanager.feature_panels.greasepencil_25D.greasepencil_25D_props import UAS_GreasePencil_Tools_Properties
 
 from shotmanager.utils import utils
 from shotmanager.utils.utils_shot_manager import getStampInfo
@@ -1869,7 +1869,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
     def _update_selected_shot_index(self, context):
         if self.selected_shot_index_call_update__flag:
             prefs = context.preferences.addons["shotmanager"].preferences
-            _logger.debug_ext("\n*** selected_shot_index. New state: ", self.selected_shot_index)
+            _logger.debug_ext(f"\n*** selected_shot_index. New state: {self.selected_shot_index}")
 
             # if "STORYBOARD" == self.layout_mode:
             if True:

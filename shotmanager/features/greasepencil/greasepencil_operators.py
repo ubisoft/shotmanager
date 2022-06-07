@@ -680,6 +680,35 @@ class UAS_ShotManager_GreasePencilItem(Operator):
         return {"FINISHED"}
 
 
+class UAS_ShotManager_ResetUsagePreset(Operator):
+    bl_idname = "uas_shot_manager.resetusagepreset"
+    bl_label = "Reset Usage Preset(s)"
+    bl_description = "Reset Usage Preset to default values"
+    bl_options = {"INTERNAL", "UNDO"}
+
+    # can be SCENE or ADDON_PREFS"
+    mode: StringProperty(default="SCENE")
+
+    # can be ALL to reset all the presets
+    presetID: StringProperty(default="")
+
+    def execute(self, context):
+
+        prefs = bpy.context.preferences.addons["shotmanager"].preferences
+        if "SCENE" == self.mode:
+            props = context.scene.UAS_shot_manager_props
+        else:
+            props = prefs
+        # props.stb_frameTemplate.updatePresets(mode="SCENE")
+
+        if "ALL" == self.presetID:
+            props.stb_frameTemplate.resetAllPresetsToDefault()
+        elif "" != self.presetID:
+            props.stb_frameTemplate.resetPresetToDefaultByID(self.presetID)
+
+        return {"FINISHED"}
+
+
 class UAS_ShotManager_GreasePencil_UINavigationKeys(Operator):
     """This operator is to be used by the GUI only since it has
     different behaviors accorting to the key pressed when called,
@@ -1290,6 +1319,7 @@ _classes = (
     UAS_ShotManager_OT_ClearLayer,
     UAS_ShotManager_OT_PinGreasePencilObject,
     UAS_ShotManager_GreasePencilItem,
+    UAS_ShotManager_ResetUsagePreset,
     UAS_ShotManager_GreasePencil_UINavigationKeys,
     UAS_ShotManager_GreasePencil_NavigateInKeyFrames,
     # UAS_ShotManager_GreasePencil_NavigateInShots,

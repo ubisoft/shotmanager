@@ -29,7 +29,10 @@ _logger = sm_logging.getLogger(__name__)
 def storeUserRenderSettings(context, userRenderSettings):
     scene = context.scene
 
-    userRenderSettings["show_overlays"] = bpy.context.space_data.overlay.show_overlays
+    try:
+        userRenderSettings["show_overlays"] = bpy.context.space_data.overlay.show_overlays
+    except Exception as e:
+        _logger.error_ext(f"Show Overlay state cannot be stored - Exception: {e}")
     userRenderSettings["resolution_x"] = scene.render.resolution_x
     userRenderSettings["resolution_y"] = scene.render.resolution_y
     userRenderSettings["resolution_percentage"] = scene.render.resolution_percentage

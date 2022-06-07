@@ -1,4 +1,14 @@
 -----
+## 2.0.35 (2022-06-07)
+#### Warnings
+- Add a warning and reset button for pixel aspect, fps, resolution
+
+#### Grease pencil and Storyboard
+- Fixed layers creation process
+- Added a Reset to Default button for all the usage presets
+
+
+-----
 ## 2.0.34 (2022-06-03)
 #### UX
 - Improve the grease pencil continuous editing workflow

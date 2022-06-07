@@ -128,6 +128,33 @@ def drawWarnings(context, ui_component, warningsList, panelType="MAIN"):
                     resetOp.function_name = "reset_render_properties"
                     butsrow.separator(factor=0.5)
 
+                # render resolution is the same as the one set in project settings
+                elif 131 == w[1]:
+                    warningCol.separator(factor=sepHeight)
+                    butsrow = warningCol.row()
+                    butsrow.scale_y = 1.4
+                    butsrow.separator(factor=0.5)
+                    butsrow.operator("uas_shot_manager.set_render_res_as_project_res", text="Apply Project Resolution")
+                    butsrow.separator(factor=0.5)
+
+                # render pixel aspects X or Y are used
+                elif 134 == w[1]:
+                    warningCol.separator(factor=sepHeight)
+                    butsrow = warningCol.row()
+                    butsrow.scale_y = 1.4
+                    butsrow.separator(factor=0.5)
+                    butsrow.operator("uas_shot_manager.turn_off_pixel_aspect", text="Reset Render Pixel Aspect")
+                    butsrow.separator(factor=0.5)
+
+                # current fps is valid according to the project settings
+                elif 136 == w[1]:
+                    warningCol.separator(factor=sepHeight)
+                    butsrow = warningCol.row()
+                    butsrow.scale_y = 1.4
+                    butsrow.separator(factor=0.5)
+                    butsrow.operator("uas_shot_manager.set_render_fps_as_project_fps", text="Apply Project FPS")
+                    butsrow.separator(factor=0.5)
+
                 # scene metadata activated and they will be written on rendered images
                 elif 140 == w[1]:
                     warningCol.separator(factor=sepHeight)

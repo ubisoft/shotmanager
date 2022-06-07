@@ -16,7 +16,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 """
-Grease pencil UI
+Greasep pencil and storyboard draw functions for UI
 """
 
 # from shotmanager.utils import utils
