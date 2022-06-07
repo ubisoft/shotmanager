@@ -16,13 +16,11 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 """
-To do: module description here.
+Shot template list preferences
 """
 
 import bpy
-from bpy.types import Panel, Operator, Menu
-
-from shotmanager.config import config
+from bpy.types import Panel, Operator
 
 
 #############
@@ -40,7 +38,6 @@ class UAS_ShotManager_General_Prefs(Operator):
         return context.window_manager.invoke_props_dialog(self, width=400)
 
     def draw(self, context):
-        props = context.scene.UAS_shot_manager_props
         prefs = context.preferences.addons["shotmanager"].preferences
         layout = self.layout
 
@@ -186,31 +183,31 @@ class UAS_ShotManager_Shots_Prefs(Operator):
         )
 
         # on selected shot changed
-        maincol.separator(factor=1.5)
-        row = maincol.row()
-        row.separator(factor=2)
-        row.label(text="When Selected Shot Is Changed:  (Settings stored in the Add-on Preferences):")
-        propsRow = maincol.row()
-        propsRow.separator(factor=5)
-        propsCol = propsRow.column()
-        propsCol.prop(
-            prefs,
-            "selected_shot_changes_current_shot_in_stb",
-            text="Storyboard Shots List: Set Selected Shot to Current One",
-        )
-        shotsStackRow = propsCol.row()
-        shotsStackRow.separator(factor=5)
-        shotsStackRow.prop(
-            prefs,
-            "selected_shot_in_shots_stack_changes_current_shot_in_stb",
-            text="Shots Stack: Set Selected Shot to Current One",
-        )
+        # maincol.separator(factor=1.5)
+        # row = maincol.row()
+        # row.separator(factor=2)
+        # row.label(text="When Selected Shot Is Changed:  (Settings stored in the Add-on Preferences):")
+        # propsRow = maincol.row()
+        # propsRow.separator(factor=5)
+        # propsCol = propsRow.column()
+        # propsCol.prop(
+        #     prefs,
+        #     "selected_shot_changes_current_shot_in_stb",
+        #     text="Storyboard Shots List: Set Selected Shot to Current One",
+        # )
+        # shotsStackRow = propsCol.row()
+        # shotsStackRow.separator(factor=5)
+        # shotsStackRow.prop(
+        #     prefs,
+        #     "selected_shot_in_shots_stack_changes_current_shot_in_stb",
+        #     text="Shots Stack: Set Selected Shot to Current One",
+        # )
 
-        propsCol.prop(
-            prefs,
-            "current_shot_changes_edited_frame_in_stb",
-            text="Storyboard Shots List: Set Selected Shot to Edited One",
-        )
+        # propsCol.prop(
+        #     prefs,
+        #     "current_shot_changes_edited_frame_in_stb",
+        #     text="Storyboard Shots List: Set Selected Shot to Edited One",
+        # )
 
         layout.separator(factor=2)
 

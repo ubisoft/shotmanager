@@ -1,4 +1,35 @@
 -----
+## 2.0.35 (2022-06-07)
+#### Warnings
+- Add a warning and reset button for pixel aspect, fps, resolution
+
+#### Grease pencil and Storyboard
+- Fixed layers creation process
+- Added a Reset to Default button for all the usage presets
+
+
+-----
+## 2.0.34 (2022-06-03)
+#### UX
+- Improve the grease pencil continuous editing workflow
+- Turned off the Use Best Play Performances mode by default
+
+#### UI
+- Add an Overlay toggle button in the Global Settings of the storyboard panel
+
+
+-----
+## 2.0.33 (2022-06-03)
+#### UI
+- Added a button to better identify the current layout and easily toggle it
+
+#### Rendering
+- Added support for take note in the rendering of Stamp Info, when project settings are used
+- Added a button to disable the Blender metadata burning in the warnings
+- Fixes in rendering resolution, use of Stamp Info and display of grease pencil
+
+
+-----
 ## 2.0.32 (2022-06-01)
 #### General
 - Added a Shift modifier key on shot creation and deletion to skip the dialog box

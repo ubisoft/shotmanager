@@ -16,14 +16,14 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 """
-Shot Manager grease pencil tools and specific operators
+2.5D Grease Pencil panel
 """
 
 import bpy
 
 from bpy.types import Panel
 
-from .greasepencil_ui import draw_greasepencil_play_tools
+from shotmanager.features.greasepencil.greasepencil_ui import draw_greasepencil_play_tools
 
 
 class UAS_PT_ShotManagerGreasePencilPanelStdalone(Panel):

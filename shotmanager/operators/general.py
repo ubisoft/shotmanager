@@ -23,6 +23,7 @@ import bpy
 from bpy.types import Operator
 from bpy.props import BoolProperty, StringProperty, IntProperty
 
+from shotmanager.utils import utils
 from shotmanager.config import config
 from shotmanager.operators.shots import convertMarkersFromCameraBindingToShots
 from shotmanager.utils.utils import getSceneVSE, convertVersionIntToStr, clearMarkersFromCameraBinding
@@ -86,8 +87,92 @@ class UAS_ShotManager_OT_DisplayDisabledShotsInOverlays(Operator):
         return {"FINISHED"}
 
 
+class UAS_ShotManager_OT_ChangeLayout(Operator):
+    bl_idname = "uas_shot_manager.change_layout"
+    bl_label = "Toggle layout between Storyboard and Previz"
+    # bl_description = " "
+    bl_options = {"INTERNAL"}
+
+    @classmethod
+    def description(self, context, properties):
+        props = context.scene.UAS_shot_manager_props
+        if "STORYBOARD" == props.layout_mode:
+            descr = "\nCurrent layout: Storyboard"
+        else:
+            descr = "\nCurrent layout: Previz"
+        return descr
+
+    def execute(self, context):
+        props = context.scene.UAS_shot_manager_props
+
+        if "STORYBOARD" == props.layout_mode:
+            props.layout_mode = "PREVIZ"
+        # elif "PREVIZ" == props.layout_mode:
+        else:
+            props.layout_mode = "STORYBOARD"
+
+        return {"FINISHED"}
+
+
 ###################
-# Various
+# Warning buttons
+###################
+
+
+class UAS_ShotManager_OT_TurnOffBurnIntoImage(Operator):
+    bl_idname = "uas_shot_manager.turn_off_burn_into_image"
+    bl_label = "Disable Metadata"
+    bl_description = (
+        "Turn off the use of Burn Into Image in the scene to prevent metadata" "\nto be written on output images"
+    )
+    bl_options = {"REGISTER", "UNDO"}
+
+    def execute(self, context):
+        context.scene.render.use_stamp = False
+        return {"FINISHED"}
+
+
+class UAS_ShotManager_OT_TurnOffPixelAspect(Operator):
+    bl_idname = "uas_shot_manager.turn_off_pixel_aspect"
+    bl_label = "Reset Pixel Aspect"
+    bl_description = "Reset the render pixel aspects X and Y to 1.0"
+    bl_options = {"REGISTER", "UNDO"}
+
+    def execute(self, context):
+        context.scene.render.pixel_aspect_x = 1.0
+        context.scene.render.pixel_aspect_y = 1.0
+        return {"FINISHED"}
+
+
+class UAS_ShotManager_OT_SetFpsAsProjectFps(Operator):
+    bl_idname = "uas_shot_manager.set_render_fps_as_project_fps"
+    bl_label = "Reset Fps"
+    bl_description = "Change the scene render framerate to match the project settings framerate"
+    bl_options = {"REGISTER", "UNDO"}
+
+    def execute(self, context):
+        props = bpy.context.scene.UAS_shot_manager_props
+        if props.use_project_settings:
+            utils.setSceneFps(context.scene, props.project_fps)
+        return {"FINISHED"}
+
+
+class UAS_ShotManager_OT_SetRenderResAsProjectRes(Operator):
+    bl_idname = "uas_shot_manager.set_render_res_as_project_res"
+    bl_label = "Reset Render Resolution"
+    bl_description = "Change the scene render resolution to match the project settings resolution"
+    bl_options = {"REGISTER", "UNDO"}
+
+    def execute(self, context):
+        props = bpy.context.scene.UAS_shot_manager_props
+        if props.use_project_settings:
+            context.scene.render.resolution_x = props.project_resolution_x
+            context.scene.render.resolution_y = props.project_resolution_y
+        return {"FINISHED"}
+
+
+###################
+# Camera binding
 ###################
 
 
@@ -370,6 +455,11 @@ _classes = (
     UAS_ShotManager_OT_ShotsPlayMode,
     UAS_ShotManager_OT_DisplayDisabledShotsInOverlays,
     UAS_ShotManager_OT_DisplayOverlayTools,
+    UAS_ShotManager_OT_ChangeLayout,
+    UAS_ShotManager_OT_TurnOffBurnIntoImage,
+    UAS_ShotManager_OT_TurnOffPixelAspect,
+    UAS_ShotManager_OT_SetFpsAsProjectFps,
+    UAS_ShotManager_OT_SetRenderResAsProjectRes,
     UAS_ShotManager_OT_ClearMarkersFromCameraBinding,
     UAS_ShotManager_OT_ConvertMarkersFromCameraBindingToShots,
     UAS_ShotManager_OT_SetProjectSequenceName,

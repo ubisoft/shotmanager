@@ -237,6 +237,32 @@ class UAS_ShotManager_SetCurrentShot(Operator):
         return {"INTERFACE"}
 
 
+class UAS_ShotManager_ToggleContinuousGPEditingMode(Operator):
+    """Set the specifed shot as current"""
+
+    bl_idname = "uas_shot_manager.toggle_continuous_gp_editing_mode"
+    bl_label = "Continuous GP Editing"
+    bl_description = (
+        "When used, the current storyboard frame or shot grease pencil will be switched"
+        "\nto edit mode if the edit mode is activated on a shot in the scene"
+    )
+    bl_options = {"REGISTER"}
+
+    def execute(self, context):
+        props = context.scene.UAS_shot_manager_props
+        prefs = context.preferences.addons["shotmanager"].preferences
+
+        props.useContinuousGPEditing = not props.useContinuousGPEditing
+
+        if props.useContinuousGPEditing:
+            prefs.selected_shot_changes_current_shot_in_stb = True
+
+        else:
+            prefs.selected_shot_changes_current_shot_in_stb = False
+
+        return {"FINISHED"}
+
+
 class UAS_ShotManager_ShotDuration(Operator):
     bl_idname = "uas_shot_manager.shot_duration"
     bl_label = "Shot Duration"
@@ -1472,7 +1498,13 @@ class UAS_ShotManager_Shots_SelectCamera(Operator):
 
     def execute(self, context):
         context.scene.UAS_shot_manager_props.setSelectedShotByIndex(self.index)
-        if context.active_object is not None and context.active_object.mode != "OBJECT":
+        # NOTE: we use context.object here instead of context.active_object because
+        # when the eye icon of the object is closed (meaning object.hide_get() == True)
+        # then context.active_object is None
+        # if context.active_object is not None and context.active_object.mode != "OBJECT":
+        if context.object is not None and context.object.mode != "OBJECT":
+            if not context.object.visible_get():
+                context.object.hide_viewport = False
             bpy.ops.object.mode_set(mode="OBJECT")
         context.scene.UAS_shot_manager_props.selectCamera(self.index)
         return {"INTERFACE"}
@@ -1579,6 +1611,7 @@ _classes = (
     UAS_ShotManager_SetShotStart,
     # # shot items
     UAS_ShotManager_SetCurrentShot,
+    UAS_ShotManager_ToggleContinuousGPEditingMode,
     UAS_ShotManager_ShotDuration,
     UAS_ShotManager_GetSetCurrentFrame,
     UAS_ShotManager_NoLens,

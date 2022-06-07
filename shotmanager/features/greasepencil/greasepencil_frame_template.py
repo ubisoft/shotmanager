@@ -26,25 +26,14 @@ from bpy.props import (
     PointerProperty,
     CollectionProperty,
     StringProperty,
-    BoolProperty,
-    IntProperty,
-    FloatProperty,
-    FloatVectorProperty,
 )
 
+from .greasepencil_frame_usage_preset import UAS_ShotManager_FrameUsagePreset
 from shotmanager.features.storyboard.frame_grid.storyboard_frame_grid_props import UAS_ShotManager_FrameGrid
 from shotmanager.utils import utils_greasepencil
 from shotmanager.config import sm_logging
 
 _logger = sm_logging.getLogger(__name__)
-
-
-class UAS_ShotManager_FrameUsagePreset(PropertyGroup):
-
-    id: StringProperty(default="ID")
-    used: BoolProperty(default=False)
-    layerName: StringProperty(default="")
-    materialName: StringProperty(default="")
 
 
 class UAS_ShotManager_GreasepencilObjSettings(PropertyGroup):
@@ -58,6 +47,21 @@ class UAS_GreasePencil_FrameTemplate(PropertyGroup):
     """Contains the grease pencil related to the shot"""
 
     usagePresets: CollectionProperty(type=UAS_ShotManager_FrameUsagePreset)
+
+    def getParentProps(self):
+        """return the property settings instance owner of this instance of frame template.
+        This can be the general add-on preferences or the props settings from one of the scenes of the file"""
+        prefs = bpy.context.preferences.addons["shotmanager"].preferences
+        if self == prefs.stb_frameTemplate:
+            return prefs
+
+        for scn in bpy.data.scenes:
+            if hasattr(scn, "UAS_shot_manager_props"):
+                props = scn.UAS_shot_manager_props
+                if self == props.stb_frameTemplate:
+                    return props
+
+        return None
 
     def initialize(self, mode="SCENE"):
         """
@@ -87,52 +91,53 @@ class UAS_GreasePencil_FrameTemplate(PropertyGroup):
             # initialize the add-on preferences set of presets
             # wkipwkipwkip
             # Canvas
-            _use = True
-            _layerName = "_Canvas_"
-            _matName = "_Canvas_Mat"
-            props.stb_frameTemplate.addPreset("CANVAS", _use, _layerName, _matName)
+            # _use = True
+            # _layerName = "_Canvas_"
+            # _matName = "_Canvas_Mat"
+            # props.stb_frameTemplate.addPreset("MG_FILLS", _use, _layerName, _matName)
+            props.stb_frameTemplate.addPreset("CANVAS")
 
             # BG #############
-            _use = True
-            _layerName = "BG Fills"
-            _matName = "Stb_Fills"
-            props.stb_frameTemplate.addPreset("BG_FILLS", _use, _layerName, _matName)
-            _use = True
-            _layerName = "BG Lines"
-            _matName = "Stb_Lines"
-            props.stb_frameTemplate.addPreset("BG_LINES", _use, _layerName, _matName)
+            # _use = True
+            # _layerName = "BG Fills"
+            # _matName = "Stb_Fills"
+            props.stb_frameTemplate.addPreset("BG_FILLS")
+            # _use = True
+            # _layerName = "BG Lines"
+            # _matName = "Stb_Lines"
+            props.stb_frameTemplate.addPreset("BG_LINES")
 
             # MG #############
-            _use = True
-            _layerName = "MiddleG Fills"
-            _matName = "Stb_Fills"
-            props.stb_frameTemplate.addPreset("MG_FILLS", _use, _layerName, _matName)
-            _use = True
-            _layerName = "MiddleG Lines"
-            _matName = "Stb_Lines"
-            props.stb_frameTemplate.addPreset("MG_LINES", _use, _layerName, _matName)
+            # _use = True
+            # _layerName = "MiddleG Fills"
+            # _matName = "Stb_Fills"
+            props.stb_frameTemplate.addPreset("MG_FILLS")
+            # _use = True
+            # _layerName = "MiddleG Lines"
+            # _matName = "Stb_Lines"
+            props.stb_frameTemplate.addPreset("MG_LINES")
 
             # FG #############
-            _use = True
-            _layerName = "FG Fills"
-            _matName = "Stb_Fills"
-            props.stb_frameTemplate.addPreset("FG_FILLS", _use, _layerName, _matName)
-            _use = True
-            _layerName = "FG Lines"
-            _matName = "Stb_Lines"
-            props.stb_frameTemplate.addPreset("FG_LINES", _use, _layerName, _matName)
+            # _use = True
+            # _layerName = "FG Fills"
+            # _matName = "Stb_Fills"
+            props.stb_frameTemplate.addPreset("FG_FILLS")
+            # _use = True
+            # _layerName = "FG Lines"
+            # _matName = "Stb_Lines"
+            props.stb_frameTemplate.addPreset("FG_LINES")
 
             # persp #############
-            _use = True
-            _layerName = "Perspective"
-            _matName = "Stb_Lines"
-            props.stb_frameTemplate.addPreset("PERSP", _use, _layerName, _matName)
+            # _use = True
+            # _layerName = "Perspective"
+            # _matName = "Stb_Lines"
+            props.stb_frameTemplate.addPreset("PERSP")
 
             # rough #############
-            _use = True
-            _layerName = "Rough"
-            _matName = "Stb_Lines"
-            props.stb_frameTemplate.addPreset("ROUGH", _use, _layerName, _matName)
+            # _use = True
+            # _layerName = "Rough"
+            # _matName = "Stb_Lines"
+            props.stb_frameTemplate.addPreset("ROUGH")
 
         else:
             # SCENE
@@ -146,9 +151,16 @@ class UAS_GreasePencil_FrameTemplate(PropertyGroup):
                 preset = self.getPresetByID(id)
                 if preset is None:
                     preset = self.addPreset(id)
+                    # prefsPreset = prefs.stb_frameTemplate.getPresetByID(id)
+                    # if prefsPreset is not None:
+                    #     preset.used = prefsPreset.used
+                    #     preset.label = str(prefsPreset.label)
+                    #     preset.layerName = str(prefsPreset.layerName)
+                    #     preset.materialName = str(prefsPreset.materialName)
                 if preset is not None:
                     # prefsTemplate.getPreset(preset, preset.id, preset.used, preset.layerName, preset.materialName)
-                    prefsTemplate.getPreset(preset, preset.id, "used", "layerName", "materialName")
+                    # prefsTemplate.getPreset(preset, preset.id, "used", "layerName", "materialName")
+                    pass
 
             # order is important
             presets = self.getPresetIDs()
@@ -178,34 +190,140 @@ class UAS_GreasePencil_FrameTemplate(PropertyGroup):
                     return p
         return preset
 
-    def addPreset(self, id, used=False, layerName="", materialName="", updateExisting=True):
+    def addPreset(self, id):
         """Create a new preset and return it
         If a preset with the same ID already exists then it is returned as is
         Args:
             id: Can be anything (nothing hardcoded in SM) but most common are:
                 "CANVAS", "BG_LINES", "BG_FILLS", "MG_LINES", "MG_FILLS", "FG_LINES", "FG_FILLS", "PERSP", "ROUGH"
         """
-        preset = self.getPresetByID(id)
-        isNewPreset = False
-
-        if preset is None and "" != id:
-            preset = self.usagePresets.add()
-            isNewPreset = True
-
-        if isNewPreset or updateExisting:
-            preset.id = id
-            preset.used = used
-            preset.layerName = layerName
-            preset.materialName = materialName
+        preset = None
+        if "" != id:
+            preset = self.getPresetByID(id)
+            if preset is None:
+                preset = self.usagePresets.add()
+                preset.id = id
+                self.resetPresetToDefault(preset)
 
         return preset
 
-    def getPreset(self, prop, id, used, layerName, materialName):
+    # def addPreset(self, id, used=False, label="", layerName="", materialName="", updateExisting=True):
+    #     """Create a new preset and return it
+    #     If a preset with the same ID already exists then it is returned as is
+    #     Args:
+    #         id: Can be anything (nothing hardcoded in SM) but most common are:
+    #             "CANVAS", "BG_LINES", "BG_FILLS", "MG_LINES", "MG_FILLS", "FG_LINES", "FG_FILLS", "PERSP", "ROUGH"
+    #         updateExisting: if True then use the provided property values to initialize the new preset
+    #     """
+    #     preset = self.getPresetByID(id)
+    #     isNewPreset = False
+
+    #     if preset is None and "" != id:
+    #         preset = self.usagePresets.add()
+    #         preset.id = id
+    #         isNewPreset = True
+    #         self.resetPresetToDefault(preset)
+
+    #     if updateExisting:
+    #         # preset.id = id
+    #         preset.used = used
+    #         preset.label = label
+    #         preset.layerName = layerName
+    #         preset.materialName = materialName
+
+    #     return preset
+
+    # def getPreset(self, prop, id, used, layerName, materialName):
+    #     preset = self.getPresetByID(id)
+    #     if preset is not None:
+    #         setattr(prop, used, preset.used)
+    #         setattr(prop, layerName, preset.layerName)
+    #         setattr(prop, materialName, preset.materialName)
+
+    def resetAllPresetsToDefault(self):
+        _logger.debug_ext(f"wkip Reseting prefs presets in Props.init !!!")
+
+        presets = self.getPresetIDs()
+        for presetID in presets:
+            preset = self.getPresetByID(presetID)
+            if preset is None:
+                preset = self.addPreset(presetID)
+            else:
+                self.resetPresetToDefault(preset)
+
+    def resetPresetToDefaultByID(self, id):
         preset = self.getPresetByID(id)
-        if preset is not None:
-            setattr(prop, used, preset.used)
-            setattr(prop, layerName, preset.layerName)
-            setattr(prop, materialName, preset.materialName)
+        self.resetPresetToDefault(preset)
+
+    def resetPresetToDefault(self, preset):
+        """Set all the properties (except id) of the provided preset back to their default value"""
+        prefs = bpy.context.preferences.addons["shotmanager"].preferences
+
+        # parentProps = self.getParentProps()
+
+        if prefs.stb_frameTemplate == self:
+            _logger.debug_ext(f"Resetting preset {preset.id} in the Preferences", col="PURPLE")
+
+            if "ROUGH" == preset.id:
+                preset.used = True
+                preset.label = "Rough"
+                preset.layerName = "Rough"
+                preset.materialName = "Lines"
+            elif "PERSP" == preset.id:
+                preset.used = True
+                preset.label = "Perspective"
+                preset.layerName = "Perspective"
+                preset.materialName = "Lines"
+
+            elif "FG_LINES" == preset.id:
+                preset.used = True
+                preset.label = "Foreground Lines"
+                preset.layerName = "FG Lines"
+                preset.materialName = "Stb_Lines"
+            elif "FG_FILLS" == preset.id:
+                preset.used = True
+                preset.label = "Foreground Fills"
+                preset.layerName = "FG Fills"
+                preset.materialName = "Stb_Fills"
+
+            elif "MG_LINES" == preset.id:
+                preset.used = True
+                preset.label = "Middle-ground Lines"
+                preset.layerName = "MiddleG Lines"
+                preset.materialName = "Stb_Lines"
+            elif "MG_FILLS" == preset.id:
+                preset.used = True
+                preset.label = "Middle-ground Fills"
+                preset.layerName = "MiddleG Fills"
+                preset.materialName = "Stb_Fills"
+
+            elif "BG_LINES" == preset.id:
+                preset.used = True
+                preset.label = "Background Lines"
+                preset.layerName = "BG Lines"
+                preset.materialName = "Stb_Lines"
+            elif "BG_FILLS" == preset.id:
+                preset.used = True
+                preset.label = "Background Fills"
+                preset.layerName = "BG Fills"
+                preset.materialName = "Stb_Fills"
+
+            elif "CANVAS" == preset.id:
+                preset.used = True
+                preset.label = "Canvas"
+                preset.layerName = "_Canvas_"
+                preset.materialName = "_Canvas_Mat"
+
+        else:
+            _logger.debug_ext(f"Resetting preset {preset.id} in the scene {bpy.context.scene}", col="PURPLE")
+
+            defaulPresetFromPrefs = prefs.stb_frameTemplate.getPresetByID(preset.id)
+            if defaulPresetFromPrefs is None:
+                defaulPresetFromPrefs = prefs.stb_frameTemplate.addPreset(preset.id)
+            preset.used = defaulPresetFromPrefs.used
+            preset.label = defaulPresetFromPrefs.label
+            preset.layerName = defaulPresetFromPrefs.layerName
+            preset.materialName = defaulPresetFromPrefs.materialName
 
     ###############################
     # frame grid
@@ -283,14 +401,12 @@ class UAS_GreasePencil_FrameTemplate(PropertyGroup):
 
 
 _classes = (
-    UAS_ShotManager_FrameUsagePreset,
     UAS_ShotManager_GreasepencilObjSettings,
     UAS_GreasePencil_FrameTemplate,
 )
 
 
 def register():
-    pass
     for cls in _classes:
         bpy.utils.register_class(cls)
 

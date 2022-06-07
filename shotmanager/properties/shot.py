@@ -665,7 +665,12 @@ class UAS_ShotManager_Shot(ShotInterface, PropertyGroup):
             gpProps.updateGreasePencil()
 
     # wkip to update with the gp list
-    def showGreasePencil(self):
+    def showGreasePencil(self, forceHide=False):
+        """Display or hide the grease pencil object according to its visibility state
+        and to the display state at the props level (props.use_greasepencil)
+        Args:
+            forceHide:  used by the renderer to avoid to see the gp of the other shots
+        """
         #    def showGreasePencil(self, visible=None, mode="STORYBOARD"):
         def _showGreasePencil(gpencil, visible):
             gpencil.hide_viewport = not visible
@@ -679,9 +684,10 @@ class UAS_ShotManager_Shot(ShotInterface, PropertyGroup):
             gpProps = self.getGreasePencilProps(mode="STORYBOARD")
             props = self.parentScene.UAS_shot_manager_props
 
-            # if visible is None:
-            #     gpProps.visibility =
-            # else:
+            if forceHide:
+                _showGreasePencil(gp_child, False)
+                return
+
             if "ALWAYS_VISIBLE" == gpProps.visibility:
                 _showGreasePencil(gp_child, props.use_greasepencil)
             elif "ALWAYS_HIDDEN" == gpProps.visibility:

@@ -30,7 +30,9 @@ def drawWarnings(context, ui_component, warningsList, panelType="MAIN"):
     numWarnings_Main = 0
     numWarnings_Render = 0
 
-    for i, w in enumerate(warningsList):
+    sepHeight = 0.5
+
+    for _i, w in enumerate(warningsList):
         if "ALL" == w[2]:
             numWarnings_All += 1
         elif "MAIN" == w[2]:
@@ -75,12 +77,12 @@ def drawWarnings(context, ui_component, warningsList, panelType="MAIN"):
                 row = warningsRow.row()
                 row.alert = True
                 warningCol = row.column(align=False)
-                warningCol.scale_y = 0.5
+                warningCol.scale_y = 0.7
                 for i, mess in enumerate(messages):
                     if 0 == i:
                         warningCol.label(text="-  " + mess)
                     else:
-                        warningCol.label(text="    " + mess)
+                        warningCol.label(text="   " + mess)
 
                 # add camera binding conversion buttons
                 if 60 == w[1]:
@@ -96,8 +98,9 @@ def drawWarnings(context, ui_component, warningsList, panelType="MAIN"):
                 ##############################
                 # dependencies - 7x
                 ##############################
+
                 # add go to stamp info download button
-                if 71 == w[1]:
+                elif 71 == w[1]:
                     butsrow = warningCol.row()
                     butsrow.separator(factor=0.5)
                     butsrow.scale_y = 2.0
@@ -108,8 +111,12 @@ def drawWarnings(context, ui_component, warningsList, panelType="MAIN"):
                     doc_op.tooltip = "Open Stamp Info latest release page on GitHub: " + doc_op.path
                     butsrow.separator(factor=0.5)
 
+                ##############################
+                # rendering - 1xx
+                ##############################
+
                 # add render settings preset reset button
-                if 110 == w[1]:
+                elif 110 == w[1]:
                     warningCol.scale_y = 1.0
                     butsrow = warningCol.row()
                     butsrow.separator(factor=0.5)
@@ -119,6 +126,42 @@ def drawWarnings(context, ui_component, warningsList, panelType="MAIN"):
                     resetOp.width = 400
                     resetOp.message = "Reset all the rendering properties to their default value?"
                     resetOp.function_name = "reset_render_properties"
+                    butsrow.separator(factor=0.5)
+
+                # render resolution is the same as the one set in project settings
+                elif 131 == w[1]:
+                    warningCol.separator(factor=sepHeight)
+                    butsrow = warningCol.row()
+                    butsrow.scale_y = 1.4
+                    butsrow.separator(factor=0.5)
+                    butsrow.operator("uas_shot_manager.set_render_res_as_project_res", text="Apply Project Resolution")
+                    butsrow.separator(factor=0.5)
+
+                # render pixel aspects X or Y are used
+                elif 134 == w[1]:
+                    warningCol.separator(factor=sepHeight)
+                    butsrow = warningCol.row()
+                    butsrow.scale_y = 1.4
+                    butsrow.separator(factor=0.5)
+                    butsrow.operator("uas_shot_manager.turn_off_pixel_aspect", text="Reset Render Pixel Aspect")
+                    butsrow.separator(factor=0.5)
+
+                # current fps is valid according to the project settings
+                elif 136 == w[1]:
+                    warningCol.separator(factor=sepHeight)
+                    butsrow = warningCol.row()
+                    butsrow.scale_y = 1.4
+                    butsrow.separator(factor=0.5)
+                    butsrow.operator("uas_shot_manager.set_render_fps_as_project_fps", text="Apply Project FPS")
+                    butsrow.separator(factor=0.5)
+
+                # scene metadata activated and they will be written on rendered images
+                elif 140 == w[1]:
+                    warningCol.separator(factor=sepHeight)
+                    butsrow = warningCol.row()
+                    butsrow.scale_y = 1.4
+                    butsrow.separator(factor=0.5)
+                    butsrow.operator("uas_shot_manager.turn_off_burn_into_image", text="Turn Off Burn Into Images")
                     butsrow.separator(factor=0.5)
 
                 warningCol.separator(factor=1.0)

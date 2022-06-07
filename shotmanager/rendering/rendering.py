@@ -47,7 +47,6 @@ def launchRenderWithVSEComposite(
     renderPreset=None,
     takeIndex=-1,
     filePath="",
-    useStampInfo=True,
     stampInfoCustomSettingsDict=None,
     rerenderExistingShotVideos=True,
     generateSequenceVideo=True,
@@ -105,7 +104,6 @@ def launchRenderWithVSEComposite(
         for s in scenesToDelete:
             bpy.data.scenes.remove(s, do_unlink=True)
 
-    # context = bpy.context
     scene = context.scene
     props = scene.UAS_shot_manager_props
     vse_render = context.window_manager.UAS_vse_render
@@ -117,6 +115,7 @@ def launchRenderWithVSEComposite(
 
     renderMode = "PROJECT" if renderPreset is None else renderPreset.renderMode
     renderInfo = dict()
+    preset_useStampInfo = useStampInfoForRendering(context, renderPreset)
 
     # it is possible to have handles but not to render them (case of still frame),
     # it is also possible not to use the handles, whitch is different on stamp info
@@ -161,7 +160,7 @@ def launchRenderWithVSEComposite(
     if not rootPath.endswith("\\"):
         rootPath += "\\"
 
-    preset_useStampInfo = False
+    # preset_useStampInfo = False
     stampInfoSettings = None
 
     if not fileListOnly:
@@ -169,8 +168,8 @@ def launchRenderWithVSEComposite(
         #     stampInfoSettings = scene.UAS_StampInfo_Settings
         stampInfoSettings = getStampInfo()
         if stampInfoSettings is not None:
-            preset_useStampInfo = useStampInfo
-            if not useStampInfo:
+            # preset_useStampInfo = useStampInfo
+            if not preset_useStampInfo:
                 stampInfoSettings.stampInfoUsed = False
             else:
                 stampInfoSettings.renderRootPathUsed = True
@@ -433,8 +432,22 @@ def launchRenderWithVSEComposite(
 
             # set scene as current
             context.window.scene = scene
-            #     props.setCurrentShotByIndex(i)
-            #     props.setSelectedShotByIndex(i)
+
+            # NOTE: inside setCurrentShot there is a call to updateStoryboardFramesDisplay, but not forced
+            props.setCurrentShot(shot)
+            props.updateStoryboardFramesDisplay(forceHide=True)
+            shot.showGreasePencil()
+
+            # scene.camera = shot.camera
+            if override_all_viewports:
+                for area in context.screen.areas:
+                    utils.setCurrentCameraToViewport2(context, area)
+            else:
+                utils.setCurrentCameraToViewport2(context, viewportArea)
+
+            numFramesInShot = scene.frame_end - scene.frame_start + 1
+            previousFrameRenderTime = time.monotonic()
+            currentFrameRenderTime = previousFrameRenderTime
 
             if specificFrame is None:
                 if renderHandles:
@@ -446,18 +459,6 @@ def launchRenderWithVSEComposite(
             else:
                 scene.frame_start = specificFrame
                 scene.frame_end = specificFrame
-
-            scene.camera = shot.camera
-
-            if override_all_viewports:
-                for area in context.screen.areas:
-                    utils.setCurrentCameraToViewport2(context, area)
-            else:
-                utils.setCurrentCameraToViewport2(context, viewportArea)
-            # props.setCurrentShot(shot)
-            numFramesInShot = scene.frame_end - scene.frame_start + 1
-            previousFrameRenderTime = time.monotonic()
-            currentFrameRenderTime = previousFrameRenderTime
 
             #######################
             # render 3D images from scene
@@ -565,7 +566,7 @@ def launchRenderWithVSEComposite(
                 renderStampedInfoForShot(
                     stampInfoSettings,
                     props,
-                    takeName,
+                    take,
                     shot,
                     rootPath,
                     newTempRenderPath,
@@ -575,7 +576,7 @@ def launchRenderWithVSEComposite(
                     render_handles=renderHandles,
                     specificFrame=specificFrame,
                     stampInfoCustomSettingsDict=stampInfoCustomSettingsDict,
-                    verbose=False,
+                    verbose=True,
                 )
 
             # print render time
@@ -911,6 +912,7 @@ def launchRenderWithVSEComposite(
     utilsStore.restoreUserRenderSettings(context, userRenderSettings)
 
     props.setCurrentShot(currentShot, changeTime=False)
+    props.updateStoryboardFramesDisplay()
 
     return filesDict
 
@@ -1060,7 +1062,6 @@ def launchRender(context, renderMode, rootPath, area=None):
             context,
             preset,
             filePath=props.renderRootPath,
-            useStampInfo=preset.useStampInfo,
             generateSequenceVideo=False,
             specificShotList=[shot],
             specificFrame=scene.frame_current,
@@ -1077,7 +1078,6 @@ def launchRender(context, renderMode, rootPath, area=None):
             context,
             preset,
             filePath=props.renderRootPath,
-            useStampInfo=preset.useStampInfo,
             generateSequenceVideo=False,
             specificShotList=[shot],
             render_handles=preset.renderHandles if preset.bypass_rendering_project_settings else True,
@@ -1118,7 +1118,6 @@ def launchRender(context, renderMode, rootPath, area=None):
                 takeIndex=takeInd,
                 filePath=props.renderRootPath,
                 fileListOnly=False,
-                useStampInfo=preset.useStampInfo,
                 rerenderExistingShotVideos=preset.rerenderExistingShotVideos,
                 generateSequenceVideo=preset.generateEditVideo,
                 renderAlsoDisabled=preset.renderAlsoDisabled,
@@ -1175,7 +1174,6 @@ def launchRender(context, renderMode, rootPath, area=None):
             takeIndex=-1,
             filePath=props.renderRootPath,
             fileListOnly=False,
-            useStampInfo=preset.stampRenderInfo and preset.useStampInfo,
             rerenderExistingShotVideos=True,
             generateShotVideos=False,
             generateSequenceVideo=True,
@@ -1205,3 +1203,36 @@ def launchRender(context, renderMode, rootPath, area=None):
         print(json.dumps(renderedFilesDict, indent=4))
 
     print("Shot Manager rendering done\n")
+
+
+def useStampInfoForRendering(context, renderPreset):
+    props = context.scene.UAS_shot_manager_props
+
+    if not props.isStampInfoAvailable():
+        return False
+
+    useSI = False
+
+    if not props.use_project_settings:
+        if "PLAYBLAST" == renderPreset.renderMode:
+            if renderPreset.stampRenderInfo and renderPreset.useStampInfo:
+                # stampInfoSettings = getStampInfo()
+                # if stampInfoSettings.stampInfoUsed:   # overriden during rendering
+                useSI = True
+        else:
+            if renderPreset.useStampInfo:
+                useSI = True
+
+    # use project settings
+    else:
+        if "PLAYBLAST" == renderPreset.renderMode:
+            if renderPreset.stampRenderInfo and renderPreset.useStampInfo:
+                useSI = True
+        else:
+            if renderPreset.bypass_rendering_project_settings:
+                if renderPreset.useStampInfo:
+                    useSI = True
+            else:
+                if props.project_use_stampinfo:
+                    useSI = True
+    return useSI

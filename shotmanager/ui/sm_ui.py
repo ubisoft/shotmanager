@@ -71,14 +71,9 @@ class UAS_PT_ShotManager(Panel):
 
         row = layout.row(align=True)
 
-        if "STORYBOARD" == props.layout_mode:
-            # icon_stb = "IMAGE_RGB"
-            icon = config.icons_col["ShotManager_Storyboard_32"]
-            row.operator("uas_shot_manager.about", text="", icon_value=icon.icon_id)
-        else:
-            # icon = config.icons_col["Ubisoft_32"]
-            icon = config.icons_col["ShotManager_32"]
-            row.operator("uas_shot_manager.about", text="", icon_value=icon.icon_id)
+        # icon = config.icons_col["Ubisoft_32"]
+        icon = config.icons_col["ShotManager_32"]
+        row.operator("uas_shot_manager.about", text="", icon_value=icon.icon_id)
 
         if props.use_project_settings:
             if "" == props.project_name:
@@ -191,6 +186,9 @@ class UAS_PT_ShotManager(Panel):
 
             row = layout.row()
             row.operator("uas_shot_manager.redrawui")
+            resetOp = row.operator("uas_shot_manager.resetusagepreset", text="", icon="LOOP_BACK")
+            resetOp.mode = "ADDON_PREFS"
+            resetOp.presetID = "ALL"
 
         # NOTE: Shot Manager Prefs and Shot Manager scene instance are initialized here:
         if not props.isInitialized:
@@ -635,6 +633,21 @@ class UAS_PT_ShotManager(Panel):
             shotsrowlefttxt = shotsrowleft.row(align=True)
             shotsrowlefttxt.alignment = "LEFT"
 
+            layoutIcon = (
+                config.icons_col["ShotManager_Storyboard_32"]
+                if "STORYBOARD" == props.layout_mode
+                else config.icons_col["ShotManager_32"]
+            )
+            layoutButPressed = "STORYBOARD" == props.layout_mode
+            shotsrowlefttxt.operator(
+                "uas_shot_manager.change_layout",
+                text="",
+                icon_value=layoutIcon.icon_id,
+                emboss=True,
+                depress=layoutButPressed,
+            )
+            shotsrowlefttxt.separator(factor=0.5)
+
             shotsStr = "Shots:" if not props.display_advanced_infos else f"Shots ({numEnabledShots}/{numShots}):"
             shotsrowlefttxt.label(text=shotsStr)
             #   shotsrowlefttxt.operator("uas_shot_manager.enabledisableall", text="", icon="TIME")
@@ -653,9 +666,9 @@ class UAS_PT_ShotManager(Panel):
             # spacer
             spacerrow = shotsrowleft.row(align=False)
             spacerrow.alignment = "LEFT"
-            spacerrow.scale_x = 1.26 if props.display_notes_in_properties else 0.92
-            spacerrow.label(text="")
-            # spacerrow.separator(factor=1)
+            # spacerrow.scale_x = 1.26 if props.display_notes_in_properties else 0.92
+            # spacerrow.label(text="")
+            spacerrow.separator(factor=1)
 
             # edit ############
             ###########################
@@ -665,6 +678,14 @@ class UAS_PT_ShotManager(Panel):
             subrowedit.alignment = "RIGHT"
             iconCheckBoxes = "CHECKBOX_HLT" if not prefs.toggleShotsEnabledState else "CHECKBOX_DEHLT"
             subrowedit.operator("uas_shot_manager.enabledisableall", text="", icon=iconCheckBoxes, emboss=False)
+
+            if props.display_storyboard_in_properties:
+                subrowedit.operator(
+                    "uas_shot_manager.toggle_continuous_gp_editing_mode",
+                    text="",
+                    icon="GREASEPENCIL",
+                    depress=props.useContinuousGPEditing,
+                )
 
             if props.display_editmode_in_properties:
                 subrowedit.prop(

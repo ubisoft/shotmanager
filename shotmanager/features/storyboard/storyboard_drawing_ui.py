@@ -105,7 +105,7 @@ def drawDrawingMatRow(context, layout, props, editedGpencil, objIsGP):
     # Grease pencil layer.
     # gpl = context.active_gpencil_layer
     gpl = editedGpencil.data.layers.active
-    if gpl and gpl.info is not None:
+    if gpl is not None and gpl.info is not None:
         text = gpl.info
         maxw = 25
         if len(text) > maxw:
@@ -123,9 +123,9 @@ def drawDrawingMatRow(context, layout, props, editedGpencil, objIsGP):
         text=text,
     )
     if gpl and gpl.info is not None:
-        # sub.alert = gpl.lock
+        sub.alert = gpl.lock and "OBJECT" != editedGpencil.mode
         sub.prop(gpl, "lock", text="")
-    # sub.alert = False
+        sub.alert = False
     else:
         sub.label(text="", icon="LOCKED")
 
@@ -273,7 +273,7 @@ def drawLayersRow(context, props, layout, editedGpencil):
     framePreset = context.scene.UAS_shot_manager_props.stb_frameTemplate
     currentFrame = context.scene.frame_current
 
-    def _draw_layer_button(layout, preset, row_scale_x=1.0):
+    def _draw_layer_button(layout, preset, row_scale_x=1.0, enabled=True):
         if preset is None:
             return
 
@@ -284,6 +284,7 @@ def drawLayersRow(context, props, layout, editedGpencil):
 
         if preset.layerName is not None and layerExists:
             layerRow = layout.row(align=True)
+            layerRow.enabled = enabled
             layerRow.scale_x = row_scale_x
 
             currentFrameIsOnLayerKeyFrame = utils_greasepencil.isCurrentFrameOnLayerKeyFrame(
@@ -335,7 +336,7 @@ def drawLayersRow(context, props, layout, editedGpencil):
     # canvas layer #####
     preset = framePreset.getPresetByID("CANVAS")
     if preset is not None:
-        _draw_layer_button(usageButsRow, preset)
+        _draw_layer_button(usageButsRow, preset, enabled=False)
 
     usageButsSubRow = usageButsRow.row(align=True)
     usageButsSubRow.scale_x = 2.0
@@ -344,7 +345,7 @@ def drawLayersRow(context, props, layout, editedGpencil):
     # BG layers #########
     preset_lines = framePreset.getPresetByID("BG_LINES")
     preset_fills = framePreset.getPresetByID("BG_FILLS")
-    if preset_lines.used or preset_fills.used:
+    if (preset_lines is not None and preset_lines.used) or (preset_fills is not None and preset_fills.used):
         layerCol = usageButsSubRow.column(align=True)
         layerCol.scale_y = doubleLine_scale_y if preset_lines.used and preset_fills.used else 1.0
         _draw_layer_button(layerCol, preset_lines)
@@ -353,7 +354,7 @@ def drawLayersRow(context, props, layout, editedGpencil):
     # MG layers #########
     preset_lines = framePreset.getPresetByID("MG_LINES")
     preset_fills = framePreset.getPresetByID("MG_FILLS")
-    if preset_lines.used or preset_fills.used:
+    if (preset_lines is not None and preset_lines.used) or (preset_fills is not None and preset_fills.used):
         layerCol = usageButsSubRow.column(align=True)
         layerCol.scale_y = doubleLine_scale_y if preset_lines.used and preset_fills.used else 1.0
         _draw_layer_button(layerCol, preset_lines)
@@ -362,7 +363,7 @@ def drawLayersRow(context, props, layout, editedGpencil):
     # FG layers #########
     preset_lines = framePreset.getPresetByID("FG_LINES")
     preset_fills = framePreset.getPresetByID("FG_FILLS")
-    if preset_lines.used or preset_fills.used:
+    if (preset_lines is not None and preset_lines.used) or (preset_fills is not None and preset_fills.used):
         layerCol = usageButsSubRow.column(align=True)
         layerCol.scale_y = doubleLine_scale_y if preset_lines.used and preset_fills.used else 1.0
         _draw_layer_button(layerCol, preset_lines)
@@ -381,7 +382,8 @@ def drawLayersRow(context, props, layout, editedGpencil):
 
     # rough layer #######
     preset_rough = framePreset.getPresetByID("ROUGH")
-    _draw_layer_button(usageButsSubRow, preset_rough)
+    if preset_rough is not None and preset_rough.used:
+        _draw_layer_button(usageButsSubRow, preset_rough)
 
     layout.separator(factor=1.0)
     # usageButsSubRow.scale_x = 1.0

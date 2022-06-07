@@ -186,7 +186,7 @@ def renderStampedInfoForFrame(scene, shot):
 def renderStampedInfoForShot(
     stampInfoSettings,
     shotManagerProps,
-    takeName,
+    take,
     shot,
     rootPath,
     newTempRenderPath,
@@ -221,7 +221,11 @@ def renderStampedInfoForShot(
     props = shotManagerProps
     scene = props.parentScene
     verbose = verbose or config.devDebug
+    takeName = take.getName_PathCompliant()
 
+    #####################
+    # TOFIX Custom Stamp Info settings??????????????
+    #####################
     if stampInfoCustomSettingsDict is not None:
         print(f"*** customFileFullPath: {stampInfoCustomSettingsDict['customFileFullPath']}")
         if "customFileFullPath" in stampInfoCustomSettingsDict:
@@ -235,6 +239,13 @@ def renderStampedInfoForShot(
 
         stampInfoSettings.notesUsed = shot.hasNotes()
         stampInfoSettings.cornerNoteUsed = not shot.enabled
+
+        stampInfoSettings.bottomNoteUsed = take.hasNotes()
+        if take.hasNotes():
+            # TOFIX currently only the first of the 3 take notes is supported here
+            stampInfoSettings.bottomNote = take.note01
+        else:
+            stampInfoSettings.bottomNote = ""
 
     else:
         # use stamp info settings from scene

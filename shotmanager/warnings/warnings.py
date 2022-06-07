@@ -116,13 +116,39 @@ def getWarnings(props, scene):
     if not props.use_project_settings and 100 != scene.render.resolution_percentage:
         warningList.append(("Render Resolution Percentage is not at 100%", 130, "ALL"))
 
+    # check if the render resolution is the same as the one set in project settings
+    ###########
+    if props.use_project_settings:
+        if (
+            props.project_resolution_x != scene.render.resolution_x
+            or props.project_resolution_y != scene.render.resolution_y
+        ):
+            warningList.append(
+                (
+                    "Scene Render Resolution is different from Project Settings Resolution\nStoryboard and Grease Pencil shots will not be displayed correctly",
+                    131,
+                    "ALL",
+                )
+            )
+
     # check if the resolution render uses multiples of 2
     ###########
     if not props.use_project_settings:
         if 0 != scene.render.resolution_x % 2 or 0 != scene.render.resolution_y % 2:
             warningList.append(("Render Resolution must use multiples of 2", 132, "ALL"))
 
-    # check if the current pfs is valid according to the project settings (wkip)
+    # check if the render pixel aspects X or Y are used
+    ###########
+    if 1.0 != scene.render.pixel_aspect_x or 1.0 != scene.render.pixel_aspect_y:
+        warningList.append(
+            (
+                "Render Pixel Aspects should be 1.0\nIf not then Storyboard and Grease Pencil shots will not be displayed correctly",
+                134,
+                "ALL",
+            )
+        )
+
+    # check if the current fps is valid according to the project settings
     ###########
     if props.use_project_settings:
         if utils.getSceneEffectiveFps(scene) != props.project_fps:
@@ -131,7 +157,9 @@ def getWarnings(props, scene):
     # scene metadata activated and they will be written on rendered images
     ###########
     if scene.render.use_stamp:
-        warningList.append(("Scene Metadata Burning on Images is activated\nRendering will be affected", 140, "RENDER"))
+        warningList.append(
+            ("Scene Metadata Burning Into Images is activated\nRendering will be affected", 140, "RENDER")
+        )
 
     # check if a negative render frame may be rendered
     ###########

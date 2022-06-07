@@ -21,7 +21,7 @@
 
 import bpy
 from bpy.types import PropertyGroup
-from bpy.props import IntProperty, BoolProperty, FloatProperty
+from bpy.props import BoolProperty
 
 
 class UAS_GreasePencil_Tools_Properties(PropertyGroup):
