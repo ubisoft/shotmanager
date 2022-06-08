@@ -8,7 +8,7 @@ Retimer
 See also :ref:`How to retime the edit or the action <how-to-retimetheeditortheaction>` for a practical use of the retiming tools.
 
 **Retimer is a set of tools that can be used independently from the use of the shots in the scene.
-This allows you to change the time of the action, either globaly or on selected objects, without
+This allows you to change the time of the action, either globally or on selected objects, without
 having to creaste a set of chots.**
 
 
