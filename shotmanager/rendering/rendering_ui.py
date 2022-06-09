@@ -33,7 +33,7 @@ from shotmanager.warnings.warnings_ui import drawWarnings
 
 class UAS_PT_ShotManagerRenderPanelStdalone(Panel):
     bl_idname = "UAS_PT_ShotManagerRenderPanelStdalone"
-    bl_label = " Shot Manager - Render"
+    bl_label = " Shot Manager - Render" + " - V. " + utils.addonVersion("Shot Manager")[0]
     bl_space_type = "VIEW_3D"
     bl_region_type = "UI"
     bl_category = "Shot Mng - Render"

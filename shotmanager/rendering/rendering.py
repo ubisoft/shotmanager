@@ -824,9 +824,12 @@ def launchRenderWithVSEComposite(
             newMediaFiles.append(sequenceOutputFullPath)
 
         else:
+            print(" --- In else that generateShotVideos 01")
             print(" --- In else that generateShotVideos")
+            print(" --- In else that generateShotVideos")
+            print(" --- In else that generateShotVideos 04")
             #######################
-            # render sequence video based on shot image sequences
+            # render sequence video based on shot image sequences (case of Playblast)
             #######################
             # wkipwkipwkip tmp
 
@@ -853,7 +856,7 @@ def launchRenderWithVSEComposite(
             # ... or not config.devDebug_keepVSEContent
 
             # deleteTempFiles = not config.devDebug_keepVSEContent and not renderPreset.keepIntermediateFiles
-            deleteTempFiles = False
+            # deleteTempFiles = False
             if deleteTempFiles:
                 # _deleteTempFiles(newTempRenderPath)
                 for i in range(len(renderedShotSequencesArr)):
