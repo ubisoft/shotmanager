@@ -26,6 +26,21 @@ Add a warning and reset button for pixel aspect, fps, resolution tot
     Added a Reset to Default button for all the usage presets
     
 
+**Grease pencil**
+
+Fixed layers creation process
+Added a Reset to Default button for all the usage presets
+
+Test line
+
+test multilines Added a Reset to Default button for all the usage presets
+Added a Reset to Default button for all the usage presets Added a Reset to Default button for all the usage presets
+Added a Reset to Default button for all the usage presets
+    
+dded a Reset to Default button for all the usage presets
+Added a Reset to Default button for all the usage presets
+    
+
 
 
 
