@@ -499,11 +499,11 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
         if "STORYBOARD" == self.layout_mode:
             self.display_storyboard_in_properties = True
             self.display_notes_in_properties = True
-            self.display_25D_greasepencil_panel = True
+        #    self.display_25D_greasepencil_panel = True
         else:
             self.display_storyboard_in_properties = False
             self.display_notes_in_properties = False
-            self.display_25D_greasepencil_panel = False
+        #    self.display_25D_greasepencil_panel = False
         pass
 
     layout_mode: EnumProperty(
@@ -621,7 +621,7 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
     display_25D_greasepencil_panel: BoolProperty(
         name="Display 2.5D Grease Pencil Panel",
         description="Display the 2.5D Grease Pencil sub-panel in the Shot Manager panel.\n\n(saved in the add-on preferences)",
-        default=True,
+        default=False,
     )
 
     ########################################################################

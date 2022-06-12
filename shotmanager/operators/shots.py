@@ -652,7 +652,9 @@ class UAS_ShotManager_ShotAdd(Operator):
             subrow = subSplitLeft.row()
             subrow.alignment = "RIGHT"
             duration = prefs.addShot_end - prefs.addShot_start + 1
-            subrow.label(text=f"{duration} frames")
+            if duration <= 1:
+                subrow.alert = True
+            subrow.label(text=f"{duration} frame{'s' if duration > 1 else ''}")
         elif "STORYBOARD" == self.layout_mode:
             pass
 
@@ -1576,32 +1578,37 @@ class UAS_ShotManager_UniqueCameras(Operator):
         return utils.unique_object_name(cam_name)
 
     def execute(self, context):
+        # NOTE: brute force here - could be optimized
         scene = context.scene
         props = scene.UAS_shot_manager_props
         takes = props.getTakes()
-        new_cam_from_shots = dict()
-        objects = bpy.data.objects
+        # new_cam_from_shots = dict()
+        # objects = bpy.data.objects
+        # existing_cameras = set()
         for take in takes:
-            existing_cameras = set()
             for shot in take.shots:
-                if shot.camera is None:
-                    continue
-                camName = shot.camera.name
+                shot.makeCameraUnique()
 
-                if camName in existing_cameras and camName in objects:
-                    if shot.name in new_cam_from_shots:
-                        shot.camera = new_cam_from_shots[shot.name]
-                    else:
-                        cam_obj = scene.objects[camName]
-                        new_cam = utils.duplicateObject(cam_obj)
-                        new_cam.name = self.unique_cam_name(f"{camName}_{shot.name}")
-                        new_cam.color = (uniform(0, 1), uniform(0, 1), uniform(0, 1), 1)
-                        # scene.collection.objects.link(new_cam)
-                        new_cam_from_shots[shot.name] = new_cam.name
-                        shot.camera = new_cam
+                # if shot.camera is None:
+                #     continue
+                # camName = shot.camera.name
 
-                new_cam_from_shots[shot.name] = shot.camera
-                existing_cameras.add(camName)
+                # if camName in existing_cameras and camName in objects:
+                #     if shot.name in new_cam_from_shots:
+                #         shot.camera = new_cam_from_shots[shot.name]
+                #     else:
+                #         # cam_obj = scene.objects[camName]
+                #         # new_cam = utils.duplicateObject(cam_obj)
+                #         # new_cam.name = self.unique_cam_name(f"{camName}_{shot.name}")
+                #         # new_cam.color = (uniform(0, 1), uniform(0, 1), uniform(0, 1), 1)
+                #         # # scene.collection.objects.link(new_cam)
+
+                #         # shot.camera = new_cam
+                #         new_cam = shot.makeCameraUnique()
+                #         new_cam_from_shots[shot.name] = new_cam.name
+
+                # new_cam_from_shots[shot.name] = shot.camera
+                # existing_cameras.add(camName)
 
         return {"INTERFACE"}
 

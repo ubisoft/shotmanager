@@ -336,6 +336,11 @@ class UAS_ShotManager_Shot(ShotInterface, PropertyGroup):
         poll=_filter_cameras,
     )
 
+    def setCamera(self, newCamera):
+        """Set the camera of the shot and update the shot so that if the camera has children and the shot has greasepencil they match again"""
+        self.camera = newCamera
+        # wkipwkipwkipwkip to finish
+
     def isCameraValid(self):
         """Sometimes a pointed camera can seem to work but the camera object doesn't exist anymore in the scene.
         Return True if the camera is really there, False otherwise
@@ -356,7 +361,13 @@ class UAS_ShotManager_Shot(ShotInterface, PropertyGroup):
     def makeCameraUnique(self):
         if self.camera is not None:
             if 1 < self.parentScene.UAS_shot_manager_props.getNumSharedCamera(self.camera):
-                self.camera = utils.duplicateObject(self.camera, newName="Cam_" + self.name)
+                # self.camera = utils.duplicateObject(self.camera, newName="Cam_" + self.name)
+                props = self.parentScene.UAS_shot_manager_props
+                # wkip to do for each gp props
+                gpProps = self.getGreasePencilProps("STORYBOARD")
+                duplicateHierarchy = gpProps is not None
+                props.copyCameraFromShot(self, targetShot=self, duplicateHierarchy=duplicateHierarchy)
+        return self.camera
 
     def setCameraToViewport(self):
         if self.isCameraValid() and bpy.context.screen is not None:
@@ -682,6 +693,10 @@ class UAS_ShotManager_Shot(ShotInterface, PropertyGroup):
         gp_child = utils_greasepencil.get_greasepencil_child(self.camera)
         if gp_child is not None:
             gpProps = self.getGreasePencilProps(mode="STORYBOARD")
+
+            if gpProps is None:
+                return
+
             props = self.parentScene.UAS_shot_manager_props
 
             if forceHide:

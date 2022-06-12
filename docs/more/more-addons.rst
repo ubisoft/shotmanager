@@ -22,17 +22,21 @@ Video Tracks
 ------------
     Add track headers to the channels of the Video Sequence Editor, as well as tools To
     navigate between markers.
+    |br| **This add-on is experimental and maintained intermittently.**
     |br| `Video Tracks on GitHub <https://github.com/ubisoft/videotracks>`_ 
 
 Mixer
 -----
     Real-time collaboration between Blender users, enableling them to work together on the same data, on different computers.
+    |br|
+    **This add-on is not maintained anymore.**
     |br| `Mixer <https://ubisoft-mixer.readthedocs.io>`_
     
 
 Asset Bank
 ----------
     Manage asset banks and import or link 3D objects into Blender scenes.
+    |br| **This add-on is not maintained anymore.**
     |br| `Asset Bank on GitHub <https://github.com/ubisoft/assetbank>`_ 
 
 

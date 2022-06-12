@@ -96,6 +96,12 @@ def draw_greasepencil_play_tools(self, context, shot, layersListDropdown=None):
         gpIsStoryboardFrame = gp_child is not None and gp_child.name == editedGpencil.name
 
         col = box.column()
+
+        experimRow = col.row()
+        experimRow.alert = True
+        experimRow.alignment = "CENTER"
+        experimRow.label(text="*** Experimental - Still Under Development ***")
+
         col.enabled = objIsGP
         if not gpIsStoryboardFrame:
             freeGPRow = col.row(align=True)

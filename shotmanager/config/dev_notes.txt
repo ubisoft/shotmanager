@@ -11,7 +11,8 @@ Dialog windows width:
     480
 
 
-
+Doc:
+Mark Down language memo: https://github.com/tchapi/markdown-cheatsheet/blob/master/README.md
 
 To do V1.7.2 +:
 

@@ -3,6 +3,29 @@
 Glossary
 ========
 
+General terminology
+-------------------
+
+.. [Shot]
+    A shot is the basic entity manipulated by the Shot Manager user interface. As for a live footage it is made of a
+    point of view, thanks to a camera, and a "record duration", defined by a start time and an end time.
+    
+    A shot has one and one only camera. When it is not associated to a camera, or if this camera is missing, the shot
+    is considered as invalid and cannot be used in the [Take]_.
+
+.. [Take]
+    A take is an ordered list of shots. Basically **a take is an edit** where shots are played one after the other, in the order
+    set in the take and independently from the time at which they start in the time of the 3D scene.
+    
+    In practice - or in a production context - a take would generally refert to what is commonly called a sequence, that's to say
+    a small edit of shots that are tied together in the narration.
+    
+    In order to preserve the parallel with live shooting the take entity could probably have been named edit or sequence.
+    The term take fits quite well nonetheless since, as for live shots, we can easily create variations of the edits, this so as
+    to compare several ideas in the direction without having to "break" the setttings. Duplicating takes and switching from
+    one to another is one of the major strenghts of Shot Manager to explore the narrative possibilities of the scene and offer
+    to the director a lot of flexibility to find her final cut.
+
 .. [Handles]
     The handles are the amount of spare images let at the start and end of the shot when the shot is rendered.
     They are quite helpful for the artist doing the movie edit since she can get more time before or after
@@ -24,23 +47,11 @@ Glossary
     For a local use of Shot Manager it is not necessary to define a project. The settings of the scene will then
     be used.
 
-.. [Shot]
-    A shot is the basic entity manipulated by the Shot Manager user interface. As for a live footage it is made of a
-    point of view, thanks to a camera, and a "record duration", defined by a start time and an end time.
-    
-    A shot has one and one only camera. When it is not associated to a camera, or if this camera is missing, the shot
-    is considered as invalid and cannot be used in the [Take]_.
 
-.. [Take]
-    A take is an ordered list of shots. Basically **a take is an edit** where shots are played one after the other, in the order
-    set in the take and independently from the time at which they start in the time of the 3D scene.
-    
-    In practice - or in a production context - a take would generally refert to what is commonly called a sequence, that's to say
-    a small edit of shots that are tied together in the narration.
-    
-    In order to preserve the parallel with live shooting the take entity could probably have been named edit or sequence.
-    The term take fits quite well nonetheless since, as for live shots, we can easily create variations of the edits, this so as
-    to compare several ideas in the direction without having to "break" the setttings. Duplicating takes and switching from
-    one to another is one of the major strenghts of Shot Manager to explore the narrative possibilities of the scene and offer
-    to the director a lot of flexibility to find her final cut.
+Storyboard entites
+------------------
+
+.. [Storyboard_Shot]
+    We call a storyboard shot a shot of type Storyboard. Its camera has a storyboard grease pencil parented to it.
+    It is identified by a small icon with a character in a frame.
 

@@ -5,12 +5,14 @@
 ..  image:: /img/ubisoft_logo.png
     :align: center
 
-Ubisoft Shot Manager: Creative narration and editing with Blender
-=================================================================
+Ubisoft Shot Manager: Creative narration in Blender
+===================================================
 
-**Manage the cameras and the editing of your scenes inside Blender in real time and with great simplicity.**
+**Manage the cameras and the editing of your scenes inside** `Blender <https://www.blender.org/>`__. **in real time and with great simplicity.**
 
-**Current version is 1.7. The currently supported Blender versions are 2.93.x, 3.0.x. and 3.1.x.**
+**Current version is 1.7. The currently supported Blender versions are 3.1, 3.0 and 2.93 LTS**
+|br|
+**Version 2.0 beta is available. See** :ref:`What's new<what-s-new>` **for the upcoming features**
 
 ..  image:: /img/ShotManager_screen.jpg
     :align: center
@@ -53,6 +55,7 @@ Then:
    :hidden:
    
    /getting-started/general-philosophy
+   /what-s-new/what-s-new
 
 .. toctree::
    :maxdepth: 2
@@ -103,8 +106,9 @@ Then:
 
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
    :hidden:
    :caption: I want more
 
+   /experimental/experimental
    /more/more-addons

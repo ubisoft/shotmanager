@@ -6,7 +6,7 @@ Supported versions
 
 Shot Manager is developed and actively tested on Windows 10. Community users reported successful usage on Linux platform. 
 
-The currently supported Blender versions are 2.93.x and 3.0.x. Shot Manager should also still work on 2.83 LTS.
+The currently supported Blender versions are 3.1, 3.0 and 2.93 LTS.
 
 
 .. _download:

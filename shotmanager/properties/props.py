@@ -2771,6 +2771,30 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
 
         return newShot
 
+    def copyCameraFromShot(self, sourceShot, targetShot=None, duplicateHierarchy=False):
+        """Copy the camera from the given shot
+        Return the copied camera
+        Args:
+                sourceShot: the shot holding the camera to be copied
+                targetShot: the target shot (can be None (default), can also be sourceShot.
+                            if not None then the name of the camera will reflect the target shot name
+        """
+        newCam = None
+
+        if sourceShot.isCameraValid():
+            newCam = utils.duplicateObject(sourceShot.camera, duplicateHierarchy=duplicateHierarchy)
+
+            if targetShot is not None and sourceShot.getParentTake() == targetShot.getParentTake():
+                newCam.name = sourceShot.camera.name + "_copy"
+                newCam.color = utils.sRGBColor(
+                    utils.slightlyRandomizeColor(utils.linearizeColor(sourceShot.camera.color))
+                )
+
+            if targetShot is not None:
+                targetShot.setCamera(newCam)
+
+        return newCam
+
     def copyShot(self, shot, atIndex=-1, targetTakeIndex=-1, copyCamera=False, copyGreasePencil=False):
         """Copy a shot after the current shot if possible or at the end of the shot list otherwise (case of an add in a take
         that is not the current one)
@@ -2778,6 +2802,10 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         Since this function works also with takes that are not the current one the current shot is not taken into account not modified
         Specifying a value to targetTakeIndex allows the copy of a shot to another take
         When a shot is copied in the same take its name will be suffixed by "_copy". When copied to another take its name is not modified.
+
+        Args:
+            copyCamera: when True then the camera as well as all its children (storyboard gp, gp, others) are copied too
+            copyGreasePencil: when false then an empty grease pencil will be created. When true the GP will be copied too
         """
 
         #  currentTakeInd = self.getCurrentTakeIndex()
@@ -2794,11 +2822,14 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         # shots = self.get_shots(takeIndex=takeInd)
 
         cam = shot.camera
-        if copyCamera and shot.camera is not None:
-            newCam = utils.duplicateObject(cam, duplicateHierarchy=copyGreasePencil)
-            if targetTakeIndex == sourceTakeInd:
-                newCam.name = cam.name + "_copy"
-            newCam.color = utils.sRGBColor(utils.slightlyRandomizeColor(utils.linearizeColor(cam.color)))
+        newCam = None
+        if copyCamera and shot.isCameraValid():
+            # newCam = utils.duplicateObject(cam, duplicateHierarchy=copyGreasePencil)
+            # if targetTakeIndex == sourceTakeInd:
+            #     newCam.name = cam.name + "_copy"
+            # newCam.color = utils.sRGBColor(utils.slightlyRandomizeColor(utils.linearizeColor(cam.color)))
+
+            newCam = self.copyCameraFromShot(shot, duplicateHierarchy=copyGreasePencil)
             cam = newCam
 
             utils.select_object(cam)
@@ -2826,6 +2857,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
             addGreasePencilStoryboard=False,
         )
 
+        newShot.shotType = shot.shotType
         newShot.bgImages_offset = shot.bgImages_offset
         newShot.bgImages_linkToShotStart = shot.bgImages_linkToShotStart
 
@@ -2834,11 +2866,17 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         newShot.note03 = shot.note03
 
         if len(shot.greasePencils):
+
+            # if the source has a gp then the new shot will have one
             gpProps = newShot.greasePencils.add()
+            # initialize do not create a new gp object if it exits, in this case it will just update
             gpProps.initialize(newShot, "STORYBOARD")
-            sourceGpProps = shot.getGreasePencilProps("STORYBOARD")
-            if sourceGpProps is not None:
-                gpProps.copyPropertiesFrom(sourceGpProps)
+
+            # the new gp is a copy of the source gp only if copyGreasePencil is true
+            if copyGreasePencil and newCam is not None:
+                sourceGpProps = shot.getGreasePencilProps("STORYBOARD")
+                if sourceGpProps is not None:
+                    gpProps.copyPropertiesFrom(sourceGpProps)
 
         # newShot = shots.add()  # shot is added at the end
         # newShot.parentScene = shot.parentScene

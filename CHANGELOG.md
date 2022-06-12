@@ -1,4 +1,12 @@
 -----
+## 2.0.101 (2022-06-08)
+#### Documentation
+- Add Experimental page
+
+#### Rendering
+- Fixed bug on Render Playblast, intermediate files are now deleted
+
+-----
 ## 2.0.35 (2022-06-07)
 #### Warnings
 - Add a warning and reset button for pixel aspect, fps, resolution
