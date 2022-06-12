@@ -12,11 +12,18 @@ Add a warning and reset button for pixel aspect, fps, resolution tot
     Add a warning and reset button for pixel aspect, fps, resolution
 
 **Grease pencil**
+
     Fixed layers creation process
     Added a Reset to Default button for all the usage presets
 
     Test line
 
+    test multilines Added a Reset to Default button for all the usage presets
+    Added a Reset to Default button for all the usage presets Added a Reset to Default button for all the usage presets
+    Added a Reset to Default button for all the usage presets
+    
+    Added a Reset to Default button for all the usage presets
+    Added a Reset to Default button for all the usage presets
     
 
 
