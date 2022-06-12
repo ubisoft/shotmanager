@@ -3,6 +3,10 @@
 -----
 ## 2.0.36 (2022-06-07)
 #### Warnings
+Add a warning and reset button for pixel aspect, fps, resolution
+Add a warning and reset button for pixel aspect, fps, resolution
+
+#### Warnings
     Add a warning and reset button for pixel aspect, fps, resolution
     Add a warning and reset button for pixel aspect, fps, resolution
 
