@@ -24,7 +24,6 @@
   </a>
 </p>
 
-<br />
 
 ## Pre-releases
 The latest pre-release version is: [Shot Manager V 2.0.102 Beta](https://github.com/ubisoft/shotmanager/releases/tag/v2.0.102_Beta)
