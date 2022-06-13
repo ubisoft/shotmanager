@@ -50,9 +50,6 @@ are put at the appropriate places in the world and a shot is created for each on
 them in order to record the right segment of time.
 This is very convenient for previz and 3D layout.
 
-<br />
-<img src="docs/img/ShotManager_screen.jpg" alt="ShotManager Screen" width="70%"/>
-<br />
 
 [![Shot Manager - Previz in a nutshell](doc/images/Thumbnail_ShotManagerPreviz_WithPlayer.jpg)](https://youtu.be/btLygAlD41c?t=1s "Shot Manager - previz in a nutshell")
 <br />
