@@ -2,6 +2,14 @@
 
   <br/>
 
+
+Source code on GitHub
+=====================
+
+The source code of the whole add-on as well as some development notes are avalable here:
+|br| `Shot Manager on GitHub <https://github.com/ubisoft/shotmanager>`_ 
+
+
 Other add-ons from Ubisoft
 ==========================
 
@@ -39,11 +47,4 @@ Asset Bank
     |br| **This add-on is not maintained anymore.**
     |br| `Asset Bank on GitHub <https://github.com/ubisoft/assetbank>`_ 
 
-
-
-Source code on GitHub
-=====================
-
-The source code of the whole add-on as well as some development notes are avalable here:
-|br| `Shot Manager on GitHub <https://github.com/ubisoft/shotmanager>`_ 
 
