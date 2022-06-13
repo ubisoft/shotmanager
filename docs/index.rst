@@ -18,7 +18,7 @@ Ubisoft Shot Manager: Creative narration in Blender
     :align: center
     :width: 80%
 
-
+|br|
 
 .. raw:: html
 
