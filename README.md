@@ -54,6 +54,10 @@ This is very convenient for previz and 3D layout.
 <img src="docs/img/ShotManager_screen.jpg" alt="ShotManager Screen" width="70%"/>
 <br />
 
+[![Shot Manager - Previz in a nutshell](doc/images/Thumbnail_ShotManagerPreviz_WithPlayer.jpg)](https://youtu.be/btLygAlD41c?t=1s "Shot Manager - previz in a nutshell")
+<br />
+
+
 For installation, features, FAQ, user help please check the documentation here: [https://ubisoft-shotmanager.readthedocs.io](https://ubisoft-shotmanager.readthedocs.io)
 
 ## Dev notes
