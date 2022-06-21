@@ -37,6 +37,10 @@ from .utils import convertVersionIntToStr
 
 from shotmanager.config import config
 
+from shotmanager.config import sm_logging
+
+_logger = sm_logging.getLogger(__name__)
+
 ###################
 # UI
 ###################
@@ -338,4 +342,8 @@ def register():
 
 def unregister():
     for cls in reversed(_classes):
-        bpy.utils.unregister_class(cls)
+        try:
+            bpy.utils.unregister_class(cls)
+        except Exception as e:
+            _logger.debug_ext(f"Error in Unregister of {cls}")
+            pass

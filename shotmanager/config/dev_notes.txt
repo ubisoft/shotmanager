@@ -167,3 +167,9 @@ Amanda:
     - new layer for perps
     - timing the notes
 
+
+Integ Stamp Info:
+    prendre le zip quelque soit le num de version
+    update si num version inférieur
+    try except partout
+    doc a mettre a jour

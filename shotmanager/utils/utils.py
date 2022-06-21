@@ -23,6 +23,7 @@ import os
 import re
 from pathlib import Path
 from urllib.parse import unquote_plus, urlparse
+import sys
 
 from random import uniform
 from xmlrpc.client import Boolean
@@ -156,6 +157,21 @@ def addonCategory(addonName):
         if addon.bl_info["name"] == addonName:
             categ = addon.bl_info["category"]
     return categ
+
+
+def getAddonsFolder():
+    # package_path = os.path.join(
+    #                         os.path.dirname(__file__), "..\\distr\\OpenTimelineIO-0.15.0.dev1-cp310-cp310-win_amd64.whl"
+    #                     )
+    addonPath = str(Path(__file__).parent)
+    return addonPath
+
+
+def getPythonPackagesFolder():
+    pyExeFile = sys.executable
+    # we have to go above \bin dir
+    localPyDir = str((Path(pyExeFile).parent).parent) + "\\lib\\site-packages\\"
+    return localPyDir
 
 
 # https://stackoverflow.com/questions/287871/how-to-print-colored-text-in-python

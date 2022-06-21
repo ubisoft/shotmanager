@@ -32,15 +32,71 @@ def drawDependencies(context, layout: bpy.types.UILayout, **kwargs):
     col = box.column()
 
     titleRow = col.row()
-    titleRow.label(text="Dependencies:")
+    titleRow.label(text="Add-on Dependencies:")
     titleRow.separator()
+
+    col.separator(factor=0.5)
+    splitFactor = 0.25
+
+    # Ubisoft Stamp Info
+    ####################
+    row = col.row()
+    row.separator()
+
+    split = row.split(factor=splitFactor)
+    split.label(text="- Stamp Info:")
+    stampInfoInstalledVersion = utils.addonVersion("Stamp Info")
+
+    def _displayHelp():
+        subRow2 = rightRow.row()
+        subRow2.alignment = "RIGHT"
+
+        doc_op = subRow2.operator("shotmanager.open_documentation_url", text="", icon="HELP")
+        doc_op.path = "https://github.com/ubisoft/stampinfo"
+        doc_op.tooltip = "Open Stamp Info project on GitHub: " + doc_op.path
+
+    def _displayDownloadLatest():
+        subRow2 = rightRow.row()
+        subRow2.alignment = "RIGHT"
+        subRow2.alert = True
+
+        doc_op = subRow2.operator("shotmanager.open_documentation_url", text="Latest", icon="WORLD_DATA")
+        doc_op.path = "https://github.com/ubisoft/stampinfo/releases/latest"
+        doc_op.tooltip = "Open Stamp Info latest release page on GitHub: " + doc_op.path
+
+    rightRow = split.row()
+    subRow = rightRow.row()
+    # stampInfoAvailable = getattr(bpy.context.scene, "UAS_StampInfo_Settings", None) is not None
+    if stampInfoInstalledVersion is None:
+        subRow.alert = True
+        subRow.label(text="Add-on not found - Related features disabled")
+    else:
+        stampInfoMinVersion = prefs.dependency_min_supported_version("Stamp Info")
+        if stampInfoInstalledVersion[1] < stampInfoMinVersion[1]:
+            subRow.alert = True
+            subRow.label(text=f"V. {stampInfoInstalledVersion[0]} too old - Related features disabled")
+            _displayDownloadLatest()
+        else:
+            subRow.label(text=f"V. {stampInfoInstalledVersion[0]} installed")
+            _displayHelp()
+
+    ####################
+    # required Python libs
+    ####################
+
+    col.separator()
+    titleRow = col.row()
+    titleRow.label(text="Required Python Libraries:")
+    titleRow.separator()
+
+    col.separator(factor=0.5)
 
     row = col.row()
     row.separator()
-    splitFactor = 0.25
 
     # OpenTimelineIO
     ####################
+
     split = row.split(factor=splitFactor)
     split.label(text="- OpenTimelineIO:")
 
@@ -84,45 +140,49 @@ def drawDependencies(context, layout: bpy.types.UILayout, **kwargs):
     doc_op.path = "https://github.com/PixarAnimationStudios/OpenTimelineIO"
     doc_op.tooltip = "Open OpenTimelineIO GitHup project: " + doc_op.path
 
-    # Ubisoft Stamp Info
+    # Pillow
     ####################
+    # subRow.label(text="Module not found  - Add-on cannot run normally")
+
     row = col.row()
     row.separator()
+
     split = row.split(factor=splitFactor)
-    split.label(text="- Stamp Info:")
-    stampInfoInstalledVersion = utils.addonVersion("Stamp Info")
-
-    def _displayHelp():
-        subRow2 = rightRow.row()
-        subRow2.alignment = "RIGHT"
-
-        doc_op = subRow2.operator("shotmanager.open_documentation_url", text="", icon="HELP")
-        doc_op.path = "https://github.com/ubisoft/stampinfo"
-        doc_op.tooltip = "Open Stamp Info project on GitHub: " + doc_op.path
-
-    def _displayDownloadLatest():
-        subRow2 = rightRow.row()
-        subRow2.alignment = "RIGHT"
-        subRow2.alert = True
-
-        doc_op = subRow2.operator("shotmanager.open_documentation_url", text="Latest", icon="WORLD_DATA")
-        doc_op.path = "https://github.com/ubisoft/stampinfo/releases/latest"
-        doc_op.tooltip = "Open Stamp Info latest release page on GitHub: " + doc_op.path
+    split.label(text="- PIL (Python Imaging Library):")
 
     rightRow = split.row()
     subRow = rightRow.row()
-    # stampInfoAvailable = getattr(bpy.context.scene, "UAS_StampInfo_Settings", None) is not None
-    if stampInfoInstalledVersion is None:
+
+    try:
+        import PIL as pillow
+
+        pillowVersion = pillow.__version__
+        subRow.label(text=f"V. {pillowVersion}  installed")
+    except Exception:
+        subRow = col.row()
+        subRow.separator()
         subRow.alert = True
-        subRow.label(text="Add-on not found - Related features disabled")
-    else:
-        stampInfoMinVersion = prefs.dependency_min_supported_version("Stamp Info")
-        if stampInfoInstalledVersion[1] < stampInfoMinVersion[1]:
-            subRow.alert = True
-            subRow.label(text=f"V. {stampInfoInstalledVersion[0]} too old - Related features disabled")
-            _displayDownloadLatest()
-        else:
-            subRow.label(text=f"V. {stampInfoInstalledVersion[0]} installed")
-            _displayHelp()
+
+        subRowCol = subRow.column()
+        subRowCol.scale_y = 0.7
+        subRowCol.label(text="Module not found - Try to relaunch Blender in Admin mode ")
+        row = subRowCol.row(align=True)
+        row.label(text="If the issue persists check the Installation Troubles FAQ:")
+        row = subRowCol.row(align=True)
+        rowRight = row.row()
+        rowRight.scale_y = 1.2
+        rowRight.alignment = "RIGHT"
+        rowRight.scale_x = 1.0
+        doc_op = rowRight.operator("shotmanager.open_documentation_url", text="Shot Manager FAQ")
+        doc_op.path = "https://ubisoft-shotmanager.readthedocs.io/en/latest/troubleshoot/faq.html#installation"
+        doc_op.tooltip = "Open online FAQ: " + doc_op.path
+        subRowCol.separator(factor=0.3)
+
+    subRow2 = rightRow.row()
+    subRow2.alignment = "RIGHT"
+
+    # doc_op = subRow2.operator("shotmanager.open_documentation_url", text="", icon="HELP")
+    # doc_op.path = "https://github.com/PixarAnimationStudios/OpenTimelineIO"
+    # doc_op.tooltip = "Open OpenTimelineIO GitHup project: " + doc_op.path
 
     col.separator(factor=0.4)

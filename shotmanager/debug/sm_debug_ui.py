@@ -24,6 +24,7 @@ import bpy
 
 from bpy.types import Panel
 from ..config import config
+from ..utils import utils
 
 # ------------------------------------------------------------------------#
 #                                debug Panel                              #
@@ -86,6 +87,17 @@ class UAS_PT_Shot_Manager_Debug(Panel):
         layout.separator()
         row = layout.row()
 
+        row.label(text="Add-ons:")
+        iconExplorer = config.icons_col["General_Explorer_32"]
+        # https://blender.stackexchange.com/questions/64129/get-blender-scripts-path
+        # x = bpy.utils.script_path_user()
+        # bpy.utils.script_paths() returns the list of script folders
+        filePath = utils.getAddonsFolder()
+        row.operator(
+            "uas_shot_manager.open_explorer", text="Open add-ons Folder", icon_value=iconExplorer.icon_id
+        ).path = filePath
+
+        row = layout.row()
         row.label(text="Render:")
         #     row.prop(scene.UAS_StampInfo_Settings, "debug_DrawTextLines")
         # #    row.prop(scene.UAS_StampInfo_Settings, "offsetToCenterHNorm")

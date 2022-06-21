@@ -51,6 +51,10 @@ def draw_addon_prefs(self, context):
     ###############
     drawGeneralUI(context, self, layout)
 
+    # General
+    ###############
+    drawGeneral(context, self, layout)
+
     # Tools
     ###############
     # box = layout.box()
@@ -159,15 +163,34 @@ def drawGeneralUI(context, prefs, layout):
 
         split = col.split(factor=uiSplitFactor)
         rowLeft = split.row()
+        rowLeft.separator()
         rowRight = split.row()
         rowRight.prop(prefs, "separatedRenderPanel", text="Make Render Panel a Separated Tab in the Viewport N-Panel")
+
+
+def drawGeneral(context, prefs, layout):
+    box = layout.box()
+    # collapsable_panel(box, prefs, "addonPrefs_ui_expanded", text="UI")
+    # if prefs.addonPrefs_ui_expanded:
+    uiSplitFactor = 0.15
+
+    # column component here is technicaly not necessary but reduces the space between lines
+    col = box.column()
+
+    # split = col.split(factor=uiSplitFactor)
+    # rowLeft = split.row()
+    # rowLeft.separator()
+    # rowRight = split.row()
+    row = col.row()
+    row.separator(factor=3)
+    row.prop(prefs, "checkForNewAvailableVersion", text="Check for Updates")
 
 
 def drawFeatures(context, prefs, layout):
     box = layout.box()
     collapsable_panel(box, prefs, "addonPrefs_features_expanded", text="Layout and Features to Display in New Scenes")
     if prefs.addonPrefs_features_expanded:
-        uiSplitFactor = 0.15
+        # uiSplitFactor = 0.15
 
         draw_features_prefs("ADDON_PREFS", box)
 

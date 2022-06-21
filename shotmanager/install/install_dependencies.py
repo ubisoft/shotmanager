@@ -90,7 +90,7 @@ def install_library(lib_names, pip_retries=2, pip_timeout=-100):
 
                 try:
                     f = open(tmp_file, "w")
-                    f.write("Temp file for Ubisoft Shot Managero")
+                    f.write("Temp file for Ubisoft Shot Manager")
                     f.close()
                 except Exception as e:
                     _logger.error_ext(f"e: {e}")

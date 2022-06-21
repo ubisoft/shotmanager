@@ -124,7 +124,7 @@ class UAS_PT_ShotManager(Panel):
         row.separator(factor=0.5)
         row.menu("UAS_MT_Shot_Manager_prefs_mainmenu", icon="PREFERENCES", text="")
 
-        if prefs.newAvailableVersion:
+        if not config.devDebug and prefs.checkForNewAvailableVersion and prefs.newAvailableVersion:
             row.separator(factor=0.5)
             subRow = row.row()
             subRow.alert = True

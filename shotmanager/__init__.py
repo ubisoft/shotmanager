@@ -123,16 +123,14 @@ def register():
 
     if not install_otio_local_dist():
 
-        installErrorCode = install_dependencies([("opentimelineio", "opentimelineio")], retries=1, timeout=20)
+        installErrorCode = install_dependencies([("opentimelineio", "opentimelineio")], retries=1, timeout=10)
         # installErrorCode = 0
         if 0 != installErrorCode:
             # utils_handlers.removeAllHandlerOccurences(shotMngHandler_frame_change_pre_jumpToShot, handlerCateg=bpy.app.handlers.frame_change_pre)
             # return installErrorCode
-
-            print("  *** OpenTimelineIO install failed for Ubisoft Shot Manager ***")
-            pass
+            _logger.error_ext("  *** OpenTimelineIO install failed for Ubisoft Shot Manager ***")
         else:
-            print("  OpenTimelineIO correctly installed for Ubisoft Shot Manager")
+            _logger.info_ext("  OpenTimelineIO correctly installed for Ubisoft Shot Manager")
 
     # otio
     try:
@@ -148,6 +146,13 @@ def register():
         #     print("       *** OTIO Package import failed ***")
     except ModuleNotFoundError:
         print("       *** OTIO Package import failed ****")
+
+    # PIL library - for Stamp Info and image writing
+    installErrorCode = install_dependencies([("PIL", "pillow")], retries=1, timeout=5)
+    if 0 != installErrorCode:
+        _logger.error_ext("  *** Pillow Imaging Library (PIL) install failed for Ubisoft Shot Manager ***")
+    else:
+        _logger.info_ext("  Pillow Imaging Library (PIL) correctly installed for Ubisoft Stamp Info")
 
     # register other packages
     ###################
@@ -303,9 +308,18 @@ def register():
     if config.devDebug:
         print(f"\n ------ Shot Manager debug: {config.devDebug} ------- ")
 
+    addon_prefs_inst = bpy.context.preferences.addons["shotmanager"].preferences
+    addon_prefs_inst.displaySMDebugPanel = True
+
+    from .install.install_stampinfo import install_stampinfo_addon
+
+    # install_stampinfo_addon()
+
     # storyboard
     # prefs_properties = bpy.context.preferences.addons["shotmanager"].preferences
     # prefs_properties.stb_frameTemplate.initialize(fromPrefs=True)
+
+    # install_stampinfo_addon()
 
     print("")
 

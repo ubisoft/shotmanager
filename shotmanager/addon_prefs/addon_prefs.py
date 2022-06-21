@@ -79,6 +79,16 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
         default=1007016,
     )
 
+    checkForNewAvailableVersion: BoolProperty(
+        name="Check for Updates",
+        description=(
+            "If checked then the add-on automaticaly see if a new release\n"
+            "is available online, and if so then a red world icon is displayed at the\n"
+            "top right corner of the main panel"
+        ),
+        default=True,
+    )
+
     def dependency_min_supported_version(self, addon_name):
         """Return a tuple with the version minimum of a dependency add-on supported by this add-on:
             - a string x.y.z (eg: "1.21.3")
@@ -99,25 +109,31 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
 
         self.stb_frameTemplate.initialize(mode="ADDON_PREFS")
 
-        versionStr = None
-        if not config.devDebug:
+        self.newAvailableVersion = 0
+
+        if self.checkForNewAvailableVersion and not config.devDebug:
+            versionStr = None
             _logger.debug_ext("Checking for updates online...", col="BLUE")
             versionStr = get_latest_release_version(
                 "https://github.com/ubisoft/shotmanager/releases/latest", verbose=True
             )
 
-        if versionStr is not None:
-            # version string from the tags used by our releases on GitHub is formated as this: v<int>.<int>.<int>
-            version = utils.convertVersionStrToInt(versionStr)
+            if versionStr is not None:
+                # version string from the tags used by our releases on GitHub is formated as this: v<int>.<int>.<int>
+                version = utils.convertVersionStrToInt(versionStr)
 
-            _logger.debug_ext(f"   Latest version of Ubisoft Shot Manager online is: {versionStr}", col="BLUE")
-            if self.version()[1] < version:
-                _logger.debug_ext("   New version available online...", col="BLUE")
-                self.newAvailableVersion = version
+                _logger.debug_ext(f"   Latest version of Ubisoft Shot Manager online is: {versionStr}", col="BLUE")
+                if self.version()[1] < version:
+                    _logger.debug_ext("   New version available online...", col="BLUE")
+                    self.newAvailableVersion = version
+                else:
+                    self.newAvailableVersion = 0
             else:
                 self.newAvailableVersion = 0
-        else:
-            self.newAvailableVersion = 0
+
+        from shotmanager.install.install_stampinfo import install_stampinfo_addon
+
+        install_stampinfo_addon()
 
         self.isInitialized = True
 
