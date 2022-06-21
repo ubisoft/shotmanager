@@ -26,9 +26,7 @@
 
 
 ## Pre-releases
-The latest pre-release version is: [Shot Manager V 2.0.102 Beta](https://github.com/ubisoft/shotmanager/releases/tag/v2.0.102_Beta)
-
-Track the changes here: [Pre-releases and Experimental](https://ubisoft-shotmanager.readthedocs.io/en/latest/experimental/experimental.html#experimental) 
+The latest pre-release version is: [Shot Manager V 2.0.102 Beta](https://github.com/ubisoft/shotmanager/releases/tag/v2.0.102_Beta). Track the changes here: [Pre-releases and Experimental](https://ubisoft-shotmanager.readthedocs.io/en/latest/experimental/experimental.html#experimental) 
 
 
 ## Disclaimer
