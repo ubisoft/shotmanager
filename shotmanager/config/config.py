@@ -83,7 +83,7 @@ def initGlobalVariables():
 
     # dependencies #############
     global STAMP_INFO_MIN_VERSION
-    STAMP_INFO_MIN_VERSION = ("1.3.1", 1003001)
+    STAMP_INFO_MIN_VERSION = ("1.3.5", 1003005)
 
     # otio #############
     global gImportOpenTimelineIO

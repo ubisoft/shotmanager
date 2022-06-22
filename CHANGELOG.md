@@ -1,4 +1,8 @@
 -----
+## 2.0.104 (2022-06-22)
+- Installation of Stamp Info add-on during the installation of Shot Manager
+
+-----
 ## 2.0.101 (2022-06-08)
 #### Documentation
 - Add Experimental page

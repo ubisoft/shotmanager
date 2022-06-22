@@ -19,11 +19,12 @@
 StampInfo installation
 """
 
+from pathlib import Path
+
 import bpy
 
 from ..utils import utils
 from ..utils.utils_os import internet_on, module_can_be_imported, is_admin
-from . import addon_error_prefs
 
 from shotmanager.config import sm_logging
 
@@ -59,37 +60,61 @@ def install_stampinfo_addon():
 
         # print("Internet connection OK - Firewall may still block package downloads")
     if installStampInfo:
-        import subprocess
         import os
-        import sys
-        from pathlib import Path
-
-        pyExeFile = sys.executable
-        # we have to go above \bin dir
-        localPyDir = str((Path(pyExeFile).parent).parent) + "\\lib\\site-packages\\"
-        tmp_file = localPyDir + "ShotManager_Tmp.txt"
 
         if installStampInfo:
-
             _logger.debug_ext("Installing Stamp Info ")
-            package_path = os.path.join(
-                os.path.dirname(__file__),
-                "..\\distr\\Ubisoft_StampInfo_V1-3-1.zip",
-            )
 
-            bpy.ops.preferences.addon_install(
-                overwrite=True,
-                target="DEFAULT",
-                filepath=package_path,
-                filter_folder=True,
-                filter_python=False,
-                filter_glob="*.zip",
-            )
-            print("\nWkInbetween")
-            bpy.ops.preferences.addon_refresh()
-            print("\nWkInbetween 02")
+            packagePath = str(Path(__file__).parent.parent) + "\\distr\\"
+            fileList = sorted(os.listdir(packagePath))
+
+            # packagesList is a list of file names, NOT FILE PATHS
+            packagesList = [item for item in fileList if item.endswith(".zip")]
+
+            if len(packagesList):
+                packageFullPath = os.path.join(packagePath, packagesList[0])
+
+                # get stamp info version from archive name
+                packageVersion = utils.addonVersionFromFileName(packagesList[0])
+                if packageVersion is None:
+                    _logger.warning_ext(
+                        f"Stamp Info installation canceled: add-on version not found in file name: {packageFullPath}"
+                    )
+                    return
+
+                if stampInfoInstalledVersion is not None and stampInfoInstalledVersion[1] > packageVersion[1]:
+                    _logger.warning_ext(
+                        "Stamp Info installed version is more recent than the one provided with Shot Manager - Add-on is not re-installed"
+                    )
+                    _logger.debug_ext(
+                        f"Stamp Info installed version: {stampInfoInstalledVersion[0]}, package version provided with Shot Manager: {packageVersion[0]}"
+                    )
+                    installStampInfo = False
+
+                if installStampInfo:
+                    bpy.ops.preferences.addon_install(
+                        overwrite=True,
+                        target="DEFAULT",
+                        filepath=packageFullPath,
+                        filter_folder=True,
+                        filter_python=False,
+                        # filter_glob="*.zip",
+                        filter_glob=packagesList[0],
+                    )
+                    bpy.ops.preferences.addon_refresh()
+                    _logger.debug_ext(f"StampInfo installed from {packagesList[0]}")
+            else:
+                _logger.warning_ext(f"No archive found to install Stamp Info add-on in {packagePath}")
 
     stampInfoInstalledVersion = utils.addonVersion("Stamp Info")
     if stampInfoInstalledVersion:
         _logger.info_ext("Enabling Stamp Info add-on")
         bpy.ops.preferences.addon_enable(module="stampinfo")
+
+        try:
+            prefs_stampInfo = bpy.context.preferences.addons["stampinfo"].preferences
+            prefs_stampInfo.checkForNewAvailableVersion = False
+        except Exception as e:
+            _logger.error_ext(
+                f"Cannot change the property checkForNewAvailableVersion in Stamp Info preferences. Error: {e}"
+            )

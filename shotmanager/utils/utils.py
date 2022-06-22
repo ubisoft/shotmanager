@@ -93,13 +93,9 @@ def addonVersion(addonName):
     """
     import addon_utils
 
-    #   print("addonVersion called...")
     versionStr = "-"
     versionInt = -1
     versions = None
-
-    # if "Video Tracks" == addonName:
-    #     return None
 
     versionTupple = [
         addon.bl_info.get("version", (-1, -1, -1))
@@ -117,6 +113,30 @@ def addonVersion(addonName):
         # print("versionInt: ", versionInt)
         # print("convertVersionIntToStr: ", convertVersionIntToStr(versionInt))
 
+        versions = (versionStr, versionInt)
+
+    return versions
+
+def addonVersionFromFileName(fileName):
+    """Extract the add-on version from the provided file name
+    Return a tupple made by:
+        - a string x.y.z (eg: "1.3.1")
+        - an integer. x.y.z becomes xxyyyzzz (eg: "1.3.1" becomes 1003001)
+    Return None if the addon has not been found
+    Args:
+        fileName:   Can be a full file path or just a file name, with a name structure such as Ubisoft_StampInfo_V1-3-1.zip
+    """
+    versionStr = "-"
+    versionInt = -1
+    versions = None
+
+    fileNameNoExt = Path(fileName).stem
+    vInd = fileNameNoExt.find("_V")
+    if -1 != vInd:
+        versionFileNameStr = fileNameNoExt[vInd + 2:]
+        versionDigits = versionFileNameStr.split('-')
+        versionStr = str(versionDigits[0]) + "." + str(versionDigits[1]) + "." + str(versionDigits[2])
+        versionInt = convertVersionStrToInt(versionStr)
         versions = (versionStr, versionInt)
 
     return versions
@@ -159,13 +179,10 @@ def addonCategory(addonName):
     return categ
 
 
-def getAddonsFolder():
-    # package_path = os.path.join(
-    #                         os.path.dirname(__file__), "..\\distr\\OpenTimelineIO-0.15.0.dev1-cp310-cp310-win_amd64.whl"
-    #                     )
-    addonPath = str(Path(__file__).parent)
-    return addonPath
-
+# To get the script path folder use this:
+# https://blender.stackexchange.com/questions/64129/get-blender-scripts-path
+# bpy.utils.script_paths()
+# or bpy.utils.script_path_user()
 
 def getPythonPackagesFolder():
     pyExeFile = sys.executable

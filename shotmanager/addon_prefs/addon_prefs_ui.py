@@ -243,11 +243,15 @@ def drawDevAndDebug(context, self, layout):
         col.label(text="Temporary preference values (for dialogs for instance) are")
         col.label(text="only visible when global variable devDebug is True.")
 
-        if config.devDebug:
-            split = box.split(factor=splitFactor)
-            rowLeft = split.row()
-            rowLeft.alignment = "RIGHT"
-            rowLeft.label(text="Add New Shot Dialog")
-            rowRight = split.row()
-            rowRight.prop(self, "addShot_start")
-            rowRight.prop(self, "addShot_end")
+        # initialization state
+        initRow = col.row()
+        initRow.prop(self, "isInitialized")
+
+        tempValsRow = col.row()
+        split = tempValsRow.split(factor=splitFactor)
+        rowLeft = split.row()
+        rowLeft.alignment = "RIGHT"
+        rowLeft.label(text="Add New Shot Dialog")
+        rowRight = split.row()
+        rowRight.prop(self, "addShot_start")
+        rowRight.prop(self, "addShot_end")

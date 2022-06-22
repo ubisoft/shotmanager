@@ -101,6 +101,11 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
         return None
 
     isInitialized: BoolProperty(
+        name="Preferences Initialization State",
+        description=(
+            "Flag to validate that Shot Manager preferences have been correctly initialized"
+            "\nThis flag can be changed for debug purpose: activate the debug mode and go to the add-on Preferences, in the Debug tab"
+        ),
         default=False,
     )
 
@@ -108,7 +113,6 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
         print("\nInitializing Shot Manager Preferences...")
 
         self.stb_frameTemplate.initialize(mode="ADDON_PREFS")
-
         self.newAvailableVersion = 0
 
         if self.checkForNewAvailableVersion and not config.devDebug:
