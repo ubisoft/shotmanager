@@ -175,7 +175,7 @@ class BL_UI_ShotClip:
             # color = (0.15, 0.15, 0.15, 0.5)
 
         if self.highlight:
-            _logger.debug_ext("highlight Shot in draw", col="RED", tag="SHOTSTACK_EVENT")
+            #    _logger.debug_ext("highlight Shot in draw", col="RED", tag="SHOTSTACK_EVENT")
             color = (0.9, 0.9, 0.9, 0.5)
         if self.mouseover:
             #  _logger.debug_ext(f"mouseover Shot in draw {shot.name}", col="RED", tag="SHOTSTACK_EVENT")

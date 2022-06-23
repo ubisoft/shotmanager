@@ -101,7 +101,7 @@ class UAS_ShotManager_EnableDisableAll(Operator):
 class UAS_ShotManager_SceneRangeFromTake(Operator):
     bl_idname = "uas_shot_manager.scenerangefromtake"
     bl_label = "Scene Range From Take"
-    bl_description = "Set scene time range with take range" "\nUse Alt for the Preview time range"
+    bl_description = "Set scene time range with take range" "\n+ Alt: Set the preview time range"
     bl_options = {"INTERNAL"}
 
     def invoke(self, context, event):
@@ -124,6 +124,8 @@ class UAS_ShotManager_SceneRangeFromTake(Operator):
                         scene.frame_start = currentTake.getMinFrame(ignoreDisabled=False)
                         scene.frame_end = currentTake.getMaxFrame(ignoreDisabled=False)
 
+                    bpy.ops.uas_shot_manager.frame_time_range(spacerPercent=5)
+
         return {"FINISHED"}
 
 
@@ -133,7 +135,7 @@ class UAS_ShotManager_SceneRangeFromShot(Operator):
     bl_description = (
         "Set scene time range with current shot range"
         # "\n+ Ctrl: Set scene time range with current shot range with time before and after"
-        "\nUse Alt for the Preview time range"
+        "\n+ Alt: Set the preview time range"
     )
     bl_options = {"INTERNAL"}
 
@@ -154,6 +156,8 @@ class UAS_ShotManager_SceneRangeFromShot(Operator):
                 scene.use_preview_range = False
                 scene.frame_start = currentShot.start
                 scene.frame_end = currentShot.end
+
+            bpy.ops.uas_shot_manager.frame_time_range(spacerPercent=35)
 
         return {"FINISHED"}
 

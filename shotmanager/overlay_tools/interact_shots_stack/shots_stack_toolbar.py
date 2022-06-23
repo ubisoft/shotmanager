@@ -113,7 +113,9 @@ def draw_shots_stack_toolbar_in_editor(self, context):
     # )
     # butsrow.operator(
     row.operator(
-        "uas_shot_manager.interact_shots_stack_settings_wind", text="", icon="PROPERTIES",
+        "uas_shot_manager.interact_shots_stack_settings_wind",
+        text="",
+        icon="PROPERTIES",
     )
 
     # # # butsrow.separator()
@@ -150,4 +152,3 @@ def unregister():
 
 
 #  bpy.types.TIME_HT_editor_buttons.remove(draw_frame_rate_property)
-
