@@ -19,25 +19,22 @@
 Utility functions for opengl overlay
 """
 
-from collections import defaultdict
-from statistics import mean
-
 import gpu
-import bgl, blf
-import bpy
 from gpu_extras.batch import batch_for_shader
 
-#
+from shotmanager.utils.utils import clamp
+
 # Blender windows system utils
-#
+############################################
+
+
 def get_region_at_xy(context, x, y, area_type="VIEW_3D"):
-    """
+    """Return the region and the area containing this region
     Does not support quadview right now
 
-    :param context:
-    :param x:
-    :param y:
-    :return: the region and the area containing this region
+    Args:
+        x:
+        y:
     """
     for area in context.screen.areas:
         if area.type != area_type:
@@ -54,9 +51,16 @@ def get_region_at_xy(context, x, y, area_type="VIEW_3D"):
     return None, None
 
 
-#
+def clamp_to_region(x, y, region):
+    l_x, l_y = region.view2d.region_to_view(0, 0)
+    h_x, h_y = region.view2d.region_to_view(region.width - 1, region.height - 1)
+    return clamp(x, l_x, h_x), clamp(y, l_y, h_y)
+
+
 # Geometry utils functions
-#
+############################################
+
+
 class Square:
     """Draw a rectangle filled with the specifed color, from bottom left corner and with
     width and height.
@@ -227,13 +231,13 @@ class Quadrilater:
         return Quadrilater(self.pt0, self.pt1, self.pt2, self.pt3, self.color)
 
     def draw(self, position=None):
-        vertices = (
-            (self.pt0),
-            (self.pt1),
-            (self.pt2),
-            (self.pt3),
-        )
-        indices = ((0, 1, 2), (2, 3, 1))
+        # vertices = (
+        #     (self.pt0),
+        #     (self.pt1),
+        #     (self.pt2),
+        #     (self.pt3),
+        # )
+        # indices = ((0, 1, 2), (2, 3, 1))
 
         verticesLine = (
             (self.pt0),

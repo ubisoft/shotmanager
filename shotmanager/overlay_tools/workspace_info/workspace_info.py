@@ -21,12 +21,11 @@ Code initially coming from https://blender.stackexchange.com/questions/61699/how
 """
 
 import bpy
-import bgl
 import blf
-import gpu
 
 from mathutils import Vector
 from shotmanager.utils import utils
+from shotmanager.utils import utils_editors
 from shotmanager.config import config
 
 
@@ -62,9 +61,47 @@ def draw_typo_2d(color, text, position, font_size):
 #         draw_callback__dopesheet_info(self, context, callingArea, targetViewportIndex)
 
 
+###################
+# dopesheet and timeline
+###################
+
+
+def draw_callback__dopesheet_size(self, context, callingArea):
+    blf.color(0, 0.9, 0.9, 0.9, 0.9)
+
+    # blf.size(0, round(self.font_size * get_prefs_ui_scale()), 72)
+    blf.size(0, 12, 72)
+    # textPos_y = self.origin.y + 6 * get_prefs_ui_scale()
+    # textPos_y = self.origin.y + get_lane_height() * 0.2 * get_prefs_ui_scale()
+    # blf.position(0, *context.region.view2d.view_to_region(self.origin.x + 1.4, textPos_y), 0)
+
+    offset_y = 20
+    # in view units
+    areaBoxSize = utils_editors.getRegionFrameRange(context, callingArea, inViewUnits=True)
+    widthStr = f"Width range: {(areaBoxSize[0]):03.2f} fr, {(areaBoxSize[2]):03.2f} fr, width: {(areaBoxSize[2] - areaBoxSize[0]):03.2f} fr"
+    heightStr = f"Height range: {(areaBoxSize[1]):03.2f}, {(areaBoxSize[3]):03.2f}, height: {(areaBoxSize[3] - areaBoxSize[1]):03.2f}"
+
+    blf.position(0, 60, offset_y, 0)
+    blf.draw(0, widthStr)
+    blf.position(0, 60, offset_y * 2, 0)
+    blf.draw(0, heightStr)
+
+    # in screen units
+    # This defines the dopesheet content region size in pixels (without the left panel listing the channels)
+    # Bottom left is the origin, so at [0, 0]
+    areaBoxSize = utils_editors.getRegionFrameRange(context, callingArea, inViewUnits=False)
+    # widthStr = f"Width range: {(areaBoxSize[0]):03.2f} px, {(areaBoxSize[2]):03.2f} px"
+    # heightStr = f"Height range: {(areaBoxSize[1]):03.2f} px, {(areaBoxSize[3]):03.2f} px"
+    txtStr = f"Region box (in pixels, origin: bottom left): B Lft: [{(areaBoxSize[0]):03.1f}, {(areaBoxSize[1]):03.1f}], T Rght: [{(areaBoxSize[2]):03.1f}, {(areaBoxSize[3]):03.1f}]"
+
+    blf.position(0, 60, offset_y * 3, 0)
+    blf.draw(0, txtStr)
+    # blf.position(0, 60, offset_y * 4, 0)
+    # blf.draw(0, heightStr)
+
+
 def draw_callback__dopesheet_info(self, context, callingArea, targetDopesheetIndex):
-    """Infos on dopesheet areas
-    """
+    """Infos on dopesheet areas"""
     if not context.window_manager.UAS_shot_manager_identify_dopesheets:
         return
 
@@ -88,9 +125,13 @@ def draw_callback__dopesheet_info(self, context, callingArea, targetDopesheetInd
         draw_typo_2d(color, f"Dopesheet: {areaIndStr}", position, size)
 
 
+###################
+# 3d viewport
+###################
+
+
 def draw_callback__viewport_info(self, context, callingArea, targetViewportIndex):
-    """Infos on viewport areas
-    """
+    """Infos on viewport areas"""
     if not context.window_manager.UAS_shot_manager_identify_3dViews:
         return
 
@@ -120,7 +161,12 @@ def draw_callback__viewport_info(self, context, callingArea, targetViewportIndex
         # draw_typo_2d(color, f"{str(message2)}", position, 20)
 
 
-def draw_callback__area_info(self, context, callingArea, targetViewportIndex):
+###################
+# Advanced infos and debug - common to all editors
+###################
+
+
+def draw_callback__area_advanced_info(self, context, callingArea, targetViewportIndex):
     """Advanced and debug infos on all areas
     context.area is the calling area, from where the initial message was sent (= the current area)
     """
@@ -155,6 +201,14 @@ def draw_callback__area_info(self, context, callingArea, targetViewportIndex):
             callingAreaInd = i
             break
 
+    ## get dopesheets ######
+    contextViewportInd = -1
+    dopesheets = utils.getAreasByType(context, "DOPESHEET_EDITOR")
+    for i, dopesh in enumerate(dopesheets):
+        if dopesh == context.area:
+            contextViewportInd = i
+            break
+
     ## get viewports ######
     contextViewportInd = -1
     viewports = utils.getAreasByType(context, "VIEW_3D")
@@ -172,10 +226,10 @@ def draw_callback__area_info(self, context, callingArea, targetViewportIndex):
 
     ##########################
     # Display ################
-    size = 16
+    size = 14
     color = (1.0, 0.6, 0.6, 1.0)
-    y_offset = -20
-    position = Vector([70, 150])
+    y_offset = -18
+    position = Vector([60, 170])
 
     if len(viewports):
         if contextViewportInd == targetViewportIndex:
@@ -214,6 +268,10 @@ def draw_callback__area_info(self, context, callingArea, targetViewportIndex):
             position.y += y_offset
             message = f"Shot Manager target viewport: {targetViewportIndex}"
             draw_typo_2d(color, f"{message}", position, size)
+
+    if len(dopesheets):
+        if "DOPESHEET_EDITOR" == contextArea.type:
+            draw_callback__dopesheet_size(self, context, contextArea)
 
 
 class ShotManager_WorkspaceInfo(bpy.types.Operator):
@@ -273,10 +331,10 @@ class ShotManager_WorkspaceInfo(bpy.types.Operator):
 
             # see types of spaces here: https://docs.blender.org/api/current/bpy.types.Space.html#bpy.types.Space
             self._handle_draw_onView3D = bpy.types.SpaceView3D.draw_handler_add(
-                draw_callback__area_info, args, "WINDOW", "POST_PIXEL"
+                draw_callback__area_advanced_info, args, "WINDOW", "POST_PIXEL"
             )
             self._handle_draw_onDopeSheet = bpy.types.SpaceDopeSheetEditor.draw_handler_add(
-                draw_callback__area_info, args, "WINDOW", "POST_PIXEL"
+                draw_callback__area_advanced_info, args, "WINDOW", "POST_PIXEL"
             )
 
             context.window_manager.modal_handler_add(self)

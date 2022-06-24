@@ -31,7 +31,13 @@ import gpu
 from mathutils import Vector
 
 from .shot_clip_widget import BL_UI_ShotClip
-from ..shots_stack_bgl import build_rectangle_mesh, get_lane_origin_y
+from shotmanager.gpu.gpu_2d.gpu_2d import build_rectangle_mesh
+from ..shots_stack_bgl import get_lane_origin_y
+
+
+from shotmanager.gpu.gpu_2d.gpu_2d import QuadObject
+
+from shotmanager.overlay_tools.workspace_info import workspace_info
 
 from shotmanager.config import config
 from shotmanager.config import sm_logging
@@ -61,6 +67,7 @@ class BL_UI_ShotStack:
         self.previousDrawWasInAClip = False
 
         self.debug_mesh = None
+        self.debug_quadObject = None
 
     def init(self, context):
         self.context = context
@@ -72,6 +79,8 @@ class BL_UI_ShotStack:
         # numFrames = 15
         # origin = Vector([startframe, get_lane_origin_y(lane)])
         # self.debug_mesh = build_rectangle_mesh(origin, numFrames, height)
+
+        self.debug_quadObject = QuadObject()
 
     def draw_shots(self):
         props = self.context.scene.UAS_shot_manager_props
@@ -145,42 +154,8 @@ class BL_UI_ShotStack:
                 self.ui_shots.append(s)
                 s.draw()
 
-    def getRegionFrameRange(self, inViewUnits=True):
-        """Return the region bottom left and top right of the target dopesheet area,
-        with the x in frames and the y in something"""
-
-        context = self.context
-
-        c = context.copy()
-        for i, area in enumerate(context.screen.areas):
-            if area != self.target_area:
-                continue
-            region = area.regions[-1]
-            # print("SCREEN:", context.screen.name, "[", i, "]")
-            c["space_data"] = area.spaces.active
-            c["area"] = area
-            c["region"] = region
-
-            # region size
-            h = region.height  # screen
-            w = region.width  #
-            bl = region.view2d.region_to_view(0, 0)
-            tr = region.view2d.region_to_view(w, h)
-            # print(f"region bottom left: {(bl[0]):03.2f} fr, {(bl[1]):03.2f}")
-            # print(f"region top right: {(tr[0]):03.2f} fr, {(tr[1]):03.2f}")
-
-            range = Vector(tr) - Vector(bl)
-
-            # return (Vector(bl), Vector(tr))
-            if inViewUnits:
-                return (bl[0], bl[1], tr[0], tr[1])
-            else:
-                return (0.0, 0.0, w, h)
-
-        return None
-
     def drawClipHandle_Debug(self):
-        
+        pass
 
     def draw(self):
         if self.target_area is not None and self.context.area != self.target_area:
@@ -189,7 +164,7 @@ class BL_UI_ShotStack:
         # Debug - red rectangle ####################
         drawDebugRect = True
         if drawDebugRect:
-            print("ogl draw shot stack")
+            # print("ogl draw shot stack")
 
             # get_lane_origin_y
             # get_lane_height():
@@ -206,39 +181,19 @@ class BL_UI_ShotStack:
             color = (0.9, 0.0, 0.0, 0.9)
             UNIFORM_SHADER_2D.uniform_float("color", color)
 
-            self.debug_mesh.draw(UNIFORM_SHADER_2D, self.context.region)
+            # self.debug_mesh.draw(UNIFORM_SHADER_2D, self.context.region)
 
+            ###############################
+            # Quad object
+            ###############################
+
+            self.debug_quadObject.draw(UNIFORM_SHADER_2D, self.context.region)
+
+            ###############################
             # draw text
-            blf.color(0, 0.9, 0.9, 0.9, 0.9)
+            ###############################
 
-            # blf.size(0, round(self.font_size * get_prefs_ui_scale()), 72)
-            blf.size(0, 12, 72)
-            # textPos_y = self.origin.y + 6 * get_prefs_ui_scale()
-            # textPos_y = self.origin.y + get_lane_height() * 0.2 * get_prefs_ui_scale()
-            # blf.position(0, *context.region.view2d.view_to_region(self.origin.x + 1.4, textPos_y), 0)
-
-            offset_y = 20
-            # in view units
-            areaBoxSize = self.getRegionFrameRange(inViewUnits=True)
-            widthStr = f"Width range: {(areaBoxSize[0]):03.2f} fr, {(areaBoxSize[2]):03.2f} fr, width: {(areaBoxSize[2] - areaBoxSize[0]):03.2f} fr"
-            heightStr = f"Height range: {(areaBoxSize[1]):03.2f} , {(areaBoxSize[3]):03.2f} , height: {(areaBoxSize[3] - areaBoxSize[1]):03.2f} fr"
-
-            blf.position(0, 60, offset_y, 0)
-            blf.draw(0, widthStr)
-            blf.position(0, 60, offset_y * 2, 0)
-            blf.draw(0, heightStr)
-
-            # in screen units
-            # This defines the dopesheet content region size in pixels (without the left panel listing the channels)
-            # Bottom left is the origin, so at [0, 0]
-            areaBoxSize = self.getRegionFrameRange(inViewUnits=False)
-            widthStr = f"Width range: {(areaBoxSize[0]):03.2f} px, {(areaBoxSize[2]):03.2f} px"
-            heightStr = f"Height range: {(areaBoxSize[1]):03.2f} px, {(areaBoxSize[3]):03.2f} px"
-
-            blf.position(0, 60, offset_y * 3, 0)
-            blf.draw(0, widthStr)
-            blf.position(0, 60, offset_y * 4, 0)
-            blf.draw(0, heightStr)
+            workspace_info.draw_callback__dopesheet_size(self, self.context, self.target_area)
 
             # return
 

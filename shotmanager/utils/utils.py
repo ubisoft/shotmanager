@@ -117,6 +117,7 @@ def addonVersion(addonName):
 
     return versions
 
+
 def addonVersionFromFileName(fileName):
     """Extract the add-on version from the provided file name
     Return a tupple made by:
@@ -133,8 +134,8 @@ def addonVersionFromFileName(fileName):
     fileNameNoExt = Path(fileName).stem
     vInd = fileNameNoExt.find("_V")
     if -1 != vInd:
-        versionFileNameStr = fileNameNoExt[vInd + 2:]
-        versionDigits = versionFileNameStr.split('-')
+        versionFileNameStr = fileNameNoExt[vInd + 2 :]
+        versionDigits = versionFileNameStr.split("-")
         versionStr = str(versionDigits[0]) + "." + str(versionDigits[1]) + "." + str(versionDigits[2])
         versionInt = convertVersionStrToInt(versionStr)
         versions = (versionStr, versionInt)
@@ -183,6 +184,7 @@ def addonCategory(addonName):
 # https://blender.stackexchange.com/questions/64129/get-blender-scripts-path
 # bpy.utils.script_paths()
 # or bpy.utils.script_path_user()
+
 
 def getPythonPackagesFolder():
     pyExeFile = sys.executable

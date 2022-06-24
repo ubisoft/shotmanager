@@ -20,7 +20,8 @@ from mathutils import Vector
 from shotmanager.config import config
 from shotmanager.utils import utils
 from shotmanager.overlay_tools.workspace_info.workspace_info import draw_typo_2d
-from shotmanager.overlay_tools.interact_shots_stack.shots_stack_bgl import build_rectangle_mesh, get_lane_origin_y
+from shotmanager.gpu.gpu_2d.gpu_2d import build_rectangle_mesh
+from shotmanager.overlay_tools.interact_shots_stack.shots_stack_bgl import get_lane_origin_y
 
 
 def drawAreaInfo(context, pos_y=90):

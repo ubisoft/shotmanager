@@ -20,6 +20,9 @@ Logging for the add-on
 
 Read this: https://stackoverflow.com/questions/7274732/extending-the-python-logger
 
+TODO: Rewrite the extention of the logger based on an "adaptater":
+https://docs.python.org/3/howto/logging-cookbook.html#using-loggeradapters-to-impart-contextual-information
+
 """
 
 import os
@@ -39,9 +42,6 @@ def getLogger(name):
 
 def getLevelName():
     return logging.getLevelName(_logger.level)
-
-
-# cf https://stackoverflow.com/questions/7274732/extending-the-python-logger
 
 
 class SM_Logger(logging.getLoggerClass()):
@@ -194,17 +194,19 @@ class SM_Logger(logging.getLoggerClass()):
         # it is this function that is used and the path is not good
         # cf https://stackoverflow.com/questions/14406347/python-logging-check-location-of-log-files
         # and https://www.py4u.net/discuss/157715
+        # Other possible approach: refactor all and use an "adaptater":
+        # https://docs.python.org/3/howto/logging-cookbook.html#using-loggeradapters-to-impart-contextual-information
         if "DEBUG" == mode:
-            super(SM_Logger, self).debug(("{}").format(msg), extra=extra, stacklevel=2)
+            super(SM_Logger, self).debug(("{}").format(msg), extra=extra, stacklevel=3)
         elif "WARNING" == mode:
-            super(SM_Logger, self).warning(("{}").format(msg), extra=extra, stacklevel=2)
+            super(SM_Logger, self).warning(("{}").format(msg), extra=extra, stacklevel=3)
         elif "ERROR" == mode:
-            super(SM_Logger, self).error(("{}").format(msg), extra=extra, stacklevel=2)
+            super(SM_Logger, self).error(("{}").format(msg), extra=extra, stacklevel=3)
         elif "CRITICAL" == mode:
-            super(SM_Logger, self).critical(("{}").format(msg), extra=extra, stacklevel=2)
+            super(SM_Logger, self).critical(("{}").format(msg), extra=extra, stacklevel=3)
         # INFO
         else:
-            super(SM_Logger, self).info(("{}").format(msg), extra=extra, stacklevel=2)
+            super(SM_Logger, self).info(("{}").format(msg), extra=extra, stacklevel=3)
 
         _logger.handlers[0].setFormatter(self._getFormatter(self._defaultColor, self._defaultForm))
 
