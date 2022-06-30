@@ -70,11 +70,19 @@ def initGlobalVariables():
 
     icons_col = pcoll
 
+    # ui ##########
+    global gMouseScreenPos
+    gMouseScreenPos = [0.0, 0.0]
+
     # keymaps ##########
     global gAddonKeymaps
     gAddonKeymaps = []
 
     # interactive shots stack ############
+
+    global gShotsStack_forceRedraw_debug
+    gShotsStack_forceRedraw_debug = True
+
     global gShotsStackInfos
     gShotsStackInfos = None
 
@@ -116,8 +124,8 @@ def getLoggingTags():
     # debug tags
     tags["DEPRECATED"] = False
 
-    tags["REG"] = False
-    tags["UNREG"] = False
+    tags["REG"] = True
+    tags["UNREG"] = True
 
     tags["SHOTS_PLAY_MODE"] = True
 

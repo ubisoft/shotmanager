@@ -229,7 +229,7 @@ class UAS_PT_ShotManager(Panel):
             depress=context.window_manager.UAS_shot_manager_display_overlay_tools,
             icon_value=icon.icon_id,
         )
-        ## replaced by operators ########
+        # replaced by operators ########
         # toggleButRow.prop(
         #     context.window_manager,
         #     "UAS_shot_manager_display_overlay_tools",

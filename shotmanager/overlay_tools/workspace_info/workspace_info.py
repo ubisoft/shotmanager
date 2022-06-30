@@ -66,6 +66,32 @@ def draw_typo_2d(color, text, position, font_size):
 ###################
 
 
+def draw_callback__dopesheet_mouse_pos(self, context, callingArea):
+    blf.color(0, 0.9, 0.9, 0.9, 0.9)
+
+    blf.size(0, 12, 72)
+
+    offset_y = 80
+
+    rMouse_x = config.gMouseScreenPos[0] - context.region.x
+    rMouse_y = config.gMouseScreenPos[1] - context.region.y
+
+    ruMouse_x = int(context.region.view2d.region_to_view(rMouse_x, 0)[0])
+    # y in region values unit
+    ruMouse_y = int(context.region.view2d.region_to_view(0, rMouse_y)[1])
+    # y in lanes
+    #  ruMouse_y = -1.0 * ruMouse_y // utils_editors.getLaneHeight()
+
+    # y in lanes
+    ruMouse_y_in_Lanes = utils_editors.getLaneIndexUnderLocationY(context.region, rMouse_y)
+
+    txtStr = f"Mouse pos: Screen: x: {config.gMouseScreenPos[0]}, y: {config.gMouseScreenPos[1]},  - in Region px: rX: {rMouse_x}, rY: {rMouse_y},"
+    txtStr += f"- in Region units: ruX: {ruMouse_x} fr., rY: {ruMouse_y} values,    rY: {ruMouse_y_in_Lanes} lanes"
+
+    blf.position(0, 60, offset_y, 0)
+    blf.draw(0, txtStr)
+
+
 def draw_callback__dopesheet_size(self, context, callingArea):
     blf.color(0, 0.9, 0.9, 0.9, 0.9)
 
@@ -79,7 +105,16 @@ def draw_callback__dopesheet_size(self, context, callingArea):
     # in view units
     areaBoxSize = utils_editors.getRegionFrameRange(context, callingArea, inViewUnits=True)
     widthStr = f"Width range: {(areaBoxSize[0]):03.2f} fr, {(areaBoxSize[2]):03.2f} fr, width: {(areaBoxSize[2] - areaBoxSize[0]):03.2f} fr"
-    heightStr = f"Height range: {(areaBoxSize[1]):03.2f}, {(areaBoxSize[3]):03.2f}, height: {(areaBoxSize[3] - areaBoxSize[1]):03.2f}"
+
+    rHeightRangeMin = areaBoxSize[1]
+    rHeightRangeMax = areaBoxSize[3]
+    rHeight = rHeightRangeMax - rHeightRangeMin
+
+    ruHeightRangeMin = rHeightRangeMin // utils_editors.getLaneHeight()
+    ruHeightRangeMax = rHeightRangeMax // utils_editors.getLaneHeight()
+    ruHeight = rHeight / utils_editors.getLaneHeight()
+
+    heightStr = f"Height range: {rHeightRangeMin:03.2f}, {rHeightRangeMax:03.2f}, height: {rHeight:03.2f},  range in lanes: {ruHeightRangeMin:03.2f}, {ruHeightRangeMax:03.2f}, num lanes: {ruHeight:03.2f}"
 
     blf.position(0, 60, offset_y, 0)
     blf.draw(0, widthStr)
@@ -178,7 +213,7 @@ def draw_callback__area_advanced_info(self, context, callingArea, targetViewport
     # bgl.glClearStencil(2)
     # bgl.glClear(2)
 
-    ## get all areas ######
+    # get all areas ######
     # context.area is the calling area, from where the initial message was sent (= the current area)
     areasList = list()
     for screen_area in context.screen.areas:
@@ -193,7 +228,7 @@ def draw_callback__area_advanced_info(self, context, callingArea, targetViewport
             contextAreaInd = i
             break
 
-    ## get calling area ######
+    # get calling area ######
     callingAreaType = callingArea.type
     callingAreaInd = -1
     for i, area in enumerate(context.screen.areas):
@@ -201,7 +236,7 @@ def draw_callback__area_advanced_info(self, context, callingArea, targetViewport
             callingAreaInd = i
             break
 
-    ## get dopesheets ######
+    # get dopesheets ######
     contextViewportInd = -1
     dopesheets = utils.getAreasByType(context, "DOPESHEET_EDITOR")
     for i, dopesh in enumerate(dopesheets):
@@ -209,7 +244,7 @@ def draw_callback__area_advanced_info(self, context, callingArea, targetViewport
             contextViewportInd = i
             break
 
-    ## get viewports ######
+    # get viewports ######
     contextViewportInd = -1
     viewports = utils.getAreasByType(context, "VIEW_3D")
     for i, viewport in enumerate(viewports):
@@ -237,7 +272,7 @@ def draw_callback__area_advanced_info(self, context, callingArea, targetViewport
         elif contextViewportInd == callingViewportInd:
             color = (1.0, 1.0, 0.0, 1.0)
 
-    ## type ###
+    # type ###
     message = f"{contextAreaType}"
     if "DOPESHEET_EDITOR" == contextAreaType:
         message += f" in mode {contextArea.spaces[0].mode}"
@@ -272,6 +307,7 @@ def draw_callback__area_advanced_info(self, context, callingArea, targetViewport
     if len(dopesheets):
         if "DOPESHEET_EDITOR" == contextArea.type:
             draw_callback__dopesheet_size(self, context, contextArea)
+            draw_callback__dopesheet_mouse_pos(self, context, contextArea)
 
 
 class ShotManager_WorkspaceInfo(bpy.types.Operator):

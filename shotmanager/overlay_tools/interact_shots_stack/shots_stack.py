@@ -245,13 +245,21 @@ class UAS_ShotManager_InteractiveShotsStack(Operator):
 
         # bpy.ops.wm.redraw_timer(type="DRAW_WIN_SWAP", iterations=1)
 
-        if config.gRedrawShotStack or event_handled:
+        config.gMouseScreenPos[0] = event.mouse_x
+        config.gMouseScreenPos[1] = event.mouse_y
+
+        debug_forceRedraw = config.gShotsStack_forceRedraw_debug
+
+        if config.gRedrawShotStack or event_handled or debug_forceRedraw:
             for area in context.screen.areas:
                 area.tag_redraw()
             config.gRedrawShotStack = False
 
         if event_handled:
             return {"RUNNING_MODAL"}
+
+        # if debug_forceRedraw:
+        #     return {"RUNNING_MODAL"}
 
         return {"PASS_THROUGH"}
 

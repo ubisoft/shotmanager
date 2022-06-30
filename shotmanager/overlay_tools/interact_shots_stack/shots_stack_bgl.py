@@ -38,7 +38,7 @@ _logger = sm_logging.getLogger(__name__)
 
 UNIFORM_SHADER_2D = gpu.shader.from_builtin("2D_UNIFORM_COLOR")
 
-
+# deprecated - use getPrefsUIScale
 def get_prefs_ui_scale():
     # ui_scale has a very weird behavior, especially between 0.79 and 0.8. We try to compensate it as
     # much as possible
@@ -59,6 +59,7 @@ def get_prefs_ui_scale():
     return bpy.context.preferences.view.ui_scale + abs(bpy.context.preferences.view.ui_scale - 1) * factor
 
 
+# deprecated - use -
 def get_lane_origin_y(lane):
     """Return the offset to put under the timeline ruler"""
     RULER_HEIGHT = 52
@@ -66,6 +67,7 @@ def get_lane_origin_y(lane):
     return math.floor(-1.0 * get_lane_height() * lane - (RULER_HEIGHT * bpy.context.preferences.view.ui_scale))
 
 
+# deprecated - use getLaneHeight
 def get_lane_height():
     """Return the offset to put under the timeline ruler"""
     LANE_HEIGHT = 22.5

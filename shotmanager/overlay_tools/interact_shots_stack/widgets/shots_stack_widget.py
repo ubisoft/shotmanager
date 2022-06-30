@@ -34,8 +34,9 @@ from .shot_clip_widget import BL_UI_ShotClip
 from shotmanager.gpu.gpu_2d.gpu_2d import build_rectangle_mesh
 from ..shots_stack_bgl import get_lane_origin_y
 
+from shotmanager.utils import utils_editors
 
-from shotmanager.gpu.gpu_2d.gpu_2d import QuadObject
+from shotmanager.gpu.gpu_2d.gpu_2d import QuadObject, Widget2D
 
 from shotmanager.overlay_tools.workspace_info import workspace_info
 
@@ -68,6 +69,8 @@ class BL_UI_ShotStack:
 
         self.debug_mesh = None
         self.debug_quadObject = None
+        self.debug_quadObject_Ruler = None
+        self.debug_quadObject_test = None
 
     def init(self, context):
         self.context = context
@@ -80,7 +83,51 @@ class BL_UI_ShotStack:
         # origin = Vector([startframe, get_lane_origin_y(lane)])
         # self.debug_mesh = build_rectangle_mesh(origin, numFrames, height)
 
-        self.debug_quadObject = QuadObject()
+        # this quad is supposed to cover the time ruler all the time to check the top clipping zone
+        # BOTTOM_LEFT TOP_LEFT
+        self.debug_quadObject_Ruler = QuadObject(
+            posXIsInRegionCS=True,
+            posX=0,
+            posYIsInRegionCS=True,
+            posY=0,
+            widthIsInRegionCS=True,
+            width=1900,
+            heightIsInRegionCS=True,
+            height=utils_editors.getRulerHeight(),
+            alignment="TOP_LEFT",
+            alignmentToRegion="TOP_LEFT",
+        )
+        self.debug_quadObject_Ruler.color = (0.4, 0.0, 0.0, 0.5)
+
+        self.debug_quadObject_test = QuadObject(
+            posXIsInRegionCS=False,
+            posX=20,
+            posYIsInRegionCS=False,
+            posY=1,
+            widthIsInRegionCS=False,
+            width=40,
+            heightIsInRegionCS=False,
+            height=10,
+            alignment="TOP_LEFT",
+            alignmentToRegion="TOP_LEFT",
+        )
+        self.debug_quadObject_test.color = (0.0, 0.4, 0.0, 0.5)
+
+        # self.debug_quadObject = QuadObject()
+        self.debug_quadObject = QuadObject(
+            posXIsInRegionCS=True,
+            posX=60,
+            posYIsInRegionCS=True,
+            posY=90,
+            widthIsInRegionCS=False,
+            width=25,
+            heightIsInRegionCS=True,
+            height=70,
+            alignment="TOP_LEFT",
+            alignmentToRegion="BOTTOM_RIGHT",
+        )
+
+        self.debug_widget2D = Widget2D(self.target_area)
 
     def draw_shots(self):
         props = self.context.scene.UAS_shot_manager_props
@@ -187,13 +234,17 @@ class BL_UI_ShotStack:
             # Quad object
             ###############################
 
-            self.debug_quadObject.draw(UNIFORM_SHADER_2D, self.context.region)
+            self.debug_quadObject_Ruler.draw(None, self.context.region)
+            self.debug_quadObject_test.draw(None, self.context.region)
+            self.debug_quadObject.draw(None, self.context.region)
+            self.debug_widget2D.draw(None, region=self.context.region)
 
             ###############################
             # draw text
             ###############################
 
             workspace_info.draw_callback__dopesheet_size(self, self.context, self.target_area)
+            workspace_info.draw_callback__dopesheet_mouse_pos(self, self.context, self.target_area)
 
             # return
 
@@ -237,12 +288,13 @@ class BL_UI_ShotStack:
         if event.type not in ["TIMER"]:
             _logger.debug_ext(f"event: type: {event.type}, value: {event.value}", col="GREEN", tag="SHOTSTACK_EVENT")
 
-        match (event.type, event.value):
+        #  match (event.type, event.value):
+        if True:
             # case ("RIGHTMOUSE", "PRESS") | ("ESC", "PRESS") | ("WINDOW_DEACTIVATE", "PRESS"):
             #     self.cancelAction()
             #     event_handled = True
 
-            case _:
+            if True:
 
                 for uiShot in self.ui_shots:
                     # if uiShot.handle_event(context, event, region):
@@ -398,6 +450,10 @@ class BL_UI_ShotStack:
                                 self.previousDrawWasInAClip = currentDrawIsInAClip
 
                         #  uiShot.mouseover = False
+
+        # debug
+        if not event_handled:
+            event_handled = self.debug_widget2D.handle_event(context, event)
 
         self.prev_mouse_x = event.mouse_x - region.x
         self.prev_mouse_y = event.mouse_y - region.y

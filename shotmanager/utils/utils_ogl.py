@@ -51,6 +51,7 @@ def get_region_at_xy(context, x, y, area_type="VIEW_3D"):
     return None, None
 
 
+# deprecated - use clampToRegion
 def clamp_to_region(x, y, region):
     l_x, l_y = region.view2d.region_to_view(0, 0)
     h_x, h_y = region.view2d.region_to_view(region.width - 1, region.height - 1)
