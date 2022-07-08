@@ -80,7 +80,7 @@ def initGlobalVariables():
 
     # interactive shots stack ############
     global gShotsStack_forceRedraw_debug
-    gShotsStack_forceRedraw_debug = True
+    gShotsStack_forceRedraw_debug = False
 
     global gShotsStackInfos
     gShotsStackInfos = None

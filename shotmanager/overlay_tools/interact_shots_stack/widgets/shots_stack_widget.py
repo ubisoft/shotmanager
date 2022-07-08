@@ -96,6 +96,7 @@ class BL_UI_ShotStack:
             height=utils_editors_dopesheet.getRulerHeight(),
             alignment="TOP_LEFT",
             alignmentToRegion="TOP_LEFT",
+            displayOverRuler=True,
         )
         self.debug_quadObject_Ruler.color = (0.4, 0.0, 0.0, 0.5)
 

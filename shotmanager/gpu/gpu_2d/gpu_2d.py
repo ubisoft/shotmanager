@@ -186,7 +186,10 @@ class Mesh2D:
     def texcoords(self):
         return list(self._texcoords)
 
-    def _drawMesh(self, shader, region=None, draw_types="TRIS", cap_lines=False, transformed_vertices=None):
+    def _drawMesh(
+        self, shader, region=None, draw_types="TRIS", cap_lines=False, transformed_vertices=None, vertex_indices=None
+    ):
+        v_indices = vertex_indices
 
         bgl.glEnable(bgl.GL_BLEND)
 
@@ -194,14 +197,17 @@ class Mesh2D:
             UNIFORM_SHADER_2D.bind()
             UNIFORM_SHADER_2D.uniform_float("color", self.color)
             shader = UNIFORM_SHADER_2D
-
         if "TRIS" == draw_types:
-            batch = batch_for_shader(shader, draw_types, {"pos": transformed_vertices}, indices=self._indices)
+            if vertex_indices is None:
+                v_indices = self._indices
+            batch = batch_for_shader(shader, draw_types, {"pos": transformed_vertices}, indices=v_indices)
             batch.draw(shader)
         elif "LINES" == draw_types:
             # draw lines and points fo the caps
             # _indicesLineRectClamped _indicesLineRect
-            batch = batch_for_shader(shader, draw_types, {"pos": transformed_vertices}, indices=self._indicesLineRect)
+            if vertex_indices is None:
+                v_indices = self._indicesLineRect
+            batch = batch_for_shader(shader, draw_types, {"pos": transformed_vertices}, indices=v_indices)
             bgl.glLineWidth(self.lineThickness)
             batch.draw(shader)
             if cap_lines:
@@ -368,6 +374,7 @@ class QuadObject(Object2D, Mesh2D):
         height=20,
         alignment="BOTTOM_LEFT",
         alignmentToRegion="BOTTOM_LEFT",
+        displayOverRuler=False,
     ):
         Object2D.__init__(
             self,
@@ -391,11 +398,26 @@ class QuadObject(Object2D, Mesh2D):
         self.hasLine = False
         self.colorLine = (0.9, 0.9, 0.9, 1.0)
 
+        self.displayOverRuler = displayOverRuler
+
         # bBox is defined by [xMin, YMin, xMax, yMax], in pixels in region CS (so bottom left, compatible with mouse position)
         self._bBox = [0, 0, 1, 1]
         self.isFullyClamped = False
 
         self.rebuild_rectangle_mesh(0, 0, 1, 1)
+
+    def getEdgeIndices(self, bBox, clamped_bBox):
+        """Return the array of indices for the edges to draw"""
+        indices = []
+        if bBox[0] >= clamped_bBox[0]:
+            indices.append((1, 0))
+        if bBox[1] >= clamped_bBox[1]:
+            indices.append((0, 3))
+        if bBox[2] <= clamped_bBox[2]:
+            indices.append((3, 2))
+        if bBox[3] <= clamped_bBox[3]:
+            indices.append((1, 2))
+        return indices
 
     # override Mesh2D
     def draw(self, shader, region=None, draw_types="TRIS", cap_lines=False):
@@ -432,7 +454,7 @@ class QuadObject(Object2D, Mesh2D):
                 posY_inRegion = self.posY
             else:
                 # convert from lanes to y values
-                posY_inValues = utils_editors_dopesheet.getLaneToValue(self.posY)
+                posY_inValues = -1.0 * utils_editors_dopesheet.getLaneToValue(self.posY)
                 posY_inView = posY_inValues
                 posY_inRegion = region.view2d.view_to_region(0, posY_inValues, clip=False)[1]
 
@@ -466,7 +488,7 @@ class QuadObject(Object2D, Mesh2D):
 
             #     # vertex[1] = region.view2d.view_to_region(*clamp_to_region(x, y, region), clip=True)
             #     vY = utils_editors.clampToRegion(0, vertex[1], region)[1]
-            posY_inValues = utils_editors_dopesheet.getLaneToValue(self.posY)
+            posY_inValues = -1.0 * utils_editors_dopesheet.getLaneToValue(self.posY)
             posY = region.view2d.view_to_region(0, -posY_inValues, clip=False)[1]
             # height = -height
 
@@ -529,12 +551,12 @@ class QuadObject(Object2D, Mesh2D):
         # clamp transform vertices: we get the intersection with the region
         # if the intersection is None then the current mesh is out of the region
         clamped_transformed_vertices = utils_editors_dopesheet.intersectionWithRegion(
-            transformed_vertices, region, excludeRuler=True
+            transformed_vertices, region, excludeRuler=not self.displayOverRuler
         )
         #  clamped_transformed_vertices = transformed_vertices
 
         # self._bBox = [vBotLeft[0], vBotLeft[1], vTopRight[0], vTopRight[1]]
-        self._bBox = [
+        bBox = [
             transformed_vertices[0][0],
             transformed_vertices[0][1],
             transformed_vertices[2][0],
@@ -544,6 +566,7 @@ class QuadObject(Object2D, Mesh2D):
         # if clamped then the quad is not drawn
         if clamped_transformed_vertices is None:
             self.isFullyClamped = True
+            self._bBox = bBox
             return
 
         self.isFullyClamped = False
@@ -553,6 +576,7 @@ class QuadObject(Object2D, Mesh2D):
             clamped_transformed_vertices[2][0],
             clamped_transformed_vertices[2][1],
         ]
+        self._bBox = clamped_bBox
 
         if self.hasFill:
             if shader is None:
@@ -567,7 +591,10 @@ class QuadObject(Object2D, Mesh2D):
             UNIFORM_SHADER_2D.uniform_float("color", self.colorLine)
             shaderLine = UNIFORM_SHADER_2D
             draw_types = "LINES"
-            self._drawMesh(shaderLine, region, draw_types, cap_lines, clamped_transformed_vertices)
+
+            edgeIndices = self.getEdgeIndices(bBox, clamped_bBox)
+
+            self._drawMesh(shaderLine, region, draw_types, cap_lines, clamped_transformed_vertices, edgeIndices)
 
         # draw tripod
         if True:
@@ -607,6 +634,7 @@ class InteractiveObject2D:
 
         return None, None
 
+    # to be overriden by inheriting classes
     def isInBBox(self, ptX, ptY):
         """Return True if the specified location is in the bbox of this InteractiveObject2D instance
         ptX and ptY are in screen coordinate system
@@ -730,8 +758,9 @@ class Component2D(InteractiveObject2D, QuadObject):
         """Return True if the specified location is in the bbox of this InteractiveObject2D instance
         ptX and ptY are in pixels, in region coordinate system
         """
-        if self._bBox[0] <= ptX <= self._bBox[2] and self._bBox[1] <= ptY <= self._bBox[3]:
-            return True
+        if not self.isFullyClamped:
+            if self._bBox[0] <= ptX <= self._bBox[2] and self._bBox[1] <= ptY <= self._bBox[3]:
+                return True
         return False
 
     # override Mesh2D
