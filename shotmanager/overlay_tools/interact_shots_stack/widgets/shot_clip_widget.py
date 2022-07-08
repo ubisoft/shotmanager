@@ -208,14 +208,14 @@ class BL_UI_ShotClip:
         # if current_shot != -1 and self.name == current_shot.name:
         if self.shot_index == current_shot_ind:
             UNIFORM_SHADER_2D.uniform_float("color", self.color_currentShot_border)
-            self.contourCurrent_mesh.linewidth = 4 if current_shot_ind == selected_shot_ind else 2
+            self.contourCurrent_mesh.lineThickness = 4 if current_shot_ind == selected_shot_ind else 2
             self.contourCurrent_mesh.draw(UNIFORM_SHADER_2D, context.region, "LINES")
 
         # selected shot
         # if current_shot != -1 and self.name == selected_shot.name:
         if self.shot_index == selected_shot_ind:
             UNIFORM_SHADER_2D.uniform_float("color", self.color_selectedShot_border)
-            self.contour_mesh.linewidth = 1 if current_shot_ind == selected_shot_ind else 2
+            self.contour_mesh.lineThickness = 1 if current_shot_ind == selected_shot_ind else 2
             self.contour_mesh.draw(UNIFORM_SHADER_2D, context.region, "LINES")
 
         # draw a camera icon on the current shot

@@ -2,6 +2,11 @@
 
 ## To do:
 
+- *** Remove the DrawAll debug flag
+- *** re activate the escape keys
+
+- crop quads at top
+
 - Shot handles with width depending on timeline width, not displayed time range
 
 - Crop content overlaying on the time ruler

@@ -25,8 +25,12 @@ import bgl
 from gpu_extras.batch import batch_for_shader
 
 from shotmanager.utils.utils_ogl import clamp_to_region
-from shotmanager.utils import utils_editors
+from shotmanager.utils import utils_editors_dopesheet
 
+from shotmanager.config import config
+from shotmanager.config import sm_logging
+
+_logger = sm_logging.getLogger(__name__)
 
 UNIFORM_SHADER_2D = gpu.shader.from_builtin("2D_UNIFORM_COLOR")
 
@@ -34,7 +38,7 @@ UNIFORM_SHADER_2D = gpu.shader.from_builtin("2D_UNIFORM_COLOR")
 def draw_tripod(xOrigin, yOrigin, scale=20, thickness=4):
     # tripod size in pixels
     tripodScale = scale
-    linewidth = thickness
+    lineThickness = thickness
 
     xOri, yOri = xOrigin, yOrigin
     x1, y1 = xOri + tripodScale, yOri
@@ -59,7 +63,7 @@ def draw_tripod(xOrigin, yOrigin, scale=20, thickness=4):
     shader = UNIFORM_SHADER_2D
 
     batch = batch_for_shader(shader, "LINES", {"pos": transformed_vertices}, indices=xAxisIndices)
-    bgl.glLineWidth(linewidth)
+    bgl.glLineWidth(lineThickness)
     batch.draw(shader)
 
     # Y axis ####
@@ -68,12 +72,12 @@ def draw_tripod(xOrigin, yOrigin, scale=20, thickness=4):
     shader = UNIFORM_SHADER_2D
 
     batch = batch_for_shader(shader, "LINES", {"pos": transformed_vertices}, indices=yAxisIndices)
-    bgl.glLineWidth(linewidth)
+    bgl.glLineWidth(lineThickness)
     batch.draw(shader)
     # cap_lines = True
     # if cap_lines:
     #     batch = batch_for_shader(shader, "LINES", {"pos": transformed_vertices})
-    #     bgl.glPointSize(linewidth * 2)
+    #     bgl.glPointSize(lineThickness * 2)
     #     batch.draw(shader)
 
 
@@ -159,8 +163,16 @@ class Mesh2D:
     def __init__(self, vertices=None, indices=None, texcoords=None):
         self._vertices = list() if vertices is None else vertices
         self._indices = list() if indices is None else indices
+        self._indicesLineRect = list()
+        self._indicesLineRectClamped = list()
+
         self._texcoords = list() if texcoords is None else texcoords
-        self._linewidth = 1
+        self.lineThickness = 1
+
+        self.color = (0.9, 0.9, 0.0, 0.9)
+        self.hasFill = True
+        # contour
+        self.hasLine = False
 
     @property
     def vertices(self):
@@ -174,13 +186,33 @@ class Mesh2D:
     def texcoords(self):
         return list(self._texcoords)
 
-    @property
-    def linewidth(self):
-        return self._linewidth
+    def _drawMesh(self, shader, region=None, draw_types="TRIS", cap_lines=False, transformed_vertices=None):
 
-    @linewidth.setter
-    def linewidth(self, value):
-        self._linewidth = max(1, value)
+        bgl.glEnable(bgl.GL_BLEND)
+
+        if shader is None:
+            UNIFORM_SHADER_2D.bind()
+            UNIFORM_SHADER_2D.uniform_float("color", self.color)
+            shader = UNIFORM_SHADER_2D
+
+        if "TRIS" == draw_types:
+            batch = batch_for_shader(shader, draw_types, {"pos": transformed_vertices}, indices=self._indices)
+            batch.draw(shader)
+        elif "LINES" == draw_types:
+            # draw lines and points fo the caps
+            # _indicesLineRectClamped _indicesLineRect
+            batch = batch_for_shader(shader, draw_types, {"pos": transformed_vertices}, indices=self._indicesLineRect)
+            bgl.glLineWidth(self.lineThickness)
+            batch.draw(shader)
+            if cap_lines:
+                batch = batch_for_shader(shader, draw_types, {"pos": transformed_vertices})
+                bgl.glPointSize(self.lineThickness)
+                batch.draw(shader)
+        elif "POINTS" == draw_types:
+            # wkip here draw points for rounded line caps
+            batch = batch_for_shader(shader, "POINTS", {"pos": transformed_vertices})
+            bgl.glPointSize(self.lineThickness)
+            batch.draw(shader)
 
     def draw(self, shader, region=None, draw_types="TRIS", cap_lines=False):
         transformed_vertices = self._vertices
@@ -189,63 +221,39 @@ class Mesh2D:
                 region.view2d.view_to_region(*clamp_to_region(x, y, region), clip=True) for x, y in transformed_vertices
             ]
 
-        if "TRIS" == draw_types:
-            batch = batch_for_shader(shader, draw_types, {"pos": transformed_vertices}, indices=self._indices)
-            batch.draw(shader)
-        elif "LINES":
-            # draw lines and points fo the caps
-            batch = batch_for_shader(shader, draw_types, {"pos": transformed_vertices}, indices=self._indices)
-            bgl.glLineWidth(self._linewidth)
-            batch.draw(shader)
-            if cap_lines:
-                batch = batch_for_shader(shader, draw_types, {"pos": transformed_vertices})
-                bgl.glPointSize(self._linewidth)
-                batch.draw(shader)
-        elif "POINTS":
-            # wkip here draw points for rounded line caps
-            batch = batch_for_shader(shader, "POINTS", {"pos": transformed_vertices})
-            bgl.glPointSize(self._linewidth)
-            batch.draw(shader)
+        self._drawMesh(shader, region, draw_types, cap_lines, transformed_vertices)
 
-    def rebuild_rectangle_mesh(self, posX, posY, width, height, as_lines=False):
-        """
-        :param position:
-        :param width:
-        :param height:
-        :return:
-        """
-        x1, y1 = posX, posY
-        x2, y2 = posX + width, posY
-        x3, y3 = posX, posY + height
-        x4, y4 = posX + width, posY + height
+    def rebuild_rectangle_mesh(self, posX, posY, width, height):
+        # all those values are in pixels, in region CS
+        # x1 y1 is at the bottom left of the rectangle, x4 y4 is at the top right
+        # x1, y1 = posX, posY
+        # x2, y2 = posX + width, posY
+        # x3, y3 = posX, posY + height
+        # x4, y4 = posX + width, posY + height
 
-        self._vertices = ((x1, y1), (x2, y2), (x3, y3), (x4, y4))
-        if as_lines:
-            self._indices = ((0, 1), (0, 2), (2, 3), (1, 3))
-        else:
-            self._indices = ((0, 1, 2), (2, 1, 3))
+        vBotLeft = (min(posX, posX + width), min(posY, posY + height))
+        vTopLeft = (min(posX, posX + width), max(posY, posY + height))
+        vTopRight = (max(posX, posX + width), max(posY, posY + height))
+        vBotRight = (max(posX, posX + width), min(posY, posY + height))
+        # transformed_vertices = (vBotLeft, vTopLeft, vTopRight, vBotRight)
+
+        self._vertices = (vBotLeft, vTopLeft, vTopRight, vBotRight)
+        #  self._vertices = ((x1, y1), (x2, y2), (x3, y3), (x4, y4))
+        self._indices = ((0, 3, 1), (1, 3, 2))
+        self._indicesLineRect = ((0, 3), (3, 2), (2, 1), (1, 0))
+        # here the top line is not drawn
+        self._indicesLineRectClamped = ((1, 0), (0, 3), (3, 2))
 
 
-def build_rectangle_mesh(position, width, height, as_lines=False):
-    """
-    :param position:
-    :param width:
-    :param height:
-    :param region: if region is specified this will transform the vertices into the region's view. This allow for pan and zoom support
-    :return:
-    """
-    x1, y1 = position.x, position.y
-    x2, y2 = position.x + width, position.y
-    x3, y3 = position.x, position.y + height
-    x4, y4 = position.x + width, position.y + height
+def build_rectangle_mesh(position, width, height, isLine=False):
 
-    vertices = ((x1, y1), (x2, y2), (x3, y3), (x4, y4))
-    if as_lines:
-        indices = ((0, 1), (0, 2), (2, 3), (1, 3))
-    else:
-        indices = ((0, 1, 2), (2, 1, 3))
+    mesh = Mesh2D()
+    mesh.rebuild_rectangle_mesh(position[0], position[1], width, height)
+    if isLine:
+        mesh.hasFill = False
+        mesh.hasLine = True
 
-    return Mesh2D(vertices, indices)
+    return mesh
 
 
 class Object2D:
@@ -347,12 +355,9 @@ class Object2D:
         self.alignmentToRegion = alignmentToRegion
 
 
-class InteractiveObject2D(Object2D):
-    """Use the pos and size of Object2D as a bbox for the interactive area"""
-
+class QuadObject(Object2D, Mesh2D):
     def __init__(
         self,
-        targetArea,
         posXIsInRegionCS=True,
         posX=30,
         posYIsInRegionCS=True,
@@ -377,110 +382,19 @@ class InteractiveObject2D(Object2D):
             alignment,
             alignmentToRegion,
         )
-
-        self.targetArea = targetArea
-
-        self.isHighlighted = False
-        self.isSelected = False
-
-    def get_region_at_xy(self, context, x, y, area_type="VIEW_3D"):
-        """Return the region and the area containing this region
-        Does not support quadview right now
-        Args:
-            x:
-            y:
-        """
-        for area in context.screen.areas:
-            if area.type != area_type:
-                continue
-            # is_quadview = len ( area.spaces.active.region_quadviews ) == 0
-            i = -1
-            for region in area.regions:
-                if region.type == "WINDOW":
-                    i += 1
-                    if region.x <= x < region.width + region.x and region.y <= y < region.height + region.y:
-
-                        return region, area
-
-        return None, None
-
-    def isInBBox(self, ptX, ptY):
-        """Return True if the specified location is in the bbox of this InteractiveObject2D instance
-        ptX and ptY are in screen coordinate system
-        """
-        # ptX_inRegion =
-        return False
-
-    # to override in classes inheriting from this class:
-    def handle_event_custom(self, context, event):
-        event_handled = False
-        if self.isInBBox(event.mouse_x, event.mouse_y):
-            self.isHighlighted = True
-        else:
-            self.isHighlighted = False
-
-        return event_handled
-
-    def handle_event(self, context, event):
-        """handle event for InteractiveSpace operator"""
-        # _logger.debug_ext(" handle_events", col="PURPLE", tag="EVENT")
-
-        event_handled = False
-        region, area = self.get_region_at_xy(context, event.mouse_x, event.mouse_y, "DOPESHEET_EDITOR")
-
-        # get only events in the target area
-        # wkip: mouse release out of the region have to be taken into account
-
-        # events doing the action
-        if not event_handled:
-            if self.targetArea is not None and area == self.targetArea:
-                if region:
-                    # if ignoreWidget(bpy.context):
-                    #     return False
-                    # else:
-
-                    # children
-                    # for widget in self.widgets:
-                    #     if widget.handle_event(context, event, region):
-                    #         event_handled = True
-                    #         break
-
-                    # self
-                    event_handled = self.handle_event_custom(context, event)
-
-        return event_handled
-
-
-class QuadObject(Object2D, Mesh2D):
-    def __init__(
-        self,
-        posXIsInRegionCS=True,
-        posX=30,
-        posYIsInRegionCS=True,
-        posY=50,
-        widthIsInRegionCS=True,
-        width=40,
-        heightIsInRegionCS=True,
-        height=100,
-        alignment="BOTTOM_LEFT",
-        alignmentToRegion="BOTTOM_LEFT",
-    ):
-        Object2D.__init__(
-            self,
-            posXIsInRegionCS,
-            posX,
-            posYIsInRegionCS,
-            posY,
-            widthIsInRegionCS,
-            width,
-            heightIsInRegionCS,
-            height,
-            alignment,
-            alignmentToRegion,
-        )
         Mesh2D.__init__(self)
 
+        # attributes from MESH2D #########
         self.color = (0.9, 0.9, 0.0, 0.9)
+        self.hasFill = True
+        # contour
+        self.hasLine = False
+        self.colorLine = (0.9, 0.9, 0.9, 1.0)
+
+        # bBox is defined by [xMin, YMin, xMax, yMax], in pixels in region CS (so bottom left, compatible with mouse position)
+        self._bBox = [0, 0, 1, 1]
+        self.isFullyClamped = False
+
         self.rebuild_rectangle_mesh(0, 0, 1, 1)
 
     # override Mesh2D
@@ -492,11 +406,6 @@ class QuadObject(Object2D, Mesh2D):
         #     transformed_vertices = [
         #         region.view2d.view_to_region(*clamp_to_region(x, y, region), clip=True) for x, y in transformed_vertices
         #     ]
-
-        x1, y1 = 0, 0
-        x2, y2 = 1, 0
-        x3, y3 = 0, 1
-        x4, y4 = 1, 1
 
         # scale ##################
         if self.widthIsInRegionCS:
@@ -523,15 +432,17 @@ class QuadObject(Object2D, Mesh2D):
                 posY_inRegion = self.posY
             else:
                 # convert from lanes to y values
-                posY_inValues = utils_editors.getLaneToValue(self.posY)
+                posY_inValues = utils_editors_dopesheet.getLaneToValue(self.posY)
                 posY_inView = posY_inValues
                 posY_inRegion = region.view2d.view_to_region(0, posY_inValues, clip=False)[1]
 
                 # if posY is 0 then we have to compensate the height of the time ruler
                 if self.posY < 1:
-                    height_delta_Lane0 = utils_editors.getRulerHeight() - utils_editors.getLaneHeight()
+                    height_delta_Lane0 = (
+                        utils_editors_dopesheet.getRulerHeight() - utils_editors_dopesheet.getLaneHeight()
+                    )
 
-            height_inValues = self.height * utils_editors.getLaneHeight() + height_delta_Lane0
+            height_inValues = self.height * utils_editors_dopesheet.getLaneHeight() + height_delta_Lane0
 
             height = region.view2d.view_to_region(0, posY_inView + height_inValues, clip=False)[1] - posY_inRegion
 
@@ -555,7 +466,7 @@ class QuadObject(Object2D, Mesh2D):
 
             #     # vertex[1] = region.view2d.view_to_region(*clamp_to_region(x, y, region), clip=True)
             #     vY = utils_editors.clampToRegion(0, vertex[1], region)[1]
-            posY_inValues = utils_editors.getLaneToValue(self.posY)
+            posY_inValues = utils_editors_dopesheet.getLaneToValue(self.posY)
             posY = region.view2d.view_to_region(0, -posY_inValues, clip=False)[1]
             # height = -height
 
@@ -606,61 +517,187 @@ class QuadObject(Object2D, Mesh2D):
         elif "MID" == alignment_y:
             posY = posY - height / 2
 
-        x1, y1 = posX, posY
-        x2, y2 = posX + width, posY
-        x3, y3 = posX, posY + height
-        x4, y4 = posX + width, posY + height
-        transformed_vertices = ((x1, y1), (x2, y2), (x3, y3), (x4, y4))
+        # posX and posY are the origin of the mesh, where the pivot is located
+        # all those values are in pixels, in region CS
+        # so far height and width can be negative
+        vBotLeft = (min(posX, posX + width), min(posY, posY + height))
+        vTopLeft = (min(posX, posX + width), max(posY, posY + height))
+        vTopRight = (max(posX, posX + width), max(posY, posY + height))
+        vBotRight = (max(posX, posX + width), min(posY, posY + height))
+        transformed_vertices = (vBotLeft, vTopLeft, vTopRight, vBotRight)
 
-        # wkip to keep?
-        bgl.glEnable(bgl.GL_BLEND)
+        # clamp transform vertices: we get the intersection with the region
+        # if the intersection is None then the current mesh is out of the region
+        clamped_transformed_vertices = utils_editors_dopesheet.intersectionWithRegion(
+            transformed_vertices, region, excludeRuler=True
+        )
+        #  clamped_transformed_vertices = transformed_vertices
 
-        if shader is None:
+        # self._bBox = [vBotLeft[0], vBotLeft[1], vTopRight[0], vTopRight[1]]
+        self._bBox = [
+            transformed_vertices[0][0],
+            transformed_vertices[0][1],
+            transformed_vertices[2][0],
+            transformed_vertices[2][1],
+        ]
+
+        # if clamped then the quad is not drawn
+        if clamped_transformed_vertices is None:
+            self.isFullyClamped = True
+            return
+
+        self.isFullyClamped = False
+        clamped_bBox = [
+            clamped_transformed_vertices[0][0],
+            clamped_transformed_vertices[0][1],
+            clamped_transformed_vertices[2][0],
+            clamped_transformed_vertices[2][1],
+        ]
+
+        if self.hasFill:
+            if shader is None:
+                UNIFORM_SHADER_2D.bind()
+                UNIFORM_SHADER_2D.uniform_float("color", self.color)
+                shader = UNIFORM_SHADER_2D
+
+            self._drawMesh(shader, region, draw_types, cap_lines, clamped_transformed_vertices)
+
+        if self.hasLine:
             UNIFORM_SHADER_2D.bind()
-            # UNIFORM_SHADER_2D.uniform_float("color", self.color)
-            UNIFORM_SHADER_2D.uniform_float("color", self.color)
-            shader = UNIFORM_SHADER_2D
-
-        if "TRIS" == draw_types:
-            batch = batch_for_shader(shader, draw_types, {"pos": transformed_vertices}, indices=self._indices)
-            batch.draw(shader)
-        elif "LINES":
-            # draw lines and points fo the caps
-            batch = batch_for_shader(shader, draw_types, {"pos": transformed_vertices}, indices=self._indices)
-            bgl.glLineWidth(self._linewidth)
-            batch.draw(shader)
-            if cap_lines:
-                batch = batch_for_shader(shader, draw_types, {"pos": transformed_vertices})
-                bgl.glPointSize(self._linewidth)
-                batch.draw(shader)
-        elif "POINTS":
-            # wkip here draw points for rounded line caps
-            batch = batch_for_shader(shader, "POINTS", {"pos": transformed_vertices})
-            bgl.glPointSize(self._linewidth)
-            batch.draw(shader)
-        pass
+            UNIFORM_SHADER_2D.uniform_float("color", self.colorLine)
+            shaderLine = UNIFORM_SHADER_2D
+            draw_types = "LINES"
+            self._drawMesh(shaderLine, region, draw_types, cap_lines, clamped_transformed_vertices)
 
         # draw tripod
         if True:
             draw_tripod(pivot_posX, pivot_posY, 20)
 
 
-class Widget2D(InteractiveObject2D, Mesh2D):
+class InteractiveObject2D:
+    """Kind of abstract class or template to predefine the functions for interactions"""
+
+    def __init__(
+        self,
+        targetArea,
+    ):
+        self.targetArea = targetArea
+
+        self.isHighlighted = False
+        self.isSelected = False
+
+    def get_region_at_xy(self, context, x, y, area_type="VIEW_3D"):
+        """Return the region and the area containing this region
+        Does not support quadview right now
+        Args:
+            x:
+            y:
+        """
+        for area in context.screen.areas:
+            if area.type != area_type:
+                continue
+            # is_quadview = len ( area.spaces.active.region_quadviews ) == 0
+            i = -1
+            for region in area.regions:
+                if region.type == "WINDOW":
+                    i += 1
+                    if region.x <= x < region.width + region.x and region.y <= y < region.height + region.y:
+
+                        return region, area
+
+        return None, None
+
+    def isInBBox(self, ptX, ptY):
+        """Return True if the specified location is in the bbox of this InteractiveObject2D instance
+        ptX and ptY are in screen coordinate system
+        """
+        # ptX_inRegion =
+        return False
+
+    # to override in classes inheriting from this class:
+    def handle_event_custom(self, context, event, region):
+        event_handled = False
+        # if event.type == "G":
+        mouseIsInBBox = self.isInBBox(event.mouse_x - region.x, event.mouse_y - region.y)
+
+        # highlight ##############
+        if mouseIsInBBox:
+            if not self.isHighlighted:
+                self.isHighlighted = True
+                # _logger.debug_ext("component2D handle_events set highlighte true", col="PURPLE", tag="EVENT")
+                config.gRedrawShotStack = True
+        else:
+            if self.isHighlighted:
+                self.isHighlighted = False
+                config.gRedrawShotStack = True
+
+        # # selection ##############
+        # if event.type == "LEFTMOUSE":
+        #     if event.value == "PRESS":
+        #         if mouseIsInBBox:
+        #             if not self.isSelected:
+        #                 self.isSelected = True
+        #                 #_logger.debug_ext("component2D handle_events set selected true", col="PURPLE", tag="EVENT")
+        #                 config.gRedrawShotStack = True
+
+        #     if event.value == "RELEASE":
+
+        return event_handled
+
+    def handle_event(self, context, event):
+        """handle event for InteractiveSpace operator"""
+        _logger.debug_ext(" component2D handle_events", col="PURPLE", tag="EVENT")
+
+        event_handled = False
+        region, area = self.get_region_at_xy(context, event.mouse_x, event.mouse_y, "DOPESHEET_EDITOR")
+
+        # get only events in the target area
+        # wkip: mouse release out of the region have to be taken into account
+
+        # events doing the action
+        if not event_handled:
+            if self.targetArea is not None and area == self.targetArea:
+                if region:
+                    # if ignoreWidget(bpy.context):
+                    #     return False
+                    # else:
+
+                    # children
+                    # for widget in self.widgets:
+                    #     if widget.handle_event(context, event, region):
+                    #         event_handled = True
+                    #         break
+
+                    # self
+                    event_handled = self.handle_event_custom(context, event, region)
+
+        return event_handled
+
+
+# class Widget2D(InteractiveObject2D, Mesh2D):
+class Component2D(InteractiveObject2D, QuadObject):
+    """Interactive graphic 2D component"""
+
     def __init__(
         self,
         targetArea,
         posXIsInRegionCS=True,
-        posX=80,
+        posX=30,
         posYIsInRegionCS=True,
         posY=50,
         widthIsInRegionCS=True,
         width=40,
         heightIsInRegionCS=True,
         height=20,
+        alignment="BOTTOM_LEFT",
+        alignmentToRegion="BOTTOM_LEFT",
     ):
         InteractiveObject2D.__init__(
             self,
             targetArea,
+        )
+        QuadObject.__init__(
+            self,
             posXIsInRegionCS,
             posX,
             posYIsInRegionCS,
@@ -669,8 +706,9 @@ class Widget2D(InteractiveObject2D, Mesh2D):
             width,
             heightIsInRegionCS,
             height,
+            alignment,
+            alignmentToRegion,
         )
-        Mesh2D.__init__(self)
 
         self.color = (0.2, 0.6, 0.0, 0.9)
         self.color_highlight = (0.6, 0.9, 0.6, 0.9)
@@ -687,11 +725,19 @@ class Widget2D(InteractiveObject2D, Mesh2D):
 
     #     return event_handled
 
+    # override InteractiveObject2D
+    def isInBBox(self, ptX, ptY):
+        """Return True if the specified location is in the bbox of this InteractiveObject2D instance
+        ptX and ptY are in pixels, in region coordinate system
+        """
+        if self._bBox[0] <= ptX <= self._bBox[2] and self._bBox[1] <= ptY <= self._bBox[3]:
+            return True
+        return False
+
     # override Mesh2D
     def draw(self, shader, region=None, draw_types="TRIS", cap_lines=False):
-        self.rebuild_rectangle_mesh(self.posX, self.posY, self.width, self.height)
+        # self.rebuild_rectangle_mesh(self.posX, self.posY, self.width, self.height)
 
-        transformed_vertices = self._vertices
         # if region:
         #     transformed_vertices = [
         #         region.view2d.view_to_region(*clamp_to_region(x, y, region), clip=True) for x, y in transformed_vertices
@@ -726,21 +772,4 @@ class Widget2D(InteractiveObject2D, Mesh2D):
             UNIFORM_SHADER_2D.uniform_float("color", widColor)
             shader = UNIFORM_SHADER_2D
 
-        if "TRIS" == draw_types:
-            batch = batch_for_shader(shader, draw_types, {"pos": transformed_vertices}, indices=self._indices)
-            batch.draw(shader)
-        elif "LINES":
-            # draw lines and points fo the caps
-            batch = batch_for_shader(shader, draw_types, {"pos": transformed_vertices}, indices=self._indices)
-            bgl.glLineWidth(self._linewidth)
-            batch.draw(shader)
-            if cap_lines:
-                batch = batch_for_shader(shader, draw_types, {"pos": transformed_vertices})
-                bgl.glPointSize(self._linewidth)
-                batch.draw(shader)
-        elif "POINTS":
-            # wkip here draw points for rounded line caps
-            batch = batch_for_shader(shader, "POINTS", {"pos": transformed_vertices})
-            bgl.glPointSize(self._linewidth)
-            batch.draw(shader)
-        pass
+        QuadObject.draw(self, shader, region, draw_types, cap_lines)

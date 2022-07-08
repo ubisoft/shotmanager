@@ -20,13 +20,18 @@ Workspace info: display info in bgl on workspace areas
 Code initially coming from https://blender.stackexchange.com/questions/61699/how-to-draw-geometry-in-3d-view-window-with-bgl
 """
 
+import math
+
 import bpy
 import blf
 
 from mathutils import Vector
 from shotmanager.utils import utils
-from shotmanager.utils import utils_editors
+from shotmanager.utils import utils_editors_dopesheet
+from shotmanager.utils.utils_editors_dopesheet import getLaneHeight
 from shotmanager.config import config
+
+from shotmanager.gpu.gpu_2d.gpu_2d import build_rectangle_mesh
 
 
 def toggle_workspace_info_display(context):
@@ -66,11 +71,119 @@ def draw_typo_2d(color, text, position, font_size):
 ###################
 
 
+def draw_callback__dopesheet_lane_numbers(self, context, callingArea, displayLaneIndices=True):
+    opacity = 0.4
+    color_even_lane = (0, 0.4, 0.9, opacity)
+    color_odd_lane = (0.4, 0.9, 0.9, opacity)
+    font_size = getLaneHeight()  # 12
+    rect_width = 50
+
+    blf.color(0, 0.9, 0.9, 0.9, 0.9)
+    blf.size(0, font_size, 72)
+    offset_y = 100
+
+    rangeLanes = utils_editors_dopesheet.getDisplayedLanesRange(context.region)
+
+    if displayLaneIndices:
+        # for laneInd in range(0, rangeLanes[2]):
+        drawSingleForDebug = False
+        if drawSingleForDebug:
+            laneInd = 1
+            txtStr = f"{laneInd}"
+            # vLaneYPos = utils_editors_dopesheet.getLaneToValue(laneInd + rangeLanes[0])
+            vLaneYPos = utils_editors_dopesheet.getLaneToValue(laneInd)
+
+            # here we use posX_inView rather than 0 otherwise view_to_region return 12000 for x and then also for y
+            # and in this case pxLaneYPos is not usable anymore and the text disappears
+            posX_inView = context.region.view2d.region_to_view(0, 0)[0]
+
+            pxLaneXPos = context.region.view2d.view_to_region(posX_inView, vLaneYPos)[0]
+            pxLaneYPos = context.region.view2d.view_to_region(posX_inView, vLaneYPos)[1]
+            #   pxLaneYPos = context.region.view2d.view_to_region(0, -vLaneYPos)[1]
+            txtStr = f"Lane ind: {laneInd}, vLaneYPos in View: {vLaneYPos}, pxLaneYPos in region: X:{pxLaneXPos} Y:{pxLaneYPos}"
+
+            textPosY = 140
+            textPosY = pxLaneYPos - getLaneHeight()
+
+            # rect #################
+            rect = build_rectangle_mesh((10, textPosY), rect_width, getLaneHeight())
+            rect.color = color_even_lane
+            rect.draw(None)
+
+            # lane text ############
+
+            blf.position(
+                0,
+                10,
+                textPosY + getLaneHeight() / 5,
+                0,
+            )
+            # blf.position(0, 10, vLaneYPos, 0)
+            blf.draw(0, txtStr)
+
+        else:
+            # for laneInd in range(0, rangeLanes[2]):
+            for laneInd in range(math.ceil(rangeLanes[0]), math.ceil(rangeLanes[1])):
+                txtStr = f"{laneInd + math.ceil(rangeLanes[0])}"
+                txtStr = f"{laneInd}"
+                vLaneYPos = utils_editors_dopesheet.getLaneToValue(laneInd)
+                # vLaneYPos = utils_editors_dopesheet.getLaneToValue(laneInd + math.ceil(rangeLanes[0]))
+
+                # here we use posX_inView rather than 0 otherwise view_to_region return 12000 for x and then also for y
+                # and in this case pxLaneYPos is not usable anymore and the text disappears
+                posX_inView = context.region.view2d.region_to_view(0, 0)[0]
+                pxLaneYPos = context.region.view2d.view_to_region(posX_inView, vLaneYPos)[1]
+                # txtStr = f"Lane ind: {laneInd}, vLaneYPos in View: {vLaneYPos}, pxLaneYPos in region: {pxLaneYPos}"
+                txtStr = f"{laneInd}"
+                #  txtStr = f"Lane ind: {laneInd}, vLaneYPos in View: {vLaneYPos}, pxLaneYPos in region:{pxLaneYPos}"
+
+                textPosX = 10
+                if 0 != laneInd % 2:
+                    textPosX += 10
+
+                textPosY = 140
+                textPosY = pxLaneYPos  # - getLaneHeight()
+                # rect #################
+                rect = build_rectangle_mesh((textPosX, textPosY), rect_width, getLaneHeight())
+                rect.color = color_even_lane if 0 != laneInd % 2 else color_odd_lane
+                rect.draw(None)
+
+                # lane text ############
+
+                blf.position(
+                    0,
+                    textPosX,
+                    textPosY + getLaneHeight() / 5,
+                    0,
+                )
+                # blf.position(0, 10, vLaneYPos, 0)
+                blf.draw(0, txtStr)
+        # for laneInd in range(0, rangeLanes[2]):
+        #     txtStr = f"{laneInd + math.ceil(rangeLanes[0])}"
+        #     vLaneYPos = utils_editors_dopesheet.getLaneToValue(laneInd + rangeLanes[0])
+
+        #     pxLaneYPos = context.region.view2d.view_to_region(0, -vLaneYPos)[1]
+        #     pxLaneYPos = context.region.view2d.view_to_region(0, -vLaneYPos)[1]
+        #     txtStr = f"{vLaneYPos}"
+
+        #     blf.position(
+        #         0,
+        #         10,
+        #         pxLaneYPos,
+        #         0,
+        #     )
+        #     # blf.position(0, 10, vLaneYPos, 0)
+        #     blf.draw(0, txtStr)
+
+    txtStr = f"Range Lanes: [{rangeLanes[0]:03.2f}, {rangeLanes[1]:03.2f}], num full lanes: {rangeLanes[2]:03.2f}"
+    blf.size(0, 12, 72)
+    blf.position(0, 60, offset_y, 0)
+    blf.draw(0, txtStr)
+
+
 def draw_callback__dopesheet_mouse_pos(self, context, callingArea):
     blf.color(0, 0.9, 0.9, 0.9, 0.9)
-
     blf.size(0, 12, 72)
-
     offset_y = 80
 
     rMouse_x = config.gMouseScreenPos[0] - context.region.x
@@ -83,10 +196,10 @@ def draw_callback__dopesheet_mouse_pos(self, context, callingArea):
     #  ruMouse_y = -1.0 * ruMouse_y // utils_editors.getLaneHeight()
 
     # y in lanes
-    ruMouse_y_in_Lanes = utils_editors.getLaneIndexUnderLocationY(context.region, rMouse_y)
+    ruMouse_y_in_Lanes = utils_editors_dopesheet.getLaneIndexUnderLocationY(context.region, rMouse_y)
 
     txtStr = f"Mouse pos: Screen: x: {config.gMouseScreenPos[0]}, y: {config.gMouseScreenPos[1]},  - in Region px: rX: {rMouse_x}, rY: {rMouse_y},"
-    txtStr += f"- in Region units: ruX: {ruMouse_x} fr., rY: {ruMouse_y} values,    rY: {ruMouse_y_in_Lanes} lanes"
+    txtStr += f"- in Region units: ruX: {ruMouse_x} fr., ruY: {ruMouse_y} values,    rY: {ruMouse_y_in_Lanes} lanes"
 
     blf.position(0, 60, offset_y, 0)
     blf.draw(0, txtStr)
@@ -103,16 +216,16 @@ def draw_callback__dopesheet_size(self, context, callingArea):
 
     offset_y = 20
     # in view units
-    areaBoxSize = utils_editors.getRegionFrameRange(context, callingArea, inViewUnits=True)
+    areaBoxSize = utils_editors_dopesheet.getRegionFrameRange(context, callingArea, inViewUnits=True)
     widthStr = f"Width range: {(areaBoxSize[0]):03.2f} fr, {(areaBoxSize[2]):03.2f} fr, width: {(areaBoxSize[2] - areaBoxSize[0]):03.2f} fr"
 
     rHeightRangeMin = areaBoxSize[1]
     rHeightRangeMax = areaBoxSize[3]
     rHeight = rHeightRangeMax - rHeightRangeMin
 
-    ruHeightRangeMin = rHeightRangeMin // utils_editors.getLaneHeight()
-    ruHeightRangeMax = rHeightRangeMax // utils_editors.getLaneHeight()
-    ruHeight = rHeight / utils_editors.getLaneHeight()
+    ruHeightRangeMin = rHeightRangeMin // getLaneHeight()
+    ruHeightRangeMax = rHeightRangeMax // getLaneHeight()
+    ruHeight = rHeight / getLaneHeight()
 
     heightStr = f"Height range: {rHeightRangeMin:03.2f}, {rHeightRangeMax:03.2f}, height: {rHeight:03.2f},  range in lanes: {ruHeightRangeMin:03.2f}, {ruHeightRangeMax:03.2f}, num lanes: {ruHeight:03.2f}"
 
@@ -124,7 +237,7 @@ def draw_callback__dopesheet_size(self, context, callingArea):
     # in screen units
     # This defines the dopesheet content region size in pixels (without the left panel listing the channels)
     # Bottom left is the origin, so at [0, 0]
-    areaBoxSize = utils_editors.getRegionFrameRange(context, callingArea, inViewUnits=False)
+    areaBoxSize = utils_editors_dopesheet.getRegionFrameRange(context, callingArea, inViewUnits=False)
     # widthStr = f"Width range: {(areaBoxSize[0]):03.2f} px, {(areaBoxSize[2]):03.2f} px"
     # heightStr = f"Height range: {(areaBoxSize[1]):03.2f} px, {(areaBoxSize[3]):03.2f} px"
     txtStr = f"Region box (in pixels, origin: bottom left): B Lft: [{(areaBoxSize[0]):03.1f}, {(areaBoxSize[1]):03.1f}], T Rght: [{(areaBoxSize[2]):03.1f}, {(areaBoxSize[3]):03.1f}]"

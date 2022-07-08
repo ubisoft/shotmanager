@@ -79,7 +79,6 @@ def initGlobalVariables():
     gAddonKeymaps = []
 
     # interactive shots stack ############
-
     global gShotsStack_forceRedraw_debug
     gShotsStack_forceRedraw_debug = True
 
@@ -124,8 +123,8 @@ def getLoggingTags():
     # debug tags
     tags["DEPRECATED"] = False
 
-    tags["REG"] = True
-    tags["UNREG"] = True
+    tags["REG"] = False
+    tags["UNREG"] = False
 
     tags["SHOTS_PLAY_MODE"] = True
 
@@ -133,6 +132,7 @@ def getLoggingTags():
 
     tags["TIMELINE_EVENT"] = False
     tags["SHOTSTACK_EVENT"] = True
+    tags["EVENT"] = True
 
     # info tags
     tags["RENDERTIME"] = True

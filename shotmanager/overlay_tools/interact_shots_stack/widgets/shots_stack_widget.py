@@ -34,9 +34,9 @@ from .shot_clip_widget import BL_UI_ShotClip
 from shotmanager.gpu.gpu_2d.gpu_2d import build_rectangle_mesh
 from ..shots_stack_bgl import get_lane_origin_y
 
-from shotmanager.utils import utils_editors
+from shotmanager.utils import utils_editors_dopesheet
 
-from shotmanager.gpu.gpu_2d.gpu_2d import QuadObject, Widget2D
+from shotmanager.gpu.gpu_2d.gpu_2d import QuadObject, Component2D
 
 from shotmanager.overlay_tools.workspace_info import workspace_info
 
@@ -93,7 +93,7 @@ class BL_UI_ShotStack:
             widthIsInRegionCS=True,
             width=1900,
             heightIsInRegionCS=True,
-            height=utils_editors.getRulerHeight(),
+            height=utils_editors_dopesheet.getRulerHeight(),
             alignment="TOP_LEFT",
             alignmentToRegion="TOP_LEFT",
         )
@@ -127,7 +127,23 @@ class BL_UI_ShotStack:
             alignmentToRegion="BOTTOM_RIGHT",
         )
 
-        self.debug_widget2D = Widget2D(self.target_area)
+        self.debug_component2D = Component2D(
+            self.target_area,
+            posXIsInRegionCS=False,
+            posX=15,
+            posYIsInRegionCS=False,
+            posY=3,
+            widthIsInRegionCS=False,
+            width=20,
+            heightIsInRegionCS=False,
+            height=2,
+            alignment="BOTTOM_LEFT",
+            alignmentToRegion="BOTTOM_LEFT",
+        )
+        self.debug_component2D.color = (0.7, 0.5, 0.6, 0.6)
+        self.debug_component2D.colorLine = (0.7, 0.8, 0.8, 0.9)
+        self.debug_component2D.hasLine = True
+        self.debug_component2D.lineThickness = 3
 
     def draw_shots(self):
         props = self.context.scene.UAS_shot_manager_props
@@ -237,7 +253,7 @@ class BL_UI_ShotStack:
             self.debug_quadObject_Ruler.draw(None, self.context.region)
             self.debug_quadObject_test.draw(None, self.context.region)
             self.debug_quadObject.draw(None, self.context.region)
-            self.debug_widget2D.draw(None, region=self.context.region)
+            self.debug_component2D.draw(None, region=self.context.region)
 
             ###############################
             # draw text
@@ -245,6 +261,7 @@ class BL_UI_ShotStack:
 
             workspace_info.draw_callback__dopesheet_size(self, self.context, self.target_area)
             workspace_info.draw_callback__dopesheet_mouse_pos(self, self.context, self.target_area)
+            workspace_info.draw_callback__dopesheet_lane_numbers(self, self.context, self.target_area)
 
             # return
 
@@ -252,7 +269,7 @@ class BL_UI_ShotStack:
         self.draw_shots()
 
     def validateAction(self):
-        _logger.debug_ext(f"Validating Shot Stack action", col="GREEN", tag="SHOTSTACK_EVENT")
+        _logger.debug_ext("Validating Shot Stack action", col="GREEN", tag="SHOTSTACK_EVENT")
         if self.manipulated_clip:
             self.manipulated_clip.highlight = False
             self.manipulated_clip = None
@@ -260,7 +277,7 @@ class BL_UI_ShotStack:
 
     def cancelAction(self):
         # TODO restore the initial
-        _logger.debug_ext(f"Canceling Shot Stack action", col="ORANGE", tag="SHOTSTACK_EVENT")
+        _logger.debug_ext("Canceling Shot Stack action", col="ORANGE", tag="SHOTSTACK_EVENT")
         if self.manipulated_clip:
             self.manipulated_clip.highlight = False
             self.manipulated_clip = None
@@ -453,7 +470,7 @@ class BL_UI_ShotStack:
 
         # debug
         if not event_handled:
-            event_handled = self.debug_widget2D.handle_event(context, event)
+            event_handled = self.debug_component2D.handle_event(context, event)
 
         self.prev_mouse_x = event.mouse_x - region.x
         self.prev_mouse_y = event.mouse_y - region.y
