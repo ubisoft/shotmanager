@@ -26,7 +26,8 @@ import gpu
 from mathutils import Vector
 
 from shotmanager.utils.utils import color_to_sRGB, color_is_dark, lighten_color
-from shotmanager.gpu.gpu_2d.gpu_2d import build_rectangle_mesh, Image2D
+from shotmanager.gpu.gpu_2d.class_Mesh2D import build_rectangle_mesh
+from shotmanager.gpu.gpu_2d.class_Image2D import Image2D
 from ..shots_stack_bgl import (
     get_lane_origin_y,
     get_lane_height,

@@ -11,7 +11,6 @@ Eg:
 import bpy
 import gpu
 import bgl
-import blf
 
 UNIFORM_SHADER_2D = gpu.shader.from_builtin("2D_UNIFORM_COLOR")
 
@@ -20,7 +19,7 @@ from mathutils import Vector
 from shotmanager.config import config
 from shotmanager.utils import utils
 from shotmanager.overlay_tools.workspace_info.workspace_info import draw_typo_2d
-from shotmanager.gpu.gpu_2d.gpu_2d import build_rectangle_mesh
+from shotmanager.gpu.gpu_2d.class_Mesh2D import build_rectangle_mesh
 from shotmanager.overlay_tools.interact_shots_stack.shots_stack_bgl import get_lane_origin_y
 
 

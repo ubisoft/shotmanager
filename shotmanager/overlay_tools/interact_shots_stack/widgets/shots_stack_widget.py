@@ -22,23 +22,23 @@ UI in BGL for the Interactive Shots Stack overlay tool
 from collections import defaultdict
 
 import time
+from mathutils import Vector
 
 import bpy
-import blf
-
 import bgl
 import gpu
-from mathutils import Vector
 
 from shotmanager.overlay_tools.interact_shots_stack.widgets.shots_stack_clip_component import ShotClipComponent
 
 from .shot_clip_widget import BL_UI_ShotClip
-from shotmanager.gpu.gpu_2d.gpu_2d import build_rectangle_mesh
+from shotmanager.gpu.gpu_2d.class_Mesh2D import build_rectangle_mesh
 from ..shots_stack_bgl import get_lane_origin_y
 
 from shotmanager.utils import utils_editors_dopesheet
 
-from shotmanager.gpu.gpu_2d.gpu_2d import QuadObject, Component2D
+from shotmanager.gpu.gpu_2d.class_QuadObject import QuadObject
+from shotmanager.gpu.gpu_2d.class_Component2D import Component2D
+from shotmanager.gpu.gpu_2d.class_Text2D import Text2D
 
 from shotmanager.overlay_tools.workspace_info import workspace_info
 
@@ -150,6 +150,17 @@ class BL_UI_ShotStack:
         self.debug_component2D.hasLine = True
         self.debug_component2D.lineThickness = 3
 
+        self.debug_Text2D = Text2D(
+            posXIsInRegionCS=False,
+            posX=25,
+            posYIsInRegionCS=False,
+            posY=6,
+            alignment="BOTTOM_LEFT",
+            alignmentToRegion="BOTTOM_LEFT",
+            text="MyText",
+            fontSize=20,
+        )
+
     def drawShots(self):
         props = self.context.scene.UAS_shot_manager_props
         shots = props.get_shots()
@@ -161,14 +172,7 @@ class BL_UI_ShotStack:
             if not props.interactShotsStack_displayDisabledShots and not shot.enabled:
                 continue
 
-            shotCompo = ShotClipComponent(
-                self.target_area,
-                posX=shot.start,
-                posY=lane,
-                width=shot.getDuration(),
-                name=shot.name,
-                color=shot.color,
-            )
+            shotCompo = ShotClipComponent(self.target_area, posY=lane, shot=shot)
             shotCompo.opacity = 0.5
 
             shotCompo.draw(None, self.context.region)
@@ -285,6 +289,7 @@ class BL_UI_ShotStack:
             # self.debug_quadObject_test.draw(None, self.context.region)
             # self.debug_quadObject.draw(None, self.context.region)
             self.debug_component2D.draw(None, self.context.region)
+            self.debug_Text2D.draw(None, self.context.region)
 
             ###############################
             # draw text

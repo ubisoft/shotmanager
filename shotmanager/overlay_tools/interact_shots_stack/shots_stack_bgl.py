@@ -23,9 +23,8 @@ import math
 
 import bpy
 import bgl
-import blf
 import gpu
-from gpu_extras.batch import batch_for_shader
+
 from mathutils import Vector
 
 from shotmanager.utils import utils
@@ -39,6 +38,8 @@ _logger = sm_logging.getLogger(__name__)
 UNIFORM_SHADER_2D = gpu.shader.from_builtin("2D_UNIFORM_COLOR")
 
 # deprecated - use getPrefsUIScale
+
+
 def get_prefs_ui_scale():
     # ui_scale has a very weird behavior, especially between 0.79 and 0.8. We try to compensate it as
     # much as possible
@@ -117,8 +118,8 @@ def drawAreaInfo(context, pos_y=90):
     tr = region.view2d.region_to_view(w, h)
     # tr = region.view2d.region_to_view(1, 1)
 
-    bl2 = region.view2d.view_to_region(0, 0)
-    tr2 = region.view2d.view_to_region(1, 1)
+    # bl2 = region.view2d.view_to_region(0, 0)
+    # tr2 = region.view2d.view_to_region(1, 1)
 
     draw_typo_2d(color, f"Area {'x'}: width:{context.area.width}, region w: {region.width}", position, size)
     # draw_typo_2d(color, f"screen: {context.screen.name}", position2, size)
@@ -137,7 +138,7 @@ def drawAreaInfo(context, pos_y=90):
 # draw_typo_2d(color, f"Dopesheet: {areaIndStr}", position, size)
 
 
-## !!! not in the class !!!
+# !!! not in the class !!!
 def draw_callback_modal_overlay(context, callingArea, targetAreaType="ALL", targetAreaIndex=-1, color=1):
     """Everything in this function should be accessible globally
     There can be only one registrer draw handler at at time

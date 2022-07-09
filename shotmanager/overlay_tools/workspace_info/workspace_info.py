@@ -31,7 +31,7 @@ from shotmanager.utils import utils_editors_dopesheet
 from shotmanager.utils.utils_editors_dopesheet import getLaneHeight
 from shotmanager.config import config
 
-from shotmanager.gpu.gpu_2d.gpu_2d import build_rectangle_mesh
+from shotmanager.gpu.gpu_2d.class_Mesh2D import build_rectangle_mesh
 
 
 def toggle_workspace_info_display(context):
@@ -365,7 +365,7 @@ def draw_callback__area_advanced_info(self, context, callingArea, targetViewport
             contextViewportInd = i
             break
 
-    ## get calling viewport ######
+    # get calling viewport ######
     callingViewportInd = -1
     for i, viewport in enumerate(viewports):
         if viewport == callingArea:
@@ -550,7 +550,7 @@ def register():
 def unregister():
     try:
         self.unregister_handlers(bpy.context)
-    except Exception as e:
+    except Exception:
         if config.devDebug:
             print("Cannot remove SpaceView3D.draw_handler")
 
