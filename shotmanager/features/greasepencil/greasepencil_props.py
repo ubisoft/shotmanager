@@ -145,7 +145,7 @@ class GreasePencilProperties(PropertyGroup):
                 gp_child, gpencil_layer_name=canvasName, create_layer=False
             )
             if canvasLayer is not None:
-                canvasLayer.opacity = utils.to_sRGB(self.canvasOpacity)
+                canvasLayer.opacity = utils.value_to_linear(self.canvasOpacity)
 
     canvasOpacity: FloatProperty(
         name="Canvas Opacity",

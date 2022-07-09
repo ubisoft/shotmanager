@@ -30,6 +30,8 @@ import bgl
 import gpu
 from mathutils import Vector
 
+from shotmanager.overlay_tools.interact_shots_stack.widgets.shots_stack_clip_component import ShotClipComponent
+
 from .shot_clip_widget import BL_UI_ShotClip
 from shotmanager.gpu.gpu_2d.gpu_2d import build_rectangle_mesh
 from ..shots_stack_bgl import get_lane_origin_y
@@ -71,6 +73,8 @@ class BL_UI_ShotStack:
         self.debug_quadObject = None
         self.debug_quadObject_Ruler = None
         self.debug_quadObject_test = None
+
+        self.opacity = 0.5
 
     def init(self, context):
         self.context = context
@@ -146,7 +150,34 @@ class BL_UI_ShotStack:
         self.debug_component2D.hasLine = True
         self.debug_component2D.lineThickness = 3
 
-    def draw_shots(self):
+    def drawShots(self):
+        props = self.context.scene.UAS_shot_manager_props
+        shots = props.get_shots()
+
+        lane = 1
+        for i, shot in enumerate(shots):
+            if 3 < i:
+                continue
+            if not props.interactShotsStack_displayDisabledShots and not shot.enabled:
+                continue
+
+            shotCompo = ShotClipComponent(
+                self.target_area,
+                posX=shot.start,
+                posY=lane,
+                width=shot.getDuration(),
+                name=shot.name,
+                color=shot.color,
+            )
+            shotCompo.opacity = 0.5
+
+            shotCompo.draw(None, self.context.region)
+            lane += 1
+
+    def drawShots_compactMode(self):
+        pass
+
+    def draw_shots_old_way(self):
         props = self.context.scene.UAS_shot_manager_props
         shots = props.get_shots()
         ui_shots_previous = []
@@ -214,16 +245,15 @@ class BL_UI_ShotStack:
                 s = _getUIShotFromShotIndex(i)
                 if s is None:
                     s = BL_UI_ShotClip(self.context, i)
-                s.update(lane)
+                s.update(lane + 8)
                 self.ui_shots.append(s)
                 s.draw()
-
-    def drawClipHandle_Debug(self):
-        pass
 
     def draw(self):
         if self.target_area is not None and self.context.area != self.target_area:
             return
+
+        props = self.context.scene.UAS_shot_manager_props
 
         # Debug - red rectangle ####################
         drawDebugRect = True
@@ -252,9 +282,9 @@ class BL_UI_ShotStack:
             ###############################
 
             self.debug_quadObject_Ruler.draw(None, self.context.region)
-            self.debug_quadObject_test.draw(None, self.context.region)
-            self.debug_quadObject.draw(None, self.context.region)
-            self.debug_component2D.draw(None, region=self.context.region)
+            # self.debug_quadObject_test.draw(None, self.context.region)
+            # self.debug_quadObject.draw(None, self.context.region)
+            self.debug_component2D.draw(None, self.context.region)
 
             ###############################
             # draw text
@@ -267,7 +297,12 @@ class BL_UI_ShotStack:
             # return
 
         #  print("draw shot stack")
-        self.draw_shots()
+        if props.interactShotsStack_displayInCompactMode:
+            self.drawShots_compactMode()
+        else:
+            self.drawShots()
+
+        self.draw_shots_old_way()
 
     def validateAction(self):
         _logger.debug_ext("Validating Shot Stack action", col="GREEN", tag="SHOTSTACK_EVENT")

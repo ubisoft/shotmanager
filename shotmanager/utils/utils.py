@@ -1173,34 +1173,44 @@ def lighten_color(color, value=0.1):
     return d_color
 
 
-def linearizeColor(color):
-    gamma = 0.45
-    d_color = (pow(color[0], gamma), pow(color[1], gamma), pow(color[2], gamma), color[3] * 1.0)
-    return d_color
+def value_to_linear(value):
+    invGamma = 1.0 / 0.45
+    return pow(value, invGamma)
 
 
-def sRGBColor(color):
-    gamma = 1.0 / 0.45
-    d_color = (pow(color[0], gamma), pow(color[1], gamma), pow(color[2], gamma), color[3] * 1.0)
-    return d_color
+def color_to_linear(color, convertAlpha=False):
+    """Convert a sRGB color to a linear color
+    Args:
+        color:  array of 4 floats belonging to range [0, 1]"""
+    # 0.45 = 1/2.2
+    invGamma = 1.0 / 0.45
+    alpha = pow(color[3], invGamma) if convertAlpha else color[3]
+    convertedColor = (pow(color[0], invGamma), pow(color[1], invGamma), pow(color[2], invGamma), alpha)
+    return convertedColor
 
 
-# to refactor
-def to_sRGB(value):
-    gamma = 1.0 / 0.45
-    return pow(value, gamma)
-
-
-# to refactor
-def to_linear(value):
+def value_to_sRGB(value):
     gamma = 0.45
     return pow(value, gamma)
 
 
-def gamma_color(color):
+def color_to_sRGB(color, convertAlpha=False):
+    """Convert a linear color to a sRGB color
+    Args:
+        color:  array of 4 floats belonging to range [0, 1]"""
+    # 0.45 = 1/2.2
     gamma = 0.45
-    d_color = (pow(color[0], gamma), pow(color[1], gamma), pow(color[2], gamma), color[3] * 1.0)
-    return d_color
+    alpha = pow(color[3], gamma) if convertAlpha else color[3]
+    convertedColor = (pow(color[0], gamma), pow(color[1], gamma), pow(color[2], gamma), alpha)
+    return convertedColor
+
+
+def set_color_alpha(color, alpha):
+    return (color[0], color[1], color[2], alpha)
+
+def alpha_to_linear(alpha):
+    # alpha is already treated as being sRGB... We make it more "linear"
+    return pow(alpha, 1.0 / 0.65)
 
 
 ###################

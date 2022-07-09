@@ -315,7 +315,7 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
         props = context.scene.UAS_shot_manager_props
         spaceDataViewport = props.getValidTargetViewportSpaceData(context)
         if spaceDataViewport is not None:
-            spaceDataViewport.overlay.gpencil_fade_layer = utils.to_sRGB(self["stb_overlay_layers_opacity"])
+            spaceDataViewport.overlay.gpencil_fade_layer = utils.value_to_linear(self["stb_overlay_layers_opacity"])
 
     stb_overlay_layers_opacity: FloatProperty(
         name="Layers Opacity",

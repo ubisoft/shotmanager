@@ -157,10 +157,10 @@ def getLaneToValue(laneVal):
 
     if laneVal < 1:
         vrpY_inValues = -1.0 * laneVal * getRulerHeight()
-        return vrpY_inValues
     else:
         vrpY_inValues = -1.0 * laneVal * getLaneHeight() - getRulerHeight()
-        return vrpY_inValues
+
+    return int(vrpY_inValues)
 
 
 def clampToRegion(x, y, region):

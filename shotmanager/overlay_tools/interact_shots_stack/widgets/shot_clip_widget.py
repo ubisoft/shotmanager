@@ -25,7 +25,7 @@ import blf
 import gpu
 from mathutils import Vector
 
-from shotmanager.utils.utils import gamma_color, color_is_dark, lighten_color
+from shotmanager.utils.utils import color_to_sRGB, color_is_dark, lighten_color
 from shotmanager.gpu.gpu_2d.gpu_2d import build_rectangle_mesh, Image2D
 from ..shots_stack_bgl import (
     get_lane_origin_y,
@@ -165,7 +165,7 @@ class BL_UI_ShotClip:
         UNIFORM_SHADER_2D.bind()
 
         self.shot_color = shot.color
-        color = gamma_color(self.shot_color)
+        color = color_to_sRGB(self.shot_color)
 
         if not shot.enabled:
             color = self._shot_color_disabled

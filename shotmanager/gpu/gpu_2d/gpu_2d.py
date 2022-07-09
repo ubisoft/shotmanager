@@ -26,6 +26,7 @@ from gpu_extras.batch import batch_for_shader
 
 from shotmanager.utils.utils_ogl import clamp_to_region
 from shotmanager.utils import utils_editors_dopesheet
+from shotmanager.utils.utils import color_to_sRGB, set_color_alpha, alpha_to_linear
 
 from shotmanager.config import config
 from shotmanager.config import sm_logging
@@ -59,7 +60,7 @@ def draw_tripod(xOrigin, yOrigin, scale=20, thickness=4):
 
     # X axis ####
     UNIFORM_SHADER_2D.bind()
-    UNIFORM_SHADER_2D.uniform_float("color", (1.0, 0.0, 0.0, 1.0))
+    UNIFORM_SHADER_2D.uniform_float("color", color_to_sRGB((1.0, 0.0, 0.0, 1.0)))
     shader = UNIFORM_SHADER_2D
 
     batch = batch_for_shader(shader, "LINES", {"pos": transformed_vertices}, indices=xAxisIndices)
@@ -68,7 +69,7 @@ def draw_tripod(xOrigin, yOrigin, scale=20, thickness=4):
 
     # Y axis ####
     UNIFORM_SHADER_2D.bind()
-    UNIFORM_SHADER_2D.uniform_float("color", (0.0, 1.0, 0.0, 1.0))
+    UNIFORM_SHADER_2D.uniform_float("color", color_to_sRGB((0.0, 1.0, 0.0, 1.0)))
     shader = UNIFORM_SHADER_2D
 
     batch = batch_for_shader(shader, "LINES", {"pos": transformed_vertices}, indices=yAxisIndices)
@@ -195,7 +196,7 @@ class Mesh2D:
 
         if shader is None:
             UNIFORM_SHADER_2D.bind()
-            UNIFORM_SHADER_2D.uniform_float("color", self.color)
+            UNIFORM_SHADER_2D.uniform_float("color", color_to_sRGB(self.color))
             shader = UNIFORM_SHADER_2D
         if "TRIS" == draw_types:
             if vertex_indices is None:
@@ -391,6 +392,8 @@ class QuadObject(Object2D, Mesh2D):
         )
         Mesh2D.__init__(self)
 
+        self.opacity = 1.0
+
         # attributes from MESH2D #########
         self.color = (0.9, 0.9, 0.0, 0.9)
         self.hasFill = True
@@ -421,13 +424,33 @@ class QuadObject(Object2D, Mesh2D):
 
     # override Mesh2D
     def draw(self, shader, region=None, draw_types="TRIS", cap_lines=False):
-        #   self.rebuild_rectangle_mesh(self.posX, self.posY, self.width, self.height)
 
-        # transformed_vertices = self._vertices
-        # if region:
-        #     transformed_vertices = [
-        #         region.view2d.view_to_region(*clamp_to_region(x, y, region), clip=True) for x, y in transformed_vertices
-        #     ]
+        # aligment to region ###############
+        alignmentsR = self.alignmentToRegion.split("_")
+        alignmentR_x = alignmentsR[1]
+        alignmentR_y = alignmentsR[0]
+
+        # aligment to pivot ###############
+        alignments = self.alignment.split("_")
+        alignment_x = alignments[1]
+        alignment_y = alignments[0]
+
+        # position ###############
+        if self.posXIsInRegionCS:
+            # in this case self.posX is in pixels, with origin at the LEFT, X axis rightward
+            posX = self.posX
+        else:
+            # in this case self.posX is in frames, with origin at the LEFT, X axis still rightward
+            posX = region.view2d.view_to_region(self.posX, 0, clip=False)[0]
+
+        if self.posYIsInRegionCS:
+            # in this case self.posY is in pixels, with origin at the BOTTOM, Y axis upward
+            posY = self.posY
+        else:
+            # in this case self.posY is in lanes, with origin at the TOP, Y axis DOWNWARD
+            # the Y axis then has to be changed
+            posY_inValues = -1.0 * utils_editors_dopesheet.getLaneToValue(self.posY)
+            posY = region.view2d.view_to_region(0, -posY_inValues, clip=False)[1]
 
         # scale ##################
         if self.widthIsInRegionCS:
@@ -445,58 +468,42 @@ class QuadObject(Object2D, Mesh2D):
         if self.heightIsInRegionCS:
             height = self.height
         else:
-            # height is in number of lanes
-            height_delta_Lane0 = 0
-            if self.posYIsInRegionCS:
-                # this case may be buggy? Is it used?
-                # not easy to fix since there is no vertical zoom on dopesheets
-                posY_inView = region.view2d.region_to_view(0, self.posY)[1]
-                posY_inRegion = self.posY
+            # # height is in number of lanes
+            # height_delta_Lane0 = 0
+            # if self.posYIsInRegionCS:
+            #     # this case may be buggy? Is it used?
+            #     # not easy to fix since there is no vertical zoom on dopesheets
+            #     posY_inView = region.view2d.region_to_view(0, self.posY)[1]
+            #     posY_inRegion = self.posY
+            # else:
+            #     # convert from lanes to y values
+            #     posY_inValues = -1.0 * utils_editors_dopesheet.getLaneToValue(self.posY)
+            #     posY_inView = posY_inValues
+            #     posY_inRegion = region.view2d.view_to_region(0, posY_inValues, clip=False)[1]
+
+            #     # if posY is 0 then we have to compensate the height of the time ruler
+            #     if self.posY < 1:
+            #         height_delta_Lane0 = (
+            #             utils_editors_dopesheet.getRulerHeight() - utils_editors_dopesheet.getLaneHeight()
+            #         )
+
+            # height_inValues = self.height * utils_editors_dopesheet.getLaneHeight() + height_delta_Lane0
+            # height = region.view2d.view_to_region(0, posY_inView + height_inValues, clip=False)[1] - posY_inRegion
+
+            # better way to compute the component height:
+            # This way prevent rounding errors and ensure that there is not holes nor overlaps between components on
+            # successive lanes
+            numLanes = self.height
+            if alignment_y in ("MID", "TOP"):
+                height = utils_editors_dopesheet.getLaneToValue(
+                    self.posY - numLanes + 1
+                ) - utils_editors_dopesheet.getLaneToValue(self.posY + 1)
             else:
-                # convert from lanes to y values
-                posY_inValues = -1.0 * utils_editors_dopesheet.getLaneToValue(self.posY)
-                posY_inView = posY_inValues
-                posY_inRegion = region.view2d.view_to_region(0, posY_inValues, clip=False)[1]
-
-                # if posY is 0 then we have to compensate the height of the time ruler
-                if self.posY < 1:
-                    height_delta_Lane0 = (
-                        utils_editors_dopesheet.getRulerHeight() - utils_editors_dopesheet.getLaneHeight()
-                    )
-
-            height_inValues = self.height * utils_editors_dopesheet.getLaneHeight() + height_delta_Lane0
-
-            height = region.view2d.view_to_region(0, posY_inView + height_inValues, clip=False)[1] - posY_inRegion
-
-        # position ###############
-        if self.posXIsInRegionCS:
-            # in this case self.posX is in pixels, with origin at the LEFT, X axis rightward
-            posX = self.posX
-        else:
-            # in this case self.posX is in frames, with origin at the LEFT, X axis still rightward
-
-            #     # vertex[1] = region.view2d.view_to_region(*clamp_to_region(x, y, region), clip=True)
-            #     vY = utils_editors.clampToRegion(0, vertex[1], region)[1]
-            posX = region.view2d.view_to_region(self.posX, 0, clip=False)[0]
-
-        if self.posYIsInRegionCS:
-            # in this case self.posY is in pixels, with origin at the BOTTOM, Y axis upward
-            posY = self.posY
-        else:
-            # in this case self.posY is in lanes, with origin at the TOP, Y axis DOWNWARD
-            # the Y axis then has to be changed
-
-            #     # vertex[1] = region.view2d.view_to_region(*clamp_to_region(x, y, region), clip=True)
-            #     vY = utils_editors.clampToRegion(0, vertex[1], region)[1]
-            posY_inValues = -1.0 * utils_editors_dopesheet.getLaneToValue(self.posY)
-            posY = region.view2d.view_to_region(0, -posY_inValues, clip=False)[1]
-            # height = -height
+                height = utils_editors_dopesheet.getLaneToValue(
+                    self.posY - numLanes
+                ) - utils_editors_dopesheet.getLaneToValue(self.posY)
 
         # aligment to region ###############
-        alignmentsR = self.alignmentToRegion.split("_")
-        alignmentR_x = alignmentsR[1]
-        alignmentR_y = alignmentsR[0]
-
         # horizontal
         if "RIGHT" == alignmentR_x:
             posX = region.width - posX
@@ -521,10 +528,6 @@ class QuadObject(Object2D, Mesh2D):
         pivot_posY = posY
 
         # aligment to pivot ###############
-        alignments = self.alignment.split("_")
-        alignment_x = alignments[1]
-        alignment_y = alignments[0]
-
         # horizontal
         if "RIGHT" == alignment_x:
             posX = posX - width
@@ -538,6 +541,15 @@ class QuadObject(Object2D, Mesh2D):
             # else:
         elif "MID" == alignment_y:
             posY = posY - height / 2
+
+        # posY = int(posY)
+        # height = int(height)
+
+        # if not self.heightIsInRegionCS and 1 == self.height:
+        #     height = 1 * (
+        #         utils_editors_dopesheet.getLaneToValue(self.posY - 1)
+        #         - utils_editors_dopesheet.getLaneToValue(self.posY)
+        #     )
 
         # posX and posY are the origin of the mesh, where the pivot is located
         # all those values are in pixels, in region CS
@@ -581,14 +593,16 @@ class QuadObject(Object2D, Mesh2D):
         if self.hasFill:
             if shader is None:
                 UNIFORM_SHADER_2D.bind()
-                UNIFORM_SHADER_2D.uniform_float("color", self.color)
+                color = set_color_alpha(self.color, alpha_to_linear(self.color[3] * self.opacity))
+                UNIFORM_SHADER_2D.uniform_float("color", color_to_sRGB(color))
                 shader = UNIFORM_SHADER_2D
 
             self._drawMesh(shader, region, draw_types, cap_lines, clamped_transformed_vertices)
 
         if self.hasLine:
             UNIFORM_SHADER_2D.bind()
-            UNIFORM_SHADER_2D.uniform_float("color", self.colorLine)
+            color = set_color_alpha(self.colorLine, alpha_to_linear(self.colorLine[3] * self.opacity))
+            UNIFORM_SHADER_2D.uniform_float("color", color_to_sRGB(color))
             shaderLine = UNIFORM_SHADER_2D
             draw_types = "LINES"
 
@@ -795,10 +809,8 @@ class Component2D(InteractiveObject2D, QuadObject):
 
         if shader is None:
             UNIFORM_SHADER_2D.bind()
-            # UNIFORM_SHADER_2D.uniform_float("color", self.color)
-            #    color = (0.9, 0.0, 0.0, 0.9)
-
-            UNIFORM_SHADER_2D.uniform_float("color", widColor)
+            color = set_color_alpha(widColor, alpha_to_linear(widColor[3] * self.opacity))
+            UNIFORM_SHADER_2D.uniform_float("color", color_to_sRGB(color))
             shader = UNIFORM_SHADER_2D
 
         QuadObject.draw(self, shader, region, draw_types, cap_lines)

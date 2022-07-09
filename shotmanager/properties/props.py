@@ -2786,8 +2786,8 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
 
             if targetShot is not None and sourceShot.getParentTake() == targetShot.getParentTake():
                 newCam.name = sourceShot.camera.name + "_copy"
-                newCam.color = utils.sRGBColor(
-                    utils.slightlyRandomizeColor(utils.linearizeColor(sourceShot.camera.color))
+                newCam.color = utils.color_to_linear(
+                    utils.slightlyRandomizeColor(utils.color_to_sRGB(sourceShot.camera.color))
                 )
 
             if targetShot is not None:
@@ -2827,7 +2827,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
             # newCam = utils.duplicateObject(cam, duplicateHierarchy=copyGreasePencil)
             # if targetTakeIndex == sourceTakeInd:
             #     newCam.name = cam.name + "_copy"
-            # newCam.color = utils.sRGBColor(utils.slightlyRandomizeColor(utils.linearizeColor(cam.color)))
+            # newCam.color = utils.color_to_linear(utils.slightlyRandomizeColor(utils.color_to_sRGB(cam.color)))
 
             newCam = self.copyCameraFromShot(shot, duplicateHierarchy=copyGreasePencil)
             cam = newCam

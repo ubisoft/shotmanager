@@ -162,7 +162,7 @@ def create_grease_pencil_material(gpencil, mat_type="CANVAS"):
             bpy.data.materials.create_gpencil_data(gp_mat)
             gp_mat.grease_pencil.show_fill = False
             gp_mat.grease_pencil.show_stroke = True
-            gp_mat.grease_pencil.color = utils.sRGBColor((0.1, 0.1, 0.1, 1))
+            gp_mat.grease_pencil.color = utils.color_to_linear((0.1, 0.1, 0.1, 1))
 
     elif "FILLS" == mat_type:
         if "Fills Mat" in bpy.data.materials.keys():
@@ -173,7 +173,7 @@ def create_grease_pencil_material(gpencil, mat_type="CANVAS"):
         if not gp_mat.is_grease_pencil:
             bpy.data.materials.create_gpencil_data(gp_mat)
             gp_mat.grease_pencil.show_fill = True
-            gp_mat.grease_pencil.fill_color = utils.sRGBColor((0.3, 0.3, 0.3, 1))
+            gp_mat.grease_pencil.fill_color = utils.color_to_linear((0.3, 0.3, 0.3, 1))
             gp_mat.grease_pencil.show_stroke = False
 
     elif "CANVAS" == mat_type:

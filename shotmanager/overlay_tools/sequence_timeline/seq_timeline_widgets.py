@@ -28,7 +28,7 @@ import blf
 import bpy
 from gpu_extras.batch import batch_for_shader
 
-from shotmanager.utils.utils import clamp, gamma_color, darken_color, remap, color_is_dark
+from shotmanager.utils.utils import clamp, color_to_sRGB, darken_color, remap, color_is_dark
 from shotmanager.utils.utils_ogl import get_region_at_xy, Square
 from shotmanager.utils import utils
 
@@ -627,7 +627,7 @@ class BL_UI_Timeline:
                 i == selectedShotIndex,
             )
             s.init(self.context)
-            s.shot_color = tuple(gamma_color(shot.color))
+            s.shot_color = tuple(color_to_sRGB(shot.color))
             self.ui_shots.append(s)
 
             s.draw()
