@@ -24,7 +24,7 @@ import gpu
 from .class_Object2D import Object2D
 from .class_Mesh2D import Mesh2D
 
-from .gpu_2d import draw_tripod
+from .gpu_2d import draw_tripod, draw_bBox
 
 from shotmanager.utils import utils_editors_dopesheet
 from shotmanager.utils.utils import color_to_sRGB, set_color_alpha, alpha_to_linear
@@ -50,7 +50,7 @@ class QuadObject(Object2D, Mesh2D):
         height=20,
         alignment="BOTTOM_LEFT",
         alignmentToRegion="BOTTOM_LEFT",
-        displayOverRuler=False,
+        displayOverRuler=True,
         parent=None,
     ):
         Object2D.__init__(
@@ -118,16 +118,20 @@ class QuadObject(Object2D, Mesh2D):
         alignment_y = alignments[0]
 
         # position ###############
+        parentPos = (0, 0)
+        if self.inheritPosFromParent and self.parent:
+            parentPos = self.parent.getPositionInRegion()
+
         if self.posXIsInRegionCS:
             # in this case self.posX is in pixels, with origin at the LEFT, X axis rightward
-            posX = self.posX
+            posX = self.posX + parentPos[0]
         else:
             # in this case self.posX is in frames, with origin at the LEFT, X axis still rightward
             posX = region.view2d.view_to_region(self.posX, 0, clip=False)[0]
 
         if self.posYIsInRegionCS:
             # in this case self.posY is in pixels, with origin at the BOTTOM, Y axis upward
-            posY = self.posY
+            posY = self.posY + parentPos[1]
         else:
             # in this case self.posY is in lanes, with origin at the TOP, Y axis DOWNWARD
             # the Y axis then has to be changed
@@ -181,9 +185,12 @@ class QuadObject(Object2D, Mesh2D):
                     self.posY - numLanes + 1
                 ) - utils_editors_dopesheet.getLaneToValue(self.posY + 1)
             else:
-                height = utils_editors_dopesheet.getLaneToValue(
-                    self.posY - numLanes
-                ) - utils_editors_dopesheet.getLaneToValue(self.posY)
+                if 0 == self.posY - numLanes:
+                    height = utils_editors_dopesheet.getLaneHeight()
+                else:
+                    height = utils_editors_dopesheet.getLaneToValue(
+                        self.posY - numLanes
+                    ) - utils_editors_dopesheet.getLaneToValue(self.posY)
 
         # aligment to region ###############
         # horizontal
@@ -293,6 +300,9 @@ class QuadObject(Object2D, Mesh2D):
 
             self._drawMesh(shaderLine, region, draw_types, cap_lines, clamped_transformed_vertices, edgeIndices)
 
+        if False:
+            draw_bBox(self._bBox, color=(0, 1, 1, 1))
+            draw_bBox(self._clamped_bBox)
         # draw tripod
         if False:
             draw_tripod(self._pivot_posX, self._pivot_posY, 20)

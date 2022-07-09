@@ -153,9 +153,10 @@ def getLaneToValue(laneVal):
     """Convert a lane (float) to a view value"""
 
     if laneVal < 0:
-        return 0
-
-    if laneVal < 1:
+        vrpY_inValues = 0
+    # elif 0 == laneVal:
+    #     vrpY_inValues = -1.0 * laneVal * getRulerHeight()
+    elif laneVal < 1:
         vrpY_inValues = -1.0 * laneVal * getRulerHeight()
     else:
         vrpY_inValues = -1.0 * laneVal * getLaneHeight() - getRulerHeight()

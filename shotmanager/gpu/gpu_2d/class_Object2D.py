@@ -132,6 +132,7 @@ class Object2D:
         self.parent = parent
         if self.parent:
             self.parent._children.append(self)
+        self.inheritPosFromParent = True
 
         self._pivot_posX = 0
         self._pivot_posY = 0

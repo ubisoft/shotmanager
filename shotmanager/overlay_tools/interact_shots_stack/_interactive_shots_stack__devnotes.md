@@ -1,5 +1,7 @@
 
 
+## See classes inheritance here: [GPU 2D Components](../../gpu/gpu_2d/gpu_2d_components)
+
 ## To do:
 
 - *** Remove the DrawAll debug flag

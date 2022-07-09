@@ -1208,6 +1208,7 @@ def color_to_sRGB(color, convertAlpha=False):
 def set_color_alpha(color, alpha):
     return (color[0], color[1], color[2], alpha)
 
+
 def alpha_to_linear(alpha):
     # alpha is already treated as being sRGB... We make it more "linear"
     return pow(alpha, 1.0 / 0.65)

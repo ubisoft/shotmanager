@@ -79,7 +79,7 @@ def draw_tripod(xOrigin, yOrigin, scale=20, thickness=4):
     #     batch.draw(shader)
 
 
-def draw_bBox(bBox, thickness=2, drawDiagonal=True):
+def draw_bBox(bBox, thickness=1, color=(1.0, 1.0, 1.0, 1.0), drawDiagonal=True):
     lineThickness = thickness
 
     vBotLeft = (bBox[0], bBox[1])
@@ -95,7 +95,7 @@ def draw_bBox(bBox, thickness=2, drawDiagonal=True):
     bgl.glEnable(bgl.GL_BLEND)
 
     UNIFORM_SHADER_2D.bind()
-    UNIFORM_SHADER_2D.uniform_float("color", color_to_sRGB((1.0, 1.0, 1.0, 1.0)))
+    UNIFORM_SHADER_2D.uniform_float("color", color_to_sRGB(color))
     shader = UNIFORM_SHADER_2D
 
     batch = batch_for_shader(shader, "LINES", {"pos": vertices}, indices=indices)

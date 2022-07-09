@@ -22,6 +22,8 @@ UI in BGL for the Interactive Shots Stack overlay tool
 from shotmanager.gpu.gpu_2d.class_Component2D import Component2D
 from shotmanager.gpu.gpu_2d.class_Text2D import Text2D
 
+from shotmanager.utils.utils_editors_dopesheet import getLaneHeight
+
 
 class ShotClipComponent(Component2D):
     """Interactive shot component"""
@@ -55,38 +57,35 @@ class ShotClipComponent(Component2D):
         self._name_color_dark = (0.07, 0.07, 0.07, 1)
         self._name_color_disabled = (0.8, 0.8, 0.8, 1)
 
-        self.textComponent = Text2D(posXIsInRegionCS=True, posX=10, posYIsInRegionCS=True, posY=10, parent=self)
-        # self._children.append(self.textComponent)
+        self.textComponent = Text2D(
+            posXIsInRegionCS=True, posYIsInRegionCS=True, posY=0, alignment="MID_LEFT", parent=self
+        )
+        self.textComponent.hasShadow = False
 
     # override Component2D
     def draw(self, shader=None, region=None, draw_types="TRIS", cap_lines=False):
 
         if self.shot.enabled:
             self.color = self.shot.color
+            self.textComponent.color = (0.0, 0.0, 0.0, 1)
         else:
             self.color = self.color_disabled
+            self.textComponent.color = (0.4, 0.4, 0.4, 1)
 
         # update clip from shot ########
         self.posX = self.shot.start
         self.width = self.shot.getDuration()
+
+        # text ############
         self.textComponent.text = self.shot.name
+        # vertically center the text + add a small offset to compensate the lower part of the font
+        self.textComponent.posY = int(getLaneHeight() * (0.06 + 0.5))
+        self.textComponent.fontSize = int(getLaneHeight() * 0.6)
 
+        # automatic offset of the text when the start of the shot disappears on the left side
+        self.textComponent.inheritPosFromParent = True
+        self.textComponent.posX = 10
+        self.textComponent.offsetText_leftSide = True
+
+        # children such as the text2D are drawn in Component2D
         Component2D.draw(self, None, region, draw_types, cap_lines)
-
-        # draw shot name
-        ##########################
-        # bgl.glDisable(bgl.GL_BLEND)
-
-        # if self.shot.enabled:
-        #     if color_is_dark(self.color, 0.4):
-        #         blf.color(0, *self._name_color_light)
-        #     else:
-        #         blf.color(0, *self._name_color_dark)
-        # else:
-        #     blf.color(0, *self._name_color_disabled)
-
-        # blf.size(0, round(self.font_size * getPrefsUIScale()), 72)
-        # textPos_y = self.origin.y + 6 * getPrefsUIScale()
-        # textPos_y = self.origin.y + getLaneHeight()
-        # blf.position(0, , 0)
-        # blf.draw(0, self.shot.name)

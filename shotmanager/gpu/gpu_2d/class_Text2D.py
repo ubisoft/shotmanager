@@ -28,7 +28,7 @@ from .class_Object2D import Object2D
 from .gpu_2d import draw_tripod, draw_bBox
 
 from shotmanager.utils import utils_editors_dopesheet
-from shotmanager.utils.utils import color_to_sRGB, set_color_alpha, alpha_to_linear
+from shotmanager.utils.utils import color_to_sRGB, set_color_alpha, alpha_to_linear, color_is_dark
 from shotmanager.utils.utils_editors_dopesheet import getRulerHeight, getLaneHeight, getPrefsUIScale
 
 # from shotmanager.config import config
@@ -45,7 +45,7 @@ class Text2D(Object2D):
         posXIsInRegionCS=True,
         posX=30,
         posYIsInRegionCS=True,
-        posY=50,
+        posY=0,
         alignment="BOTTOM_LEFT",
         alignmentToRegion="BOTTOM_LEFT",
         displayOverRuler=False,
@@ -72,14 +72,14 @@ class Text2D(Object2D):
         self.fontSize = fontSize
         self.opacity = 1.0
 
-        # attributes from MESH2D #########
         self.color = (0.9, 0.9, 0.0, 0.9)
-        self.hasFill = True
-        # contour
-        self.hasLine = False
-        self.colorLine = (0.9, 0.9, 0.9, 1.0)
+
+        self.hasShadow = False
+        # if not explicitely set then an automatic color is used
+        self.colorShadow = None
 
         self.displayOverRuler = displayOverRuler
+        self.offsetText_leftSide = False
 
         # bBox is defined by [xMin, YMin, xMax, yMax], in pixels in region CS (so bottom left, compatible with mouse position)
         self._bBox = [0, 0, 1, 1]
@@ -94,11 +94,30 @@ class Text2D(Object2D):
 
         blf.enable(0, blf.CLIPPING)
         # blf.clipping(0, *self._clamped_bBox)
+        margin = 20
         blf.clipping(
-            0, 0, 0, bpy.context.region.width + 20, bpy.context.region.height - getRulerHeight() - 0.8 * getLaneHeight()
+            0,
+            0 - margin,
+            0 - margin,
+            bpy.context.region.width + margin,
+            bpy.context.region.height - getRulerHeight() - 0.8 * getLaneHeight(),
         )
+
+        if self.hasShadow:
+            blf.enable(0, blf.SHADOW)
+            # The blur level, can be 3, 5 or 0
+            blurLevel = 5
+            if self.colorShadow:
+                colShadow = self.colorShadow
+            else:
+                colShadow = (1, 1, 1, 1.0) if color_is_dark(self.color, 0.5) else (0, 0, 0, 1.0)
+
+            blf.shadow(0, blurLevel, *colShadow)
+            # blf.shadow_offset(0, 1, -1)
+
         blf.draw(0, self.text)
         blf.disable(0, blf.CLIPPING)
+        blf.disable(0, blf.SHADOW)
 
     def draw(self, shader=None, region=None):
 
@@ -114,7 +133,7 @@ class Text2D(Object2D):
 
         # position ###############
         parentPos = (0, 0)
-        if self.parent:
+        if self.inheritPosFromParent and self.parent:
             parentPos = self.parent.getPositionInRegion()
 
         if self.posXIsInRegionCS:
@@ -229,11 +248,16 @@ class Text2D(Object2D):
         # posY = int(posY)
         # height = int(height)
 
-        # if not self.heightIsInRegionCS and 1 == self.height:
-        #     height = 1 * (
-        #         utils_editors_dopesheet.getLaneToValue(self.posY - 1)
-        #         - utils_editors_dopesheet.getLaneToValue(self.posY)
-        #     )
+        if self.offsetText_leftSide and self.parent:
+            #  print(f"\nself._bBox[0]: {self._bBox[0]}, self._clamped_bBox[0]: {self._clamped_bBox[0]}")
+            if self.parent._bBox[0] < self.parent._clamped_bBox[0]:
+                offset = 10
+                parentClampedWidth = self.parent._clamped_bBox[2] - self.parent._clamped_bBox[0]
+                if width + offset * 2 < parentClampedWidth:
+                    #   self.inheritPosFromParent = False
+                    posX = offset
+                else:
+                    posX = offset - (width + offset * 2 - parentClampedWidth)
 
         # posX and posY are the origin of the mesh, where the pivot is located
         # all those values are in pixels, in region CS

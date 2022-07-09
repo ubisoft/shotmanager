@@ -167,7 +167,7 @@ class BL_UI_ShotStack:
 
         lane = 1
         for i, shot in enumerate(shots):
-            if 3 < i:
+            if 6 < i:
                 continue
             if not props.interactShotsStack_displayDisabledShots and not shot.enabled:
                 continue
@@ -249,7 +249,10 @@ class BL_UI_ShotStack:
                 s = _getUIShotFromShotIndex(i)
                 if s is None:
                     s = BL_UI_ShotClip(self.context, i)
-                s.update(lane + 8)
+                # debug:
+                s.update(lane + 10)
+                # s.update(lane)
+
                 self.ui_shots.append(s)
                 s.draw()
 
@@ -260,7 +263,7 @@ class BL_UI_ShotStack:
         props = self.context.scene.UAS_shot_manager_props
 
         # Debug - red rectangle ####################
-        drawDebugRect = True
+        drawDebugRect = False
         if drawDebugRect:
             # print("ogl draw shot stack")
 
@@ -285,7 +288,7 @@ class BL_UI_ShotStack:
             # Quad object
             ###############################
 
-            self.debug_quadObject_Ruler.draw(None, self.context.region)
+            #  self.debug_quadObject_Ruler.draw(None, self.context.region)
             # self.debug_quadObject_test.draw(None, self.context.region)
             # self.debug_quadObject.draw(None, self.context.region)
             self.debug_component2D.draw(None, self.context.region)
