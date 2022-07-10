@@ -50,7 +50,7 @@ class QuadObject(Object2D, Mesh2D):
         height=20,
         alignment="BOTTOM_LEFT",
         alignmentToRegion="BOTTOM_LEFT",
-        displayOverRuler=True,
+        displayOverRuler=False,
         parent=None,
     ):
         Object2D.__init__(
@@ -76,7 +76,7 @@ class QuadObject(Object2D, Mesh2D):
         self.hasFill = True
         # contour
         self.hasLine = False
-        self.colorLine = (0.9, 0.9, 0.9, 1.0)
+        self.color_line = (0.9, 0.9, 0.9, 1.0)
 
         self.displayOverRuler = displayOverRuler
 
@@ -104,8 +104,27 @@ class QuadObject(Object2D, Mesh2D):
             indices.append((1, 2))
         return indices
 
+    def _getFillShader(self, shader):
+        if shader is None:
+            UNIFORM_SHADER_2D.bind()
+            color = set_color_alpha(self.color, alpha_to_linear(self.color[3] * self.opacity))
+            UNIFORM_SHADER_2D.uniform_float("color", color_to_sRGB(color))
+            shader = UNIFORM_SHADER_2D
+
+        return shader
+
+    def _getLineShader(self, shader):
+        UNIFORM_SHADER_2D.bind()
+        color = set_color_alpha(self.color_line, alpha_to_linear(self.color_line[3] * self.opacity))
+        UNIFORM_SHADER_2D.uniform_float("color", color_to_sRGB(color))
+        shader = UNIFORM_SHADER_2D
+
+        return shader
+
     # override Mesh2D
     def draw(self, shader=None, region=None, draw_types="TRIS", cap_lines=False):
+        if not self.isVisible:
+            return
 
         # aligment to region ###############
         alignmentsR = self.alignmentToRegion.split("_")
@@ -281,24 +300,14 @@ class QuadObject(Object2D, Mesh2D):
         self._clamped_bBox = clamped_bBox
 
         if self.hasFill:
-            if shader is None:
-                UNIFORM_SHADER_2D.bind()
-                color = set_color_alpha(self.color, alpha_to_linear(self.color[3] * self.opacity))
-                UNIFORM_SHADER_2D.uniform_float("color", color_to_sRGB(color))
-                shader = UNIFORM_SHADER_2D
-
-            self._drawMesh(shader, region, draw_types, cap_lines, clamped_transformed_vertices)
+            fillShader = self._getFillShader(shader)
+            self._drawMesh(fillShader, region, draw_types, cap_lines, clamped_transformed_vertices)
 
         if self.hasLine:
-            UNIFORM_SHADER_2D.bind()
-            color = set_color_alpha(self.colorLine, alpha_to_linear(self.colorLine[3] * self.opacity))
-            UNIFORM_SHADER_2D.uniform_float("color", color_to_sRGB(color))
-            shaderLine = UNIFORM_SHADER_2D
-            draw_types = "LINES"
-
             edgeIndices = self.getEdgeIndices(bBox, clamped_bBox)
-
-            self._drawMesh(shaderLine, region, draw_types, cap_lines, clamped_transformed_vertices, edgeIndices)
+            lineShader = self._getLineShader(shader)
+            draw_types = "LINES"
+            self._drawMesh(lineShader, region, draw_types, cap_lines, clamped_transformed_vertices, edgeIndices)
 
         if False:
             draw_bBox(self._bBox, color=(0, 1, 1, 1))

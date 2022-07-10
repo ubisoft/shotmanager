@@ -71,6 +71,7 @@ class Text2D(Object2D):
         self.text = text
         self.fontSize = fontSize
         self.opacity = 1.0
+        self.bold = False
 
         self.color = (0.9, 0.9, 0.0, 0.9)
 
@@ -88,9 +89,6 @@ class Text2D(Object2D):
 
     def _drawText(self, shader=None, region=None, pX=10, pY=10):
         # bgl.glDisable(bgl.GL_BLEND)
-        blf.color(0, *self.color)
-        blf.size(0, round(self.fontSize * getPrefsUIScale()), 72)
-        blf.position(0, pX, pY, 0)
 
         blf.enable(0, blf.CLIPPING)
         # blf.clipping(0, *self._clamped_bBox)
@@ -115,11 +113,21 @@ class Text2D(Object2D):
             blf.shadow(0, blurLevel, *colShadow)
             # blf.shadow_offset(0, 1, -1)
 
+        blf.color(0, *self.color)
+        blf.size(0, round(self.fontSize * getPrefsUIScale()), 72)
+        blf.position(0, pX, pY, 0)
+
         blf.draw(0, self.text)
+        if self.bold:
+        #     # blf.position(0, pX + 1, pY, 0)
+            blf.draw(0, self.text)
+
         blf.disable(0, blf.CLIPPING)
         blf.disable(0, blf.SHADOW)
 
     def draw(self, shader=None, region=None):
+        if not self.isVisible:
+            return
 
         # aligment to region ###############
         alignmentsR = self.alignmentToRegion.split("_")

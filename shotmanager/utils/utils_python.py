@@ -30,3 +30,8 @@ def copyString(str1):
 def asciiColor(r, g, b):
     """Convert rgb values to ascii color string"""
     return f"\33[38;2;{r};{g};{b}m"
+
+
+def clamp(v, minV, maxV):
+    res = min(v, maxV)
+    return max(res, minV)

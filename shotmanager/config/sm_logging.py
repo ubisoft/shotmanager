@@ -119,7 +119,7 @@ class SM_Logger(logging.getLoggerClass()):
         _ENDCOLOR = self._colors["DEFAULT"]
 
         if "STD" == form:
-            f = Formatter(color + self._prefix + "  {message:<120}" + _ENDCOLOR, style="{")
+            f = Formatter(color + self._prefix + "  {message:<110}" + _ENDCOLOR, style="{")
         elif "REG" == form:
             if "" == col:
                 color = self._colors["YELLOW"]
@@ -256,7 +256,14 @@ class Formatter(logging.Formatter):
         MODULE_PATH = Path(__file__).parent.parent
         # print("MODULE_PATH:" + str(MODULE_PATH))
         pathname = Path(record.pathname).relative_to(MODULE_PATH)
-        s += f"  [{os.curdir}{os.sep}{pathname}:{record.lineno}]"
+
+        # display the full relative path
+        # s += f"  [{os.curdir}{os.sep}{pathname}:{record.lineno}]"
+
+        # display only the file name
+        filename = pathname.stem
+        s += f"  [{filename}:{record.lineno}]"
+
         return s
 
 

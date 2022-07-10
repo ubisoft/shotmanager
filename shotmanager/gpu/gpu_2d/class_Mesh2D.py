@@ -82,11 +82,19 @@ class Mesh2D:
             # _indicesLineRectClamped _indicesLineRect
             if vertex_indices is None:
                 v_indices = self._indicesLineRect
-            batch = batch_for_shader(shader, draw_types, {"pos": transformed_vertices}, indices=v_indices)
+
+            # fix line offset to stay inside the quad
+            vertices_inner = []
+            vertices_inner.append((transformed_vertices[0][0], transformed_vertices[0][1]))
+            vertices_inner.append((transformed_vertices[1][0], transformed_vertices[1][1] - 1))
+            vertices_inner.append((transformed_vertices[2][0] - 1, transformed_vertices[2][1] - 1))
+            vertices_inner.append((transformed_vertices[3][0] - 1, transformed_vertices[3][1]))
+
+            batch = batch_for_shader(shader, draw_types, {"pos": vertices_inner}, indices=v_indices)
             bgl.glLineWidth(self.lineThickness)
             batch.draw(shader)
             if cap_lines:
-                batch = batch_for_shader(shader, draw_types, {"pos": transformed_vertices})
+                batch = batch_for_shader(shader, draw_types, {"pos": vertices_inner})
                 bgl.glPointSize(self.lineThickness)
                 batch.draw(shader)
         elif "POINTS" == draw_types:
@@ -95,6 +103,7 @@ class Mesh2D:
             bgl.glPointSize(self.lineThickness)
             batch.draw(shader)
 
+    # deprecated!!!!!!!!!!
     def draw(self, shader=None, region=None, draw_types="TRIS", cap_lines=False):
         transformed_vertices = self._vertices
         if region:

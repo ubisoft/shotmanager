@@ -128,6 +128,8 @@ class Object2D:
         self.alignment = alignment
         self.alignmentToRegion = alignmentToRegion
 
+        self.isVisible = True
+
         self._children = list()
         self.parent = parent
         if self.parent:

@@ -73,19 +73,25 @@ class InteractiveComponent:
     # to override in classes inheriting from this class:
     def handle_event_custom(self, context, event, region):
         event_handled = False
-        # if event.type == "G":
+        mouseIsInBBox = False
+
+        # for debug, used to interupt for breakpoint:
+        if event.type == "G":
+            print("Debug G key")
+
         mouseIsInBBox = self.isInBBox(event.mouse_x - region.x, event.mouse_y - region.y)
 
         # highlight ##############
-        if mouseIsInBBox:
-            if not self.isHighlighted:
-                self.isHighlighted = True
-                # _logger.debug_ext("component2D handle_events set highlighte true", col="PURPLE", tag="EVENT")
-                config.gRedrawShotStack = True
-        else:
-            if self.isHighlighted:
-                self.isHighlighted = False
-                config.gRedrawShotStack = True
+        if event.type in ["MOUSEMOVE", "INBETWEEN_MOUSEMOVE"]:
+            if mouseIsInBBox:
+                if not self.isHighlighted:
+                    self.isHighlighted = True
+                    # _logger.debug_ext("component2D handle_events set highlighte true", col="PURPLE", tag="EVENT")
+                    config.gRedrawShotStack = True
+            else:
+                if self.isHighlighted:
+                    self.isHighlighted = False
+                    config.gRedrawShotStack = True
 
         # # selection ##############
         # if event.type == "LEFTMOUSE":

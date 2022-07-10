@@ -31,11 +31,12 @@ import gpu
 from shotmanager.overlay_tools.interact_shots_stack.widgets.shots_stack_clip_component import ShotClipComponent
 
 from .shot_clip_widget import BL_UI_ShotClip
-from shotmanager.gpu.gpu_2d.class_Mesh2D import build_rectangle_mesh
 from ..shots_stack_bgl import get_lane_origin_y
 
 from shotmanager.utils import utils_editors_dopesheet
+from shotmanager.utils.utils import color_to_linear
 
+from shotmanager.gpu.gpu_2d.class_Mesh2D import build_rectangle_mesh
 from shotmanager.gpu.gpu_2d.class_QuadObject import QuadObject
 from shotmanager.gpu.gpu_2d.class_Component2D import Component2D
 from shotmanager.gpu.gpu_2d.class_Text2D import Text2D
@@ -56,6 +57,7 @@ class BL_UI_ShotStack:
         self.target_area = target_area
 
         self.ui_shots = list()
+        self.shotComponents = []
 
         self.manipulated_clip = None
         self.manipulated_clip_handle = None
@@ -74,12 +76,37 @@ class BL_UI_ShotStack:
         self.debug_quadObject_Ruler = None
         self.debug_quadObject_test = None
 
+        self.color_currentShot_border = (0.92, 0.55, 0.18, 0.99)
+        self.color_currentShot_border = color_to_linear((0.92, 0.55, 0.18, 0.99))
+        # self.color_currentShot_border = (1, 0, 0, 1)
+        self.color_currentShot_border_mix = (0.94, 0.3, 0.1, 0.99)
+
+        # prefs settings ###################
         self.opacity = 0.5
+        self.color_text = (0.0, 0.0, 0.0, 1)
 
     def init(self, context):
         self.context = context
 
+        self.rebuildShotComponents()
+
+        self.currentShotBorder = QuadObject(
+            posXIsInRegionCS=False,
+            posYIsInRegionCS=False,
+            widthIsInRegionCS=False,
+            heightIsInRegionCS=False,
+            alignment="BOTTOM_LEFT",
+            alignmentToRegion="TOP_LEFT",
+        )
+        self.currentShotBorder.hasFill = False
+        self.currentShotBorder.hasLine = True
+        self.currentShotBorder.color_line = self.color_currentShot_border_mix
+        self.currentShotBorder.lineThickness = 2
+        self.currentShotBorder.isVisible = False
+
+        ###############################################
         # debug
+        ###############################################
         # height = 20
         # lane = 3
         # startframe = 120
@@ -118,7 +145,6 @@ class BL_UI_ShotStack:
         )
         self.debug_quadObject_test.color = (0.0, 0.4, 0.0, 0.5)
 
-        # self.debug_quadObject = QuadObject()
         self.debug_quadObject = QuadObject(
             posXIsInRegionCS=True,
             posX=60,
@@ -146,7 +172,7 @@ class BL_UI_ShotStack:
             alignmentToRegion="BOTTOM_LEFT",
         )
         self.debug_component2D.color = (0.7, 0.5, 0.6, 0.6)
-        self.debug_component2D.colorLine = (0.7, 0.8, 0.8, 0.9)
+        self.debug_component2D.color_line = (0.7, 0.8, 0.8, 0.9)
         self.debug_component2D.hasLine = True
         self.debug_component2D.lineThickness = 3
 
@@ -161,22 +187,77 @@ class BL_UI_ShotStack:
             fontSize=20,
         )
 
-    def drawShots(self):
+    def rebuildShotComponents(self, forceRebuild=False):
         props = self.context.scene.UAS_shot_manager_props
         shots = props.get_shots()
+        # lenShots = len(shots)
+
+        if not len(shots):
+            self.shotComponents = []
+            return
+
+        rebuildList = forceRebuild or len(self.shotComponents) != len(shots)
+
+        # check if the components list matches the shots list
+        if not rebuildList:
+            shotCompoInd = 0
+            for i, shot in enumerate(shots):
+                if self.shotComponents[shotCompoInd].shot != shot:
+                    rebuildList = True
+                    break
+                shotCompoInd += 1
+
+        # rebuild the list with ALL the shots
+        if rebuildList:
+            self.shotComponents = []
+
+            lane = 1
+            for i, shot in enumerate(shots):
+                shotCompo = ShotClipComponent(self.target_area, posY=lane, shot=shot)
+                shotCompo.opacity = self.opacity
+                shotCompo.color_text = self.color_text
+
+                self.shotComponents.append(shotCompo)
+                lane += 1
+
+    def drawShots(self):
+        props = self.context.scene.UAS_shot_manager_props
+        self.rebuildShotComponents()
+
+        current_shot_ind = props.getCurrentShotIndex()
+        selected_shot_ind = props.getSelectedShotIndex()
+
+        debug_maxShots = 6
 
         lane = 1
-        for i, shot in enumerate(shots):
-            if 6 < i:
+        shotCompoCurrent = None
+        for i, shotCompo in enumerate(self.shotComponents):
+            shotCompo.isCurrent = i == current_shot_ind
+            shotCompo.isSelected = i == selected_shot_ind
+
+            if debug_maxShots < i:
+                shotCompo.isVisible = False
                 continue
-            if not props.interactShotsStack_displayDisabledShots and not shot.enabled:
+            if not shotCompo.shot.enabled and not props.interactShotsStack_displayDisabledShots:
+                shotCompo.isVisible = False
                 continue
 
-            shotCompo = ShotClipComponent(self.target_area, posY=lane, shot=shot)
-            shotCompo.opacity = 0.5
+            if i == current_shot_ind:
+                shotCompoCurrent = shotCompo
+            shotCompo.isVisible = True
+            shotCompo.posY = lane
 
             shotCompo.draw(None, self.context.region)
             lane += 1
+
+        # draw quad for current shot over the result
+        if -1 != current_shot_ind and shotCompoCurrent:
+            self.currentShotBorder.posX = shotCompoCurrent.posX
+            self.currentShotBorder.posY = shotCompoCurrent.posY
+            self.currentShotBorder.width = shotCompoCurrent.width
+            self.currentShotBorder.height = shotCompoCurrent.height
+            self.currentShotBorder.isVisible = True
+            self.currentShotBorder.draw(None, self.context.region)
 
     def drawShots_compactMode(self):
         pass
@@ -263,13 +344,8 @@ class BL_UI_ShotStack:
         props = self.context.scene.UAS_shot_manager_props
 
         # Debug - red rectangle ####################
-        drawDebugRect = False
+        drawDebugRect = True
         if drawDebugRect:
-            # print("ogl draw shot stack")
-
-            # get_lane_origin_y
-            # get_lane_height():
-
             height = 20
             lane = 5
             startframe = 160
@@ -284,7 +360,6 @@ class BL_UI_ShotStack:
 
             # self.debug_mesh.draw(UNIFORM_SHADER_2D, self.context.region)
 
-            ###############################
             # Quad object
             ###############################
 
@@ -294,7 +369,6 @@ class BL_UI_ShotStack:
             self.debug_component2D.draw(None, self.context.region)
             self.debug_Text2D.draw(None, self.context.region)
 
-            ###############################
             # draw text
             ###############################
 
@@ -349,13 +423,16 @@ class BL_UI_ShotStack:
         if event.type not in ["TIMER"]:
             _logger.debug_ext(f"event: type: {event.type}, value: {event.value}", col="GREEN", tag="SHOTSTACK_EVENT")
 
-        #  match (event.type, event.value):
-        if True:
+        #  match (event.type, event.value):     # only working with Python 3.10...
+        if "PRESS" == event.value and event.type in ("RIGHTMOUSE", "ESC", "WINDOW_DEACTIVATE"):
             # case ("RIGHTMOUSE", "PRESS") | ("ESC", "PRESS") | ("WINDOW_DEACTIVATE", "PRESS"):
-            #     self.cancelAction()
-            #     event_handled = True
+            self.cancelAction()
+            event_handled = True
+        else:
+            for shotCompo in self.shotComponents:
+                event_handled = shotCompo.handle_event(context, event)
 
-            if True:
+            if not event_handled:
 
                 for uiShot in self.ui_shots:
                     # if uiShot.handle_event(context, event, region):
@@ -505,7 +582,7 @@ class BL_UI_ShotStack:
 
                                 # do a draw when the mouse leave a clip
                                 if self.previousDrawWasInAClip and not currentDrawIsInAClip:
-                                    _logger.debug_ext(f"   LEave clip", col="BLUE", tag="SHOTSTACK_EVENT")
+                                    _logger.debug_ext("   LEave clip", col="BLUE", tag="SHOTSTACK_EVENT")
                                     config.gRedrawShotStack = True
                                 # self.previousDrawWasInAClip = False
                                 self.previousDrawWasInAClip = currentDrawIsInAClip
