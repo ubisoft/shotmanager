@@ -27,7 +27,6 @@ from mathutils import Vector
 
 from shotmanager.utils.utils import color_to_sRGB, color_is_dark, lighten_color
 from shotmanager.gpu.gpu_2d.class_Mesh2D import build_rectangle_mesh
-from shotmanager.gpu.gpu_2d.class_Image2D import Image2D
 from ..shots_stack_bgl import (
     get_lane_origin_y,
     get_lane_height,
@@ -53,10 +52,10 @@ class BL_UI_ShotClip:
         self.width = 0
         self.font_size = 12
 
-        self._active_handle = None
-        self._active_clip_over = False
-        self._highlight = False
-        self._mouseover = False
+        self.active_handle = None
+        self.active_clip_over = False
+        self.highlight = False
+        self.mouseover = False
 
         # self.prev_mouse_x = 0
         # self.prev_mouse_y = 0
@@ -65,7 +64,6 @@ class BL_UI_ShotClip:
         self.clip_mesh = None
         self.contour_mesh = None
         self.contourCurrent_mesh = None
-        self.camIcon = None
         self.start_interaction_mesh = None
         self.end_interaction_mesh = None
 
@@ -102,7 +100,6 @@ class BL_UI_ShotClip:
         # self.contourCurrent_mesh = build_rectangle_mesh(
         #     Vector([self.origin.x - 1, self.origin.y - 1]), self.width + 2, self.height + 2, True
         # )
-        self.camIcon = Image2D(self.origin, self.width, self.height)
 
     @property
     def height(self):
@@ -123,38 +120,6 @@ class BL_UI_ShotClip:
     @shot_color.setter
     def shot_color(self, value):
         self._shot_color = (value[0], value[1], value[2], 0.5)
-
-    @property
-    def highlight(self):
-        return self._highlight
-
-    @highlight.setter
-    def highlight(self, value: bool):
-        self._highlight = value
-
-    @property
-    def mouseover(self):
-        return self._mouseover
-
-    @mouseover.setter
-    def mouseover(self, value: bool):
-        self._mouseover = value
-
-    @property
-    def active_handle(self):
-        return self._active_handle
-
-    @active_handle.setter
-    def active_handle(self, value):
-        self._active_handle = value
-
-    @property
-    def active_clip_over(self):
-        return self._active_clip_over
-
-    @active_clip_over.setter
-    def active_clip_over(self, value: bool):
-        self._active_clip_over = value
 
     def draw(self):
         context = self.context
@@ -218,11 +183,6 @@ class BL_UI_ShotClip:
             UNIFORM_SHADER_2D.uniform_float("color", self.color_selectedShot_border)
             self.contour_mesh.lineThickness = 1 if current_shot_ind == selected_shot_ind else 2
             self.contour_mesh.draw(UNIFORM_SHADER_2D, context.region, "LINES")
-
-        # draw a camera icon on the current shot
-        ##########################
-        # TODO finish and clean
-        #   self.camIcon.draw(context.region)
 
         # draw shot name
         ##########################

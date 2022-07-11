@@ -22,8 +22,6 @@ Utility functions for opengl overlay
 import gpu
 from gpu_extras.batch import batch_for_shader
 
-from shotmanager.utils.utils import clamp
-
 # Blender windows system utils
 ############################################
 
@@ -49,13 +47,6 @@ def get_region_at_xy(context, x, y, area_type="VIEW_3D"):
                     return region, area
 
     return None, None
-
-
-# deprecated - use clampToRegion
-def clamp_to_region(x, y, region):
-    l_x, l_y = region.view2d.region_to_view(0, 0)
-    h_x, h_y = region.view2d.region_to_view(region.width - 1, region.height - 1)
-    return clamp(x, l_x, h_x), clamp(y, l_y, h_y)
 
 
 # Geometry utils functions

@@ -80,12 +80,10 @@ class Text2D(Object2D):
         self.colorShadow = None
 
         self.displayOverRuler = displayOverRuler
-        self.offsetText_leftSide = False
 
-        # bBox is defined by [xMin, YMin, xMax, yMax], in pixels in region CS (so bottom left, compatible with mouse position)
-        self._bBox = [0, 0, 1, 1]
-        self._clamped_bBox = self._bBox.copy()
-        self.isFullyClamped = False
+    #################################################################
+
+    #################################################################
 
     def _drawText(self, shader=None, region=None, pX=10, pY=10):
         # bgl.glDisable(bgl.GL_BLEND)
@@ -104,11 +102,11 @@ class Text2D(Object2D):
         if self.hasShadow:
             blf.enable(0, blf.SHADOW)
             # The blur level, can be 3, 5 or 0
-            blurLevel = 5
+            blurLevel = 3
             if self.colorShadow:
                 colShadow = self.colorShadow
             else:
-                colShadow = (1, 1, 1, 1.0) if color_is_dark(self.color, 0.5) else (0, 0, 0, 1.0)
+                colShadow = (1, 1, 1, 0.5) if color_is_dark(self.color, 0.5) else (0, 0, 0, 0.5)
 
             blf.shadow(0, blurLevel, *colShadow)
             # blf.shadow_offset(0, 1, -1)
@@ -119,7 +117,7 @@ class Text2D(Object2D):
 
         blf.draw(0, self.text)
         if self.bold:
-        #     # blf.position(0, pX + 1, pY, 0)
+            #     # blf.position(0, pX + 1, pY, 0)
             blf.draw(0, self.text)
 
         blf.disable(0, blf.CLIPPING)
@@ -256,11 +254,11 @@ class Text2D(Object2D):
         # posY = int(posY)
         # height = int(height)
 
-        if self.offsetText_leftSide and self.parent:
+        if self.avoidClamp_leftSide and self.parent:
             #  print(f"\nself._bBox[0]: {self._bBox[0]}, self._clamped_bBox[0]: {self._clamped_bBox[0]}")
             if self.parent._bBox[0] < self.parent._clamped_bBox[0]:
-                offset = 10
-                parentClampedWidth = self.parent._clamped_bBox[2] - self.parent._clamped_bBox[0]
+                offset = self.avoidClamp_leftSideOffset
+                parentClampedWidth = self.parent.getWidthInRegion()
                 if width + offset * 2 < parentClampedWidth:
                     #   self.inheritPosFromParent = False
                     posX = offset

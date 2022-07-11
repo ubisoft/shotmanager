@@ -136,8 +136,40 @@ class Object2D:
             self.parent._children.append(self)
         self.inheritPosFromParent = True
 
+        # boundary box and clamping ########
+        # bBox is defined by [xMin, YMin, xMax, yMax], in pixels in region CS (so bottom left, compatible with mouse position)
+        # pixels at xMax and yMax are INCLUDED in the boundary box
+        self._bBox = [0, 0, 1, 1]
+        if self.widthIsInRegionCS:
+            self._bBox[2] = self.width
+        if self.heightIsInRegionCS:
+            self._bBox[2] = self.height
+        self._clamped_bBox = self._bBox.copy()
+        self.isFullyClamped = False
+
+        # if this object  has a parent then when enabled it can be offset in its parent bounding box to keep being displayed
+        # in the region without being clamped
+        self.avoidClamp_leftSide = False
+        self.avoidClamp_leftSideOffset = 10
+
+        # pivot ##################
         self._pivot_posX = 0
         self._pivot_posY = 0
 
     def getPositionInRegion(self):
+        """Return the position of the object in pixels, in the region CS"""
         return (self._pivot_posX, self._pivot_posY)
+
+    def getWidthInRegion(self, clamped=True):
+        """Return the width of the object in pixels, in the region CS"""
+        if clamped:
+            return 0 if self.isFullyClamped else self._clamped_bBox[2] - self._clamped_bBox[0] + 1
+        else:
+            return self._bBox[2] - self._bBox[0] + 1
+
+    def getHeightInRegion(self, clamped=True):
+        """Return the height of the object in pixels, in the region CS"""
+        if clamped:
+            return o if self.isFullyClamped else self._clamped_bBox[3] - self._clamped_bBox[1] + 1
+        else:
+            return self._bBox[3] - self._bBox[1] + 1

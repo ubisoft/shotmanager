@@ -111,12 +111,16 @@ class UAS_ShotManager_OT_InteractShotsStackSettingsWind(Operator):
         prefs = context.preferences.addons["shotmanager"].preferences
         layout = self.layout
 
-        # targetrow.separator(factor=1.0)
+        mainRow = layout.row(align=True)
+        mainRow.separator(factor=0.7)
+        col = mainRow.column(align=True)
+        col.separator(factor=0.7)
+        mainRow.separator(factor=0.7)
 
-        #######################
         # target dopesheet
         #######################
-        targetrow = layout.row(align=True)
+
+        targetrow = col.row(align=True)
         # activeindrow.scale_x = 0.4
         targetrow.separator(factor=4)
 
@@ -139,11 +143,10 @@ class UAS_ShotManager_OT_InteractShotsStackSettingsWind(Operator):
         targdoperow.alert = target_area_ind < expected_target_area_ind
         targdoperow.prop(props, "interactShotsStack_target_dopesheet_index", text="")
 
-        #######################
         # seq timeline
         #######################
 
-        targetrow = layout.row(align=True)
+        targetrow = col.row(align=True)
         targetrow.operator(
             "uas_shot_manager.toggle_seq_timeline_with_overlay_tools",
             text="",
@@ -152,6 +155,16 @@ class UAS_ShotManager_OT_InteractShotsStackSettingsWind(Operator):
         )
         targetrow.separator()
         targetrow.label(text="Sequence Timeline (in Viewport)")
+
+        # shots stack
+        #######################
+        row = col.row(align=True)
+        row.label(text="Shots Stack:")
+
+        row = col.row(align=False)
+        row.prop(prefs, "intShStack_opacity", text="Shots Stack Opacity", slider=True)
+
+        col.separator(factor=0.7)
 
     def execute(self, context):
         return {"FINISHED"}

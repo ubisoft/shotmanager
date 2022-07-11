@@ -1215,6 +1215,30 @@ def alpha_to_linear(alpha):
 
 
 ###################
+# Images
+###################
+
+
+def getDataImageFromPath(filepath, filename):
+    """Return the image with the specified file name from data, load it if not found
+    Args:
+        filepath: eg: "c:\\temp\\"
+        filename: eg: WALL_1773.png
+    """
+    img = None
+    if filename in bpy.data.images:
+        img = bpy.data.images[filename]
+    # if img:
+    # if img.filepath == filepath:
+
+    if not img:
+        # TODO: test filepath existence and last char
+        img = bpy.data.images.load(os.path.join(filepath, filename))
+
+    return img
+
+
+###################
 # Dev
 ###################
 

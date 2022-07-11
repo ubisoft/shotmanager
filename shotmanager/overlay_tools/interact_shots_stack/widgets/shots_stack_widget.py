@@ -21,6 +21,7 @@ UI in BGL for the Interactive Shots Stack overlay tool
 
 from collections import defaultdict
 
+import os
 import time
 from mathutils import Vector
 
@@ -36,7 +37,7 @@ from ..shots_stack_bgl import get_lane_origin_y
 from shotmanager.utils import utils_editors_dopesheet
 from shotmanager.utils.utils import color_to_linear
 
-from shotmanager.gpu.gpu_2d.class_Mesh2D import build_rectangle_mesh
+from shotmanager.gpu.gpu_2d.class_Mesh2D import Mesh2D, build_rectangle_mesh
 from shotmanager.gpu.gpu_2d.class_QuadObject import QuadObject
 from shotmanager.gpu.gpu_2d.class_Component2D import Component2D
 from shotmanager.gpu.gpu_2d.class_Text2D import Text2D
@@ -53,6 +54,10 @@ UNIFORM_SHADER_2D = gpu.shader.from_builtin("2D_UNIFORM_COLOR")
 
 class BL_UI_ShotStack:
     def __init__(self, target_area=None):
+        prefs = bpy.context.preferences.addons["shotmanager"].preferences
+
+        self.drawDebugComponents = False
+
         self.context = None
         self.target_area = target_area
 
@@ -76,13 +81,12 @@ class BL_UI_ShotStack:
         self.debug_quadObject_Ruler = None
         self.debug_quadObject_test = None
 
-        self.color_currentShot_border = (0.92, 0.55, 0.18, 0.99)
         self.color_currentShot_border = color_to_linear((0.92, 0.55, 0.18, 0.99))
         # self.color_currentShot_border = (1, 0, 0, 1)
         self.color_currentShot_border_mix = (0.94, 0.3, 0.1, 0.99)
 
         # prefs settings ###################
-        self.opacity = 0.5
+        self.opacity = prefs.intShStack_opacity
         self.color_text = (0.0, 0.0, 0.0, 1)
 
     def init(self, context):
@@ -100,9 +104,10 @@ class BL_UI_ShotStack:
         )
         self.currentShotBorder.hasFill = False
         self.currentShotBorder.hasLine = True
-        self.currentShotBorder.color_line = self.color_currentShot_border_mix
+        self.currentShotBorder.colorLine = self.color_currentShot_border_mix
         self.currentShotBorder.lineThickness = 2
         self.currentShotBorder.isVisible = False
+        # self.currentShotBorder.lineOffsetPerEdge = [0, -1, -1, 0]
 
         ###############################################
         # debug
@@ -144,6 +149,9 @@ class BL_UI_ShotStack:
             alignmentToRegion="TOP_LEFT",
         )
         self.debug_quadObject_test.color = (0.0, 0.4, 0.0, 0.5)
+        imgFile = os.path.join(os.path.dirname(__file__), "../../../icons/ShotMan_EnabledCurrentCam.png")
+        self.debug_quadObject_test.setImageFromFile(imgFile)
+        self.debug_quadObject_test.hasTexture = True
 
         self.debug_quadObject = QuadObject(
             posXIsInRegionCS=True,
@@ -172,8 +180,8 @@ class BL_UI_ShotStack:
             alignmentToRegion="BOTTOM_LEFT",
         )
         self.debug_component2D.color = (0.7, 0.5, 0.6, 0.6)
-        self.debug_component2D.color_line = (0.7, 0.8, 0.8, 0.9)
         self.debug_component2D.hasLine = True
+        self.debug_component2D.colorLine = (0.7, 0.8, 0.8, 0.9)
         self.debug_component2D.lineThickness = 3
 
         self.debug_Text2D = Text2D(
@@ -201,7 +209,7 @@ class BL_UI_ShotStack:
         # check if the components list matches the shots list
         if not rebuildList:
             shotCompoInd = 0
-            for i, shot in enumerate(shots):
+            for _i, shot in enumerate(shots):
                 if self.shotComponents[shotCompoInd].shot != shot:
                     rebuildList = True
                     break
@@ -212,7 +220,7 @@ class BL_UI_ShotStack:
             self.shotComponents = []
 
             lane = 1
-            for i, shot in enumerate(shots):
+            for _i, shot in enumerate(shots):
                 shotCompo = ShotClipComponent(self.target_area, posY=lane, shot=shot)
                 shotCompo.opacity = self.opacity
                 shotCompo.color_text = self.color_text
@@ -344,8 +352,7 @@ class BL_UI_ShotStack:
         props = self.context.scene.UAS_shot_manager_props
 
         # Debug - red rectangle ####################
-        drawDebugRect = True
-        if drawDebugRect:
+        if self.drawDebugComponents:
             height = 20
             lane = 5
             startframe = 160
@@ -363,8 +370,8 @@ class BL_UI_ShotStack:
             # Quad object
             ###############################
 
-            #  self.debug_quadObject_Ruler.draw(None, self.context.region)
-            # self.debug_quadObject_test.draw(None, self.context.region)
+            # self.debug_quadObject_Ruler.draw(None, self.context.region)
+            self.debug_quadObject_test.draw(None, self.context.region)
             # self.debug_quadObject.draw(None, self.context.region)
             self.debug_component2D.draw(None, self.context.region)
             self.debug_Text2D.draw(None, self.context.region)
@@ -395,7 +402,7 @@ class BL_UI_ShotStack:
 
     def cancelAction(self):
         # TODO restore the initial
-        _logger.debug_ext("Canceling Shot Stack action", col="ORANGE", tag="SHOTSTACK_EVENT")
+        _logger.debug_ext("Canceling Shot Stack action 22", col="ORANGE", tag="SHOTSTACK_EVENT")
         if self.manipulated_clip:
             self.manipulated_clip.highlight = False
             self.manipulated_clip = None
@@ -423,17 +430,19 @@ class BL_UI_ShotStack:
         if event.type not in ["TIMER"]:
             _logger.debug_ext(f"event: type: {event.type}, value: {event.value}", col="GREEN", tag="SHOTSTACK_EVENT")
 
-        #  match (event.type, event.value):     # only working with Python 3.10...
-        if "PRESS" == event.value and event.type in ("RIGHTMOUSE", "ESC", "WINDOW_DEACTIVATE"):
-            # case ("RIGHTMOUSE", "PRESS") | ("ESC", "PRESS") | ("WINDOW_DEACTIVATE", "PRESS"):
-            self.cancelAction()
-            event_handled = True
-        else:
-            for shotCompo in self.shotComponents:
-                event_handled = shotCompo.handle_event(context, event)
+        for shotCompo in self.shotComponents:
+            if not shotCompo.isVisible:
+                continue
+            event_handled = shotCompo.handle_event(context, event)
+            if event_handled:
+                break
 
-            if not event_handled:
-
+        if True:
+            #  if True and not event_handled:
+            if "PRESS" == event.value and event.type in ("RIGHTMOUSE", "ESC", "WINDOW_DEACTIVATE"):
+                self.cancelAction()
+                event_handled = True
+            else:
                 for uiShot in self.ui_shots:
                     # if uiShot.handle_event(context, event, region):
                     #     event_handled = True
@@ -472,7 +481,7 @@ class BL_UI_ShotStack:
                                 if counter - uiShot.prev_click < 0.3:  # Double click.
                                     # props.setCurrentShotByIndex(uiShot.shot_index, changeTime=False)
                                     mouse_frame = int(region.view2d.region_to_view(event.mouse_x - region.x, 0)[0])
-                                    context.scene.frame_current = mouse_frame
+                                    #   context.scene.frame_current = mouse_frame
                                     bpy.ops.uas_shot_manager.set_current_shot(
                                         index=uiShot.shot_index,
                                         calledFromShotStack=True,
@@ -488,7 +497,7 @@ class BL_UI_ShotStack:
                                 #  bpy.ops.ed.undo_push(message=f"Change Shot...")
                                 # self.manipulated_clip = None
                                 # self.manipulated_clip_handle = None
-                                # print("Titi")
+                                print("Tutu Release")
                                 self.cancelAction()
                             # event_handled = False
 
@@ -527,6 +536,7 @@ class BL_UI_ShotStack:
                                 # self.manipulated_clip = None
                                 # self.manipulated_clip_handle = None
                                 # print("tata")
+                                print("tata Release")
                                 self.cancelAction()
                                 event_handled = True
 

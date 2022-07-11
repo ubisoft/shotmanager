@@ -124,11 +124,11 @@ class Component2D(InteractiveComponent, QuadObject):
         #     case (True, True):
         #         widColor = self.color_selected_highlight
 
-        if shader is None:
-            UNIFORM_SHADER_2D.bind()
-            color = set_color_alpha(widColor, alpha_to_linear(widColor[3] * self.opacity))
-            UNIFORM_SHADER_2D.uniform_float("color", color_to_sRGB(color))
-            shader = UNIFORM_SHADER_2D
+        # if shader is None:
+        #     UNIFORM_SHADER_2D.bind()
+        #     color = set_color_alpha(widColor, alpha_to_linear(widColor[3] * self.opacity))
+        #     UNIFORM_SHADER_2D.uniform_float("color", color_to_sRGB(color))
+        #     shader = UNIFORM_SHADER_2D
 
         QuadObject.draw(self, shader, region, draw_types, cap_lines)
 

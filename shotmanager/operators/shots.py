@@ -159,7 +159,7 @@ class UAS_ShotManager_SetCurrentShot(Operator):
         prefs = bpy.context.preferences.addons["shotmanager"].preferences
         shot = props.getShotByIndex(self.index)
 
-        _logger.debug_ext("Set Current Shot Operator exec: ", col="RED")
+   #     _logger.debug_ext("Set Current Shot Operator exec: ", col="RED")
 
         def _updateEditors(changeTime=True, zoom_mode=""):
             # change time range to match shot range

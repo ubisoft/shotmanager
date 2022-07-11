@@ -167,15 +167,15 @@ class UAS_ShotManager_InteractiveShotsStack(Operator):
         # wkip: mouse release out of the region have to be taken into account
 
         # events canceling the action
-        for widget in self.widgets:
-            if widget.manipulated_clip:
-                if (
-                    (event.type == "LEFTMOUSE" and event.value == "RELEASE")
-                    or (event.type == "RIGHTMOUSE" and event.value == "RELEASE")
-                    or (event.type == "ESC" and event.value == "RELEASE")
-                ):
-                    widget.cancelAction()
-                    event_handled = True
+        # for widget in self.widgets:
+        #     if widget.manipulated_clip:
+        #         if (
+        #             (event.type == "LEFTMOUSE" and event.value == "RELEASE")
+        #             or (event.type == "RIGHTMOUSE" and event.value == "RELEASE")
+        #             or (event.type == "ESC" and event.value == "RELEASE")
+        #         ):
+        #             widget.cancelAction()
+        #             event_handled = True
 
         # events doing the action
         if not event_handled:

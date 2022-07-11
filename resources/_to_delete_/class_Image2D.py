@@ -19,10 +19,13 @@
 Useful entities for 2D gpu drawings
 """
 
+import os
+
 import bpy
 import gpu
 import bgl
 from gpu_extras.batch import batch_for_shader
+
 
 from shotmanager.utils.utils_ogl import clamp_to_region
 
@@ -36,7 +39,6 @@ UNIFORM_SHADER_2D = gpu.shader.from_builtin("2D_UNIFORM_COLOR")
 
 class Image2D:
     def __init__(self, position, width, height):
-        import os
 
         # IMAGE_NAME = "Untitled"
         IMAGE_NAME = os.path.join(os.path.dirname(__file__), "../../icons/ShotMan_EnabledCurrentCam.png")

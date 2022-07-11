@@ -69,21 +69,14 @@ class QuadObject(Object2D, Mesh2D):
         )
         Mesh2D.__init__(self)
 
-        self.opacity = 1.0
-
-        # attributes from MESH2D #########
-        self.color = (0.9, 0.9, 0.0, 0.9)
-        self.hasFill = True
-        # contour
-        self.hasLine = False
-        self.color_line = (0.9, 0.9, 0.9, 1.0)
+        # # attributes from MESH2D #########
+        # self.color = (0.9, 0.9, 0.0, 0.9)
+        # self.hasFill = True
+        # # contour
+        # self.hasLine = False
+        # self.colorLine = (0.9, 0.9, 0.9, 1.0)
 
         self.displayOverRuler = displayOverRuler
-
-        # bBox is defined by [xMin, YMin, xMax, yMax], in pixels in region CS (so bottom left, compatible with mouse position)
-        self._bBox = [0, 0, 1, 1]
-        self._clamped_bBox = self._bBox.copy()
-        self.isFullyClamped = False
 
         self.rebuild_rectangle_mesh(0, 0, 1, 1)
 
@@ -104,22 +97,37 @@ class QuadObject(Object2D, Mesh2D):
             indices.append((1, 2))
         return indices
 
-    def _getFillShader(self, shader):
-        if shader is None:
-            UNIFORM_SHADER_2D.bind()
-            color = set_color_alpha(self.color, alpha_to_linear(self.color[3] * self.opacity))
-            UNIFORM_SHADER_2D.uniform_float("color", color_to_sRGB(color))
-            shader = UNIFORM_SHADER_2D
+    def updateTexCoords(self):
+        # self._texcoords = [(0, 0), (0, 1), (1, 1), (1, 0)]
+        texCoords = []
 
-        return shader
+        width = self.getWidthInRegion(clamped=False)
+        height = self.getHeightInRegion(clamped=False)
 
-    def _getLineShader(self, shader):
-        UNIFORM_SHADER_2D.bind()
-        color = set_color_alpha(self.color_line, alpha_to_linear(self.color_line[3] * self.opacity))
-        UNIFORM_SHADER_2D.uniform_float("color", color_to_sRGB(color))
-        shader = UNIFORM_SHADER_2D
+        # bottom left
+        blX = (self._clamped_bBox[0] - self._bBox[0]) / width
+        blY = (self._clamped_bBox[1] - self._bBox[1]) / height
+        texCoords.append((blX, blY))
+        # top left
+        tlX = blX
+        tlY = 1.0 - (self._bBox[3] - self._clamped_bBox[3]) / height
+        texCoords.append((tlX, tlY))
+        # top right
+        trX = 1.0 - (self._bBox[2] - self._clamped_bBox[2]) / width
+        trY = tlY
+        texCoords.append((trX, trY))
+        # bottom right
+        brX = trX
+        brY = blY
+        texCoords.append((brX, brY))
 
-        return shader
+        self._texcoords = texCoords
+
+    #################################################################
+
+    # drawing ##########
+
+    #################################################################
 
     # override Mesh2D
     def draw(self, shader=None, region=None, draw_types="TRIS", cap_lines=False):
@@ -253,11 +261,16 @@ class QuadObject(Object2D, Mesh2D):
         # posY = int(posY)
         # height = int(height)
 
-        # if not self.heightIsInRegionCS and 1 == self.height:
-        #     height = 1 * (
-        #         utils_editors_dopesheet.getLaneToValue(self.posY - 1)
-        #         - utils_editors_dopesheet.getLaneToValue(self.posY)
-        #     )
+        if self.avoidClamp_leftSide and self.parent:
+            #  print(f"\nself._bBox[0]: {self._bBox[0]}, self._clamped_bBox[0]: {self._clamped_bBox[0]}")
+            if self.parent._bBox[0] < self.parent._clamped_bBox[0]:
+                offset = self.avoidClamp_leftSideOffset
+                parentClampedWidth = self.parent.getWidthInRegion()
+                if width + offset * 2 < parentClampedWidth:
+                    #   self.inheritPosFromParent = False
+                    posX = offset
+                else:
+                    posX = offset - (width + offset * 2 - parentClampedWidth)
 
         # posX and posY are the origin of the mesh, where the pivot is located
         # all those values are in pixels, in region CS
@@ -299,15 +312,27 @@ class QuadObject(Object2D, Mesh2D):
         ]
         self._clamped_bBox = clamped_bBox
 
+        # rebuilt the texture coordinates
+        self.updateTexCoords()
+
         if self.hasFill:
-            fillShader = self._getFillShader(shader)
+            fillShader = shader
+            # fillShader = None
+            if not fillShader:
+                fillShader = self._getFillShader()
+            draw_types = "TRIS"
             self._drawMesh(fillShader, region, draw_types, cap_lines, clamped_transformed_vertices)
 
         if self.hasLine:
             edgeIndices = self.getEdgeIndices(bBox, clamped_bBox)
-            lineShader = self._getLineShader(shader)
+            lineShader = self._getLineShader()
             draw_types = "LINES"
             self._drawMesh(lineShader, region, draw_types, cap_lines, clamped_transformed_vertices, edgeIndices)
+
+        if self.hasTexture:
+            textureShader = self._getTextureShader()
+            draw_types = "TRI_FAN"
+            self._drawMesh(textureShader, region, draw_types, cap_lines, clamped_transformed_vertices)
 
         if False:
             draw_bBox(self._bBox, color=(0, 1, 1, 1))

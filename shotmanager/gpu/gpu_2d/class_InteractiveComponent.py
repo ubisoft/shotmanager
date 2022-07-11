@@ -71,13 +71,12 @@ class InteractiveComponent:
         return False
 
     # to override in classes inheriting from this class:
-    def handle_event_custom(self, context, event, region):
-        event_handled = False
+    def _event_highlight(self, context, event, region):
         mouseIsInBBox = False
 
         # for debug, used to interupt for breakpoint:
-        if event.type == "G":
-            print("Debug G key")
+        # if event.type == "G":
+        #     print("Debug G key")
 
         mouseIsInBBox = self.isInBBox(event.mouse_x - region.x, event.mouse_y - region.y)
 
@@ -92,6 +91,30 @@ class InteractiveComponent:
                 if self.isHighlighted:
                     self.isHighlighted = False
                     config.gRedrawShotStack = True
+
+    # to override in classes inheriting from this class:
+    def _handle_event_custom(self, context, event, region):
+        event_handled = False
+        mouseIsInBBox = False
+
+        mouseIsInBBox = self.isInBBox(event.mouse_x - region.x, event.mouse_y - region.y)
+
+        # for debug, used to interupt for breakpoint:
+        if mouseIsInBBox:
+            if event.type == "G":
+                print("Debug G key")
+
+        # # highlight ##############
+        # if event.type in ["MOUSEMOVE", "INBETWEEN_MOUSEMOVE"]:
+        #     if mouseIsInBBox:
+        #         if not self.isHighlighted:
+        #             self.isHighlighted = True
+        #             # _logger.debug_ext("component2D handle_events set highlighte true", col="PURPLE", tag="EVENT")
+        #             config.gRedrawShotStack = True
+        #     else:
+        #         if self.isHighlighted:
+        #             self.isHighlighted = False
+        #             config.gRedrawShotStack = True
 
         # # selection ##############
         # if event.type == "LEFTMOUSE":
@@ -108,7 +131,7 @@ class InteractiveComponent:
 
     def handle_event(self, context, event):
         """handle event for InteractiveSpace operator"""
-        _logger.debug_ext(" component2D handle_events", col="PURPLE", tag="EVENT")
+        # _logger.debug_ext(" component2D handle_events", col="PURPLE", tag="EVENT")
 
         event_handled = False
         region, area = self.get_region_at_xy(context, event.mouse_x, event.mouse_y, "DOPESHEET_EDITOR")
@@ -116,21 +139,25 @@ class InteractiveComponent:
         # get only events in the target area
         # wkip: mouse release out of the region have to be taken into account
 
+        self._event_highlight(context, event, region)
+        event_handled = self._handle_event_custom(context, event, region)
+
         # events doing the action
-        if not event_handled:
-            if self.targetArea is not None and area == self.targetArea:
-                if region:
-                    # if ignoreWidget(bpy.context):
-                    #     return False
-                    # else:
+        # if not event_handled:
+        #     if self.targetArea is not None and area == self.targetArea:
+        #         if region:
+        #             # if ignoreWidget(bpy.context):
+        #             #     return False
+        #             # else:
 
-                    # children
-                    # for widget in self.widgets:
-                    #     if widget.handle_event(context, event, region):
-                    #         event_handled = True
-                    #         break
+        #             # children
+        #             # for widget in self.widgets:
+        #             #     if widget.handle_event(context, event, region):
+        #             #         event_handled = True
+        #             #         break
 
-                    # self
-                    event_handled = self.handle_event_custom(context, event, region)
+        #             # self
+        #             self._event_highlight(context, event, region)
+        #             event_handled = self._handle_event_custom(context, event, region)
 
         return event_handled

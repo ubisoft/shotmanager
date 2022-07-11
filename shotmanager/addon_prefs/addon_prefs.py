@@ -842,6 +842,15 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
         default=True,
     )
 
+    intShStack_opacity: FloatProperty(
+        name="Shots Stack Opacity",
+        description="Opacity of the Interactive Shots Stack clips in the dopesheet editor",
+        min=0.0,
+        max=1.0,
+        step=0.05,
+        default=0.7,
+    )
+
     ###################################
     # Camera HUD ######################
     ###################################

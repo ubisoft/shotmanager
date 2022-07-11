@@ -101,3 +101,15 @@ def draw_bBox(bBox, thickness=1, color=(1.0, 1.0, 1.0, 1.0), drawDiagonal=True):
     batch = batch_for_shader(shader, "LINES", {"pos": vertices}, indices=indices)
     bgl.glLineWidth(lineThickness)
     batch.draw(shader)
+
+
+# def loadImageAsTexture(img):
+#     """Args:
+#     img: a data Image type, got from utils.getDataImageFromPath for instance"""
+#     texture = None
+#     if img:
+#         if img.gl_load():
+#             _logger.error_ext(f"Error in loading image as a texture: {img}")
+#             # raise Exception()
+#             img = None
+#     return texture

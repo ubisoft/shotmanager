@@ -45,7 +45,9 @@ class UAS_UL_ShotManager_Storyboard_Items(bpy.types.UIList):
         # display_getsetcurrentframe_in_shotlist = props.display_getsetcurrentframe_in_shotlist
         display_getsetcurrentframe_in_shotlist = False
 
-        cam = "Cam" if current_shot_index == index else ""
+        currentIconIsOrange = True
+        orange = "_Orange" if currentIconIsOrange == index else ""
+        cam = f"Cam{orange}" if current_shot_index == index else ""
         currentFrame = context.scene.frame_current
 
         # check if the camera still exists in the scene
