@@ -30,6 +30,8 @@ from shotmanager.gpu.gpu_2d.class_Component2D import Component2D
 from shotmanager.gpu.gpu_2d.class_Text2D import Text2D
 from shotmanager.gpu.gpu_2d.class_QuadObject import QuadObject
 
+from .shots_stack_handle_component import ShotHandleComponent
+
 # from shotmanager.gpu.gpu_2d.gpu_2d import loadImageAsTexture
 
 from shotmanager.utils import utils
@@ -46,7 +48,7 @@ UNIFORM_SHADER_2D = gpu.shader.from_builtin("2D_UNIFORM_COLOR")
 
 
 class ShotClipComponent(Component2D):
-    """Interactive shot component"""
+    """Shot clip component"""
 
     def __init__(self, targetArea, posY=2, shot=None):
         Component2D.__init__(
@@ -64,20 +66,9 @@ class ShotClipComponent(Component2D):
             alignmentToRegion="TOP_LEFT",
         )
 
-        # events #################
-        self.prev_click = 0
-        self.isManipulated = False
-
-        self.prev_mouse_x = 0
-        self.prev_mouse_y = 0
-        self.frame_under_mouse = -1
-
-        self.mouseFrame = 0
-        self.previousMouseFrame = 0
-
         # shot ###################
-        self.isCurrent = False
         self.shot = shot
+        self.isCurrent = False
 
         self.color = (0.5, 0.6, 0.6, 0.9)
         self.color_highlight = (0.6, 0.9, 0.6, 0.9)
@@ -131,8 +122,18 @@ class ShotClipComponent(Component2D):
         self.currentShotImage.avoidClamp_leftSide = True
         self.currentShotImage.avoidClamp_leftSideOffset = self.currentShotImage.posX
 
-    #################################################################
+        # start handle component ######
+        self.handleStart = ShotHandleComponent(
+            targetArea, posY=0, alignment="BOTTOM_LEFT", parent=self, shot=self.shot, isStart=True
+        )
 
+        # end handle component ########
+        self.handleEnd = ShotHandleComponent(
+            targetArea, posY=0, alignment="BOTTOM_RIGHT", parent=self, shot=self.shot, isStart=False
+        )
+
+    #################################################################
+    # functions ########
     #################################################################
 
     # override QuadObject
@@ -190,6 +191,7 @@ class ShotClipComponent(Component2D):
     # override Component2D
     def draw(self, shader=None, region=None, draw_types="TRIS", cap_lines=False):
 
+        # wkip put all that in the FillShader fct?
         if self.shot.enabled:
             self.color = self.shot.color
             self.textComponent.color = self.color_text
@@ -211,7 +213,7 @@ class ShotClipComponent(Component2D):
         else:
             self.hasLine = False
 
-        # text ############
+        # text ########################
         self.textComponent.text = self.shot.name
         # vertically center the text + add a small offset to compensate the lower part of the font
         # self.textComponent.posY = int(getLaneHeight() * (0.06 + 0.5))
@@ -230,7 +232,11 @@ class ShotClipComponent(Component2D):
         self.textComponent.posX = 10
         self.textComponent.avoidClamp_leftSideOffset = 10
 
-        # current shot image #####
+        # current shot image ##########
+        imgHeight = int(getLaneHeight() * 0.85)
+        self.currentShotImage.height = imgHeight
+        self.currentShotImage.width = imgHeight
+
         if self.isCurrent:
             offsetFromImage = 7
             self.currentShotImage.isVisible = True
@@ -243,6 +249,9 @@ class ShotClipComponent(Component2D):
                 self.currentShotImage.image = self.imageCamSelected
         else:
             self.currentShotImage.isVisible = False
+
+        # handles #####################
+        # -
 
         # children such as the text2D are drawn in Component2D
         Component2D.draw(self, None, region, draw_types, cap_lines)

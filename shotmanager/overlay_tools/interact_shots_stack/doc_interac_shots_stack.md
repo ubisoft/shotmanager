@@ -18,10 +18,33 @@
                                     - Start and end interactive handles on a clip
 
 
+## See classes inheritance here: [GPU 2D Components](../../gpu/gpu_2d/doc_gpu_2d_components)
+
+## To do:
+
+- echap et validation ou cancel
+- Store the state of shots before the action and restore it if action canceled
+- validate the action with Enter
+
+- handles
+
+- faire marcher compact mode
+
+- undo
+
+- display des options sur les 2 dopesheets
+
+- option pour single current shot
+
+---------------------
+
+- *** Remove the DrawAll debug flag
+- *** re activate the escape keys
+
+- Have an option so that the current time match the time of the start or end time of the clip being manipulated
+
 ## To do
 
-- See how to cut the name of the shot instead of having it desappear at the left side of the timeline
-- Clamp the shot clips when they ovelap with the time ruler
 - Have an icon by type of shot
 - See when they are locked
 - Set a better UI scaling based on remap

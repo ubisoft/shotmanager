@@ -320,3 +320,6 @@ class Text2D(Object2D):
         # draw tripod
         if False:
             draw_tripod(pivot_posX, pivot_posY, 20)
+
+        for child in self._children:
+            child.draw(None, region)

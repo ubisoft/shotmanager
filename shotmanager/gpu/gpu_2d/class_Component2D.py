@@ -90,15 +90,25 @@ class Component2D(InteractiveComponent, QuadObject):
     def isInBBox(self, ptX, ptY):
         """Return True if the specified location is in the bbox of this InteractiveComponent instance
         ptX and ptY are in pixels, in region coordinate system
+
+        NOTE: bBox is defined by [xMin, YMin, xMax, yMax], in pixels in region CS (so bottom left, compatible with mouse position)
+        In the bounding boxes, the max values, corresponding to pixel coordinates, are NOT included in the component
+        Consequently the width of the rectangle, in pixels belonging to it, is given by xMax - xMin (and NOT xMax - xMin + 1 !)
         """
         if not self.isFullyClamped:
             # if self._bBox[0] <= ptX <= self._bBox[2] and self._bBox[1] <= ptY <= self._bBox[3]:
             if (
-                self._clamped_bBox[0] <= ptX <= self._clamped_bBox[2]
-                and self._clamped_bBox[1] <= ptY <= self._clamped_bBox[3]
+                self._clamped_bBox[0] <= ptX < self._clamped_bBox[2]
+                and self._clamped_bBox[1] <= ptY < self._clamped_bBox[3]
             ):
                 return True
         return False
+
+    #################################################################
+
+    # drawing ##########
+
+    #################################################################
 
     # override Mesh2D
     def draw(self, shader=None, region=None, draw_types="TRIS", cap_lines=False):
@@ -124,13 +134,4 @@ class Component2D(InteractiveComponent, QuadObject):
         #     case (True, True):
         #         widColor = self.color_selected_highlight
 
-        # if shader is None:
-        #     UNIFORM_SHADER_2D.bind()
-        #     color = set_color_alpha(widColor, alpha_to_linear(widColor[3] * self.opacity))
-        #     UNIFORM_SHADER_2D.uniform_float("color", color_to_sRGB(color))
-        #     shader = UNIFORM_SHADER_2D
-
         QuadObject.draw(self, shader, region, draw_types, cap_lines)
-
-        for child in self._children:
-            child.draw(None, region)

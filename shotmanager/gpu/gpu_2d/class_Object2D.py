@@ -137,8 +137,11 @@ class Object2D:
         self.inheritPosFromParent = True
 
         # boundary box and clamping ########
-        # bBox is defined by [xMin, YMin, xMax, yMax], in pixels in region CS (so bottom left, compatible with mouse position)
-        # pixels at xMax and yMax are INCLUDED in the boundary box
+        ####################################
+        # NOTE: bBox is defined by [xMin, YMin, xMax, yMax], in pixels in region CS (so bottom left, compatible with mouse position)
+        # In the bounding boxes, the max values, corresponding to pixel coordinates, are NOT included in the component
+        # Consequently the width of the rectangle, in pixels belonging to it, is given by xMax - xMin (and NOT xMax - xMin + 1 !)
+
         self._bBox = [0, 0, 1, 1]
         if self.widthIsInRegionCS:
             self._bBox[2] = self.width
@@ -162,14 +165,18 @@ class Object2D:
 
     def getWidthInRegion(self, clamped=True):
         """Return the width of the object in pixels, in the region CS"""
+        # NOTE: in the bounding boxes, the max values, corresponding to pixel coordinates, are NOT included in the component
+        # Consequently the width of the rectangle, in pixels belonging to it, is given by xMax - xMin (and NOT xMax - xMin + 1 !)
         if clamped:
-            return 0 if self.isFullyClamped else self._clamped_bBox[2] - self._clamped_bBox[0] + 1
+            return 0 if self.isFullyClamped else self._clamped_bBox[2] - self._clamped_bBox[0]
         else:
-            return self._bBox[2] - self._bBox[0] + 1
+            return self._bBox[2] - self._bBox[0]
 
     def getHeightInRegion(self, clamped=True):
         """Return the height of the object in pixels, in the region CS"""
+        # NOTE: in the bounding boxes, the max values, corresponding to pixel coordinates, are NOT included in the component
+        # Consequently the width of the rectangle, in pixels belonging to it, is given by xMax - xMin (and NOT xMax - xMin + 1 !)
         if clamped:
-            return o if self.isFullyClamped else self._clamped_bBox[3] - self._clamped_bBox[1] + 1
+            return o if self.isFullyClamped else self._clamped_bBox[3] - self._clamped_bBox[1]
         else:
-            return self._bBox[3] - self._bBox[1] + 1
+            return self._bBox[3] - self._bBox[1]

@@ -41,6 +41,21 @@ class InteractiveComponent:
         self.isHighlighted = False
         self.isSelected = False
 
+        # events #################
+        self.prev_click = 0
+        self.isManipulated = False
+
+        self.prev_mouse_x = 0
+        self.prev_mouse_y = 0
+        self.frame_under_mouse = -1
+
+        self.mouseFrame = 0
+        self.previousMouseFrame = 0
+
+    #################################################################
+    # functions ########
+    #################################################################
+
     def get_region_at_xy(self, context, x, y, area_type="VIEW_3D"):
         """Return the region and the area containing this region
         Does not support quadview right now
@@ -66,9 +81,19 @@ class InteractiveComponent:
     def isInBBox(self, ptX, ptY):
         """Return True if the specified location is in the bbox of this InteractiveComponent instance
         ptX and ptY are in screen coordinate system
+
+        NOTE: bBox is defined by [xMin, YMin, xMax, yMax], in pixels in region CS (so bottom left, compatible with mouse position)
+        In the bounding boxes, the max values, corresponding to pixel coordinates, are NOT included in the component
+        Consequently the width of the rectangle, in pixels belonging to it, is given by xMax - xMin (and NOT xMax - xMin + 1 !)
         """
         # ptX_inRegion =
         return False
+
+    #################################################################
+
+    # zevents ##########
+
+    #################################################################
 
     # to override in classes inheriting from this class:
     def _event_highlight(self, context, event, region):

@@ -340,3 +340,7 @@ class QuadObject(Object2D, Mesh2D):
         # draw tripod
         if False:
             draw_tripod(self._pivot_posX, self._pivot_posY, 20)
+
+        # draw chikdren
+        for child in self._children:
+            child.draw(None, region)
