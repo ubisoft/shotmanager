@@ -48,7 +48,7 @@ UNIFORM_SHADER_2D = gpu.shader.from_builtin("2D_UNIFORM_COLOR")
 class ShotHandleComponent(Component2D):
     """Handle for shot clip component"""
 
-    def __init__(self, targetArea, posY=2, alignment="BOTTOM_LEFT", parent=None, shot=None, isStart=True):
+    def __init__(self, targetArea, posY=2, width=32, alignment="BOTTOM_LEFT", parent=None, shot=None, isStart=True):
         Component2D.__init__(
             self,
             targetArea,
@@ -57,7 +57,7 @@ class ShotHandleComponent(Component2D):
             posYIsInRegionCS=True,
             posY=posY,
             widthIsInRegionCS=True,
-            width=32,
+            width=width,
             heightIsInRegionCS=True,
             height=1,
             alignment=alignment,
@@ -67,18 +67,14 @@ class ShotHandleComponent(Component2D):
 
         # shot ###################
         self.shot = shot
+        self.zOrder = -1.0
 
         self.isStart = isStart
 
         self.color = self.shot.color
 
-        if self.isStart:
-            # green
-            self.color_highlight = (0.2, 0.9, 0.2, 1)
-        else:
-            # orange
-            self.color_highlight = (0.2, 0.9, 0.2, 1)
-
+        # green or orange
+        self.color_highlight = (0.2, 0.9, 0.2, 1) if self.isStart else (0.7, 0.3, 0.0, 1)
         self.color_selected = (0.6, 0.9, 0.9, 0.9)
         self.color_selected_highlight = (0.6, 0.9, 0.9, 0.9)
 
@@ -106,7 +102,8 @@ class ShotHandleComponent(Component2D):
                 opacity = clamp(1.1 * opacity, 0, 1)
 
         elif self.isHighlighted:
-            widColor = lighten_color(widColor, 0.1)
+            # widColor = lighten_color(widColor, 0.1)
+            widColor = self.color_highlight
             opacity = clamp(1.2 * opacity, 0, 1)
 
         color = set_color_alpha(widColor, alpha_to_linear(widColor[3] * opacity))
@@ -125,9 +122,15 @@ class ShotHandleComponent(Component2D):
         # handleHeight = getLaneHeight()        # NO!
         handleHeight = self.parent.getHeightInRegion(clamped=False)
         self.height = handleHeight
-        self.width = int(handleHeight * 0.5)
+        # self.width = int(handleHeight * 0.5)
 
         self.posX = 0 if self.isStart else self.parent.getWidthInRegion(clamped=False)
 
         # children such as the text2D are drawn in Component2D
         Component2D.draw(self, None, region, draw_types, cap_lines)
+
+    #################################################################
+
+    # events ###########
+
+    #################################################################

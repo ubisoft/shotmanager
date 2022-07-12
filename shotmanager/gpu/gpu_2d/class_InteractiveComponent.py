@@ -155,7 +155,7 @@ class InteractiveComponent:
         return event_handled
 
     def handle_event(self, context, event):
-        """handle event for InteractiveSpace operator"""
+        """handle event for InteractiveComponent operator"""
         # _logger.debug_ext(" component2D handle_events", col="PURPLE", tag="EVENT")
 
         event_handled = False

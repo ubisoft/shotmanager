@@ -85,6 +85,9 @@ class Text2D(Object2D):
 
     #################################################################
 
+    def _getFontSizeForGlDraw(self):
+        return round(self.fontSize * getPrefsUIScale())
+
     def _drawText(self, shader=None, region=None, pX=10, pY=10):
         # bgl.glDisable(bgl.GL_BLEND)
 
@@ -112,7 +115,7 @@ class Text2D(Object2D):
             # blf.shadow_offset(0, 1, -1)
 
         blf.color(0, *self.color)
-        blf.size(0, round(self.fontSize * getPrefsUIScale()), 72)
+        blf.size(0, self._getFontSizeForGlDraw(), 72)
         blf.position(0, pX, pY, 0)
 
         blf.draw(0, self.text)
@@ -124,8 +127,8 @@ class Text2D(Object2D):
         blf.disable(0, blf.SHADOW)
 
     def draw(self, shader=None, region=None):
-        if not self.isVisible:
-            return
+        # if not self.isVisible:
+        #     return
 
         # aligment to region ###############
         alignmentsR = self.alignmentToRegion.split("_")
@@ -170,7 +173,7 @@ class Text2D(Object2D):
         #         posX_inRegion = region.view2d.view_to_region(self.posX, 0, clip=False)[0]
 
         #     width = region.view2d.view_to_region(posX_inView + self.width, 0, clip=False)[0] - posX_inRegion
-        blf.size(0, round(self.fontSize * getPrefsUIScale()), 72)
+        blf.size(0, self._getFontSizeForGlDraw(), 72)
         width = blf.dimensions(0, self.text)[0]
         height = blf.dimensions(0, self.text)[1]
 
@@ -246,24 +249,11 @@ class Text2D(Object2D):
         # vertical
         if "TOP" == alignment_y:
             posY = posY - height
-            # if self.posYIsInRegionCS:
-            # else:
         elif "MID" == alignment_y:
             posY = posY - height / 2
 
-        # posY = int(posY)
-        # height = int(height)
-
         if self.avoidClamp_leftSide and self.parent:
-            #  print(f"\nself._bBox[0]: {self._bBox[0]}, self._clamped_bBox[0]: {self._clamped_bBox[0]}")
-            if self.parent._bBox[0] < self.parent._clamped_bBox[0]:
-                offset = self.avoidClamp_leftSideOffset
-                parentClampedWidth = self.parent.getWidthInRegion()
-                if width + offset * 2 < parentClampedWidth:
-                    #   self.inheritPosFromParent = False
-                    posX = offset
-                else:
-                    posX = offset - (width + offset * 2 - parentClampedWidth)
+            posX = self.recomputePosToAvoidClamping(posX, posY, width, height)[0]
 
         # posX and posY are the origin of the mesh, where the pivot is located
         # all those values are in pixels, in region CS
@@ -305,6 +295,13 @@ class Text2D(Object2D):
         ]
         self._clamped_bBox = clamped_bBox
 
+        ########################################
+        # effective draw
+        ########################################
+
+        if not self.isVisible:
+            return
+
         if shader is None:
             UNIFORM_SHADER_2D.bind()
             color = set_color_alpha(self.color, alpha_to_linear(self.color[3] * self.opacity))
@@ -321,5 +318,7 @@ class Text2D(Object2D):
         if False:
             draw_tripod(pivot_posX, pivot_posY, 20)
 
-        for child in self._children:
+        # get sorted children and draw them. getChildren is inherited from Object2D
+        sortedChildren = self.getChildren(sortedByIncreasingZ=True)
+        for child in sortedChildren:
             child.draw(None, region)

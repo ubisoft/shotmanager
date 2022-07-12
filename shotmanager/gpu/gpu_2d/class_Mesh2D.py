@@ -121,6 +121,12 @@ class Mesh2D:
         if "TRIS" == draw_types:
             if vertex_indices is None:
                 v_indices = self._indices
+
+            # attempt to z-sort but not compatible with 2D_IMAGE for the texture
+            # if 0 != self.z:
+            #     shader = gpu.shader.from_builtin("3D_UNIFORM_COLOR")
+            #     transformed_vertices = [(v[0], v[1], self.z) for v in transformed_vertices]
+
             batch = batch_for_shader(shader, draw_types, {"pos": transformed_vertices}, indices=v_indices)
             batch.draw(shader)
 
@@ -159,8 +165,8 @@ class Mesh2D:
             batch = batch_for_shader(shader, draw_types, {"pos": vertices_inner}, indices=v_indices)
             bgl.glLineWidth(self.lineThickness)
             batch.draw(shader)
-            if cap_lines:
-                batch = batch_for_shader(shader, draw_types, {"pos": vertices_inner})
+            if cap_lines or True:
+                batch = batch_for_shader(shader, "POINTS", {"pos": vertices_inner})
                 bgl.glPointSize(self.lineThickness)
                 batch.draw(shader)
 

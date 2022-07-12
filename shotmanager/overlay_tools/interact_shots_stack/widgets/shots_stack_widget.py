@@ -268,7 +268,45 @@ class BL_UI_ShotStack:
             self.currentShotBorder.draw(None, self.context.region)
 
     def drawShots_compactMode(self):
-        pass
+        return
+        props = self.context.scene.UAS_shot_manager_props
+        self.rebuildShotComponents()
+
+        current_shot_ind = props.getCurrentShotIndex()
+        selected_shot_ind = props.getSelectedShotIndex()
+
+        debug_maxShots = 6
+
+        shotComponentsSorted = sorted(self.shotComponents, key=lambda shotCompo: shotCompo.shot.start)
+
+        shots_from_lane = defaultdict(list)
+
+        for i, shotCompo in enumerate(shotComponentsSorted):
+            if not props.interactShotsStack_displayDisabledShots and not shotCompo.shot.enabled:
+                continue
+            lane = 0
+            if i > 0:
+                for ln, shots_in_lane in shots_from_lane.items():
+                    for s in shots_in_lane:
+                        if s.start <= shotCompo.shot.start <= s.end:
+                            break
+                    else:
+                        lane = ln
+                        break
+                else:
+                    if len(shots_from_lane):
+                        lane = max(shots_from_lane) + 1  # No free lane, make a new one.
+                    else:
+                        lane = ln
+                        pass
+            shots_from_lane[lane].append(shotCompo.shot)
+
+            # s = _getUIShotFromShotIndex(shotTupple[0])
+            # if s is None:
+            #     s = BL_UI_ShotClip(self.context, shotTupple[0])
+            # s.update(lane)
+            # self.ui_shots.append(s)
+            # s.draw()
 
     def draw_shots_old_way(self):
         props = self.context.scene.UAS_shot_manager_props
@@ -324,7 +362,7 @@ class BL_UI_ShotStack:
                 s = _getUIShotFromShotIndex(shotTupple[0])
                 if s is None:
                     s = BL_UI_ShotClip(self.context, shotTupple[0])
-                s.update(lane)
+                s.update(lane + 10)
                 self.ui_shots.append(s)
                 s.draw()
         else:

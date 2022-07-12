@@ -66,6 +66,13 @@ class ShotClipComponent(Component2D):
             alignmentToRegion="TOP_LEFT",
         )
 
+        # preferences ############
+        self.pref_handleWidth = int(getLaneHeight() * 0.5)
+        self.pref_distanceFromParentOrigin = self.pref_handleWidth * 1.5
+        self.pref_distanceFromRegionLeft = self.pref_handleWidth * 0.9
+        self.pref_avoidClamp_spacePreservedOnRight = self.pref_distanceFromParentOrigin
+        self.pref_currentShotImage_width = 20
+
         # shot ###################
         self.shot = shot
         self.isCurrent = False
@@ -93,6 +100,7 @@ class ShotClipComponent(Component2D):
         )
         self.textComponent.hasShadow = True
         self.textComponent.avoidClamp_leftSide = True
+        self.textComponent.avoidClamp_spacePreservedOnRight = self.pref_avoidClamp_spacePreservedOnRight
 
         self.color_text = (0.1, 0.1, 0.1, 1)
         self.color_text_selected = (0.0, 0.0, 0.0, 1)
@@ -105,13 +113,13 @@ class ShotClipComponent(Component2D):
 
         self.currentShotImage = QuadObject(
             posXIsInRegionCS=True,
-            posX=5,
+            posX=self.pref_distanceFromParentOrigin - 0.1 * self.pref_currentShotImage_width,
             posYIsInRegionCS=True,
             posY=0,
             widthIsInRegionCS=True,
-            width=20,
+            width=self.pref_currentShotImage_width,
             heightIsInRegionCS=True,
-            height=20,
+            height=self.pref_currentShotImage_width,
             alignment="MID_LEFT",
             #  alignmentToRegion="TOP_LEFT",
             parent=self,
@@ -120,16 +128,31 @@ class ShotClipComponent(Component2D):
         self.currentShotImage.hasFill = False
         self.currentShotImage.hasTexture = True
         self.currentShotImage.avoidClamp_leftSide = True
-        self.currentShotImage.avoidClamp_leftSideOffset = self.currentShotImage.posX
+        self.currentShotImage.avoidClamp_leftSideOffset = (
+            self.pref_distanceFromRegionLeft - 0.1 * self.pref_currentShotImage_width
+        )
+        self.currentShotImage.avoidClamp_spacePreservedOnRight = self.pref_avoidClamp_spacePreservedOnRight
 
         # start handle component ######
         self.handleStart = ShotHandleComponent(
-            targetArea, posY=0, alignment="BOTTOM_LEFT", parent=self, shot=self.shot, isStart=True
+            targetArea,
+            posY=0,
+            width=self.pref_handleWidth,
+            alignment="BOTTOM_LEFT",
+            parent=self,
+            shot=self.shot,
+            isStart=True,
         )
 
         # end handle component ########
         self.handleEnd = ShotHandleComponent(
-            targetArea, posY=0, alignment="BOTTOM_RIGHT", parent=self, shot=self.shot, isStart=False
+            targetArea,
+            posY=0,
+            width=self.pref_handleWidth,
+            alignment="BOTTOM_RIGHT",
+            parent=self,
+            shot=self.shot,
+            isStart=False,
         )
 
     #################################################################
@@ -218,7 +241,8 @@ class ShotClipComponent(Component2D):
         # vertically center the text + add a small offset to compensate the lower part of the font
         # self.textComponent.posY = int(getLaneHeight() * (0.06 + 0.5))
         self.textComponent.posY = int(getLaneHeight() * (0.00 + 0.5))
-        self.textComponent.fontSize = int(getLaneHeight() * 0.6)
+        self.textComponent.fontSize = 13
+        # self.textComponent.fontSize = int(getLaneHeight() * 0.6)
         if self.isSelected:
             self.textComponent.bold = True
             self.textComponent.color = self.color_text_selected
@@ -229,8 +253,8 @@ class ShotClipComponent(Component2D):
             self.textComponent.color = self.color_text
 
         # automatic offset of the text when the start of the shot disappears on the left side
-        self.textComponent.posX = 10
-        self.textComponent.avoidClamp_leftSideOffset = 10
+        self.textComponent.posX = self.pref_distanceFromParentOrigin
+        self.textComponent.avoidClamp_leftSideOffset = self.pref_distanceFromRegionLeft
 
         # current shot image ##########
         imgHeight = int(getLaneHeight() * 0.85)
@@ -238,17 +262,63 @@ class ShotClipComponent(Component2D):
         self.currentShotImage.width = imgHeight
 
         if self.isCurrent:
-            offsetFromImage = 7
+            offsetFromImage = 5
             self.currentShotImage.isVisible = True
             self.currentShotImage.posY = int(getLaneHeight() * (0.06 + 0.5))
-            self.textComponent.posX = self.currentShotImage.getWidthInRegion() + offsetFromImage
-            self.textComponent.avoidClamp_leftSideOffset = self.currentShotImage.getWidthInRegion() + offsetFromImage
+            self.textComponent.posX = (
+                self.currentShotImage.getWidthInRegion() + self.pref_distanceFromParentOrigin + offsetFromImage
+            )
+            self.textComponent.avoidClamp_leftSideOffset = (
+                self.pref_distanceFromRegionLeft + self.currentShotImage.getWidthInRegion() + offsetFromImage
+            )
             if self.isSelected:
                 self.currentShotImage.image = self.imageCam
             else:
                 self.currentShotImage.image = self.imageCamSelected
         else:
             self.currentShotImage.isVisible = False
+
+        # hide components when clip is too small
+        clipWidth = self.getWidthInRegion(clamped=False)
+
+        if clipWidth <= 2 * self.pref_handleWidth + 8:
+            self.handleStart.isVisible = False
+            self.handleEnd.isVisible = False
+        else:
+            self.handleStart.isVisible = True
+            self.handleEnd.isVisible = True
+
+        clipInnerWidth = clipWidth - 2 * self.pref_distanceFromParentOrigin
+
+        if self.isCurrent:
+            # ideal solution but for some reason text is not restored correctly:
+            if clipInnerWidth < self.textComponent.getWidthInRegion(
+                clamped=False
+            ) + self.currentShotImage.getWidthInRegion(clamped=False):
+                self.textComponent.isVisible = False
+            else:
+                self.textComponent.isVisible = True
+
+            if clipInnerWidth < self.currentShotImage.getWidthInRegion(clamped=False):
+                self.currentShotImage.isVisible = False
+            else:
+                self.currentShotImage.isVisible = True
+
+        else:
+            # ideal solution but for some reason text is not restored correctly:
+            if clipInnerWidth < self.textComponent.getWidthInRegion(clamped=False):
+                self.textComponent.isVisible = False
+            else:
+                self.textComponent.isVisible = True
+
+        # fixed solution (not working either...):
+        # if self.textComponent.isVisible:
+        #     if clipInnerWidth < self.textComponent.getWidthInRegion(clamped=False):
+        #         self.textComponent.isVisible = False
+        # else:
+        #     self.textComponent.isVisible = True
+        #     if clipInnerWidth + self.pref_distanceFromParentOrigin < self.textComponent.getWidthInRegion(clamped=False):
+        #         self.textComponent.isVisible = False
 
         # handles #####################
         # -

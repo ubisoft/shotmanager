@@ -131,8 +131,8 @@ class QuadObject(Object2D, Mesh2D):
 
     # override Mesh2D
     def draw(self, shader=None, region=None, draw_types="TRIS", cap_lines=False):
-        if not self.isVisible:
-            return
+        # if not self.isVisible:
+        #     return
 
         # aligment to region ###############
         alignmentsR = self.alignmentToRegion.split("_")
@@ -258,19 +258,8 @@ class QuadObject(Object2D, Mesh2D):
         elif "MID" == alignment_y:
             posY = posY - height / 2
 
-        # posY = int(posY)
-        # height = int(height)
-
         if self.avoidClamp_leftSide and self.parent:
-            #  print(f"\nself._bBox[0]: {self._bBox[0]}, self._clamped_bBox[0]: {self._clamped_bBox[0]}")
-            if self.parent._bBox[0] < self.parent._clamped_bBox[0]:
-                offset = self.avoidClamp_leftSideOffset
-                parentClampedWidth = self.parent.getWidthInRegion()
-                if width + offset * 2 < parentClampedWidth:
-                    #   self.inheritPosFromParent = False
-                    posX = offset
-                else:
-                    posX = offset - (width + offset * 2 - parentClampedWidth)
+            posX = self.recomputePosToAvoidClamping(posX, posY, width, height)[0]
 
         # posX and posY are the origin of the mesh, where the pivot is located
         # all those values are in pixels, in region CS
@@ -315,6 +304,13 @@ class QuadObject(Object2D, Mesh2D):
         # rebuilt the texture coordinates
         self.updateTexCoords()
 
+        ########################################
+        # effective draw
+        ########################################
+
+        if not self.isVisible:
+            return
+
         if self.hasFill:
             fillShader = shader
             # fillShader = None
@@ -341,6 +337,7 @@ class QuadObject(Object2D, Mesh2D):
         if False:
             draw_tripod(self._pivot_posX, self._pivot_posY, 20)
 
-        # draw chikdren
-        for child in self._children:
+        # get sorted children and draw them. getChildren is inherited from Object2D
+        sortedChildren = self.getChildren(sortedByIncreasingZ=True)
+        for child in sortedChildren:
             child.draw(None, region)

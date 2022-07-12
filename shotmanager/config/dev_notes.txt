@@ -14,6 +14,20 @@ Dialog windows width:
 Doc:
 Mark Down language memo: https://github.com/tchapi/markdown-cheatsheet/blob/master/README.md
 
+
+Urgent:
+    - add Shot Manager icon to the Render Settings panel + about
+    - bug render resolution
+    - size or open explorer but
+    - fix play but
+
+    - affichage nom seq in renderer
+
+    - affichage infos seq
+
+    - shot stack opacity a mettre en %
+
+
 To do V1.7.2 +:
 
     - cleaner notion de projet, les noms donnés aux shots en particulier

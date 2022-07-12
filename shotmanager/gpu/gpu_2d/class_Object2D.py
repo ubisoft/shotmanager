@@ -130,11 +130,17 @@ class Object2D:
 
         self.isVisible = True
 
+        # children ########################
         self._children = list()
         self.parent = parent
         if self.parent:
             self.parent._children.append(self)
         self.inheritPosFromParent = True
+
+        # children may be reorodered when their z order
+        # z is a float that can be negative
+        # the higher the value, the latest it is drawn (= will be drawn over the other, to the front)
+        self.zOrder = 0.0
 
         # boundary box and clamping ########
         ####################################
@@ -154,6 +160,7 @@ class Object2D:
         # in the region without being clamped
         self.avoidClamp_leftSide = False
         self.avoidClamp_leftSideOffset = 10
+        self.avoidClamp_spacePreservedOnRight = 10
 
         # pivot ##################
         self._pivot_posX = 0
@@ -180,3 +187,32 @@ class Object2D:
             return o if self.isFullyClamped else self._clamped_bBox[3] - self._clamped_bBox[1]
         else:
             return self._bBox[3] - self._bBox[1]
+
+    def recomputePosToAvoidClamping(self, posX, posY, width, height):
+        """Used to influence posX and posY (not self.posX not self.posY!!) after their computation to reposition
+        this object inside the region without it being clamped"""
+        # TODO: complete the code with top, right, bottom
+
+        # NOTE: This works well because the component is aligned to the left. Haven't tried with aligned to right...
+        newPosX = posX
+        leftOffset = self.avoidClamp_leftSideOffset
+        if self.parent._bBox[0] < self.parent._clamped_bBox[0]:
+            if self.posX - leftOffset < self.parent._clamped_bBox[0] - self.parent._bBox[0]:
+                parentClampedWidth = self.parent.getWidthInRegion()
+                if width + leftOffset + self.avoidClamp_spacePreservedOnRight < parentClampedWidth:
+                    # self.inheritPosFromParent = False
+                    newPosX = leftOffset
+                else:
+                    newPosX = leftOffset - (
+                        width + leftOffset + self.avoidClamp_spacePreservedOnRight - parentClampedWidth
+                    )
+
+        return [newPosX, posY]
+
+    def getChildren(self, sortedByIncreasingZ=False, reverse=False):
+        """Return a copy of the children list"""
+        if sortedByIncreasingZ:
+            children = sorted(self._children, key=lambda c: c.zOrder, reverse=reverse)
+        else:
+            children = reversed(self._children) if reverse else [c for c in self._children]
+        return children

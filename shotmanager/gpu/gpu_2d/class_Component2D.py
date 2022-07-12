@@ -135,3 +135,54 @@ class Component2D(InteractiveComponent, QuadObject):
         #         widColor = self.color_selected_highlight
 
         QuadObject.draw(self, shader, region, draw_types, cap_lines)
+
+    #################################################################
+
+    # events ###########
+
+    #################################################################
+
+    # override InteractiveComponent to include children
+    def handle_event(self, context, event):
+        """handle event for Componenent2D operator"""
+        # _logger.debug_ext(" component2D handle_events", col="PURPLE", tag="EVENT")
+
+        event_handled = False
+        region, area = self.get_region_at_xy(context, event.mouse_x, event.mouse_y, "DOPESHEET_EDITOR")
+
+        # get only events in the target area
+        # wkip: mouse release out of the region have to be taken into account
+
+        # children
+        # get sorted children and call them. getChildren is inherited from Object2D
+        sortedChildren = self.getChildren(sortedByIncreasingZ=True)
+        for child in sortedChildren:
+            handle_event = getattr(child, "handle_event", None)
+            if callable(handle_event):
+                event_handled = child.handle_event(context, event)
+                if event_handled:
+                    break
+
+        if not event_handled:
+            self._event_highlight(context, event, region)
+            event_handled = self._handle_event_custom(context, event, region)
+
+        # events doing the action
+        # if not event_handled:
+        #     if self.targetArea is not None and area == self.targetArea:
+        #         if region:
+        #             # if ignoreWidget(bpy.context):
+        #             #     return False
+        #             # else:
+
+        #             # children
+        #             # for widget in self.widgets:
+        #             #     if widget.handle_event(context, event, region):
+        #             #         event_handled = True
+        #             #         break
+
+        #             # self
+        #             self._event_highlight(context, event, region)
+        #             event_handled = self._handle_event_custom(context, event, region)
+
+        return event_handled
