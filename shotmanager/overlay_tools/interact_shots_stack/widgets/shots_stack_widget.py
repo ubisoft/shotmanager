@@ -56,7 +56,7 @@ class BL_UI_ShotStack:
     def __init__(self, target_area=None):
         prefs = bpy.context.preferences.addons["shotmanager"].preferences
 
-        self.drawDebugComponents = False
+        self.useDebugComponents = False
 
         self.context = None
         self.target_area = target_area
@@ -109,91 +109,96 @@ class BL_UI_ShotStack:
         self.currentShotBorder.isVisible = False
         # self.currentShotBorder.lineOffsetPerEdge = [0, -1, -1, 0]
 
-        ###############################################
-        # debug
-        ###############################################
-        # height = 20
-        # lane = 3
-        # startframe = 120
-        # numFrames = 15
-        # origin = Vector([startframe, get_lane_origin_y(lane)])
-        # self.debug_mesh = build_rectangle_mesh(origin, numFrames, height)
+        # wip not super clean
+        config.gRedrawShotStack = True
+        config.gRedrawShotStack_preDrawOnly = True
 
-        # this quad is supposed to cover the time ruler all the time to check the top clipping zone
-        # BOTTOM_LEFT TOP_LEFT
-        self.debug_quadObject_Ruler = QuadObject(
-            posXIsInRegionCS=True,
-            posX=0,
-            posYIsInRegionCS=True,
-            posY=0,
-            widthIsInRegionCS=True,
-            width=1900,
-            heightIsInRegionCS=True,
-            height=utils_editors_dopesheet.getRulerHeight(),
-            alignment="TOP_LEFT",
-            alignmentToRegion="TOP_LEFT",
-            displayOverRuler=True,
-        )
-        self.debug_quadObject_Ruler.color = (0.4, 0.0, 0.0, 0.5)
+        if self.useDebugComponents:
+            ###############################################
+            # debug
+            ###############################################
+            # height = 20
+            # lane = 3
+            # startframe = 120
+            # numFrames = 15
+            # origin = Vector([startframe, get_lane_origin_y(lane)])
+            # self.debug_mesh = build_rectangle_mesh(origin, numFrames, height)
 
-        self.debug_quadObject_test = QuadObject(
-            posXIsInRegionCS=False,
-            posX=20,
-            posYIsInRegionCS=False,
-            posY=1,
-            widthIsInRegionCS=False,
-            width=40,
-            heightIsInRegionCS=False,
-            height=10,
-            alignment="TOP_LEFT",
-            alignmentToRegion="TOP_LEFT",
-        )
-        self.debug_quadObject_test.color = (0.0, 0.4, 0.0, 0.5)
-        imgFile = os.path.join(os.path.dirname(__file__), "../../../icons/ShotMan_EnabledCurrentCam.png")
-        self.debug_quadObject_test.setImageFromFile(imgFile)
-        self.debug_quadObject_test.hasTexture = True
+            # this quad is supposed to cover the time ruler all the time to check the top clipping zone
+            # BOTTOM_LEFT TOP_LEFT
+            self.debug_quadObject_Ruler = QuadObject(
+                posXIsInRegionCS=True,
+                posX=0,
+                posYIsInRegionCS=True,
+                posY=0,
+                widthIsInRegionCS=True,
+                width=1900,
+                heightIsInRegionCS=True,
+                height=utils_editors_dopesheet.getRulerHeight(),
+                alignment="TOP_LEFT",
+                alignmentToRegion="TOP_LEFT",
+                displayOverRuler=True,
+            )
+            self.debug_quadObject_Ruler.color = (0.4, 0.0, 0.0, 0.5)
 
-        self.debug_quadObject = QuadObject(
-            posXIsInRegionCS=True,
-            posX=60,
-            posYIsInRegionCS=True,
-            posY=90,
-            widthIsInRegionCS=False,
-            width=25,
-            heightIsInRegionCS=True,
-            height=70,
-            alignment="TOP_LEFT",
-            alignmentToRegion="BOTTOM_RIGHT",
-        )
+            self.debug_quadObject_test = QuadObject(
+                posXIsInRegionCS=False,
+                posX=20,
+                posYIsInRegionCS=False,
+                posY=1,
+                widthIsInRegionCS=False,
+                width=40,
+                heightIsInRegionCS=False,
+                height=10,
+                alignment="TOP_LEFT",
+                alignmentToRegion="TOP_LEFT",
+            )
+            self.debug_quadObject_test.color = (0.0, 0.4, 0.0, 0.5)
+            imgFile = os.path.join(os.path.dirname(__file__), "../../../icons/ShotMan_EnabledCurrentCam.png")
+            self.debug_quadObject_test.setImageFromFile(imgFile)
+            self.debug_quadObject_test.hasTexture = True
 
-        self.debug_component2D = Component2D(
-            self.target_area,
-            posXIsInRegionCS=False,
-            posX=15,
-            posYIsInRegionCS=False,
-            posY=3,
-            widthIsInRegionCS=False,
-            width=20,
-            heightIsInRegionCS=False,
-            height=2,
-            alignment="BOTTOM_LEFT",
-            alignmentToRegion="BOTTOM_LEFT",
-        )
-        self.debug_component2D.color = (0.7, 0.5, 0.6, 0.6)
-        self.debug_component2D.hasLine = True
-        self.debug_component2D.colorLine = (0.7, 0.8, 0.8, 0.9)
-        self.debug_component2D.lineThickness = 3
+            self.debug_quadObject = QuadObject(
+                posXIsInRegionCS=True,
+                posX=60,
+                posYIsInRegionCS=True,
+                posY=90,
+                widthIsInRegionCS=False,
+                width=25,
+                heightIsInRegionCS=True,
+                height=70,
+                alignment="TOP_LEFT",
+                alignmentToRegion="BOTTOM_RIGHT",
+            )
 
-        self.debug_Text2D = Text2D(
-            posXIsInRegionCS=False,
-            posX=25,
-            posYIsInRegionCS=False,
-            posY=6,
-            alignment="BOTTOM_LEFT",
-            alignmentToRegion="BOTTOM_LEFT",
-            text="MyText",
-            fontSize=20,
-        )
+            self.debug_component2D = Component2D(
+                self.target_area,
+                posXIsInRegionCS=False,
+                posX=15,
+                posYIsInRegionCS=False,
+                posY=3,
+                widthIsInRegionCS=False,
+                width=20,
+                heightIsInRegionCS=False,
+                height=2,
+                alignment="BOTTOM_LEFT",
+                alignmentToRegion="BOTTOM_LEFT",
+            )
+            self.debug_component2D.color = (0.7, 0.5, 0.6, 0.6)
+            self.debug_component2D.hasLine = True
+            self.debug_component2D.colorLine = (0.7, 0.8, 0.8, 0.9)
+            self.debug_component2D.lineThickness = 3
+
+            self.debug_Text2D = Text2D(
+                posXIsInRegionCS=False,
+                posX=25,
+                posYIsInRegionCS=False,
+                posY=6,
+                alignment="BOTTOM_LEFT",
+                alignmentToRegion="BOTTOM_LEFT",
+                text="MyText",
+                fontSize=20,
+            )
 
     def rebuildShotComponents(self, forceRebuild=False):
         props = self.context.scene.UAS_shot_manager_props
@@ -228,14 +233,14 @@ class BL_UI_ShotStack:
                 self.shotComponents.append(shotCompo)
                 lane += 1
 
-    def drawShots(self):
+    def drawShots(self, preDrawOnly=False):
         props = self.context.scene.UAS_shot_manager_props
         self.rebuildShotComponents()
 
         current_shot_ind = props.getCurrentShotIndex()
         selected_shot_ind = props.getSelectedShotIndex()
 
-        debug_maxShots = 6
+        debug_maxShots = 5000  # 6
 
         lane = 1
         shotCompoCurrent = None
@@ -255,7 +260,7 @@ class BL_UI_ShotStack:
             shotCompo.isVisible = True
             shotCompo.posY = lane
 
-            shotCompo.draw(None, self.context.region)
+            shotCompo.draw(None, self.context.region, preDrawOnly=preDrawOnly)
             lane += 1
 
         # draw quad for current shot over the result
@@ -265,9 +270,9 @@ class BL_UI_ShotStack:
             self.currentShotBorder.width = shotCompoCurrent.width
             self.currentShotBorder.height = shotCompoCurrent.height
             self.currentShotBorder.isVisible = True
-            self.currentShotBorder.draw(None, self.context.region)
+            self.currentShotBorder.draw(None, self.context.region, preDrawOnly=preDrawOnly)
 
-    def drawShots_compactMode(self):
+    def drawShots_compactMode(self, preDrawOnly=False):
         return
         props = self.context.scene.UAS_shot_manager_props
         self.rebuildShotComponents()
@@ -383,14 +388,14 @@ class BL_UI_ShotStack:
                 self.ui_shots.append(s)
                 s.draw()
 
-    def draw(self):
+    def draw(self, preDrawOnly=False):
         if self.target_area is not None and self.context.area != self.target_area:
             return
 
         props = self.context.scene.UAS_shot_manager_props
 
         # Debug - red rectangle ####################
-        if self.drawDebugComponents:
+        if self.useDebugComponents:
             height = 20
             lane = 5
             startframe = 160
@@ -425,9 +430,9 @@ class BL_UI_ShotStack:
 
         #  print("draw shot stack")
         if props.interactShotsStack_displayInCompactMode:
-            self.drawShots_compactMode()
+            self.drawShots_compactMode(preDrawOnly=preDrawOnly)
         else:
-            self.drawShots()
+            self.drawShots(preDrawOnly=preDrawOnly)
 
         self.draw_shots_old_way()
 
@@ -639,7 +644,8 @@ class BL_UI_ShotStack:
 
         # debug
         if not event_handled:
-            event_handled = self.debug_component2D.handle_event(context, event)
+            if self.useDebugComponents:
+                event_handled = self.debug_component2D.handle_event(context, event)
 
         self.prev_mouse_x = event.mouse_x - region.x
         self.prev_mouse_y = event.mouse_y - region.y

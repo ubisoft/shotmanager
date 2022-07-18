@@ -39,7 +39,7 @@ from shotmanager.utils.utils_python import clamp
 from shotmanager.utils.utils_editors_dopesheet import getLaneHeight
 from shotmanager.utils.utils import color_to_sRGB, lighten_color, set_color_alpha, alpha_to_linear, color_to_linear
 
-# from shotmanager.config import config
+from shotmanager.config import config
 from shotmanager.config import sm_logging
 
 _logger = sm_logging.getLogger(__name__)
@@ -212,7 +212,7 @@ class ShotClipComponent(Component2D):
         return shader
 
     # override Component2D
-    def draw(self, shader=None, region=None, draw_types="TRIS", cap_lines=False):
+    def draw(self, shader=None, region=None, draw_types="TRIS", cap_lines=False, preDrawOnly=False):
 
         # wkip put all that in the FillShader fct?
         if self.shot.enabled:
@@ -324,148 +324,79 @@ class ShotClipComponent(Component2D):
         # -
 
         # children such as the text2D are drawn in Component2D
-        Component2D.draw(self, None, region, draw_types, cap_lines)
+        Component2D.draw(self, None, region, draw_types, cap_lines, preDrawOnly=preDrawOnly)
 
     ######################################################################
 
-    # events ################
+    # event actions ##############
 
     ######################################################################
 
-    def handle_mouse_interaction(self, handle, mouse_disp):
+    # override of InteractiveComponent
+    def _on_highlighted_changed(self, context, isHighlighted):
+        """isHighlighted has the same value than self.isHighlighted, which is set right before this
+        function is called
         """
+        if isHighlighted:
+            # _logger.debug_ext("component2D handle_events set highlighte true", col="PURPLE", tag="EVENT"
+            config.gRedrawShotStack = True
+        else:
+            config.gRedrawShotStack = True
+
+    # override of InteractiveComponent
+    def _on_selected_changed(self, context, isSelected):
+        props = context.scene.UAS_shot_manager_props
+        prefs = context.preferences.addons["shotmanager"].preferences
+
+        prefs.shot_selected_from_shots_stack__flag = True
+        props.setSelectedShot(self.shot)
+        prefs.shot_selected_from_shots_stack__flag = False
+
+    # override of InteractiveComponent
+    def _on_manipulated_changed(self, context, isManipulated):
+        """isManipulated has the same value than self.isManipulated, which is set right before this
+        function is called
+        """
+        if isManipulated:
+            # _logger.debug_ext("component2D handle_events set manipulated true", col="PURPLE", tag="EVENT"
+            pass
+        else:
+            pass
+
+    # override of InteractiveComponent
+    def _on_manipulated_mouse_moved(self, context, mouse_delta_frames=0):
+        """wkip note: delta_frames is in frames but may need to be in pixels in some cases
         handle: if handle == -1:    left clip handle (start)
                 if handle == 0:     clip (start and end)
                 if handle == 1:     right clip handle (end)
         """
-        # from shotmanager.properties.shot import UAS_ShotManager_Shot
 
-        #  bpy.ops.ed.undo_push(message=f"Set Shot Start...")
-
-        shot = self.shot
-        # !! we have to be sure we work on the selected shot !!!
-        if handle == 1:
-            shot.end += mouse_disp
-        elif handle == -1:
-            shot.start += mouse_disp
-            # bpy.ops.uas_shot_manager.set_shot_start(newStart=self.start + mouse_disp)
-        else:
-            # Very important, don't use properties for changing both start and ends. Depending of the amount of displacement duration can change.
-            if shot.durationLocked:
-                if mouse_disp > 0:
-                    shot.end += mouse_disp
-                # shot.start += mouse_disp
-                else:
-                    shot.start += mouse_disp
-                # shot.end += mouse_disp
+        # Very important, don't use properties for changing both start and ends. Depending of the amount of displacement duration can change.
+        if self.shot.durationLocked:
+            if mouse_delta_frames > 0:
+                self.shot.end += mouse_delta_frames
+            # shot.start += mouse_delta_frames
             else:
-                if mouse_disp > 0:
-                    shot.end += mouse_disp
-                    shot.start += mouse_disp
-                else:
-                    shot.start += mouse_disp
-                    shot.end += mouse_disp
+                self.shot.start += mouse_delta_frames
+            # shot.end += mouse_delta_frames
+        else:
+            if mouse_delta_frames > 0:
+                self.shot.end += mouse_delta_frames
+                self.shot.start += mouse_delta_frames
+            else:
+                self.shot.start += mouse_delta_frames
+                self.shot.end += mouse_delta_frames
 
-    def validateAction(self):
-        _logger.debug_ext("Validating Shot Clip action", col="GREEN", tag="SHOTSTACK_EVENT")
-        self.isManipulated = False
-
-    def cancelAction(self):
-        # TODO restore the initial
-        _logger.debug_ext("Canceling Shot Clip action", col="ORANGE", tag="SHOTSTACK_EVENT")
-        self.isManipulated = False
-
-    # override of InteractiveComponent
-    def _handle_event_custom(self, context, event, region):
+    # to override in classes inheriting from this class:
+    def _on_doublecliked(self, context, event, region):
         props = context.scene.UAS_shot_manager_props
-        prefs = context.preferences.addons["shotmanager"].preferences
 
-        event_handled = False
-        mouseIsInBBox = False
-
-        mouseIsInBBox = self.isInBBox(event.mouse_x - region.x, event.mouse_y - region.y)
-
-        # for debug, used to interupt for breakpoint:
-        if mouseIsInBBox:
-            if event.type == "H":
-                print("Debug H key")
-
-        if "PRESS" == event.value and event.type in ("RIGHTMOUSE", "ESC", "WINDOW_DEACTIVATE"):
-            self.cancelAction()
-            # event_handled = True
-
-        # selection ##############
-        if event.type == "LEFTMOUSE":
-            if event.value == "PRESS":
-                if mouseIsInBBox:
-                    # selection ####################
-                    if not self.isSelected:
-                        self.isSelected = True
-                    # _logger.debug_ext("component2D handle_events set selected true", col="PURPLE", tag="EVENT")
-                    prefs.shot_selected_from_shots_stack__flag = True
-                    props.setSelectedShot(self.shot)
-                    prefs.shot_selected_from_shots_stack__flag = False
-
-                    # manipulation #################
-                    self.isManipulated = True
-                    _logger.debug_ext(f"Start Clip manip", col="YELLOW", tag="EVENT")
-                    self.mouseFrame = int(region.view2d.region_to_view(event.mouse_x - region.x, 0)[0])
-                    self.previousMouseFrame = self.mouseFrame
-
-                    # double click #################
-                    counter = time.perf_counter()
-                    #   print(f"pref clic: {self.prev_click}")
-                    if counter - self.prev_click < 0.3:  # Double click.
-                        # props.setCurrentShotByIndex(uiShot.shot_index, changeTime=False)
-                        mouse_frame = int(region.view2d.region_to_view(event.mouse_x - region.x, 0)[0])
-                        context.scene.frame_current = mouse_frame
-                        bpy.ops.uas_shot_manager.set_current_shot(
-                            index=props.getShotIndex(self.shot),
-                            calledFromShotStack=True,
-                            event_ctrl=event.ctrl,
-                            event_alt=event.alt,
-                            event_shift=event.shift,
-                        )
-
-                    self.prev_click = counter
-
-                    #  config.gRedrawShotStack = True
-                    event_handled = True
-
-            elif event.value == "RELEASE":
-                #  bpy.ops.ed.undo_push(message=f"Change Shot...")
-                # self.manipulated_clip = None
-                # self.manipulated_clip_handle = None
-                # print("Titi")
-                if self.isManipulated:
-                    self.cancelAction()
-                    event_handled = True
-
-        if event.type in ["MOUSEMOVE", "INBETWEEN_MOUSEMOVE"]:
-            if self.isManipulated:
-
-                mouse_frame = int(region.view2d.region_to_view(event.mouse_x - region.x, 0)[0])
-                prev_mouse_frame = int(region.view2d.region_to_view(self.prev_mouse_x, 0)[0])
-                if mouse_frame != self.mouseFrame or prev_mouse_frame != self.previousMouseFrame:
-                    self.handle_mouse_interaction(0, mouse_frame - prev_mouse_frame)
-                    self.mouseFrame = mouse_frame
-                    self.previousMouseFrame = prev_mouse_frame
-
-                # _logger.debug_ext(
-                #     f"   mouse frame: {mouse_frame}, prev_mouse_frame: {prev_mouse_frame}",
-                #     col="BLUE",
-                #     tag="SHOTSTACK_EVENT",
-                # )
-
-                # self.manipulated_clip.update()
-
-                # if self.manipulated_clip_handle != 0:
-                #     self.frame_under_mouse = mouse_frame
-                if self.isManipulated:
-                    self.frame_under_mouse = mouse_frame
-                event_handled = True
-
-        self.prev_mouse_x = event.mouse_x - region.x
-        self.prev_mouse_y = event.mouse_y - region.y
-
-        return event_handled
+        mouse_frame = int(region.view2d.region_to_view(event.mouse_x - region.x, 0)[0])
+        context.scene.frame_current = mouse_frame
+        bpy.ops.uas_shot_manager.set_current_shot(
+            index=props.getShotIndex(self.shot),
+            calledFromShotStack=True,
+            event_ctrl=event.ctrl,
+            event_alt=event.alt,
+            event_shift=event.shift,
+        )

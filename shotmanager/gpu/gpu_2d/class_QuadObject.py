@@ -130,7 +130,7 @@ class QuadObject(Object2D, Mesh2D):
     #################################################################
 
     # override Mesh2D
-    def draw(self, shader=None, region=None, draw_types="TRIS", cap_lines=False):
+    def draw(self, shader=None, region=None, draw_types="TRIS", cap_lines=False, preDrawOnly=False):
         # if not self.isVisible:
         #     return
 
@@ -317,18 +317,21 @@ class QuadObject(Object2D, Mesh2D):
             if not fillShader:
                 fillShader = self._getFillShader()
             draw_types = "TRIS"
-            self._drawMesh(fillShader, region, draw_types, cap_lines, clamped_transformed_vertices)
+            if not preDrawOnly:
+                self._drawMesh(fillShader, region, draw_types, cap_lines, clamped_transformed_vertices)
 
         if self.hasLine:
             edgeIndices = self.getEdgeIndices(bBox, clamped_bBox)
             lineShader = self._getLineShader()
             draw_types = "LINES"
-            self._drawMesh(lineShader, region, draw_types, cap_lines, clamped_transformed_vertices, edgeIndices)
+            if not preDrawOnly:
+                self._drawMesh(lineShader, region, draw_types, cap_lines, clamped_transformed_vertices, edgeIndices)
 
         if self.hasTexture:
             textureShader = self._getTextureShader()
             draw_types = "TRI_FAN"
-            self._drawMesh(textureShader, region, draw_types, cap_lines, clamped_transformed_vertices)
+            if not preDrawOnly:
+                self._drawMesh(textureShader, region, draw_types, cap_lines, clamped_transformed_vertices)
 
         if False:
             draw_bBox(self._bBox, color=(0, 1, 1, 1))

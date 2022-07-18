@@ -207,7 +207,7 @@ class Mesh2D:
             textureShader.uniform_int("image", 0)
             batch.draw(textureShader)
 
-    def draw(self, shader=None, region=None, draw_types="TRIS", cap_lines=False):
+    def draw(self, shader=None, region=None, draw_types="TRIS", cap_lines=False, preDrawOnly=False):
         transformed_vertices = self._vertices
 
         # deprecated - use clampToRegion
@@ -229,17 +229,20 @@ class Mesh2D:
             if not fillShader:
                 fillShader = self._getFillShader()
             draw_types = "TRIS"
-            self._drawMesh(fillShader, region, draw_types, cap_lines, transformed_vertices)
+            if not preDrawOnly:
+                self._drawMesh(fillShader, region, draw_types, cap_lines, transformed_vertices)
 
         if self.hasLine:
             lineShader = self._getLineShader()
             draw_types = "LINES"
-            self._drawMesh(lineShader, region, draw_types, cap_lines, transformed_vertices, self._indicesLine)
+            if not preDrawOnly:
+                self._drawMesh(lineShader, region, draw_types, cap_lines, transformed_vertices, self._indicesLine)
 
         if self.hasTexture:
             textureShader = self._getTextureShader()
             draw_types = "TRI_FAN"
-            self._drawMesh(textureShader, region, draw_types, cap_lines, transformed_vertices)
+            if not preDrawOnly:
+                self._drawMesh(textureShader, region, draw_types, cap_lines, transformed_vertices)
 
     def rebuild_rectangle_mesh(self, posX, posY, width, height):
         """All those values are in pixels, in region CS"""

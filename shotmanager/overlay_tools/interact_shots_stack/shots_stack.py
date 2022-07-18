@@ -254,6 +254,7 @@ class UAS_ShotManager_InteractiveShotsStack(Operator):
             for area in context.screen.areas:
                 area.tag_redraw()
             config.gRedrawShotStack = False
+            config.gRedrawShotStack_preDrawOnly = False
 
         if event_handled:
             return {"RUNNING_MODAL"}
@@ -278,7 +279,7 @@ class UAS_ShotManager_InteractiveShotsStack(Operator):
             return
 
         for widget in widgets:
-            widget.draw()
+            widget.draw(preDrawOnly=config.gRedrawShotStack_preDrawOnly)
 
 
 _classes = (UAS_ShotManager_InteractiveShotsStack,)

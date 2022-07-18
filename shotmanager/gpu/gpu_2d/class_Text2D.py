@@ -126,7 +126,7 @@ class Text2D(Object2D):
         blf.disable(0, blf.CLIPPING)
         blf.disable(0, blf.SHADOW)
 
-    def draw(self, shader=None, region=None):
+    def draw(self, shader=None, region=None, preDrawOnly=False):
         # if not self.isVisible:
         #     return
 
@@ -312,7 +312,8 @@ class Text2D(Object2D):
             #  draw_bBox(self._bBox)
             draw_bBox(self._clamped_bBox)
 
-        self._drawText(shader, region, posX, posY)
+        if not preDrawOnly:
+            self._drawText(shader, region, posX, posY)
 
         # draw tripod
         if False:

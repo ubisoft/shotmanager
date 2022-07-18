@@ -19,9 +19,12 @@
 Useful entities for 2D gpu drawings
 """
 
+
+import time
+
 import gpu
 
-from shotmanager.config import config
+
 from shotmanager.config import sm_logging
 
 _logger = sm_logging.getLogger(__name__)
@@ -42,6 +45,9 @@ class InteractiveComponent:
         self.isSelected = False
 
         # events #################
+        # in seconds
+        self.doubleClickDuration = 0.3
+
         self.prev_click = 0
         self.isManipulated = False
 
@@ -91,7 +97,7 @@ class InteractiveComponent:
 
     #################################################################
 
-    # zevents ##########
+    # events ###########
 
     #################################################################
 
@@ -111,48 +117,48 @@ class InteractiveComponent:
                 if not self.isHighlighted:
                     self.isHighlighted = True
                     # _logger.debug_ext("component2D handle_events set highlighte true", col="PURPLE", tag="EVENT")
-                    config.gRedrawShotStack = True
+                    self._on_highlighted_changed(context, self.isHighlighted)
             else:
                 if self.isHighlighted:
                     self.isHighlighted = False
-                    config.gRedrawShotStack = True
+                    self._on_highlighted_changed(context, self.isHighlighted)
 
-    # to override in classes inheriting from this class:
-    def _handle_event_custom(self, context, event, region):
-        event_handled = False
-        mouseIsInBBox = False
+    # # to override in classes inheriting from this class:
+    # def _handle_event_custom(self, context, event, region):
+    #     event_handled = False
+    #     mouseIsInBBox = False
 
-        mouseIsInBBox = self.isInBBox(event.mouse_x - region.x, event.mouse_y - region.y)
+    #     mouseIsInBBox = self.isInBBox(event.mouse_x - region.x, event.mouse_y - region.y)
 
-        # for debug, used to interupt for breakpoint:
-        if mouseIsInBBox:
-            if event.type == "G":
-                print("Debug G key")
+    #     # for debug, used to interupt for breakpoint:
+    #     if mouseIsInBBox:
+    #         if event.type == "G":
+    #             print("Debug G key")
 
-        # # highlight ##############
-        # if event.type in ["MOUSEMOVE", "INBETWEEN_MOUSEMOVE"]:
-        #     if mouseIsInBBox:
-        #         if not self.isHighlighted:
-        #             self.isHighlighted = True
-        #             # _logger.debug_ext("component2D handle_events set highlighte true", col="PURPLE", tag="EVENT")
-        #             config.gRedrawShotStack = True
-        #     else:
-        #         if self.isHighlighted:
-        #             self.isHighlighted = False
-        #             config.gRedrawShotStack = True
+    #     # # highlight ##############
+    #     # if event.type in ["MOUSEMOVE", "INBETWEEN_MOUSEMOVE"]:
+    #     #     if mouseIsInBBox:
+    #     #         if not self.isHighlighted:
+    #     #             self.isHighlighted = True
+    #     #             # _logger.debug_ext("component2D handle_events set highlighte true", col="PURPLE", tag="EVENT")
+    #     #             config.gRedrawShotStack = True
+    #     #     else:
+    #     #         if self.isHighlighted:
+    #     #             self.isHighlighted = False
+    #     #             config.gRedrawShotStack = True
 
-        # # selection ##############
-        # if event.type == "LEFTMOUSE":
-        #     if event.value == "PRESS":
-        #         if mouseIsInBBox:
-        #             if not self.isSelected:
-        #                 self.isSelected = True
-        #                 #_logger.debug_ext("component2D handle_events set selected true", col="PURPLE", tag="EVENT")
-        #                 config.gRedrawShotStack = True
+    #     # # selection ##############
+    #     # if event.type == "LEFTMOUSE":
+    #     #     if event.value == "PRESS":
+    #     #         if mouseIsInBBox:
+    #     #             if not self.isSelected:
+    #     #                 self.isSelected = True
+    #     #                 #_logger.debug_ext("component2D handle_events set selected true", col="PURPLE", tag="EVENT")
+    #     #                 config.gRedrawShotStack = True
 
-        #     if event.value == "RELEASE":
+    #     #     if event.value == "RELEASE":
 
-        return event_handled
+    #     return event_handled
 
     def handle_event(self, context, event):
         """handle event for InteractiveComponent operator"""
@@ -186,3 +192,144 @@ class InteractiveComponent:
         #             event_handled = self._handle_event_custom(context, event, region)
 
         return event_handled
+
+    # override of InteractiveComponent
+    # override by inheriting classes if needed
+    def _handle_event_custom(self, context, event, region):
+        props = context.scene.UAS_shot_manager_props
+
+        event_handled = False
+        mouseIsInBBox = False
+
+        mouseIsInBBox = self.isInBBox(event.mouse_x - region.x, event.mouse_y - region.y)
+
+        # for debug, used to interupt for breakpoint:
+        if mouseIsInBBox:
+            if event.type == "H":
+                print("Debug H key")
+
+        if "PRESS" == event.value and event.type in ("RIGHTMOUSE", "ESC", "WINDOW_DEACTIVATE"):
+            self.cancelAction()
+            # event_handled = True
+
+        # selection ##############
+        if event.type == "LEFTMOUSE":
+            if event.value == "PRESS":
+                if mouseIsInBBox:
+                    # selection ####################
+                    if not self.isSelected:
+                        self.isSelected = True
+                    # _logger.debug_ext("component2D handle_events set selected true", col="PURPLE", tag="EVENT")
+                    self._on_selected_changed(context, self.isSelected)
+
+                    # manipulation #################
+                    self.isManipulated = True
+                    # _logger.debug_ext("Start Clip manip", col="YELLOW", tag="EVENT")
+                    self._on_manipulated_changed(context, self.isManipulated)
+                    self.mouseFrame = int(region.view2d.region_to_view(event.mouse_x - region.x, 0)[0])
+                    self.previousMouseFrame = self.mouseFrame
+
+                    # double click #################
+                    counter = time.perf_counter()
+                    #   print(f"pref clic: {self.prev_click}")
+                    if counter - self.prev_click < self.doubleClickDuration:
+                        # props.setCurrentShotByIndex(uiShot.shot_index, changeTime=False)
+
+                        self._on_doublecliked(context, event, region)
+
+                    self.prev_click = counter
+
+                    #  config.gRedrawShotStack = True
+                    event_handled = True
+
+            elif event.value == "RELEASE":
+                #  bpy.ops.ed.undo_push(message=f"Change Shot...")
+                # self.manipulated_clip = None
+                # self.manipulated_clip_handle = None
+                # print("Titi")
+                if self.isManipulated:
+                    self.cancelAction()
+                    event_handled = True
+
+        if event.type in ["MOUSEMOVE", "INBETWEEN_MOUSEMOVE"]:
+            if self.isManipulated:
+
+                # NOTE: wkipwkipwkip to fix: use more generic code (= no frames for mouse)
+                mouse_frame = int(region.view2d.region_to_view(event.mouse_x - region.x, 0)[0])
+                prev_mouse_frame = int(region.view2d.region_to_view(self.prev_mouse_x, 0)[0])
+                if mouse_frame != self.mouseFrame or prev_mouse_frame != self.previousMouseFrame:
+                    self._on_manipulated_mouse_moved(context, mouse_delta_frames=mouse_frame - prev_mouse_frame)
+                    self.mouseFrame = mouse_frame
+                    self.previousMouseFrame = prev_mouse_frame
+
+                # _logger.debug_ext(
+                #     f"   mouse frame: {mouse_frame}, prev_mouse_frame: {prev_mouse_frame}",
+                #     col="BLUE",
+                #     tag="SHOTSTACK_EVENT",
+                # )
+
+                # self.manipulated_clip.update()
+
+                # if self.manipulated_clip_handle != 0:
+                #     self.frame_under_mouse = mouse_frame
+                if self.isManipulated:
+                    self.frame_under_mouse = mouse_frame
+                event_handled = True
+
+        self.prev_mouse_x = event.mouse_x - region.x
+        self.prev_mouse_y = event.mouse_y - region.y
+
+        return event_handled
+
+    ######################################################################
+
+    # event actions ##############
+    # functions to override in classes inheriting from this class
+
+    ######################################################################
+
+    # to override in classes inheriting from this class:
+    def _on_highlighted_changed(self, context, isHighlighted):
+        """isHighlighted has the same value than self.isHighlighted, which is set right before this
+        function is called
+        """
+        if isHighlighted:
+            # _logger.debug_ext("component2D handle_events set highlighte true", col="PURPLE", tag="EVENT"
+            pass
+        else:
+            pass
+
+    # to override in classes inheriting from this class:
+    def _on_selected_changed(self, context, isSelected):
+        """isSelected has the same value than self.isSelected, which is set right before this
+        function is called
+        """
+        if isSelected:
+            # _logger.debug_ext("component2D handle_events set selected true", col="PURPLE", tag="EVENT"
+            pass
+        else:
+            pass
+
+    # to override in classes inheriting from this class:
+    def _on_manipulated_changed(self, context, isManipulated):
+        """isManipulated has the same value than self.isManipulated, which is set right before this
+        function is called
+        """
+        if isManipulated:
+            # _logger.debug_ext("component2D handle_events set manipulated true", col="PURPLE", tag="EVENT"
+            pass
+        else:
+            pass
+
+    # to override in classes inheriting from this class:
+    def _on_manipulated_mouse_moved(self, context, mouse_delta_frames=0):
+        """wkip note: mouse_delta_frames is in frames but may need to be in pixels in some cases"""
+        if mouse_delta_frames:
+            # _logger.debug_ext("component2D handle_events set manipulated true", col="PURPLE", tag="EVENT"
+            pass
+        else:
+            pass
+
+    # to override in classes inheriting from this class:
+    def _on_doublecliked(self, context, event, region):
+        pass

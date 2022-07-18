@@ -108,6 +108,12 @@ def initGlobalVariables():
     global gRedrawShotStack
     gRedrawShotStack = False
 
+    # used to "pre draw": do the drawing computation but not the actual draw
+    # this is useful to prepare all the graphics components without having an
+    # uncomplete widget display
+    global gRedrawShotStack_preDrawOnly
+    gRedrawShotStack_preDrawOnly = False
+
 
 def releaseGlobalVariables():
 

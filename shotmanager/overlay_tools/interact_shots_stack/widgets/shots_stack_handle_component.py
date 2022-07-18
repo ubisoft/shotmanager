@@ -19,25 +19,14 @@
 UI in BGL for the Interactive Shots Stack overlay tool
 """
 
-
-import time
-import os
-
-import bpy
 import gpu
 
 from shotmanager.gpu.gpu_2d.class_Component2D import Component2D
-from shotmanager.gpu.gpu_2d.class_Text2D import Text2D
-from shotmanager.gpu.gpu_2d.class_QuadObject import QuadObject
 
-# from shotmanager.gpu.gpu_2d.gpu_2d import loadImageAsTexture
-
-from shotmanager.utils import utils
 from shotmanager.utils.utils_python import clamp
-from shotmanager.utils.utils_editors_dopesheet import getLaneHeight
-from shotmanager.utils.utils import color_to_sRGB, lighten_color, set_color_alpha, alpha_to_linear, color_to_linear
+from shotmanager.utils.utils import color_to_sRGB, lighten_color, set_color_alpha, alpha_to_linear
 
-# from shotmanager.config import config
+from shotmanager.config import config
 from shotmanager.config import sm_logging
 
 _logger = sm_logging.getLogger(__name__)
@@ -74,7 +63,8 @@ class ShotHandleComponent(Component2D):
         self.color = self.shot.color
 
         # green or orange
-        self.color_highlight = (0.2, 0.9, 0.2, 1) if self.isStart else (0.7, 0.3, 0.0, 1)
+        self.color_highlight = (0.2, 0.7, 0.2, 1) if self.isStart else (0.7, 0.3, 0.0, 1)
+        self.color_highlight_durationLocked = (0.14, 0.28, 0.99, 1)
         self.color_selected = (0.6, 0.9, 0.9, 0.9)
         self.color_selected_highlight = (0.6, 0.9, 0.9, 0.9)
 
@@ -90,7 +80,7 @@ class ShotHandleComponent(Component2D):
         opacity = self.opacity
 
         if self.isManipulated:
-            widColor = self.color_manipulated
+            widColor = self.color_highlight_durationLocked if self.shot.durationLocked else self.color_highlight
             opacity = clamp(1.6 * opacity, 0, 1)
 
         elif self.isSelected:
@@ -103,7 +93,7 @@ class ShotHandleComponent(Component2D):
 
         elif self.isHighlighted:
             # widColor = lighten_color(widColor, 0.1)
-            widColor = self.color_highlight
+            widColor = self.color_highlight_durationLocked if self.shot.durationLocked else self.color_highlight
             opacity = clamp(1.2 * opacity, 0, 1)
 
         color = set_color_alpha(widColor, alpha_to_linear(widColor[3] * opacity))
@@ -115,7 +105,7 @@ class ShotHandleComponent(Component2D):
         return shader
 
     # override Component2D
-    def draw(self, shader=None, region=None, draw_types="TRIS", cap_lines=False):
+    def draw(self, shader=None, region=None, draw_types="TRIS", cap_lines=False, preDrawOnly=False):
 
         # NOTE: Don't use getLaneHeight() here because it will create artefacts dues to conversion
         # from float to int according to the lane on which is the item
@@ -127,10 +117,31 @@ class ShotHandleComponent(Component2D):
         self.posX = 0 if self.isStart else self.parent.getWidthInRegion(clamped=False)
 
         # children such as the text2D are drawn in Component2D
-        Component2D.draw(self, None, region, draw_types, cap_lines)
+        Component2D.draw(self, None, region, draw_types, cap_lines, preDrawOnly=preDrawOnly)
 
     #################################################################
 
-    # events ###########
+    # event actions ##############
 
     #################################################################
+
+    # override of InteractiveComponent
+    def _on_highlighted_changed(self, context, isHighlighted):
+        """isHighlighted has the same value than self.isHighlighted, which is set right before this
+        function is called
+        """
+        if isHighlighted:
+            # _logger.debug_ext("component2D handle_events set highlighte true", col="PURPLE", tag="EVENT"
+            config.gRedrawShotStack = True
+        else:
+            config.gRedrawShotStack = True
+
+    # override of InteractiveComponent
+    def _on_manipulated_mouse_moved(self, context, mouse_delta_frames=0):
+        """wkip note: delta_frames is in frames but may need to be in pixels in some cases"""
+        # !! we have to be sure we work on the selected shot !!!
+        if self.isStart:
+            self.shot.start += mouse_delta_frames
+            # bpy.ops.uas_shot_manager.set_shot_start(newStart=self.start + mouse_delta_frames)
+        else:
+            self.shot.end += mouse_delta_frames

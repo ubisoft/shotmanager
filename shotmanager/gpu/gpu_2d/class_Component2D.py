@@ -19,6 +19,8 @@
 Useful entities for 2D gpu drawings
 """
 
+
+import bpy
 import gpu
 
 from .class_InteractiveComponent import InteractiveComponent
@@ -110,31 +112,9 @@ class Component2D(InteractiveComponent, QuadObject):
 
     #################################################################
 
-    # override Mesh2D
-    def draw(self, shader=None, region=None, draw_types="TRIS", cap_lines=False):
-
-        if self.isSelected:
-            if self.isHighlighted:
-                widColor = self.color_selected_highlight
-            else:
-                widColor = self.color_selected
-        else:
-            if self.isHighlighted:
-                widColor = self.color_highlight
-            else:
-                widColor = self.color
-
-        # match (self.isHighlighted, self.isSelected):
-        #     case (False, False):
-        #         widColor = self.color
-        #     case (True, False):
-        #         widColor = self.color_highlight
-        #     case (True, False):
-        #         widColor = self.color_selected
-        #     case (True, True):
-        #         widColor = self.color_selected_highlight
-
-        QuadObject.draw(self, shader, region, draw_types, cap_lines)
+    # # override Mesh2D
+    # def draw(self, shader=None, region=None, draw_types="TRIS", cap_lines=False, preDrawOnly=False):
+    #     QuadObject.draw(self, shader, region, draw_types, cap_lines, preDrawOnly=preDrawOnly)
 
     #################################################################
 
@@ -186,3 +166,20 @@ class Component2D(InteractiveComponent, QuadObject):
         #             event_handled = self._handle_event_custom(context, event, region)
 
         return event_handled
+
+    ######################################################################
+
+    # event actions ##############
+
+    ######################################################################
+
+    # to override by inheriting classes
+    def validateAction(self):
+        _logger.debug_ext("Validating 2D component action", col="GREEN", tag="SHOTSTACK_EVENT")
+        self.isManipulated = False
+
+    # to override by inheriting classes
+    def cancelAction(self):
+        # TODO restore the initial
+        _logger.debug_ext("Canceling 2D component action", col="ORANGE", tag="SHOTSTACK_EVENT")
+        self.isManipulated = False
