@@ -172,14 +172,3 @@ class Component2D(InteractiveComponent, QuadObject):
     # event actions ##############
 
     ######################################################################
-
-    # to override by inheriting classes
-    def validateAction(self):
-        _logger.debug_ext("Validating 2D component action", col="GREEN", tag="SHOTSTACK_EVENT")
-        self.isManipulated = False
-
-    # to override by inheriting classes
-    def cancelAction(self):
-        # TODO restore the initial
-        _logger.debug_ext("Canceling 2D component action", col="ORANGE", tag="SHOTSTACK_EVENT")
-        self.isManipulated = False

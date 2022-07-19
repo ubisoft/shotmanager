@@ -83,13 +83,13 @@ class ShotHandleComponent(Component2D):
             widColor = self.color_highlight_durationLocked if self.shot.durationLocked else self.color_highlight
             opacity = clamp(1.6 * opacity, 0, 1)
 
-        elif self.isSelected:
-            #  widColor = lighten_color(widColor, 0.2)
-            # widColor = self.color
-            opacity = min(0.75, clamp(1.5 * opacity, 0, 1))
-            if self.isHighlighted:
-                widColor = lighten_color(widColor, 0.1)
-                opacity = clamp(1.1 * opacity, 0, 1)
+        # elif self.isSelected:
+        #     #  widColor = lighten_color(widColor, 0.2)
+        #     # widColor = self.color
+        #     opacity = min(0.75, clamp(1.5 * opacity, 0, 1))
+        #     if self.isHighlighted:
+        #         widColor = lighten_color(widColor, 0.1)
+        #         opacity = clamp(1.1 * opacity, 0, 1)
 
         elif self.isHighlighted:
             # widColor = lighten_color(widColor, 0.1)
@@ -135,6 +135,26 @@ class ShotHandleComponent(Component2D):
             config.gRedrawShotStack = True
         else:
             config.gRedrawShotStack = True
+
+    # override of InteractiveComponent
+    def _on_selected_changed(self, context, isSelected):
+        """isSelected has the same value than self.isSelected, which is set right before this
+        function is called
+        """
+        # the notion of selection is not used for shot clip handles
+        if isSelected:
+            self.isSelected = False
+
+    # override of InteractiveComponent
+    def _on_manipulated_changed(self, context, isManipulated):
+        """isManipulated has the same value than self.isManipulated, which is set right before this
+        function is called
+        """
+        # we use this to set the color of the clip as for when manipulated
+        if isManipulated:
+            self.parent.isManipulatedByAnotherComponent = True
+        else:
+            self.parent.isManipulatedByAnotherComponent = False
 
     # override of InteractiveComponent
     def _on_manipulated_mouse_moved(self, context, mouse_delta_frames=0):

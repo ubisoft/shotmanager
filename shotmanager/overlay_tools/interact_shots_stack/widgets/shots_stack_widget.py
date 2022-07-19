@@ -233,20 +233,36 @@ class BL_UI_ShotStack:
                 self.shotComponents.append(shotCompo)
                 lane += 1
 
+    def drawCurrentShotDecoration(self, shotCompoCurrent, preDrawOnly=False):
+        """Draw the quad lines for the current shot"""
+        if shotCompoCurrent:
+            self.currentShotBorder.posX = shotCompoCurrent.posX
+            self.currentShotBorder.posY = shotCompoCurrent.posY
+            self.currentShotBorder.width = shotCompoCurrent.width
+            self.currentShotBorder.height = shotCompoCurrent.height
+            self.currentShotBorder.isVisible = True
+            self.currentShotBorder.draw(None, self.context.region, preDrawOnly=preDrawOnly)
+        else:
+            self.currentShotBorder.isVisible = False
+
     def drawShots(self, preDrawOnly=False):
         props = self.context.scene.UAS_shot_manager_props
         self.rebuildShotComponents()
 
-        current_shot_ind = props.getCurrentShotIndex()
-        selected_shot_ind = props.getSelectedShotIndex()
+        currentShotInd = props.getCurrentShotIndex()
+        selectedShotInd = props.getSelectedShotIndex()
 
         debug_maxShots = 5000  # 6
 
         lane = 1
         shotCompoCurrent = None
         for i, shotCompo in enumerate(self.shotComponents):
-            shotCompo.isCurrent = i == current_shot_ind
-            shotCompo.isSelected = i == selected_shot_ind
+            shotCompo.isCurrent = i == currentShotInd
+
+            # NOTE: we use _isSelected instead of the property isSelected in order
+            # to avoid the call of the callback function _on_selected_changed, otherwise
+            # the event loops and keep redrawing all the time
+            shotCompo._isSelected = i == selectedShotInd
 
             if debug_maxShots < i:
                 shotCompo.isVisible = False
@@ -255,7 +271,7 @@ class BL_UI_ShotStack:
                 shotCompo.isVisible = False
                 continue
 
-            if i == current_shot_ind:
+            if i == currentShotInd:
                 shotCompoCurrent = shotCompo
             shotCompo.isVisible = True
             shotCompo.posY = lane
@@ -264,23 +280,15 @@ class BL_UI_ShotStack:
             lane += 1
 
         # draw quad for current shot over the result
-        if -1 != current_shot_ind and shotCompoCurrent:
-            self.currentShotBorder.posX = shotCompoCurrent.posX
-            self.currentShotBorder.posY = shotCompoCurrent.posY
-            self.currentShotBorder.width = shotCompoCurrent.width
-            self.currentShotBorder.height = shotCompoCurrent.height
-            self.currentShotBorder.isVisible = True
-            self.currentShotBorder.draw(None, self.context.region, preDrawOnly=preDrawOnly)
+        self.drawCurrentShotDecoration(shotCompoCurrent, preDrawOnly=preDrawOnly)
 
     def drawShots_compactMode(self, preDrawOnly=False):
-        return
+        # return
         props = self.context.scene.UAS_shot_manager_props
         self.rebuildShotComponents()
 
-        current_shot_ind = props.getCurrentShotIndex()
-        selected_shot_ind = props.getSelectedShotIndex()
-
-        debug_maxShots = 6
+        currentShot = props.getCurrentShot()
+        selectedShot = props.getSelectedShot()
 
         shotComponentsSorted = sorted(self.shotComponents, key=lambda shotCompo: shotCompo.shot.start)
 
@@ -288,8 +296,9 @@ class BL_UI_ShotStack:
 
         for i, shotCompo in enumerate(shotComponentsSorted):
             if not props.interactShotsStack_displayDisabledShots and not shotCompo.shot.enabled:
+                shotCompo.isVisible = False
                 continue
-            lane = 0
+            lane = 1
             if i > 0:
                 for ln, shots_in_lane in shots_from_lane.items():
                     for s in shots_in_lane:
@@ -302,16 +311,16 @@ class BL_UI_ShotStack:
                     if len(shots_from_lane):
                         lane = max(shots_from_lane) + 1  # No free lane, make a new one.
                     else:
-                        lane = ln
+                        #   lane = ln
                         pass
             shots_from_lane[lane].append(shotCompo.shot)
 
-            # s = _getUIShotFromShotIndex(shotTupple[0])
-            # if s is None:
-            #     s = BL_UI_ShotClip(self.context, shotTupple[0])
-            # s.update(lane)
-            # self.ui_shots.append(s)
-            # s.draw()
+            shotCompo.isCurrent = shotCompo.shot == currentShot
+            shotCompo.isSelected = shotCompo.shot == selectedShot
+
+            shotCompo.isVisible = True
+            shotCompo.posY = lane
+            shotCompo.draw(None, self.context.region, preDrawOnly=preDrawOnly)
 
     def draw_shots_old_way(self):
         props = self.context.scene.UAS_shot_manager_props
@@ -360,7 +369,7 @@ class BL_UI_ShotStack:
                         if len(shots_from_lane):
                             lane = max(shots_from_lane) + 1  # No free lane, make a new one.
                         else:
-                            lane = ln
+                            #  lane = ln
                             pass
                 shots_from_lane[lane].append(shot)
 
@@ -578,8 +587,11 @@ class BL_UI_ShotStack:
                                 # uiShot.highlight = False
                                 # self.manipulated_clip = None
                                 # self.manipulated_clip_handle = None
-                                # print("tata")
-                                print("tata Release")
+
+                                # note that this is called probably too many times due to
+                                # the fact that the event can occur on another component
+                                # This can probably be cleaned
+                                _logger.debug_ext("tata Release")
                                 self.cancelAction()
                                 event_handled = True
 

@@ -22,6 +22,7 @@ Useful entities for 2D gpu drawings
 
 import time
 
+import bpy
 import gpu
 
 
@@ -41,8 +42,11 @@ class InteractiveComponent:
     ):
         self.targetArea = targetArea
 
-        self.isHighlighted = False
-        self.isSelected = False
+        # wkip good idea?
+        self.context = bpy.context
+
+        self._isHighlighted = False
+        self._isSelected = False
 
         # events #################
         # in seconds
@@ -51,12 +55,33 @@ class InteractiveComponent:
         self.prev_click = 0
         self.isManipulated = False
 
+        # used in the draw functions to adopt the color associated to the isManipulated state
+        self.isManipulatedByAnotherComponent = False
+
         self.prev_mouse_x = 0
         self.prev_mouse_y = 0
         self.frame_under_mouse = -1
 
         self.mouseFrame = 0
         self.previousMouseFrame = 0
+
+    @property
+    def isHighlighted(self):
+        return self._isHighlighted
+
+    @isHighlighted.setter
+    def isHighlighted(self, value):
+        self._isHighlighted = value
+        self._on_highlighted_changed(self.context, value)
+
+    @property
+    def isSelected(self):
+        return self._isSelected
+
+    @isSelected.setter
+    def isSelected(self, value):
+        self._isSelected = value
+        self._on_selected_changed(self.context, value)
 
     #################################################################
     # functions ########
@@ -101,7 +126,7 @@ class InteractiveComponent:
 
     #################################################################
 
-    # to override in classes inheriting from this class:
+    # to override by inheriting classes
     def _event_highlight(self, context, event, region):
         mouseIsInBBox = False
 
@@ -117,13 +142,13 @@ class InteractiveComponent:
                 if not self.isHighlighted:
                     self.isHighlighted = True
                     # _logger.debug_ext("component2D handle_events set highlighte true", col="PURPLE", tag="EVENT")
-                    self._on_highlighted_changed(context, self.isHighlighted)
+                # self._on_highlighted_changed(context, self.isHighlighted)
             else:
                 if self.isHighlighted:
                     self.isHighlighted = False
-                    self._on_highlighted_changed(context, self.isHighlighted)
+                # self._on_highlighted_changed(context, self.isHighlighted)
 
-    # # to override in classes inheriting from this class:
+    # # to override by inheriting classes
     # def _handle_event_custom(self, context, event, region):
     #     event_handled = False
     #     mouseIsInBBox = False
@@ -209,7 +234,7 @@ class InteractiveComponent:
                 print("Debug H key")
 
         if "PRESS" == event.value and event.type in ("RIGHTMOUSE", "ESC", "WINDOW_DEACTIVATE"):
-            self.cancelAction()
+            self.cancelAction(context)
             # event_handled = True
 
         # selection ##############
@@ -220,7 +245,7 @@ class InteractiveComponent:
                     if not self.isSelected:
                         self.isSelected = True
                     # _logger.debug_ext("component2D handle_events set selected true", col="PURPLE", tag="EVENT")
-                    self._on_selected_changed(context, self.isSelected)
+                    # self._on_selected_changed(context, self.isSelected)
 
                     # manipulation #################
                     self.isManipulated = True
@@ -248,7 +273,7 @@ class InteractiveComponent:
                 # self.manipulated_clip_handle = None
                 # print("Titi")
                 if self.isManipulated:
-                    self.cancelAction()
+                    self.cancelAction(context)
                     event_handled = True
 
         if event.type in ["MOUSEMOVE", "INBETWEEN_MOUSEMOVE"]:
@@ -288,18 +313,31 @@ class InteractiveComponent:
 
     ######################################################################
 
-    # to override in classes inheriting from this class:
+    # to override by inheriting classes
+    def validateAction(self, context):
+        #  _logger.debug_ext("Validating interactive component action", col="GREEN", tag="SHOTSTACK_EVENT")
+        self.isManipulated = False
+        self._on_manipulated_changed(context, self.isManipulated)
+
+    # to override by inheriting classes
+    def cancelAction(self, context):
+        # TODO restore the initial state
+        #  _logger.debug_ext("Canceling interactive component action", col="ORANGE", tag="SHOTSTACK_EVENT")
+        self.isManipulated = False
+        self._on_manipulated_changed(context, self.isManipulated)
+
+    # to override by inheriting classes
     def _on_highlighted_changed(self, context, isHighlighted):
         """isHighlighted has the same value than self.isHighlighted, which is set right before this
         function is called
         """
         if isHighlighted:
-            # _logger.debug_ext("component2D handle_events set highlighte true", col="PURPLE", tag="EVENT"
+            # _logger.debug_ext("interactive handle_events set highlighte true", col="PURPLE", tag="EVENT"
             pass
         else:
             pass
 
-    # to override in classes inheriting from this class:
+    # to override by inheriting classes
     def _on_selected_changed(self, context, isSelected):
         """isSelected has the same value than self.isSelected, which is set right before this
         function is called
@@ -310,7 +348,7 @@ class InteractiveComponent:
         else:
             pass
 
-    # to override in classes inheriting from this class:
+    # to override by inheriting classes
     def _on_manipulated_changed(self, context, isManipulated):
         """isManipulated has the same value than self.isManipulated, which is set right before this
         function is called
@@ -321,7 +359,7 @@ class InteractiveComponent:
         else:
             pass
 
-    # to override in classes inheriting from this class:
+    # to override by inheriting classes
     def _on_manipulated_mouse_moved(self, context, mouse_delta_frames=0):
         """wkip note: mouse_delta_frames is in frames but may need to be in pixels in some cases"""
         if mouse_delta_frames:
@@ -330,6 +368,6 @@ class InteractiveComponent:
         else:
             pass
 
-    # to override in classes inheriting from this class:
+    # to override by inheriting classes
     def _on_doublecliked(self, context, event, region):
         pass

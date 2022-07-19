@@ -96,3 +96,5 @@
 
 # To do:
   - simplify the arguments of the draw() function
+  - replace the event action functions (such as _on_selected_changed) by real callbacks called when the property
+    is changed

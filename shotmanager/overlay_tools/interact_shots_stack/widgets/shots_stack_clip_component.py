@@ -164,7 +164,7 @@ class ShotClipComponent(Component2D):
         widColor = self.color
         opacity = self.opacity
 
-        if self.isManipulated:
+        if self.isManipulated or self.isManipulatedByAnotherComponent:
             widColor = self.color_manipulated
             opacity = clamp(1.6 * opacity, 0, 1)
 
@@ -345,12 +345,14 @@ class ShotClipComponent(Component2D):
 
     # override of InteractiveComponent
     def _on_selected_changed(self, context, isSelected):
-        props = context.scene.UAS_shot_manager_props
-        prefs = context.preferences.addons["shotmanager"].preferences
+        if isSelected:
+            _logger.debug_ext("\n\nClip isSelected set to True", col="RED")
+            props = context.scene.UAS_shot_manager_props
+            prefs = context.preferences.addons["shotmanager"].preferences
 
-        prefs.shot_selected_from_shots_stack__flag = True
-        props.setSelectedShot(self.shot)
-        prefs.shot_selected_from_shots_stack__flag = False
+            prefs.shot_selected_from_shots_stack__flag = True
+            props.setSelectedShot(self.shot)
+            prefs.shot_selected_from_shots_stack__flag = False
 
     # override of InteractiveComponent
     def _on_manipulated_changed(self, context, isManipulated):
@@ -387,7 +389,7 @@ class ShotClipComponent(Component2D):
                 self.shot.start += mouse_delta_frames
                 self.shot.end += mouse_delta_frames
 
-    # to override in classes inheriting from this class:
+    # to override by inheriting classes
     def _on_doublecliked(self, context, event, region):
         props = context.scene.UAS_shot_manager_props
 

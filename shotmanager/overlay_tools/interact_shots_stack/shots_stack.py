@@ -174,7 +174,7 @@ class UAS_ShotManager_InteractiveShotsStack(Operator):
         #             or (event.type == "RIGHTMOUSE" and event.value == "RELEASE")
         #             or (event.type == "ESC" and event.value == "RELEASE")
         #         ):
-        #             widget.cancelAction()
+        #             widget.cancelAction(context)
         #             event_handled = True
 
         # events doing the action
