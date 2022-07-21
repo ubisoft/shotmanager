@@ -74,12 +74,17 @@
 
 
 ## Notes:
-  - In the bounding boxes, the max values, corresponding to pixel coordinates, are NOT included in the component
-    Think about a rectangle would be drawn on X and how another rectangle after it, starting at its end, would behave.
-    In order not to overlap then the end of the bBox of the first rectangle has to be not on the end pixel column.
-  
-  - Consequently the width of the rectangle, in pixels belonging to it, is given by xMax - xMin (and NOT xMax - xMin + 1 !)
 
+  ### Bounding boxes:
+    - In the bounding boxes, the max values, corresponding to pixel coordinates, are NOT included in the component
+      Think about a rectangle would be drawn on X and how another rectangle after it, starting at its end, would behave.
+      In order not to overlap then the end of the bBox of the first rectangle has to be not on the end pixel column.
+    
+    - Consequently the width of the rectangle, in pixels belonging to it, is given by xMax - xMin (and NOT xMax - xMin + 1 !)
+
+  ### Event action callbacks:
+    - Some attributes of InteractiveComponent have callbacks that are triggered when the attribute is changed. This is 
+      the case for isHighlighted, isSelected, isManipulated.
 
 ## Tips:
   - Draw the parents before updating the position of the children.
@@ -96,5 +101,4 @@
 
 # To do:
   - simplify the arguments of the draw() function
-  - replace the event action functions (such as _on_selected_changed) by real callbacks called when the property
-    is changed
+  

@@ -57,6 +57,7 @@ class BL_UI_ShotStack:
         prefs = bpy.context.preferences.addons["shotmanager"].preferences
 
         self.useDebugComponents = False
+        self.use_shots_old_way = False
 
         self.context = None
         self.target_area = target_area
@@ -316,7 +317,11 @@ class BL_UI_ShotStack:
             shots_from_lane[lane].append(shotCompo.shot)
 
             shotCompo.isCurrent = shotCompo.shot == currentShot
-            shotCompo.isSelected = shotCompo.shot == selectedShot
+
+            # NOTE: we use _isSelected instead of the property isSelected in order
+            # to avoid the call of the callback function _on_selected_changed, otherwise
+            # the event loops and keep redrawing all the time
+            shotCompo._isSelected = shotCompo.shot == selectedShot
 
             shotCompo.isVisible = True
             shotCompo.posY = lane
@@ -443,7 +448,8 @@ class BL_UI_ShotStack:
         else:
             self.drawShots(preDrawOnly=preDrawOnly)
 
-        self.draw_shots_old_way()
+        if self.use_shots_old_way:
+            self.draw_shots_old_way()
 
     def validateAction(self):
         _logger.debug_ext("Validating Shot Stack action", col="GREEN", tag="SHOTSTACK_EVENT")
@@ -489,7 +495,7 @@ class BL_UI_ShotStack:
             if event_handled:
                 break
 
-        if True:
+        if self.use_shots_old_way:
             #  if True and not event_handled:
             if "PRESS" == event.value and event.type in ("RIGHTMOUSE", "ESC", "WINDOW_DEACTIVATE"):
                 self.cancelAction()

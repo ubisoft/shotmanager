@@ -1,4 +1,14 @@
 -----
+## 2.0.105 (2022-07-21)
+### Interactive Shots Stack
+- Completely rewrote the Shots Stack UI and graphics library: this was required for a long time
+  to improve the UI and to fix some gliches and visual bugs. It also allowed to fix the
+  events loop that didn't work anymore due to changes in the API in Blender 3.2
+- Sequence Timeline is not hidden by default anymore when the viewport overlay tools display is
+  turned off. This can be changed in the Sequence Timeline Preferences
+
+
+-----
 ## 2.0.104 (2022-06-22)
 - Installation of Stamp Info add-on during the installation of Shot Manager
 - Fixed Logger path

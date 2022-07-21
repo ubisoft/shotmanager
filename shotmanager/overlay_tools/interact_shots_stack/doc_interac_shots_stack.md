@@ -27,10 +27,6 @@
 - Store the state of shots before the action and restore it if action canceled
 - validate the action with Enter
 
-- handles
-
-- faire marcher compact mode
-
 - undo
 
 - display des options sur les 2 dopesheets

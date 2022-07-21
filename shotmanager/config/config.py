@@ -31,9 +31,6 @@ def initGlobalVariables():
     # debug ############
     global devDebug
 
-    global tmpTimelineModalRect
-    tmpTimelineModalRect = None
-
     # wkip better code: devDebug = os.environ.get("devDebug", "0") == "1"
     if "devDebug" in os.environ.keys():
         devDebug = bool(int(os.environ["devDebug"]))
@@ -41,7 +38,7 @@ def initGlobalVariables():
         devDebug = False
 
     # change this value to force debug at start time
-    devDebug = True
+    devDebug = False
 
     global devDebug_lastRedrawTime
     devDebug_lastRedrawTime = -1
@@ -79,6 +76,9 @@ def initGlobalVariables():
     gAddonKeymaps = []
 
     # interactive shots stack ############
+    global tmpTimelineModalRect
+    tmpTimelineModalRect = None
+
     global gShotsStack_forceRedraw_debug
     gShotsStack_forceRedraw_debug = False
 

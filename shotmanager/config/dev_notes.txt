@@ -10,6 +10,8 @@ Dialog windows width:
     450     project settings, seq settings
     480
 
+To add to every description of a parameter saved in the Preferences and exposed to the user:
+"\n\n(saved in the add-on preferences)"
 
 Doc:
 Mark Down language memo: https://github.com/tchapi/markdown-cheatsheet/blob/master/README.md

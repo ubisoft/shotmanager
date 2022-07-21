@@ -34,7 +34,12 @@ UNIFORM_SHADER_2D = gpu.shader.from_builtin("2D_UNIFORM_COLOR")
 
 
 class InteractiveComponent:
-    """Kind of abstract class or template to predefine the functions for interactions"""
+    """Kind of abstract class or template to predefine the functions for interactions
+
+    - Event action callbacks:
+      - Some attributes of InteractiveComponent have callbacks that are triggered when the attribute is changed. This is
+        the case for isHighlighted, isSelected, isManipulated.
+    """
 
     def __init__(
         self,
@@ -45,18 +50,21 @@ class InteractiveComponent:
         # wkip good idea?
         self.context = bpy.context
 
+        # attributes with event action ##########
+        #########################################
         self._isHighlighted = False
         self._isSelected = False
+        self._isManipulated = False
 
-        # events #################
+        # used in the draw functions to adopt the color associated to the isManipulated state
+        self.isManipulatedByAnotherComponent = False
+
+        # event control ##########
+        #########################################
         # in seconds
         self.doubleClickDuration = 0.3
 
         self.prev_click = 0
-        self.isManipulated = False
-
-        # used in the draw functions to adopt the color associated to the isManipulated state
-        self.isManipulatedByAnotherComponent = False
 
         self.prev_mouse_x = 0
         self.prev_mouse_y = 0
@@ -82,6 +90,15 @@ class InteractiveComponent:
     def isSelected(self, value):
         self._isSelected = value
         self._on_selected_changed(self.context, value)
+
+    @property
+    def isManipulated(self):
+        return self._isManipulated
+
+    @isManipulated.setter
+    def isManipulated(self, value):
+        self._isManipulated = value
+        self._on_manipulated_changed(self.context, value)
 
     #################################################################
     # functions ########
@@ -250,7 +267,7 @@ class InteractiveComponent:
                     # manipulation #################
                     self.isManipulated = True
                     # _logger.debug_ext("Start Clip manip", col="YELLOW", tag="EVENT")
-                    self._on_manipulated_changed(context, self.isManipulated)
+                    # self._on_manipulated_changed(context, self.isManipulated)
                     self.mouseFrame = int(region.view2d.region_to_view(event.mouse_x - region.x, 0)[0])
                     self.previousMouseFrame = self.mouseFrame
 
@@ -317,14 +334,16 @@ class InteractiveComponent:
     def validateAction(self, context):
         #  _logger.debug_ext("Validating interactive component action", col="GREEN", tag="SHOTSTACK_EVENT")
         self.isManipulated = False
-        self._on_manipulated_changed(context, self.isManipulated)
+
+    #  self._on_manipulated_changed(context, self.isManipulated)
 
     # to override by inheriting classes
     def cancelAction(self, context):
         # TODO restore the initial state
         #  _logger.debug_ext("Canceling interactive component action", col="ORANGE", tag="SHOTSTACK_EVENT")
         self.isManipulated = False
-        self._on_manipulated_changed(context, self.isManipulated)
+
+    #  self._on_manipulated_changed(context, self.isManipulated)
 
     # to override by inheriting classes
     def _on_highlighted_changed(self, context, isHighlighted):

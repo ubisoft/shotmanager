@@ -741,7 +741,7 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
     seqTimeline_not_disabled_with_overlays: BoolProperty(
         name="Display Sequence Timeline Even If Overlays Are Hidden",
         description="Display Sequence Timeline Even If Overlays Are Hidden",
-        default=False,
+        default=True,
         options=set(),
     )
 

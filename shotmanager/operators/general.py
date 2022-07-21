@@ -73,8 +73,8 @@ class UAS_ShotManager_OT_DisplayOverlayTools(Operator):
 
 class UAS_ShotManager_OT_DisplayDisabledShotsInOverlays(Operator):
     bl_idname = "uas_shot_manager.display_disabledshots_in_overlays"
-    bl_label = "Toggle Disabled Shots Display"
-    bl_description = "Display Disabled Shots in Overlay Tools"
+    bl_label = "Display disabled shots in the Shots Stack and the Sequence Timeline"
+    # bl_description = "Display Disabled Shots in Overlay Tools"
     bl_options = {"INTERNAL"}
 
     def invoke(self, context, event):
