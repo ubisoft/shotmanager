@@ -223,7 +223,7 @@ class UAS_ShotManager_OpenFileBrowser(Operator, ImportHelper):
 
 # TODO: Cleaning
 # Dev note: This function has to be here for the moment cause it is passed
-# in stampinfo code to a call to uas_stamp_info.querybox
+# in stampinfo code to a call to uas_shotmanager.querybox
 def reset_render_properties():
     props = bpy.context.scene.UAS_shot_manager_props
     props.reset_render_properties()

@@ -24,7 +24,7 @@ import os
 import bpy
 import bpy.utils.previews
 
-from ..utils import utils
+from shotmanager.utils import utils
 
 from shotmanager.config import sm_logging
 

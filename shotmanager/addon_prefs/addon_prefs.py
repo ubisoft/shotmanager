@@ -72,6 +72,9 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
         """
         return utils.addonVersion("Shot Manager")
 
+    # def isReleaseVersion(self):
+    #     """Return True if the current version is a released on"""
+
     newAvailableVersion: IntProperty(
         description="Store the version of the latest release of the add-on as an integer if there is an online release"
         "\nthat is more recent than this version. If there is none then the value is 0",

@@ -32,8 +32,8 @@ _logger = sm_logging.getLogger(__name__)
 #############
 
 
-class UAS_MT_StampInfo_Prefs_MainMenu(Menu):
-    bl_idname = "UAS_MT_StampInfo_prefs_mainmenu"
+class UAS_MT_ShotManager_Prefs_StampInfoMainMenu(Menu):
+    bl_idname = "UAS_MT_ShotManager_prefs_stampinfo_mainmenu"
     bl_label = "General Preferences"
     # bl_description = "General Preferences"
 
@@ -42,7 +42,7 @@ class UAS_MT_StampInfo_Prefs_MainMenu(Menu):
 
         row = layout.row()
         row.separator(factor=5)
-        resetOp = row.operator("uas_stamp_info.querybox", text="Reset All to Default Values...", icon="LOOP_BACK")
+        resetOp = row.operator("uas_sm_stamp_info.querybox", text="Reset All to Default Values...", icon="LOOP_BACK")
         resetOp.width = 400
         resetOp.message = "Reset all the properties to their default value?"
         resetOp.function_name = "reset_all_properties"
@@ -55,7 +55,7 @@ class UAS_MT_StampInfo_Prefs_MainMenu(Menu):
         layout.separator()
         row = layout.row(align=True)
         row.operator(
-            "stampinfo.open_documentation_url", text="Documentation", icon="HELP"
+            "shotmanager.open_documentation_url", text="Documentation", icon="HELP"
         ).path = "https://ubisoft-stampinfo.readthedocs.io/"
 
         layout.separator()
@@ -64,7 +64,7 @@ class UAS_MT_StampInfo_Prefs_MainMenu(Menu):
         row.operator("uas_stamp_info.about", text="About...")
 
 
-_classes = (UAS_MT_StampInfo_Prefs_MainMenu,)
+_classes = (UAS_MT_ShotManager_Prefs_StampInfoMainMenu,)
 
 
 def register():

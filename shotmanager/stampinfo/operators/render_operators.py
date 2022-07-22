@@ -24,9 +24,9 @@ from bpy.types import Operator
 from bpy.props import EnumProperty
 
 # from ..utils.utils_render import getRenderOutputFilename
-from ..utils import utils
-from ..utils.utils_filenames import SequencePath
-from ..utils.utils_os import delete_folder
+from shotmanager.utils.utils_os import delete_folder
+from shotmanager.utils.utils_filenames import SequencePath
+from shotmanager.utils import utils
 from ..utils.utils_ui import show_message_box
 
 from pathlib import Path

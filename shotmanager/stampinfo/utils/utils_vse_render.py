@@ -33,7 +33,7 @@ from bpy.props import (
     PointerProperty,
 )
 
-from ..utils import utils
+from shotmanager.utils import utils
 
 from shotmanager.config import sm_logging
 

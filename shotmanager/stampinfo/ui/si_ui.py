@@ -26,13 +26,12 @@ from bpy.types import Panel, Operator
 
 import importlib
 
-from ..utils.utils_ui import collapsable_panel
 
 from ..properties import stamper
 from .. import stampInfoSettings
 
-from ..utils import utils
-from ..utils.utils_os import module_can_be_imported
+from shotmanager.utils.utils_ui import collapsable_panel
+from shotmanager.utils.utils_os import module_can_be_imported
 
 from ..operators import debug
 
@@ -72,7 +71,7 @@ class UAS_PT_StampInfoAddon(Panel):
         row = layout.row(align=True)
 
         icon = config.icons_col["StampInfo_32"]
-        row.operator("uas_stamp_info.about", text="", icon_value=icon.icon_id)
+        row.operator("uas_shot_manager.about", text="", icon_value=icon.icon_id)
 
     def draw_header_preset(self, context):
         prefs = context.preferences.addons["shotmanager"].preferences
@@ -98,7 +97,7 @@ class UAS_PT_StampInfoAddon(Panel):
         # )
 
         row.separator(factor=2)
-        row.menu("UAS_MT_StampInfo_prefs_mainmenu", icon="PREFERENCES", text="")
+        row.menu("UAS_MT_ShotManager_prefs_stampinfo_mainmenu", icon="PREFERENCES", text="")
 
         if not config.devDebug and prefs.checkForNewAvailableVersion and prefs.newAvailableVersion:
             row.separator(factor=0.5)
@@ -452,7 +451,7 @@ class UAS_PT_StampInfoTimeAndFrames(Panel):
         subRowRight = row.row(align=True)
         subRowRight.emboss = "NONE"
         subRowRight.alignment = "RIGHT"
-        doc_op = subRowRight.operator("stampinfo.open_documentation_url", text="", icon="INFO")
+        doc_op = subRowRight.operator("shotmanager.open_documentation_url", text="", icon="INFO")
         quickHelpInfo = _getQuickHelp("VIDEO_FRAME")
         doc_op.path = quickHelpInfo[3]
         tooltipStr = quickHelpInfo[1]
@@ -495,7 +494,7 @@ class UAS_PT_StampInfoTimeAndFrames(Panel):
         subRowRight = row.row(align=True)
         subRowRight.emboss = "NONE"
         subRowRight.alignment = "RIGHT"
-        doc_op = subRowRight.operator("stampinfo.open_documentation_url", text="", icon="INFO")
+        doc_op = subRowRight.operator("shotmanager.open_documentation_url", text="", icon="INFO")
         quickHelpInfo = _getQuickHelp("3D_FRAME")
         doc_op.path = quickHelpInfo[3]
         tooltipStr = quickHelpInfo[1]
@@ -639,7 +638,7 @@ class UAS_PT_StampInfoMetadata(Panel):
             else:
                 subRow = row.row(align=True)
                 subRow.prop(siSettings, "logoFilepath")
-                subRow.operator("stampinfo.openfilebrowser", text="", icon="FILEBROWSER", emboss=True)
+                subRow.operator("shotmanager.openfilebrowser", text="", icon="FILEBROWSER", emboss=True)
 
             row = box.row(align=True)
             row.prop(siSettings, "logoScaleH")

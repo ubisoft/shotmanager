@@ -24,13 +24,14 @@ import bpy.utils.previews
 from bpy.props import PointerProperty
 
 
-from .utils import utils_operators
 from .utils.utils_render import Utils_LaunchRender
 from .utils import utils_vse_render
 from .properties import stampInfoSettings
 from .operators import debug
 from .properties import stamper
 from .ui import si_ui
+
+from shotmanager.utils.utils_inspectors import resetAttrs
 
 import importlib
 
@@ -50,7 +51,6 @@ classes = (
 
 
 def stampInfo_resetProperties():
-    from .utils.utils_inspectors import resetAttrs
 
     # print("stampInfo_resetProperties...")
     # print(f"Scene name: {bpy.context.scene.name}")
@@ -82,7 +82,6 @@ def register():
     si_ui.register()
     ui.register()
     utils_vse_render.register()
-    utils_operators.register()
 
     bpy.types.Scene.UAS_SM_StampInfo_Settings = PointerProperty(type=stampInfoSettings.UAS_StampInfoSettings)
 
@@ -105,7 +104,6 @@ def unregister():
     from . import ui
     from .operators import render_operators
 
-    utils_operators.unregister()
     utils_vse_render.unregister()
     ui.unregister()
     si_ui.unregister()

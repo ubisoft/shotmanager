@@ -22,7 +22,6 @@ UI utilities
 
 
 import os
-from pathlib import Path
 import subprocess
 
 import bpy
@@ -32,8 +31,8 @@ from bpy.props import StringProperty
 # for file browser:
 from bpy_extras.io_utils import ImportHelper
 
-from .utils_os import open_folder
-from .utils import convertVersionIntToStr
+from shotmanager.utils.utils_os import open_folder
+from shotmanager.utils.utils import convertVersionIntToStr
 
 
 ###################
@@ -84,56 +83,6 @@ def collapsable_panel(
 ###################
 
 
-
-
-class UAS_OT_Open_Documentation_Url(Operator):  # noqa 801
-    bl_idname = "stampinfo.open_documentation_url"
-    bl_label = ""
-    bl_description = "Open web page.\nShift + Click: Copy the URL into the clipboard"
-
-    tooltip: StringProperty(default="")
-    path: StringProperty()
-
-    @classmethod
-    def description(self, context, properties):
-        descr = properties.tooltip if "" != properties.tooltip else "Open web page."
-        descr += "\nShift + Click: Copy the URL into the clipboard"
-        return descr
-
-    def invoke(self, context, event):
-        if event.shift:
-            # copy path to clipboard
-            cmd = "echo " + (self.path).strip() + "|clip"
-            subprocess.check_call(cmd, shell=True)
-        else:
-            open_folder(self.path)
-
-        return {"FINISHED"}
-
-
-# This operator requires   from bpy_extras.io_utils import ImportHelper
-# See https://sinestesia.co/blog/tutorials/using-blenders-filebrowser-with-python/
-class UAS_OpenFileBrowser(Operator, ImportHelper):
-    bl_idname = "stampinfo.openfilebrowser"
-    bl_label = "Open"
-    bl_description = (
-        "Open the file browser to define the image to stamp\n"
-        "Relative path must be set directly in the text field and must start with ''//''"
-    )
-
-    filter_glob: StringProperty(default="*.jpg;*.jpeg;*.png;*.tif;*.tiff;*.tga,*.bmp", options={"HIDDEN"})
-
-    def execute(self, context):
-        """Use the selected file as a stamped logo"""
-        filename, extension = os.path.splitext(self.filepath)
-        #   print('Selected file:', self.filepath)
-        #   print('File name:', filename)
-        #   print('File extension:', extension)
-        bpy.context.scene.UAS_SM_StampInfo_Settings.logoFilepath = self.filepath
-
-        return {"FINISHED"}
-
-
 ####################################################################
 
 
@@ -165,21 +114,21 @@ def show_message_box(message="", title="Message Box", icon="INFO"):
 
 # TODO: Cleaning
 # Dev note: This function has to be here for the moment cause it is passed
-# in stampinfo code to a call to uas_stamp_info.querybox
+# in stampinfo code to a call to uas_sm_stamp_info.querybox
 def reset_all_properties():
-    import stampinfo
+    from shotmanager import stampinfo
 
     print("reset_all_properties")
     stampinfo.stampInfo_resetProperties()
 
 
-class UAS_StampInfo_OT_Querybox(Operator):
+class UAS_SMStampInfo_OT_Querybox(Operator):
     """Display a query dialog box
 
     A message can be drawn on several lines when containing the separator \n
     """
 
-    bl_idname = "uas_stamp_info.querybox"
+    bl_idname = "uas_sm_stamp_info.querybox"
     bl_label = "Please confirm:"
     # bl_description = "..."
     bl_options = {"INTERNAL"}
@@ -220,62 +169,7 @@ class UAS_StampInfo_OT_Querybox(Operator):
 ####################################################################
 
 
-class UAS_StampInfo_UpdateDialog(Operator):
-    bl_idname = "uas_stamp_info.update_dialog"
-    bl_label = "Add-on Update Available"
-    bl_description = "Open a dialog window presenting the available update of the add-on"
-
-    # can be a web url or an intranet path
-    url: StringProperty(default="")
-
-    addonName: StringProperty(default="")
-
-    def invoke(self, context, event):
-        self.addonName = "Ubisoft Stamp Info"
-        self.url = "https://github.com/ubisoft/stampinfo/releases/latest"
-
-        return context.window_manager.invoke_props_dialog(self, width=450)
-
-    def draw(self, context):
-        prefs = context.preferences.addons["shotmanager"].preferences
-
-        layout = self.layout
-        box = layout.box()
-        col = box.column()
-
-        sepRow = col.row()
-        sepRow.separator(factor=0.5)
-
-        row = col.row()
-        newVersionStr = f"V. {convertVersionIntToStr(prefs.newAvailableVersion)}"
-        row.label(text=f"A new version of {self.addonName} is available on GitHub: {newVersionStr}")
-
-        sepRow = col.row()
-        sepRow.separator(factor=0.5)
-
-        row = col.row()
-        row.label(text="You can download it here:")
-
-        doc_op = row.operator("stampinfo.open_documentation_url", text="Download Latest", icon="URL")
-        doc_op.path = self.url
-        doc_op.tooltip = "Open latest Stamp Info download page: " + doc_op.path
-
-        sepRow = col.row()
-        sepRow.separator(factor=0.5)
-
-    def execute(self, context):
-        return {"FINISHED"}
-
-
-####################################################################
-
-
-_classes = (
-    UAS_OT_Open_Documentation_Url,
-    UAS_OpenFileBrowser,
-    UAS_StampInfo_OT_Querybox,
-    UAS_StampInfo_UpdateDialog,
-)
+_classes = (UAS_SMStampInfo_OT_Querybox,)
 
 
 def register():

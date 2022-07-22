@@ -31,7 +31,7 @@ from ..properties.stamper import (
     getRenderResolutionForStampInfo,
     getInnerHeight,
 )
-from ..utils import utils
+from shotmanager.utils import utils
 
 from shotmanager.config import sm_logging
 

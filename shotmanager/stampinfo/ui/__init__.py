@@ -19,7 +19,6 @@
 UI module
 """
 
-from . import about
 from . import prefs
 
 # from . import si_ui
@@ -32,7 +31,6 @@ _logger = sm_logging.getLogger(__name__)
 def register():
     _logger.debug_ext("       - Registering UI Package", form="REG")
 
-    about.register()
     prefs.register()
 
 
@@ -44,4 +42,3 @@ def unregister():
 
     #  si_ui.unregister()
     prefs.unregister()
-    about.unregister()

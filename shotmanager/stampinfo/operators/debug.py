@@ -24,7 +24,7 @@ import bpy
 from bpy.types import Panel, Operator
 from bpy.props import BoolProperty
 
-from ..utils import utils_render
+from shotmanager.utils import utils_render
 
 from shotmanager.config import config
 from shotmanager.config import sm_logging
@@ -60,7 +60,8 @@ class UAS_PT_StampInfoDebug(Panel):
 
     @classmethod
     def poll(self, context):
-        return config.devDebug
+        prefs = context.preferences.addons["shotmanager"].preferences
+        return prefs.stampInfo_display_main_panel and config.devDebug
 
     def draw(self, context):
         layout = self.layout

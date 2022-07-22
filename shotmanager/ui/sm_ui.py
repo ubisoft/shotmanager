@@ -48,7 +48,7 @@ _logger = sm_logging.getLogger(__name__)
 
 class UAS_PT_ShotManager(Panel):
     #    bl_label = f"Shot Manager {'.'.join ( str ( v ) for v in bl_info[ 'version'] ) }"
-    bl_label = " Shot Manager  V. " + utils.addonVersion("Shot Manager")[0]
+    bl_label = " U. Shot Manager  V. " + utils.addonVersion("Shot Manager")[0]
     bl_idname = "UAS_PT_Shot_Manager"
     bl_space_type = "VIEW_3D"
     bl_region_type = "UI"
