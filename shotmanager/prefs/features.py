@@ -201,15 +201,15 @@ def draw_features_prefs(mode, layout):
     subrow.scale_x = 1.5
     icon = config.icons_col["ShotManager_CamGPVisible_32"]
     subrow.prop(prefs, "display_25D_greasepencil_panel", text="", icon_value=icon.icon_id)
-    subrow.label(text="2.5D Grease Pencil Panel")
+    subrow.label(text="2.5D Grease Pencil")
 
-    ################
-    # Renderer
-    subrow = col.row()
-    subrow.scale_x = 1.5
-    icon = config.icons_col["ShotManager_Retimer_32"]
-    subrow.prop(prefs, "display_render_panel", text="", icon="RENDER_ANIMATION")
-    subrow.label(text="Render Panel")
+    # ################
+    # # Renderer
+    # subrow = col.row()
+    # subrow.scale_x = 1.5
+    # icon = config.icons_col["ShotManager_Retimer_32"]
+    # subrow.prop(prefs, "display_render_panel", text="", icon="RENDER_ANIMATION")
+    # subrow.label(text="Render")
 
     ################################################################
     rightCol = boxSplit.column()
@@ -225,13 +225,70 @@ def draw_features_prefs(mode, layout):
     subrow.scale_x = 1.5
     icon = config.icons_col["ShotManager_Retimer_32"]
     subrow.prop(prefs, "display_retimer_panel", text="", icon_value=icon.icon_id)
-    subrow.label(text="Retimer Panel")
+    subrow.label(text="Retimer")
 
     ################
     ################
     if "ADDON_PREFS" != mode:
         layout.separator(factor=separatorVertTopics)
     layout.label(text="Additional Tools in Editors:")
+
+    ###################################
+    # Renderer
+    ###################################
+    # if "ADDON_PREFS" != mode:
+    box = layout.box()
+    subrow = box.row()
+    subrow.separator(factor=3.5)
+
+    icon = config.icons_col["ShotManager_Retimer_32"]
+    butsubrow = subrow.row()
+    butsubrow.scale_x = 1.5
+    butsubrow.prop(prefs, "display_render_panel", text="", icon="RENDER_ANIMATION")
+    subrow.label(text="Render Panel")
+
+    subrowright = subrow.row()
+    subrowright.alignment = "RIGHT"
+    subrowright.label(text="(in 3D View tab)")
+
+    ###################################
+    # Stamp Info ######################
+    ###################################
+
+    box = layout.box()
+    subrow = box.row()
+    subrow.separator(factor=3.5)
+    subrow.enabled = utils_ui.drawStampInfoBut(subrow)
+    subrow.label(text="Stamp Info")
+
+    subrowright = subrow.row()
+    subrowright.alignment = "RIGHT"
+    subrowright.label(text="(in 3D View tab)")
+
+    ###################################
+    # Camera HUD ######################
+    ###################################
+    if "ADDON_PREFS" != mode:
+        box = layout.box()
+        subrow = box.row()
+
+        panelIcon = "TRIA_DOWN" if prefs.cameraHUD_settings_expanded else "TRIA_RIGHT"
+        subrow.prop(prefs, "cameraHUD_settings_expanded", text="", icon_only=True, icon=panelIcon, emboss=False)
+
+        icon = config.icons_col["ShotManager_Retimer_32"]
+        butsubrow = subrow.row()
+        butsubrow.scale_x = 1.5
+        butsubrow.operator(
+            "uas_shot_manager.camerahud_toggle_display",
+            text="",
+            icon="CAMERA_DATA",
+            depress=props.camera_hud_display_in_viewports or props.camera_hud_display_in_pov,
+        )
+        subrow.label(text="Camera HUD   ")
+
+        subrowright = subrow.row()
+        subrowright.alignment = "RIGHT"
+        subrowright.label(text="(in 3D View)")
 
     ###################################
     # Sequence timeline ######
@@ -252,7 +309,11 @@ def draw_features_prefs(mode, layout):
             icon="SEQ_STRIP_DUPLICATE",
             depress=prefs.toggle_overlays_turnOn_sequenceTimeline,
         )
-        subrow.label(text="Sequence Timeline (in Viewport)")
+        subrow.label(text="Sequence Timeline")
+
+        subrowright = subrow.row()
+        subrowright.alignment = "RIGHT"
+        subrowright.label(text="(in 3D View)")
 
         if prefs.seqTimeline_settings_expanded:
             leftCol = box.column()
@@ -286,31 +347,14 @@ def draw_features_prefs(mode, layout):
             icon="NLA_PUSHDOWN",
             depress=prefs.toggle_overlays_turnOn_interactiveShotsStack,
         )
-        subrow.label(text="Interaction Shots Stack (in Timeline)")
+        subrow.label(text="Interaction Shots Stack")
+
+        subrowright = subrow.row()
+        subrowright.alignment = "RIGHT"
+        subrowright.label(text="(in Timeline and Dopesheet)")
 
         if prefs.intShStack_settings_expanded:
             shots_stack_prefs.draw_settings(bpy.context, box)
-
-    ###################################
-    # Camera HUD ######################
-    ###################################
-    if "ADDON_PREFS" != mode:
-        box = layout.box()
-        subrow = box.row()
-
-        panelIcon = "TRIA_DOWN" if prefs.cameraHUD_settings_expanded else "TRIA_RIGHT"
-        subrow.prop(prefs, "cameraHUD_settings_expanded", text="", icon_only=True, icon=panelIcon, emboss=False)
-
-        icon = config.icons_col["ShotManager_Retimer_32"]
-        butsubrow = subrow.row()
-        butsubrow.scale_x = 1.5
-        butsubrow.operator(
-            "uas_shot_manager.camerahud_toggle_display",
-            text="",
-            icon="CAMERA_DATA",
-            depress=props.camera_hud_display_in_viewports or props.camera_hud_display_in_pov,
-        )
-        subrow.label(text="Camera HUD (in Viewport)")
 
         if prefs.cameraHUD_settings_expanded:
             camera_hud_prefs.draw_settings(bpy.context, box)
@@ -324,17 +368,13 @@ def draw_features_prefs(mode, layout):
     butsubrow = subrow.row()
     butsubrow.scale_x = 1.5
     butsubrow.prop(prefs, "display_frame_range_tool", text="", icon="CENTER_ONLY")
-    subrow.label(text="Frame Range Tool (on Timeline Menu)")
+    subrow.label(text="Frame Range Tool")
+
+    subrowright = subrow.row()
+    subrowright.alignment = "RIGHT"
+    subrowright.label(text="(on Timeline Menu)")
 
     ###################################
-    # Stamp Info ######################
-    ###################################
-
-    box = layout.box()
-    subrow = box.row()
-    subrow.separator(factor=3.5)
-    subrow.enabled = utils_ui.drawStampInfoBut(subrow)
-    subrow.label(text="Stamp Info (1n 3D View tab)")
 
     layout.separator(factor=separatorVertTopics)
     if "ADDON_PREFS" != mode:

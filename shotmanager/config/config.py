@@ -60,8 +60,12 @@ def initGlobalVariables():
     # icons ############
     global icons_col
 
+    print("titi")
     pcoll = bpy.utils.previews.new()
-    my_icons_dir = os.path.join(os.path.dirname(__file__), "../icons")
+    # my_icons_dir = os.path.join(os.path.dirname(__file__), "../icons")
+    currentDir = os.path.dirname(__file__)
+    addon_dir = Path(currentDir).parent
+    my_icons_dir = os.path.join(addon_dir, "icons")
     for png in Path(my_icons_dir).rglob("*.png"):
         pcoll.load(png.stem, str(png), "IMAGE")
 

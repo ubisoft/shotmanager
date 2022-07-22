@@ -29,10 +29,10 @@ _logger = sm_logging.getLogger(__name__)
 
 def setStampInfoSettings(scene, resolution, resolutionFramed):
 
-    if bpy.context.scene.UAS_StampInfo_Settings is not None:
+    if bpy.context.scene.UAS_SM_StampInfo_Settings is not None:
 
         props = scene.UAS_shot_manager_props
-        stampInfoSettings = scene.UAS_StampInfo_Settings
+        stampInfoSettings = scene.UAS_SM_StampInfo_Settings
 
         stampInfoSettings.stampInfoUsed = scene.UAS_shot_manager_props.useStampInfoDuringRendering
 

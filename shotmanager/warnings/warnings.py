@@ -197,18 +197,18 @@ def getWarnings(props, scene):
     # check if the installed version of Stamp Info is supported
     ###########
 
-    stampInfoInstalledVersion = utils.addonVersion("Stamp Info")
-    if stampInfoInstalledVersion:
-        stampInfoMinVersion = prefs.dependency_min_supported_version("Stamp Info")
-        if stampInfoInstalledVersion[1] < stampInfoMinVersion[1]:
-            warningList.append(
-                (
-                    f"Installed version of Stamp Info add-on is too old: {stampInfoInstalledVersion[0]}"
-                    f"\nSupported version: {stampInfoMinVersion[0]}",
-                    71,
-                    "ALL",
-                )
-            )
+    # stampInfoInstalledVersion = utils.addonVersion("Stamp Info")
+    # if stampInfoInstalledVersion:
+    #     stampInfoMinVersion = prefs.dependency_min_supported_version("Stamp Info")
+    #     if stampInfoInstalledVersion[1] < stampInfoMinVersion[1]:
+    #         warningList.append(
+    #             (
+    #                 f"Installed version of Stamp Info add-on is too old: {stampInfoInstalledVersion[0]}"
+    #                 f"\nSupported version: {stampInfoMinVersion[0]}",
+    #                 71,
+    #                 "ALL",
+    #             )
+    #         )
 
     # if props.use_project_settings and "Scene" in scene.name:
     #     warningList.append("Scene Name is Invalid !!!")

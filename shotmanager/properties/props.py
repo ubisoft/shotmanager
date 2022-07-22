@@ -674,12 +674,12 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         """
         scene = self.parentScene
 
-        # if getattr(scene, "UAS_StampInfo_Settings", None) is None:
+        # if getattr(scene, "UAS_SM_StampInfo_Settings", None) is None:
         stampInfoSettings = getStampInfo()
         if stampInfoSettings is None:
             return self.getRenderResolution()
 
-        # stampInfoSettings = scene.UAS_StampInfo_Settings
+        # stampInfoSettings = scene.UAS_SM_StampInfo_Settings
         if not stampInfoSettings.stampInfoUsed:
             return self.getRenderResolution()
 
@@ -840,10 +840,10 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
             else:
                 renderResolutionFramedFull = stampInfoSettings.getRenderResolutionForStampInfo(scene)
 
-            # if getattr(scene, "UAS_StampInfo_Settings", None) is None:
+            # if getattr(scene, "UAS_SM_StampInfo_Settings", None) is None:
             #     renderResolutionFramedFull = self.getRenderResolution()
             # else:
-            #     stampInfoSettings = scene.UAS_StampInfo_Settings
+            #     stampInfoSettings = scene.UAS_SM_StampInfo_Settings
             #     renderResolutionFramedFull = stampInfoSettings.getRenderResolutionForStampInfo(scene)
         else:
             renderResolutionFramedFull = self.getRenderResolution()
@@ -2325,9 +2325,9 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         print("*** set_useStampInfoDuringRendering: value: ", value)
         self["useStampInfoDuringRendering"] = value
 
-        if getattr(bpy.context.scene, "UAS_StampInfo_Settings", None) is not None:
-            # bpy.context.scene.UAS_StampInfo_Settings.activateStampInfo(value)
-            bpy.context.scene.UAS_StampInfo_Settings.stampInfoUsed = value
+        if getattr(bpy.context.scene, "UAS_SM_StampInfo_Settings", None) is not None:
+            # bpy.context.scene.UAS_SM_StampInfo_Settings.activateStampInfo(value)
+            bpy.context.scene.UAS_SM_StampInfo_Settings.stampInfoUsed = value
 
     useStampInfoDuringRendering: BoolProperty(
         name="Stamp Info on Output",
@@ -2393,7 +2393,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
 
     def isStampInfoAvailable(self):
         """Return True if the add-on UAS Stamp Info is available, registred and ready to be used"""
-        readyToUse = getattr(bpy.context.scene, "UAS_StampInfo_Settings", None) is not None
+        readyToUse = getattr(bpy.context.scene, "UAS_SM_StampInfo_Settings", None) is not None
         # stampInfoSettings = getStampInfo()
         # readyToUse = stampInfoSettings is not None
         return readyToUse

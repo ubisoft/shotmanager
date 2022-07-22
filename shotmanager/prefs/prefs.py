@@ -229,7 +229,7 @@ class UAS_ShotManager_Shots_Prefs(Operator):
 #         layout.emboss = "NONE"
 #         row = layout.row(align=True)
 
-#         if getattr(scene, "UAS_StampInfo_Settings", None) is not None:
+#         if getattr(scene, "UAS_SM_StampInfo_Settings", None) is not None:
 #             # row.alert = True
 #             row.label(text="Version not found")
 #             row.alert = False
@@ -237,7 +237,7 @@ class UAS_ShotManager_Shots_Prefs(Operator):
 #             try:
 #                 versionStr = utils.addonVersion("UAS_StampInfo")
 #                 row.label(text="Loaded - V." + versionStr)
-#                 # row.label(text="Loaded - V." + context.scene.UAS_StampInfo_Settings.version())
+#                 # row.label(text="Loaded - V." + context.scene.UAS_SM_StampInfo_Settings.version())
 #             except Exception as e:
 #                 #    row.alert = True
 #                 row.label(text="Not found")

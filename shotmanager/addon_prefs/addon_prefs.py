@@ -89,14 +89,15 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
         default=True,
     )
 
+    # not used anymore since Stamp Info has been integrated
     def dependency_min_supported_version(self, addon_name):
         """Return a tuple with the version minimum of a dependency add-on supported by this add-on:
             - a string x.y.z (eg: "1.21.3")
             - an integer. x.y.z becomes xxyyyzzz (eg: "1.21.3" becomes 1021003)
         Return None if the addon has not been found in the listed dependencies
         """
-        if "Stamp Info" == addon_name:
-            return config.STAMP_INFO_MIN_VERSION
+        # if "Stamp Info" == addon_name:
+        #     return config.STAMP_INFO_MIN_VERSION
 
         return None
 
@@ -135,9 +136,9 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
             else:
                 self.newAvailableVersion = 0
 
-        from shotmanager.install.install_stampinfo import install_stampinfo_addon
+        # from shotmanager.install.install_stampinfo import install_stampinfo_addon
 
-        install_stampinfo_addon()
+        # install_stampinfo_addon()
 
         self.isInitialized = True
 
@@ -884,6 +885,47 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
         "\nA tool from Ubisoft Shot Manager"
         "\n\n(saved in the add-on preferences)",
         update=_update_display_frame_range_tool,
+        default=True,
+    )
+
+    ########################################################################
+    # stamp info ###
+    ########################################################################
+
+    stampInfo_display_main_panel: BoolProperty(
+        name="Display Panel",
+        description="Display the Stamp Info properties panel in the tab list in the 3D View",
+        default=False,
+    )
+
+    write_still: BoolProperty(
+        name="Write rendered still images on disk",
+        description="If checked then writes rendered still images on disk.\n"
+        "If not checked (most common approach) then the images are written with a name starting with '_Still_' in order to prevent modification on a single frame"
+        "in an already rendered image sequences",
+        default=False,
+        options=set(),
+    )
+
+    delete_temp_scene: BoolProperty(
+        name="Delete the temporary scene used for VSE rendering",
+        description="Delete temporary scene used for VSE rendering",
+        default=True,
+        options=set(),
+    )
+
+    delete_temp_images: BoolProperty(
+        name="Delete the temporary images used for VSE rendering",
+        description="Delete temporary images used for VSE rendering",
+        default=True,
+        options=set(),
+    )
+
+    # -----------------------------------------------------------
+    # UI user preferences - Not exposed
+    # -----------------------------------------------------------
+    panelExpanded_mode: BoolProperty(
+        name="Expand Render Mode Properties",
         default=True,
     )
 

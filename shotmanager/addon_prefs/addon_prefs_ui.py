@@ -55,6 +55,10 @@ def draw_addon_prefs(self, context):
     ###############
     drawGeneral(context, self, layout)
 
+    # Stamp Info
+    ###############
+    drawStampInfo(context, self, layout)
+
     # Tools
     ###############
     # box = layout.box()
@@ -184,6 +188,31 @@ def drawGeneral(context, prefs, layout):
     row = col.row()
     row.separator(factor=3)
     row.prop(prefs, "checkForNewAvailableVersion", text="Check for Updates")
+
+
+def drawStampInfo(context, prefs, layout):
+    # General
+    ###############
+
+    box = layout.box()
+    row = box.row()
+    row.separator(factor=3)
+    subCol = row.column()
+    subCol.prop(prefs, "stampInfo_display_main_panel", text="Display Stamp Info panel in the 3D View tabs")
+    subCol.prop(prefs, "write_still")
+
+    # Technical settings
+    ###############
+
+    layout.separator(factor=0.5)
+    layout.label(text="Technical Settings:")
+    box = layout.box()
+    box.label(text="Stamped Images Compositing:")
+    row = box.row()
+    row.separator(factor=3)
+    subCol = row.column()
+    subCol.prop(prefs, "delete_temp_scene")
+    subCol.prop(prefs, "delete_temp_images")
 
 
 def drawFeatures(context, prefs, layout):

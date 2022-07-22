@@ -181,8 +181,6 @@ class UAS_ShotManager_ProjectSettings_Prefs(Operator):
         col.use_property_decorate = False
 
         stampInfoStr = "Use Stamp Info Add-on"
-        if not props.isStampInfoAvailable():
-            stampInfoStr += "  (Warning: Currently NOT installed)"
         col.prop(props, "project_use_stampinfo", text=stampInfoStr)
         # row = col.row()
         # row.alignment = "RIGHT"

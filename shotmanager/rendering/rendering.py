@@ -164,8 +164,8 @@ def launchRenderWithVSEComposite(
     stampInfoSettings = None
 
     if not fileListOnly:
-        # if getattr(scene, "UAS_StampInfo_Settings", None) is not None:
-        #     stampInfoSettings = scene.UAS_StampInfo_Settings
+        # if getattr(scene, "UAS_SM_StampInfo_Settings", None) is not None:
+        #     stampInfoSettings = scene.UAS_SM_StampInfo_Settings
         stampInfoSettings = getStampInfo()
         if stampInfoSettings is not None:
             # preset_useStampInfo = useStampInfo
@@ -1009,14 +1009,14 @@ def launchRender(context, renderMode, rootPath, area=None):
         fileIsReadOnly = S_IMODE(stat.st_mode) & S_IWRITE == 0
 
     if props.use_project_settings and props.isStampInfoAvailable() and useStampInfo:
-        stampInfoSettings = scene.UAS_StampInfo_Settings
+        stampInfoSettings = scene.UAS_SM_StampInfo_Settings
         #       stampInfoSettings.stampInfoUsed = False
         stampInfoSettings.activateStampInfo = True
     elif props.stampInfoUsed() and useStampInfo:
-        stampInfoSettings = scene.UAS_StampInfo_Settings
+        stampInfoSettings = scene.UAS_SM_StampInfo_Settings
         stampInfoSettings.activateStampInfo = True
     elif props.isStampInfoAvailable():
-        scene.UAS_StampInfo_Settings.activateStampInfo = False
+        scene.UAS_SM_StampInfo_Settings.activateStampInfo = False
 
     renderDisplayInfo += "  ***"
     renderDisplayInfo += "\n\n*** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** ***\n\n"

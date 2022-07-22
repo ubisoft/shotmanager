@@ -90,9 +90,9 @@ class UAS_ShotManager_OutputParams_Resolution(PropertyGroup):
         print("*** set_useStampInfoDuringRendering: value: ", value)
         self["useStampInfoDuringRendering"] = value
 
-        if getattr(bpy.context.scene, "UAS_StampInfo_Settings", None) is not None:
-            # bpy.context.scene.UAS_StampInfo_Settings.activateStampInfo(value)
-            bpy.context.scene.UAS_StampInfo_Settings.stampInfoUsed = value
+        if getattr(bpy.context.scene, "UAS_SM_StampInfo_Settings", None) is not None:
+            # bpy.context.scene.UAS_SM_StampInfo_Settings.activateStampInfo(value)
+            bpy.context.scene.UAS_SM_StampInfo_Settings.stampInfoUsed = value
 
     useStampInfoDuringRendering: BoolProperty(
         name="Stamp Info on Output",

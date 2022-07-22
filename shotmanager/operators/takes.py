@@ -116,8 +116,6 @@ class UAS_ShotManager_TakeAdd(Operator):
         #     row.prop(self, "resolution_framed_y", text="Height:")
 
         #     stampInfoStr = "Use Stamp Info Add-on"
-        #     if not props.isStampInfoAvailable():
-        #         stampInfoStr += "  (Warning: Currently NOT installed)"
         #     subBox.prop(self, "useStampInfoDuringRendering", text=stampInfoStr)
 
     def execute(self, context):

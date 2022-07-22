@@ -30,7 +30,7 @@ from shotmanager.config import sm_logging
 
 _logger = sm_logging.getLogger(__name__)
 
-
+# not called anymore
 def install_stampinfo_addon():
     error_messages = []
     # return ["Debug message"]
@@ -112,7 +112,7 @@ def install_stampinfo_addon():
         bpy.ops.preferences.addon_enable(module="stampinfo")
 
         try:
-            prefs_stampInfo = bpy.context.preferences.addons["stampinfo"].preferences
+            prefs_stampInfo = bpy.context.preferences.addons["shotmanager"].preferences
             prefs_stampInfo.checkForNewAvailableVersion = False
         except Exception as e:
             _logger.error_ext(

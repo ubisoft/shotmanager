@@ -99,8 +99,8 @@ class UAS_PT_Shot_Manager_Debug(Panel):
 
         row = layout.row()
         row.label(text="Render:")
-        #     row.prop(scene.UAS_StampInfo_Settings, "debug_DrawTextLines")
-        # #    row.prop(scene.UAS_StampInfo_Settings, "offsetToCenterHNorm")
+        #     row.prop(scene.UAS_SM_StampInfo_Settings, "debug_DrawTextLines")
+        # #    row.prop(scene.UAS_SM_StampInfo_Settings, "offsetToCenterHNorm")
 
         #     row = layout.row()
         row.operator("vse.compositevideoinvse", text="Composite in VSE", emboss=True)

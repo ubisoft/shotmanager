@@ -37,14 +37,17 @@ def sceneHasShotManagerData(scene):
 def getStampInfo():
     """Return the Stamp Info settings instance, None if Stamp Info is not installed
     or its version is not supported"""
+
+    return bpy.context.scene.UAS_SM_StampInfo_Settings
+
     prefs = bpy.context.preferences.addons["shotmanager"].preferences
     stampInfoSettings = None
 
-    # if getattr(scene, "UAS_StampInfo_Settings", None) is None:
+    # if getattr(scene, "UAS_SM_StampInfo_Settings", None) is None:
 
-    stampInfoInstalledVersion = utils.addonVersion("Stamp Info")
+    stampInfoInstalledVersion = utils.addonVersion("Shot Manager")
     if stampInfoInstalledVersion:
         stampInfoMinVersion = prefs.dependency_min_supported_version("Stamp Info")
         if stampInfoInstalledVersion[1] >= stampInfoMinVersion[1]:
-            stampInfoSettings = bpy.context.scene.UAS_StampInfo_Settings
+            stampInfoSettings = bpy.context.scene.UAS_SM_StampInfo_Settings
     return stampInfoSettings

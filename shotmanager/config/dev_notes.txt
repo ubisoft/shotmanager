@@ -17,6 +17,30 @@ Doc:
 Mark Down language memo: https://github.com/tchapi/markdown-cheatsheet/blob/master/README.md
 
 
+
+Pb icons lot loaded:
+
+NOT working: 
+    class UAS_Utils_CameraToView(Operator):
+        bl_idname = "uas_utils.camera_to_view"
+
+    called:
+            icon = config.icons_col["ShotManager_Tools_CamToView_32"]
+            camrow.operator("uas_utils.camera_to_view", text="", icon_value=icon.icon_id)  # icon="TRANSFORM_ORIGINS"
+
+    class UAS_ShotManager_Playbar_GoToShotBoundary(Operator):
+        bl_idname = "uas_shot_manager.playbar_gotoshotboundary"
+
+Working:
+    icon = config.icons_col["ShotManager_Tools_OverlayTools_32"]
+    toggleButRow.operator(
+        "uas_shot_manager.display_overlay_tools",
+        text="",
+        depress=context.window_manager.UAS_shot_manager_display_overlay_tools,
+        icon_value=icon.icon_id,
+    )
+
+
 Urgent:
     - add Shot Manager icon to the Render Settings panel + about
     - bug render resolution

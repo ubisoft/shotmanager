@@ -1,0 +1,12 @@
+
+
+getFinalRes
+
+Get resolution
+get inner resolution
+
+get set temp name
+get set temp path
+
+
+

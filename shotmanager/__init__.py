@@ -76,12 +76,15 @@ from shotmanager.config import sm_logging
 _logger = sm_logging.getLogger(__name__)
 
 
+import logging
+
+
 bl_info = {
     "name": "Shot Manager",
     "author": "Ubisoft - Julien Blervaque (aka Werwack), Romain Carriquiry Borchiari",
     "description": "Easily manage shots and cameras in the 3D View and see the resulting edit in real-time",
     "blender": (3, 1, 0),
-    "version": (2, 0, 105),
+    "version": (2, 0, 200),
     "location": "View3D > Shot Manager",
     "doc_url": "https://ubisoft-shotmanager.readthedocs.io",
     "tracker_url": "https://github.com/ubisoft/shotmanager/issues",
@@ -155,6 +158,12 @@ def register():
     else:
         _logger.info_ext("  Pillow Imaging Library (PIL) correctly installed for Ubisoft Stamp Info")
 
+    try:
+        pil_logger = logging.getLogger("PIL")
+        pil_logger.setLevel(logging.INFO)
+    except Exception:
+        pass
+
     # register other packages
     ###################
 
@@ -170,6 +179,8 @@ def register():
     from .overlay_tools import sequence_timeline
     from .overlay_tools import interact_shots_stack
     from .overlay_tools import viewport_camera_hud
+
+    from . import stampinfo
 
     ###################
     # update data
@@ -225,6 +236,7 @@ def register():
     prefs.register()
     keymaps.register()
     handlers.register()
+    stampinfo.register()
 
     # rrs specific
     # rrs_vsm_tools.register()
@@ -312,7 +324,7 @@ def register():
     addon_prefs_inst = bpy.context.preferences.addons["shotmanager"].preferences
     addon_prefs_inst.displaySMDebugPanel = True
 
-    from .install.install_stampinfo import install_stampinfo_addon
+    # from .install.install_stampinfo import install_stampinfo_addon
 
     # install_stampinfo_addon()
 
@@ -361,6 +373,10 @@ def unregister():
 
     from .addon_prefs import addon_prefs
     from .utils import utils_vse_render
+
+    from . import stampinfo
+
+    stampinfo.unregister()
 
     # ui
     handlers.unregister()
