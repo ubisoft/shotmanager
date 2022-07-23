@@ -289,7 +289,7 @@ def renderStampedImage(
         logoFile = ""
 
         if "BUILTIN" == siSettings.logoMode:
-            dir = Path(os.path.dirname(os.path.abspath(__file__)) + "\\Logos")
+            dir = siSettings.getBuiltInLogosPath()
             logoFile = str(dir) + "\\" + str(siSettings.logoBuiltinName)
         else:
             logoFile = siSettings.logoFilepath

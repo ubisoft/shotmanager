@@ -129,21 +129,8 @@ class UAS_PT_SMStampInfo(Panel):
         okForRenderStill = True
         okForRenderAnim = True
 
-        import addon_utils
-
-        addonWarning = [
-            addon.bl_info.get("warning", "")
-            for addon in addon_utils.modules()
-            if addon.bl_info["name"] == "Shot Manager"
-        ]
         warnCol = layout.column(align=False)
         warnCol.scale_y = 0.8
-
-        if "" != addonWarning[0]:
-            row = warnCol.row()
-            row.alignment = "CENTER"
-            row.alert = True
-            row.label(text=f" ***  {addonWarning[0]}  ***")
 
         if not module_can_be_imported("PIL"):
             row = warnCol.row()

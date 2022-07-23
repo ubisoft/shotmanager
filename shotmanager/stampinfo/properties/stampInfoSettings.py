@@ -203,7 +203,7 @@ class UAS_StampInfoSettings(bpy.types.PropertyGroup):
     logoUsed: BoolProperty(name="Logo", description="Set and draw the specified logo", default=True)
 
     def buildLogosList(self, context):
-        dir = Path(utils.addonPath() + "\\logos")
+        dir = self.getBuiltInLogosPath()
         items = list()
         for img in dir.glob("*.png"):
             # print ("    buildLogosList img.stem: " + img.stem )
@@ -212,9 +212,12 @@ class UAS_StampInfoSettings(bpy.types.PropertyGroup):
 
         return items
 
+    def getBuiltInLogosPath(self):
+        return Path(utils.addonPath() + "\\icons\\logos")
+
     # def updateLogoPath(self, context):
     #     #  print("updateLogoPath")
-    #     dir = Path(os.path.dirname(os.path.abspath(__file__)) + "\\Logos")
+    #     dir = self.getBuiltInLogosPath()
     #     #  print("  dir: " + str(dir))
     #     logoFilepath = str(dir) + "\\" + str(self.logoBuiltinName)
     #     #  print("  logoFilepath: " + logoFilepath)
@@ -238,7 +241,7 @@ class UAS_StampInfoSettings(bpy.types.PropertyGroup):
     logoFilepath: StringProperty(name="", description="File path of the specified logo", default="")
 
     logoScaleH: FloatProperty(
-        name="Scale", description="Set logo scale", min=0.001, max=2.0, step=0.01, default=0.065, precision=3
+        name="Scale", description="Set logo scale", min=0.001, max=2.0, step=0.01, default=0.06, precision=3
     )
 
     logoPosNormX: FloatProperty(
