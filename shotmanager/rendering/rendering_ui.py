@@ -23,6 +23,7 @@ from pathlib import Path
 
 import bpy
 from bpy.types import Panel
+import addon_utils
 
 from ..config import config
 from ..utils import utils
@@ -49,7 +50,6 @@ class UAS_PT_ShotManagerRenderPanelStdalone(Panel):
         return displayPanel and prefs.display_render_panel
 
     def draw_header(self, context):
-        import addon_utils
 
         props = context.scene.UAS_shot_manager_props
         layout = self.layout
@@ -76,7 +76,10 @@ class UAS_PT_ShotManagerRenderPanelStdalone(Panel):
         if len(addonWarning):
             betaRow = row.row()
             betaRow.alert = True
-            betaRow.label(text=f" *** {addonWarning[0]} ***")
+            if "beta" in addonWarning[0].lower():
+                betaRow.label(text=" ** BETA **")
+            else:
+                betaRow.label(text=f" *** {addonWarning[0]} ***")
 
     def draw_header_preset(self, context):
         drawHeaderPreset(self, context)

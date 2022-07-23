@@ -23,11 +23,10 @@ import bpy
 from bpy.types import Operator
 from bpy.props import EnumProperty
 
-# from ..utils.utils_render import getRenderOutputFilename
 from shotmanager.utils.utils_os import delete_folder
 from shotmanager.utils.utils_filenames import SequencePath
 from shotmanager.utils import utils
-from ..utils.utils_ui import show_message_box
+from shotmanager.utils.utils_ui import show_message_box
 
 from pathlib import Path
 
@@ -39,8 +38,8 @@ from shotmanager.config import sm_logging
 _logger = sm_logging.getLogger(__name__)
 
 
-class UAS_PT_StampInfo_Render(Operator):
-    bl_idname = "uas_stampinfo.render"
+class UAS_PT_SMStampInfo_Render(Operator):
+    bl_idname = "uas_smstampinfo.render"
     bl_label = "Render"
     bl_description = "Render."
     bl_options = {"INTERNAL"}
@@ -218,8 +217,6 @@ class UAS_PT_StampInfo_Render(Operator):
             else:
                 bpy.ops.render.render(animation=True, use_viewport=False)
 
-            #    outputFiles = getRenderOutputFilename(scene)
-
             for currentFrame in range(scene.frame_start, scene.frame_end + 1):
                 scene.frame_set(currentFrame)
                 # scene.UAS_SM_StampInfo_Settings.renderRootPathUsed = True
@@ -319,7 +316,7 @@ class UAS_PT_StampInfo_Render(Operator):
         return {"FINISHED"}
 
 
-_classes = (UAS_PT_StampInfo_Render,)
+_classes = (UAS_PT_SMStampInfo_Render,)
 
 
 def register():

@@ -23,6 +23,7 @@ Main panel UI
 import bpy
 import bpy.utils.previews
 from bpy.types import Panel, Operator
+import addon_utils
 
 import importlib
 
@@ -51,13 +52,13 @@ importlib.reload(debug)
 # ------------------------------------------------------------------------#
 
 
-class UAS_PT_StampInfoAddon(Panel):
-    bl_idname = "UAS_PT_StampInfoAddon"
+class UAS_PT_SMStampInfo(Panel):
+    bl_idname = "UAS_PT_SMStampInfo"
     # bl_label = f"UAS StampInfo {'.'.join ( str ( v ) for v in bl_info['version'] ) }"
-    bl_label = " Stamp Info   Integrated "  # + utils.addonVersion("Stamp Info")[0]
+    bl_label = " Shot Manager - Stamp Info"  # + utils.addonVersion("Stamp Info")[0]
     bl_space_type = "VIEW_3D"
     bl_region_type = "UI"
-    bl_category = "Stamp Info"
+    bl_category = "Shot Mng - Stamp Info"
 
     @classmethod
     def poll(self, context):
@@ -72,6 +73,19 @@ class UAS_PT_StampInfoAddon(Panel):
 
         icon = config.icons_col["StampInfo_32"]
         row.operator("uas_shot_manager.about", text="", icon_value=icon.icon_id)
+
+        addonWarning = [
+            addon.bl_info.get("warning", "")
+            for addon in addon_utils.modules()
+            if addon.bl_info["name"] == "Shot Manager"
+        ]
+        if len(addonWarning):
+            betaRow = row.row()
+            betaRow.alert = True
+            if "beta" in addonWarning[0].lower():
+                betaRow.label(text=" ** BETA **")
+            else:
+                betaRow.label(text=f" *** {addonWarning[0]} ***")
 
     def draw_header_preset(self, context):
         prefs = context.preferences.addons["shotmanager"].preferences
@@ -219,17 +233,20 @@ class UAS_PT_StampInfoAddon(Panel):
             layout.separator()
 
         # render buttons
-        # renderMainRow = layout.split(factor=0.45, align=False)
-        # renderMainRow.scale_y = 1.4
-        # renderStillRow = renderMainRow.row()
-        # renderStillRow.enabled = okForRenderStill
-        # renderStillRow.operator("uas_stampinfo.render", text=" Render Image", icon="IMAGE_DATA").renderMode = "STILL"
+        if config.devDebug:
+            renderMainRow = layout.split(factor=0.45, align=False)
+            renderMainRow.scale_y = 1.4
+            renderStillRow = renderMainRow.row()
+            renderStillRow.enabled = okForRenderStill
+            renderStillRow.operator(
+                "uas_smstampinfo.render", text=" Render Image", icon="IMAGE_DATA"
+            ).renderMode = "STILL"
 
-        # renderAnimRow = renderMainRow.row()
-        # renderAnimRow.enabled = okForRenderAnim
-        # renderAnimRow.operator(
-        #     "uas_stampinfo.render", text=" Render Animation", icon="RENDER_ANIMATION"
-        # ).renderMode = "ANIMATION"
+            renderAnimRow = renderMainRow.row()
+            renderAnimRow.enabled = okForRenderAnim
+            renderAnimRow.operator(
+                "uas_smstampinfo.render", text=" Render Animation", icon="RENDER_ANIMATION"
+            ).renderMode = "ANIMATION"
 
         col = layout.column(align=False)
         col.scale_y = 0.9
@@ -351,12 +368,12 @@ def _getQuickHelp(topic):
     return (tooltip, title, text, docPath)
 
 
-class UAS_PT_StampInfoTimeAndFrames(Panel):
-    bl_idname = "UAS_PT_StampInfoTimeAndFrames"
+class UAS_PT_SMStampInfoTimeAndFrames(Panel):
+    bl_idname = "UAS_PT_SMStampInfoTimeAndFrames"
     bl_label = "Time and Frames"
     bl_space_type = "VIEW_3D"
     bl_region_type = "UI"
-    bl_category = "Stamp Info"
+    bl_category = "Shot Mng - Stamp Info"
     bl_options = {"DEFAULT_CLOSED"}
 
     @classmethod
@@ -548,12 +565,12 @@ class UAS_PT_StampInfoTimeAndFrames(Panel):
 # ------------------------------------------------------------------------#
 #                             Shot and cam Panel                          #
 # ------------------------------------------------------------------------#
-class UAS_PT_StampInfoShot(Panel):
-    bl_idname = "UAS_PT_StampInfoShot"
+class UAS_PT_SMStampInfoShot(Panel):
+    bl_idname = "UAS_PT_SMStampInfoShot"
     bl_label = "Shot and Camera"
     bl_space_type = "VIEW_3D"
     bl_region_type = "UI"
-    bl_category = "Stamp Info"
+    bl_category = "Shot Mng - Stamp Info"
     bl_options = {"DEFAULT_CLOSED"}
 
     @classmethod
@@ -601,12 +618,12 @@ class UAS_PT_StampInfoShot(Panel):
 # ------------------------------------------------------------------------#
 #                             Metadata Panel                             #
 # ------------------------------------------------------------------------#
-class UAS_PT_StampInfoMetadata(Panel):
-    bl_idname = "UAS_PT_StampInfoMetadata"
+class UAS_PT_SMStampInfoMetadata(Panel):
+    bl_idname = "UAS_PT_SMStampInfoMetadata"
     bl_label = "Metadata"
     bl_space_type = "VIEW_3D"
     bl_region_type = "UI"
-    bl_category = "Stamp Info"
+    bl_category = "Shot Mng - Stamp Info"
     bl_options = {"DEFAULT_CLOSED"}
 
     @classmethod
@@ -696,12 +713,12 @@ class UAS_PT_StampInfoMetadata(Panel):
 # ------------------------------------------------------------------------#
 #                             Layout Panel                               #
 # ------------------------------------------------------------------------#
-class UAS_PT_StampInfoLayout(Panel):
-    bl_idname = "UAS_PT_StampInfoLayout"
+class UAS_PT_SMStampInfoLayout(Panel):
+    bl_idname = "UAS_PT_SMStampInfoLayout"
     bl_label = "Text and Layout"
     bl_space_type = "VIEW_3D"
     bl_region_type = "UI"
-    bl_category = "Stamp Info"
+    bl_category = "Shot Mng - Stamp Info"
     bl_options = {"DEFAULT_CLOSED"}
 
     @classmethod
@@ -754,12 +771,12 @@ class UAS_PT_StampInfoLayout(Panel):
 # ------------------------------------------------------------------------#
 #                             Settings Panel                             #
 # ------------------------------------------------------------------------#
-class UAS_PT_StampInfoSettings(Panel):
-    bl_idname = "UAS_PT_StampInfoSettings"
+class UAS_PT_SMStampInfoSettings(Panel):
+    bl_idname = "UAS_PT_SMStampInfoSettings"
     bl_label = "Settings"
     bl_space_type = "VIEW_3D"
     bl_region_type = "UI"
-    bl_category = "Stamp Info"
+    bl_category = "Shot Mng - Stamp Info"
     bl_options = {"DEFAULT_CLOSED"}
 
     @classmethod
@@ -787,7 +804,7 @@ class UAS_PT_StampInfoSettings(Panel):
 #########
 
 
-class UAS_PT_StampInfo_Initialize(Operator):
+class UAS_PT_SMStampInfo_Initialize(Operator):
     bl_idname = "uas_stamp_info.initialize"
     bl_label = "Initialize Stamp Info"
     bl_description = "Initialize Stamp Info"
@@ -800,13 +817,13 @@ class UAS_PT_StampInfo_Initialize(Operator):
 
 
 classes = (
-    UAS_PT_StampInfoAddon,
-    UAS_PT_StampInfoTimeAndFrames,
-    UAS_PT_StampInfoShot,
-    UAS_PT_StampInfoMetadata,
-    UAS_PT_StampInfoLayout,
-    UAS_PT_StampInfoSettings,
-    UAS_PT_StampInfo_Initialize,
+    UAS_PT_SMStampInfo,
+    UAS_PT_SMStampInfoTimeAndFrames,
+    UAS_PT_SMStampInfoShot,
+    UAS_PT_SMStampInfoMetadata,
+    UAS_PT_SMStampInfoLayout,
+    UAS_PT_SMStampInfoSettings,
+    UAS_PT_SMStampInfo_Initialize,
 )
 
 

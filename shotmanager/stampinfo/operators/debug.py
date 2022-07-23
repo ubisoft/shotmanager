@@ -50,12 +50,12 @@ class UAS_Stamp_Info_OT_EnableDebug(Operator):
 # ------------------------------------------------------------------------#
 
 
-class UAS_PT_StampInfoDebug(Panel):
-    bl_idname = "UAS_PT_StampInfoDebug"
+class UAS_PT_SMStampInfoDebug(Panel):
+    bl_idname = "UAS_PT_SMStampInfoDebug"
     bl_label = "Debug"
     bl_space_type = "VIEW_3D"
     bl_region_type = "UI"
-    bl_category = "Stamp Info"
+    bl_category = "Shot Mng - Stamp Info"
     bl_options = {"DEFAULT_CLOSED"}
 
     @classmethod
@@ -82,7 +82,7 @@ class UAS_PT_StampInfoDebug(Panel):
 
 _classes = (
     UAS_Stamp_Info_OT_EnableDebug,
-    UAS_PT_StampInfoDebug,
+    UAS_PT_SMStampInfoDebug,
 )
 
 

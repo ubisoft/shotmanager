@@ -24,7 +24,6 @@ import bpy.utils.previews
 from bpy.props import PointerProperty
 
 
-from .utils.utils_render import Utils_LaunchRender
 from .utils import utils_vse_render
 from .properties import stampInfoSettings
 from .operators import debug
@@ -44,10 +43,7 @@ from shotmanager.config import sm_logging
 _logger = sm_logging.getLogger(__name__)
 
 
-classes = (
-    stampInfoSettings.UAS_StampInfoSettings,
-    Utils_LaunchRender,
-)
+classes = (stampInfoSettings.UAS_StampInfoSettings,)
 
 
 def stampInfo_resetProperties():
@@ -61,9 +57,9 @@ def stampInfo_resetProperties():
 
 def register():
 
-    from .utils import utils_ui
+    from .utils import utils_stampInfo
 
-    utils_ui.register()
+    utils_stampInfo.register()
 
     # if install went right then register other packages
     ###################
@@ -93,7 +89,7 @@ def register():
 
 def unregister():
     print("\n*** --- Unregistering Stamp Info  --- ***")
-    from .utils import utils_ui
+    from .utils import utils_stampInfo
 
     # Unregister packages that were registered if the install went right
     ###################
@@ -112,4 +108,4 @@ def unregister():
     for cls in reversed(classes):
         bpy.utils.unregister_class(cls)
 
-    utils_ui.unregister()
+    utils_stampInfo.unregister()

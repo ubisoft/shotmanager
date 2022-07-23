@@ -139,10 +139,6 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
             else:
                 self.newAvailableVersion = 0
 
-        # from shotmanager.install.install_stampinfo import install_stampinfo_addon
-
-        # install_stampinfo_addon()
-
         self.isInitialized = True
 
     ########################################################################

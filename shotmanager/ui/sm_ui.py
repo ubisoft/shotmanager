@@ -48,7 +48,7 @@ _logger = sm_logging.getLogger(__name__)
 
 class UAS_PT_ShotManager(Panel):
     #    bl_label = f"Shot Manager {'.'.join ( str ( v ) for v in bl_info[ 'version'] ) }"
-    bl_label = " U. Shot Manager  V. " + utils.addonVersion("Shot Manager")[0]
+    bl_label = " Shot Manager  V. " + utils.addonVersion("Shot Manager")[0]
     bl_idname = "UAS_PT_Shot_Manager"
     bl_space_type = "VIEW_3D"
     bl_region_type = "UI"
@@ -91,7 +91,10 @@ class UAS_PT_ShotManager(Panel):
         if len(addonWarning):
             betaRow = row.row()
             betaRow.alert = True
-            betaRow.label(text=f" *** {addonWarning[0]} ***")
+            if "beta" in addonWarning[0].lower():
+                betaRow.label(text=" ** BETA **")
+            else:
+                betaRow.label(text=f" *** {addonWarning[0]} ***")
 
     def draw_header_preset(self, context):
         prefs = context.preferences.addons["shotmanager"].preferences

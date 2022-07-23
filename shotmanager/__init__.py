@@ -322,17 +322,11 @@ def register():
         print(f"\n ------ Shot Manager debug: {config.devDebug} ------- ")
 
     addon_prefs_inst = bpy.context.preferences.addons["shotmanager"].preferences
-    addon_prefs_inst.displaySMDebugPanel = True
-
-    # from .install.install_stampinfo import install_stampinfo_addon
-
-    # install_stampinfo_addon()
+    addon_prefs_inst.displaySMDebugPanel = False
 
     # storyboard
     # prefs_properties = bpy.context.preferences.addons["shotmanager"].preferences
     # prefs_properties.stb_frameTemplate.initialize(fromPrefs=True)
-
-    # install_stampinfo_addon()
 
     print("")
 

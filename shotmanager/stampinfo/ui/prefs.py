@@ -50,7 +50,7 @@ class UAS_MT_ShotManager_Prefs_StampInfoMainMenu(Menu):
         layout.separator()
 
         row = layout.row(align=True)
-        row.operator("preferences.addon_show", text="Add-on Preferences...", icon="PREFERENCES").module = "stampinfo"
+        row.operator("preferences.addon_show", text="Add-on Preferences...", icon="PREFERENCES").module = "shotmanager"
 
         layout.separator()
         row = layout.row(align=True)

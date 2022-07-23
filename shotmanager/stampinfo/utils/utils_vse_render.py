@@ -1022,8 +1022,8 @@ class StampInfo_Vse_Render(PropertyGroup):
 
 _classes = (
     StampInfo_Vse_Render,
-    StampInfo_compositeVideoInVSE,
-    UAS_VSE_StampInfo_OpenFileBrowser,
+    # StampInfo_compositeVideoInVSE,
+    # UAS_VSE_StampInfo_OpenFileBrowser,
 )
 
 

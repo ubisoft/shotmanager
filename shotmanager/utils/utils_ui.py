@@ -221,6 +221,32 @@ class UAS_ShotManager_OpenFileBrowser(Operator, ImportHelper):
         return {"FINISHED"}
 
 
+def show_message_box(message="", title="Message Box", icon="INFO"):
+    """Display a message box
+
+    A message can be drawn on several lines when containing the separator \n
+
+    Shows a message box with a specific message:
+    -> show_message_box("This is a message")
+
+    Shows a message box with a message and custom title
+    -> show_message_box("This is a message", "This is a custom title")
+
+    Shows a message box with a message, custom title, and a specific icon
+    -> show_message_box("This is a message", "This is a custom title", 'ERROR')
+    """
+
+    messages = message.split("\n")
+
+    def draw(self, context):
+        layout = self.layout
+
+        for s in messages:
+            layout.label(text=s)
+
+    bpy.context.window_manager.popup_menu(draw, title=title, icon=icon)
+
+
 # TODO: Cleaning
 # Dev note: This function has to be here for the moment cause it is passed
 # in stampinfo code to a call to uas_shotmanager.querybox
