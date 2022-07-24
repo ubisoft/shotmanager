@@ -43,8 +43,7 @@ class UAS_PT_ShotManagerRenderPanelStdalone(Panel):
     def poll(cls, context):
         props = context.scene.UAS_shot_manager_props
         prefs = context.preferences.addons["shotmanager"].preferences
-        displayPanel = context.preferences.addons["shotmanager"].preferences.separatedRenderPanel
-
+        displayPanel = prefs.separatedRenderPanel
         displayPanel = displayPanel and props.getCurrentShot() is not None
 
         return displayPanel and prefs.display_render_panel
@@ -56,8 +55,6 @@ class UAS_PT_ShotManagerRenderPanelStdalone(Panel):
         layout.emboss = "NONE"
 
         row = layout.row(align=True)
-        # icon = config.icons_col["ShotManager_Retimer_32"]
-        # row.label(icon=icon.icon_id)
         row.label(icon="RENDER_ANIMATION")
 
         if props.use_project_settings:
@@ -568,8 +565,8 @@ def draw3DRenderPanel(self, context):
             row.prop(props.renderSettingsStill, "useStampInfo")
             if not stampInfoAvailable:
                 row.label(text="*** Add-on not available ***")
-            if not props.use_project_settings:
-                utils_ui.drawStampInfoBut(row)
+            # if not props.use_project_settings:
+            utils_ui.drawStampInfoBut(row)
 
             row = col.row()
             row.separator(factor=subItemSeparator)
@@ -619,8 +616,8 @@ def draw3DRenderPanel(self, context):
             row.prop(props.renderSettingsAnim, "useStampInfo")
             if not stampInfoAvailable:
                 row.label(text="*** Add-on not available ***")
-            if not props.use_project_settings:
-                utils_ui.drawStampInfoBut(row)
+            # if not props.use_project_settings:
+            utils_ui.drawStampInfoBut(row)
 
             row = col.row()
             row.separator(factor=subItemSeparator)
@@ -681,8 +678,8 @@ def draw3DRenderPanel(self, context):
             row.prop(props.renderSettingsAll, "useStampInfo")
             if not stampInfoAvailable:
                 row.label(text="*** Add-on not available ***")
-            if not props.use_project_settings:
-                utils_ui.drawStampInfoBut(row)
+            # if not props.use_project_settings:
+            utils_ui.drawStampInfoBut(row)
 
             row = col.row()
             row.separator(factor=subItemSeparator)
@@ -791,8 +788,8 @@ def draw3DRenderPanel(self, context):
         stampInfoRow.prop(props.renderSettingsPlayblast, "useStampInfo")
         if not stampInfoAvailable:
             stampInfoRow.label(text="*** Add-on not available ***")
-        if not props.use_project_settings:
-            utils_ui.drawStampInfoBut(stampInfoRow)
+        # if not props.use_project_settings:
+        utils_ui.drawStampInfoBut(stampInfoRow)
 
         _separatorRow(bypassItemsCol)
 

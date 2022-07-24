@@ -43,7 +43,7 @@ from shotmanager.config import sm_logging
 _logger = sm_logging.getLogger(__name__)
 
 
-classes = (stampInfoSettings.UAS_StampInfoSettings,)
+classes = (stampInfoSettings.UAS_SMStampInfoSettings,)
 
 
 def stampInfo_resetProperties():
@@ -79,7 +79,7 @@ def register():
     ui.register()
     utils_vse_render.register()
 
-    bpy.types.Scene.UAS_SM_StampInfo_Settings = PointerProperty(type=stampInfoSettings.UAS_StampInfoSettings)
+    bpy.types.Scene.UAS_SM_StampInfo_Settings = PointerProperty(type=stampInfoSettings.UAS_SMStampInfoSettings)
 
     # debug tools
     debug.register()

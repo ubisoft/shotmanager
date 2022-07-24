@@ -1,4 +1,9 @@
 -----
+## 2.0.201 (2022-07-24)
+- Full integration of Stamp Info inside Shot Manager: this add-on doesn't depend anymore
+  on the Stamp Info add-on
+
+-----
 ## 2.0.105 (2022-07-21)
 ### Interactive Shots Stack
 - Completely rewrote the Shots Stack UI and graphics library: this was required for a long time

@@ -42,10 +42,13 @@ class UAS_MT_ShotManager_Prefs_StampInfoMainMenu(Menu):
 
         row = layout.row()
         row.separator(factor=5)
-        resetOp = row.operator("uas_sm_stamp_info.querybox", text="Reset All to Default Values...", icon="LOOP_BACK")
+        resetOp = row.operator(
+            "uas_sm_stamp_info.querybox", text="Reset Properties to Default Values...", icon="LOOP_BACK"
+        )
         resetOp.width = 400
         resetOp.message = "Reset all the properties to their default value?"
         resetOp.function_name = "reset_all_properties"
+        resetOp.descriptionText = "Set all the properties of the Stamp Info panel back to their default values"
 
         layout.separator()
 

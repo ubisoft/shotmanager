@@ -23,6 +23,7 @@ UI utilities specific to StampInfo
 
 import bpy
 from bpy.types import Operator
+from bpy.props import IntProperty, StringProperty
 
 
 # TODO: Cleaning
@@ -43,12 +44,17 @@ class UAS_SMStampInfo_OT_Querybox(Operator):
 
     bl_idname = "uas_sm_stamp_info.querybox"
     bl_label = "Please confirm:"
-    # bl_description = "..."
+    bl_description = "..."
     bl_options = {"INTERNAL"}
 
-    width: bpy.props.IntProperty(default=400)
-    message: bpy.props.StringProperty(default="Do you confirm the operation?")
-    function_name: bpy.props.StringProperty(default="")
+    descriptionText: StringProperty(default="")
+    width: IntProperty(default=400)
+    message: StringProperty(default="Do you confirm the operation?")
+    function_name: StringProperty(default="")
+
+    @classmethod
+    def description(self, context, properties):
+        return properties.descriptionText
 
     def invoke(self, context, event):
         return context.window_manager.invoke_props_dialog(self, width=self.width)

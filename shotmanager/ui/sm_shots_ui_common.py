@@ -86,6 +86,7 @@ def drawShotName(layout, props, item):
     row.scale_x = 1.0
     if props.display_enabled_in_shotlist:
         row.prop(item, "enabled", text="")
-        row.separator(factor=0.9)
+    #   row.separator(factor=0.9)
     row.scale_x = 0.8
-    row.label(text=item.name)
+    # row.label(text=item.name)
+    row.prop(item, "name", text="", emboss=False)

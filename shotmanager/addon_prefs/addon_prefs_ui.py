@@ -39,6 +39,10 @@ def draw_addon_prefs(self, context):
     ###############
     drawDependencies(context, layout)
 
+    # General and updates
+    ###############
+    drawGeneral(context, self, layout)
+
     # Features
     ###############
     drawFeatures(context, self, layout)
@@ -49,11 +53,11 @@ def draw_addon_prefs(self, context):
 
     # General UI
     ###############
-    drawGeneralUI(context, self, layout)
+    # drawGeneralUI(context, self, layout)
 
-    # General
+    # Render
     ###############
-    drawGeneral(context, self, layout)
+    drawRender(context, self, layout)
 
     # Stamp Info
     ###############
@@ -84,10 +88,29 @@ def draw_addon_prefs(self, context):
 ##################################################################
 
 
+def drawGeneral(context, prefs, layout):
+    box = layout.box()
+    # collapsable_panel(box, prefs, "addonPrefs_ui_expanded", text="UI")
+    # if prefs.addonPrefs_ui_expanded:
+    uiSplitFactor = 0.15
+
+    # column component here is technicaly not necessary but reduces the space between lines
+    col = box.column()
+
+    # split = col.split(factor=uiSplitFactor)
+    # rowLeft = split.row()
+    # rowLeft.separator()
+    # rowRight = split.row()
+    row = col.row()
+    row.separator(factor=3)
+    row.prop(prefs, "checkForNewAvailableVersion", text="Check for Updates")
+
+
 def drawSettings(context, prefs, layout):
     box = layout.box()
-    collapsable_panel(box, prefs, "addonPrefs_settings_expanded", text="Settings")
+    collapsable_panel(box, prefs, "addonPrefs_settings_expanded", text="Sequences and Shots Default Settings")
     if prefs.addonPrefs_settings_expanded:
+        leftSepFactor = 2
         settingsSplitFactor = 0.5
         col = box.column(align=False)
 
@@ -121,7 +144,9 @@ def drawSettings(context, prefs, layout):
         # sepRow.separator(factor=1.0)
 
         row = col.row()
-        row.label(text="Storyboard:")
+        subRow = row.row()
+        subRow.separator(factor=leftSepFactor)
+        subRow.label(text="Storyboard:")
 
         row = col.row()
         split = row.split(factor=settingsSplitFactor)
@@ -162,7 +187,6 @@ def drawGeneralUI(context, prefs, layout):
     if prefs.addonPrefs_ui_expanded:
         uiSplitFactor = 0.15
 
-        # column component here is technicaly not necessary but reduces the space between lines
         col = box.column()
 
         split = col.split(factor=uiSplitFactor)
@@ -172,115 +196,125 @@ def drawGeneralUI(context, prefs, layout):
         rowRight.prop(prefs, "separatedRenderPanel", text="Make Render Panel a Separated Tab in the Viewport N-Panel")
 
 
-def drawGeneral(context, prefs, layout):
+def drawRender(context, prefs, layout):
     box = layout.box()
-    # collapsable_panel(box, prefs, "addonPrefs_ui_expanded", text="UI")
-    # if prefs.addonPrefs_ui_expanded:
-    uiSplitFactor = 0.15
+    collapsable_panel(box, prefs, "addonPrefs_render_expanded", text="Render")
+    if prefs.addonPrefs_render_expanded:
+        leftSepFactor = 2
+        mainRow = box.row()
+        mainRow.separator(factor=leftSepFactor)
 
-    # column component here is technicaly not necessary but reduces the space between lines
-    col = box.column()
-
-    # split = col.split(factor=uiSplitFactor)
-    # rowLeft = split.row()
-    # rowLeft.separator()
-    # rowRight = split.row()
-    row = col.row()
-    row.separator(factor=3)
-    row.prop(prefs, "checkForNewAvailableVersion", text="Check for Updates")
+        col = mainRow.column(align=True)
+        col.prop(prefs, "separatedRenderPanel", text="Make Render Panel a Separated Tab in the Viewport N-Panel")
 
 
 def drawStampInfo(context, prefs, layout):
-    # General
-    ###############
-
     box = layout.box()
-    row = box.row()
-    row.separator(factor=3)
-    subCol = row.column()
-    subCol.prop(prefs, "stampInfo_display_main_panel", text="Display Stamp Info panel in the 3D View tabs")
-    subCol.prop(prefs, "write_still")
+    collapsable_panel(box, prefs, "addonPrefs_stampInfo_expanded", text="Stamp Info")
+    if prefs.addonPrefs_stampInfo_expanded:
+        leftSepFactor = 2
+        mainRow = box.row()
+        mainRow.separator(factor=leftSepFactor)
+        col = mainRow.column(align=True)
 
-    # Technical settings
-    ###############
+        # col.prop(prefs, "stampInfo_display_properties", text="Display Stamp Info panel in the 3D View tabs")
+        col.prop(
+            prefs, "stampInfo_separatedPanel", text="Make Stamp Info Panel a Separated Tab in the Viewport N-Panel"
+        )
+        if config.devDebug:
+            col.separator()
+            col.label(text="Parameter only used by the Stamp Info Render buttons, in Debug mode:")
+            col.prop(prefs, "write_still")
 
-    layout.separator(factor=0.5)
-    layout.label(text="Technical Settings:")
-    box = layout.box()
-    box.label(text="Stamped Images Compositing:")
-    row = box.row()
-    row.separator(factor=3)
-    subCol = row.column()
-    subCol.prop(prefs, "delete_temp_scene")
-    subCol.prop(prefs, "delete_temp_images")
+        # Technical settings
+        ###############
+        mainRow = box.row()
+        mainCol = mainRow.column(align=True)
+        mainCol.label(text="Technical Settings:")
+        propsRow = mainCol.row()
+        propsRow.separator(factor=leftSepFactor)
+        propsCol = propsRow.column(align=True)
+
+        propsCol.label(text="Stamped Images Compositing:")
+        row = propsCol.row()
+        row.separator(factor=3)
+        subCol = row.column(align=True)
+        subCol.prop(prefs, "delete_temp_scene")
+        subCol.prop(prefs, "delete_temp_images")
 
 
 def drawFeatures(context, prefs, layout):
     box = layout.box()
-    collapsable_panel(box, prefs, "addonPrefs_features_expanded", text="Layout and Features to Display in New Scenes")
+    # title = "Features Settings and Layout for New Scenes"
+    title = "Layout and Features to Display in New Scenes"
+    collapsable_panel(box, prefs, "addonPrefs_features_expanded", text=title)
     if prefs.addonPrefs_features_expanded:
-        # uiSplitFactor = 0.15
-
         draw_features_prefs("ADDON_PREFS", box)
 
 
-def drawDevAndDebug(context, self, layout):
-    splitFactor = 0.3
-
+def drawDevAndDebug(context, prefs, layout):
     box = layout.box()
+    collapsable_panel(box, prefs, "addonPrefs_debug_expanded", text="Dev and Debug")
+    if prefs.addonPrefs_debug_expanded:
+        leftSepFactor = 2
+        # mainRow = box.row()
+        # mainRow.separator(factor=leftSepFactor)
+        # col = mainRow.column(align=True)
 
-    split = box.split(factor=0.5)
-    rowLeft = split.row()
-    rowLeft.label(text="Development and Debug:")
-    rowRight = split.row()
+        splitFactor = 0.3
 
-    if config.devDebug:
-        strDebug = " *** Debug Mode is On ***"
-        rowRight.alignment = "RIGHT"
-        rowRight.alert = True
-        rowRight.label(text=strDebug)
+        split = box.split(factor=0.5)
+        rowLeft = split.row()
+        rowLeft.label(text="Development and Debug:")
+        rowRight = split.row()
 
-    split = box.split(factor=splitFactor)
-    rowLeft = split.row()
-    rowLeft.alignment = "RIGHT"
-    rowLeft.label(text="Debug Mode")
-    rowRight = split.row()
-    if config.devDebug:
-        rowRight.alert = True
-        rowRight.operator("uas_shot_manager.enable_debug", text="On").enable_debug = False
-    else:
-        rowRight.operator("uas_shot_manager.enable_debug", text="Off").enable_debug = True
+        if config.devDebug:
+            strDebug = " *** Debug Mode is On ***"
+            rowRight.alignment = "RIGHT"
+            rowRight.alert = True
+            rowRight.label(text=strDebug)
 
-    if config.devDebug:
-        box.separator(factor=0.2)
         split = box.split(factor=splitFactor)
         rowLeft = split.row()
         rowLeft.alignment = "RIGHT"
+        rowLeft.label(text="Debug Mode")
         rowRight = split.row()
-        rowRight.prop(self, "displaySMDebugPanel")
+        if config.devDebug:
+            rowRight.alert = True
+            rowRight.operator("uas_shot_manager.enable_debug", text="On").enable_debug = False
+        else:
+            rowRight.operator("uas_shot_manager.enable_debug", text="Off").enable_debug = True
 
-    # Debug info and properties
-    ###############
+        if config.devDebug:
+            box.separator(factor=0.2)
+            split = box.split(factor=splitFactor)
+            rowLeft = split.row()
+            rowLeft.alignment = "RIGHT"
+            rowRight = split.row()
+            rowRight.prop(prefs, "displaySMDebugPanel")
 
-    if config.devDebug:
-        box = layout.box()
-        row = box.row()
-        row.label(text="Debug Infos:")
+        # Debug info and properties
+        ###############
 
-        col = box.column()
-        col.scale_y = 0.7
-        col.label(text="Temporary preference values (for dialogs for instance) are")
-        col.label(text="only visible when global variable devDebug is True.")
+        if config.devDebug:
+            subBox = box.box()
+            row = subBox.row()
+            row.label(text="Debug Infos:")
 
-        # initialization state
-        initRow = col.row()
-        initRow.prop(self, "isInitialized")
+            col = subBox.column()
+            col.scale_y = 0.7
+            col.label(text="Temporary preference values (for dialogs for instance) are")
+            col.label(text="only visible when global variable devDebug is True.")
 
-        tempValsRow = col.row()
-        split = tempValsRow.split(factor=splitFactor)
-        rowLeft = split.row()
-        rowLeft.alignment = "RIGHT"
-        rowLeft.label(text="Add New Shot Dialog")
-        rowRight = split.row()
-        rowRight.prop(self, "addShot_start")
-        rowRight.prop(self, "addShot_end")
+            # initialization state
+            initRow = col.row()
+            initRow.prop(prefs, "isInitialized")
+
+            tempValsRow = col.row()
+            split = tempValsRow.split(factor=splitFactor)
+            rowLeft = split.row()
+            rowLeft.alignment = "RIGHT"
+            rowLeft.label(text="Add New Shot Dialog")
+            rowRight = split.row()
+            rowRight.prop(prefs, "addShot_start")
+            rowRight.prop(prefs, "addShot_end")

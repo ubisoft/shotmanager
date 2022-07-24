@@ -51,15 +51,15 @@ class UAS_MT_ShotManager_Takes_ToolsMenu(Menu):
 
         row = layout.row(align=True)
         row.operator_context = "INVOKE_DEFAULT"
-        row.operator("uas_shot_manager.take_add", text="Add...", icon="ADD")
+        row.operator("uas_shot_manager.take_add", text="Add Take...", icon="ADD")
 
         row = layout.row(align=True)
         row.operator_context = "INVOKE_DEFAULT"
-        row.operator("uas_shot_manager.take_duplicate", text="Duplicate...", icon="DUPLICATE")
+        row.operator("uas_shot_manager.take_duplicate", text="Duplicate Take...", icon="DUPLICATE")
 
         row = layout.row(align=True)
         row.operator_context = "INVOKE_DEFAULT"
-        row.operator("uas_shot_manager.take_remove", text="Remove", icon="REMOVE")
+        row.operator("uas_shot_manager.take_remove", text="Remove Take", icon="REMOVE")
 
         layout.separator()
 
@@ -101,4 +101,3 @@ def register():
 def unregister():
     for cls in reversed(classes):
         bpy.utils.unregister_class(cls)
-

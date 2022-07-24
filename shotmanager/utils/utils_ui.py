@@ -64,7 +64,7 @@ def drawStampInfoBut(layout):
     butsubrow = layout.row()
     butsubrow.scale_x = 1.5
     if prefs_stampInfo is not None:
-        butsubrow.prop(prefs_stampInfo, "stampInfo_display_main_panel", text="", icon_value=icon.icon_id)
+        butsubrow.prop(prefs_stampInfo, "stampInfo_display_properties", text="", icon_value=icon.icon_id)
     else:
         butsubrow.operator(
             "uas.empty_operator", text="", icon_value=icon.icon_id

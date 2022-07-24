@@ -52,7 +52,7 @@ class UAS_Stamp_Info_OT_EnableDebug(Operator):
 
 class UAS_PT_SMStampInfoDebug(Panel):
     bl_idname = "UAS_PT_SMStampInfoDebug"
-    bl_label = "Debug"
+    bl_label = "Stamp Info Debug"
     bl_space_type = "VIEW_3D"
     bl_region_type = "UI"
     bl_category = "Shot Mng - Stamp Info"
@@ -60,8 +60,11 @@ class UAS_PT_SMStampInfoDebug(Panel):
 
     @classmethod
     def poll(self, context):
+        props = context.scene.UAS_shot_manager_props
         prefs = context.preferences.addons["shotmanager"].preferences
-        return prefs.stampInfo_display_main_panel and config.devDebug
+        displayPanel = prefs.stampInfo_separatedPanel
+        displayPanel = displayPanel and props.getCurrentShot() is not None
+        return displayPanel and prefs.stampInfo_display_properties
 
     def draw(self, context):
         layout = self.layout

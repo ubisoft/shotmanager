@@ -429,6 +429,14 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
         name="Expand Tools Preferences",
         default=False,
     )
+    addonPrefs_render_expanded: BoolProperty(
+        name="Expand Render Preferences",
+        default=False,
+    )
+    addonPrefs_stampInfo_expanded: BoolProperty(
+        name="Expand Stamp Info Preferences",
+        default=False,
+    )
     addonPrefs_debug_expanded: BoolProperty(
         name="Expand Debug Preferences",
         default=False,
@@ -659,7 +667,7 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
 
     separatedRenderPanel: BoolProperty(
         name="Separated Render Panel",
-        description="If checked, the Pender panel will be a tab separated from Shot Manager panel",
+        description="If checked, the Render panel will be a tab separated from Shot Manager panel",
         default=True,
     )
 
@@ -891,7 +899,16 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
     # stamp info ###
     ########################################################################
 
-    stampInfo_display_main_panel: BoolProperty(
+    stampInfo_separatedPanel: BoolProperty(
+        name="Separated Stamp Info Panel",
+        description=(
+            "If checked, the Stamp Info panels will be a tab separated from Shot Manager panel."
+            "\nIn not, then these panels will be displayed in the Render panel"
+        ),
+        default=False,
+    )
+
+    stampInfo_display_properties: BoolProperty(
         name="Display Panel",
         description="Display the Stamp Info properties panel in the tab list in the 3D View",
         default=False,
@@ -923,9 +940,34 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
     # -----------------------------------------------------------
     # UI user preferences - Not exposed
     # -----------------------------------------------------------
-    panelExpanded_mode: BoolProperty(
+    stampInfo_mode_expanded: BoolProperty(
         name="Expand Render Mode Properties",
         default=True,
+    )
+
+    stampInfo_mainPanel_expanded: BoolProperty(
+        name="Expand Panel",
+        default=True,
+    )
+    stampInfo_timePanel_expanded: BoolProperty(
+        name="Expand Panel",
+        default=False,
+    )
+    stampInfo_shotPanel_expanded: BoolProperty(
+        name="Expand Panel",
+        default=False,
+    )
+    stampInfo_metadataPanel_expanded: BoolProperty(
+        name="Expand Panel",
+        default=False,
+    )
+    stampInfo_layoutPanel_expanded: BoolProperty(
+        name="Expand Panel",
+        default=False,
+    )
+    stampInfo_settingsPanel_expanded: BoolProperty(
+        name="Expand Panel",
+        default=False,
     )
 
     ########################################################################

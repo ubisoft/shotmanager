@@ -20,23 +20,29 @@ Draw the names of the libraries and add-ons required by this add-on
 """
 
 import bpy
-from ..utils import utils
+
+# from ..utils import utils
 
 # import platform
 
 
 def drawDependencies(context, layout: bpy.types.UILayout, **kwargs):
-    prefs = bpy.context.preferences.addons["shotmanager"].preferences
+    # prefs = bpy.context.preferences.addons["shotmanager"].preferences
+
+    splitFactor = 0.25
 
     box = layout.box()
     col = box.column()
 
-    titleRow = col.row()
-    titleRow.label(text="Add-on Dependencies:")
-    titleRow.separator()
+    ####################
+    # dependencies to other add-ons
+    ####################
 
-    col.separator(factor=0.5)
-    splitFactor = 0.25
+    # titleRow = col.row()
+    # titleRow.label(text="Add-on Dependencies:")
+    # titleRow.separator()
+
+    # col.separator(factor=0.5)
 
     # Ubisoft Stamp Info
     ####################
