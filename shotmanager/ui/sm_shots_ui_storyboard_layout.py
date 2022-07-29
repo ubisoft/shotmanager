@@ -46,7 +46,7 @@ class UAS_UL_ShotManager_Storyboard_Items(bpy.types.UIList):
         display_getsetcurrentframe_in_shotlist = False
 
         currentIconIsOrange = True
-        orange = "_Orange" if currentIconIsOrange == index else ""
+        orange = "_Orange" if currentIconIsOrange else ""
         cam = f"Cam{orange}" if current_shot_index == index else ""
         currentFrame = context.scene.frame_current
 

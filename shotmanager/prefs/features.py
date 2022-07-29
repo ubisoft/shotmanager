@@ -26,6 +26,7 @@ from shotmanager.config import config
 from shotmanager.overlay_tools.interact_shots_stack import shots_stack_prefs
 from shotmanager.overlay_tools.viewport_camera_hud import camera_hud_prefs
 from shotmanager.utils import utils_ui
+from shotmanager.utils.utils_ui import collapsable_panel
 
 
 class UAS_ShotManager_Features(Operator):
@@ -35,6 +36,14 @@ class UAS_ShotManager_Features(Operator):
     bl_options = {"INTERNAL"}
 
     def invoke(self, context, event):
+        prefs = bpy.context.preferences.addons["shotmanager"].preferences
+
+        # close all the panels
+        prefs.features_layoutSettings_expanded = False
+        prefs.cameraHUD_settings_expanded = False
+        prefs.seqTimeline_settings_expanded = False
+        prefs.shtStack_settings_expanded = False
+
         return context.window_manager.invoke_props_dialog(self, width=420)
 
     def draw(self, context):
@@ -89,6 +98,59 @@ def draw_features_prefs(mode, layout):
 
     if config.devDebug:
         layoutRow.prop(props, "layout_mode", text="")
+
+    #################################################################
+    #################################################################
+
+    box = layout.box()
+    collapsable_panel(box, prefs, "features_layoutSettings_expanded", text="Layout Settings")
+    if prefs.features_layoutSettings_expanded:
+        leftSepFactor = 2
+
+        mainRow = box.row()
+        mainCol = mainRow.column(align=True)
+        mainCol.label(text="When Selected Shot Is Changed:  (Settings stored in the Add-on Preferences):")
+
+        propsRow = mainCol.row()
+        propsRow.separator(factor=leftSepFactor)
+        propsCol = propsRow.column(align=True)
+        propsCol.label(text="Storyboard Layout:")
+        row = propsCol.row()
+        row.separator(factor=3)
+        subCol = row.column(align=True)
+
+        # NOTE: when the Continuous Editing mode is on then the selected and current shots are tied anyway
+        subCol.prop(
+            prefs,
+            "layoutStb_selected_shot_changes_current_shot",
+            text="Storyboard Shots List: Set Selected Shot to Current One",
+        )
+        subCol.prop(
+            prefs,
+            "layoutStb_selected_shot_in_shots_stack_changes_current_shot",
+            text="Shots Stack: Set Selected Shot to Current One",
+        )
+
+        propsRow = mainCol.row()
+        propsRow.separator(factor=leftSepFactor)
+        propsCol = propsRow.column(align=True)
+        propsCol.label(text="Previz Layout:")
+        row = propsCol.row()
+        row.separator(factor=3)
+        subCol = row.column(align=True)
+        subCol.prop(
+            prefs,
+            "layoutPvz_selected_shot_changes_current_shot",
+            text="Previz Shots List: Set Selected Shot to Current One",
+        )
+        subCol.prop(
+            prefs,
+            "layoutPvz_selected_shot_in_shots_stack_changes_current_shot",
+            text="Shots Stack: Set Selected Shot to Current One",
+        )
+
+    #################################################################
+    #################################################################
 
     if "SCENE" == mode:
         layout.label(text="Display Takes and Shots additionnal features:")
@@ -290,6 +352,9 @@ def draw_features_prefs(mode, layout):
         subrowright.alignment = "RIGHT"
         subrowright.label(text="(in 3D View)")
 
+        if prefs.cameraHUD_settings_expanded:
+            camera_hud_prefs.draw_settings(bpy.context, box)
+
     ###################################
     # Sequence timeline ######
     ###################################
@@ -335,8 +400,8 @@ def draw_features_prefs(mode, layout):
         box = layout.box()
         subrow = box.row()
 
-        panelIcon = "TRIA_DOWN" if prefs.intShStack_settings_expanded else "TRIA_RIGHT"
-        subrow.prop(prefs, "intShStack_settings_expanded", text="", icon_only=True, icon=panelIcon, emboss=False)
+        panelIcon = "TRIA_DOWN" if prefs.shtStack_settings_expanded else "TRIA_RIGHT"
+        subrow.prop(prefs, "shtStack_settings_expanded", text="", icon_only=True, icon=panelIcon, emboss=False)
 
         icon = config.icons_col["ShotManager_Retimer_32"]
         butsubrow = subrow.row()
@@ -353,11 +418,8 @@ def draw_features_prefs(mode, layout):
         subrowright.alignment = "RIGHT"
         subrowright.label(text="(in Timeline and Dopesheet)")
 
-        if prefs.intShStack_settings_expanded:
+        if prefs.shtStack_settings_expanded:
             shots_stack_prefs.draw_settings(bpy.context, box)
-
-        if prefs.cameraHUD_settings_expanded:
-            camera_hud_prefs.draw_settings(bpy.context, box)
 
     ###################################
     # Frame Range #####################

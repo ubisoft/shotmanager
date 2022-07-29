@@ -29,6 +29,7 @@ import gpu
 from shotmanager.gpu.gpu_2d.class_Component2D import Component2D
 from shotmanager.gpu.gpu_2d.class_Text2D import Text2D
 from shotmanager.gpu.gpu_2d.class_QuadObject import QuadObject
+from shotmanager.utils.utils_greasepencil import isCurrentFrameOnLayerKeyFrame
 
 from .shots_stack_handle_component import ShotHandleComponent
 
@@ -108,8 +109,12 @@ class ShotClipComponent(Component2D):
 
         # image component ########
         imgPath = os.path.join(os.path.dirname(__file__), "../../../icons/")
-        self.imageCam = utils.getDataImageFromPath(imgPath, "ShotManager_ShotsStack_Orange.png")
-        self.imageCamSelected = utils.getDataImageFromPath(imgPath, "ShotManager_ShotsStack_Orange.png")
+        self.imageCam = utils.getDataImageFromPath(imgPath, "ShotManager_ShotsStack_CamOrange.png")
+        self.imageCamSelected = utils.getDataImageFromPath(imgPath, "ShotManager_ShotsStack_CamOrange.png")
+        self.imageCamCurrent = utils.getDataImageFromPath(imgPath, "ShotManager_ShotsStack_CamOrange.png")
+        self.imageStb = utils.getDataImageFromPath(imgPath, "ShotManager_ShotsStack_StbWhite.png")
+        self.imageStbSelected = utils.getDataImageFromPath(imgPath, "ShotManager_ShotsStack_StbWhite.png")
+        self.imageStbCurrent = utils.getDataImageFromPath(imgPath, "ShotManager_ShotsStack_StbOrange.png")
 
         self.currentShotImage = QuadObject(
             posXIsInRegionCS=True,
@@ -261,7 +266,9 @@ class ShotClipComponent(Component2D):
         self.currentShotImage.height = imgHeight
         self.currentShotImage.width = imgHeight
 
-        if self.isCurrent:
+        displayIcon = not "PREVIZ" == self.shot.shotType or self.isCurrent
+
+        if displayIcon:
             offsetFromImage = 5
             self.currentShotImage.isVisible = True
             self.currentShotImage.posY = int(getLaneHeight() * (0.06 + 0.5))
@@ -271,10 +278,21 @@ class ShotClipComponent(Component2D):
             self.textComponent.avoidClamp_leftSideOffset = (
                 self.pref_distanceFromRegionLeft + self.currentShotImage.getWidthInRegion() + offsetFromImage
             )
-            if self.isSelected:
-                self.currentShotImage.image = self.imageCam
+            if self.isCurrent:
+                if "PREVIZ" == self.shot.shotType:
+                    self.currentShotImage.image = self.imageCamCurrent
+                else:
+                    self.currentShotImage.image = self.imageStbCurrent
+            elif self.isSelected:
+                if "PREVIZ" == self.shot.shotType:
+                    self.currentShotImage.image = self.imageCamSelected
+                else:
+                    self.currentShotImage.image = self.imageStbSelected
             else:
-                self.currentShotImage.image = self.imageCamSelected
+                if "PREVIZ" == self.shot.shotType:
+                    self.currentShotImage.image = self.imageCam
+                else:
+                    self.currentShotImage.image = self.imageStb
         else:
             self.currentShotImage.isVisible = False
 

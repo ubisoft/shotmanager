@@ -84,9 +84,14 @@ def drawNotesRow(layout, props, item, index):
 def drawShotName(layout, props, item):
     row = layout.row(align=True)
     row.scale_x = 1.0
+    #  row.use_property_decorate = False
     if props.display_enabled_in_shotlist:
         row.prop(item, "enabled", text="")
     #   row.separator(factor=0.9)
     row.scale_x = 0.8
+    # row.alignment = "LEFT"
     # row.label(text=item.name)
     row.prop(item, "name", text="", emboss=False)
+    # row.use_property_split = False
+    # subRow = row.row(align=True)
+    # subRow.prop(item, "name", text="", emboss=False)

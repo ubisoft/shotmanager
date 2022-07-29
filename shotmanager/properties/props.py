@@ -1140,8 +1140,25 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         options=set(),
     )
 
-    def updateStoryboardFramesDisplay(self, forceHide=False, applyToAllTakes=True, takeIndex=-1):
-        """Update the display of the grease pencil objects of the storyboard frames for the specified take"""
+    def updateStoryboardFramesDisplay(
+        self,
+        forceHide=False,
+        alsoForceHideAlwaysVisible=True,
+        alsoForceHideCurrent=True,
+        applyToAllTakes=True,
+        takeIndex=-1,
+    ):
+        """Update the display of the grease pencil objects of the storyboard frames for the specified take
+        Args:
+            forceHide:  Force all the gp to be hidden (EVEN those explicitely set to Always Visible)
+                        This argument is used by the renderer to hide all the gp of shots other than the rendered one.
+            alsoForceHideCurrent: Used only when forceHide is True. Forces the current shot gp to hide. If False
+                        then it is updated to match the visibility state of its visibility property.
+            alsoForceHideAlwaysVisible: Used only when forceHide is True. Forces the shots with a gp set to
+                        Always Visible to hide
+
+            See the Visibility rules in the documentation: storyboard-frames-visibility.rst
+        """
         takeInd = (
             self.getCurrentTakeIndex()
             if -1 == takeIndex
@@ -1150,13 +1167,30 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         if -1 == takeInd:
             return ()
 
-        if applyToAllTakes:
-            for take in self.getTakes():
-                for sh in take.shots:
-                    sh.showGreasePencil(forceHide=forceHide)
-        else:
-            for sh in self.takes[takeInd].shots:
-                sh.showGreasePencil(forceHide=forceHide)
+        currentTakeInd = self.getCurrentTakeIndex()
+        currentShotInd = self.getCurrentShotIndex()
+        for tInd, take in enumerate(self.getTakes()):
+            if applyToAllTakes or tInd == takeInd:
+                for shotInd, sh in enumerate(take.shots):
+                    if forceHide:
+                        if not alsoForceHideCurrent and tInd == currentTakeInd and shotInd == currentShotInd:
+                            sh.showGreasePencil()
+                        else:
+                            if not alsoForceHideAlwaysVisible:
+                                # TOFIX: Replace this by a call to a property: sh.stbFrame for instance
+                                forceHideAlwaysVisib = True
+                                if sh.isCameraValid():
+                                    gp_child = utils_greasepencil.get_greasepencil_child(sh.camera)
+                                    if gp_child is not None:
+                                        gpProps = sh.getGreasePencilProps(mode="STORYBOARD")
+                                        if gpProps is not None and "ALWAYS_VISIBLE" == gpProps.visibility:
+                                            forceHideAlwaysVisib = False
+
+                                sh.showGreasePencil(forceHide=forceHideAlwaysVisib)
+                            else:
+                                sh.showGreasePencil(forceHide=True)
+                    else:
+                        sh.showGreasePencil()
 
     # def updateGreasePencilVisibility(self, take):
     #     """Update the display of grease pencil objects of the specified take"""
@@ -1868,20 +1902,42 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
 
     def _update_selected_shot_index(self, context):
         if self.selected_shot_index_call_update__flag:
+            props = context.scene.UAS_shot_manager_props
             prefs = context.preferences.addons["shotmanager"].preferences
             _logger.debug_ext(f"\n*** selected_shot_index. New state: {self.selected_shot_index}")
 
-            # if "STORYBOARD" == self.layout_mode:
-            if True:
+            setCurrentShot = False
+            # if False:
+            if "STORYBOARD" == self.layout_mode:
                 if prefs.shot_selected_from_shots_stack__flag:
                     # print("   call from shots stack")
-                    if prefs.selected_shot_in_shots_stack_changes_current_shot_in_stb:
+                    if prefs.layoutStb_selected_shot_in_shots_stack_changes_current_shot:
                         #    print("   sel in shots stack")
-                        bpy.ops.uas_shot_manager.set_current_shot(index=self.selected_shot_index)
-                elif prefs.selected_shot_changes_current_shot_in_stb:
-                    _logger.debug_ext("   _update_selected_shot_index from shot list")
-                    # print("\n*** selected_shot_index. New state: ", self.selected_shot_index)
-                    bpy.ops.uas_shot_manager.set_current_shot(index=self.selected_shot_index)
+                        setCurrentShot = True
+                else:
+                    if props.useContinuousGPEditing:
+                        setCurrentShot = True
+                    elif prefs.layoutStb_selected_shot_changes_current_shot:
+                        _logger.debug_ext("  Stb _update_selected_shot_index from shot list")
+                        # print("\n*** selected_shot_index. New state: ", self.selected_shot_index)
+                        setCurrentShot = True
+            # PREVIZ
+            else:
+                if prefs.shot_selected_from_shots_stack__flag:
+                    # print("   call from shots stack")
+                    if prefs.layoutPvz_selected_shot_in_shots_stack_changes_current_shot:
+                        #    print("   sel in shots stack")
+                        setCurrentShot = True
+                else:
+                    if props.useContinuousGPEditing:
+                        setCurrentShot = True
+                    elif prefs.layoutPvz_selected_shot_changes_current_shot:
+                        _logger.debug_ext("  Pvz _update_selected_shot_index from shot list")
+                        # print("\n*** selected_shot_index. New state: ", self.selected_shot_index)
+                        setCurrentShot = True
+
+            if setCurrentShot:
+                bpy.ops.uas_shot_manager.set_current_shot(index=self.selected_shot_index)
 
     selected_shot_index: IntProperty(name="Shot Name", update=_update_selected_shot_index, default=-1)
 
@@ -3269,7 +3325,12 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
                     )
 
             #    self.updateGreasePencilVisibility(self.getCurrentTake())
-            self.updateStoryboardFramesDisplay(takeIndex=self.getCurrentTakeIndex())
+            self.updateStoryboardFramesDisplay(
+                takeIndex=self.getCurrentTakeIndex(),
+                forceHide=False,
+                alsoForceHideAlwaysVisible=False,
+                alsoForceHideCurrent=False,
+            )
 
             #  set current edit gp
             if not self.stb_hasPinnedObject:

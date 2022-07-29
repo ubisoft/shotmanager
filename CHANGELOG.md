@@ -1,4 +1,13 @@
 -----
+## 2.0.202 (2022-07-29)
+- Fixed visibility of storyboard frames: the frames belonging to a "storyboard" shot are kept visible
+  even if not current, whereas the frames from "camera" shots are hidden when those shots are not current. See documentation "Storyboard Frames Visibility"
+- Shots can now be renamed by directly double-clicking on their name in the Shots list
+
+### UI
+- Added icons in the shot column and the Shots Stack for shots of type "storyboard"
+
+-----
 ## 2.0.201 (2022-07-24)
 - Full integration of Stamp Info inside Shot Manager: this add-on doesn't depend anymore
   on the Stamp Info add-on

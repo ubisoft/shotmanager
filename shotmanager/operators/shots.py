@@ -159,7 +159,7 @@ class UAS_ShotManager_SetCurrentShot(Operator):
         prefs = bpy.context.preferences.addons["shotmanager"].preferences
         shot = props.getShotByIndex(self.index)
 
-   #     _logger.debug_ext("Set Current Shot Operator exec: ", col="RED")
+        #     _logger.debug_ext("Set Current Shot Operator exec: ", col="RED")
 
         def _updateEditors(changeTime=True, zoom_mode=""):
             # change time range to match shot range
@@ -250,15 +250,16 @@ class UAS_ShotManager_ToggleContinuousGPEditingMode(Operator):
 
     def execute(self, context):
         props = context.scene.UAS_shot_manager_props
-        prefs = context.preferences.addons["shotmanager"].preferences
+        # prefs = context.preferences.addons["shotmanager"].preferences
 
         props.useContinuousGPEditing = not props.useContinuousGPEditing
 
-        if props.useContinuousGPEditing:
-            prefs.selected_shot_changes_current_shot_in_stb = True
-
-        else:
-            prefs.selected_shot_changes_current_shot_in_stb = False
+        # NOTE: when the Continuous Editing mode is on then the selected and current shots are tied anyway
+        # in the "change selection" code
+        # if props.useContinuousGPEditing:
+        #     prefs.layoutStb_selected_shot_changes_current_shot = True
+        # else:
+        #     prefs.layoutStb_selected_shot_changes_current_shot = False
 
         return {"FINISHED"}
 

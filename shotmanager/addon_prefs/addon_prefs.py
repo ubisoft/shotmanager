@@ -279,8 +279,9 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
         default=False,
     )
 
+    ##############################
     # storyboard panel
-    ####################
+    ##############################
     stb_canvas_props_expanded: BoolProperty(
         name="Expand Canvas Properties",
         default=False,
@@ -464,24 +465,6 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
     #     default=True,
     # )
 
-    selected_shot_changes_current_shot_in_stb: BoolProperty(
-        name="Set selected shot to current",
-        description="When a shot is selected in the shot list, in Storyboard layout mode, the shot is also set to be the current one",
-        default=True,
-    )
-    selected_shot_in_shots_stack_changes_current_shot_in_stb: BoolProperty(
-        name="Set selected shot in Shots Stack to current",
-        description="When a shot is selected in the Interactive Shots Stack, in Storyboard layout mode, the shot is also set to be the current one",
-        default=False,
-    )
-    shot_selected_from_shots_stack__flag: BoolProperty(
-        description="Flag property (= not exposed in the UI) used When a shot is selected in the Interactive Shots Stack,"
-        "\nin Storyboard layout mode, the shot is also set to be the current one",
-        default=False,
-    )
-
-    playblastFileName: StringProperty(name="Temporary Playblast File", default="toto.mp4")
-
     # def _get_useLockCameraView(self):
     #     # Can also use area.spaces.active to get the space assoc. with the area
     #     for area in bpy.context.screen.areas:
@@ -589,6 +572,46 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
         get=_get_layout_but_previz,
         set=_set_layout_but_previz,
         default=True,
+    )
+
+    ###############################
+    # Previz layout
+    ###############################
+
+    layoutPvz_selected_shot_changes_current_shot: BoolProperty(
+        name="Set selected shot to current",
+        description="When a shot is selected in the shot list, in Previz layout mode, the shot is also set to be the current one",
+        default=False,
+    )
+    layoutPvz_selected_shot_in_shots_stack_changes_current_shot: BoolProperty(
+        name="Set selected shot in Shots Stack to current",
+        description="When a shot is selected in the Interactive Shots Stack, in Previz layout mode, the shot is also set to be the current one",
+        default=False,
+    )
+
+    ###############################
+    # Storyboard layout
+    ###############################
+
+    # NOTE: when the Continuous Editing mode is on then the selected and current shots are tied anyway
+    layoutStb_selected_shot_changes_current_shot: BoolProperty(
+        name="Set selected shot to current",
+        description="When a shot is selected in the shot list, in Storyboard layout mode, the shot is also set to be the current one",
+        default=True,
+    )
+    layoutStb_selected_shot_in_shots_stack_changes_current_shot: BoolProperty(
+        name="Set selected shot in Shots Stack to current",
+        description="When a shot is selected in the Interactive Shots Stack, in Storyboard layout mode, the shot is also set to be the current one",
+        default=False,
+    )
+
+    ########################################################################
+    # features panel   ###
+    ########################################################################
+
+    features_layoutSettings_expanded: BoolProperty(
+        name="Expand Layout Settings",
+        default=False,
     )
 
     ########################################################################
@@ -782,7 +805,7 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
     def _update_toggle_overlays_turnOn_sequenceTimeline(self, context):
         _logger.debug_ext("_update_toggle_overlays_turnOn_sequenceTimeline")
 
-        ## toggle on or off the overlay tools mode
+        # toggle on or off the overlay tools mode
         if self.toggle_overlays_turnOn_sequenceTimeline:
             if not context.window_manager.UAS_shot_manager_display_overlay_tools:
                 context.window_manager.UAS_shot_manager_display_overlay_tools = True
@@ -830,27 +853,33 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
         default=True,
     )
 
-    intShStack_settings_expanded: BoolProperty(
+    shtStack_settings_expanded: BoolProperty(
         name="Expand Panel Settings",
         default=False,
     )
 
-    def _update_display_intShStack_toolbar(self, context):
+    shot_selected_from_shots_stack__flag: BoolProperty(
+        description="Flag property (= not exposed in the UI) used When a shot is selected in the Interactive Shots Stack,"
+        "\nin Storyboard layout mode, the shot is also set to be the current one",
+        default=False,
+    )
+
+    def _update_display_shtStack_toolbar(self, context):
         # print("\n*** _update_display_frame_range_tool. New state: ", self.display_frame_range_tool)
         from shotmanager.overlay_tools.interact_shots_stack.shots_stack_toolbar import (
             display_shots_stack_toolbar_in_editor,
         )
 
-        display_shots_stack_toolbar_in_editor(self.display_intShStack_toolbar)
+        display_shots_stack_toolbar_in_editor(self.display_shtStack_toolbar)
 
-    display_intShStack_toolbar: BoolProperty(
+    display_shtStack_toolbar: BoolProperty(
         name="Display Interactive Shots Stack Toolbar",
         description="Display Interactive Shots Stack toolbar in the Timeline editor",
-        update=_update_display_intShStack_toolbar,
+        update=_update_display_shtStack_toolbar,
         default=True,
     )
 
-    intShStack_opacity: FloatProperty(
+    shtStack_opacity: FloatProperty(
         name="Shots Stack Opacity",
         description="Opacity of the Interactive Shots Stack clips in the dopesheet editor",
         min=0.0,
@@ -1085,8 +1114,11 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
     # global temps values   ###
     ##################
 
+    ####################
     # Playblast
     ####################
+
+    playblastFileName: StringProperty(name="Temporary Playblast File", default="toto.mp4")
 
     ##################
     # markers ###

@@ -87,7 +87,7 @@ class BL_UI_ShotStack:
         self.color_currentShot_border_mix = (0.94, 0.3, 0.1, 0.99)
 
         # prefs settings ###################
-        self.opacity = prefs.intShStack_opacity
+        self.opacity = prefs.shtStack_opacity
         self.color_text = (0.0, 0.0, 0.0, 1)
 
     def init(self, context):
