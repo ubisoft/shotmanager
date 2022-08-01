@@ -712,7 +712,7 @@ class UAS_ShotManager_OT_Create_Shots_From_OTIO_RRS(Operator):
             try:
                 bpy.context.space_data.overlay.show_overlays = True
             except Exception as e:
-                print("Cannot set Overlay")
+                _logger.error_ext(f"Cannot set Overlay state back: error: {e}")
 
         else:
             # track indices are starting from 1, not 0!!
@@ -762,7 +762,7 @@ class UAS_ShotManager_OT_Create_Shots_From_OTIO_RRS(Operator):
             try:
                 bpy.context.space_data.overlay.show_overlays = True
             except Exception as e:
-                print("Cannot set Overlay")
+                _logger.error_ext(f"Cannot set Overlay state back: error: {e}")
 
             props.display_notes_in_properties = True
 

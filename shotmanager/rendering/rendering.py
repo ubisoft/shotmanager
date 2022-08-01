@@ -32,6 +32,7 @@ from shotmanager.config import config
 from shotmanager.rendering.rendering_stampinfo import setStampInfoSettings, renderStampedInfoForShot
 
 from shotmanager.utils import utils
+from shotmanager.utils import utils_editors_3dview
 from shotmanager.utils.utils_shot_manager import getStampInfo
 from shotmanager.utils import utils_store_context as utilsStore
 from shotmanager.utils.utils_os import module_can_be_imported
@@ -193,7 +194,11 @@ def launchRenderWithVSEComposite(
     # store current scene settings
     #######################
     userRenderSettings = {}
-    userRenderSettings = utilsStore.storeUserRenderSettings(context, userRenderSettings)
+    # NOTE: The opengl render function renders only overlays from the viewport from where the render was called.
+    # It is currently not possible to specify the source viewport. SM cannot then use its target viewport.
+    # renderViewport = props.getValidTargetViewport(context)
+    renderViewport = utils.getCurrentViewport(context)
+    userRenderSettings = utilsStore.storeUserRenderSettings(context, userRenderSettings, renderViewport)
 
     #######################
     # set specific render context
@@ -322,8 +327,10 @@ def launchRenderWithVSEComposite(
                     elif "BLENDER_WORKBENCH" == props.renderContext.renderEngineOpengl:
                         if space_data is not None:  # case where Blender is running in background
                             space_data.shading.type = "SOLID"
-                if space_data is not None:  # case where Blender is running in background
-                    space_data.overlay.show_overlays = props.renderContext.useOverlays
+                # if space_data is not None:  # case where Blender is running in background
+                #     space_data.overlay.show_overlays = props.renderContext.useOverlays
+
+            utils_editors_3dview.setViewportOverlayState(renderViewport, props.renderContext.useOverlays)
 
         else:
             # scene.render.use_compositing = False
@@ -912,7 +919,7 @@ def launchRenderWithVSEComposite(
     #######################
     # restore current scene settings
     #######################
-    utilsStore.restoreUserRenderSettings(context, userRenderSettings)
+    utilsStore.restoreUserRenderSettings(context, userRenderSettings, targetArea=renderViewport)
 
     props.setCurrentShot(currentShot, changeTime=False)
     props.updateStoryboardFramesDisplay()

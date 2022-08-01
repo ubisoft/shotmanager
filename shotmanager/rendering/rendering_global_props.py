@@ -82,7 +82,11 @@ class UAS_ShotManager_RenderGlobalContext(PropertyGroup):
 
     useOverlays: BoolProperty(
         name="With Overlays",
-        description="Also render overlays when the rendering is a playblast",
+        description=(
+            "Render overlays when the renderer is Eevee or the rendering is a playblast"
+            "\nWarning: The overlay settings that will be used are the ones from THIS VIEWPORT,"
+            "\neven if Shot Manager is set do be used on another target viewport"
+        ),
         default=False,
         options=set(),
     )

@@ -187,7 +187,6 @@ def addonPath():
     return str(filePath)
 
 
-
 def file_path_from_uri(uri):
     path = unquote_plus(urlparse(uri).path).replace("\\", "//")
     if re.match(r"^/\S:.*", path):  # Remove leading /
@@ -632,6 +631,24 @@ def getViewportIndex(context, viewport):
     Return: -1 if area not found
     """
     return getAreaIndex(context, viewport, "VIEW_3D")
+
+
+def getCurrentViewport(context):
+    """Return the area of the current viewport"""
+    viewportsList = getAreasByType(context, "VIEW_3D")
+    for viewportArea in viewportsList:
+        if context.area == viewportArea:
+            return viewportArea
+    return None
+
+
+def getCurrentViewportIndex(context):
+    """Return the area index of the current viewport"""
+    viewportsList = getAreasByType(context, "VIEW_3D")
+    for ind, viewportArea in enumerate(viewportsList):
+        if context.area == viewportArea:
+            return ind
+    return -1
 
 
 # Dopesheet areas (= timelines + dopesheets + grease pencil + action + shapekey + mask + cachefile)

@@ -19,20 +19,28 @@
 Utils - store context
 """
 
-import bpy
-
+from shotmanager.utils import utils_editors_3dview
 from shotmanager.config import sm_logging
 
 _logger = sm_logging.getLogger(__name__)
 
 
-def storeUserRenderSettings(context, userRenderSettings):
+def storeUserRenderSettings(context, userRenderSettings, targetArea=None):
     scene = context.scene
+    props = scene.UAS_shot_manager_props
 
-    try:
-        userRenderSettings["show_overlays"] = bpy.context.space_data.overlay.show_overlays
-    except Exception as e:
-        _logger.error_ext(f"Show Overlay state cannot be stored - Exception: {e}")
+    # try:
+    #     userRenderSettings["show_overlays"] = bpy.context.space_data.overlay.show_overlays
+    # except Exception as e:
+    #     _logger.error_ext(f"Show Overlay state cannot be stored - Exception: {e}")
+
+    if targetArea:
+        userRenderSettings["show_overlays"] = utils_editors_3dview.getViewportOverlayState(targetArea)
+    else:
+        userRenderSettings["show_overlays"] = utils_editors_3dview.getViewportOverlayState(
+            props.getValidTargetViewport(context)
+        )
+
     userRenderSettings["resolution_x"] = scene.render.resolution_x
     userRenderSettings["resolution_y"] = scene.render.resolution_y
     userRenderSettings["resolution_percentage"] = scene.render.resolution_percentage
@@ -107,13 +115,22 @@ def storeUserRenderSettings(context, userRenderSettings):
     return userRenderSettings
 
 
-def restoreUserRenderSettings(context, userRenderSettings):
+def restoreUserRenderSettings(context, userRenderSettings, targetArea=None):
     scene = context.scene
+    props = scene.UAS_shot_manager_props
+
     # wkip bug here dans certaines conditions vse
-    try:
-        bpy.context.space_data.overlay.show_overlays = userRenderSettings["show_overlays"]
-    except Exception as e:
-        _logger.error_ext(f"Cannot restore Overlay mode: {e}")
+    # try:
+    #     bpy.context.space_data.overlay.show_overlays = userRenderSettings["show_overlays"]
+    # except Exception as e:
+    #     _logger.error_ext(f"Cannot restore Overlay mode: {e}")
+
+    if targetArea:
+        utils_editors_3dview.setViewportOverlayState(targetArea, userRenderSettings["show_overlays"])
+    else:
+        utils_editors_3dview.setViewportOverlayState(
+            props.getValidTargetViewport(context), userRenderSettings["show_overlays"]
+        )
 
     scene.render.resolution_x = userRenderSettings["resolution_x"]
     scene.render.resolution_y = userRenderSettings["resolution_y"]

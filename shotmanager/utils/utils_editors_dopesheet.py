@@ -16,7 +16,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 """
-Functions specific to editors such as 3D Viewport, Dopesheet...
+Functions specific to Dopesheet editors such as the dopesheet, the timeline...
 
 Several things to know for Dopesheets:
 
