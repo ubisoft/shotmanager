@@ -255,10 +255,15 @@ def reset_render_properties():
     props.reset_render_properties()
 
 
+def reset_layout_settings(layoutMode):
+    props = bpy.context.scene.UAS_shot_manager_props
+    props.resetLayoutSettingsToDefault(layoutMode)
+
+
 class UAS_ShotManager_OT_Querybox(Operator):
     """Display a query dialog box
 
-    A message can be drawn on several lines when containing the separator \n
+    A message can be drawn on several lines when containing the separator '\\n'
     """
 
     bl_idname = "uas_shotmanager.querybox"
@@ -269,6 +274,12 @@ class UAS_ShotManager_OT_Querybox(Operator):
     width: bpy.props.IntProperty(default=400)
     message: bpy.props.StringProperty(default="Do you confirm the operation?")
     function_name: bpy.props.StringProperty(default="")
+    function_arguments: bpy.props.StringProperty(default="")
+    tooltip: StringProperty(default=" ")
+
+    @classmethod
+    def description(self, context, properties):
+        return properties.tooltip
 
     def invoke(self, context, event):
         return context.window_manager.invoke_props_dialog(self, width=self.width)
@@ -290,7 +301,7 @@ class UAS_ShotManager_OT_Querybox(Operator):
         layout.separator()
 
     def execute(self, context):
-        eval(self.function_name + "()")
+        eval(f"{self.function_name}({self.function_arguments})")
         # try:
         #     eval(self.function_name + "()")
         # except Exception:
