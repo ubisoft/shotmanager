@@ -31,6 +31,7 @@ from gpu_extras.batch import batch_for_shader
 from shotmanager.utils.utils import clamp, color_to_sRGB, darken_color, remap, color_is_dark
 from shotmanager.utils.utils_ogl import get_region_at_xy, Square
 from shotmanager.utils import utils
+from shotmanager.utils import utils_editors_3dview
 
 # import mathutils
 
@@ -692,19 +693,14 @@ class BL_UI_Timeline:
         """handle event for BL_UI_Timeline"""
         _logger.debug_ext("*** handle event for BL_UI_Timeline", col="GREEN", tag="TIMELINE_EVENT")
 
+        props = self.context.scene.UAS_shot_manager_props
         prefs = bpy.context.preferences.addons["shotmanager"].preferences
-        if hasattr(bpy.context.space_data, "overlay"):
-            if prefs.seqTimeline_not_disabled_with_overlays and not bpy.context.space_data.overlay.show_overlays:
+
+        if not prefs.seqTimeline_not_disabled_with_overlays:
+            overlaysOn = utils_editors_3dview.getViewportOverlayState(props.getValidTargetViewport(bpy.context))
+            if not overlaysOn:
                 _logger.debug_ext("   Canceled cause overlays hidden", col="RED")
                 return False
-
-        # if self.target_area is not None and bpy.context.area != self.target_area:
-        #     # verify target area:
-        #     print(f"target area: {utils.getAreaInfo(bpy.context, self.target_area, verbose=False)}")
-        #     print(f"source area: {utils.getAreaInfo(bpy.context, bpy.context.area, verbose=False)}")
-
-        #     _logger.debug_ext(f"   context area != target area", col="GREEN_LIGHT")
-        #     return False
 
         if self.context.window_manager.UAS_shot_manager_shots_play_mode:
             if self.frame_cursor_forShotPlayMode.handle_event(event):

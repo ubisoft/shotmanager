@@ -124,9 +124,17 @@ class GreasePencilProperties(PropertyGroup):
         name="Frame Visibility",
         description="Visibility",
         items=(
-            ("ALWAYS_VISIBLE", "Visible", "Storyboard frame is always visible"),
+            (
+                "ALWAYS_VISIBLE",
+                "Visible",
+                "Storyboard frame is always visible.\nThis should be set only for very specific purposes",
+            ),
             ("ALWAYS_HIDDEN", "Hidden", "Storyboard frame is always hidden"),
-            ("AUTO", "Auto", "Storyboard frame is automaticaly shown or hidden"),
+            (
+                "AUTO",
+                "Auto",
+                "(Default) Storyboard frame is automaticaly shown or hidden, according to the state\nand type of the shot",
+            ),
         ),
         update=_update_visibility,
         default="AUTO",

@@ -4,6 +4,9 @@
 - Added notion of "layout" to have a different and customizable UI when in Storyboard and in Previz mode
 - Added a patch to support this feature
 
+### Project Settings
+- Added a new parameter to specify a camera to be used as a template for new shots, picked from a Blender file
+
 - Fixed overlay state that wasn't restored correctly
 
 -----
