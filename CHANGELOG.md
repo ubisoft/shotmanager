@@ -1,4 +1,12 @@
 -----
+## 2.0.203 (2022-08-01)
+### UX/UI
+- Added notion of "layout" to have a different and customizable UI when in Storyboard and in Previz mode
+- Added a patch to support this feature
+
+- Fixed overlay state that wasn't restored correctly
+
+-----
 ## 2.0.202 (2022-07-29)
 - Fixed visibility of storyboard frames: the frames belonging to a "storyboard" shot are kept visible
   even if not current, whereas the frames from "camera" shots are hidden when those shots are not current. See documentation "Storyboard Frames Visibility"

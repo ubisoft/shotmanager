@@ -49,4 +49,6 @@ def data_patch_to_v1_2_25():
                 # set right data version
                 # props.dataVersion = bpy.context.window_manager.UAS_shot_manager_version
                 props.dataVersion = 1002025
-                print("       Data upgraded to version V.", utils.convertVersionIntToStr(props.dataVersion))
+                print(
+                    f"       {scn.name}: Data upgraded to version V.{utils.convertVersionIntToStr(props.dataVersion)}"
+                )

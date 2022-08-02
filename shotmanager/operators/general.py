@@ -96,7 +96,7 @@ class UAS_ShotManager_OT_ChangeLayout(Operator):
     @classmethod
     def description(self, context, properties):
         props = context.scene.UAS_shot_manager_props
-        if "STORYBOARD" == props.layout_mode:
+        if "STORYBOARD" == props.currentLayoutMode():
             descr = "\nCurrent layout: Storyboard"
         else:
             descr = "\nCurrent layout: Previz"
@@ -105,11 +105,10 @@ class UAS_ShotManager_OT_ChangeLayout(Operator):
     def execute(self, context):
         props = context.scene.UAS_shot_manager_props
 
-        if "STORYBOARD" == props.layout_mode:
-            props.layout_mode = "PREVIZ"
-        # elif "PREVIZ" == props.layout_mode:
+        if "STORYBOARD" == props.currentLayoutMode():
+            props.setCurrentLayout("PREVIZ")
         else:
-            props.layout_mode = "STORYBOARD"
+            props.setCurrentLayout("STORYBOARD")
 
         return {"FINISHED"}
 

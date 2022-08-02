@@ -84,7 +84,7 @@ class UAS_UL_ShotManager_Storyboard_Items(bpy.types.UIList):
             if props.display_selectbut_in_shotlist:
                 row.operator("uas_shot_manager.shots_selectcamera", text="", icon="RESTRICT_SELECT_OFF").index = index
 
-            if props.display_cameraBG_in_properties and props.display_cameraBG_in_shotlist:
+            if props.getCurrentLayout().display_cameraBG_in_properties and props.display_cameraBG_in_shotlist:
                 camRow = row.row(align=True)
                 camRow.scale_x = 0.9
                 # icon = "VIEW_CAMERA" if item.hasBGImage() else "BLANK1"
@@ -109,16 +109,16 @@ class UAS_UL_ShotManager_Storyboard_Items(bpy.types.UIList):
                 colRow.prop(item, "color", text="")
                 colRow.scale_x = 0.45
 
-        if props.display_greasepencil_in_shotlist or props.display_storyboard_in_properties:
+        if props.display_greasepencil_in_shotlist or props.getCurrentLayout().display_storyboard_in_properties:
 
             mainRow.separator(factor=0.8)
             stbRow = mainRow.row(align=True)
             stbRow.scale_x = 1.0
 
-            if props.display_storyboard_in_properties and props.display_greasepencil_in_shotlist:
+            if props.getCurrentLayout().display_storyboard_in_properties and props.display_greasepencil_in_shotlist:
                 sm_shots_ui_common.drawStoryboardRow(stbRow, props, item, index)
 
-            if props.display_notes_in_properties and props.display_notes_in_shotlist:
+            if props.getCurrentLayout().display_notes_in_properties and props.display_notes_in_shotlist:
                 sm_shots_ui_common.drawNotesRow(stbRow, props, item, index)
 
         mainRow.separator(factor=0.6)

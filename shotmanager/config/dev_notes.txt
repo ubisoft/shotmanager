@@ -48,8 +48,6 @@ Working:
 
 Urgent:
 
-    - Bug of OVerlay state not restored after single frame render
-
     - add Shot Manager icon to the Render Settings panel + about
     - bug render resolution
     - size or open explorer but
@@ -112,8 +110,6 @@ Grease Pencil for boarding:
 
         - lorsque un layer est sur une frame courante le bouton est disabled et on ne peut pas ajouter des clés pour les autres layers
 
-        - faire marcher les add / remove / duplicate pour les stb frames
-
         - check the materials for the presets and add them in the preset panel
 
         - remove operator duplicate "uas_shot_manager.draw_on_grease_pencil"
@@ -123,8 +119,6 @@ Grease Pencil for boarding:
 
         - Quand un objet est pinné et qu'on entre en draw depuis un shot, faire sauter le pin???
             Non, dépinner suffit - mais ca fait une inconsistence avec le shot sélectionné
-
-        - frame grid settings
 
         - modes alt shift to add keys or delete
         - offset in time
@@ -148,8 +142,6 @@ Grease Pencil for boarding:
         - pouvoir linker l'anim du gp au start
 
     - adapter les 2 outils de framing de cam présents par défaut dans Bl
-
-    - ajouter un "storyboard layout"
 
     - idées:
         - action pour tout ranger en array
@@ -209,15 +201,5 @@ Fichiers récupérés de 166 - 2.0.15 B:
     ui
         sm_shot_settings_ui.py
 
-
-Amanda:
-    - 1001
-    - new layer for perps
-    - timing the notes
-
-
 Integ Stamp Info:
-    prendre le zip quelque soit le num de version
-    update si num version inférieur
-    try except partout
     doc a mettre a jour

@@ -136,7 +136,12 @@ def getLoggingTags():
     tags["REG"] = False
     tags["UNREG"] = False
 
+    tags["INIT_AND_DATA"] = True
+
     tags["SHOTS_PLAY_MODE"] = True
+
+    tags["RENDER"] = False
+    tags["LAYOUT"] = True
 
     tags["EDIT_IO"] = True
 

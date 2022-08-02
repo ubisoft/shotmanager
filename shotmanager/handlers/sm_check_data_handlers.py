@@ -26,6 +26,7 @@ from shotmanager.utils import utils
 from shotmanager.utils import utils_shot_manager
 from shotmanager.data_patches.check_scene_data import check_shotmanager_file_data
 
+from shotmanager.config import config
 from shotmanager.config import sm_logging
 
 _logger = sm_logging.getLogger(__name__)
@@ -36,19 +37,24 @@ def shotMngHandler_load_post_checkDataVersion(self, context):
     loadedFileName = bpy.path.basename(bpy.context.blend_data.filepath)
     print("\n\n-------------------------------------------------------")
 
-    _logger.debug_ext("shotMngHandler_load_post_checkDataVersion", col="RED")
+    _logger.debug_ext("shotMngHandler_load_post_checkDataVersion", col="PINK", tag="INIT_AND_DATA")
 
     if "" == loadedFileName:
         print("\nNew file loaded")
     else:
-        print("\nExisting file loaded: ", bpy.path.basename(bpy.context.blend_data.filepath))
-        _logger.info("  - Shot Manager is checking the version used to create the loaded scene data...")
+        _logger.info_ext(f"Existing file loaded: {bpy.path.basename(bpy.context.blend_data.filepath)}", col="GREEN")
+        _logger.info_ext(
+            "  - Shot Manager is checking the version used to create the loaded scene data...", col="GREEN"
+        )
+
+        latestVersionToPatch = 2000204
+        infoTxt = f"Ubisoft Shot Manager Version: {utils.convertVersionIntToStr(latestVersionToPatch)}"
+        # infoTxt = f"Ubisoft Shot Manager Version: {props.version()[0]}"
+        _logger.info_ext(f"{infoTxt}", col="GREEN")
 
         checkStr = check_shotmanager_file_data(verbose=False)
         _logger.debug_ext("Before changes:", col="PINK")
         _logger.debug_ext(checkStr, col="PINK")
-
-        latestVersionToPatch = 2000012
 
         numScenesToUpgrade = 0
         lowerSceneVersion = -1
@@ -59,12 +65,15 @@ def shotMngHandler_load_post_checkDataVersion(self, context):
                 continue
 
             props = scene.UAS_shot_manager_props
+            infoTxt = ""
+            if config.devDebug:
+                _logger.debug_ext(f"Scene: {scene.name}, props.dataVersion: {props.dataVersion}", col="RED")
+                _logger.debug_ext(f"props.version: {props.version()[1]}", col="RED")
+                _logger.debug_ext(
+                    f"\n---------------\n   latestVersionToPatch: {latestVersionToPatch}\n---------------\n", col="RED"
+                )
 
-            _logger.debug_ext(f"Scene: {scene.name}, props.dataVersion: {props.dataVersion}", col="RED")
-            _logger.debug_ext(f"props.version: {props.version()[1]}", col="RED")
-            _logger.debug_ext(
-                f"\n---------------\n   latestVersionToPatch: {latestVersionToPatch}\n---------------\n", col="RED"
-            )
+            infoTxt += f"Scene: {scene.name}  -  Data Version is {utils.convertVersionIntToStr(props.dataVersion)}"
 
             #   print("     Data version: ", props.dataVersion)
             #   print("     Shot Manager version: ", bpy.context.window_manager.UAS_shot_manager_version)
@@ -99,7 +108,11 @@ def shotMngHandler_load_post_checkDataVersion(self, context):
             # fixing issues "on the fly"
             if props.parentScene is None:
                 props.getParentScene()
-                print(f"Fixed Shot Manager parent scene issue in the following scene: {scene.name}")
+                _logger.info_ext(
+                    f"Fixed Shot Manager parent scene issue in the following scene: {scene.name}", col="GREEN"
+                )
+
+            _logger.info_ext(f"{infoTxt}", col="GREEN")
 
         if numScenesToUpgrade:
             print("\nUpgrading Shot Manager data with latest patches...")
@@ -144,6 +157,14 @@ def shotMngHandler_load_post_checkDataVersion(self, context):
 
                 print(f"       Applying data patch to file: upgrade to {patchVersion}")
                 data_patch_to_v2_0_12()
+                lowerSceneVersion = patchVersion
+
+            patchVersion = 2000204
+            if lowerSceneVersion < patchVersion:
+                from shotmanager.data_patches.data_patch_to_v2_0_204 import data_patch_to_v2_0_204
+
+                print(f"       Applying data patch to file: upgrade to {patchVersion}")
+                data_patch_to_v2_0_204()
                 lowerSceneVersion = patchVersion
 
             # current version, no patch required but data version is updated

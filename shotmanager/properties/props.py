@@ -46,6 +46,8 @@ from .output_params import UAS_ShotManager_OutputParams_Resolution
 from .shot import UAS_ShotManager_Shot
 from .shots_global_settings import UAS_ShotManager_ShotsGlobalSettings
 from .take import UAS_ShotManager_Take
+from .layout_settings import UAS_ShotManager_LayoutSettings
+
 from shotmanager.warnings import warnings
 from ..retimer.retimer_props import UAS_Retimer_Properties
 from ..features.greasepencil.greasepencil_frame_template import UAS_GreasePencil_FrameTemplate
@@ -198,25 +200,29 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         self.createDefaultTake()
         self.createRenderSettings()
 
+        # layout and features
+        ############################
+        self.createLayoutSettings()
+        self.setCurrentLayout(prefs.layout_mode)
+        # self.layout_mode = prefs.layout_mode
+        # self.getCurrentLayout().updateUI(self)
+
+        # self.display_storyboard_in_properties = prefs.display_storyboard_in_properties
+        # self.display_notes_in_properties = prefs.display_notes_in_properties
+        # self.display_cameraBG_in_properties = prefs.display_cameraBG_in_properties
+        # self.display_takerendersettings_in_properties = prefs.display_takerendersettings_in_properties
+        # self.display_editmode_in_properties = prefs.display_editmode_in_properties
+        # self.display_globaleditintegr_in_properties = prefs.display_globaleditintegr_in_properties
+        # self.display_advanced_infos = prefs.display_advanced_infos
+
+        # storyboard
+        self.stb_frameTemplate.initialize()
+
         # activate camera hud
         # bpy.ops.uas_shot_manager.draw_camera_hud_in_viewports("INVOKE_DEFAULT")
         # bpy.ops.uas_shot_manager.draw_camera_hud_in_pov("INVOKE_DEFAULT")
         self.camera_hud_display_in_viewports = True
         self.camera_hud_display_in_pov = True
-
-        # layout and features
-        ############################
-        self.layout_mode = prefs.layout_mode
-        self.display_storyboard_in_properties = prefs.display_storyboard_in_properties
-        self.display_notes_in_properties = prefs.display_notes_in_properties
-        self.display_cameraBG_in_properties = prefs.display_cameraBG_in_properties
-        self.display_takerendersettings_in_properties = prefs.display_takerendersettings_in_properties
-        self.display_editmode_in_properties = prefs.display_editmode_in_properties
-        self.display_globaleditintegr_in_properties = prefs.display_globaleditintegr_in_properties
-        self.display_advanced_infos = prefs.display_advanced_infos
-
-        # storyboard
-        self.stb_frameTemplate.initialize()
 
         self.isInitialized = True
 
@@ -923,7 +929,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
     )
 
     display_getsetcurrentframe_in_shotlist: BoolProperty(
-        name="Display Get/Set current Frame Buttons in Shot List", default=True, options=set()
+        name="Display Get/Set current frame buttons in Shot List", default=True, options=set()
     )
 
     display_edit_times_in_shotlist: BoolProperty(
@@ -939,7 +945,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
             bpy.ops.uas_shot_manager.draw_camera_hud_in_viewports("INVOKE_DEFAULT")
 
     camera_hud_display_in_viewports: BoolProperty(
-        name="Display Shot name on cameras in 3D Viewports",
+        name="Display shot name on cameras in 3D Viewports",
         description="Display the name of the shots near the camera object or frame in the 3D viewport",
         default=False,
         update=_update_camera_hud_display_in_viewports,
@@ -1319,76 +1325,154 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
     # can be STORYBOARD or PREVIZ
     # not visible in the UI because radiobuttons are more suitable
 
-    def _update_layout_mode(self, context):
-        prefs = context.preferences.addons["shotmanager"].preferences
-        # print("\n*** Props _update_layout_mode updated. New state: ", self._update_layout_mode)
-        # self.layout_but_storyboard = "STORYBOARD" == self._update_layout_mode
-        # self.layout_but_previez = "PREVIZ" == self._update_layout_mode
-        if "STORYBOARD" == self.layout_mode:
-            self.display_storyboard_in_properties = True
-            self.display_notes_in_properties = True
-        #  prefs.display_25D_greasepencil_panel = True
-        else:
-            #   self.display_storyboard_in_properties = False
-            self.display_notes_in_properties = False
-        # prefs.display_25D_greasepencil_panel = False
-        pass
+    # def _update_layout_mode(self, context):
+    #     prefs = context.preferences.addons["shotmanager"].preferences
+    #     # print("\n*** Props _update_layout_mode updated. New state: ", self._update_layout_mode)
+    #     # self.layout_but_storyboard = "STORYBOARD" == self._update_layout_mode
+    #     # self.layout_but_previez = "PREVIZ" == self._update_layout_mode
+    #     if "STORYBOARD" == self.layout_mode:
+    #         self.display_storyboard_in_properties = True
+    #         self.display_notes_in_properties = True
+    #     #  prefs.display_25D_greasepencil_panel = True
+    #     else:
+    #         #   self.display_storyboard_in_properties = False
+    #         self.display_notes_in_properties = False
+    #     # prefs.display_25D_greasepencil_panel = False
+    #     pass
 
-    layout_mode: EnumProperty(
-        name="Layout Mode",
-        description="Defines if Shot Manager panel should be appropriate for storyboarding or for previz",
-        items=(
-            ("STORYBOARD", "Storyboard", "Storyboard layout"),
-            ("PREVIZ", "Previz", "Previz layout"),
-        ),
-        update=_update_layout_mode,
-        default="PREVIZ",
-    )
+    # layout_mode: EnumProperty(
+    #     name="Layout Mode",
+    #     description="Defines the layout used by the Shot Manager panel",
+    #     items=(
+    #         ("STORYBOARD", "Storyboard", "Storyboard layout"),
+    #         ("PREVIZ", "Previz", "Previz layout"),
+    #     ),
+    #     update=_update_layout_mode,
+    #     default="PREVIZ",
+    # )
 
     # NOTE:
     # layout_but_storyboard and layout_but_previz behave as radiobuttons and control
     # the state of layout_mode
     def _get_layout_but_storyboard(self):
-        val = "STORYBOARD" == self.layout_mode
+        # val = "STORYBOARD" == self.layout_mode
+        val = "STORYBOARD" == self.currentLayoutMode()
         return val
 
     def _set_layout_but_storyboard(self, value):
         if value:
-            self.layout_mode = "STORYBOARD"
-        self["layout_but_storyboard"] = "STORYBOARD" == value
+            # self.layout_mode = "STORYBOARD"
+            self.setCurrentLayout("STORYBOARD")
+            self.setCurrentLayoutByIndex(0)
+        self["layout_but_storyboard"] = value
+
+    def _update_layout_but_storyboard(self, context):
+        print("\n*** layout_but_storyboard updated. New state: ", self.layout_but_storyboard)
+        #         self.layout_mode = "PREVIZ"
+        # self.setCurrentLayoutByIndex(0)
+        for region in context.area.regions:
+            if region.type == "UI":
+                region.tag_redraw()
 
     layout_but_storyboard: BoolProperty(
         name="Storyboard",
         description="Set the Shot Manager panel layout to Storyboard",
         get=_get_layout_but_storyboard,
         set=_set_layout_but_storyboard,
+        update=_update_layout_but_storyboard,
         default=False,
     )
 
     def _get_layout_but_previz(self):
-        val = "PREVIZ" == self.layout_mode
+        # val = "PREVIZ" == self.layout_mode
+        val = "PREVIZ" == self.currentLayoutMode()
         return val
 
     def _set_layout_but_previz(self, value):
         if value:
-            self.layout_mode = "PREVIZ"
-        self["layout_but_previz"] = "PREVIZ" == value
+            # self.layout_mode = "PREVIZ"
+            self.setCurrentLayout("PREVIZ")
+            self.setCurrentLayoutByIndex(1)
+        self["layout_but_previz"] = value
 
     def _update_layout_but_previz(self, context):
-        print("\n*** layout_but_storyboard updated. New state: ", self.layout_but_previz)
-        self.layout_mode = "PREVIZ"
+        print("\n*** layout_but_previz updated. New state: ", self.layout_but_previz)
+        #         self.layout_mode = "PREVIZ"
+        # self.setCurrentLayoutByIndex(1)
+        for region in context.area.regions:
+            if region.type == "UI":
+                region.tag_redraw()
 
     layout_but_previz: BoolProperty(
         name="Previz",
         description="Set the Shot Manager panel layout to Previz",
         get=_get_layout_but_previz,
         set=_set_layout_but_previz,
+        update=_update_layout_but_previz,
         default=True,
     )
 
     ####################
     # Features
     ####################
+
+    layouts: CollectionProperty(type=UAS_ShotManager_LayoutSettings)
+    current_layout_index: IntProperty(default=0)
+
+    def currentLayoutMode(self):
+        """Equivalent to props.getCurrentLayout().layoutMode"""
+        if -1 < self.current_layout_index < len(self.layouts):
+            return self.layouts[self.current_layout_index].layoutMode
+        return None
+
+    def getCurrentLayout(self):
+        if -1 < self.current_layout_index < len(self.layouts):
+            return self.layouts[self.current_layout_index]
+        return None
+
+    def setCurrentLayout(self, layoutMode):
+        """Args:
+        layoutMode: Can be "STORYBOARD or PREVIZ"""
+        for ind, layout in enumerate(self.layouts):
+            if layoutMode == layout.layoutMode:
+                self.current_layout_index = ind
+                break
+
+    def setCurrentLayoutByIndex(self, layoutIndex):
+        """Args:
+        layoutMode: Can be 0 for "STORYBOARD or 1 for PREVIZ"""
+        if layoutIndex < len(self.layouts):
+            self.current_layout_index = layoutIndex
+        else:
+            self.current_layout_index = -1
+
+    def getLayout(self, layoutMode):
+        """Args:
+        layoutMode: Can be "STORYBOARD or PREVIZ"""
+        for layout in self.layouts:
+            if layoutMode == layout.layoutMode:
+                return layout
+        return None
+
+    def getCurrentLayoutIndex(self):
+        return self.current_layout_index
+
+    def setCurrentLayoutByIndex(self, layoutIndex):
+        if 0 <= layoutIndex <= 1:
+            self.current_layout_index
+
+    def createLayoutSettings(self):
+        _logger.debug_ext("createLayerSettings", col="GREEN", tag="LAYOUT")
+
+        stbLayout = self.layouts.add()
+        stbLayout.initialize("STORYBOARD")
+
+        pvzLayout = self.layouts.add()
+        pvzLayout.initialize("PREVIZ")
+
+    def resetLayoutSettingsToDefault(self, layoutMode):
+        layout = self.getLayout(layoutMode)
+        layout.initialize(layoutMode)
 
     # hidden UI parameter
     def _get_expand_shot_properties(self):
@@ -1488,13 +1572,13 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         options=set(),
     )
 
-    display_storyboard_in_properties: BoolProperty(
-        name="Storyboard Frames and Grease Pencil Tools",
-        description="Display the storyboard frames properties and tools in the Shot properties panel."
-        "\nA storyboard frame is a Grease Pencil drawing surface associated to the camera of each shot",
-        default=False,
-        options=set(),
-    )
+    # display_storyboard_in_properties: BoolProperty(
+    #     name="Storyboard Frames and Grease Pencil Tools",
+    #     description="Display the storyboard frames properties and tools in the Shot properties panel."
+    #     "\nA storyboard frame is a Grease Pencil drawing surface associated to the camera of each shot",
+    #     default=False,
+    #     options=set(),
+    # )
 
     # hidden UI parameter
     def _get_expand_storyboard_properties(self):
@@ -1908,16 +1992,17 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
 
             setCurrentShot = False
             # if False:
-            if "STORYBOARD" == self.layout_mode:
+            # if "STORYBOARD" == self.layout_mode:
+            if "STORYBOARD" == self.currentLayoutMode():
                 if prefs.shot_selected_from_shots_stack__flag:
                     # print("   call from shots stack")
-                    if prefs.layoutStb_selected_shot_in_shots_stack_changes_current_shot:
+                    if prefs.stb_selected_shot_in_shots_stack_changes_current_shot:
                         #    print("   sel in shots stack")
                         setCurrentShot = True
                 else:
                     if props.useContinuousGPEditing:
                         setCurrentShot = True
-                    elif prefs.layoutStb_selected_shot_changes_current_shot:
+                    elif prefs.stb_selected_shot_changes_current_shot:
                         _logger.debug_ext("  Stb _update_selected_shot_index from shot list")
                         # print("\n*** selected_shot_index. New state: ", self.selected_shot_index)
                         setCurrentShot = True
@@ -1925,13 +2010,13 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
             else:
                 if prefs.shot_selected_from_shots_stack__flag:
                     # print("   call from shots stack")
-                    if prefs.layoutPvz_selected_shot_in_shots_stack_changes_current_shot:
+                    if prefs.pvz_selected_shot_in_shots_stack_changes_current_shot:
                         #    print("   sel in shots stack")
                         setCurrentShot = True
                 else:
                     if props.useContinuousGPEditing:
                         setCurrentShot = True
-                    elif prefs.layoutPvz_selected_shot_changes_current_shot:
+                    elif prefs.pvz_selected_shot_changes_current_shot:
                         _logger.debug_ext("  Pvz _update_selected_shot_index from shot list")
                         # print("\n*** selected_shot_index. New state: ", self.selected_shot_index)
                         setCurrentShot = True
@@ -4732,7 +4817,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         return settingsList
 
     def createRenderSettings(self):
-        _logger.debug_ext("createRenderSettings", col="GREEN")
+        _logger.debug_ext("createRenderSettings", col="GREEN", tag="RENDER")
 
         self.renderSettingsStill.initialize("STILL")
         self.renderSettingsAnim.initialize("ANIMATION")
@@ -4949,6 +5034,7 @@ _classes = (
     UAS_ShotManager_OutputParams_Resolution,
     UAS_ShotManager_Shot,
     UAS_ShotManager_Take,
+    UAS_ShotManager_LayoutSettings,
     UAS_ShotManager_Props,
 )
 

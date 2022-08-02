@@ -41,7 +41,7 @@ class UAS_PT_ShotManager_ShotsGlobalSettings(Panel):
     def poll(cls, context):
         props = context.scene.UAS_shot_manager_props
         val = (
-            (props.display_camerabgtools_in_properties or props.display_storyboard_in_properties)
+            (props.display_camerabgtools_in_properties or props.getCurrentLayout().display_storyboard_in_properties)
             and len(props.getTakes())
             and len(props.get_shots())
         )
@@ -107,7 +107,7 @@ class UAS_PT_ShotManager_ShotsGlobalSettings(Panel):
         # Shot grease pencil
         ######################
 
-        if props.display_storyboard_in_properties:
+        if props.getCurrentLayout().display_storyboard_in_properties:
 
             # box.label(text="Camera Background Images:")
 

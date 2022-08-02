@@ -764,7 +764,7 @@ class UAS_ShotManager_OT_Create_Shots_From_OTIO_RRS(Operator):
             except Exception as e:
                 _logger.error_ext(f"Cannot set Overlay state back: error: {e}")
 
-            props.display_notes_in_properties = True
+            props.getCurrentLayout().display_notes_in_properties = True
 
             # update track list in VSM
             #            context.scene.uas_video_shot_manager.update_tracks_list()

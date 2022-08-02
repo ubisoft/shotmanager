@@ -47,7 +47,7 @@ def drawShotPropertiesToolbar(layout, context, shot):
 
     cameraIsValid = shot.isCameraValid()
 
-    # if props.display_notes_in_properties or props.display_cameraBG_in_properties or props.display_storyboard_in_properties:
+    # if props.getCurrentLayout().display_notes_in_properties or props.getCurrentLayout().display_cameraBG_in_properties or props.getCurrentLayout().display_storyboard_in_properties:
     if True:
         # leftrow = row.row(align=False)
         # leftrow.alignment = "LEFT"
@@ -67,17 +67,17 @@ def drawShotPropertiesToolbar(layout, context, shot):
         panelIcon = "TRIA_DOWN" if props.expand_shot_properties else "TRIA_RIGHT"
         subrow.prop(props, "expand_shot_properties", toggle=True, icon=panelIcon)
 
-        if props.display_cameraBG_in_properties:
+        if props.getCurrentLayout().display_cameraBG_in_properties:
             subrow = buttonsrow.row()
             subrow.scale_x = 0.9
             panelIcon = "TRIA_DOWN" if props.expand_cameraBG_properties else "TRIA_RIGHT"
             subrow.prop(props, "expand_cameraBG_properties", toggle=True, icon=panelIcon)
-        if props.display_storyboard_in_properties:
+        if props.getCurrentLayout().display_storyboard_in_properties:
             subrow = buttonsrow.row()
             subrow.scale_x = 0.9
             panelIcon = "TRIA_DOWN" if props.expand_storyboard_properties else "TRIA_RIGHT"
             subrow.prop(props, "expand_storyboard_properties", text="Storyboard", toggle=True, icon=panelIcon)
-        if props.display_notes_in_properties:
+        if props.getCurrentLayout().display_notes_in_properties:
             subrow = buttonsrow.row()
             subrow.scale_x = 0.9
             panelIcon = "TRIA_DOWN" if props.expand_notes_properties else "TRIA_RIGHT"
@@ -265,9 +265,9 @@ class UAS_PT_ShotManager_ShotProperties(Panel):
         ######################
         if (
             not (
-                props.display_notes_in_properties
-                or props.display_cameraBG_in_properties
-                or props.display_storyboard_in_properties
+                props.getCurrentLayout().display_notes_in_properties
+                or props.getCurrentLayout().display_cameraBG_in_properties
+                or props.getCurrentLayout().display_storyboard_in_properties
             )
             or props.expand_shot_properties
         ):
@@ -475,7 +475,7 @@ class UAS_PT_ShotManager_ShotProperties(Panel):
         ######################
         # Notes
         ######################
-        if props.display_notes_in_properties and props.expand_notes_properties:
+        if props.getCurrentLayout().display_notes_in_properties and props.expand_notes_properties:
             panelIcon = "TRIA_DOWN" if prefs.shot_notes_expanded else "TRIA_RIGHT"
 
             box = layout.box()
@@ -511,14 +511,14 @@ class UAS_PT_ShotManager_ShotProperties(Panel):
         ######################
         # Camera background images
         ######################
-        if props.display_cameraBG_in_properties and props.expand_cameraBG_properties:
+        if props.getCurrentLayout().display_cameraBG_in_properties and props.expand_cameraBG_properties:
             cBG.draw_cameraBG_shot_properties(self.layout, context, shot)
             cBG.draw_cameraBG_global_properties(self.layout, context)
 
         ######################
         # Grease pencil
         ######################
-        if props.display_storyboard_in_properties and props.expand_storyboard_properties:
+        if props.getCurrentLayout().display_storyboard_in_properties and props.expand_storyboard_properties:
             gp.draw_greasepencil_shot_properties(self.layout, context, shot)
             gp.draw_greasepencil_global_properties(self.layout, context)
 

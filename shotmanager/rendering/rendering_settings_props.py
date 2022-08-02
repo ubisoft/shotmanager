@@ -210,7 +210,7 @@ class UAS_ShotManager_RenderSettings(PropertyGroup):
         Args:
             renderMode: the rendering mode of the settings. Can be STILL, ANIMATION, ALL, OTIO, PLAYBLAST
         """
-        _logger.debug_ext(f"initialize Render Settings {renderMode}", col="GREEN")
+        _logger.debug_ext(f"initialize Render Settings {renderMode}", col="GREEN", tag="RENDER")
 
         # common values
         self.renderAllTakes = False

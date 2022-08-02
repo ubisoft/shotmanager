@@ -26,7 +26,8 @@ from shotmanager.config import config
 from shotmanager.overlay_tools.interact_shots_stack import shots_stack_prefs
 from shotmanager.overlay_tools.viewport_camera_hud import camera_hud_prefs
 from shotmanager.utils import utils_ui
-from shotmanager.utils.utils_ui import collapsable_panel
+
+# from shotmanager.utils.utils_ui import collapsable_panel
 
 
 class UAS_ShotManager_Features(Operator):
@@ -69,93 +70,122 @@ def draw_features_prefs(mode, layout):
     prefs = bpy.context.preferences.addons["shotmanager"].preferences
     if "SCENE" == mode:
         props = bpy.context.scene.UAS_shot_manager_props
+        propsLayout = props.getCurrentLayout()
+        currentLayoutIsStb = "STORYBOARD" == props.currentLayoutMode()
+        layoutPrefix = ""
     else:
         props = prefs
+        propsLayout = prefs
+        currentLayoutIsStb = "STORYBOARD" == prefs.layout_mode
+        layoutPrefix = "stb_" if currentLayoutIsStb else "pvz_"
 
     separatorLeft = 0.33
     separatorRight = 0.25
     separatorVertTopics = 0.2
+    leftSepFactor = 3
 
-    def _draw_separator_row(layout):
+    def _draw_separator_row(layout, factor=0.9):
         separatorrow = layout.row()
-        separatorrow.scale_y = 0.7
+        separatorrow.scale_y = factor
         separatorrow.separator()
 
-    layoutRow = layout.row()
+    split = layout.split(factor=0.25)
+    layoutRow = split.row()
     if "SCENE" == mode:
         layoutRow.label(text="Layout: ")
     else:
         layoutRow.label(text="Default Layout: ")
 
-    # layoutRow.alignment = "CENTER"
+    layoutRowRight = split.row()
     # layoutRow.scale_x = 0.8
-    layoutRow.scale_y = 1.2
+    layoutRowRight.scale_y = 1.2
+    layoutRowRight.alignment = "LEFT"
 
     stbIcon = config.icons_col["ShotManager_Storyboard_32"]
-    layoutRow.prop(props, "layout_but_storyboard", toggle=1, icon_value=stbIcon.icon_id)
     previzIcon = config.icons_col["ShotManager_32"]
-    layoutRow.prop(props, "layout_but_previz", text="Previz   ", toggle=1, icon_value=previzIcon.icon_id)
+
+    layoutRowRight.prop(props, "layout_but_storyboard", text=" Storyboard  ", toggle=1, icon_value=stbIcon.icon_id)
+    layoutRowRight.prop(props, "layout_but_previz", text="     Previz        ", toggle=1, icon_value=previzIcon.icon_id)
 
     if config.devDebug:
-        layoutRow.prop(props, "layout_mode", text="")
+        if "SCENE" == mode:
+            #   layoutRowRight.prop(props, "current_layout_index", text="layout Ind")
+            layoutRowRight.label(text=f"layout ind:{props.current_layout_index}")
+        else:
+            layoutRowRight.label(text=f"layout_mode:{props.layout_mode}")
 
     #################################################################
     #################################################################
 
-    box = layout.box()
-    collapsable_panel(box, prefs, "features_layoutSettings_expanded", text="Layout Settings")
-    if prefs.features_layoutSettings_expanded:
-        leftSepFactor = 2
+    # box = layout.box()
+    # collapsable_panel(box, prefs, "features_layoutSettings_expanded", text="Layout Settings")
+    # if prefs.features_layoutSettings_expanded:
+    #     leftSepFactor = 2
 
-        mainRow = box.row()
-        mainCol = mainRow.column(align=True)
-        mainCol.label(text="When Selected Shot Is Changed:  (Settings stored in the Add-on Preferences):")
+    #     mainRow = box.row()
+    #     mainCol = mainRow.column(align=True)
+    #     mainCol.label(text="When Selected Shot Is Changed:  (Settings stored in the Add-on Preferences):")
 
-        propsRow = mainCol.row()
-        propsRow.separator(factor=leftSepFactor)
-        propsCol = propsRow.column(align=True)
-        propsCol.label(text="Storyboard Layout:")
-        row = propsCol.row()
-        row.separator(factor=3)
-        subCol = row.column(align=True)
+    #     propsRow = mainCol.row()
+    #     propsRow.separator(factor=leftSepFactor)
+    #     propsCol = propsRow.column(align=True)
+    #     propsCol.label(text="Storyboard Layout:")
+    #     row = propsCol.row()
+    #     row.separator(factor=3)
+    #     subCol = row.column(align=True)
 
-        # NOTE: when the Continuous Editing mode is on then the selected and current shots are tied anyway
-        subCol.prop(
-            prefs,
-            "layoutStb_selected_shot_changes_current_shot",
-            text="Storyboard Shots List: Set Selected Shot to Current One",
-        )
-        subCol.prop(
-            prefs,
-            "layoutStb_selected_shot_in_shots_stack_changes_current_shot",
-            text="Shots Stack: Set Selected Shot to Current One",
-        )
+    #     # NOTE: when the Continuous Editing mode is on then the selected and current shots are tied anyway
+    #     subCol.prop(
+    #         prefs,
+    #         "stb_selected_shot_changes_current_shot",
+    #         text="Storyboard Shots List: Set Selected Shot to Current One",
+    #     )
+    #     subCol.prop(
+    #         prefs,
+    #         "stb_selected_shot_in_shots_stack_changes_current_shot",
+    #         text="Shots Stack: Set Selected Shot to Current One",
+    #     )
 
-        propsRow = mainCol.row()
-        propsRow.separator(factor=leftSepFactor)
-        propsCol = propsRow.column(align=True)
-        propsCol.label(text="Previz Layout:")
-        row = propsCol.row()
-        row.separator(factor=3)
-        subCol = row.column(align=True)
-        subCol.prop(
-            prefs,
-            "layoutPvz_selected_shot_changes_current_shot",
-            text="Previz Shots List: Set Selected Shot to Current One",
-        )
-        subCol.prop(
-            prefs,
-            "layoutPvz_selected_shot_in_shots_stack_changes_current_shot",
-            text="Shots Stack: Set Selected Shot to Current One",
-        )
+    #     propsRow = mainCol.row()
+    #     propsRow.separator(factor=leftSepFactor)
+    #     propsCol = propsRow.column(align=True)
+    #     propsCol.label(text="Previz Layout:")
+    #     row = propsCol.row()
+    #     row.separator(factor=3)
+    #     subCol = row.column(align=True)
+    #     subCol.prop(
+    #         prefs,
+    #         "pvz_selected_shot_changes_current_shot",
+    #         text="Previz Shots List: Set Selected Shot to Current One",
+    #     )
+    #     subCol.prop(
+    #         prefs,
+    #         "pvz_selected_shot_in_shots_stack_changes_current_shot",
+    #         text="Shots Stack: Set Selected Shot to Current One",
+    #     )
 
     #################################################################
     #################################################################
 
     if "SCENE" == mode:
-        layout.label(text="Display Takes and Shots additionnal features:")
+        layout.separator(factor=separatorVertTopics)
+        row = layout.row(align=True)
+        leftRow = row.row(align=True)
+        leftRow.label(text="Takes and Shots features to toggle with the selected layout:")
+
+        rightRow = row.row(align=False)
+        rightRow.alignment = "RIGHT"
+        resetOp = rightRow.operator("uas_shotmanager.querybox", text="Reset", icon="LOOP_BACK")
+        resetOp.width = 400
+        resetOp.message = "Reset the selected layout properties to its default values?"
+        resetOp.function_name = "reset_layout_settings"
+        resetOp.function_arguments = "'STORYBOARD'" if currentLayoutIsStb else "'PREVIZ'"
+        resetOp.tooltip = f"Reset {'Storyboard' if currentLayoutIsStb else 'Previz'} layout to the default values set \nin the add-on Preferences"
+        rightRow.operator("preferences.addon_show", text="", icon="PREFERENCES").module = "shotmanager"
+    #  rightRow.separator()
+
     else:
-        layout.label(text="Check the Takes and Shots features to enable by default in new scenes:")
+        layout.label(text="Takes and Shots features to enable by default with the selected layout:")
     box = layout.box()
 
     boxSplit = box.split(factor=0.5)
@@ -173,7 +203,7 @@ def draw_features_prefs(mode, layout):
     subrow = col.row()
     subrow.scale_x = 1.5
     icon = config.icons_col["ShotManager_CamGPVisible_32"]
-    subrow.prop(props, "display_storyboard_in_properties", text="", icon_value=icon.icon_id)
+    subrow.prop(propsLayout, f"{layoutPrefix}display_storyboard_in_properties", text="", icon_value=icon.icon_id)
     subSubrow = subrow.row()
     # subSubrow.enabled = props != prefs
     subSubrow.scale_x = 0.9
@@ -185,7 +215,7 @@ def draw_features_prefs(mode, layout):
     subrow = col.row()
     subrow.scale_x = 1.5
     icon = config.icons_col["ShotManager_CamBGVisible_32"]
-    subrow.prop(props, "display_cameraBG_in_properties", text="", icon_value=icon.icon_id)
+    subrow.prop(propsLayout, f"{layoutPrefix}display_cameraBG_in_properties", text="", icon_value=icon.icon_id)
     subrow.label(text="Camera Backgrounds")
 
     _draw_separator_row(col)
@@ -194,16 +224,16 @@ def draw_features_prefs(mode, layout):
     # Edit mode
     subrow = col.row()
     subrow.scale_x = 1.5
-    subrow.prop(props, "display_editmode_in_properties", text="", icon="SEQ_SEQUENCER")
+    subrow.prop(propsLayout, f"{layoutPrefix}display_editmode_in_properties", text="", icon="SEQ_SEQUENCER")
     subrow.label(text="Edit Mode")
 
     # Global Edit Integration
     subrow = col.row()
     subrow.scale_x = 1.5
-    subrow.prop(props, "display_globaleditintegr_in_properties", text="", icon="SEQ_STRIP_META")
+    subrow.prop(propsLayout, f"{layoutPrefix}display_globaleditintegr_in_properties", text="", icon="SEQ_STRIP_META")
     subrow.label(text="Global Edit Integration")
 
-    _draw_separator_row(col)
+    # _draw_separator_row(col)
 
     ################################################################
     rightCol = boxSplit.column()
@@ -220,14 +250,14 @@ def draw_features_prefs(mode, layout):
     icon = config.icons_col["ShotManager_NotesData_32"]
     # notesIcon = "TEXT"
     # notesIcon = "WORDWRAP_OFF"
-    subrow.prop(props, "display_notes_in_properties", text="", icon_value=icon.icon_id)
+    subrow.prop(propsLayout, f"{layoutPrefix}display_notes_in_properties", text="", icon_value=icon.icon_id)
     subrow.label(text="Takes and Shots Notes")
 
     ################
     # Take render settings
     subrow = col.row()
     subrow.scale_x = 1.5
-    subrow.prop(props, "display_takerendersettings_in_properties", text="", icon="OUTPUT")
+    subrow.prop(propsLayout, f"{layoutPrefix}display_takerendersettings_in_properties", text="", icon="OUTPUT")
     subrow.label(text="Takes Render Settings")
 
     _draw_separator_row(col)
@@ -236,11 +266,34 @@ def draw_features_prefs(mode, layout):
     # Advanced infos
     subrow = col.row()
     subrow.scale_x = 1.5
-    subrow.prop(props, "display_advanced_infos", text="", icon="SYNTAX_ON")
+    subrow.prop(propsLayout, f"{layoutPrefix}display_advanced_infos", text="", icon="SYNTAX_ON")
     subrow.label(text="Display Advanced Infos")
 
     ################
-    ################
+    # Selection settings
+    propsRow = box.row()
+    propsRow.separator(factor=leftSepFactor)
+    propsCol = propsRow.column(align=True)
+    propsCol.label(text="Make the selected shot also the current one when it is selected from:")
+    row = propsCol.row()
+    row.separator(factor=3)
+    subCol = row.column(align=True)
+
+    # NOTE: when the Continuous Editing mode is on then the selected and current shots are tied anyway
+    subCol.prop(
+        propsLayout,
+        f"{layoutPrefix}selected_shot_changes_current_shot",
+        text="The Shots List",
+    )
+    subCol.prop(
+        propsLayout,
+        f"{layoutPrefix}selected_shot_in_shots_stack_changes_current_shot",
+        text="The Interactive Shots Stack",
+    )
+
+    #################################################################
+    #
+    #################################################################
     if "ADDON_PREFS" != mode:
         layout.separator(factor=separatorVertTopics)
     layout.label(text="Shot Manager Panels:")

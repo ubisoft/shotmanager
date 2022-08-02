@@ -683,7 +683,7 @@ class UAS_ShotManager_GreasePencilItem(Operator):
 class UAS_ShotManager_ResetUsagePreset(Operator):
     bl_idname = "uas_shot_manager.resetusagepreset"
     bl_label = "Reset Usage Preset(s)"
-    bl_description = "Reset Usage Preset to default values"
+    bl_description = "Reset Grease Pencil Usage Preset to default values"
     bl_options = {"INTERNAL", "UNDO"}
 
     # can be SCENE or ADDON_PREFS"

@@ -257,9 +257,9 @@ class UAS_ShotManager_ToggleContinuousGPEditingMode(Operator):
         # NOTE: when the Continuous Editing mode is on then the selected and current shots are tied anyway
         # in the "change selection" code
         # if props.useContinuousGPEditing:
-        #     prefs.layoutStb_selected_shot_changes_current_shot = True
+        #     prefs.stb_selected_shot_changes_current_shot = True
         # else:
-        #     prefs.layoutStb_selected_shot_changes_current_shot = False
+        #     prefs.stb_selected_shot_changes_current_shot = False
 
         return {"FINISHED"}
 
@@ -554,7 +554,7 @@ class UAS_ShotManager_ShotAdd(Operator):
 
             prefs.addShot_end = prefs.addShot_start + prefs.new_shot_duration
 
-            # self.addStoryboardGP = props.display_storyboard_in_properties
+            # self.addStoryboardGP = props.getCurrentLayout().display_storyboard_in_properties
 
         # self.cameraName = "NEW_CAMERA"
         # camName = props.getActiveCameraName()
@@ -576,9 +576,9 @@ class UAS_ShotManager_ShotAdd(Operator):
         #     elif 0 < len(cameras):
         #         self.cameraName = cameras[0].name
 
-        # self.alignCamToView = not props.display_storyboard_in_properties
+        # self.alignCamToView = not props.getCurrentLayout().display_storyboard_in_properties
 
-        # self.addStoryboardGP = props.display_storyboard_in_properties
+        # self.addStoryboardGP = props.getCurrentLayout().display_storyboard_in_properties
 
         if event.shift and not event.ctrl and not event.alt:
             return self.execute(context)
@@ -738,7 +738,7 @@ class UAS_ShotManager_ShotAdd(Operator):
                 subrow.label(text=" ")
                 mainRowSplit.prop(self, "alignCamToView", text="Align New Camera to View")
 
-            if props.display_storyboard_in_properties:
+            if props.getCurrentLayout().display_storyboard_in_properties:
                 col.separator(factor=0.1)
                 row = col.row(align=True)
                 mainRowSplit = row.split(factor=splitFactor)
@@ -806,7 +806,7 @@ class UAS_ShotManager_ShotAdd(Operator):
 
         utils.clear_selection()
 
-        if props.display_storyboard_in_properties:
+        if props.getCurrentLayout().display_storyboard_in_properties:
             if self.addStoryboardGP:
                 gp_child = newShot.getGreasePencilObject("STORYBOARD")
                 utils.add_to_selection(gp_child)

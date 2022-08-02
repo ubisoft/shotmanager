@@ -71,6 +71,7 @@ def drawShotManagerMenu(context, layout, panelType="SM_MAIN"):
         resetOp.width = 400
         resetOp.message = "Reset all the rendering properties to their default value?"
         resetOp.function_name = "reset_render_properties"
+        resetOp.tooltip = f"Reset render settings to the default values"
 
     row = layout.row(align=True)
     row.operator("preferences.addon_show", text="Add-on Preferences...", icon="PREFERENCES").module = "shotmanager"
