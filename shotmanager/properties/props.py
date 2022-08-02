@@ -465,7 +465,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
     )
     project_logo_path: StringProperty(
         name="Project Logo",
-        description="If defined uses the project logo otherwise uses the logo specifined in StampInfo addon settings",
+        description="If defined uses the project logo otherwise uses the logo specified in the Stamp Info panel",
         default="",
         options=set(),
     )
@@ -502,6 +502,16 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         name="Res. Framed Y",
         min=0,
         default=960,
+        options=set(),
+    )
+
+    ############
+    # camera assets
+    ############
+    project_cameraAssets_path: StringProperty(
+        name="Camera Assets File",
+        description="Path to an asset library Blender file containing customized cameras",
+        default="",
         options=set(),
     )
 

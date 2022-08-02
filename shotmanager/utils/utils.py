@@ -997,9 +997,17 @@ def setCurrentCameraToViewport(context, area=None):
     return
 
 
-def create_new_camera(camera_name, location=[0, 0, 0], locate_on_cursor=False):
-    """A unique name will be automatically given to the new camera"""
-    cam_data = bpy.data.cameras.new(camera_name)
+def create_new_camera(camera_name, location=[0, 0, 0], locate_on_cursor=False, camData=None):
+    """A unique name will be automatically given to the new camera
+    Args:
+        camData:    if provided, this camera data is used (without copy) for the new camera,
+                    then providing a way to have presets on the camera
+    """
+    if camData:
+        cam_data = camData
+        cam_data.name = camera_name
+    else:
+        cam_data = bpy.data.cameras.new(camera_name)
     cam = bpy.data.objects.new(cam_data.name, cam_data)
     cam.name = cam_data.name
 
@@ -1016,11 +1024,11 @@ def create_new_camera(camera_name, location=[0, 0, 0], locate_on_cursor=False):
         camColl = bpy.context.scene.collection.children[camCollName]
     camColl.objects.link(cam)
 
-    bpy.data.cameras[cam_data.name].lens = 40
+    if not camData:
+        bpy.data.cameras[cam_data.name].lens = 40
+        cam_data.lens = 40
+        cam_data.clip_start = 0.01
 
-    # bpy.data.cameras[cam_data.name].lens = 40
-    cam_data.lens = 40
-    cam_data.clip_start = 0.01
     cam.color[0] = uniform(0, 1)
     cam.color[1] = uniform(0, 1)
     cam.color[2] = uniform(0, 1)

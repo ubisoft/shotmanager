@@ -662,7 +662,7 @@ class UAS_PT_ShotManager(Panel):
             # shotsrowleft.alignment = "LEFT"
             shotsrowlefttxt = shotsrowleft.row(align=True)
             shotsrowlefttxt.alignment = "LEFT"
-
+            shotsrowlefttxt.scale_x = 1.2
             layoutIcon = (
                 config.icons_col["ShotManager_Storyboard_32"]
                 if "STORYBOARD" == props.currentLayoutMode()

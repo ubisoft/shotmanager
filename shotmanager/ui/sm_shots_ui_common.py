@@ -49,10 +49,11 @@ def drawStoryboardRow(layout, props, item, index):
             op.index = index
             op.toggleDrawEditing = True
         else:
-            if "STORYBOARD" == item.shotType:
-                icon = config.icons_col["ShotManager_CamGPStb_32"]
-            else:
-                icon = config.icons_col["ShotManager_CamGPShot_32"]
+            # if "STORYBOARD" == item.shotType:
+            #     icon = config.icons_col["ShotManager_CamGPStb_32"]
+            # else:
+            #     icon = config.icons_col["ShotManager_CamGPShot_32"]
+            icon = config.icons_col["ShotManager_CamGPStb_32"]
             op = row.operator("uas_shot_manager.greasepencilitem", text="", icon_value=icon.icon_id)
             op.index = index
             op.toggleDrawEditing = True

@@ -19,6 +19,8 @@
 Shots functions and operators
 """
 
+from pathlib import Path
+
 import bpy
 from bpy.types import Operator
 from bpy.props import IntProperty, StringProperty, EnumProperty, BoolProperty, FloatVectorProperty
@@ -61,6 +63,34 @@ def list_cameras_for_new_shots(self, context):
             (cam.name, cam.name, 'Use the exising scene camera named "' + cam.name + '"\nfor all the new shots', i + 1)
         )
 
+    return res
+
+
+def list_cameras_assets_in_file(self, context):
+    props = context.scene.UAS_shot_manager_props
+    res = list()
+    res.append(("DEFAULT_CAMERA", "Default Scene Camera", "Create a new camera from scene settings", 0))
+    if Path(props.project_cameraAssets_path).exists() and Path(props.project_cameraAssets_path).is_file():
+
+        # see https://docs.blender.org/api/current/bpy.types.BlendDataLibraries.html
+        # https://blender.stackexchange.com/questions/251473/how-to-add-edit-tag-of-an-asset-from-another-asset-library-using-python-add-on
+        cams = list()
+        with bpy.data.libraries.load(props.project_cameraAssets_path, link=False, assets_only=False) as (
+            data_from,
+            data_to,
+        ):
+            for i, cam in enumerate(data_from.cameras):
+                cams.append(cam)
+
+        for i, camName in enumerate(cams):
+            res.append(
+                (
+                    camName,
+                    camName,
+                    'Use the camera asset named "' + camName + '"\nas template for all the new shots',
+                    i + 1,
+                )
+            )
     return res
 
 
@@ -483,6 +513,12 @@ class UAS_ShotManager_ShotAdd(Operator):
     name: StringProperty(name="Name")
     cameraName: EnumProperty(items=list_cameras_for_new_shot, name="Camera", description="New Shot Camera")
 
+    cameraAssetName: EnumProperty(
+        items=list_cameras_assets_in_file,
+        name="Camera Asset",
+        description="Create a camera based on the specified asset",
+    )
+
     color: FloatVectorProperty(
         name="Camera Color / Shot Color",
         description="Color of the chosen camera or color of the shot, according to the Shot Display settings",
@@ -564,6 +600,8 @@ class UAS_ShotManager_ShotAdd(Operator):
         self.color = (uniform(0, 1), uniform(0, 1), uniform(0, 1))
 
         self.cameraName = "NEW_CAMERA"
+        self.cameraAssetName = "DEFAULT_CAMERA"
+
         #     cameras = props.getSceneCameras()
         #    # selectedObjs = []  #bpy.context.view_layer.objects.active    # wkip get the selection
         #     currentCam = None
@@ -680,6 +718,15 @@ class UAS_ShotManager_ShotAdd(Operator):
             subrow.label(text="Camera:")
             mainRowSplit.prop(self, "cameraName", text="")
 
+            if props.use_project_settings and "" != props.project_cameraAssets_path:
+                row = doubleRow.row()
+                mainRowSplit = row.split(factor=splitFactor)
+                subrow = mainRowSplit.row()
+                subrow.alignment = "RIGHT"
+                subrow.label(text="Camera Type:")
+                mainRowSplit.prop(self, "cameraAssetName", text="")
+                mainRowSplit.enabled = "NEW_CAMERA" == self.cameraName
+
             # row camera color ##########################################
             if props.use_camera_color:
                 if "NEW_CAMERA" == self.cameraName:
@@ -761,7 +808,27 @@ class UAS_ShotManager_ShotAdd(Operator):
         col = [self.color[0], self.color[1], self.color[2], 1]
 
         if "NEW_CAMERA" == self.cameraName:
-            cam = utils.create_new_camera("Cam_" + self.name)
+
+            if props.use_project_settings and "" != props.project_cameraAssets_path:
+                if "DEFAULT_CAMERA" == self.cameraAssetName:
+                    cam = utils.create_new_camera("Cam_" + self.name)
+                else:
+                    # import from asset file
+                    # if Path(props.project_cameraAssets_path).exists() and Path(props.project_cameraAssets_path).is_file():
+                    # link all objects starting with 'A'
+                    with bpy.data.libraries.load(props.project_cameraAssets_path, link=False, assets_only=False) as (
+                        data_from,
+                        data_to,
+                    ):
+                        for i, camName in enumerate(data_from.cameras):
+                            if camName == self.cameraAssetName:
+                                data_to.cameras = [data_from.cameras[i]]
+
+                    camData = data_to.cameras[0]
+                    cam = utils.create_new_camera("Cam_" + self.name, camData=camData)
+            else:
+                cam = utils.create_new_camera("Cam_" + self.name)
+
             if "PREVIZ" == self.layout_mode:
                 if self.alignCamToView:
                     utils.makeCameraMatchViewport(context, cam)

@@ -74,7 +74,12 @@ class UAS_ShotManager_RenderSettings(PropertyGroup):
     # used by EDIT, ANIMATION and ALL
     renderOtioFile: BoolProperty(
         name="Generate Edit File",
-        description="Generate edit file for the current take." "\nOnly videos are supported at the moment",
+        description=(
+            "Export an edit file for the current take of the sequence."
+            "\nThis file can then be opened in most video edit applications."
+            "\nOnly references to videos are supported at the moment (Final cut XML is"
+            "\nnot supporting correctly references to image sequences)"
+        ),
         default=False,
     )
 
@@ -145,14 +150,17 @@ class UAS_ShotManager_RenderSettings(PropertyGroup):
     # only used by ANIMATION
     generateShotVideo: BoolProperty(
         name="Generate Shot Video",
-        description="Generate the video of the rendered shot",
+        description="Generate the video file of the rendered shot",
         default=True,
     )
 
     # only used by ALL
     generateEditVideo: BoolProperty(
-        name="Generate Edit Video(s)",
-        description="Generate the edit video of the take with all the specified shot videos",
+        name="Generate Sequence Video",
+        description=(
+            "Create a video file for the whole sequence."
+            "\nThis video will include all the enabled shots and will be edited af if they had no handles."
+        ),
         default=False,
     )
 
