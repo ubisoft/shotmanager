@@ -97,7 +97,7 @@ class UAS_PT_ShotManager(Panel):
             for addon in addon_utils.modules()
             if addon.bl_info["name"] == "Shot Manager"
         ]
-        if len(addonHeaderWarning):
+        if False and len(addonHeaderWarning):
             betaRow = row.row()
             betaRow.alert = True
             if "beta" in addonHeaderWarning[0].lower():

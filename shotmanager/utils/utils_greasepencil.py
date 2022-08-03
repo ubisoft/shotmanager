@@ -542,7 +542,20 @@ def switchToDrawMode(context, gpencil: bpy.types.GreasePencil):
 
     if "PAINT_GPENCIL" != gpencil.mode:
         # bpy.ops.gpencil.paintmode_toggle()
+        # print("riri - here bug paint cause current tool not set in the viewport")
         bpy.ops.object.mode_set(mode="PAINT_GPENCIL")
+
+        #################
+        # Bug fix: required to set the pen tool by default, otherwise we cannot paint cause there is no tool selected:
+
+        # we get the type of tool currently used in the viewport
+        toolName = bpy.context.workspace.tools.from_space_view3d_mode("PAINT_GPENCIL", create=False).idname
+
+        # we change it if it is not valid
+        if toolName not in ["builtin_brush.Draw", "builtin_brush.Fill", "builtin_brush.Erase", "builtin_brush.Tint"]:
+            _logger.warning_ext("SM: Current tool in Grease Pencil Draw mode was not valid - Changed to Draw")
+            bpy.ops.wm.tool_set_by_id(name="builtin_brush.Draw")
+            # bpy.ops.wm.tool_set_by_id(name="builtin_brush.Fill", as_fallback=True, space_type="VIEW_3D")
 
     context.scene.tool_settings.gpencil_stroke_placement_view3d = "ORIGIN"
     context.scene.tool_settings.gpencil_sculpt.lock_axis = "VIEW"
