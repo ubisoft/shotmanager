@@ -39,7 +39,7 @@ def drawStoryboardRow(layout, props, item, index):
     gp = item.getGreasePencilObject("STORYBOARD")
     if gp is None:
         icon = config.icons_col["ShotManager_CamGPNoShot_32"]
-        row.operator("uas_shot_manager.greasepencilitem", text="", icon_value=icon.icon_id).index = index
+        row.operator("uas_shot_manager.greasepencil_select_and_draw", text="", icon_value=icon.icon_id).index = index
     else:
         # if "STORYBOARD" == props.currentLayoutMode():
         opMode = "DRAW" if props.useContinuousGPEditing else "SELECT"
@@ -48,7 +48,7 @@ def drawStoryboardRow(layout, props, item, index):
         if gp.mode == "PAINT_GPENCIL":
             icon = "GREASEPENCIL"
             row.alert = True
-            op = row.operator("uas_shot_manager.greasepencilitem", text="", icon=icon)
+            op = row.operator("uas_shot_manager.greasepencil_select_and_draw", text="", icon=icon)
             op.index = index
             op.toggleDrawEditing = True
             op.mode = opMode
@@ -60,10 +60,10 @@ def drawStoryboardRow(layout, props, item, index):
 
             if props.useContinuousGPEditing:
                 icon = "OUTLINER_DATA_GP_LAYER"
-                op = row.operator("uas_shot_manager.greasepencilitem", text="", icon=icon)
+                op = row.operator("uas_shot_manager.greasepencil_select_and_draw", text="", icon=icon)
             else:
                 icon = config.icons_col["ShotManager_CamGPStb_32"]
-                op = row.operator("uas_shot_manager.greasepencilitem", text="", icon_value=icon.icon_id)
+                op = row.operator("uas_shot_manager.greasepencil_select_and_draw", text="", icon_value=icon.icon_id)
 
             op.index = index
             op.toggleDrawEditing = True

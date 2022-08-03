@@ -155,6 +155,9 @@ def draw_greasepencil_shot_properties(layout, context, shot):
         rightSubRow = subRow.row(align=True)
         rightSubRow.alignment = "RIGHT"
 
+        # detach GP
+        rightSubRow.operator("uas_shot_manager.detach_storyboard_frame", text="", icon="DECORATE_LIBRARY_OVERRIDE").shotIndex = shotIndex
+
         # Grease Pencil tools
         ################
         if devDebug_displayAdv:

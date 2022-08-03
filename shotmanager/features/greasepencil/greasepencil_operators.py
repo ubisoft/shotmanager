@@ -560,8 +560,8 @@ class UAS_ShotManager_OT_PinGreasePencilObject(Operator):
         return {"FINISHED"}
 
 
-class UAS_ShotManager_GreasePencilItem(Operator):
-    bl_idname = "uas_shot_manager.greasepencilitem"
+class UAS_ShotManager_GreasePencilSelectAndDraw(Operator):
+    bl_idname = "uas_shot_manager.greasepencil_select_and_draw"
     bl_label = " "
     bl_description = (
         "Select Storyboard Frame"
@@ -701,6 +701,24 @@ class UAS_ShotManager_GreasePencilItem(Operator):
         return {"FINISHED"}
 
 
+class UAS_ShotManager_DetachStoryboardFrame(Operator):
+    bl_idname = "uas_shot_manager.detach_storyboard_frame"
+    bl_label = "Detach Storyboard Frame"
+    bl_description = "Unlink the Storyboard Frame from the shot and make it free in the scene"
+    bl_options = {"INTERNAL", "UNDO"}
+
+    shotIndex: IntProperty(default=-1)
+
+    def execute(self, context):
+        props = context.scene.UAS_shot_manager_props
+
+        shot = props.getShotByIndex(self.shotIndex)
+        if shot is not None:
+            shot.detachGreasePencil()
+
+        return {"FINISHED"}
+
+
 class UAS_ShotManager_ResetUsagePreset(Operator):
     bl_idname = "uas_shot_manager.resetusagepreset"
     bl_label = "Reset Usage Preset(s)"
@@ -714,8 +732,8 @@ class UAS_ShotManager_ResetUsagePreset(Operator):
     presetID: StringProperty(default="")
 
     def execute(self, context):
-
         prefs = bpy.context.preferences.addons["shotmanager"].preferences
+
         if "SCENE" == self.mode:
             props = context.scene.UAS_shot_manager_props
         else:
@@ -1339,7 +1357,8 @@ _classes = (
     UAS_ShotManager_OT_ShowHideCameras,
     UAS_ShotManager_OT_ClearLayer,
     UAS_ShotManager_OT_PinGreasePencilObject,
-    UAS_ShotManager_GreasePencilItem,
+    UAS_ShotManager_GreasePencilSelectAndDraw,
+    UAS_ShotManager_DetachStoryboardFrame,
     UAS_ShotManager_ResetUsagePreset,
     UAS_ShotManager_GreasePencil_UINavigationKeys,
     UAS_ShotManager_GreasePencil_NavigateInKeyFrames,

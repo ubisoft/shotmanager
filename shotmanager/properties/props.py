@@ -1150,8 +1150,10 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
 
     stb_displayCameras: BoolProperty(
         name="Display Storyboard Cameras",
-        description=("Toggle the display of the cameras of shots of type Storyboard Shot in the scene for the current take."
-        "\nCameras of shots from takes that are not the current one will be hidden"),
+        description=(
+            "Toggle the display of the cameras of shots of type Storyboard Shot in the scene for the current take."
+            "\nCameras of shots from takes that are not the current one will be hidden"
+        ),
         default=True,
         options=set(),
     )
@@ -3454,7 +3456,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
             if self.useContinuousGPEditing:
                 # if self.getEditedStoryboardFrame() is not None:
                 if self.getEditedGPShot() is not None:
-                    bpy.ops.uas_shot_manager.greasepencilitem(
+                    bpy.ops.uas_shot_manager.greasepencil_select_and_draw(
                         index=currentShotIndex,
                         action="SELECT_AND_DRAW",
                         ignoreSetCurrentShot=True,

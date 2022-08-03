@@ -734,6 +734,23 @@ class UAS_ShotManager_Shot(ShotInterface, PropertyGroup):
                 else:
                     _showGreasePencil(gp_child, False)
 
+    def detachGreasePencil(self):
+        def _ClearParent(child):
+            # Save the transform matrix before de-parenting
+            matrixcopy = child.matrix_world.copy()
+            # Clear the parent
+            child.parent = None
+            # Restore childs location / rotation / scale
+            child.matrix_world = matrixcopy
+
+        gp_child = utils_greasepencil.get_greasepencil_child(self.camera)
+        if gp_child is not None:
+            # unparent: bpy.ops.object.parent_clear(type='CLEAR')
+            _ClearParent(gp_child)
+
+            if 0 == gp_child.name.find("Cam_"):
+                gp_child.name = gp_child.name[4:] + "_Free"
+
     #############
     # notes #####
     #############

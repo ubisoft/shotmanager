@@ -1,5 +1,12 @@
 -----
-## 2.0.203 (2022-08-01)
+## 2.0.205 (2022-08-04)
+### Storyboard
+- Added feature to detach a storyboard frame from a shot
+
+- Fixed GP tool not set when entering in Draw mode
+
+-----
+## 2.0.204 (2022-08-03)
 ### UX/UI
 - Added notion of "layout" to have a different and customizable UI when in Storyboard and in Previz mode
 - Added a patch to support this feature
