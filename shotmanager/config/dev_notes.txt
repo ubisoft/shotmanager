@@ -48,7 +48,8 @@ Working:
 
 Urgent:
 
-    - add Shot Manager icon to the Render Settings panel + about
+    - warning + operator for missing layout data
+
     - bug render resolution
     - size or open explorer but
     - fix play but
@@ -57,7 +58,7 @@ Urgent:
 
     - affichage infos seq
 
-    - shot stack opacity a mettre en %
+
 
 
 To do V1.7.2 +:
@@ -99,6 +100,10 @@ OTIO advanced doc: https://sandflow.github.io/otio-core-specification/
 
 Grease Pencil for boarding:
     - Urgent:
+
+        - faire marcher les takes:
+            en particulier definir si on cache les stb frames des autres takes
+                def showGreasePencil(self, forceHide=False):
 
         - checkbox to lock canvas
 

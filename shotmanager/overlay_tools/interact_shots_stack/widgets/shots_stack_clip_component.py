@@ -20,7 +20,6 @@ UI in BGL for the Interactive Shots Stack overlay tool
 """
 
 
-import time
 import os
 
 import bpy
@@ -29,7 +28,6 @@ import gpu
 from shotmanager.gpu.gpu_2d.class_Component2D import Component2D
 from shotmanager.gpu.gpu_2d.class_Text2D import Text2D
 from shotmanager.gpu.gpu_2d.class_QuadObject import QuadObject
-from shotmanager.utils.utils_greasepencil import isCurrentFrameOnLayerKeyFrame
 
 from .shots_stack_handle_component import ShotHandleComponent
 

@@ -295,6 +295,7 @@ class BL_UI_ShotStack:
 
         shots_from_lane = defaultdict(list)
 
+        shotCompoCurrent = None
         for i, shotCompo in enumerate(shotComponentsSorted):
             if not props.interactShotsStack_displayDisabledShots and not shotCompo.shot.enabled:
                 shotCompo.isVisible = False
@@ -323,9 +324,14 @@ class BL_UI_ShotStack:
             # the event loops and keep redrawing all the time
             shotCompo._isSelected = shotCompo.shot == selectedShot
 
+            if shotCompo.isCurrent:
+                shotCompoCurrent = shotCompo
             shotCompo.isVisible = True
             shotCompo.posY = lane
             shotCompo.draw(None, self.context.region, preDrawOnly=preDrawOnly)
+
+        # draw quad for current shot over the result
+        self.drawCurrentShotDecoration(shotCompoCurrent, preDrawOnly=preDrawOnly)
 
     def draw_shots_old_way(self):
         props = self.context.scene.UAS_shot_manager_props

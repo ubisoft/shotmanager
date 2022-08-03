@@ -8,6 +8,10 @@
 - Added a new parameter to specify a camera to be used as a template for new shots, picked from a Blender file
 
 - Fixed overlay state that wasn't restored correctly
+- Fixed Sequence Timeline that wasn't interactive anymore when the overlay was off
+- Fixed the orientation of the Storyboard Shots cameras to match the grid direction
+- Fixed visibility of storyboard frames throughout takes
+- Fixed hide cameras for Storyboard Shots
 
 -----
 ## 2.0.202 (2022-07-29)
@@ -27,7 +31,7 @@
 ## 2.0.105 (2022-07-21)
 ### Interactive Shots Stack
 - Completely rewrote the Shots Stack UI and graphics library: this was required for a long time
-  to improve the UI and to fix some gliches and visual bugs. It also allowed to fix the
+  to improve the UI and to fix some glitches and visual bugs. It also allowed to fix the
   events loop that didn't work anymore due to changes in the API in Blender 3.2
 - Sequence Timeline is not hidden by default anymore when the viewport overlay tools display is
   turned off. This can be changed in the Sequence Timeline Preferences

@@ -753,23 +753,27 @@ class UAS_PT_ShotManager(Panel):
 
                 if currentLayout.display_storyboard_in_properties:
                     icon = (
-                        config.icons_col["ShotManager_CamBGShot_32"]
+                        config.icons_col["ShotManager_StbCamVisible_32"]
                         # if not prefs.enableGreasePencil
-                        if props.use_stb_cameras
-                        else config.icons_col["ShotManager_CamBGHidden_32"]
+                        if props.stb_displayCameras
+                        else config.icons_col["ShotManager_StbCamHidden_32"]
                     )
                     subrowtools.operator(
-                        "uas_shot_manager.enabledisablecameras", text="", icon_value=icon.icon_id, emboss=False
-                    ).hide = props.use_stb_cameras
+                        "uas_shot_manager.showhidecameras", text="", icon_value=icon.icon_id, emboss=False
+                    ).visible = not props.stb_displayCameras
+
+                    subrowtools.separator(factor=0.4)
 
                     icon = (
-                        config.icons_col["ShotManager_CamGPVisible_32"]
-                        # if not prefs.enableGreasePencil
+                        # config.icons_col["ShotManager_CamGPVisible_32"]
+                        # if props.use_greasepencil
+                        # else config.icons_col["ShotManager_CamGPHidden_32"]
+                        config.icons_col["ShotManager_StbVisible_32"]
                         if props.use_greasepencil
-                        else config.icons_col["ShotManager_CamGPHidden_32"]
+                        else config.icons_col["ShotManager_StbHidden_32"]
                     )
                     subrowtools.operator(
-                        "uas_shot_manager.enabledisablegreasepencil", text="", icon_value=icon.icon_id, emboss=False
+                        "uas_shot_manager.showhidestoryboardframes", text="", icon_value=icon.icon_id, emboss=False
                     )
                     # subrowtools.prop(props, "use_greasepencil", text="", icon_value=icon.icon_id, emboss=False)
 

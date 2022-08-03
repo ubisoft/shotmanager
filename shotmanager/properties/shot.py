@@ -686,6 +686,7 @@ class UAS_ShotManager_Shot(ShotInterface, PropertyGroup):
         and to the display state at the props level (props.use_greasepencil)
         Args:
             forceHide:  used by the renderer to avoid to see the gp of the other shots
+        Called by props.updateStoryboardFramesDisplay()
         """
         #    def showGreasePencil(self, visible=None, mode="STORYBOARD"):
         def _showGreasePencil(gpencil, visible):
@@ -715,15 +716,21 @@ class UAS_ShotManager_Shot(ShotInterface, PropertyGroup):
             # AUTO
             else:
                 if props.use_greasepencil:
-                    if "STORYBOARD" == self.shotType:
-                        _showGreasePencil(gp_child, True)
-
-                    # PREVIZ
-                    else:
-                        if props.getCurrentShot() == self:
+                    currentTakeInd = props.getCurrentTakeIndex()
+                    if self.getParentTakeIndex() == currentTakeInd:
+                        if "STORYBOARD" == self.shotType:
                             _showGreasePencil(gp_child, True)
+
+                        # PREVIZ
                         else:
-                            _showGreasePencil(gp_child, False)
+                            if props.getCurrentShot() == self:
+                                _showGreasePencil(gp_child, True)
+                            else:
+                                _showGreasePencil(gp_child, False)
+
+                    # hide stb frames that are not belonging to shots from the current take
+                    else:
+                        _showGreasePencil(gp_child, False)
                 else:
                     _showGreasePencil(gp_child, False)
 

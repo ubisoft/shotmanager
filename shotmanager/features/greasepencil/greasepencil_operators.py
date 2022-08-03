@@ -411,10 +411,10 @@ class UAS_ShotManager_OT_RemoveGreasePencil(Operator):
         return {"FINISHED"}
 
 
-class UAS_ShotManager_OT_EnableDisableGreasePencil(Operator):
-    bl_idname = "uas_shot_manager.enabledisablegreasepencil"
-    bl_label = "Enable / Disable Grease Pencil"
-    bl_description = "Alternatively enable or disable the grease pencil used by the camera of the shots"
+class UAS_ShotManager_OT_ShowHideGreasePencil(Operator):
+    bl_idname = "uas_shot_manager.showhidegreasepencil"
+    bl_label = "Show / Hide Grease Pencil"
+    bl_description = "Alternatively display or hide the grease pencil used by the camera of the shots"
     bl_options = {"INTERNAL", "UNDO"}
 
     def invoke(self, context, event):
@@ -429,25 +429,17 @@ class UAS_ShotManager_OT_EnableDisableGreasePencil(Operator):
         return {"FINISHED"}
 
 
-class UAS_ShotManager_OT_EnableDisableCameras(Operator):
-    bl_idname = "uas_shot_manager.enabledisablecameras"
-    bl_label = "Enable / Disable Cameras"
-    bl_description = "Alternatively enable or disable the cameras used by the storyboard frames"
+class UAS_ShotManager_OT_ShowHideCameras(Operator):
+    bl_idname = "uas_shot_manager.showhidecameras"
+    bl_label = "Show / Hide Cameras"
+    bl_description = "Alternatively display or hide the cameras used by the storyboard frames"
     bl_options = {"INTERNAL", "UNDO"}
 
-    hide: BoolProperty(default=True)
+    visible: BoolProperty(default=True)
 
     def invoke(self, context, event):
         props = context.scene.UAS_shot_manager_props
-        take = props.getCurrentTake()
-        shotList = take.shots
-
-        props.use_stb_cameras = not self.hide
-        for shot in shotList:
-            if "STORYBOARD" == shot.shotType and shot.isCameraValid():
-                shot.camera.hide_select = self.hide
-                shot.camera.hide_viewport = self.hide
-
+        props.displayStoryboardFramesCameras(self.visible)
         return {"FINISHED"}
 
 
@@ -570,28 +562,57 @@ class UAS_ShotManager_OT_PinGreasePencilObject(Operator):
 
 class UAS_ShotManager_GreasePencilItem(Operator):
     bl_idname = "uas_shot_manager.greasepencilitem"
-    bl_label = "Select Storyboard Frame"
+    bl_label = " "
     bl_description = (
-        "+ Shift: Select the storyboard frame and add it to the current selection"
+        "Select Storyboard Frame"
+        "\n+ Shift: Select the storyboard frame and add it to the current selection"
         "\n+ Alt: Select the storyboard frame and switch to Draw mode"
     )
     bl_options = {"INTERNAL", "UNDO"}
 
     index: IntProperty(default=0)
+    mode: StringProperty(default="SELECT")
     action: StringProperty(default="DO_NOTHING")
     ignoreSetCurrentShot: BoolProperty(default=False)
     toggleDrawEditing: BoolProperty(default=False)
+
+    @classmethod
+    def description(self, context, properties):
+        descr = "_"
+        if "DRAW" == properties.mode:
+            descr = (
+                "Draw on Storyboard Frame"
+                "\n+ Ctrl: Select the storyboard frame"
+                "\n+ Shift: Select the storyboard frame and add it to the current selection"
+            )
+        # "SELECT"
+        else:
+            descr = (
+                "Select Storyboard Frame"
+                "\n+ Shift: Select the storyboard frame and add it to the current selection"
+                "\n+ Alt: Select the storyboard frame and switch to Draw mode"
+            )
+        return descr
 
     def invoke(self, context, event):
         props = context.scene.UAS_shot_manager_props
         self.action = "DO_NOTHING"
 
-        if not event.ctrl and not event.shift and not event.alt:
-            self.action = "SELECT"
-        elif not event.ctrl and event.shift and not event.alt:
-            self.action = "ADD_TO_SELECTION"
-        if not event.ctrl and not event.shift and event.alt:
-            self.action = "SELECT_AND_DRAW"
+        if "DRAW" == self.mode:
+            if not event.ctrl and not event.shift:  # and not event.alt:
+                self.action = "SELECT_AND_DRAW"
+            elif event.ctrl and not event.shift and not event.alt:
+                self.action = "SELECT"
+            elif not event.ctrl and event.shift and not event.alt:
+                self.action = "ADD_TO_SELECTION"
+        # "SELECT"
+        else:
+            if not event.ctrl and not event.shift and not event.alt:
+                self.action = "SELECT"
+            elif not event.ctrl and event.shift and not event.alt:
+                self.action = "ADD_TO_SELECTION"
+            elif not event.ctrl and not event.shift and event.alt:
+                self.action = "SELECT_AND_DRAW"
 
         props.setSelectedShotByIndex(self.index, callUpdateFunc=False)
         props.expand_storyboard_properties = True
@@ -1314,8 +1335,8 @@ _classes = (
     UAS_ShotManager_OT_DrawOnGreasePencil,
     UAS_ShotManager_OT_UpdateGreasePencil,
     UAS_ShotManager_OT_RemoveGreasePencil,
-    UAS_ShotManager_OT_EnableDisableGreasePencil,
-    UAS_ShotManager_OT_EnableDisableCameras,
+    UAS_ShotManager_OT_ShowHideGreasePencil,
+    UAS_ShotManager_OT_ShowHideCameras,
     UAS_ShotManager_OT_ClearLayer,
     UAS_ShotManager_OT_PinGreasePencilObject,
     UAS_ShotManager_GreasePencilItem,

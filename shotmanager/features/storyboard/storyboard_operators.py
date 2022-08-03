@@ -200,7 +200,26 @@ class UAS_ShotManager_CreateNStoryboardShots(Operator):
         return {"INTERFACE"}
 
 
-_classes = (UAS_ShotManager_CreateNStoryboardShots,)
+
+class UAS_ShotManager_OT_ShowHideStoryboardFrames(Operator):
+    bl_idname = "uas_shot_manager.showhidestoryboardframes"
+    bl_label = "Show / Hide Storyboard Frames"
+    bl_description = "Alternatively display or hide the storyboard frame of the shots owning one"
+    bl_options = {"INTERNAL", "UNDO"}
+
+    def invoke(self, context, event):
+        props = context.scene.UAS_shot_manager_props
+
+        # prefs = context.preferences.addons["shotmanager"].preferences
+        # bpy.ops.uas_shots_settings.use_greasepencil(useGreasepencil=prefs.enableGreasePencil)
+        # prefs.enableGreasePencil = not prefs.enableGreasePencil
+
+        props.enableGreasePencil(not props.use_greasepencil)
+
+        return {"FINISHED"}
+
+
+_classes = (UAS_ShotManager_CreateNStoryboardShots,UAS_ShotManager_OT_ShowHideStoryboardFrames,)
 
 
 def register():

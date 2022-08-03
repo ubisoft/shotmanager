@@ -61,6 +61,15 @@ class UAS_UL_ShotManager_Storyboard_Items(bpy.types.UIList):
             numSharedCam = 2
 
         # draw the Duration components
+        ##########################
+
+        currentIconIsOrange = True
+        orange = "_Orange" if currentIconIsOrange else ""
+        if "PREVIZ" == item.shotType:
+            cam = f"Cam{orange}" if current_shot_index == index else ""
+        # STORYBOARD
+        else:
+            cam = f"Stb{orange}" if current_shot_index == index else "Stb"
 
         if item.enabled:
             icon = config.icons_col[f"ShotMan_Enabled{cam}"]

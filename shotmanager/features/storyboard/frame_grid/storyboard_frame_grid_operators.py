@@ -21,7 +21,7 @@ Grid operators to order storyboard frames in the 3D space
 
 import bpy
 from bpy.types import Operator
-from bpy.props import StringProperty, IntProperty, FloatProperty, FloatVectorProperty
+from bpy.props import StringProperty, IntProperty, FloatProperty, FloatVectorProperty, EnumProperty
 
 
 class UAS_ShotManager_StoryboardGridUpdate(Operator):
@@ -40,8 +40,8 @@ class UAS_ShotManager_StoryboardGridUpdate(Operator):
 
 class UAS_ShotManager_StoryboardGridDisplaySettings(Operator):
     bl_idname = "uas_shot_manager.storyboard_grid_display_settings"
-    bl_label = "Storyboard Grid settings"
-    bl_description = "Display the storyboard grid settings"
+    bl_label = "Storyboard Grid Settings"
+    bl_description = "Display the Storyboard Grid settings"
     bl_options = {"REGISTER", "UNDO"}
 
     # Can be SCENE or ADDON_PREFS
@@ -54,6 +54,18 @@ class UAS_ShotManager_StoryboardGridDisplaySettings(Operator):
     offset_z: FloatProperty(default=2.0)
 
     numShotsPerRow: IntProperty(default=5)
+
+    orientTowardAxis: EnumProperty(
+        name="Orient Toward Axis",
+        description="Orient the Storyboard Shots in the direction of the specifed axis",
+        items=(
+            ("X_POSITIVE", "X", ""),
+            ("X_NEGATIVE", "-X", ""),
+            ("Y_POSITIVE", "Y", ""),
+            ("Y_NEGATIVE", "-Y", ""),
+        ),
+        default="Y_POSITIVE",
+    )
 
     def invoke(self, context, event):
         wm = context.window_manager
@@ -95,7 +107,8 @@ def draw_frame_grid_prefs(mode, parentOperator, layout):
 
     row = col.row()
     row.use_property_split = True
-    row.prop(parentOperator, "numShotsPerRow")
+    row.use_property_decorate = False
+    row.prop(parentOperator, "numShotsPerRow", text="Number of Shots per Row:")
 
     sepRow = col.row()
     sepRow.separator(factor=0.5)
@@ -121,6 +134,19 @@ def draw_frame_grid_prefs(mode, parentOperator, layout):
     split = row.split(factor=splitFactor)
     split.label(text=" ")
     split.prop(parentOperator, "offset_z", text="Z")
+
+    # reorient cameras
+    ####################
+    # The whole grid should be rotated
+
+    # sepRow = col.row()
+    # sepRow.separator(factor=2.0)
+
+    # row = col.row()
+    # splitFactor = 0.45
+    # split = row.split(factor=splitFactor)
+    # split.label(text="Orient Camera Toward:")
+    # split.prop(parentOperator, "orientTowardAxis", text="")
 
     sepRow = col.row()
     sepRow.separator(factor=2.0)

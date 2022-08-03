@@ -1148,23 +1148,50 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         options=set(),
     )
 
-    use_stb_cameras: BoolProperty(
-        name="Use Storyboard Cameras",
-        description="Toggle the display of the storyboard frames cameras in the scene",
-        #  update=_update_use_greasepencil,
+    stb_displayCameras: BoolProperty(
+        name="Display Storyboard Cameras",
+        description=("Toggle the display of the cameras of shots of type Storyboard Shot in the scene for the current take."
+        "\nCameras of shots from takes that are not the current one will be hidden"),
         default=True,
         options=set(),
     )
+
+    def displayStoryboardFramesCameras(self, visible):
+        """Toggle the display of the cameras of shots of type Storyboard shots.
+        Only the cameras of the current take will be set to be displayed. Frames from other takes will be hidden."""
+
+        self.stb_displayCameras = visible
+        currentTakeInd = self.getCurrentTakeIndex()
+
+        # first all the stb frame cameras of all the takes are hidden
+        for take in self.getTakes():
+            for sh in take.shots:
+                if "STORYBOARD" == sh.shotType and sh.isCameraValid():
+                    sh.camera.hide_select = True
+                    sh.camera.hide_viewport = True
+
+        # then we display only frames for the current take
+        # Things have to be done in this order to support the fact that a camera (and hence its frame)
+        # can be shared between one shot in the current take and a shot in another take
+        if visible:
+            for tInd, take in enumerate(self.getTakes()):
+                if tInd == currentTakeInd:
+                    for sh in take.shots:
+                        if "STORYBOARD" == sh.shotType and sh.isCameraValid():
+                            sh.camera.hide_select = False
+                            sh.camera.hide_viewport = False
 
     def updateStoryboardFramesDisplay(
         self,
         forceHide=False,
         alsoForceHideAlwaysVisible=True,
         alsoForceHideCurrent=True,
-        applyToAllTakes=True,
+        #   applyToAllTakes=True,
         takeIndex=-1,
     ):
-        """Update the display of the grease pencil objects of the storyboard frames for the specified take
+        """Update the display of the storyboard frame (= grease pencil object) of the shots for the specified take.
+        Only the frames of the current take will be set to be displayed. Frames from other takes will be hidden.
+
         Args:
             forceHide:  Force all the gp to be hidden (EVEN those explicitely set to Always Visible)
                         This argument is used by the renderer to hide all the gp of shots other than the rendered one.
@@ -1172,6 +1199,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
                         then it is updated to match the visibility state of its visibility property.
             alsoForceHideAlwaysVisible: Used only when forceHide is True. Forces the shots with a gp set to
                         Always Visible to hide
+            takeIndex:  if unspecified or -1 then the toggle is applied to the current take
 
             See the Visibility rules in the documentation: storyboard-frames-visibility.rst
         """
@@ -1185,8 +1213,18 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
 
         currentTakeInd = self.getCurrentTakeIndex()
         currentShotInd = self.getCurrentShotIndex()
+
+        # first all the stb frames of all the takes are hidden
         for tInd, take in enumerate(self.getTakes()):
-            if applyToAllTakes or tInd == takeInd:
+            for shotInd, sh in enumerate(take.shots):
+                sh.showGreasePencil(forceHide=True)
+
+        # then we display only frames for the current take
+        # Things have to be done in this order to support the fact that a camera (and hence its frame)
+        # can be shared between one shot in the current take and a shot in another take
+        for tInd, take in enumerate(self.getTakes()):
+            #     if applyToAllTakes or tInd == takeInd:
+            if tInd == currentTakeInd:
                 for shotInd, sh in enumerate(take.shots):
                     if forceHide:
                         if not alsoForceHideCurrent and tInd == currentTakeInd and shotInd == currentShotInd:
@@ -1207,15 +1245,21 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
                                 sh.showGreasePencil(forceHide=True)
                     else:
                         sh.showGreasePencil()
+                break
 
     # def updateGreasePencilVisibility(self, take):
     #     """Update the display of grease pencil objects of the specified take"""
     #     for sh in take.shots:
     #         sh.showGreasePencil()
 
-    # wkip should probably be applied to every takes
     def enableGreasePencil(self, enable, takeIndex=-1):
-        """Toggle the display of grease pencil objects"""
+        """Toggle the display of grease pencil objects for every shots of the specified take.
+        Args:
+            enable:     if True then disable the GP of every shots in every takes and turn only the
+                        shots GP of the specified take visible
+                        if False then disable the GP of every shots in every takes
+            takeIndex:  if unspecified or -1 then the toggle is applied to the current take
+        """
         takeInd = (
             self.getCurrentTakeIndex()
             if -1 == takeIndex
@@ -1226,8 +1270,6 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
 
         self.use_greasepencil = enable
         self.updateStoryboardFramesDisplay(takeIndex=takeInd)
-
-    #   self.updateGreasePencilVisibility(self.takes[takeInd])
 
     stb_hasPinnedObject: BoolProperty(
         name="Pin Grease Pencil",
