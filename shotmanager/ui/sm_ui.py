@@ -22,11 +22,10 @@ Shot Manager main panel UI
 import bpy
 from bpy.types import Panel, Operator
 
-from shotmanager.config import config
-
 # from shotmanager.viewport_3d.ogl_ui import UAS_ShotManager_sequenceTimeline
 
 from shotmanager.utils import utils
+from shotmanager.utils import utils_shot_manager
 from shotmanager.utils import utils_ui
 
 from . import sm_shots_ui_previz_layout
@@ -37,6 +36,7 @@ from shotmanager.warnings.warnings_ui import drawWarnings
 
 # from shotmanager.features.greasepencil import greasepencil_ui as gp
 
+from shotmanager.config import config
 from shotmanager.config import sm_logging
 
 _logger = sm_logging.getLogger(__name__)
@@ -48,7 +48,7 @@ _logger = sm_logging.getLogger(__name__)
 
 class UAS_PT_ShotManager(Panel):
     #    bl_label = f"Shot Manager {'.'.join ( str ( v ) for v in bl_info[ 'version'] ) }"
-    bl_label = " Shot Manager  V. " + utils.addonVersion("Shot Manager")[0]
+    bl_label = f"{utils_shot_manager.getUbisoftName()} Shot Manager  V. {utils.addonVersion('Shot Manager')[0]}"
     bl_idname = "UAS_PT_Shot_Manager"
     bl_space_type = "VIEW_3D"
     bl_region_type = "UI"
@@ -57,13 +57,17 @@ class UAS_PT_ShotManager(Panel):
     @classmethod
     def poll(cls, context):
         props = context.scene.UAS_shot_manager_props
-        prefs = bpy.context.preferences.addons["shotmanager"].preferences
+        # prefs = bpy.context.preferences.addons["shotmanager"].preferences
 
         # hide the whole panel if used
         # return not props.dontRefreshUI()
         # if -1 == props.getCurrentLayoutIndex():
         #     props.createLayoutSettings()
         #     props.setCurrentLayout(prefs.layout_mode)
+
+        currentLayout = props.getCurrentLayout()
+        if not props.isInitialized or not len(props.layouts) or currentLayout is None:
+            return False
         return True
 
     def draw_header(self, context):
@@ -88,18 +92,18 @@ class UAS_PT_ShotManager(Panel):
             else:
                 row.label(text=props.project_name)
 
-        addonWarning = [
+        addonHeaderWarning = [
             addon.bl_info.get("warning", "")
             for addon in addon_utils.modules()
             if addon.bl_info["name"] == "Shot Manager"
         ]
-        if len(addonWarning):
+        if len(addonHeaderWarning):
             betaRow = row.row()
             betaRow.alert = True
-            if "beta" in addonWarning[0].lower():
+            if "beta" in addonHeaderWarning[0].lower():
                 betaRow.label(text=" ** BETA **")
             else:
-                betaRow.label(text=f" *** {addonWarning[0]} ***")
+                betaRow.label(text=f" *** {addonHeaderWarning[0]} ***")
 
     def draw_header_preset(self, context):
         prefs = context.preferences.addons["shotmanager"].preferences
@@ -149,7 +153,7 @@ class UAS_PT_ShotManager(Panel):
         currentLayout = props.getCurrentLayout()
         # currentLayoutIsStb = "STORYBOARD" == props.currentLayoutMode()
         if currentLayout is None:
-            _logger.error_ext("SM UI: currentLayout is None...")
+            _logger.debug_ext("SM UI: currentLayout is None...", col="RED")
             #    return
             currentLayoutIsStb = False
         #  print(f"Redrawing SM panel...  layout None is Stb: {currentLayoutIsStb}")
@@ -168,22 +172,7 @@ class UAS_PT_ShotManager(Panel):
 
         enlargeButs = 1.15
 
-        # addon warning message - for beta message display
         ###############
-        # import addon_utils
-        # addonWarning = [
-        #     addon.bl_info.get("warning", "")
-        #     for addon in addon_utils.modules()
-        #     if addon.bl_info["name"] == "Shot Manager"
-        # ]
-
-        addonWarning = [""]
-        if "" != addonWarning[0]:
-            row = layout.row()
-            row.alignment = "CENTER"
-            row.alert = True
-            row.label(text=f" ***  {addonWarning[0]}  ***")
-            row.alert = False
 
         if config.devDebug:
             row = layout.row()
@@ -211,7 +200,7 @@ class UAS_PT_ShotManager(Panel):
             resetOp.presetID = "ALL"
 
         # NOTE: Shot Manager Prefs and Shot Manager scene instance are initialized here:
-        if not props.isInitialized:
+        if not props.isInitialized or not len(props.layouts) or currentLayout is None:
             layout.separator()
             row = layout.row()
             row.alert = True
@@ -224,7 +213,7 @@ class UAS_PT_ShotManager(Panel):
         warningsList = props.getWarnings(scene)
         drawWarnings(context, layout, warningsList, panelType="MAIN")
 
-        if not props.isInitialized:
+        if not props.isInitialized or not len(props.layouts) or currentLayout is None:
             return
 
         # play and timeline

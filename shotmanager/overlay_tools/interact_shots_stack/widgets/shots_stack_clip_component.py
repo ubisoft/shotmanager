@@ -101,6 +101,7 @@ class ShotClipComponent(Component2D):
         self.textComponent.avoidClamp_leftSide = True
         self.textComponent.avoidClamp_spacePreservedOnRight = self.pref_avoidClamp_spacePreservedOnRight
 
+        self.fontSize = 12
         self.color_text = (0.1, 0.1, 0.1, 1)
         self.color_text_selected = (0.0, 0.0, 0.0, 1)
         self.color_text_disabled = (0.4, 0.4, 0.4, 1)
@@ -244,7 +245,7 @@ class ShotClipComponent(Component2D):
         # vertically center the text + add a small offset to compensate the lower part of the font
         # self.textComponent.posY = int(getLaneHeight() * (0.06 + 0.5))
         self.textComponent.posY = int(getLaneHeight() * (0.00 + 0.5))
-        self.textComponent.fontSize = 13
+        self.textComponent.fontSize = self.fontSize
         # self.textComponent.fontSize = int(getLaneHeight() * 0.6)
         if self.isSelected:
             self.textComponent.bold = True

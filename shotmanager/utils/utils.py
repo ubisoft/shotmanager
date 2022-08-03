@@ -867,7 +867,6 @@ def getCameraCurrentlyInViewport(
                 if space_data.region_3d.view_perspective == "CAMERA":
                     #        print(f"Cam in area3D 04: {area3D}")
                     if not space_data.use_local_camera:
-                        print(f" 05 Cam in viewport is: {context.scene.camera.name}")
                         return context.scene.camera
 
     return None
