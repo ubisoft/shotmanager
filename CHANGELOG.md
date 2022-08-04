@@ -1,7 +1,13 @@
 -----
+## 2.0.206 (2022-08-04)
+### Storyboard
+- Major fix on the materials associated to layers. They are now correctly set when the layer is changed
+
+-----
 ## 2.0.205 (2022-08-04)
 ### Storyboard
 - Added a feature to detach a storyboard frame from a shot
+- Refactored collection names for empties and storyboard frames to support multiple scenes
 
 - Added the Passepartout controls to the Shots Global Control panel
 

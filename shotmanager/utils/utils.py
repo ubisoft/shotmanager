@@ -831,6 +831,17 @@ def excludeLayerCollection(scene, collectionName, value: Boolean):
                 return
 
 
+def getCollectionsMatchingNamePattern(scene, pattern):
+    """Return the list of the collections of the scene that have the specified pattern in their name.
+    Case sensitivity is ignored"""
+
+    colls = list()
+    for scnColl in scene.collection.children:
+        if -1 != scnColl.name.lower().find(pattern.lower()):
+            colls.append(scnColl)
+    return colls
+
+
 ###################
 # Cameras
 ###################

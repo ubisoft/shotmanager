@@ -148,16 +148,25 @@ def get_grease_pencil_material(mat_name):
     return gp_mat
 
 
-def create_grease_pencil_material(gpencil, mat_type="CANVAS"):
-    """Create - or get if it already exists - the specified material type and assign it to the specified grease pencil object"""
+def create_grease_pencil_material(mat_type="CANVAS", mat_name="", gpencil=None):
+    """Create - or get if it already exists - the specified material type and, if specified, assign it to a grease pencil object
+    Args:
+        mat_type:   can be "CANVAS", "LINES", "FILLS" """
     gp_mat = None
 
     if "LINES" == mat_type:
-        if "Lines Mat" in bpy.data.materials.keys():
-            gp_mat = bpy.data.materials["Lines Mat"]
-        else:
-            gp_mat = bpy.data.materials.new("Lines Mat")
+        matName = mat_name if mat_name and "" != mat_name else "Lines Mat"
+    elif "FILLS" == mat_type:
+        matName = mat_name if mat_name and "" != mat_name else "Fills Mat"
+    elif "CANVAS" == mat_type:
+        matName = mat_name if mat_name and "" != mat_name else "Canvas Mat"
 
+    if matName in bpy.data.materials.keys():
+        gp_mat = bpy.data.materials[matName]
+    else:
+        gp_mat = bpy.data.materials.new(matName)
+
+    if "LINES" == mat_type:
         if not gp_mat.is_grease_pencil:
             bpy.data.materials.create_gpencil_data(gp_mat)
             gp_mat.grease_pencil.show_fill = False
@@ -165,11 +174,6 @@ def create_grease_pencil_material(gpencil, mat_type="CANVAS"):
             gp_mat.grease_pencil.color = utils.color_to_linear((0.1, 0.1, 0.1, 1))
 
     elif "FILLS" == mat_type:
-        if "Fills Mat" in bpy.data.materials.keys():
-            gp_mat = bpy.data.materials["Fills Mat"]
-        else:
-            gp_mat = bpy.data.materials.new("Fills Mat")
-
         if not gp_mat.is_grease_pencil:
             bpy.data.materials.create_gpencil_data(gp_mat)
             gp_mat.grease_pencil.show_fill = True
@@ -177,11 +181,6 @@ def create_grease_pencil_material(gpencil, mat_type="CANVAS"):
             gp_mat.grease_pencil.show_stroke = False
 
     elif "CANVAS" == mat_type:
-        if "Canvas Mat" in bpy.data.materials.keys():
-            gp_mat = bpy.data.materials["Canvas Mat"]
-        else:
-            gp_mat = bpy.data.materials.new("Canvas Mat")
-
         if True or not gp_mat.is_grease_pencil:
             bpy.data.materials.create_gpencil_data(gp_mat)
             gp_mat.grease_pencil.show_fill = True
@@ -189,14 +188,14 @@ def create_grease_pencil_material(gpencil, mat_type="CANVAS"):
             gp_mat.grease_pencil.show_stroke = False
 
     # Assign the material to the grease pencil for drawing
-    if gp_mat is not None:
+    if gp_mat and gpencil:
         gpencil.data.materials.append(gp_mat)
 
     return gp_mat
 
 
 def add_grease_pencil_canvas_layer(
-    gpencil: bpy.types.GreasePencil, canvasPreset, clear_layer=False, order="TOP", camera=None
+    gpencil: bpy.types.GreasePencil, canvasPreset, material=None, clear_layer=False, order="TOP", camera=None
 ) -> bpy.types.GPencilLayer:
     """
     Return the grease-pencil layer with the given name. Create one if not already present.
@@ -209,7 +208,7 @@ def add_grease_pencil_canvas_layer(
     gpencil_layer_name = "_Canvas_" if canvasPreset is None else canvasPreset.layerName
 
     # Create material for grease pencil
-    gp_mat = create_grease_pencil_material(gpencil, "CANVAS")
+    gp_mat = material if material else create_grease_pencil_material(mat_type="CANVAS")
 
     # get the material index in the grease pencil material list:
     # Create a lookup-dict for the object materials:

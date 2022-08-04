@@ -35,11 +35,14 @@ _logger = sm_logging.getLogger(__name__)
 class UAS_ShotManager_FrameUsagePreset(PropertyGroup):
     """
     Example:
-        id:             BG_FILLS
+        id:             id: Can be anything (nothing hardcoded in SM) but most common are:
+                        "CANVAS", "BG_LINES", "BG_FILLS", "MG_LINES", "MG_FILLS", "FG_LINES", "FG_FILLS", "PERSP", "ROUGH"
         label:          Background Fills
         used:           True
         layerName:      BG Fills
         materialName:   <depends>
+
+
     """
 
     id: StringProperty(default="ID")

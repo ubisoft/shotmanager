@@ -477,10 +477,27 @@ class UAS_ShotManager_OT_ShowHideCameras(Operator):
 class UAS_ShotManager_OT_ClearLayer(Operator):
     bl_idname = "uas_shot_manager.clear_layer"
     bl_label = "Clear Layer"
-    bl_description = "Delete all the strokes of the active key frame of the current layer"
+    bl_description = (
+        "Delete all the strokes of the active key frame of the current layer."
+        "\nNote that the keys themselves are NOT removed."
+        "\n+ Shift: Delete strokes on keys at current time on EVERY layer"
+    )
     bl_options = {"REGISTER", "UNDO"}
 
     gpName: StringProperty(default="")
+    action: StringProperty(default="DO_NOTHING")
+
+    def invoke(self, context, event):
+        self.action = "DO_NOTHING"
+
+        if not event.ctrl and not event.shift and not event.alt:
+            self.action = "CURRENT"
+        elif not event.ctrl and event.shift and not event.alt:
+            self.action = "ALL"
+
+        if "DO_NOTHING" == self.action:
+            return {"FINISHED"}
+        return self.execute(context)
 
     def execute(self, context):
         scene = context.scene
@@ -507,18 +524,27 @@ class UAS_ShotManager_OT_ClearLayer(Operator):
             if objIsGP:
                 # gp = context.object
                 # gpl = context.active_gpencil_layer
-                gpl = gp.data.layers.active
-                if gpl and gpl.info is not None and not gpl.lock:
-                    layerFrameInd = utils_greasepencil.getLayerKeyFrameIndexAtFrame(gp, scene.frame_current, "ACTIVE")
-                    if -1 == layerFrameInd:
-                        layerFrameTime = utils_greasepencil.getLayerPreviousFrame(gp, scene.frame_current, "ACTIVE")
-                        layerFrameInd = utils_greasepencil.getLayerKeyFrameIndexAtFrame(gp, layerFrameTime, "ACTIVE")
-                    if -1 != layerFrameInd:
-                        gpl.frames[layerFrameInd].clear()
 
-                        # required for refresh
-                        gpl.hide = not gpl.hide
-                        gpl.hide = not gpl.hide
+                for gpl in gp.data.layers:
+                    # gpl = gp.data.layers.active
+                    if "ALL" == self.action or gpl == gp.data.layers.active:
+                        if gpl and gpl.info is not None and not gpl.lock:
+                            layerFrameInd = utils_greasepencil.getLayerKeyFrameIndexAtFrame(
+                                gp, scene.frame_current, "ACTIVE"
+                            )
+                            if -1 == layerFrameInd:
+                                layerFrameTime = utils_greasepencil.getLayerPreviousFrame(
+                                    gp, scene.frame_current, "ACTIVE"
+                                )
+                                layerFrameInd = utils_greasepencil.getLayerKeyFrameIndexAtFrame(
+                                    gp, layerFrameTime, "ACTIVE"
+                                )
+                            if -1 < layerFrameInd < len(gpl.frames):
+                                gpl.frames[layerFrameInd].clear()
+
+                                # required for refresh
+                                gpl.hide = not gpl.hide
+                                gpl.hide = not gpl.hide
 
         return {"INTERFACE"}
 
@@ -618,6 +644,8 @@ class UAS_ShotManager_GreasePencilSelectAndDraw(Operator):
         props.expand_storyboard_properties = True
         self.ignoreSetCurrentShot = False
 
+        if "DO_NOTHING" == self.action:
+            return {"FINISHED"}
         return self.execute(context)
 
     def execute(self, context):
@@ -1255,13 +1283,13 @@ class UAS_ShotManager_GreasePencil_SetKeyframe(Operator):
 
         if "ADD" == properties.mode:
             descr += "Insert blank keyframe to the active layer"
-            descr += "\n+ Shift: Insert on every layer"
+            descr += "\n+ Shift: Insert on EVERY layer"
         elif "DUPLICATE" == properties.mode:
             descr += "Duplicate active keyframe at the current time onto the specified layer"
-            descr += "\n+ Shift: Duplicate for every layer"
+            descr += "\n+ Shift: Duplicate for EVERY layer"
         elif "REMOVE" == properties.mode:
             descr += "Delete active keyframe from the specified layer"
-            descr += "\n+ Shift: Delete on every layers"
+            descr += "\n+ Shift: Delete on EVERY layer"
 
         return descr
 
