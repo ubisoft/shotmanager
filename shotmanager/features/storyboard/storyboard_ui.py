@@ -156,7 +156,9 @@ def draw_greasepencil_shot_properties(layout, context, shot):
         rightSubRow.alignment = "RIGHT"
 
         # detach GP
-        rightSubRow.operator("uas_shot_manager.detach_storyboard_frame", text="", icon="DECORATE_LIBRARY_OVERRIDE").shotIndex = shotIndex
+        rightSubRow.operator(
+            "uas_shot_manager.detach_storyboard_frame", text="", icon="DECORATE_LIBRARY_OVERRIDE"
+        ).shotIndex = shotIndex
 
         # Grease Pencil tools
         ################
@@ -553,7 +555,7 @@ def draw_greasepencil_global_properties(layout, context):
 
         # overlay tools
         #########################
-        greasepencil_overlay_ui.draw_greasepencil_overlay_tools(context, col, mode="SHOT")
+        greasepencil_overlay_ui.draw_greasepencil_overlay_tools(context, col, mode="STORYBOARD")
 
         row = col.row(align=True)
         row.separator(factor=0.5)

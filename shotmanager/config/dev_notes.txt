@@ -202,9 +202,3 @@ Fichiers récupérés de 166 - 2.0.15 B:
 
     properties
         props.py
-
-    ui
-        sm_shot_settings_ui.py
-
-Integ Stamp Info:
-    doc a mettre a jour

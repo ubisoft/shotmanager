@@ -22,7 +22,10 @@ Grease pencil viewport overlay draw functions
 
 def draw_greasepencil_overlay_tools(context, layout, mode="SHOT"):
     """Used for storyboard frames and grease pencil shots in the Shot Manager storyboard panel,
-    and by the 2.5D grease pencil panel"""
+    and by the 2.5D grease pencil panel
+    Args:
+        mode:   can be "STORYBOARD", "GP", "SHOT"
+    """
 
     props = context.scene.UAS_shot_manager_props
     prefs = context.preferences.addons["shotmanager"].preferences
@@ -43,29 +46,31 @@ def draw_greasepencil_overlay_tools(context, layout, mode="SHOT"):
     rightRow = row.row()
     rightRow.enabled = spaceDataViewport.overlay.show_overlays
     overlayCol = rightRow.column()
-    overlaySplit = overlayCol.split(factor=splitFactor)
 
+    overlaySplit = overlayCol.split(factor=splitFactor)
     overlayLeftRow = overlaySplit.row()
     overlayLeftRow.label(text="Overlay: ")
 
-    overlayRighRow = overlaySplit.row()
-    overlayRighRow.operator("uas_shot_manager.greasepencil_toggleonionskin", depress=onionSkinIsActive)
-    overlayRighRow.operator("uas_shot_manager.greasepencil_togglecanvas", depress=gridIsActive)
+    if mode in ["GP", "STORYBOARD"]:
+        overlayRighRow = overlaySplit.row()
+        overlayRighRow.operator("uas_shot_manager.greasepencil_toggleonionskin", depress=onionSkinIsActive)
+        overlayRighRow.operator("uas_shot_manager.greasepencil_togglecanvas", depress=gridIsActive)
 
-    row = overlayCol.row(align=False)
-    overlaySplit = row.split(factor=splitFactor)
-    overlaySplit.separator()
-    overlayRighRow = overlaySplit.row()
-    overlayRighRow.prop(spaceDataViewport.overlay, "use_gpencil_fade_layers", text="")
-    # row.prop(spaceDataViewport.overlay, "gpencil_fade_layer")
-    subOverlayRighRow = overlayRighRow.row()
-    subOverlayRighRow.enabled = spaceDataViewport.overlay.use_gpencil_fade_layers
-    subOverlayRighRow.prop(prefs, "stb_overlay_layers_opacity", text="Fade Layers", slider=True)
-
-    if "SHOT" == mode:
         row = overlayCol.row(align=False)
         overlaySplit = row.split(factor=splitFactor)
         overlaySplit.separator()
+        overlayRighRow = overlaySplit.row()
+        overlayRighRow.prop(spaceDataViewport.overlay, "use_gpencil_fade_layers", text="")
+        # row.prop(spaceDataViewport.overlay, "gpencil_fade_layer")
+        subOverlayRighRow = overlayRighRow.row()
+        subOverlayRighRow.enabled = spaceDataViewport.overlay.use_gpencil_fade_layers
+        subOverlayRighRow.prop(prefs, "stb_overlay_layers_opacity", text="Fade Layers", slider=True)
+
+        row = overlayCol.row(align=False)
+        overlaySplit = row.split(factor=splitFactor)
+        overlaySplit.separator()
+
+    if mode in ["STORYBOARD", "SHOT"]:
         overlayRighRow = overlaySplit.row()
         subOverlayRighRow = overlayRighRow.row()
         subOverlayRighRow.prop(props.shotsGlobalSettings, "stb_show_passepartout", text="", slider=True)

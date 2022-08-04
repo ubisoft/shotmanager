@@ -1,7 +1,9 @@
 -----
 ## 2.0.205 (2022-08-04)
 ### Storyboard
-- Added feature to detach a storyboard frame from a shot
+- Added a feature to detach a storyboard frame from a shot
+
+- Added the Passepartout controls to the Shots Global Control panel
 
 - Fixed GP tool not set when entering in Draw mode
 

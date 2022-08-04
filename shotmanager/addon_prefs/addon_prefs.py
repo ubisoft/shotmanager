@@ -289,6 +289,10 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
         name="Expand Shot Properties",
         default=True,
     )
+    shot_global_props_expanded: BoolProperty(
+        name="Expand Shots Global Properties",
+        default=False,
+    )
     shot_notes_expanded: BoolProperty(
         name="Expand Shot Notes",
         default=False,

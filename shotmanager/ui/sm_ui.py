@@ -22,8 +22,6 @@ Shot Manager main panel UI
 import bpy
 from bpy.types import Panel, Operator
 
-# from shotmanager.viewport_3d.ogl_ui import UAS_ShotManager_sequenceTimeline
-
 from shotmanager.utils import utils
 from shotmanager.utils import utils_shot_manager
 from shotmanager.utils import utils_ui
@@ -31,7 +29,7 @@ from shotmanager.utils import utils_ui
 from . import sm_shots_ui_previz_layout
 from . import sm_shots_ui_storyboard_layout
 from . import sm_takes_ui
-from . import sm_shot_settings_ui
+from . import sm_shot_settings_panel_ui
 from shotmanager.warnings.warnings_ui import drawWarnings
 
 # from shotmanager.features.greasepencil import greasepencil_ui as gp
@@ -849,7 +847,7 @@ class UAS_PT_ShotManager(Panel):
 
             if 0 < numShots:
                 if shot is not None:
-                    sm_shot_settings_ui.drawShotPropertiesToolbar(layout, context, shot)
+                    sm_shot_settings_panel_ui.drawShotPropertiesToolbar(layout, context, shot)
 
         # layout.separator ( factor = 1 )
 
@@ -873,7 +871,6 @@ class UAS_PT_ShotManager_Initialize(Operator):
 
 classes = (
     UAS_PT_ShotManager,
-    #  UAS_ShotManager_sequenceTimeline,
     UAS_PT_ShotManager_Initialize,
 )
 
@@ -885,11 +882,11 @@ def register():
     sm_takes_ui.register()
     sm_shots_ui_previz_layout.register()
     sm_shots_ui_storyboard_layout.register()
-    sm_shot_settings_ui.register()
+    sm_shot_settings_panel_ui.register()
 
 
 def unregister():
-    sm_shot_settings_ui.unregister()
+    sm_shot_settings_panel_ui.unregister()
     sm_shots_ui_storyboard_layout.unregister()
     sm_shots_ui_previz_layout.unregister()
     sm_takes_ui.unregister()
