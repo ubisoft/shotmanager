@@ -1160,7 +1160,7 @@ class UAS_ShotManager_CreateShotsFromEachCamera(Operator):
 
 class UAS_ShotManager_CreateNShots(Operator):
     bl_idname = "uas_shot_manager.create_n_shots"
-    bl_label = "Create Specifed Number of Shots..."
+    bl_label = "Create Specified Number of Shots..."
     bl_description = "Create a specified number of shots with new cameras or with the same one"
     bl_options = {"REGISTER", "UNDO"}
 
