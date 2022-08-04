@@ -1105,8 +1105,13 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         name="Continuous GP Editing",
         description="When used, the current storyboard frame or shot grease pencil will be switched"
         "\nto edit mode if the edit mode is activated on a shot in the scene",
-        default=False,
+        default=True,
     )
+
+    def isInContinuousGPEditing(self):
+        """Call this to get the state of continuous editing instead of directly using useContinuousGPEditing"""
+        state = self.useContinuousGPEditing and "STORYBOARD" == self.currentLayoutMode()
+        return state
 
     def getParentShotFromGpChild(self, obj):
         """Return the shot using the specified object as achild of its camera, None if nothing found.
@@ -2054,7 +2059,8 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
                         #    print("   sel in shots stack")
                         setCurrentShot = True
                 else:
-                    if props.useContinuousGPEditing:
+                    # if props.useContinuousGPEditing:
+                    if props.isInContinuousGPEditing():
                         setCurrentShot = True
                     elif prefs.stb_selected_shot_changes_current_shot:
                         _logger.debug_ext("  Stb _update_selected_shot_index from shot list")
@@ -2068,7 +2074,8 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
                         #    print("   sel in shots stack")
                         setCurrentShot = True
                 else:
-                    if props.useContinuousGPEditing:
+                    # if props.useContinuousGPEditing:
+                    if props.isInContinuousGPEditing():
                         setCurrentShot = True
                     elif prefs.pvz_selected_shot_changes_current_shot:
                         _logger.debug_ext("  Pvz _update_selected_shot_index from shot list")
@@ -3453,7 +3460,8 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
             # storyboard
             ##########################
             # if "STORYBOARD" == self.layout_mode and prefs.current_shot_changes_edited_frame_in_stb:
-            if self.useContinuousGPEditing:
+            # if self.useContinuousGPEditing:
+            if self.isInContinuousGPEditing():
                 # if self.getEditedStoryboardFrame() is not None:
                 if self.getEditedGPShot() is not None:
                     bpy.ops.uas_shot_manager.greasepencil_select_and_draw(

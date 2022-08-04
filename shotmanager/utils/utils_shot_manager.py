@@ -30,6 +30,7 @@ def getUbisoftName():
         addon.bl_info.get("warning", "") for addon in addon_utils.modules() if addon.bl_info["name"] == "Shot Manager"
     ]
     if len(addonHeaderWarning):
+        return "Ubisoft"
         return ""
     return "Ubisoft"
 
