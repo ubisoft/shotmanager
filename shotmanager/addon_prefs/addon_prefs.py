@@ -552,7 +552,9 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
             ("PREVIZ", "Previz", "Previz layout"),
         ),
         #  update=_update_layout_mode,
-        default="PREVIZ",
+        # default="PREVIZ",
+        # default="STORYBOARD",
+        default=config.defaultLayout,
     )
 
     # NOTE:

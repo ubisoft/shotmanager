@@ -70,6 +70,11 @@ def initGlobalVariables():
 
     icons_col = pcoll
 
+    # preferences ##########
+    global defaultLayout
+    defaultLayout = "STORYBOARD"
+    # defaultLayout = "PREVIZ"
+
     # ui ##########
     global gMouseScreenPos
     gMouseScreenPos = [0.0, 0.0]

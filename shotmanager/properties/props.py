@@ -1869,18 +1869,23 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
     def list_greasepencil_materials(self, context):
         res = list()
 
+        #  _logger.debug_ext(f"Updating DP mat list", col="PURPLE")
         if context.object is not None and "GPENCIL" == context.object.type:
             #   if len(context.object.data.layers):
             if len(context.object.material_slots):
                 for i, mat in list(enumerate(context.object.material_slots)):
                     res.append((mat.name, mat.name, "", i))
+                # res.append(
+                #     ("DEBUG", "No Material Debug", "", len(res)),
+                # )
+            #      _logger.debug_ext(f"Updating DP mat list: num items: {len(context.object.material_slots)}", col="RED")
             else:
                 res = (("NOMAT", "No Material", "", 0),)
         return res
 
     def _get_greasePencil_activeMaterial(self):
-        val = self.get("_get_greasePencil_activeMaterial", 0)
-        # print(" _get_greasePencil_activeMaterial")
+        val = self.get("greasePencil_activeMaterial", 0)
+        #  print(" _get_greasePencil_activeMaterial")
         # props = bpy.context.scene.UAS_shot_manager_props
         # spaceDataViewport = props.getValidTargetViewportSpaceData(bpy.context)
         # if spaceDataViewport is not None:
@@ -1896,15 +1901,37 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
             #     mats.append((mat.name, mat.name, "", i))
             # mat_dict = {mat.name: i for i, mat in enumerate(bpy.context.object.data.materials)}
             # val = mat_dict[self.greasePencil_activeMaterial]
-            val = bpy.context.object.active_material_index
+            # print(f"bpy.context.object.active_material_index: {bpy.context.object.active_material_index}")
+
+            obj = bpy.context.object
+            # res = self.list_greasepencil_materials(bpy.context)
+
+            # mat_dict = {mat.name: i for i, mat in enumerate(obj.material_slots)}
+            # val = mat_dict[obj.active_material.name]
+            val = obj.active_material_index
+            # val = min(val, len(res) - 1)
+
+            # val = 4
+            # if max(val - 1, 0) != val - 1:
+            #     val = val - 1
+            # items = self.list_greasepencil_materials(bpy.context)
+            # if len(items) == val:
+            #     val = "_Canvas_Mat"
+
+            # val = min(val - 1, len(bpy.context.object.material_slots) - 1)
+        # else:
+        #     _logger.debug_ext(f"No Mat ind found", col="RED")
 
         return val
+        return min(val, len(context.object.material_slots))
+        return max(val - 1, 0)
 
     def _set_greasePencil_activeMaterial(self, value):
         #  print(" _set_greasePencil_activeMaterial: value: ", value)
         self["greasePencil_activeMaterial"] = value
 
     def _update_greasePencil_activeMaterial(self, context):
+        return
         if self.greasePencil_activeMaterial != "NOMAT":
             if context.object is not None and "GPENCIL" == context.object.type:
                 # Create a lookup-dict for the object materials:

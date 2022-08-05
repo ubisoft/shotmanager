@@ -851,15 +851,31 @@ def deleteLayerKeyFrame(gpencil: bpy.types.GreasePencil, currentFrame, layerMode
 def activateGpLayerAndMat(gpencil: bpy.types.GreasePencil, layerName, materialName):
     """If the specified layer is found then activate it on the specified grease pencil object"""
 
+    if layerName in gpencil.data.layers:
+        gpencil.data.layers.active = gpencil.data.layers[layerName]
+
     # Create a lookup-dict for the object materials:
     # mat_dict = {mat.name: i for i, mat in enumerate(context.object.data.materials)}
     mat_dict = {mat.name: i for i, mat in enumerate(gpencil.material_slots)}
 
-    if layerName in gpencil.data.layers:
-        gpencil.data.layers.active = gpencil.data.layers[layerName]
+    if materialName not in mat_dict:
+        _logger.debug_ext(f"SM: Material {materialName} not found in gp materials", col="ORANGE")
+        # check in material exist in scene
+        if materialName in bpy.data.materials.keys():
+            gp_mat = bpy.data.materials[materialName]
+
+        if gp_mat and gpencil:
+            gpencil.data.materials.append(gp_mat)
+            _logger.debug_ext(f"SM: Material {materialName} ADDED to gp materials", col="ORANGE")
+            mat_dict = {mat.name: i for i, mat in enumerate(gpencil.material_slots)}
+            # gpencil.active_material = gp_mat
+            # return
 
     if materialName in mat_dict:
+        #    _logger.debug_ext(f"SM: Material {materialName} actvated on GP, ind: {mat_dict[materialName]}", col="YELLOW")
         gpencil.active_material_index = mat_dict[materialName]
+    else:
+        _logger.debug_ext(f"SM: Material {materialName} not found in scene", col="ORANGE")
 
     # wkip do more generic
     # if "GP_Canvas" == layerName:

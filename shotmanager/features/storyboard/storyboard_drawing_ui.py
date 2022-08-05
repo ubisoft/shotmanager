@@ -133,11 +133,20 @@ def drawDrawingMatRow(context, layout, props, editedGpencil, objIsGP):
     ###################
 
     if objIsGP:
-        materialsRow = matRow.row(align=True)
+        materialsRow = matRow.row(align=False)
         materialsRow.alignment = "RIGHT"
         materialsRow.label(text="Material:")
+        # materialsRow.label(text="Material:")
+        materialsSubRow = materialsRow.row(align=True)
+        materialsSubRow.ui_units_x = 7
+        matTxt = "-"
+        if editedGpencil:
+            matTxt = f"{editedGpencil.active_material.name}"
+        materialsSubRow.label(text=matTxt)
+        materialsSubRowRight = materialsSubRow.row()
+        materialsSubRowRight.ui_units_x = 1
         # materialsRow.prop(editedGpencil, "material_slots")
-        materialsRow.prop(props, "greasePencil_activeMaterial", text="")
+        materialsSubRowRight.prop(props, "greasePencil_activeMaterial", text="")
 
 
 ##########################################################
