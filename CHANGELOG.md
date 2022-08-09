@@ -2,6 +2,7 @@
 ## 2.0.206 (2022-08-04)
 ### Storyboard
 - Major fix on the materials associated to layers. They are now correctly set when the layer is changed
+- Fixed animation clearing when a storyboard frame is detached
 
 -----
 ## 2.0.205 (2022-08-04)

@@ -1180,6 +1180,76 @@ def add_to_selection(obj: bpy.types.Object):
 
 
 ###################
+# Animation
+###################
+
+
+def getFCurveForSpecifiedTranformAxis(obj: bpy.types.Object, curveType, axis):
+    """Return the fCurve of the specified transformation axis, None if not found
+    Args:
+        obj:    the animated object
+        curveType: can be "location", "rotation", "scale"
+        axis:   can be "X", "Y", "Z", "W"
+    """
+    if obj.animation_data is not None:
+        action = obj.animation_data.action
+        if action is not None:
+            for fcurve in action.fcurves:
+                if "Object Transforms" == fcurve.group.name and -1 != fcurve.data_path.find(curveType):
+                    # rotation data_path can be rotation_quaternion, rotation_euler...
+                    if axis.lower() == "x" and 0 == fcurve.array_index:
+                        return fcurve
+                    elif axis.lower() == "y" and 1 == fcurve.array_index:
+                        return fcurve
+                    elif axis.lower() == "z" and 2 == fcurve.array_index:
+                        return fcurve
+                    elif axis.lower() == "w" and 3 == fcurve.array_index:
+                        return fcurve
+    return None
+
+
+def getAnimatedTrandformFCurves(obj: bpy.types.Object):
+    """Return a list with the animated transformation fCurves of the object"""
+    fcurves = list()
+    if obj.animation_data is not None:
+        action = obj.animation_data.action
+        if action is not None:
+            for fcurve in action.fcurves:
+                if "Object Transform" == fcurve.group.name:
+                    fcurves.append(fcurve)
+    return fcurves
+
+
+def clearTransformAnimation(obj: bpy.types.Object, clearPos=True, clearRot=True, clearScale=True, clearLocked=True):
+    def _clearCurve(action, type, axis):
+        fc = getFCurveForSpecifiedTranformAxis(obj, type, axis)
+        if fc and (not fc.lock or clearLocked):
+            action.fcurves.remove(fc)
+
+    if obj.animation_data:
+        action = obj.animation_data.action
+        if action:
+            if clearPos:
+                _clearCurve(action, "location", "X")
+                _clearCurve(action, "location", "Y")
+                _clearCurve(action, "location", "Z")
+            if clearRot:
+                _clearCurve(action, "rotation", "X")
+                _clearCurve(action, "rotation", "Y")
+                _clearCurve(action, "rotation", "Z")
+                _clearCurve(action, "rotation", "W")
+            if clearScale:
+                _clearCurve(action, "scale", "X")
+                _clearCurve(action, "scale", "Y")
+                _clearCurve(action, "scale", "Z")
+
+    #     bpy.ops.anim.keyframe_clear_button
+    # bpy.ops.object.location_clear()
+    # bpy.ops.object.rotation_clear()
+    # bpy.ops.object.scale_clear()
+
+
+###################
 # Color
 ###################
 

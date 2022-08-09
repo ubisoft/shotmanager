@@ -519,6 +519,10 @@ class UAS_ShotManager_ShotAdd(Operator):
         description="Create a camera based on the specified asset",
     )
 
+    atCurrentFrame: BoolProperty(
+        name="At Current Frame:", description="Start the Storyboard Frame at the current time", default=False
+    )
+
     color: FloatVectorProperty(
         name="Camera Color / Shot Color",
         description="Color of the chosen camera or color of the shot, according to the Shot Display settings",
@@ -580,7 +584,7 @@ class UAS_ShotManager_ShotAdd(Operator):
 
         if "STORYBOARD" == self.layout_mode:
             prefs.addShot_start = 100
-            prefs.addShot_end = prefs.addShot_start + 75
+            prefs.addShot_end = prefs.addShot_start + prefs.new_shot_duration
             self.addStoryboardGP = True
         else:
             if selectedShot is None:
@@ -627,14 +631,15 @@ class UAS_ShotManager_ShotAdd(Operator):
         # scene = context.scene
         props = context.scene.UAS_shot_manager_props
         prefs = context.preferences.addons["shotmanager"].preferences
-        splitFactor = 0.3
+        isPrevizLayout = "PREVIZ" == self.layout_mode
+        splitFactor = 0.3 if isPrevizLayout else 0.35
         layout = self.layout
 
         col = layout.box()
         # col = box.column(align=False)
 
         row = col.row()
-        if "PREVIZ" == self.layout_mode:
+        if isPrevizLayout:
             text = "Add a new shot to the current take:"
         else:
             text = "Add a new storyboard frame to the current take:"
@@ -648,14 +653,14 @@ class UAS_ShotManager_ShotAdd(Operator):
         subrow.label(text="Shot Name:")
         split.prop(self, "name", text="")
 
-        if "PREVIZ" == self.layout_mode:
+        if isPrevizLayout:
             # doubleRow is used to reduce the size between rows #########
             col.separator(factor=0.1)
             doubleRow = col.column()
             # doubleRow.scale_y = 0.7
 
         # row start and end #########################
-        if "PREVIZ" == self.layout_mode:
+        if isPrevizLayout:
             row = doubleRow.row(align=True)
             mainRowSplit = row.split(factor=0.5)
             subSplitLeft = mainRowSplit.split(factor=0.26)
@@ -678,9 +683,16 @@ class UAS_ShotManager_ShotAdd(Operator):
             row.operator(
                 "uas_shot_manager.shotadd_getcurrentframefor", text="", icon="TRIA_UP_BAR"
             ).propertyToUpdate = "addShot_end"
+        else:
+            row = col.row()
+            split = row.split(factor=splitFactor)
+            subrow = split.row()
+            subrow.alignment = "RIGHT"
+            subrow.label(text="At Current frame:")
+            split.prop(self, "atCurrentFrame", text="")
 
         # row duration #########################
-        if "PREVIZ" == self.layout_mode:
+        if isPrevizLayout:
             row = doubleRow.row(align=False)
             mainRowSplit = row.split(factor=0.5)
 
@@ -694,8 +706,6 @@ class UAS_ShotManager_ShotAdd(Operator):
             if duration <= 1:
                 subrow.alert = True
             subrow.label(text=f"{duration} frame{'s' if duration > 1 else ''}")
-        elif "STORYBOARD" == self.layout_mode:
-            pass
 
         # row shot color #########################
         if not props.use_camera_color:
@@ -704,7 +714,7 @@ class UAS_ShotManager_ShotAdd(Operator):
             subrow.label(text="Shot Color:")
             subrow.prop(self, "color", text="")
 
-        if "PREVIZ" == self.layout_mode:
+        if isPrevizLayout:
             # doubleRow is used to reduce the size between rows #########
             col.separator(factor=0.1)
             doubleRow = col.column()
@@ -849,13 +859,20 @@ class UAS_ShotManager_ShotAdd(Operator):
                 col[1] = cam.color[1]
                 col[2] = cam.color[2]
 
+        if "STORYBOARD" == self.layout_mode:
+            startFr = scene.frame_current if self.atCurrentFrame else prefs.addShot_start
+            endFr = startFr + prefs.addShot_start
+        else:
+            startFr = prefs.addShot_start
+            endFr = prefs.addShot_end
+
         newShot = props.addShot(
             shotType=self.layout_mode,
             atIndex=newShotInd,
             name=self.name,
             # name=props.getUniqueShotName(self.name),
-            start=prefs.addShot_start,
-            end=prefs.addShot_end,
+            start=startFr,
+            end=endFr,
             #            camera  = scene.objects[ self.camera ] if self.camera else None,
             camera=cam,
             color=col,

@@ -748,8 +748,12 @@ class UAS_ShotManager_Shot(ShotInterface, PropertyGroup):
             # unparent: bpy.ops.object.parent_clear(type='CLEAR')
             _ClearParent(gp_child)
 
+            utils.clearTransformAnimation(gp_child)
+
             if 0 == gp_child.name.find("Cam_"):
                 gp_child.name = gp_child.name[4:] + "_Free"
+
+            self.shotType = "PREVIZ"
 
     #############
     # notes #####

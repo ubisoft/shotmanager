@@ -68,6 +68,11 @@ def draw_shots_names(context):
                     frame_px = [
                         location_3d_to_region_2d(context.region, context.space_data.region_3d, v) for v in corners
                     ]
+                    # if not frame_px[0]:
+                    #     frame_px = [
+                    #         location_3d_to_region_2d(context.region, context.space_data.region_3d, v) for v in corners
+                    #     ]
+
                     top_left = corners[3]
                     if gp_child is not None and gp_child.visible_get():
                         # if not (context.space_data.region_3d.view_perspective == "CAMERA" and cam == context.scene.camera):
@@ -88,10 +93,18 @@ def draw_shots_names(context):
                             # col = (1.0, 1.0, 0.0, 1.0)
                             # Quadrilater(frame_px[0], frame_px[1], frame_px[2], frame_px[3], col).draw()
                             # drawCameraPlane(context, distance=0.5, camera=cam)
-
-                            draw_all_shots_names(
-                                context, cam, frame_px[0][0], frame_px[0][1], vertical=True, screen_offset=[0, 4]
-                            )
+                            try:
+                                if frame_px[0]:
+                                    draw_all_shots_names(
+                                        context,
+                                        cam,
+                                        frame_px[0][0],
+                                        frame_px[0][1],
+                                        vertical=True,
+                                        screen_offset=[0, 4],
+                                    )
+                            except Exception as e:
+                                print(f"{e}")
 
 
 def draw_all_shots_names(context, cam, pos_x, pos_y, vertical=False, screen_offset=None):
