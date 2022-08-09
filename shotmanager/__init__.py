@@ -80,15 +80,15 @@ import logging
 
 
 bl_info = {
-    "name": "Shot Manager",
+    "name": "Ubisoft Shot Manager",
     "author": "Ubisoft - Julien Blervaque (aka Werwack), Romain Carriquiry Borchiari",
     "description": "Easily manage shots and cameras in the 3D View and see the resulting edit in real-time",
     "blender": (3, 1, 0),
-    "version": (2, 0, 206),
+    "version": (2, 0, 212),
     "location": "View3D > Shot Mng",
     "doc_url": "https://ubisoft-shotmanager.readthedocs.io",
     "tracker_url": "https://github.com/ubisoft/shotmanager/issues",
-    "warning": "BETA Version",
+    #  "warning": "BETA Version",
     "category": "Ubisoft",
 }
 
@@ -104,12 +104,12 @@ def register():
 
     utils_ui.register()
 
-    sm_logging.initialize(addonName="Shot Manager", prefix="SM")
+    sm_logging.initialize(addonName="Ubisoft Shot Manager", prefix="SM")
     if config.devDebug:
         _logger.setLevel("DEBUG")  # CRITICAL ERROR WARNING INFO DEBUG NOTSET
 
     logger_level = f"Logger level: {sm_logging.getLevelName()}"
-    versionTupple = utils.display_addon_registered_version("Shot Manager", more_info=logger_level)
+    versionTupple = utils.display_addon_registered_version("Ubisoft Shot Manager", more_info=logger_level)
 
     from .overlay_tools.workspace_info import workspace_info
 
@@ -319,7 +319,7 @@ def register():
     )
 
     if config.devDebug:
-        print(f"\n ------ Shot Manager debug: {config.devDebug} ------- ")
+        print(f"\n ------ Ubisoft Shot Manager debug: {config.devDebug} ------- ")
 
     addon_prefs_inst = bpy.context.preferences.addons["shotmanager"].preferences
     addon_prefs_inst.displaySMDebugPanel = False
@@ -338,7 +338,7 @@ def register():
 
 def unregister():
 
-    utils.display_addon_registered_version("Shot Manager", unregister=True)
+    utils.display_addon_registered_version("Ubisoft Shot Manager", unregister=True)
 
     # marche pas
     _props = bpy.context.scene.UAS_shot_manager_props

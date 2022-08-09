@@ -132,7 +132,7 @@ def fillEditFile(scene, props, take, sceneFps, output_media_mode, rootPath):
         name=f"{seq_name}{take_name}",
         global_start_time=opentimelineio.opentime.from_frames(startFrame, sceneFps),
     )
-    timeline.metadata["exported_with"] = "Shot Manager V. " + props.version()[0]
+    timeline.metadata["exported_with"] = "Ubisoft Shot Manager V. " + props.version()[0]
     from datetime import datetime
 
     now = datetime.now()

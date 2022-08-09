@@ -1,9 +1,9 @@
 """Create a zip file to make the add-on ready to install
-Copy this file to %AppData%\Roaming\Microsoft\Windows\SendTo\ and run it with a right click in
-an explorer.
 
-If the script is not visible in the SendTo submenu then place a shortcut to this file instead of the
-file itself in the SendTo folder.
+For Windows OS
+
+Create a shortcut to this file and copy it to %AppData%\Roaming\Microsoft\Windows\SendTo\
+Then run it with a right click in an explorer.
 
 Usage:
 	Once this file is in the SendTo folder of Windows it is accessible in the right click menu.
@@ -140,6 +140,11 @@ def main():
         nameStr = _getAddonName(init_file)
         versionStr = _getAddonVersion(init_file)
 
+        # if the category appears at the start of the name it is removed
+        categInd = nameStr.find(categStr)
+        if -1 != categInd:
+            nameStr = nameStr[len(categStr) :]
+
     else:
         categStr = ""
         nameStr = ""
@@ -224,4 +229,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-

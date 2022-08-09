@@ -54,7 +54,7 @@ def check_shotmanager_file_data(verbose=True):
     checkStr += f"{spacer}Num scenes in file: {len(bpy.data.scenes)}"
 
     sm_addon_is_loaded = _isAddonLoaded("shotmanager")
-    checkStr += f"{spacer}Shot Manager add-on is loaded: {sm_addon_is_loaded}"
+    checkStr += f"{spacer}Ubisoft Shot Manager add-on is loaded: {sm_addon_is_loaded}"
 
     for scene in bpy.data.scenes:
         spacer = "\n  "
@@ -63,7 +63,7 @@ def check_shotmanager_file_data(verbose=True):
 
         props = None
         sm_data_in_scene = _sceneHasShotManagerData(scene)
-        checkStr += f"{spacer}Contains Shot Manager data: {sm_data_in_scene}"
+        checkStr += f"{spacer}Contains Ubisoft Shot Manager data: {sm_data_in_scene}"
 
         if getattr(scene, "UAS_shot_manager_props", None) is not None:
             props = scene.UAS_shot_manager_props

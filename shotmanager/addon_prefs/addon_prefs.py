@@ -70,7 +70,7 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
             - an integer. x.y.z becomes xxyyyzzz (eg: "1.21.3" becomes 1021003)
         Return None if the addon has not been found
         """
-        return utils.addonVersion("Shot Manager")
+        return utils.addonVersion("Ubisoft Shot Manager")
 
     # def isReleaseVersion(self):
     #     """Return True if the current version is a released on"""
@@ -114,7 +114,7 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
     )
 
     def initialize_shot_manager_prefs(self):
-        print("\nInitializing Shot Manager Preferences...")
+        print("\nInitializing Ubisoft Shot Manager Preferences...")
 
         self.stb_frameTemplate.initialize(mode="ADDON_PREFS")
         self.newAvailableVersion = 0

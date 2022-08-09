@@ -168,7 +168,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
             - an integer. x.y.z becomes xxyyyzzz (eg: "1.21.3" becomes 1021003)
         Return None if the addon has not been found
         """
-        return utils.addonVersion("Shot Manager")
+        return utils.addonVersion("Ubisoft Shot Manager")
 
     dataVersion: IntProperty(
         """ Data Version is of the form xxyyyzzz, integer generated from the string version "xx.yyy.zzz"
@@ -181,7 +181,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
     )
 
     def initialize_shot_manager(self):
-        _logger.info_ext(f"\nInitializing Shot Manager in the current scene ({bpy.context.scene.name})...")
+        _logger.info_ext(f"\nInitializing Ubisoft Shot Manager in the current scene ({bpy.context.scene.name})...")
         prefs = bpy.context.preferences.addons["shotmanager"].preferences
 
         # self.parentScene = self.getParentScene()
