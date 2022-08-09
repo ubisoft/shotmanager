@@ -458,8 +458,17 @@ def draw3DRenderPanel(self, context):
         row.label(text="Quality:")
         row.prop(props.renderContext, "renderQualityOpengl", text="")
 
-        row = box.row(align=False)
-        row.prop(props.renderContext, "useOverlays", text="With Overlays")
+        overlaysRow = box.row(align=True)
+        overlaysSplit = overlaysRow.split(factor=0.4)
+        overlaysRowLeft = overlaysSplit.row(align=True)
+        overlaysRowLeft.prop(props.renderContext, "useOverlays", text="With Overlays")
+
+        if props.renderContext.useOverlays:
+            overlaysRowRight = overlaysSplit.row(align=True)
+            overlaysRowRight.alert = True
+            overlaysRowRight.alignment = "RIGHT"
+            overlaysRowRight.label(text="Will use the settings of THIS viewport")
+
     else:
         grid = box.grid_flow(columns=2)
 

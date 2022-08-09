@@ -182,27 +182,6 @@ class UAS_ShotManager_Shots_Prefs(Operator):
             text="Zoom Timeline Content To Frame The Current Shot",
         )
 
-        # on selected shot changed
-        # maincol.separator(factor=1.5)
-        # row = maincol.row()
-        # row.separator(factor=2)
-        # row.label(text="When Selected Shot Is Changed:  (Settings stored in the Add-on Preferences):")
-        # propsRow = maincol.row()
-        # propsRow.separator(factor=5)
-        # propsCol = propsRow.column()
-        # propsCol.prop(
-        #     prefs,
-        #     "selected_shot_changes_current_shot_in_stb",
-        #     text="Storyboard Shots List: Set Selected Shot to Current One",
-        # )
-        # shotsStackRow = propsCol.row()
-        # shotsStackRow.separator(factor=5)
-        # shotsStackRow.prop(
-        #     prefs,
-        #     "selected_shot_in_shots_stack_changes_current_shot_in_stb",
-        #     text="Shots Stack: Set Selected Shot to Current One",
-        # )
-
         # propsCol.prop(
         #     prefs,
         #     "current_shot_changes_edited_frame_in_stb",

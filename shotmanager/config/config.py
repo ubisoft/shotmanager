@@ -38,7 +38,7 @@ def initGlobalVariables():
         devDebug = False
 
     # change this value to force debug at start time
-    devDebug = True
+    devDebug = False
 
     global devDebug_lastRedrawTime
     devDebug_lastRedrawTime = -1
@@ -60,7 +60,6 @@ def initGlobalVariables():
     # icons ############
     global icons_col
 
-    print("titi")
     pcoll = bpy.utils.previews.new()
     # my_icons_dir = os.path.join(os.path.dirname(__file__), "../icons")
     currentDir = os.path.dirname(__file__)
@@ -70,6 +69,11 @@ def initGlobalVariables():
         pcoll.load(png.stem, str(png), "IMAGE")
 
     icons_col = pcoll
+
+    # preferences ##########
+    global defaultLayout
+    defaultLayout = "STORYBOARD"
+    # defaultLayout = "PREVIZ"
 
     # ui ##########
     global gMouseScreenPos
@@ -136,7 +140,12 @@ def getLoggingTags():
     tags["REG"] = False
     tags["UNREG"] = False
 
+    tags["INIT_AND_DATA"] = True
+
     tags["SHOTS_PLAY_MODE"] = True
+
+    tags["RENDER"] = False
+    tags["LAYOUT"] = True
 
     tags["EDIT_IO"] = True
 

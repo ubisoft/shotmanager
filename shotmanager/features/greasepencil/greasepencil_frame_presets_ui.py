@@ -22,7 +22,7 @@ Shot Manager grease pencil frame panel
 
 import bpy
 from bpy.types import Operator
-from bpy.props import StringProperty, BoolProperty
+from bpy.props import StringProperty, BoolProperty, EnumProperty
 
 # from shotmanager.utils import utils
 # from shotmanager.utils import utils_greasepencil
@@ -38,6 +38,18 @@ class UAS_ShotManager_GpTemplatePanel(Operator):
     bl_description = "Define the name of the layers and materials supported on storyboard frames"
     bl_options = {"INTERNAL", "UNDO"}
 
+    def listGreasepencilMaterialsInScene(self, context):
+        res = list()
+
+        #      res = [m.name for m in bpy.data.materials if m.is_grease_pencil]
+        for i, mat in enumerate(bpy.data.materials):
+            if mat.is_grease_pencil:
+                res.append((mat.name, mat.name, "", i))
+
+        # il
+        # res = (("NOMAT", "No Material", "", 0),)
+        return res
+
     # can be SCENE or ADDON_PREFS"
     mode: StringProperty(default="SCENE")
 
@@ -46,37 +58,173 @@ class UAS_ShotManager_GpTemplatePanel(Operator):
     layer_Rough_name: StringProperty(default="Rough")
     layer_Rough_material: StringProperty(default="Lines")
 
+    def _get_layer_Rough_materialDrpdwn(self):
+        return self.get("layer_Rough_materialDrpdwn", 0)
+
+    def _set_layer_Rough_materialDrpdwn(self, value):
+        self["layer_Rough_materialDrpdwn"] = value
+
+    def _update_layer_Rough_materialDrpdwn(self, context):
+        self.layer_Rough_material = self.layer_Rough_materialDrpdwn
+
+    layer_Rough_materialDrpdwn: EnumProperty(
+        items=(listGreasepencilMaterialsInScene),
+        get=_get_layer_Rough_materialDrpdwn,
+        set=_set_layer_Rough_materialDrpdwn,
+        update=_update_layer_Rough_materialDrpdwn,
+        default=0,
+    )
+
     # persp #############
     use_layer_Persp: BoolProperty(name="Use Layer Perspective", default=True)
     layer_Persp_name: StringProperty(default="Perspective")
     layer_Persp_material: StringProperty(default="Lines")
+
+    def _get_layer_Persp_materialDrpdwn(self):
+        return self.get("layer_Persp_materialDrpdwn", 0)
+
+    def _set_layer_Persp_materialDrpdwn(self, value):
+        self["layer_Persp_materialDrpdwn"] = value
+
+    def _update_layer_Persp_materialDrpdwn(self, context):
+        self.layer_Persp_material = self.layer_Persp_materialDrpdwn
+
+    layer_Persp_materialDrpdwn: EnumProperty(
+        items=(listGreasepencilMaterialsInScene),
+        get=_get_layer_Persp_materialDrpdwn,
+        set=_set_layer_Persp_materialDrpdwn,
+        update=_update_layer_Persp_materialDrpdwn,
+        default=0,
+    )
 
     # FG #############
     use_layer_FG_Lines: BoolProperty(name="Use Foreground Lines Layer", default=True)
     layer_FG_Lines_name: StringProperty(default="FG Lines")
     layer_FG_Lines_material: StringProperty(default="Stb_Lines")
 
+    def _get_layer_FG_Lines_materialDrpdwn(self):
+        return self.get("layer_FG_Lines_materialDrpdwn", 0)
+
+    def _set_layer_FG_Lines_materialDrpdwn(self, value):
+        self["layer_FG_Lines_materialDrpdwn"] = value
+
+    def _update_layer_FG_Lines_materialDrpdwn(self, context):
+        self.layer_FG_Lines_material = self.layer_FG_Lines_materialDrpdwn
+
+    layer_FG_Lines_materialDrpdwn: EnumProperty(
+        items=(listGreasepencilMaterialsInScene),
+        get=_get_layer_FG_Lines_materialDrpdwn,
+        set=_set_layer_FG_Lines_materialDrpdwn,
+        update=_update_layer_FG_Lines_materialDrpdwn,
+        default=0,
+    )
+
     use_layer_FG_Fills: BoolProperty(name="Use Foreground Fills Layer", default=True)
     layer_FG_Fills_name: StringProperty(default="FG Fills")
     layer_FG_Fills_material: StringProperty(default="Stb_Fills")
+
+    def _get_layer_FG_Fills_materialDrpdwn(self):
+        return self.get("layer_FG_Fills_materialDrpdwn", 0)
+
+    def _set_layer_FG_Fills_materialDrpdwn(self, value):
+        self["layer_FG_Fills_materialDrpdwn"] = value
+
+    def _update_layer_FG_Fills_materialDrpdwn(self, context):
+        self.layer_FG_Fills_material = self.layer_FG_Fills_materialDrpdwn
+
+    layer_FG_Fills_materialDrpdwn: EnumProperty(
+        items=(listGreasepencilMaterialsInScene),
+        get=_get_layer_FG_Fills_materialDrpdwn,
+        set=_set_layer_FG_Fills_materialDrpdwn,
+        update=_update_layer_FG_Fills_materialDrpdwn,
+        default=0,
+    )
 
     # MG #############
     use_layer_MG_Lines: BoolProperty(name="Use Mid-ground Lines Layer", default=True)
     layer_MG_Lines_name: StringProperty(default="MiddleG Lines")
     layer_MG_Lines_material: StringProperty(default="Stb_Lines")
 
+    def _get_layer_MG_Lines_materialDrpdwn(self):
+        return self.get("layer_MG_Lines_materialDrpdwn", 0)
+
+    def _set_layer_MG_Lines_materialDrpdwn(self, value):
+        self["layer_MG_Lines_materialDrpdwn"] = value
+
+    def _update_layer_MG_Lines_materialDrpdwn(self, context):
+        self.layer_MG_Lines_material = self.layer_MG_Lines_materialDrpdwn
+
+    layer_MG_Lines_materialDrpdwn: EnumProperty(
+        items=(listGreasepencilMaterialsInScene),
+        get=_get_layer_MG_Lines_materialDrpdwn,
+        set=_set_layer_MG_Lines_materialDrpdwn,
+        update=_update_layer_MG_Lines_materialDrpdwn,
+        default=0,
+    )
+
     use_layer_MG_Fills: BoolProperty(name="Use Mid-ground Lines Layer", default=True)
     layer_MG_Fills_name: StringProperty(default="MiddleG Fills")
     layer_MG_Fills_material: StringProperty(default="Stb_Fills")
+
+    def _get_layer_MG_Fills_materialDrpdwn(self):
+        return self.get("layer_MG_Fills_materialDrpdwn", 0)
+
+    def _set_layer_MG_Fills_materialDrpdwn(self, value):
+        self["layer_MG_Fills_materialDrpdwn"] = value
+
+    def _update_layer_MG_Fills_materialDrpdwn(self, context):
+        self.layer_MG_Fills_material = self.layer_MG_Fills_materialDrpdwn
+
+    layer_MG_Fills_materialDrpdwn: EnumProperty(
+        items=(listGreasepencilMaterialsInScene),
+        get=_get_layer_MG_Fills_materialDrpdwn,
+        set=_set_layer_MG_Fills_materialDrpdwn,
+        update=_update_layer_MG_Fills_materialDrpdwn,
+        default=0,
+    )
 
     # BG #############
     use_layer_BG_Lines: BoolProperty(name="Use Background Lines Layer", default=True)
     layer_BG_Lines_name: StringProperty(default="BG Lines")
     layer_BG_Lines_material: StringProperty(default="Stb_Lines")
 
+    def _get_layer_BG_Lines_materialDrpdwn(self):
+        return self.get("layer_BG_Lines_materialDrpdwn", 0)
+
+    def _set_layer_BG_Lines_materialDrpdwn(self, value):
+        self["layer_BG_Lines_materialDrpdwn"] = value
+
+    def _update_layer_BG_Lines_materialDrpdwn(self, context):
+        self.layer_BG_Lines_material = self.layer_BG_Lines_materialDrpdwn
+
+    layer_BG_Lines_materialDrpdwn: EnumProperty(
+        items=(listGreasepencilMaterialsInScene),
+        get=_get_layer_BG_Lines_materialDrpdwn,
+        set=_set_layer_BG_Lines_materialDrpdwn,
+        update=_update_layer_BG_Lines_materialDrpdwn,
+        default=0,
+    )
+
     use_layer_BG_Fills: BoolProperty(name="Use Background Fills Layer", default=True)
     layer_BG_Fills_name: StringProperty(default="BG Fills")
     layer_BG_Fills_material: StringProperty(default="Stb_Fills")
+
+    def _get_layer_BG_Fills_materialDrpdwn(self):
+        return self.get("layer_BG_Fills_materialDrpdwn", 0)
+
+    def _set_layer_BG_Fills_materialDrpdwn(self, value):
+        self["layer_BG_Fills_materialDrpdwn"] = value
+
+    def _update_layer_BG_Fills_materialDrpdwn(self, context):
+        self.layer_BG_Fills_material = self.layer_BG_Fills_materialDrpdwn
+
+    layer_BG_Fills_materialDrpdwn: EnumProperty(
+        items=(listGreasepencilMaterialsInScene),
+        get=_get_layer_BG_Fills_materialDrpdwn,
+        set=_set_layer_BG_Fills_materialDrpdwn,
+        update=_update_layer_BG_Fills_materialDrpdwn,
+        default=0,
+    )
 
     # Canvas #########
     use_layer_Canvas: BoolProperty(name="Use Canvas Layer", default=True)
@@ -211,7 +359,7 @@ class UAS_ShotManager_GpTemplatePanel(Operator):
 
             row.separator(factor=2.0)
 
-        def _drawUsagePresetFromActualProps(layout, props, presetID):
+        def _drawUsagePresetFromActualProps(layout, props, presetID, matNameProp=None, matDrpdwn=None):
 
             preset = props.stb_frameTemplate.getPresetByID(presetID)
 
@@ -243,14 +391,24 @@ class UAS_ShotManager_GpTemplatePanel(Operator):
             subRow = row.row(align=True)
             split = subRow.split(factor=0.25)
             split.label(text="Material: ")
-            split.prop(preset, "materialName", text="")
+            if matNameProp:
+                split.prop(self, matNameProp, text="")
+            else:
+                split.prop(preset, "materialName", text="")
+            if matDrpdwn:
+                # subRow.prop(self, "layer_Rough_materialDrpdwn", text="")
+                matRow = subRow.row()
+                matRow.ui_units_x = 1
+                matRow.prop(self, matDrpdwn, text="")
 
             row.separator(factor=2.0)
 
         # rough #############
         preset = props.stb_frameTemplate.getPresetByID("ROUGH")
         if preset is not None:
-            _drawUsagePresetFromActualProps(mainCol, props, preset.id)
+            _drawUsagePresetFromActualProps(
+                mainCol, props, preset.id, "layer_Rough_material", "layer_Rough_materialDrpdwn"
+            )
         else:
             _drawUsageProps(mainCol, "ROUGH", "use_layer_Rough", "layer_Rough_name", "layer_FG_Lines_material")
 
@@ -259,7 +417,9 @@ class UAS_ShotManager_GpTemplatePanel(Operator):
         # persp #############
         preset = props.stb_frameTemplate.getPresetByID("PERSP")
         if preset is not None:
-            _drawUsagePresetFromActualProps(mainCol, props, preset.id)
+            _drawUsagePresetFromActualProps(
+                mainCol, props, preset.id, "layer_Persp_material", "layer_Persp_materialDrpdwn"
+            )
         else:
             _drawUsageProps(mainCol, "PERSP", "use_layer_Persp", "layer_Persp_name", "layer_FG_Lines_material")
 
@@ -268,12 +428,16 @@ class UAS_ShotManager_GpTemplatePanel(Operator):
         # FG #############
         preset = props.stb_frameTemplate.getPresetByID("FG_LINES")
         if preset is not None:
-            _drawUsagePresetFromActualProps(mainCol, props, preset.id)
+            _drawUsagePresetFromActualProps(
+                mainCol, props, preset.id, "layer_FG_Lines_material", "layer_FG_Lines_materialDrpdwn"
+            )
         else:
             _drawUsageProps(mainCol, "FG_LINES", "use_layer_FG_Lines", "layer_FG_Lines_name", "layer_FG_Lines_material")
         preset = props.stb_frameTemplate.getPresetByID("FG_FILLS")
         if preset is not None:
-            _drawUsagePresetFromActualProps(mainCol, props, preset.id)
+            _drawUsagePresetFromActualProps(
+                mainCol, props, preset.id, "layer_FG_Fills_material", "layer_FG_Fills_materialDrpdwn"
+            )
         else:
             _drawUsageProps(mainCol, "FG_FILLS", "use_layer_FG_Fills", "layer_FG_Fills_name", "layer_FG_Fills_material")
 
@@ -282,12 +446,16 @@ class UAS_ShotManager_GpTemplatePanel(Operator):
         # MG #############
         preset = props.stb_frameTemplate.getPresetByID("MG_LINES")
         if preset is not None:
-            _drawUsagePresetFromActualProps(mainCol, props, preset.id)
+            _drawUsagePresetFromActualProps(
+                mainCol, props, preset.id, "layer_MG_Lines_material", "layer_MG_Lines_materialDrpdwn"
+            )
         else:
             _drawUsageProps(mainCol, "MG_LINES", "use_layer_MG_Lines", "layer_MG_Lines_name", "layer_MG_Lines_material")
         preset = props.stb_frameTemplate.getPresetByID("MG_FILLS")
         if preset is not None:
-            _drawUsagePresetFromActualProps(mainCol, props, preset.id)
+            _drawUsagePresetFromActualProps(
+                mainCol, props, preset.id, "layer_MG_Fills_material", "layer_MG_Fills_materialDrpdwn"
+            )
         else:
             _drawUsageProps(mainCol, "MG_FILLS", "use_layer_MG_Fills", "layer_MG_Fills_name", "layer_MG_Fills_material")
 
@@ -296,12 +464,16 @@ class UAS_ShotManager_GpTemplatePanel(Operator):
         # BG #############
         preset = props.stb_frameTemplate.getPresetByID("BG_LINES")
         if preset is not None:
-            _drawUsagePresetFromActualProps(mainCol, props, preset.id)
+            _drawUsagePresetFromActualProps(
+                mainCol, props, preset.id, "layer_BG_Lines_material", "layer_BG_Lines_materialDrpdwn"
+            )
         else:
             _drawUsageProps(mainCol, "BG_LINES", "use_layer_BG_Lines", "layer_BG_Lines_name", "layer_BG_Lines_material")
         preset = props.stb_frameTemplate.getPresetByID("BG_FILLS")
         if preset is not None:
-            _drawUsagePresetFromActualProps(mainCol, props, preset.id)
+            _drawUsagePresetFromActualProps(
+                mainCol, props, preset.id, "layer_BG_Fills_material", "layer_BG_Fills_materialDrpdwn"
+            )
         else:
             _drawUsageProps(mainCol, "BG_FILLS", "use_layer_BG_Fills", "layer_BG_Fills_name", "layer_BG_Fills_material")
 
@@ -321,7 +493,6 @@ class UAS_ShotManager_GpTemplatePanel(Operator):
 
     def execute(self, context):
         self.applySettings(context)
-        print("here here")
         return {"FINISHED"}
 
     def cancel(self, context):
@@ -337,8 +508,36 @@ class UAS_ShotManager_GpTemplatePanel(Operator):
         else:
             props = prefs
 
-        # order of creation is important to have a relevant layer stack
+        # rough #############
+        preset = props.stb_frameTemplate.getPresetByID("ROUGH")
+        preset.materialName = self.layer_Rough_material
 
+        # persp #############
+        preset = props.stb_frameTemplate.getPresetByID("PERSP")
+        preset.materialName = self.layer_Persp_material
+
+        # FG #############
+        preset = props.stb_frameTemplate.getPresetByID("FG_LINES")
+        preset.materialName = self.layer_FG_Lines_material
+
+        preset = props.stb_frameTemplate.getPresetByID("FG_FILLS")
+        preset.materialName = self.layer_FG_Fills_material
+
+        # MG #############
+        preset = props.stb_frameTemplate.getPresetByID("MG_LINES")
+        preset.materialName = self.layer_MG_Lines_material
+
+        preset = props.stb_frameTemplate.getPresetByID("MG_FILLS")
+        preset.materialName = self.layer_MG_Fills_material
+
+        # BG #############
+        preset = props.stb_frameTemplate.getPresetByID("BG_LINES")
+        preset.materialName = self.layer_BG_Lines_material
+
+        preset = props.stb_frameTemplate.getPresetByID("BG_FILLS")
+        preset.materialName = self.layer_BG_Fills_material
+
+        # order of creation is important to have a relevant layer stack
         # wkipwkipwkip
         if False:
             # rough #############

@@ -171,6 +171,23 @@ class UAS_ShotManager_ProjectSettings_Prefs(Operator):
             col.prop(props, "project_color_space")
 
         ############
+        # camera assets file
+        ############
+        utils_ui.drawSeparatorLine(mainCol, lower_height=sepLowerHeight, higher_height=sepHigherHeight)
+
+        propRow = mainCol.row(align=False)
+        propRowSplit = propRow.split(factor=0.4)
+        propRowLeft = propRowSplit.row()
+        propRowLeft.alignment = "RIGHT"
+        propRowLeft.label(text="Camera Assets File")
+        propRowRight = propRowSplit.row(align=True)
+        logoRow = propRowRight.row(align=True)
+        if props.project_cameraAssets_path != "":
+            logoRow.alert = not Path(props.project_cameraAssets_path).exists()
+        logoRow.prop(props, "project_cameraAssets_path", text="")
+        propRowRight.operator("shotmanager.set_project_camera_assets_path", text="", icon="FILEBROWSER")
+
+        ############
         # outputs
         ############
         utils_ui.drawSeparatorLine(mainCol, lower_height=sepLowerHeight, higher_height=sepHigherHeight)
@@ -257,9 +274,36 @@ class UAS_ShotManager_SetProjectLogo(Operator, ImportHelper):
         return {"FINISHED"}
 
 
+# This operator requires   from bpy_extras.io_utils import ImportHelper
+# See https://sinestesia.co/blog/tutorials/using-blenders-filebrowser-with-python/
+class UAS_ShotManager_SetProjectCameraAssetsPath(Operator, ImportHelper):
+    bl_idname = "shotmanager.set_project_camera_assets_path"
+    bl_label = "Project Camera Assets"
+    bl_description = (
+        "Open the file browser to define the Blender file containing camera assets\n"
+        "Relative path must be set directly in the text field and must start with ''//''"
+    )
+
+    filter_glob: StringProperty(default="*.blend;", options={"HIDDEN"})
+
+    def execute(self, context):
+        """Use the selected file to get the assets library"""
+
+        props = context.scene.UAS_shot_manager_props
+
+        filename, extension = os.path.splitext(self.filepath)
+        #   print('Selected file:', self.filepath)
+        #   print('File name:', filename)
+        #   print('File extension:', extension)
+        props.project_cameraAssets_path = self.filepath
+
+        return {"FINISHED"}
+
+
 _classes = (
     UAS_ShotManager_ProjectSettings_Prefs,
     UAS_ShotManager_SetProjectLogo,
+    UAS_ShotManager_SetProjectCameraAssetsPath,
 )
 
 

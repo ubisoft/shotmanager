@@ -139,6 +139,29 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
             else:
                 self.newAvailableVersion = 0
 
+        # layout default values
+        self.stb_selected_shot_changes_current_shot = False
+        self.stb_selected_shot_in_shots_stack_changes_current_shot = False
+        self.stb_display_storyboard_in_properties = True
+        self.stb_display_notes_in_properties = True
+        self.stb_display_cameraBG_in_properties = False
+        self.stb_display_takerendersettings_in_properties = False
+        self.stb_display_editmode_in_properties = False
+        self.stb_display_globaleditintegr_in_properties = False
+        self.stb_display_advanced_infos = False
+
+        self.pvz_selected_shot_changes_current_shot = False
+        self.pvz_selected_shot_in_shots_stack_changes_current_shot = False
+        self.pvz_display_storyboard_in_properties = False
+        self.pvz_display_notes_in_properties = False
+        self.pvz_display_cameraBG_in_properties = False
+        self.pvz_display_takerendersettings_in_properties = False
+        self.pvz_display_editmode_in_properties = False
+        self.pvz_display_globaleditintegr_in_properties = False
+        self.pvz_display_advanced_infos = False
+
+        # self.display_25D_greasepencil_panel = True
+
         self.isInitialized = True
 
     ########################################################################
@@ -266,6 +289,10 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
         name="Expand Shot Properties",
         default=True,
     )
+    shot_global_props_expanded: BoolProperty(
+        name="Expand Shots Global Properties",
+        default=False,
+    )
     shot_notes_expanded: BoolProperty(
         name="Expand Shot Notes",
         default=False,
@@ -279,8 +306,9 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
         default=False,
     )
 
+    ##############################
     # storyboard panel
-    ####################
+    ##############################
     stb_canvas_props_expanded: BoolProperty(
         name="Expand Canvas Properties",
         default=False,
@@ -464,24 +492,6 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
     #     default=True,
     # )
 
-    selected_shot_changes_current_shot_in_stb: BoolProperty(
-        name="Set selected shot to current",
-        description="When a shot is selected in the shot list, in Storyboard layout mode, the shot is also set to be the current one",
-        default=True,
-    )
-    selected_shot_in_shots_stack_changes_current_shot_in_stb: BoolProperty(
-        name="Set selected shot in Shots Stack to current",
-        description="When a shot is selected in the Interactive Shots Stack, in Storyboard layout mode, the shot is also set to be the current one",
-        default=False,
-    )
-    shot_selected_from_shots_stack__flag: BoolProperty(
-        description="Flag property (= not exposed in the UI) used When a shot is selected in the Interactive Shots Stack,"
-        "\nin Storyboard layout mode, the shot is also set to be the current one",
-        default=False,
-    )
-
-    playblastFileName: StringProperty(name="Temporary Playblast File", default="toto.mp4")
-
     # def _get_useLockCameraView(self):
     #     # Can also use area.spaces.active to get the space assoc. with the area
     #     for area in bpy.context.screen.areas:
@@ -520,19 +530,19 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
     # can be STORYBOARD or PREVIZ
     # not visible in the UI because radiobuttons are more suitable
 
-    def _update_layout_mode(self, context):
-        #   print("\n*** Prefs _update_layout_mode updated. New state: ", self._update_layout_mode)
-        # self.layout_but_storyboard = "STORYBOARD" == self.layout_mode
-        # self.layout_but_previz = "PREVIZ" == self.layout_mode
-        if "STORYBOARD" == self.layout_mode:
-            self.display_storyboard_in_properties = True
-            self.display_notes_in_properties = True
-        #    self.display_25D_greasepencil_panel = True
-        else:
-            self.display_storyboard_in_properties = False
-            self.display_notes_in_properties = False
-        #    self.display_25D_greasepencil_panel = False
-        pass
+    # def _update_layout_mode(self, context):
+    #     #   print("\n*** Prefs _update_layout_mode updated. New state: ", self._update_layout_mode)
+    #     # self.layout_but_storyboard = "STORYBOARD" == self.layout_mode
+    #     # self.layout_but_previz = "PREVIZ" == self.layout_mode
+    #     if "STORYBOARD" == self.layout_mode:
+    #         self.stb_display_storyboard_in_properties = True
+    #         self.stb_display_notes_in_properties = True
+    #     #    self.display_25D_greasepencil_panel = True
+    #     else:
+    #         self.pvz_display_storyboard_in_properties = False
+    #         self.pvz_display_notes_in_properties = False
+    #     #    self.display_25D_greasepencil_panel = False
+    #     pass
 
     layout_mode: EnumProperty(
         name="Layout Mode",
@@ -541,8 +551,10 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
             ("STORYBOARD", "Storyboard", "Storyboard layout"),
             ("PREVIZ", "Previz", "Previz layout"),
         ),
-        update=_update_layout_mode,
-        default="PREVIZ",
+        #  update=_update_layout_mode,
+        # default="PREVIZ",
+        # default="STORYBOARD",
+        default=config.defaultLayout,
     )
 
     # NOTE:
@@ -592,48 +604,132 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
     )
 
     ########################################################################
+    # features panel   ###
+    ########################################################################
+
+    features_layoutSettings_expanded: BoolProperty(
+        name="Expand Layout Settings",
+        default=False,
+    )
+
+    ########################################################################
     # features to display by default   ###
     ########################################################################
 
-    display_storyboard_in_properties: BoolProperty(
+    #########################
+    # storyboard
+    #########################
+
+    # NOTE: when the Continuous Editing mode is on then the selected and current shots are tied anyway
+    stb_selected_shot_changes_current_shot: BoolProperty(
+        name="Set selected shot to current",
+        description="When a shot is selected in the shot list, in Storyboard layout mode, the shot is also set to be the current one",
+        default=True,
+    )
+    stb_selected_shot_in_shots_stack_changes_current_shot: BoolProperty(
+        name="Set selected shot in Shots Stack to current",
+        description="When a shot is selected in the Interactive Shots Stack, in Storyboard layout mode, the shot is also set to be the current one",
+        default=False,
+    )
+
+    stb_display_storyboard_in_properties: BoolProperty(
         name="Storyboard Frames and Grease Pencil Tools",
         description="Display the storyboard frames properties and tools in the Shot properties panel."
         "\nA storyboard frame is a Grease Pencil drawing surface associated to the camera of each shot",
-        default=True,
+        default=False,
     )
 
-    display_notes_in_properties: BoolProperty(
+    stb_display_notes_in_properties: BoolProperty(
         name="Takes and Shots Notes",
         description="Display the takes and shots notes in the Shot Properties panels",
         default=False,
     )
 
-    display_cameraBG_in_properties: BoolProperty(
+    stb_display_cameraBG_in_properties: BoolProperty(
         name="Camera Background Tools",
         description="Display the camera background image tools and controls in the Shot Properties panel",
         default=False,
     )
 
-    display_takerendersettings_in_properties: BoolProperty(
+    stb_display_takerendersettings_in_properties: BoolProperty(
         name="Take Render Settings",
         description="Display the take render settings in the Take Properties panel."
         "\nThese options allow each take to be rendered with its own output resolution",
         default=False,
     )
 
-    display_editmode_in_properties: BoolProperty(
+    stb_display_editmode_in_properties: BoolProperty(
         name="Display Global Edit Integration Tools",
         description="Display the advanced properties of the takes used to specify their position in a global edit",
         default=False,
     )
 
-    display_globaleditintegr_in_properties: BoolProperty(
+    stb_display_globaleditintegr_in_properties: BoolProperty(
         name="Display Global Edit Integration Tools",
         description="Display the advanced properties of the takes used to specify their position in a global edit",
         default=False,
     )
 
-    display_advanced_infos: BoolProperty(
+    stb_display_advanced_infos: BoolProperty(
+        name="Display Advanced Infos",
+        description="Display technical information and feedback in the UI",
+        default=False,
+    )
+
+    #########################
+    # previz
+    #########################
+
+    pvz_selected_shot_changes_current_shot: BoolProperty(
+        name="Set selected shot to current",
+        description="When a shot is selected in the shot list, in Previz layout mode, the shot is also set to be the current one",
+        default=False,
+    )
+    pvz_selected_shot_in_shots_stack_changes_current_shot: BoolProperty(
+        name="Set selected shot in Shots Stack to current",
+        description="When a shot is selected in the Interactive Shots Stack, in Previz layout mode, the shot is also set to be the current one",
+        default=False,
+    )
+
+    pvz_display_storyboard_in_properties: BoolProperty(
+        name="Storyboard Frames and Grease Pencil Tools",
+        description="Display the storyboard frames properties and tools in the Shot properties panel."
+        "\nA storyboard frame is a Grease Pencil drawing surface associated to the camera of each shot",
+        default=True,
+    )
+
+    pvz_display_notes_in_properties: BoolProperty(
+        name="Takes and Shots Notes",
+        description="Display the takes and shots notes in the Shot Properties panels",
+        default=False,
+    )
+
+    pvz_display_cameraBG_in_properties: BoolProperty(
+        name="Camera Background Tools",
+        description="Display the camera background image tools and controls in the Shot Properties panel",
+        default=False,
+    )
+
+    pvz_display_takerendersettings_in_properties: BoolProperty(
+        name="Take Render Settings",
+        description="Display the take render settings in the Take Properties panel."
+        "\nThese options allow each take to be rendered with its own output resolution",
+        default=False,
+    )
+
+    pvz_display_editmode_in_properties: BoolProperty(
+        name="Display Global Edit Integration Tools",
+        description="Display the advanced properties of the takes used to specify their position in a global edit",
+        default=False,
+    )
+
+    pvz_display_globaleditintegr_in_properties: BoolProperty(
+        name="Display Global Edit Integration Tools",
+        description="Display the advanced properties of the takes used to specify their position in a global edit",
+        default=False,
+    )
+
+    pvz_display_advanced_infos: BoolProperty(
         name="Display Advanced Infos",
         description="Display technical information and feedback in the UI",
         default=False,
@@ -782,7 +878,7 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
     def _update_toggle_overlays_turnOn_sequenceTimeline(self, context):
         _logger.debug_ext("_update_toggle_overlays_turnOn_sequenceTimeline")
 
-        ## toggle on or off the overlay tools mode
+        # toggle on or off the overlay tools mode
         if self.toggle_overlays_turnOn_sequenceTimeline:
             if not context.window_manager.UAS_shot_manager_display_overlay_tools:
                 context.window_manager.UAS_shot_manager_display_overlay_tools = True
@@ -830,27 +926,33 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
         default=True,
     )
 
-    intShStack_settings_expanded: BoolProperty(
+    shtStack_settings_expanded: BoolProperty(
         name="Expand Panel Settings",
         default=False,
     )
 
-    def _update_display_intShStack_toolbar(self, context):
+    shot_selected_from_shots_stack__flag: BoolProperty(
+        description="Flag property (= not exposed in the UI) used When a shot is selected in the Interactive Shots Stack,"
+        "\nin Storyboard layout mode, the shot is also set to be the current one",
+        default=False,
+    )
+
+    def _update_display_shtStack_toolbar(self, context):
         # print("\n*** _update_display_frame_range_tool. New state: ", self.display_frame_range_tool)
         from shotmanager.overlay_tools.interact_shots_stack.shots_stack_toolbar import (
             display_shots_stack_toolbar_in_editor,
         )
 
-        display_shots_stack_toolbar_in_editor(self.display_intShStack_toolbar)
+        display_shots_stack_toolbar_in_editor(self.display_shtStack_toolbar)
 
-    display_intShStack_toolbar: BoolProperty(
+    display_shtStack_toolbar: BoolProperty(
         name="Display Interactive Shots Stack Toolbar",
         description="Display Interactive Shots Stack toolbar in the Timeline editor",
-        update=_update_display_intShStack_toolbar,
+        update=_update_display_shtStack_toolbar,
         default=True,
     )
 
-    intShStack_opacity: FloatProperty(
+    shtStack_opacity: FloatProperty(
         name="Shots Stack Opacity",
         description="Opacity of the Interactive Shots Stack clips in the dopesheet editor",
         min=0.0,
@@ -1085,8 +1187,11 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
     # global temps values   ###
     ##################
 
+    ####################
     # Playblast
     ####################
+
+    playblastFileName: StringProperty(name="Temporary Playblast File", default="toto.mp4")
 
     ##################
     # markers ###

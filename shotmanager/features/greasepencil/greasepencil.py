@@ -49,15 +49,18 @@ def createStoryboarFrameGP(gp_name, framePreset, parentCamera=None, location=Non
     # add to main collection
     # bpy.context.collection.objects.link(gpencil)
 
+    ####################
     # add empty object to a specific collection
-    emptyCollectionName = "SM_Storyboard_Empties"
-    cpColl = None
-    if emptyCollectionName not in scene.collection.children:
+    # NOTE: the name of the collection may change when we work in another scene of the file, to be unique
+    emptyCollectionName = "SM_Storyboard_Empties" + "_" + scene.name
+    emptyCollections = utils.getCollectionsMatchingNamePattern(scene, emptyCollectionName)
+    if not len(emptyCollections):
         cpColl = bpy.data.collections.new(name=emptyCollectionName)
         scene.collection.children.link(cpColl)
     else:
-        cpColl = scene.collection.children[emptyCollectionName]
-    utils.excludeLayerCollection(scene, emptyCollectionName, True)
+        cpColl = emptyCollections[0]
+
+    utils.excludeLayerCollection(scene, cpColl.name, True)
     cpColl.objects.link(gpEmpty)
 
     # for some reason the empty also belongs to the scence collection, so we remove it from there
@@ -71,14 +74,16 @@ def createStoryboarFrameGP(gp_name, framePreset, parentCamera=None, location=Non
 
     gpencil.use_grease_pencil_lights = False
 
+    ####################
     # add grease pencil object to a specific collection
-    gpCollectionName = "SM_Storyboard_Frames"
-    cpColl = None
-    if gpCollectionName not in scene.collection.children:
+    # NOTE: the name of the collection may change when we work in another scene of the file, to be unique
+    gpCollectionName = "SM_Storyboard_Frames" + "_" + scene.name
+    gpCollections = utils.getCollectionsMatchingNamePattern(scene, gpCollectionName)
+    if not len(gpCollections):
         cpColl = bpy.data.collections.new(name=gpCollectionName)
         scene.collection.children.link(cpColl)
     else:
-        cpColl = scene.collection.children[gpCollectionName]
+        cpColl = gpCollections[0]
     cpColl.objects.link(gpencil)
 
     if parentCamera is not None:
@@ -103,15 +108,25 @@ def createStoryboarFrameGP(gp_name, framePreset, parentCamera=None, location=Non
     # # align gp with camera axes
     # gpencil.rotation_euler = (radians(0.0), 0.0, radians(0.0))
 
-    createStoryboarFrameLayers(gpencil, framePreset)
-    utils_greasepencil.create_grease_pencil_material(gpencil, "LINES")
-    utils_greasepencil.create_grease_pencil_material(gpencil, "FILLS")
-
     canvasPreset = framePreset.getPresetByID("CANVAS")
-    utils_greasepencil.add_grease_pencil_canvas_layer(gpencil, canvasPreset, order="BOTTOM", camera=parentCamera)
+    canvasMatName = canvasPreset.materialName
+    canvasMat = utils_greasepencil.create_grease_pencil_material(
+        mat_type="CANVAS", mat_name=canvasMatName, gpencil=gpencil
+    )
+    createStoryboarFrameLayers(gpencil, framePreset)
+    createStoryboarFrameMaterials(gpencil, framePreset)
+
+    utils_greasepencil.add_grease_pencil_canvas_layer(
+        gpencil, canvasPreset, material=canvasMat, order="BOTTOM", camera=parentCamera
+    )
 
     if len(gpencil.data.layers):
         gpencil.data.layers.active = gpencil.data.layers[len(gpencil.data.layers) - 1]
+
+        for preset in reversed(framePreset.usagePresets):
+            if preset.used and not gpencil.data.layers[preset.layerName].lock:
+                utils_greasepencil.activateGpLayerAndMat(gpencil, preset.layerName, preset.materialName)
+                break
 
     return gpencil
 
@@ -123,6 +138,27 @@ def createStoryboarFrameLayers(gpencil: bpy.types.GreasePencil, framePreset, cle
             gpencil_layer = utils_greasepencil.add_grease_pencil_layer(
                 gpencil, gpencil_layer_name=preset.layerName, clear_layer=True, order=order
             )
+
+
+def createStoryboarFrameMaterials(gpencil: bpy.types.GreasePencil, framePreset):
+    """Canvas material is not created here - Use utils_greasepencil.create_grease_pencil_material"""
+    for preset in framePreset.usagePresets:
+        if preset.used:
+            if -1 != preset.id.find("CANVAS"):
+                matType = "CANVAS"
+                continue
+            elif -1 != preset.id.find("LINES"):
+                matType = "LINES"
+            elif -1 != preset.id.find("FILLS"):
+                matType = "FILLS"
+            else:
+                matType = "LINES"
+
+            mat = utils_greasepencil.create_grease_pencil_material(mat_type=matType, mat_name=preset.materialName)
+
+            if mat and gpencil:
+                if not (mat.name in gpencil.data.materials):
+                    gpencil.data.materials.append(mat)
 
 
 def setInkLayerReadyToDraw(gpencil: bpy.types.GreasePencil):

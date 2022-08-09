@@ -63,7 +63,7 @@ def register():
     # # # )
 
     # shots_stack_toolbar.register()
-    shots_stack_toolbar.display_shots_stack_toolbar_in_editor(prefs.display_intShStack_toolbar)
+    shots_stack_toolbar.display_shots_stack_toolbar_in_editor(prefs.display_shtStack_toolbar)
 
 
 def unregister():

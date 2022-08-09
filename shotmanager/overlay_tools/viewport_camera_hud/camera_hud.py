@@ -122,14 +122,16 @@ class UAS_ShotManager_DrawHudOnCamPov(bpy.types.Operator):
 
         props = context.scene.UAS_shot_manager_props
         current_shot = props.getCurrentShot()
+        cam = context.scene.camera
         if (
             current_shot is None
             or context.space_data.region_3d.view_perspective != "CAMERA"
             or context.scene.camera is None
             or "CAMERA" != context.scene.camera.type
+            or cam is None
+            or cam.name not in context.scene.objects
         ):
             return
-        cam = context.scene.camera
 
         line_separation = 3
         u_r_corner, d_r_corner, d_l_corner, u_l_corner = view3d_camera_border(context)

@@ -22,21 +22,19 @@ Shot Manager main panel UI
 import bpy
 from bpy.types import Panel, Operator
 
-from shotmanager.config import config
-
-# from shotmanager.viewport_3d.ogl_ui import UAS_ShotManager_sequenceTimeline
-
 from shotmanager.utils import utils
+from shotmanager.utils import utils_shot_manager
 from shotmanager.utils import utils_ui
 
 from . import sm_shots_ui_previz_layout
 from . import sm_shots_ui_storyboard_layout
 from . import sm_takes_ui
-from . import sm_shot_settings_ui
+from . import sm_shot_settings_panel_ui
 from shotmanager.warnings.warnings_ui import drawWarnings
 
 # from shotmanager.features.greasepencil import greasepencil_ui as gp
 
+from shotmanager.config import config
 from shotmanager.config import sm_logging
 
 _logger = sm_logging.getLogger(__name__)
@@ -48,7 +46,7 @@ _logger = sm_logging.getLogger(__name__)
 
 class UAS_PT_ShotManager(Panel):
     #    bl_label = f"Shot Manager {'.'.join ( str ( v ) for v in bl_info[ 'version'] ) }"
-    bl_label = " Shot Manager  V. " + utils.addonVersion("Shot Manager")[0]
+    bl_label = f"{utils_shot_manager.getUbisoftName()} Shot Manager  V. {utils.addonVersion('Shot Manager')[0]}"
     bl_idname = "UAS_PT_Shot_Manager"
     bl_space_type = "VIEW_3D"
     bl_region_type = "UI"
@@ -56,9 +54,18 @@ class UAS_PT_ShotManager(Panel):
 
     @classmethod
     def poll(cls, context):
-        # props = context.scene.UAS_shot_manager_props
+        props = context.scene.UAS_shot_manager_props
+        # prefs = bpy.context.preferences.addons["shotmanager"].preferences
+
         # hide the whole panel if used
         # return not props.dontRefreshUI()
+        # if -1 == props.getCurrentLayoutIndex():
+        #     props.createLayoutSettings()
+        #     props.setCurrentLayout(prefs.layout_mode)
+
+        currentLayout = props.getCurrentLayout()
+        if not props.isInitialized or not len(props.layouts) or currentLayout is None:
+            return False
         return True
 
     def draw_header(self, context):
@@ -83,18 +90,18 @@ class UAS_PT_ShotManager(Panel):
             else:
                 row.label(text=props.project_name)
 
-        addonWarning = [
+        addonHeaderWarning = [
             addon.bl_info.get("warning", "")
             for addon in addon_utils.modules()
             if addon.bl_info["name"] == "Shot Manager"
         ]
-        if len(addonWarning):
+        if False and len(addonHeaderWarning):
             betaRow = row.row()
             betaRow.alert = True
-            if "beta" in addonWarning[0].lower():
+            if "beta" in addonHeaderWarning[0].lower():
                 betaRow.label(text=" ** BETA **")
             else:
-                betaRow.label(text=f" *** {addonWarning[0]} ***")
+                betaRow.label(text=f" *** {addonHeaderWarning[0]} ***")
 
     def draw_header_preset(self, context):
         prefs = context.preferences.addons["shotmanager"].preferences
@@ -140,6 +147,18 @@ class UAS_PT_ShotManager(Panel):
         scene = context.scene
         props = scene.UAS_shot_manager_props
         prefs = context.preferences.addons["shotmanager"].preferences
+
+        currentLayout = props.getCurrentLayout()
+        # currentLayoutIsStb = "STORYBOARD" == props.currentLayoutMode()
+        if currentLayout is None:
+            _logger.debug_ext("SM UI: currentLayout is None...", col="RED")
+            #    return
+            currentLayoutIsStb = False
+        #  print(f"Redrawing SM panel...  layout None is Stb: {currentLayoutIsStb}")
+        else:
+            currentLayoutIsStb = "STORYBOARD" == currentLayout.layoutMode
+        # print(f"Redrawing SM panel...  layout is Stb: {currentLayoutIsStb}")
+
         currentTake = props.getCurrentTake()
         currentTakeInd = props.getCurrentTakeIndex()
 
@@ -151,22 +170,7 @@ class UAS_PT_ShotManager(Panel):
 
         enlargeButs = 1.15
 
-        # addon warning message - for beta message display
         ###############
-        # import addon_utils
-        # addonWarning = [
-        #     addon.bl_info.get("warning", "")
-        #     for addon in addon_utils.modules()
-        #     if addon.bl_info["name"] == "Shot Manager"
-        # ]
-
-        addonWarning = [""]
-        if "" != addonWarning[0]:
-            row = layout.row()
-            row.alignment = "CENTER"
-            row.alert = True
-            row.label(text=f" ***  {addonWarning[0]}  ***")
-            row.alert = False
 
         if config.devDebug:
             row = layout.row()
@@ -194,7 +198,7 @@ class UAS_PT_ShotManager(Panel):
             resetOp.presetID = "ALL"
 
         # NOTE: Shot Manager Prefs and Shot Manager scene instance are initialized here:
-        if not props.isInitialized:
+        if not props.isInitialized or not len(props.layouts) or currentLayout is None:
             layout.separator()
             row = layout.row()
             row.alert = True
@@ -206,6 +210,9 @@ class UAS_PT_ShotManager(Panel):
         ################
         warningsList = props.getWarnings(scene)
         drawWarnings(context, layout, warningsList, panelType="MAIN")
+
+        if not props.isInitialized or not len(props.layouts) or currentLayout is None:
+            return
 
         # play and timeline
         ################
@@ -406,7 +413,7 @@ class UAS_PT_ShotManager(Panel):
 
         # editing
         ################
-        if props.display_editmode_in_properties:
+        if currentLayout.display_editmode_in_properties:
             box = layout.box()
             editrow = box.row()
             leftrow = editrow.row()
@@ -444,9 +451,10 @@ class UAS_PT_ShotManager(Panel):
         box = layout.box()
         row = box.row(align=False)
 
-        # if props.display_globaleditintegr_in_properties or props.display_notes_in_properties or props.display_takerendersettings_in_properties or takeHasNotes:
+        # if currentLayout.display_globaleditintegr_in_properties or currentLayout.display_notes_in_properties or currentLayout.display_takerendersettings_in_properties or takeHasNotes:
         display_take_arrow = (
-            props.display_globaleditintegr_in_properties or props.display_takerendersettings_in_properties
+            currentLayout.display_globaleditintegr_in_properties
+            or currentLayout.display_takerendersettings_in_properties
         )
         if display_take_arrow:
             # utils_ui.collapsable_panel(row, prefs, "take_properties_expanded")     # doesn't improve the UI
@@ -459,12 +467,16 @@ class UAS_PT_ShotManager(Panel):
         # leftrow.scale_x = 0.81 if display_take_arrow else 1.16
 
         if display_take_arrow:
-            arrowScale_x = 1.0 if props.display_advanced_infos else 0.9
+            arrowScale_x = 1.0 if currentLayout.display_advanced_infos else 0.9
         else:
-            arrowScale_x = 1.0 if props.display_advanced_infos else 0.9
+            arrowScale_x = 1.0 if currentLayout.display_advanced_infos else 0.9
         leftrow.scale_x = arrowScale_x
 
-        takeStr = "Take:" if not props.display_advanced_infos else f"Take ({currentTakeInd + 1}/{props.getNumTakes()}):"
+        takeStr = (
+            "Take:"
+            if not currentLayout.display_advanced_infos
+            else f"Take ({currentTakeInd + 1}/{props.getNumTakes()}):"
+        )
         leftrow.label(text=takeStr)
 
         subrow = row.row(align=True)
@@ -478,7 +490,7 @@ class UAS_PT_ShotManager(Panel):
         if currentTake is not None:
 
             # reduce space between buttons:
-            # if currentTake.overrideRenderSettings or takeHasNotes or props.display_notes_in_properties:
+            # if currentTake.overrideRenderSettings or takeHasNotes or currentLayout.display_notes_in_properties:
 
             if currentTake.overrideRenderSettings:
                 # overrideRow = subsubrow.row()
@@ -503,7 +515,7 @@ class UAS_PT_ShotManager(Panel):
                     prefs, "take_notes_expanded", text="", emboss=prefs.take_notes_expanded, icon_value=icon.icon_id
                 )
             else:
-                if props.display_notes_in_properties:
+                if currentLayout.display_notes_in_properties:
                     icon = config.icons_col["ShotManager_NotesNoData_32"]
                     subsubrow.prop(
                         prefs, "take_notes_expanded", text="", emboss=prefs.take_notes_expanded, icon_value=icon.icon_id
@@ -530,7 +542,7 @@ class UAS_PT_ShotManager(Panel):
 
             # Global edit
             ######################
-            if props.display_globaleditintegr_in_properties:
+            if currentLayout.display_globaleditintegr_in_properties:
                 subBox = box.box()
                 subRow = subBox.row()
                 subRow.separator()
@@ -542,15 +554,15 @@ class UAS_PT_ShotManager(Panel):
                 subRow.separator()
                 subRow.prop(currentTake, "startInGlobalEdit", text="Start in Global Edit")
 
-            if props.display_globaleditintegr_in_properties:
+            if currentLayout.display_globaleditintegr_in_properties:
                 box.separator(factor=0.2)
 
         # Render settings properties
         ######################
-        # if props.display_takerendersettings_in_properties:
+        # if currentLayout.display_takerendersettings_in_properties:
         if currentTake is not None and (
-            (props.display_takerendersettings_in_properties and prefs.take_properties_expanded)
-            or (props.display_takerendersettings_in_properties and prefs.take_renderSettings_expanded)
+            (currentLayout.display_takerendersettings_in_properties and prefs.take_properties_expanded)
+            or (currentLayout.display_takerendersettings_in_properties and prefs.take_renderSettings_expanded)
             or (currentTake.overrideRenderSettings and prefs.take_renderSettings_expanded)
             # or (takeHasNotes and prefs.take_properties_expanded)
         ):
@@ -581,12 +593,12 @@ class UAS_PT_ShotManager(Panel):
         # Notes
         ######################
         if currentTake is not None and (
-            (props.display_notes_in_properties and prefs.take_properties_expanded)
-            or (props.display_notes_in_properties and prefs.take_notes_expanded)
+            (currentLayout.display_notes_in_properties and prefs.take_properties_expanded)
+            or (currentLayout.display_notes_in_properties and prefs.take_notes_expanded)
             or (takeHasNotes and prefs.take_notes_expanded)
             # or (takeHasNotes and prefs.take_properties_expanded)
         ):
-            # or (props.display_notes_in_properties and prefs.take_properties_expanded)
+            # or (currentLayout.display_notes_in_properties and prefs.take_properties_expanded)
             # ):
             panelIcon = "TRIA_DOWN" if prefs.take_notes_expanded else "TRIA_RIGHT"
 
@@ -619,7 +631,9 @@ class UAS_PT_ShotManager(Panel):
             # numEnabledShots = len(props.getShotsList(ignoreDisabled=True))
             numShots = props.getNumShots()
             numEnabledShots = props.getNumShots(ignoreDisabled=True)
-            display_adv_features = props.display_storyboard_in_properties or props.display_cameraBG_in_properties
+            display_adv_features = (
+                currentLayout.display_storyboard_in_properties or currentLayout.display_cameraBG_in_properties
+            )
 
             box = layout.box()
             shotsrow = box.row()
@@ -635,13 +649,13 @@ class UAS_PT_ShotManager(Panel):
             # shotsrowleft.alignment = "LEFT"
             shotsrowlefttxt = shotsrowleft.row(align=True)
             shotsrowlefttxt.alignment = "LEFT"
-
+            shotsrowlefttxt.scale_x = 1.2
             layoutIcon = (
                 config.icons_col["ShotManager_Storyboard_32"]
-                if "STORYBOARD" == props.layout_mode
+                if "STORYBOARD" == props.currentLayoutMode()
                 else config.icons_col["ShotManager_32"]
             )
-            layoutButPressed = "STORYBOARD" == props.layout_mode
+            layoutButPressed = currentLayoutIsStb
             shotsrowlefttxt.operator(
                 "uas_shot_manager.change_layout",
                 text="",
@@ -651,7 +665,9 @@ class UAS_PT_ShotManager(Panel):
             )
             shotsrowlefttxt.separator(factor=0.5)
 
-            shotsStr = "Shots:" if not props.display_advanced_infos else f"Shots ({numEnabledShots}/{numShots}):"
+            shotsStr = (
+                "Shots:" if not currentLayout.display_advanced_infos else f"Shots ({numEnabledShots}/{numShots}):"
+            )
             shotsrowlefttxt.label(text=shotsStr)
             #   shotsrowlefttxt.operator("uas_shot_manager.enabledisableall", text="", icon="TIME")
 
@@ -669,7 +685,7 @@ class UAS_PT_ShotManager(Panel):
             # spacer
             spacerrow = shotsrowleft.row(align=False)
             spacerrow.alignment = "LEFT"
-            # spacerrow.scale_x = 1.26 if props.display_notes_in_properties else 0.92
+            # spacerrow.scale_x = 1.26 if currentLayout.display_notes_in_properties else 0.92
             # spacerrow.label(text="")
             spacerrow.separator(factor=1)
 
@@ -682,7 +698,7 @@ class UAS_PT_ShotManager(Panel):
             iconCheckBoxes = "CHECKBOX_HLT" if not prefs.toggleShotsEnabledState else "CHECKBOX_DEHLT"
             subrowedit.operator("uas_shot_manager.enabledisableall", text="", icon=iconCheckBoxes, emboss=False)
 
-            if props.display_storyboard_in_properties:
+            if currentLayout.display_storyboard_in_properties:
                 subrowedit.operator(
                     "uas_shot_manager.toggle_continuous_gp_editing_mode",
                     text="",
@@ -690,7 +706,7 @@ class UAS_PT_ShotManager(Panel):
                     depress=props.useContinuousGPEditing,
                 )
 
-            if props.display_editmode_in_properties:
+            if currentLayout.display_editmode_in_properties:
                 subrowedit.prop(
                     props,
                     "display_edit_times_in_shotlist",
@@ -722,29 +738,33 @@ class UAS_PT_ShotManager(Panel):
                 subrowtools.alignment = "LEFT"
                 # subrowtools.scale_x = 0.9
 
-                if props.display_storyboard_in_properties:
+                if currentLayout.display_storyboard_in_properties:
                     icon = (
-                        config.icons_col["ShotManager_CamBGShot_32"]
+                        config.icons_col["ShotManager_StbCamVisible_32"]
                         # if not prefs.enableGreasePencil
-                        if props.use_stb_cameras
-                        else config.icons_col["ShotManager_CamBGHidden_32"]
+                        if props.stb_displayCameras
+                        else config.icons_col["ShotManager_StbCamHidden_32"]
                     )
                     subrowtools.operator(
-                        "uas_shot_manager.enabledisablecameras", text="", icon_value=icon.icon_id, emboss=False
-                    ).hide = props.use_stb_cameras
+                        "uas_shot_manager.showhidecameras", text="", icon_value=icon.icon_id, emboss=False
+                    ).visible = not props.stb_displayCameras
+
+                    subrowtools.separator(factor=0.4)
 
                     icon = (
-                        config.icons_col["ShotManager_CamGPVisible_32"]
-                        # if not prefs.enableGreasePencil
+                        # config.icons_col["ShotManager_CamGPVisible_32"]
+                        # if props.use_greasepencil
+                        # else config.icons_col["ShotManager_CamGPHidden_32"]
+                        config.icons_col["ShotManager_StbVisible_32"]
                         if props.use_greasepencil
-                        else config.icons_col["ShotManager_CamGPHidden_32"]
+                        else config.icons_col["ShotManager_StbHidden_32"]
                     )
                     subrowtools.operator(
-                        "uas_shot_manager.enabledisablegreasepencil", text="", icon_value=icon.icon_id, emboss=False
+                        "uas_shot_manager.showhidestoryboardframes", text="", icon_value=icon.icon_id, emboss=False
                     )
                     # subrowtools.prop(props, "use_greasepencil", text="", icon_value=icon.icon_id, emboss=False)
 
-                if props.display_cameraBG_in_properties:
+                if currentLayout.display_cameraBG_in_properties:
                     icon = (
                         config.icons_col["ShotManager_CamBGVisible_32"]
                         # config.icons_col["ShotManager_Image_32"]
@@ -799,11 +819,7 @@ class UAS_PT_ShotManager(Panel):
             ##################################################
 
             row = box.row()
-            shots_layout = (
-                "UAS_UL_ShotManager_Storyboard_Items"
-                if "STORYBOARD" == props.layout_mode
-                else "UAS_UL_ShotManager_Items"
-            )
+            shots_layout = "UAS_UL_ShotManager_Storyboard_Items" if currentLayoutIsStb else "UAS_UL_ShotManager_Items"
 
             row.template_list(
                 shots_layout,
@@ -817,7 +833,7 @@ class UAS_PT_ShotManager(Panel):
             )
 
             col = row.column(align=True)
-            col.operator("uas_shot_manager.shot_add", icon="ADD", text="").layout_mode = props.layout_mode
+            col.operator("uas_shot_manager.shot_add", icon="ADD", text="").layout_mode = currentLayout.layoutMode
             col.operator("uas_shot_manager.shot_duplicate", icon="DUPLICATE", text="")
             # col.operator("uas_shot_manager.shot_remove", icon="REMOVE", text="")
             col.operator("uas_shot_manager.remove_multiple_shots", icon="REMOVE", text="").action = "SELECTED"
@@ -831,7 +847,7 @@ class UAS_PT_ShotManager(Panel):
 
             if 0 < numShots:
                 if shot is not None:
-                    sm_shot_settings_ui.drawShotPropertiesToolbar(layout, context, shot)
+                    sm_shot_settings_panel_ui.drawShotPropertiesToolbar(layout, context, shot)
 
         # layout.separator ( factor = 1 )
 
@@ -855,7 +871,6 @@ class UAS_PT_ShotManager_Initialize(Operator):
 
 classes = (
     UAS_PT_ShotManager,
-    #  UAS_ShotManager_sequenceTimeline,
     UAS_PT_ShotManager_Initialize,
 )
 
@@ -867,11 +882,11 @@ def register():
     sm_takes_ui.register()
     sm_shots_ui_previz_layout.register()
     sm_shots_ui_storyboard_layout.register()
-    sm_shot_settings_ui.register()
+    sm_shot_settings_panel_ui.register()
 
 
 def unregister():
-    sm_shot_settings_ui.unregister()
+    sm_shot_settings_panel_ui.unregister()
     sm_shots_ui_storyboard_layout.unregister()
     sm_shots_ui_previz_layout.unregister()
     sm_takes_ui.unregister()

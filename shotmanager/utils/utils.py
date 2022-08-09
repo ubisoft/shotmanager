@@ -187,7 +187,6 @@ def addonPath():
     return str(filePath)
 
 
-
 def file_path_from_uri(uri):
     path = unquote_plus(urlparse(uri).path).replace("\\", "//")
     if re.match(r"^/\S:.*", path):  # Remove leading /
@@ -634,6 +633,24 @@ def getViewportIndex(context, viewport):
     return getAreaIndex(context, viewport, "VIEW_3D")
 
 
+def getCurrentViewport(context):
+    """Return the area of the current viewport"""
+    viewportsList = getAreasByType(context, "VIEW_3D")
+    for viewportArea in viewportsList:
+        if context.area == viewportArea:
+            return viewportArea
+    return None
+
+
+def getCurrentViewportIndex(context):
+    """Return the area index of the current viewport"""
+    viewportsList = getAreasByType(context, "VIEW_3D")
+    for ind, viewportArea in enumerate(viewportsList):
+        if context.area == viewportArea:
+            return ind
+    return -1
+
+
 # Dopesheet areas (= timelines + dopesheets + grease pencil + action + shapekey + mask + cachefile)
 # cf https://docs.blender.org/api/current/bpy.types.SpaceDopeSheetEditor.html
 #####################################
@@ -814,6 +831,17 @@ def excludeLayerCollection(scene, collectionName, value: Boolean):
                 return
 
 
+def getCollectionsMatchingNamePattern(scene, pattern):
+    """Return the list of the collections of the scene that have the specified pattern in their name.
+    Case sensitivity is ignored"""
+
+    colls = list()
+    for scnColl in scene.collection.children:
+        if -1 != scnColl.name.lower().find(pattern.lower()):
+            colls.append(scnColl)
+    return colls
+
+
 ###################
 # Cameras
 ###################
@@ -850,7 +878,6 @@ def getCameraCurrentlyInViewport(
                 if space_data.region_3d.view_perspective == "CAMERA":
                     #        print(f"Cam in area3D 04: {area3D}")
                     if not space_data.use_local_camera:
-                        print(f" 05 Cam in viewport is: {context.scene.camera.name}")
                         return context.scene.camera
 
     return None
@@ -980,9 +1007,17 @@ def setCurrentCameraToViewport(context, area=None):
     return
 
 
-def create_new_camera(camera_name, location=[0, 0, 0], locate_on_cursor=False):
-    """A unique name will be automatically given to the new camera"""
-    cam_data = bpy.data.cameras.new(camera_name)
+def create_new_camera(camera_name, location=[0, 0, 0], locate_on_cursor=False, camData=None):
+    """A unique name will be automatically given to the new camera
+    Args:
+        camData:    if provided, this camera data is used (without copy) for the new camera,
+                    then providing a way to have presets on the camera
+    """
+    if camData:
+        cam_data = camData
+        cam_data.name = camera_name
+    else:
+        cam_data = bpy.data.cameras.new(camera_name)
     cam = bpy.data.objects.new(cam_data.name, cam_data)
     cam.name = cam_data.name
 
@@ -999,11 +1034,11 @@ def create_new_camera(camera_name, location=[0, 0, 0], locate_on_cursor=False):
         camColl = bpy.context.scene.collection.children[camCollName]
     camColl.objects.link(cam)
 
-    bpy.data.cameras[cam_data.name].lens = 40
+    if not camData:
+        bpy.data.cameras[cam_data.name].lens = 40
+        cam_data.lens = 40
+        cam_data.clip_start = 0.01
 
-    # bpy.data.cameras[cam_data.name].lens = 40
-    cam_data.lens = 40
-    cam_data.clip_start = 0.01
     cam.color[0] = uniform(0, 1)
     cam.color[1] = uniform(0, 1)
     cam.color[2] = uniform(0, 1)
@@ -1142,6 +1177,76 @@ def add_to_selection(obj: bpy.types.Object):
     # to set the active object
     if bpy.context.active_object is None or "OBJECT" == bpy.context.active_object.mode:
         bpy.context.view_layer.objects.active = obj
+
+
+###################
+# Animation
+###################
+
+
+def getFCurveForSpecifiedTranformAxis(obj: bpy.types.Object, curveType, axis):
+    """Return the fCurve of the specified transformation axis, None if not found
+    Args:
+        obj:    the animated object
+        curveType: can be "location", "rotation", "scale"
+        axis:   can be "X", "Y", "Z", "W"
+    """
+    if obj.animation_data is not None:
+        action = obj.animation_data.action
+        if action is not None:
+            for fcurve in action.fcurves:
+                if "Object Transforms" == fcurve.group.name and -1 != fcurve.data_path.find(curveType):
+                    # rotation data_path can be rotation_quaternion, rotation_euler...
+                    if axis.lower() == "x" and 0 == fcurve.array_index:
+                        return fcurve
+                    elif axis.lower() == "y" and 1 == fcurve.array_index:
+                        return fcurve
+                    elif axis.lower() == "z" and 2 == fcurve.array_index:
+                        return fcurve
+                    elif axis.lower() == "w" and 3 == fcurve.array_index:
+                        return fcurve
+    return None
+
+
+def getAnimatedTrandformFCurves(obj: bpy.types.Object):
+    """Return a list with the animated transformation fCurves of the object"""
+    fcurves = list()
+    if obj.animation_data is not None:
+        action = obj.animation_data.action
+        if action is not None:
+            for fcurve in action.fcurves:
+                if "Object Transform" == fcurve.group.name:
+                    fcurves.append(fcurve)
+    return fcurves
+
+
+def clearTransformAnimation(obj: bpy.types.Object, clearPos=True, clearRot=True, clearScale=True, clearLocked=True):
+    def _clearCurve(action, type, axis):
+        fc = getFCurveForSpecifiedTranformAxis(obj, type, axis)
+        if fc and (not fc.lock or clearLocked):
+            action.fcurves.remove(fc)
+
+    if obj.animation_data:
+        action = obj.animation_data.action
+        if action:
+            if clearPos:
+                _clearCurve(action, "location", "X")
+                _clearCurve(action, "location", "Y")
+                _clearCurve(action, "location", "Z")
+            if clearRot:
+                _clearCurve(action, "rotation", "X")
+                _clearCurve(action, "rotation", "Y")
+                _clearCurve(action, "rotation", "Z")
+                _clearCurve(action, "rotation", "W")
+            if clearScale:
+                _clearCurve(action, "scale", "X")
+                _clearCurve(action, "scale", "Y")
+                _clearCurve(action, "scale", "Z")
+
+    #     bpy.ops.anim.keyframe_clear_button
+    # bpy.ops.object.location_clear()
+    # bpy.ops.object.rotation_clear()
+    # bpy.ops.object.scale_clear()
 
 
 ###################

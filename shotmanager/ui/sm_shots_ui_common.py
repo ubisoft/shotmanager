@@ -39,23 +39,37 @@ def drawStoryboardRow(layout, props, item, index):
     gp = item.getGreasePencilObject("STORYBOARD")
     if gp is None:
         icon = config.icons_col["ShotManager_CamGPNoShot_32"]
-        row.operator("uas_shot_manager.greasepencilitem", text="", icon_value=icon.icon_id).index = index
+        row.operator("uas_shot_manager.greasepencil_select_and_draw", text="", icon_value=icon.icon_id).index = index
     else:
+        # if "STORYBOARD" == props.currentLayoutMode():
+        # opMode = "DRAW" if props.useContinuousGPEditing else "SELECT"
+        opMode = "DRAW" if props.isInContinuousGPEditing() else "SELECT"
+
         # if gp == context.active_object and context.active_object.mode == "PAINT_GPENCIL":
         if gp.mode == "PAINT_GPENCIL":
             icon = "GREASEPENCIL"
             row.alert = True
-            op = row.operator("uas_shot_manager.greasepencilitem", text="", icon=icon)
+            op = row.operator("uas_shot_manager.greasepencil_select_and_draw", text="", icon=icon)
             op.index = index
             op.toggleDrawEditing = True
+            op.mode = opMode
         else:
-            if "STORYBOARD" == item.shotType:
-                icon = config.icons_col["ShotManager_CamGPStb_32"]
+            # if "STORYBOARD" == item.shotType:
+            #     icon = config.icons_col["ShotManager_CamGPStb_32"]
+            # else:
+            #     icon = config.icons_col["ShotManager_CamGPShot_32"]
+
+            # if props.useContinuousGPEditing:
+            if props.isInContinuousGPEditing():
+                icon = "OUTLINER_DATA_GP_LAYER"
+                op = row.operator("uas_shot_manager.greasepencil_select_and_draw", text="", icon=icon)
             else:
-                icon = config.icons_col["ShotManager_CamGPShot_32"]
-            op = row.operator("uas_shot_manager.greasepencilitem", text="", icon_value=icon.icon_id)
+                icon = config.icons_col["ShotManager_CamGPStb_32"]
+                op = row.operator("uas_shot_manager.greasepencil_select_and_draw", text="", icon_value=icon.icon_id)
+
             op.index = index
             op.toggleDrawEditing = True
+            op.mode = opMode
     row.scale_x = 0.9
 
 
@@ -84,9 +98,14 @@ def drawNotesRow(layout, props, item, index):
 def drawShotName(layout, props, item):
     row = layout.row(align=True)
     row.scale_x = 1.0
+    #  row.use_property_decorate = False
     if props.display_enabled_in_shotlist:
         row.prop(item, "enabled", text="")
     #   row.separator(factor=0.9)
     row.scale_x = 0.8
+    # row.alignment = "LEFT"
     # row.label(text=item.name)
     row.prop(item, "name", text="", emboss=False)
+    # row.use_property_split = False
+    # subRow = row.row(align=True)
+    # subRow.prop(item, "name", text="", emboss=False)

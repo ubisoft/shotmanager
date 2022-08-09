@@ -411,10 +411,10 @@ class UAS_ShotManager_OT_RemoveGreasePencil(Operator):
         return {"FINISHED"}
 
 
-class UAS_ShotManager_OT_EnableDisableGreasePencil(Operator):
-    bl_idname = "uas_shot_manager.enabledisablegreasepencil"
-    bl_label = "Enable / Disable Grease Pencil"
-    bl_description = "Alternatively enable or disable the grease pencil used by the camera of the shots"
+class UAS_ShotManager_OT_ShowHideGreasePencil(Operator):
+    bl_idname = "uas_shot_manager.showhidegreasepencil"
+    bl_label = "Show / Hide Grease Pencil"
+    bl_description = "Alternatively display or hide the grease pencil used by the camera of the shots"
     bl_options = {"INTERNAL", "UNDO"}
 
     def invoke(self, context, event):
@@ -429,25 +429,17 @@ class UAS_ShotManager_OT_EnableDisableGreasePencil(Operator):
         return {"FINISHED"}
 
 
-class UAS_ShotManager_OT_EnableDisableCameras(Operator):
-    bl_idname = "uas_shot_manager.enabledisablecameras"
-    bl_label = "Enable / Disable Cameras"
-    bl_description = "Alternatively enable or disable the cameras used by the storyboard frames"
+class UAS_ShotManager_OT_ShowHideCameras(Operator):
+    bl_idname = "uas_shot_manager.showhidecameras"
+    bl_label = "Show / Hide Cameras"
+    bl_description = "Alternatively display or hide the cameras used by the storyboard frames"
     bl_options = {"INTERNAL", "UNDO"}
 
-    hide: BoolProperty(default=True)
+    visible: BoolProperty(default=True)
 
     def invoke(self, context, event):
         props = context.scene.UAS_shot_manager_props
-        take = props.getCurrentTake()
-        shotList = take.shots
-
-        props.use_stb_cameras = not self.hide
-        for shot in shotList:
-            if "STORYBOARD" == shot.shotType and shot.isCameraValid():
-                shot.camera.hide_select = self.hide
-                shot.camera.hide_viewport = self.hide
-
+        props.displayStoryboardFramesCameras(self.visible)
         return {"FINISHED"}
 
 
@@ -485,10 +477,27 @@ class UAS_ShotManager_OT_EnableDisableCameras(Operator):
 class UAS_ShotManager_OT_ClearLayer(Operator):
     bl_idname = "uas_shot_manager.clear_layer"
     bl_label = "Clear Layer"
-    bl_description = "Delete all the strokes of the active key frame of the current layer"
+    bl_description = (
+        "Delete all the strokes of the active key frame of the current layer."
+        "\nNote that the keys themselves are NOT removed."
+        "\n+ Shift: Delete strokes on keys at current time on EVERY layer"
+    )
     bl_options = {"REGISTER", "UNDO"}
 
     gpName: StringProperty(default="")
+    action: StringProperty(default="DO_NOTHING")
+
+    def invoke(self, context, event):
+        self.action = "DO_NOTHING"
+
+        if not event.ctrl and not event.shift and not event.alt:
+            self.action = "CURRENT"
+        elif not event.ctrl and event.shift and not event.alt:
+            self.action = "ALL"
+
+        if "DO_NOTHING" == self.action:
+            return {"FINISHED"}
+        return self.execute(context)
 
     def execute(self, context):
         scene = context.scene
@@ -515,18 +524,27 @@ class UAS_ShotManager_OT_ClearLayer(Operator):
             if objIsGP:
                 # gp = context.object
                 # gpl = context.active_gpencil_layer
-                gpl = gp.data.layers.active
-                if gpl and gpl.info is not None and not gpl.lock:
-                    layerFrameInd = utils_greasepencil.getLayerKeyFrameIndexAtFrame(gp, scene.frame_current, "ACTIVE")
-                    if -1 == layerFrameInd:
-                        layerFrameTime = utils_greasepencil.getLayerPreviousFrame(gp, scene.frame_current, "ACTIVE")
-                        layerFrameInd = utils_greasepencil.getLayerKeyFrameIndexAtFrame(gp, layerFrameTime, "ACTIVE")
-                    if -1 != layerFrameInd:
-                        gpl.frames[layerFrameInd].clear()
 
-                        # required for refresh
-                        gpl.hide = not gpl.hide
-                        gpl.hide = not gpl.hide
+                for gpl in gp.data.layers:
+                    # gpl = gp.data.layers.active
+                    if "ALL" == self.action or gpl == gp.data.layers.active:
+                        if gpl and gpl.info is not None and not gpl.lock:
+                            layerFrameInd = utils_greasepencil.getLayerKeyFrameIndexAtFrame(
+                                gp, scene.frame_current, "ACTIVE"
+                            )
+                            if -1 == layerFrameInd:
+                                layerFrameTime = utils_greasepencil.getLayerPreviousFrame(
+                                    gp, scene.frame_current, "ACTIVE"
+                                )
+                                layerFrameInd = utils_greasepencil.getLayerKeyFrameIndexAtFrame(
+                                    gp, layerFrameTime, "ACTIVE"
+                                )
+                            if -1 < layerFrameInd < len(gpl.frames):
+                                gpl.frames[layerFrameInd].clear()
+
+                                # required for refresh
+                                gpl.hide = not gpl.hide
+                                gpl.hide = not gpl.hide
 
         return {"INTERFACE"}
 
@@ -568,35 +586,66 @@ class UAS_ShotManager_OT_PinGreasePencilObject(Operator):
         return {"FINISHED"}
 
 
-class UAS_ShotManager_GreasePencilItem(Operator):
-    bl_idname = "uas_shot_manager.greasepencilitem"
-    bl_label = "Select Storyboard Frame"
+class UAS_ShotManager_GreasePencilSelectAndDraw(Operator):
+    bl_idname = "uas_shot_manager.greasepencil_select_and_draw"
+    bl_label = " "
     bl_description = (
-        "+ Shift: Select the storyboard frame and add it to the current selection"
+        "Select Storyboard Frame"
+        "\n+ Shift: Select the storyboard frame and add it to the current selection"
         "\n+ Alt: Select the storyboard frame and switch to Draw mode"
     )
     bl_options = {"INTERNAL", "UNDO"}
 
     index: IntProperty(default=0)
+    mode: StringProperty(default="SELECT")
     action: StringProperty(default="DO_NOTHING")
     ignoreSetCurrentShot: BoolProperty(default=False)
     toggleDrawEditing: BoolProperty(default=False)
+
+    @classmethod
+    def description(self, context, properties):
+        descr = "_"
+        if "DRAW" == properties.mode:
+            descr = (
+                "Draw on Storyboard Frame"
+                "\n+ Ctrl: Select the storyboard frame"
+                "\n+ Shift: Select the storyboard frame and add it to the current selection"
+            )
+        # "SELECT"
+        else:
+            descr = (
+                "Select Storyboard Frame"
+                "\n+ Shift: Select the storyboard frame and add it to the current selection"
+                "\n+ Alt: Select the storyboard frame and switch to Draw mode"
+            )
+        return descr
 
     def invoke(self, context, event):
         props = context.scene.UAS_shot_manager_props
         self.action = "DO_NOTHING"
 
-        if not event.ctrl and not event.shift and not event.alt:
-            self.action = "SELECT"
-        elif not event.ctrl and event.shift and not event.alt:
-            self.action = "ADD_TO_SELECTION"
-        if not event.ctrl and not event.shift and event.alt:
-            self.action = "SELECT_AND_DRAW"
+        if "DRAW" == self.mode:
+            if not event.ctrl and not event.shift:  # and not event.alt:
+                self.action = "SELECT_AND_DRAW"
+            elif event.ctrl and not event.shift and not event.alt:
+                self.action = "SELECT"
+            elif not event.ctrl and event.shift and not event.alt:
+                self.action = "ADD_TO_SELECTION"
+        # "SELECT"
+        else:
+            if not event.ctrl and not event.shift and not event.alt:
+                self.action = "SELECT"
+            elif not event.ctrl and event.shift and not event.alt:
+                self.action = "ADD_TO_SELECTION"
+            elif not event.ctrl and not event.shift and event.alt:
+                self.action = "SELECT_AND_DRAW"
 
         props.setSelectedShotByIndex(self.index, callUpdateFunc=False)
         props.expand_storyboard_properties = True
         self.ignoreSetCurrentShot = False
 
+        if "DO_NOTHING" == self.action:
+            return {"FINISHED"}
         return self.execute(context)
 
     def execute(self, context):
@@ -680,10 +729,28 @@ class UAS_ShotManager_GreasePencilItem(Operator):
         return {"FINISHED"}
 
 
+class UAS_ShotManager_DetachStoryboardFrame(Operator):
+    bl_idname = "uas_shot_manager.detach_storyboard_frame"
+    bl_label = "Detach Storyboard Frame"
+    bl_description = "Unlink the Storyboard Frame from the shot and make it free in the scene"
+    bl_options = {"INTERNAL", "UNDO"}
+
+    shotIndex: IntProperty(default=-1)
+
+    def execute(self, context):
+        props = context.scene.UAS_shot_manager_props
+
+        shot = props.getShotByIndex(self.shotIndex)
+        if shot is not None:
+            shot.detachGreasePencil()
+
+        return {"FINISHED"}
+
+
 class UAS_ShotManager_ResetUsagePreset(Operator):
     bl_idname = "uas_shot_manager.resetusagepreset"
     bl_label = "Reset Usage Preset(s)"
-    bl_description = "Reset Usage Preset to default values"
+    bl_description = "Reset Grease Pencil Usage Preset to default values"
     bl_options = {"INTERNAL", "UNDO"}
 
     # can be SCENE or ADDON_PREFS"
@@ -693,8 +760,8 @@ class UAS_ShotManager_ResetUsagePreset(Operator):
     presetID: StringProperty(default="")
 
     def execute(self, context):
-
         prefs = bpy.context.preferences.addons["shotmanager"].preferences
+
         if "SCENE" == self.mode:
             props = context.scene.UAS_shot_manager_props
         else:
@@ -1216,13 +1283,13 @@ class UAS_ShotManager_GreasePencil_SetKeyframe(Operator):
 
         if "ADD" == properties.mode:
             descr += "Insert blank keyframe to the active layer"
-            descr += "\n+ Shift: Insert on every layer"
+            descr += "\n+ Shift: Insert on EVERY layer"
         elif "DUPLICATE" == properties.mode:
             descr += "Duplicate active keyframe at the current time onto the specified layer"
-            descr += "\n+ Shift: Duplicate for every layer"
+            descr += "\n+ Shift: Duplicate for EVERY layer"
         elif "REMOVE" == properties.mode:
             descr += "Delete active keyframe from the specified layer"
-            descr += "\n+ Shift: Delete on every layers"
+            descr += "\n+ Shift: Delete on EVERY layer"
 
         return descr
 
@@ -1314,11 +1381,12 @@ _classes = (
     UAS_ShotManager_OT_DrawOnGreasePencil,
     UAS_ShotManager_OT_UpdateGreasePencil,
     UAS_ShotManager_OT_RemoveGreasePencil,
-    UAS_ShotManager_OT_EnableDisableGreasePencil,
-    UAS_ShotManager_OT_EnableDisableCameras,
+    UAS_ShotManager_OT_ShowHideGreasePencil,
+    UAS_ShotManager_OT_ShowHideCameras,
     UAS_ShotManager_OT_ClearLayer,
     UAS_ShotManager_OT_PinGreasePencilObject,
-    UAS_ShotManager_GreasePencilItem,
+    UAS_ShotManager_GreasePencilSelectAndDraw,
+    UAS_ShotManager_DetachStoryboardFrame,
     UAS_ShotManager_ResetUsagePreset,
     UAS_ShotManager_GreasePencil_UINavigationKeys,
     UAS_ShotManager_GreasePencil_NavigateInKeyFrames,

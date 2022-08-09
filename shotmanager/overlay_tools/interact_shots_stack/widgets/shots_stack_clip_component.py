@@ -20,7 +20,6 @@ UI in BGL for the Interactive Shots Stack overlay tool
 """
 
 
-import time
 import os
 
 import bpy
@@ -102,14 +101,19 @@ class ShotClipComponent(Component2D):
         self.textComponent.avoidClamp_leftSide = True
         self.textComponent.avoidClamp_spacePreservedOnRight = self.pref_avoidClamp_spacePreservedOnRight
 
+        self.fontSize = 12
         self.color_text = (0.1, 0.1, 0.1, 1)
         self.color_text_selected = (0.0, 0.0, 0.0, 1)
         self.color_text_disabled = (0.4, 0.4, 0.4, 1)
 
         # image component ########
         imgPath = os.path.join(os.path.dirname(__file__), "../../../icons/")
-        self.imageCam = utils.getDataImageFromPath(imgPath, "ShotManager_ShotsStack_Orange.png")
-        self.imageCamSelected = utils.getDataImageFromPath(imgPath, "ShotManager_ShotsStack_Orange.png")
+        self.imageCam = utils.getDataImageFromPath(imgPath, "ShotManager_ShotsStack_CamOrange.png")
+        self.imageCamSelected = utils.getDataImageFromPath(imgPath, "ShotManager_ShotsStack_CamOrange.png")
+        self.imageCamCurrent = utils.getDataImageFromPath(imgPath, "ShotManager_ShotsStack_CamOrange.png")
+        self.imageStb = utils.getDataImageFromPath(imgPath, "ShotManager_ShotsStack_StbWhite.png")
+        self.imageStbSelected = utils.getDataImageFromPath(imgPath, "ShotManager_ShotsStack_StbWhite.png")
+        self.imageStbCurrent = utils.getDataImageFromPath(imgPath, "ShotManager_ShotsStack_StbOrange.png")
 
         self.currentShotImage = QuadObject(
             posXIsInRegionCS=True,
@@ -241,7 +245,7 @@ class ShotClipComponent(Component2D):
         # vertically center the text + add a small offset to compensate the lower part of the font
         # self.textComponent.posY = int(getLaneHeight() * (0.06 + 0.5))
         self.textComponent.posY = int(getLaneHeight() * (0.00 + 0.5))
-        self.textComponent.fontSize = 13
+        self.textComponent.fontSize = self.fontSize
         # self.textComponent.fontSize = int(getLaneHeight() * 0.6)
         if self.isSelected:
             self.textComponent.bold = True
@@ -261,7 +265,9 @@ class ShotClipComponent(Component2D):
         self.currentShotImage.height = imgHeight
         self.currentShotImage.width = imgHeight
 
-        if self.isCurrent:
+        displayIcon = not "PREVIZ" == self.shot.shotType or self.isCurrent
+
+        if displayIcon:
             offsetFromImage = 5
             self.currentShotImage.isVisible = True
             self.currentShotImage.posY = int(getLaneHeight() * (0.06 + 0.5))
@@ -271,10 +277,21 @@ class ShotClipComponent(Component2D):
             self.textComponent.avoidClamp_leftSideOffset = (
                 self.pref_distanceFromRegionLeft + self.currentShotImage.getWidthInRegion() + offsetFromImage
             )
-            if self.isSelected:
-                self.currentShotImage.image = self.imageCam
+            if self.isCurrent:
+                if "PREVIZ" == self.shot.shotType:
+                    self.currentShotImage.image = self.imageCamCurrent
+                else:
+                    self.currentShotImage.image = self.imageStbCurrent
+            elif self.isSelected:
+                if "PREVIZ" == self.shot.shotType:
+                    self.currentShotImage.image = self.imageCamSelected
+                else:
+                    self.currentShotImage.image = self.imageStbSelected
             else:
-                self.currentShotImage.image = self.imageCamSelected
+                if "PREVIZ" == self.shot.shotType:
+                    self.currentShotImage.image = self.imageCam
+                else:
+                    self.currentShotImage.image = self.imageStb
         else:
             self.currentShotImage.isVisible = False
 

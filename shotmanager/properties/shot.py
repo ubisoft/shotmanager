@@ -61,7 +61,7 @@ def list_shot_types(self, context):
     icon_stb = config.icons_col["ShotManager_CamGPStb_32"]
     res = (
         ("PREVIZ", "Camera Shot", "Shot based on the record of a camera", icon_previz.icon_id, 0),
-        ("STORYBOARD", "Storyboard Frame", "2D drawing used for storyboarding", icon_stb.icon_id, 1),
+        ("STORYBOARD", "Storyboard Shot", "2D drawing used for storyboarding", icon_stb.icon_id, 1),
     )
 
     return res
@@ -634,6 +634,11 @@ class UAS_ShotManager_Shot(ShotInterface, PropertyGroup):
             mode: "STORYBOARD"
         """
         # TODO: differenciate the modes of grease pencils to provide the right one
+        #     if self.isCameraValid():
+        # gp_child = utils_greasepencil.get_greasepencil_child(self.camera)
+        # if gp_child is not None:
+        #     gpProps = self.getGreasePencilProps(mode="STORYBOARD")
+
         gpProps = self.greasePencils[0] if len(self.greasePencils) else None
         return gpProps
 
@@ -681,6 +686,7 @@ class UAS_ShotManager_Shot(ShotInterface, PropertyGroup):
         and to the display state at the props level (props.use_greasepencil)
         Args:
             forceHide:  used by the renderer to avoid to see the gp of the other shots
+        Called by props.updateStoryboardFramesDisplay()
         """
         #    def showGreasePencil(self, visible=None, mode="STORYBOARD"):
         def _showGreasePencil(gpencil, visible):
@@ -710,15 +716,44 @@ class UAS_ShotManager_Shot(ShotInterface, PropertyGroup):
             # AUTO
             else:
                 if props.use_greasepencil:
-                    if "STORYBOARD" == self.shotType:
-                        _showGreasePencil(gp_child, True)
-                    else:
-                        if props.getCurrentShot() == self:
+                    currentTakeInd = props.getCurrentTakeIndex()
+                    if self.getParentTakeIndex() == currentTakeInd:
+                        if "STORYBOARD" == self.shotType:
                             _showGreasePencil(gp_child, True)
+
+                        # PREVIZ
                         else:
-                            _showGreasePencil(gp_child, False)
+                            if props.getCurrentShot() == self:
+                                _showGreasePencil(gp_child, True)
+                            else:
+                                _showGreasePencil(gp_child, False)
+
+                    # hide stb frames that are not belonging to shots from the current take
+                    else:
+                        _showGreasePencil(gp_child, False)
                 else:
                     _showGreasePencil(gp_child, False)
+
+    def detachGreasePencil(self):
+        def _ClearParent(child):
+            # Save the transform matrix before de-parenting
+            matrixcopy = child.matrix_world.copy()
+            # Clear the parent
+            child.parent = None
+            # Restore childs location / rotation / scale
+            child.matrix_world = matrixcopy
+
+        gp_child = utils_greasepencil.get_greasepencil_child(self.camera)
+        if gp_child is not None:
+            # unparent: bpy.ops.object.parent_clear(type='CLEAR')
+            _ClearParent(gp_child)
+
+            utils.clearTransformAnimation(gp_child)
+
+            if 0 == gp_child.name.find("Cam_"):
+                gp_child.name = gp_child.name[4:] + "_Free"
+
+            self.shotType = "PREVIZ"
 
     #############
     # notes #####

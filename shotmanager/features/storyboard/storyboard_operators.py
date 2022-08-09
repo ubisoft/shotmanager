@@ -30,11 +30,23 @@ from shotmanager.utils import utils
 
 class UAS_ShotManager_CreateNStoryboardShots(Operator):
     bl_idname = "uas_shot_manager.create_n_storyboard_shots"
-    bl_label = "Create Specifed Number of Storyboard Shots..."
+    bl_label = "Create Specified Number of Storyboard Shots..."
     bl_description = "Create a specified number of storyboard shots, each one with its own camera"
     bl_options = {"REGISTER", "UNDO"}
 
     name: StringProperty(name="Name")
+
+    count: IntProperty(name="Number of Shots to Create", min=1, soft_max=20, default=10)
+
+    firstShotIndex: IntProperty(
+        name="First Shot Index",
+        description="Index of the first shot to create (usually a multiple of 10). Eg: 250",
+        default=0,
+    )
+    stepBetweenShotIndices: IntProperty(
+        name="Step Between Shot Indices", description="Usually 1 or 10 (default). Shots", min=1, default=10
+    )
+
     start: IntProperty(
         name="Start",
         subtype="TIME",
@@ -48,9 +60,8 @@ class UAS_ShotManager_CreateNStoryboardShots(Operator):
         name="Time Offset Between Shots",
         description="Number of frames from which the start of a storyboard frame will be offset from the end of the one preceding it",
         subtype="TIME",
-        default=1,
+        default=0,
     )
-    count: IntProperty(name="Number of Shots to Create", min=1, soft_max=20, default=10)
 
     # color: FloatVectorProperty(
     #     name="Color",
@@ -78,11 +89,11 @@ class UAS_ShotManager_CreateNStoryboardShots(Operator):
 
         self.duration = prefs.storyboard_new_shot_duration
 
-        # default interval is set to 1 seconde
-        # self.offsetFromPrevious = context.scene.render.fps
+        # default interval is set to 4 seconde
+        self.offsetFromPrevious = 4 * context.scene.render.fps
 
         # all the shots start at the same time
-        self.offsetFromPrevious = 0
+        # self.offsetFromPrevious = 0
 
         # camName = props.getActiveCameraName()
         # if "" != camName:
@@ -118,19 +129,43 @@ class UAS_ShotManager_CreateNStoryboardShots(Operator):
         col.separator(factor=1)
 
         col = grid_flow.column(align=False)
-        col.label(text="Start:")
+        col.label(text="Name:")
+        col = grid_flow.column(align=False)
+        col.label(text=" ")
+
+        col = grid_flow.column(align=False)
+        col.label(text="   First Shot Index:")
+        col = grid_flow.column(align=False)
+        col.prop(self, "firstShotIndex", text="")
+
+        col = grid_flow.column(align=False)
+        col.label(text="   Step Between Indices:")
+        col = grid_flow.column(align=False)
+        col.prop(self, "stepBetweenShotIndices", text="")
+
+        ###########################
+
+        col.separator(factor=1)
+
+        col = grid_flow.column(align=False)
+        col.label(text="Time:")
+        col = grid_flow.column(align=False)
+        col.label(text=" ")
+
+        col = grid_flow.column(align=False)
+        col.label(text="   Start:")
         col = grid_flow.column(align=False)
         col.prop(self, "start", text="")
 
         col = grid_flow.column(align=False)
-        col.label(text="Duration:")
+        col.label(text="   Duration:")
         col = grid_flow.column(align=False)
         col.prop(self, "duration", text="")
 
-        # col = grid_flow.column(align=False)
-        # col.label(text="Time Offset From Previous:")
-        # col = grid_flow.column(align=False)
-        # col.prop(self, "offsetFromPrevious", text="")
+        col = grid_flow.column(align=False)
+        col.label(text="   Time Offset From Previous:")
+        col = grid_flow.column(align=False)
+        col.prop(self, "offsetFromPrevious", text="")
 
         # if not context.scene.UAS_shot_manager_props.use_camera_color:
         #     col = grid_flow.column(align=False)
@@ -159,13 +194,15 @@ class UAS_ShotManager_CreateNStoryboardShots(Operator):
 
         for i in range(1, self.count + 1):
             # startFrame = self.start + (i - 1) * (self.duration - 1 + self.offsetFromPrevious)
-            startFrame = self.start
+            startFrame = self.start + (i - 1) * self.offsetFromPrevious
             endFrame = startFrame + self.duration - 1
 
             col = (uniform(0, 1), uniform(0, 1), uniform(0, 1), 1.0)
 
-            shotName = props.getShotPrefix((len(props.getShotsList()) + 1) * 10)
-            cam = utils.create_new_camera("Cam_" + self.name)
+            # shotName = props.getShotPrefix((len(props.getShotsList()) + 1) * 10)
+            shotName = props.getShotPrefix(self.firstShotIndex + (i - 1) * self.stepBetweenShotIndices)
+
+            cam = utils.create_new_camera("Cam_" + shotName)
 
             newShot = props.addShot(
                 shotType="STORYBOARD",
@@ -200,7 +237,28 @@ class UAS_ShotManager_CreateNStoryboardShots(Operator):
         return {"INTERFACE"}
 
 
-_classes = (UAS_ShotManager_CreateNStoryboardShots,)
+class UAS_ShotManager_OT_ShowHideStoryboardFrames(Operator):
+    bl_idname = "uas_shot_manager.showhidestoryboardframes"
+    bl_label = "Show / Hide Storyboard Frames"
+    bl_description = "Alternatively display or hide the storyboard frame of the shots owning one"
+    bl_options = {"INTERNAL", "UNDO"}
+
+    def invoke(self, context, event):
+        props = context.scene.UAS_shot_manager_props
+
+        # prefs = context.preferences.addons["shotmanager"].preferences
+        # bpy.ops.uas_shots_settings.use_greasepencil(useGreasepencil=prefs.enableGreasePencil)
+        # prefs.enableGreasePencil = not prefs.enableGreasePencil
+
+        props.enableGreasePencil(not props.use_greasepencil)
+
+        return {"FINISHED"}
+
+
+_classes = (
+    UAS_ShotManager_CreateNStoryboardShots,
+    UAS_ShotManager_OT_ShowHideStoryboardFrames,
+)
 
 
 def register():

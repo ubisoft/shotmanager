@@ -39,7 +39,7 @@ def draw_settings(context, layout):
     col.label(text=" ")
     col = row.column(align=True)
 
-    col.prop(prefs, "display_intShStack_toolbar")
+    col.prop(prefs, "display_shtStack_toolbar")
 
     col.prop(props, "interactShotsStack_displayDisabledShots", text="Display Disabled Shots")
 
@@ -162,7 +162,7 @@ class UAS_ShotManager_OT_InteractShotsStackSettingsWind(Operator):
         row.label(text="Shots Stack:")
 
         row = col.row(align=False)
-        row.prop(prefs, "intShStack_opacity", text="Shots Stack Opacity", slider=True)
+        row.prop(prefs, "shtStack_opacity", text="Shots Stack Opacity", slider=True)
 
         col.separator(factor=0.7)
 
@@ -202,7 +202,7 @@ class UAS_ShotManager_OT_InteractShotsStackSettingsWind(Operator):
 
 # #         layout = self.layout
 
-# #         # # # layout.prop(prefs, "display_intShStack_toolbar")
+# #         # # # layout.prop(prefs, "display_shtStack_toolbar")
 
 # #         # # ### layout.prop(props, "interactShotsStack_displayDisabledShots", text="Display Disabled Shots")
 # #         # # # disabledshotsIcon = "CHECKBOX_HLT" if props.interactShotsStack_displayDisabledShots else "CHECKBOX_DEHLT"

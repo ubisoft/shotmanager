@@ -334,7 +334,6 @@ def draw_callback__area_advanced_info(self, context, callingArea, targetViewport
         areasList.append(screen_area)
 
     contextArea = context.area
-    contextAreaType = contextArea.type
     contextAreaInd = -1
     for i, area in enumerate(context.screen.areas):
         if area == context.area:
@@ -385,23 +384,15 @@ def draw_callback__area_advanced_info(self, context, callingArea, targetViewport
         elif contextViewportInd == callingViewportInd:
             color = (1.0, 1.0, 0.0, 1.0)
 
-    # type ###
-    message = f"{contextAreaType}"
-    if "DOPESHEET_EDITOR" == contextAreaType:
+    # type (VIEW_3D, Dopesheet...) ###
+    message = f"{contextArea.type}"
+    if "VIEW_3D" == contextArea.type:
+        message += f":  {contextViewportInd}"
+    elif "DOPESHEET_EDITOR" == contextArea.type:
         message += f" in mode {contextArea.spaces[0].mode}"
 
     position.y += y_offset
-    draw_typo_2d(color, f"{message}", position, size)
-
-    position.y += y_offset
-    message = f"Context area index: {contextAreaInd}, Tolal number of areas: {len(context.screen.areas)}"
-    draw_typo_2d(color, f"{message}", position, size)
-
-    position.y += y_offset - 10
-    message = f"Calling area index: {callingAreaInd}, type: {callingAreaType}"
-    draw_typo_2d(color, f"{message}", position, size)
-
-    position.y += -10
+    draw_typo_2d(color, f"{message}", position, size + 2)
 
     if len(viewports):
         if "VIEW_3D" == contextArea.type:
@@ -416,6 +407,16 @@ def draw_callback__area_advanced_info(self, context, callingArea, targetViewport
             position.y += y_offset
             message = f"Shot Manager target viewport: {targetViewportIndex}"
             draw_typo_2d(color, f"{message}", position, size)
+
+    position.y += y_offset - 10
+    message = f"Context area index: {contextAreaInd}, Tolal number of areas: {len(context.screen.areas)}"
+    draw_typo_2d(color, f"{message}", position, size)
+
+    position.y += y_offset - 10
+    message = f"Calling area index: {callingAreaInd}, type: {callingAreaType}"
+    draw_typo_2d(color, f"{message}", position, size)
+
+    position.y += -10
 
     if len(dopesheets):
         if "DOPESHEET_EDITOR" == contextArea.type:

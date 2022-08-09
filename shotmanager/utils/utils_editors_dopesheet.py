@@ -16,7 +16,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 """
-Functions specific to editors such as 3D Viewport, Dopesheet...
+Functions specific to Dopesheet editors such as the dopesheet, the timeline...
 
 Several things to know for Dopesheets:
 
@@ -92,14 +92,16 @@ def getPrefsUIScale():
 
 def getRulerHeight():
     """Return the height in pixels of the time ruler of a dopesheet"""
-    RULER_HEIGHT = 28
+    RULER_HEIGHT = 23
+    # RULER_HEIGHT = 28  # on laptop
     return RULER_HEIGHT * getPrefsUIScale()
 
 
 def getLaneHeight():
     """Return the height of a lane in pixels"""
-    LANE_HEIGHT = 18.5
-    LANE_HEIGHT = 22.5
+    LANE_HEIGHT = 18
+    # LANE_HEIGHT = 18.5
+    # LANE_HEIGHT = 22.5  # on laptop
     return LANE_HEIGHT * getPrefsUIScale()
 
 

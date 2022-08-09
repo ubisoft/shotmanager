@@ -23,15 +23,20 @@
 
 ## To do:
 
+- make current requires a TRIPLE click...
+- shot stack opacity a mettre en %
+- display des options sur les 2 dopesheets
+
+- option pour single current shot
+
+- bug refresh at launch of the widget
+- sensibility and wait duration before manip
+
 - echap et validation ou cancel
 - Store the state of shots before the action and restore it if action canceled
 - validate the action with Enter
 
 - undo
-
-- display des options sur les 2 dopesheets
-
-- option pour single current shot
 
 ---------------------
 
@@ -42,10 +47,7 @@
 
 ## To do
 
-- Have an icon by type of shot
-- See when they are locked
-- Set a better UI scaling based on remap
-
+- See when shots are locked
 
 - Have a Range button
 - Have a way to have the timeline buttons on a dopesheet also

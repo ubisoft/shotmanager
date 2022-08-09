@@ -1,4 +1,44 @@
 -----
+## 2.0.206 (2022-08-04)
+### Storyboard
+- Major fix on the materials associated to layers. They are now correctly set when the layer is changed
+- Fixed animation clearing when a storyboard frame is detached
+
+-----
+## 2.0.205 (2022-08-04)
+### Storyboard
+- Added a feature to detach a storyboard frame from a shot
+- Refactored collection names for empties and storyboard frames to support multiple scenes
+
+- Added the Passepartout controls to the Shots Global Control panel
+
+- Fixed GP tool not set when entering in Draw mode
+
+-----
+## 2.0.204 (2022-08-03)
+### UX/UI
+- Added notion of "layout" to have a different and customizable UI when in Storyboard and in Previz mode
+- Added a patch to support this feature
+
+### Project Settings
+- Added a new parameter to specify a camera to be used as a template for new shots, picked from a Blender file
+
+- Fixed overlay state that wasn't restored correctly
+- Fixed Sequence Timeline that wasn't interactive anymore when the overlay was off
+- Fixed the orientation of the Storyboard Shots cameras to match the grid direction
+- Fixed visibility of storyboard frames throughout takes
+- Fixed hide cameras for Storyboard Shots
+
+-----
+## 2.0.202 (2022-07-29)
+- Fixed visibility of storyboard frames: the frames belonging to a "storyboard" shot are kept visible
+  even if not current, whereas the frames from "camera" shots are hidden when those shots are not current. See documentation "Storyboard Frames Visibility"
+- Shots can now be renamed by directly double-clicking on their name in the Shots list
+
+### UI
+- Added icons in the shot column and the Shots Stack for shots of type "storyboard"
+
+-----
 ## 2.0.201 (2022-07-24)
 - Full integration of Stamp Info inside Shot Manager: this add-on doesn't depend anymore
   on the Stamp Info add-on
@@ -7,7 +47,7 @@
 ## 2.0.105 (2022-07-21)
 ### Interactive Shots Stack
 - Completely rewrote the Shots Stack UI and graphics library: this was required for a long time
-  to improve the UI and to fix some gliches and visual bugs. It also allowed to fix the
+  to improve the UI and to fix some glitches and visual bugs. It also allowed to fix the
   events loop that didn't work anymore due to changes in the API in Blender 3.2
 - Sequence Timeline is not hidden by default anymore when the viewport overlay tools display is
   turned off. This can be changed in the Sequence Timeline Preferences

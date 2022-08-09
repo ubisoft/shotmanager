@@ -19,6 +19,8 @@
 Shots functions and operators
 """
 
+from pathlib import Path
+
 import bpy
 from bpy.types import Operator
 from bpy.props import IntProperty, StringProperty, EnumProperty, BoolProperty, FloatVectorProperty
@@ -61,6 +63,34 @@ def list_cameras_for_new_shots(self, context):
             (cam.name, cam.name, 'Use the exising scene camera named "' + cam.name + '"\nfor all the new shots', i + 1)
         )
 
+    return res
+
+
+def list_cameras_assets_in_file(self, context):
+    props = context.scene.UAS_shot_manager_props
+    res = list()
+    res.append(("DEFAULT_CAMERA", "Default Scene Camera", "Create a new camera from scene settings", 0))
+    if Path(props.project_cameraAssets_path).exists() and Path(props.project_cameraAssets_path).is_file():
+
+        # see https://docs.blender.org/api/current/bpy.types.BlendDataLibraries.html
+        # https://blender.stackexchange.com/questions/251473/how-to-add-edit-tag-of-an-asset-from-another-asset-library-using-python-add-on
+        cams = list()
+        with bpy.data.libraries.load(props.project_cameraAssets_path, link=False, assets_only=False) as (
+            data_from,
+            data_to,
+        ):
+            for i, cam in enumerate(data_from.cameras):
+                cams.append(cam)
+
+        for i, camName in enumerate(cams):
+            res.append(
+                (
+                    camName,
+                    camName,
+                    'Use the camera asset named "' + camName + '"\nas template for all the new shots',
+                    i + 1,
+                )
+            )
     return res
 
 
@@ -159,7 +189,7 @@ class UAS_ShotManager_SetCurrentShot(Operator):
         prefs = bpy.context.preferences.addons["shotmanager"].preferences
         shot = props.getShotByIndex(self.index)
 
-   #     _logger.debug_ext("Set Current Shot Operator exec: ", col="RED")
+        #     _logger.debug_ext("Set Current Shot Operator exec: ", col="RED")
 
         def _updateEditors(changeTime=True, zoom_mode=""):
             # change time range to match shot range
@@ -250,15 +280,16 @@ class UAS_ShotManager_ToggleContinuousGPEditingMode(Operator):
 
     def execute(self, context):
         props = context.scene.UAS_shot_manager_props
-        prefs = context.preferences.addons["shotmanager"].preferences
+        # prefs = context.preferences.addons["shotmanager"].preferences
 
         props.useContinuousGPEditing = not props.useContinuousGPEditing
 
-        if props.useContinuousGPEditing:
-            prefs.selected_shot_changes_current_shot_in_stb = True
-
-        else:
-            prefs.selected_shot_changes_current_shot_in_stb = False
+        # NOTE: when the Continuous Editing mode is on then the selected and current shots are tied anyway
+        # in the "change selection" code
+        # if props.useContinuousGPEditing:
+        #     prefs.stb_selected_shot_changes_current_shot = True
+        # else:
+        #     prefs.stb_selected_shot_changes_current_shot = False
 
         return {"FINISHED"}
 
@@ -482,6 +513,16 @@ class UAS_ShotManager_ShotAdd(Operator):
     name: StringProperty(name="Name")
     cameraName: EnumProperty(items=list_cameras_for_new_shot, name="Camera", description="New Shot Camera")
 
+    cameraAssetName: EnumProperty(
+        items=list_cameras_assets_in_file,
+        name="Camera Asset",
+        description="Create a camera based on the specified asset",
+    )
+
+    atCurrentFrame: BoolProperty(
+        name="At Current Frame:", description="Start the Storyboard Frame at the current time", default=False
+    )
+
     color: FloatVectorProperty(
         name="Camera Color / Shot Color",
         description="Color of the chosen camera or color of the shot, according to the Shot Display settings",
@@ -543,7 +584,7 @@ class UAS_ShotManager_ShotAdd(Operator):
 
         if "STORYBOARD" == self.layout_mode:
             prefs.addShot_start = 100
-            prefs.addShot_end = prefs.addShot_start + 75
+            prefs.addShot_end = prefs.addShot_start + prefs.new_shot_duration
             self.addStoryboardGP = True
         else:
             if selectedShot is None:
@@ -553,7 +594,7 @@ class UAS_ShotManager_ShotAdd(Operator):
 
             prefs.addShot_end = prefs.addShot_start + prefs.new_shot_duration
 
-            # self.addStoryboardGP = props.display_storyboard_in_properties
+            # self.addStoryboardGP = props.getCurrentLayout().display_storyboard_in_properties
 
         # self.cameraName = "NEW_CAMERA"
         # camName = props.getActiveCameraName()
@@ -563,6 +604,8 @@ class UAS_ShotManager_ShotAdd(Operator):
         self.color = (uniform(0, 1), uniform(0, 1), uniform(0, 1))
 
         self.cameraName = "NEW_CAMERA"
+        self.cameraAssetName = "DEFAULT_CAMERA"
+
         #     cameras = props.getSceneCameras()
         #    # selectedObjs = []  #bpy.context.view_layer.objects.active    # wkip get the selection
         #     currentCam = None
@@ -575,9 +618,9 @@ class UAS_ShotManager_ShotAdd(Operator):
         #     elif 0 < len(cameras):
         #         self.cameraName = cameras[0].name
 
-        # self.alignCamToView = not props.display_storyboard_in_properties
+        # self.alignCamToView = not props.getCurrentLayout().display_storyboard_in_properties
 
-        # self.addStoryboardGP = props.display_storyboard_in_properties
+        # self.addStoryboardGP = props.getCurrentLayout().display_storyboard_in_properties
 
         if event.shift and not event.ctrl and not event.alt:
             return self.execute(context)
@@ -588,14 +631,15 @@ class UAS_ShotManager_ShotAdd(Operator):
         # scene = context.scene
         props = context.scene.UAS_shot_manager_props
         prefs = context.preferences.addons["shotmanager"].preferences
-        splitFactor = 0.3
+        isPrevizLayout = "PREVIZ" == self.layout_mode
+        splitFactor = 0.3 if isPrevizLayout else 0.35
         layout = self.layout
 
         col = layout.box()
         # col = box.column(align=False)
 
         row = col.row()
-        if "PREVIZ" == self.layout_mode:
+        if isPrevizLayout:
             text = "Add a new shot to the current take:"
         else:
             text = "Add a new storyboard frame to the current take:"
@@ -609,14 +653,14 @@ class UAS_ShotManager_ShotAdd(Operator):
         subrow.label(text="Shot Name:")
         split.prop(self, "name", text="")
 
-        if "PREVIZ" == self.layout_mode:
+        if isPrevizLayout:
             # doubleRow is used to reduce the size between rows #########
             col.separator(factor=0.1)
             doubleRow = col.column()
             # doubleRow.scale_y = 0.7
 
         # row start and end #########################
-        if "PREVIZ" == self.layout_mode:
+        if isPrevizLayout:
             row = doubleRow.row(align=True)
             mainRowSplit = row.split(factor=0.5)
             subSplitLeft = mainRowSplit.split(factor=0.26)
@@ -639,9 +683,16 @@ class UAS_ShotManager_ShotAdd(Operator):
             row.operator(
                 "uas_shot_manager.shotadd_getcurrentframefor", text="", icon="TRIA_UP_BAR"
             ).propertyToUpdate = "addShot_end"
+        else:
+            row = col.row()
+            split = row.split(factor=splitFactor)
+            subrow = split.row()
+            subrow.alignment = "RIGHT"
+            subrow.label(text="At Current frame:")
+            split.prop(self, "atCurrentFrame", text="")
 
         # row duration #########################
-        if "PREVIZ" == self.layout_mode:
+        if isPrevizLayout:
             row = doubleRow.row(align=False)
             mainRowSplit = row.split(factor=0.5)
 
@@ -655,8 +706,6 @@ class UAS_ShotManager_ShotAdd(Operator):
             if duration <= 1:
                 subrow.alert = True
             subrow.label(text=f"{duration} frame{'s' if duration > 1 else ''}")
-        elif "STORYBOARD" == self.layout_mode:
-            pass
 
         # row shot color #########################
         if not props.use_camera_color:
@@ -665,7 +714,7 @@ class UAS_ShotManager_ShotAdd(Operator):
             subrow.label(text="Shot Color:")
             subrow.prop(self, "color", text="")
 
-        if "PREVIZ" == self.layout_mode:
+        if isPrevizLayout:
             # doubleRow is used to reduce the size between rows #########
             col.separator(factor=0.1)
             doubleRow = col.column()
@@ -678,6 +727,15 @@ class UAS_ShotManager_ShotAdd(Operator):
             subrow.alignment = "RIGHT"
             subrow.label(text="Camera:")
             mainRowSplit.prop(self, "cameraName", text="")
+
+            if props.use_project_settings and "" != props.project_cameraAssets_path:
+                row = doubleRow.row()
+                mainRowSplit = row.split(factor=splitFactor)
+                subrow = mainRowSplit.row()
+                subrow.alignment = "RIGHT"
+                subrow.label(text="Camera Type:")
+                mainRowSplit.prop(self, "cameraAssetName", text="")
+                mainRowSplit.enabled = "NEW_CAMERA" == self.cameraName
 
             # row camera color ##########################################
             if props.use_camera_color:
@@ -737,7 +795,7 @@ class UAS_ShotManager_ShotAdd(Operator):
                 subrow.label(text=" ")
                 mainRowSplit.prop(self, "alignCamToView", text="Align New Camera to View")
 
-            if props.display_storyboard_in_properties:
+            if props.getCurrentLayout().display_storyboard_in_properties:
                 col.separator(factor=0.1)
                 row = col.row(align=True)
                 mainRowSplit = row.split(factor=splitFactor)
@@ -760,7 +818,27 @@ class UAS_ShotManager_ShotAdd(Operator):
         col = [self.color[0], self.color[1], self.color[2], 1]
 
         if "NEW_CAMERA" == self.cameraName:
-            cam = utils.create_new_camera("Cam_" + self.name)
+
+            if props.use_project_settings and "" != props.project_cameraAssets_path:
+                if "DEFAULT_CAMERA" == self.cameraAssetName:
+                    cam = utils.create_new_camera("Cam_" + self.name)
+                else:
+                    # import from asset file
+                    # if Path(props.project_cameraAssets_path).exists() and Path(props.project_cameraAssets_path).is_file():
+                    # link all objects starting with 'A'
+                    with bpy.data.libraries.load(props.project_cameraAssets_path, link=False, assets_only=False) as (
+                        data_from,
+                        data_to,
+                    ):
+                        for i, camName in enumerate(data_from.cameras):
+                            if camName == self.cameraAssetName:
+                                data_to.cameras = [data_from.cameras[i]]
+
+                    camData = data_to.cameras[0]
+                    cam = utils.create_new_camera("Cam_" + self.name, camData=camData)
+            else:
+                cam = utils.create_new_camera("Cam_" + self.name)
+
             if "PREVIZ" == self.layout_mode:
                 if self.alignCamToView:
                     utils.makeCameraMatchViewport(context, cam)
@@ -781,13 +859,20 @@ class UAS_ShotManager_ShotAdd(Operator):
                 col[1] = cam.color[1]
                 col[2] = cam.color[2]
 
+        if "STORYBOARD" == self.layout_mode:
+            startFr = scene.frame_current if self.atCurrentFrame else prefs.addShot_start
+            endFr = startFr + prefs.addShot_start
+        else:
+            startFr = prefs.addShot_start
+            endFr = prefs.addShot_end
+
         newShot = props.addShot(
             shotType=self.layout_mode,
             atIndex=newShotInd,
             name=self.name,
             # name=props.getUniqueShotName(self.name),
-            start=prefs.addShot_start,
-            end=prefs.addShot_end,
+            start=startFr,
+            end=endFr,
             #            camera  = scene.objects[ self.camera ] if self.camera else None,
             camera=cam,
             color=col,
@@ -805,7 +890,7 @@ class UAS_ShotManager_ShotAdd(Operator):
 
         utils.clear_selection()
 
-        if props.display_storyboard_in_properties:
+        if props.getCurrentLayout().display_storyboard_in_properties:
             if self.addStoryboardGP:
                 gp_child = newShot.getGreasePencilObject("STORYBOARD")
                 utils.add_to_selection(gp_child)
@@ -1092,7 +1177,7 @@ class UAS_ShotManager_CreateShotsFromEachCamera(Operator):
 
 class UAS_ShotManager_CreateNShots(Operator):
     bl_idname = "uas_shot_manager.create_n_shots"
-    bl_label = "Create Specifed Number of Shots..."
+    bl_label = "Create Specified Number of Shots..."
     bl_description = "Create a specified number of shots with new cameras or with the same one"
     bl_options = {"REGISTER", "UNDO"}
 

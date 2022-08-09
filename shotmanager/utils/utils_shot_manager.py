@@ -20,8 +20,19 @@ Functions to manipulate Shot Manager
 """
 
 import bpy
+import addon_utils
 
 from . import utils
+
+
+def getUbisoftName():
+    addonHeaderWarning = [
+        addon.bl_info.get("warning", "") for addon in addon_utils.modules() if addon.bl_info["name"] == "Shot Manager"
+    ]
+    if len(addonHeaderWarning):
+        return "Ubisoft"
+        return ""
+    return "Ubisoft"
 
 
 def sceneHasShotManagerData(scene):
