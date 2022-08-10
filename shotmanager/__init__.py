@@ -20,7 +20,6 @@ Shot Manager initialization
 """
 
 import bpy
-
 from bpy.props import BoolProperty, IntProperty, FloatProperty
 
 from .config import config
@@ -47,16 +46,13 @@ from .properties import props
 from .properties import shots_global_settings
 
 from . import prefs
-
 from . import retimer
 from .retimer import retimer_ui
-
-
 from . import rendering
 from .rendering import rendering_ui
 
 from .scripts import precut_tools
-
+from .scripts import rrs
 from .ui import sm_ui
 
 from .utils import utils
@@ -65,11 +61,10 @@ from .utils import utils_operators
 from .tools import frame_range
 from .utils.utils_os import module_can_be_imported
 
-from .scripts import rrs
-
 from . import keymaps
 
 from . import debug as sm_debug
+
 
 from shotmanager.config import sm_logging
 
@@ -84,7 +79,7 @@ bl_info = {
     "author": "Ubisoft - Julien Blervaque (aka Werwack), Romain Carriquiry Borchiari",
     "description": "Easily manage shots and cameras in the 3D View and see the resulting edit in real-time",
     "blender": (3, 1, 0),
-    "version": (2, 0, 212),
+    "version": (2, 0, 214),
     "location": "View3D > Shot Mng",
     "doc_url": "https://ubisoft-shotmanager.readthedocs.io",
     "tracker_url": "https://github.com/ubisoft/shotmanager/issues",

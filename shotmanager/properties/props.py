@@ -1497,14 +1497,6 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
                 self.current_layout_index = ind
                 break
 
-    def setCurrentLayoutByIndex(self, layoutIndex):
-        """Args:
-        layoutMode: Can be 0 for "STORYBOARD or 1 for PREVIZ"""
-        if layoutIndex < len(self.layouts):
-            self.current_layout_index = layoutIndex
-        else:
-            self.current_layout_index = -1
-
     def getLayout(self, layoutMode):
         """Args:
         layoutMode: Can be "STORYBOARD or PREVIZ"""
@@ -1517,8 +1509,12 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         return self.current_layout_index
 
     def setCurrentLayoutByIndex(self, layoutIndex):
-        if 0 <= layoutIndex <= 1:
-            self.current_layout_index
+        """Args:
+        layoutMode: Can be 0 for "STORYBOARD or 1 for PREVIZ"""
+        if 0 <= layoutIndex < len(self.layouts):
+            self.current_layout_index = layoutIndex
+        else:
+            self.current_layout_index = -1
 
     def createLayoutSettings(self):
         _logger.debug_ext("createLayerSettings", col="GREEN", tag="LAYOUT")

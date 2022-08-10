@@ -6,23 +6,22 @@ Create a shortcut to this file and copy it to %AppData%\Roaming\Microsoft\Window
 Then run it with a right click in an explorer.
 
 Usage:
-	Once this file is in the SendTo folder of Windows it is accessible in the right click menu.
-	In a file explorer go to your working directory, select the folder containing the addon code
-	(eg: /shotmanager), right click to display the menu then pick wkzipaddon.py.
-	This script will be ran and it will create an archive, cleaned from the .pyc, ready to
-	be installed in Blender.
+    Once this file is in the SendTo folder of Windows it is accessible in the right click menu.
+    In a file explorer go to your working directory, select the folder containing the addon code
+    (eg: /shotmanager), right click to display the menu then pick wkzipaddon.py.
+    This script will be ran and it will create an archive, cleaned from the .pyc, ready to
+    be installed in Blender.
 """
 
 
 import zipfile
 import os
 from os.path import basename
+import sys
+from pathlib import Path
 
 
 def main():
-    import sys
-    import os
-    from pathlib import Path
 
     pathArr = sys.argv
 
@@ -47,7 +46,7 @@ def main():
         # text_file.close()
         return
 
-    outString += f"\nArg files to zip:"
+    outString += "\nArg files to zip:"
     print("\nArgs:")
     for i in range(1, len(pathArr)):
         strg = f"    Arg {i}: {pathArr[i]}"
