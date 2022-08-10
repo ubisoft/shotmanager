@@ -70,7 +70,7 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
             - an integer. x.y.z becomes xxyyyzzz (eg: "1.21.3" becomes 1021003)
         Return None if the addon has not been found
         """
-        return utils.addonVersion("Shot Manager")
+        return utils.addonVersion("Ubisoft Shot Manager")
 
     # def isReleaseVersion(self):
     #     """Return True if the current version is a released on"""
@@ -114,7 +114,7 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
     )
 
     def initialize_shot_manager_prefs(self):
-        print("\nInitializing Shot Manager Preferences...")
+        print("\nInitializing Ubisoft Shot Manager Preferences...")
 
         self.stb_frameTemplate.initialize(mode="ADDON_PREFS")
         self.newAvailableVersion = 0
@@ -818,7 +818,7 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
     )
 
     ########################################################################
-    ### Overlay tools
+    # Overlay tools
     ########################################################################
 
     # tools disabled during play
@@ -849,7 +849,7 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
         options=set(),
     )
 
-    ### Retimer
+    # Retimer
     display_retimer_panel: BoolProperty(
         name="Display Retimer",
         description="Display the Retimer sub-panel in the Shot Manager panel.\n\n(saved in the add-on preferences)",
@@ -909,7 +909,7 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
     def _update_toggle_overlays_turnOn_interactiveShotsStack(self, context):
         _logger.debug_ext("_update_toggle_overlays_turnOn_interactiveShotsStack")
 
-        ## toggle on or off the overlay tools mode
+        # toggle on or off the overlay tools mode
         if self.toggle_overlays_turnOn_interactiveShotsStack:
             if not context.window_manager.UAS_shot_manager_display_overlay_tools:
                 context.window_manager.UAS_shot_manager_display_overlay_tools = True

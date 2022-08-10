@@ -72,8 +72,8 @@ def initGlobalVariables():
 
     # preferences ##########
     global defaultLayout
-    defaultLayout = "STORYBOARD"
-    # defaultLayout = "PREVIZ"
+    # defaultLayout = "STORYBOARD"
+    defaultLayout = "PREVIZ"
 
     # ui ##########
     global gMouseScreenPos
