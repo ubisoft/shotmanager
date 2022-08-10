@@ -31,8 +31,9 @@
 >**This tool is currently supported for Blender 3.2, 3.1 and LTS 2.93**
 >
 > In spite of all our efforts to make it reliable some troubles may occur in use cases we have not faced.
+> Please report your requests and issues you may face to the [Issue page](https://github.com/ubisoft/shotmanager/issues) and
+> we will try to help as much as possible.
 
-<br />
 
 Note that development is on Windows 10. Please report issues and submit PRs for other OSs.
 
