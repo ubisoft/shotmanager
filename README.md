@@ -27,7 +27,7 @@
 
 <p align="center">
   <a href="https://github.com/ubisoft/shotmanager/releases/latest" title="Download version 2.0" target="_blank">
-  <img src="doc/images/V2_Banner.png" width="670" />
+  <img src="doc/images/V2_Banner.png" width="470" />
   </a>
   &nbsp;&nbsp;&nbsp;
   <a href="https://github.com/ubisoft/shotmanager/releases/latest" title="ShotManagerV2-0_Storyboarding03">
