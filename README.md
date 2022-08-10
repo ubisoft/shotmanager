@@ -30,8 +30,8 @@
   <img src="doc/images/V2_Banner.png" width="470" />
   </a>
   &nbsp;&nbsp;&nbsp;
-  <a href="https://github.com/ubisoft/shotmanager/releases/latest" title="ShotManagerV2-0_Storyboarding03">
-  <img src="ShotManagerV2-0_Storyboarding03_Thumb.jpg" width="160" />
+  <a href="https://github.com/ubisoft/shotmanager/tree/main/doc/images/ShotManagerV2-0_Storyboarding03.jpg" title="ShotManagerV2-0_Storyboarding03">
+  <img src="doc/images/ShotManagerV2-0_Storyboarding03_Thumb.jpg" width="160" />
   </a>
 </p>
 
