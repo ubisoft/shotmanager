@@ -4,7 +4,7 @@
 
 </br>
 
-**Shot Manager is a Blender add-on that introduces a true shot entity in Blender scenes, as well as a wide and powerful set of tools to build and edit sequences in real-time directly in the 3D context.**
+**Shot Manager is a Blender add-on that introduces a true shot entity in Blender scenes, as well as a wide and powerful set of tools to build and edit sequences in real-time directly in the 3D context, in a nonlinear way.**
 
 <p align="center">
   <a href="https://ubisoft-shotmanager.readthedocs.io" title="Consult the online documentation" target="_blank">
@@ -25,6 +25,15 @@
 </p>
 
 
+<p align="center">
+  <a href="https://github.com/ubisoft/shotmanager/releases/latest" title="Download version 2.0" target="_blank">
+  <img src="doc/images/V2_Banner.png" width="670" />
+  </a>
+  &nbsp;&nbsp;&nbsp;
+  <a href="https://github.com/ubisoft/shotmanager/releases/latest" title="ShotManagerV2-0_Storyboarding03">
+  <img src="ShotManagerV2-0_Storyboarding03_Thumb.jpg" width="160" />
+  </a>
+</p>
 
 ## Disclaimer
 
