@@ -64,17 +64,6 @@ and to smoothly convert the shots from 2D to 3D.
 
 
 
-[![Shot Manager - Previz in a nutshell](doc/images/Thumbnail_ShotManagerPreviz_WithPlayer.jpg)](https://youtu.be/btLygAlD41c "Shot Manager - previz in a nutshell")
-<br />
-
-With version 2.0 it is now possible to start even earlier in production by drawing your own storyboard directly inside Blender 
-and to smoothly convert the shots from 2D to 3D.
-
-
-[![Shot Manager - Previz in a nutshell](doc/images/Thumbnail_TeaserV2Storyboarding_WithPlayer.jpg)](https://youtu.be/UEXOjY5ivkE "Shot Manager - previz in a nutshell")
-<br />
-
-
 For installation, features, FAQ, user help please check the documentation here: [https://ubisoft-shotmanager.readthedocs.io](https://ubisoft-shotmanager.readthedocs.io)
 
 
