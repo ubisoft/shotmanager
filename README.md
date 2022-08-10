@@ -17,6 +17,7 @@
   </a>
 </p>
 
+</br>
 
 <p align="center">
   <a href="https://ubisoft-shotmanager.readthedocs.io" title="Consult the online documentation" target="_blank">
