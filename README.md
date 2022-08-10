@@ -25,16 +25,12 @@
 </p>
 
 
-## Pre-releases
-The latest pre-release version is: [Shot Manager V 2.0.102 Beta](https://github.com/ubisoft/shotmanager/releases/tag/v2.0.102_Beta). Track the changes here: [Pre-releases and Experimental](https://ubisoft-shotmanager.readthedocs.io/en/latest/experimental/experimental.html#experimental) 
-
 
 ## Disclaimer
 
->**This tool is currently supported for Blender 3.1, 3.0 and LTS 2.93**
+>**This tool is currently supported for Blender 3.2, 3.1 and LTS 2.93**
 >
->It was initially developed for an animated TV series production in 2020 on Blender 2.83. It has the features that were needed at the time but it
-may not be considered as feature complete for a more generic purpose. In spite of all our efforts to make it reliable some troubles may occur in use cases we have not faced.
+> In spite of all our efforts to make it reliable some troubles may occur in use cases we have not faced.
 
 <br />
 
@@ -51,33 +47,45 @@ them in order to record the right segment of time.
 This is very convenient for previz and 3D layout.
 
 
-[![Shot Manager - Previz in a nutshell](doc/images/Thumbnail_ShotManagerPreviz_WithPlayer.jpg)](https://youtu.be/btLygAlD41c?t=1s "Shot Manager - previz in a nutshell")
+[![Shot Manager - Previz in a nutshell](doc/images/Thumbnail_ShotManagerPreviz_WithPlayer.jpg)](https://youtu.be/btLygAlD41c "Shot Manager - previz in a nutshell")
+<br />
+
+With version 2.0 it is now possible to start even earlier in production by drawing your own storyboard directly inside Blender 
+and to smoothly convert the shots from 2D to 3D.
+
+
+[![Shot Manager - Previz in a nutshell](doc/images/Thumbnail_TeaserV2Storyboarding_WithPlayer.jpg)](https://youtu.be/UEXOjY5ivkE "Shot Manager - previz in a nutshell")
 <br />
 
 
 For installation, features, FAQ, user help please check the documentation here: [https://ubisoft-shotmanager.readthedocs.io](https://ubisoft-shotmanager.readthedocs.io)
 
-## Dev notes
 
+## History
+It was initially developed for an animated TV series production in 2020 on Blender 2.83. It received a lot of features and improvements since then.
+It is currently used on several projects inside Ubisoft as well as on productions of various scales outside.
+
+[Change Log](./CHANGELOG.md)
+
+
+## Pre-releases
+Pre-releases and available beta versions are listed here: [Pre-releases and Experimental](https://ubisoft-shotmanager.readthedocs.io/en/latest/experimental/experimental.html#experimental) 
+
+
+## Dev notes
 Follow the development and the date of the upcoming releases on [the wiki](https://github.com/ubisoft/shotmanager/wiki).
 
 Various development notes related to the add-on itself, to the Git project or to the installation are available here: [Dev Notes](./doc/devnotes.md)
 
-## History
-[Change Log](./CHANGELOG.md)
-
 # Support
-
 The active support repository is on the [Shot Manager Github repository](https://github.com/ubisoft/shotmanager) which is part of the [Ubisoft open source](https://github.com/ubisoft) projects group.
 
 
 # License and copyright
-
 The original code is Copyright (C) 2022 Ubisoft.
 
 All code of the `shotmanager` package is under the GPLv3 license.
 
 
 # Contributions
-
 The contribution process will be defined soon. At the moment and since we are in the beta process of version 2.0 prefer opening an issue than submit a direct contribution.
