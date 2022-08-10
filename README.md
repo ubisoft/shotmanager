@@ -35,7 +35,7 @@
 > we will try to help as much as possible.
 
 
-Note that development is on Windows 10. Report issues and submitted PRs for other OSs are also appreciated.
+Note that development is on Windows 10. Reported issues and submitted PRs for other OSs are also appreciated.
 
 ## Purpose
 
