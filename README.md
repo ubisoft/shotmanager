@@ -46,6 +46,23 @@ are put at the appropriate places in the world and a shot is created for each on
 them in order to record the right segment of time.
 This is very convenient for previz and 3D layout.
 
+<p align="center">
+  <a href="https://youtu.be/btLygAlD41c" title="Shot Manager - previz in a nutshell" target="_blank">
+  <img src="doc/images/Thumbnail_ShotManagerPreviz_WithPlayer.jpg" width="500" />
+  </a>
+</p>
+
+
+With version 2.0 it is now possible to start even earlier in production by drawing your own storyboard directly inside Blender 
+and to smoothly convert the shots from 2D to 3D.
+
+<p align="center">
+  <a href="https://youtu.be/UEXOjY5ivkE" title="Consult Ubisoft Shot Manager V2.0 - Storyboarding Teaser" target="_blank">
+  <img src="doc/images/Thumbnail_TeaserV2Storyboarding_WithPlayer.jpg" width="500" />
+  </a>
+</p>
+
+
 
 [![Shot Manager - Previz in a nutshell](doc/images/Thumbnail_ShotManagerPreviz_WithPlayer.jpg)](https://youtu.be/btLygAlD41c "Shot Manager - previz in a nutshell")
 <br />
