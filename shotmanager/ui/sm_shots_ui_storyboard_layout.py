@@ -146,35 +146,38 @@ class UAS_UL_ShotManager_Storyboard_Items(bpy.types.UIList):
         # currentFrameInEdit = props.
         # start
         ###########
-        if props.display_edit_times_in_shotlist:
-            # grid_flow.scale_x = button_x_factor
-            # if display_getsetcurrentframe_in_shotlist:
-            #     grid_flow.operator(
-            #         "uas_shot_manager.getsetcurrentframe", text="", icon="TRIA_DOWN_BAR"
-            #     ).shotSource = f"[{index},0]"
+        if False:
+            if props.display_edit_times_in_shotlist:
+                # grid_flow.scale_x = button_x_factor
+                # if display_getsetcurrentframe_in_shotlist:
+                #     grid_flow.operator(
+                #         "uas_shot_manager.getsetcurrentframe", text="", icon="TRIA_DOWN_BAR"
+                #     ).shotSource = f"[{index},0]"
 
-            grid_flow.scale_x = 0.3
-            shotEditStart = item.getEditStart()
-            if currentFrame == item.start:
-                if props.highlight_all_shot_frames or current_shot_index == index:
-                    grid_flow.alert = True
-            # grid_flow.prop(item, "start", text="")
-            # grid_flow.label(text=str(shotDuration))
-            grid_flow.operator("uas_shot_manager.shottimeinedit", text=str(shotEditStart)).shotSource = f"[{index},0]"
-            grid_flow.alert = False
-        else:
-            grid_flow.scale_x = button_x_factor
-            if display_getsetcurrentframe_in_shotlist:
+                grid_flow.scale_x = 0.3
+                shotEditStart = item.getEditStart()
+                if currentFrame == item.start:
+                    if props.highlight_all_shot_frames or current_shot_index == index:
+                        grid_flow.alert = True
+                # grid_flow.prop(item, "start", text="")
+                # grid_flow.label(text=str(shotDuration))
                 grid_flow.operator(
-                    "uas_shot_manager.getsetcurrentframe", text="", icon="TRIA_DOWN_BAR"
+                    "uas_shot_manager.shottimeinedit", text=str(shotEditStart)
                 ).shotSource = f"[{index},0]"
+                grid_flow.alert = False
+            else:
+                grid_flow.scale_x = button_x_factor
+                if display_getsetcurrentframe_in_shotlist:
+                    grid_flow.operator(
+                        "uas_shot_manager.getsetcurrentframe", text="", icon="TRIA_DOWN_BAR"
+                    ).shotSource = f"[{index},0]"
 
-            grid_flow.scale_x = 0.3
-            if currentFrame == item.start:
-                if props.highlight_all_shot_frames or current_shot_index == index:
-                    grid_flow.alert = True
-            grid_flow.prop(item, "start", text="")
-            grid_flow.alert = item.camera is None or itemHasWarnings
+                grid_flow.scale_x = 0.3
+                if currentFrame == item.start:
+                    if props.highlight_all_shot_frames or current_shot_index == index:
+                        grid_flow.alert = True
+                grid_flow.prop(item, "start", text="")
+                grid_flow.alert = item.camera is None or itemHasWarnings
 
         # duration
         ###########
@@ -237,7 +240,7 @@ class UAS_UL_ShotManager_Storyboard_Items(bpy.types.UIList):
         #         ).shotSource = f"[{index},1]"
 
         if props.display_duration_after_time_range:
-            mainRow.separator(factor=0.6)
+            # mainRow.separator(factor=0.6)
             drawDurationAfterTimeRange(mainRow, props, item, currentFrame, current_shot_index, index)
 
         # camera
@@ -279,19 +282,22 @@ class UAS_UL_ShotManager_Storyboard_Items(bpy.types.UIList):
 
 
 def drawDurationAfterTimeRange(layout, props, item, currentFrame, current_shot_index, index):
-    row = layout.row(align=True)
-    grid_flow = row.grid_flow(align=True, columns=2, even_columns=False)
+    displayDurationLocked = False
+
+    row = layout.row(align=displayDurationLocked)
+    grid_flow = row.grid_flow(align=displayDurationLocked, columns=2, even_columns=False)
     grid_flow.use_property_split = False
     # grid_flow.scale_x = button_x_factor - 0.1
     if props.display_duration_in_shotlist:
         grid_flow.scale_x = 1.2
-    grid_flow.prop(
-        item,
-        "durationLocked",
-        text="",
-        icon="DECORATE_LOCKED" if item.durationLocked else "DECORATE_UNLOCKED",
-        toggle=True,
-    )
+    if displayDurationLocked:
+        grid_flow.prop(
+            item,
+            "durationLocked",
+            text="",
+            icon="DECORATE_LOCKED" if item.durationLocked else "DECORATE_UNLOCKED",
+            toggle=True,
+        )
 
     if props.highlight_all_shot_frames or current_shot_index == index:
         if item.start <= currentFrame and currentFrame <= item.end:

@@ -30,7 +30,6 @@ def getUbisoftName():
         addon.bl_info.get("warning", "") for addon in addon_utils.modules() if addon.bl_info["name"] == "Shot Manager"
     ]
     if len(addonHeaderWarning):
-        return "Ubisoft"
         return ""
     return "Ubisoft"
 
@@ -56,7 +55,7 @@ def getStampInfo():
 
     # if getattr(scene, "UAS_SM_StampInfo_Settings", None) is None:
 
-    stampInfoInstalledVersion = utils.addonVersion("Shot Manager")
+    stampInfoInstalledVersion = utils.addonVersion("Ubisoft Shot Manager")
     if stampInfoInstalledVersion:
         stampInfoMinVersion = prefs.dependency_min_supported_version("Stamp Info")
         if stampInfoInstalledVersion[1] >= stampInfoMinVersion[1]:

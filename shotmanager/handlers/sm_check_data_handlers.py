@@ -86,13 +86,13 @@ def shotMngHandler_load_post_checkDataVersion(self, context):
                 #     f"   *** Scene {scene.name}: The version of the Shot Manager data was not set - It has been fixed and is now {utils.convertVersionIntToStr(props.dataVersion)}"
                 # )
                 _logger.info_ext(
-                    f"   *** Scene {scene.name}: The version of the Shot Manager data is not set - Scene will be patched ***",
+                    f"   *** Scene {scene.name}: The version of the Ubisoft Shot Manager data is not set - Scene will be patched ***",
                     col="RED",
                 )
 
             if props.dataVersion < latestVersionToPatch:  # <= ???
                 _logger.info(
-                    f"   *** Scene {scene.name}: The version of the Shot Manager data is lower than the latest patch version - Need patching ***"
+                    f"   *** Scene {scene.name}: The version of the Ubisoft Shot Manager data is lower than the latest patch version - Need patching ***"
                     f"\n     Data Version: {utils.convertVersionIntToStr(props.dataVersion)}, latest version to patch: {utils.convertVersionIntToStr(latestVersionToPatch)}"
                 )
                 numScenesToUpgrade += 1

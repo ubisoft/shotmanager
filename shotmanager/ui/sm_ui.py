@@ -46,7 +46,7 @@ _logger = sm_logging.getLogger(__name__)
 
 class UAS_PT_ShotManager(Panel):
     #    bl_label = f"Shot Manager {'.'.join ( str ( v ) for v in bl_info[ 'version'] ) }"
-    bl_label = f"{utils_shot_manager.getUbisoftName()} Shot Manager  V. {utils.addonVersion('Shot Manager')[0]}"
+    bl_label = f"{utils_shot_manager.getUbisoftName()} Shot Manager  V. {utils.addonVersion('Ubisoft Shot Manager')[0]}"
     bl_idname = "UAS_PT_Shot_Manager"
     bl_space_type = "VIEW_3D"
     bl_region_type = "UI"
@@ -64,8 +64,8 @@ class UAS_PT_ShotManager(Panel):
         #     props.setCurrentLayout(prefs.layout_mode)
 
         currentLayout = props.getCurrentLayout()
-        if not props.isInitialized or not len(props.layouts) or currentLayout is None:
-            return False
+        # if not props.isInitialized or not len(props.layouts) or currentLayout is None:
+        #     return False
         return True
 
     def draw_header(self, context):

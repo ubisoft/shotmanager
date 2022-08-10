@@ -52,7 +52,7 @@ class UAS_ShotManager_OT_About(Operator):
         ###############
         row = col.row()
         row.separator()
-        row.label(text=f"Add-on Category: {addonCategory('Shot Manager')}")
+        row.label(text=f"Add-on Category: {addonCategory('Ubisoft Shot Manager')}")
 
         # Authors
         ###############
