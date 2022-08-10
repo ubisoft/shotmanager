@@ -31,7 +31,7 @@
   </a>
   &nbsp;&nbsp;&nbsp;
   <a href="https://github.com/ubisoft/shotmanager/tree/main/doc/images/ShotManagerV2-0_Storyboarding03.jpg" title="ShotManagerV2-0_Storyboarding03">
-  <img src="doc/images/ShotManagerV2-0_Storyboarding03_Thumb.jpg" width="160" />
+  <img src="doc/images/ShotManagerV2-0_Storyboarding03_Thumb.png" width="200" />
   </a>
 </p>
 
