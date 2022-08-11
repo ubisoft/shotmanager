@@ -40,13 +40,12 @@ The add-on will be installed. Click on the checkbox at the left side of its name
 
 Once the addon is enabled, a Shot Manager tab is displayed in the 3D viewport N-Panel.
 
+**Close Blender and restart it in normal mode.**
+
 
 Install of complementary add-ons
 --------------------------------
 
-Shot Manager can work as is. Nevertheless we've developed 2 additional add-ons that are considerably 
-expanding the features and capabilities of this tool. It is strongly advised to install them too
-to get the full experience.
+**Since Shot Manager 2.0 there is no need to install the aditional add-ons that where required with the previous versions.**
 
-    - Download Ubisoft Stamp Info here: `Stamp Info latest release <https://github.com/ubisoft/stampinfo/releases/latest>`_
-    - Download Ubisoft Video Tracks here: `Video Tracks latest release <https://github.com/ubisoft/videotracks/releases/latest>`_
+Indeed Ubisoft Stamp Info has been integrated directly into Shot Manager, and Video Tracks will follow the same path in a near future.

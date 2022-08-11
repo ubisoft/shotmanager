@@ -58,7 +58,8 @@ def list_shot_types(self, context):
     #     )
     # icon_previz = config.icons_col["ShotManager_CamGPShot_32"]
     icon_previz = config.icons_col["ShotManager_32"]
-    icon_stb = config.icons_col["ShotManager_CamGPStb_32"]
+    # icon_stb = config.icons_col["ShotManager_CamGPStb_32"]  # no, that's the small stb frame icon
+    icon_stb = config.icons_col["ShotMan_EnabledStb"]
     res = (
         ("PREVIZ", "Camera Shot", "Shot based on the record of a camera", icon_previz.icon_id, 0),
         ("STORYBOARD", "Storyboard Shot", "2D drawing used for storyboarding", icon_stb.icon_id, 1),

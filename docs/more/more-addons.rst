@@ -21,8 +21,10 @@ As this one they are free and open-source. Enjoy!
 
 Stamp Info
 ----------
-    Write scene information onto the rendered images. This is an excellent
-    complementary tool for Shot Manager.
+    Write scene information onto the rendered images.
+    |br|
+    **In order to facilitate the installations, this tool has been completely integrated into Shot Manager 2.0.**
+    It still exists as a standalone add-on though.
     |br| `Stamp Info on GitHub <https://github.com/ubisoft/stampinfo>`_
     
   

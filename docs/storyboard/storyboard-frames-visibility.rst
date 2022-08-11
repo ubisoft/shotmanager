@@ -1,3 +1,5 @@
+.. _cstoryboard-frames-visibility:
+
 Storyboard frames visibility
 ============================
 

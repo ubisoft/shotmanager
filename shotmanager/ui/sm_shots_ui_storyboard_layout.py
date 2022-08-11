@@ -39,6 +39,7 @@ class UAS_UL_ShotManager_Storyboard_Items(bpy.types.UIList):
     def draw_item(self, context, layout, data, item, icon, active_data, active_propname, index):
         props = context.scene.UAS_shot_manager_props
         current_shot_index = props.current_shot_index
+        scene = context.scene
 
         itemHasWarnings = False
 
@@ -60,30 +61,12 @@ class UAS_UL_ShotManager_Storyboard_Items(bpy.types.UIList):
         else:
             numSharedCam = 2
 
-        # draw the Duration components
+        # draw shot type
         ##########################
-
-        currentIconIsOrange = True
-        orange = "_Orange" if currentIconIsOrange else ""
-        if "PREVIZ" == item.shotType:
-            cam = f"Cam{orange}" if current_shot_index == index else ""
-        # STORYBOARD
-        else:
-            cam = f"Stb{orange}" if current_shot_index == index else "Stb"
-
-        if item.enabled:
-            icon = config.icons_col[f"ShotMan_Enabled{cam}"]
-            if item.start <= context.scene.frame_current <= item.end:
-                icon = config.icons_col[f"ShotMan_EnabledCurrent{cam}"]
-        else:
-            icon = config.icons_col[f"ShotMan_Disabled{cam}"]
-
-        if item.camera is None or itemHasWarnings:
-            layout.alert = True
 
         mainRow = layout.row(align=True)
 
-        mainRow.operator("uas_shot_manager.set_current_shot", icon_value=icon.icon_id, text="").index = index
+        sm_shots_ui_common.drawShotType(scene, mainRow, props, item, index, current_shot_index, itemHasWarnings)
 
         mainRow.separator(factor=0.8)
 

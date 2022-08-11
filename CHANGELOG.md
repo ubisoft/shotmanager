@@ -1,6 +1,10 @@
 -----
+## 2.0.220 (2022-08-11)
+- Small fix on the storyboard shot type icon
+
+-----
 ## 2.0.210 (2022-08-09)
-Changed the name of the add-on in the bl_info to "Ubisoft Shot Manager"
+- Changed the name of the add-on in the bl_info to "Ubisoft Shot Manager"
 
 -----
 ## 2.0.206 (2022-08-04)

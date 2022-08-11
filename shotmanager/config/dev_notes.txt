@@ -60,12 +60,7 @@ Urgent:
 
 
 
-
-To do V1.7.2 +:
-
-    - cleaner notion de projet, les noms donnés aux shots en particulier
     - bug ds le Comparaison à l'import d'un edit: reorder pas pris en compte
-    - voir ce qui se passe qd stamp info n'est pas la ds render panel
 
     - faire un playblast qui marche pour un time range quelconque
     - cleaner preset_useStampInfo dans launchRenderWithVSEComposite
@@ -197,8 +192,3 @@ To do dans le support des noms de seq:
         - faire un test alert qd le nom de la seq est vide
     - otio import
 
-
-Fichiers récupérés de 166 - 2.0.15 B:
-
-    properties
-        props.py

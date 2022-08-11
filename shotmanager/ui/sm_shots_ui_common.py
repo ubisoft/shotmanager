@@ -32,6 +32,30 @@ _logger = sm_logging.getLogger(__name__)
 #####################################################################
 
 
+def drawShotType(scene, layout, props, item, index, current_shot_index, itemHasWarnings):
+    currentIconIsOrange = True
+    orange = "_Orange" if currentIconIsOrange else ""
+    if "PREVIZ" == item.shotType:
+        cam = f"Cam{orange}" if current_shot_index == index else ""
+    # STORYBOARD
+    else:
+        cam = f"Stb{orange}" if current_shot_index == index else "Stb"
+
+    if item.enabled:
+        icon = config.icons_col[f"ShotMan_Enabled{cam}"]
+        if item.start <= scene.frame_current <= item.end:
+            icon = config.icons_col[f"ShotMan_EnabledCurrent{cam}"]
+    else:
+        icon = config.icons_col[f"ShotMan_Disabled{cam}"]
+
+    if item.camera is None or itemHasWarnings:
+        layout.alert = True
+
+    # mainRow = layout.row(align=True)
+
+    layout.operator("uas_shot_manager.set_current_shot", icon_value=icon.icon_id, text="").index = index
+
+
 def drawStoryboardRow(layout, props, item, index):
     row = layout.row(align=True)
     row.scale_x = 1.1
