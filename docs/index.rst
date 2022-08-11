@@ -70,7 +70,8 @@ Getting started
 ---------------
 
 **It is highly recommended to start by reading the** :ref:`Shot Manager General Philosophy <general-philosophy>` **to clearly understand the purpose of this tool !**
-   Then:|br|
+   Then:
+
    * :ref:`Download <download>` the Shot Manager zip file,
    * :ref:`Install <installing>` Shot Manager as a Blender addon,
    * Mind the :ref:`features <features-and-limitations>` and the :ref:`vocabulary <glossary>`,
@@ -86,7 +87,6 @@ by several animation production companies and individuals, and we keep supportin
 
 Read this article to see how we used this tool on the TV production of Rabbids Invasion: Mission to Mars: `User Stories - Blender and the Rabbids <https://www.blender.org/user-stories/blender-and-the-rabbids/?utm_source=www-homepage>`__.
 
-... toctrees refer to file names
 
 .. toctree::
    :maxdepth: 2

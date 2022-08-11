@@ -85,6 +85,7 @@ A lot of improvements here since version 1.7:
     - Added an Open in Player button for Render Current
     - Moved the render warning UI component below in the panel to make it more visible
     - Display the shots names over the storyboard frames when the camera is hidden
+    - ...
 
 
 .. _project-settings:
@@ -108,7 +109,7 @@ when in production), it has been improved in this release.
 Bug fixes
 ---------
 
-A lot of work here too. See the `change log <https://github.com/ubisoft/shotmanager/issues>`_ on GitHub for an exhaustive list.
+A lot of work here too. See the `change log <https://github.com/ubisoft/shotmanager/blob/main/CHANGELOG.md>`_ on GitHub for an exhaustive list.
 
     - Fixed overlay state that wasn't restored correctly
     - Fixed Sequence Timeline that wasn't interactive anymore when the overlay was off
