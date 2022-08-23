@@ -27,6 +27,8 @@ from bpy.props import BoolProperty, StringProperty
 
 from ..ui.dependencies_ui import drawDependencies
 
+#
+
 from shotmanager.config import sm_logging
 
 _logger = sm_logging.getLogger(__name__)
@@ -34,8 +36,8 @@ _logger = sm_logging.getLogger(__name__)
 
 class UAS_ShotManager_AddonErrorPrefs(AddonPreferences):
     """
-        Use this to get these prefs:
-        prefs = context.preferences.addons["shotmanager"].preferences
+    Use this to get these prefs:
+    prefs = config.getShotManagerPrefs()
     """
 
     # this must match the add-on name, use '__package__'
@@ -53,13 +55,16 @@ class UAS_ShotManager_AddonErrorPrefs(AddonPreferences):
     # ------------------------------
 
     install_failed: BoolProperty(
-        name="Install Failed", default=True,
+        name="Install Failed",
+        default=True,
     )
     error_message: StringProperty(
-        name="Error Message", default="",
+        name="Error Message",
+        default="",
     )
     verbose: BoolProperty(
-        name="Verbose", default=False,
+        name="Verbose",
+        default=False,
     )
 
     ##################################################################################
@@ -67,7 +72,7 @@ class UAS_ShotManager_AddonErrorPrefs(AddonPreferences):
     ##################################################################################
     def draw(self, context):
         layout = self.layout
-        prefs_addon = context.preferences.addons["shotmanager"].preferences
+        prefs_addon = config.getShotManagerPrefs()
 
         box = layout.box()
         box.alert = True

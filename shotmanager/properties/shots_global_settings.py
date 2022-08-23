@@ -23,7 +23,9 @@ import bpy
 from bpy.types import PropertyGroup
 from bpy.props import EnumProperty, BoolProperty, FloatProperty
 
-from shotmanager.utils import utils
+from shotmanager.utils.utils_operators_overlays import getOverlaysPropertyState
+
+from shotmanager.config import config
 
 
 class UAS_ShotManager_ShotsGlobalSettings(PropertyGroup):
@@ -141,6 +143,133 @@ class UAS_ShotManager_ShotsGlobalSettings(PropertyGroup):
         step=0.1,
         update=_update_stb_distanceFromOrigin,
         default=2.0,
+    )
+
+    def _get_stb_overlaysViewportMode(self):
+        val = self.get("stb_overlaysViewportMode", 0)
+        return val
+
+    def _set_stb_overlaysViewportMode(self, value):
+        prefs = config.getShotManagerPrefs()
+
+        # ALL is value 0, TARGET is value 1 #####################################
+
+        # applyToAllViewports = "ALL" == self["stb_overlaysViewportMode"] # marche pas ici
+        applyToAllViewports = 0 == self["stb_overlaysViewportMode"]
+
+        if True:
+            # bpy.ops.uas_shot_manager.overlays_toggleoverlays(
+            #     allViewports=applyToAllViewports, newState=prefs.overlays_toggleoverlays_ui
+            # )
+            # bpy.ops.uas_shot_manager.overlays_toggleonionskin(
+            #     allViewports=applyToAllViewports, newState=prefs.overlays_toggleonionskin_ui
+            # )
+            # bpy.ops.uas_shot_manager.overlays_togglegrid(
+            #     allViewports=applyToAllViewports, newState=prefs.overlays_togglegrid_ui
+            # )
+            # bpy.ops.uas_shot_manager.overlays_togglegridtofront(
+            #     allViewports=applyToAllViewports, newState=prefs.overlays_togglegridtofront_ui
+            # )
+            # bpy.ops.uas_shot_manager.overlays_togglefadelayers(
+            #     allViewports=applyToAllViewports, newState=prefs.overlays_togglefadelayers_ui
+            # )
+
+            overlaysChecked = prefs.overlays_toggleoverlays_ui
+            onionSkinIsActive = prefs.overlays_toggleonionskin_ui
+            useGrid = prefs.overlays_togglegrid_ui
+            gridIsinFront = prefs.overlays_togglegridtofront_ui
+            useFadeLayers = prefs.overlays_togglefadelayers_ui
+
+            # oldVal = self["stb_overlaysViewportMode"]
+            # if we go from Target to All
+            if 0 != self["stb_overlaysViewportMode"] and 0 == value:
+                self["stb_overlaysViewportMode"] = value
+                applyToAllViewports = 0 == self["stb_overlaysViewportMode"]
+
+            # overlaysChecked = getOverlaysPropertyState(bpy.context, "show_overlays")
+            # onionSkinIsActive = getOverlaysPropertyState(bpy.context, "use_gpencil_onion_skin")
+            # useGrid = getOverlaysPropertyState(bpy.context, "use_gpencil_grid")
+            # gridIsinFront = getOverlaysPropertyState(bpy.context, "use_gpencil_canvas_xray")
+            # useFadeLayers = getOverlaysPropertyState(bpy.context, "use_gpencil_fade_layers")
+
+            bpy.ops.uas_shot_manager.overlays_toggleoverlays(allViewports=applyToAllViewports, newState=overlaysChecked)
+            bpy.ops.uas_shot_manager.overlays_toggleonionskin(
+                allViewports=applyToAllViewports, newState=onionSkinIsActive
+            )
+            bpy.ops.uas_shot_manager.overlays_togglegrid(allViewports=applyToAllViewports, newState=useGrid)
+            bpy.ops.uas_shot_manager.overlays_togglegridtofront(
+                allViewports=applyToAllViewports, newState=gridIsinFront
+            )
+            bpy.ops.uas_shot_manager.overlays_togglefadelayers(allViewports=applyToAllViewports, newState=useFadeLayers)
+            self["stb_overlaysViewportMode"] = value
+
+    def _update_stb_overlaysViewportMode(self, context):
+        return
+        prefs = config.getShotManagerPrefs()
+        applyToAllViewports = "ALL" == self.stb_overlaysViewportMode
+
+        # if applyToAllViewports:
+        #     onionSkinIsActive = getOverlaysPropertyState(context, "use_gpencil_onion_skin")
+        #     useGrid = getOverlaysPropertyState(context, "use_gpencil_grid")
+        #     gridIsinFront = getOverlaysPropertyState(context, "use_gpencil_canvas_xray")
+        #     useFadeLayers = getOverlaysPropertyState(context, "use_gpencil_fade_layers")
+        # else:
+        #     props = context.scene.UAS_shot_manager_props
+        #     spaceDataViewport = props.getValidTargetViewportSpaceData(context)
+        #     if spaceDataViewport is not None:
+        #         onionSkinIsActive = spaceDataViewport.overlay.use_gpencil_onion_skin
+        #         useGrid = spaceDataViewport.overlay.use_gpencil_grid
+        #         gridIsinFront = spaceDataViewport.overlay.use_gpencil_canvas_xray
+        #         useFadeLayers = spaceDataViewport.overlay.use_gpencil_fade_layers
+
+        overlaysChecked = getOverlaysPropertyState(context, "show_overlays")
+        onionSkinIsActive = getOverlaysPropertyState(context, "use_gpencil_onion_skin")
+        useGrid = getOverlaysPropertyState(context, "use_gpencil_grid")
+        gridIsinFront = getOverlaysPropertyState(context, "use_gpencil_canvas_xray")
+        useFadeLayers = getOverlaysPropertyState(context, "use_gpencil_fade_layers")
+
+        # bpy.ops.uas_shot_manager.overlays_toggleoverlays(
+        #     allViewports=applyToAllViewports, newState=prefs.overlays_toggleoverlays_ui
+        # )
+        # bpy.ops.uas_shot_manager.overlays_toggleonionskin(
+        #     allViewports=applyToAllViewports, newState=prefs.overlays_toggleonionskin_ui
+        # )
+        # bpy.ops.uas_shot_manager.overlays_togglegrid(
+        #     allViewports=applyToAllViewports, newState=prefs.overlays_togglegrid_ui
+        # )
+        # bpy.ops.uas_shot_manager.overlays_togglegridtofront(
+        #     allViewports=applyToAllViewports, newState=prefs.overlays_togglegridtofront_ui
+        # )
+        # bpy.ops.uas_shot_manager.overlays_togglefadelayers(
+        #     allViewports=applyToAllViewports, newState=prefs.overlays_togglefadelayers_ui
+        # )
+        bpy.ops.uas_shot_manager.overlays_toggleoverlays(allViewports=applyToAllViewports, newState=overlaysChecked)
+        bpy.ops.uas_shot_manager.overlays_toggleonionskin(allViewports=applyToAllViewports, newState=onionSkinIsActive)
+        bpy.ops.uas_shot_manager.overlays_togglegrid(allViewports=applyToAllViewports, newState=useGrid)
+        bpy.ops.uas_shot_manager.overlays_togglegridtofront(allViewports=applyToAllViewports, newState=gridIsinFront)
+        bpy.ops.uas_shot_manager.overlays_togglefadelayers(allViewports=applyToAllViewports, newState=useFadeLayers)
+
+        # prefs.overlays_toggleoverlays_ui = not overlaysChecked  # not prefs.overlays_toggleoverlays_ui
+        # prefs.overlays_toggleonionskin_ui = not onionSkinIsActive  # not prefs.overlays_toggleonionskin_ui
+        # prefs.overlays_togglegrid_ui = not useGrid  # not prefs.overlays_togglegrid_ui
+        # prefs.overlays_togglegridtofront_ui = not gridIsinFront  # not prefs.overlays_togglegridtofront_ui
+        # prefs.overlays_togglefadelayers_ui = not useFadeLayers  # not prefs.overlays_togglefadelayers_ui
+
+    stb_overlaysViewportMode: EnumProperty(
+        name="Overlays Viewports",
+        description="Apply Overlays settings only to specified viewports",
+        items=(
+            ("ALL", "All Viewports", "Apply following Overlays settings to all the viewports of the current layout"),
+            (
+                "TARGET",
+                "Target Viewport",
+                "Apply following Overlays settings only to the viewport defined as the\ntarget one in Shot Manager.",
+            ),
+        ),
+        get=_get_stb_overlaysViewportMode,
+        set=_set_stb_overlaysViewportMode,
+        #    update=_update_stb_overlaysViewportMode,
+        default="ALL",
     )
 
     def _update_stb_show_passepartout(self, context):

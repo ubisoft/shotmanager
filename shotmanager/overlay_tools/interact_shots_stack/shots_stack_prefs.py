@@ -21,13 +21,14 @@ Settings panel for the Interactive Shots Stack overlay tool
 
 import bpy
 from bpy.types import Operator
-from bpy.types import Menu
+
+from shotmanager.config import config
 
 
 def draw_settings(context, layout):
     """Used in Shot Manager Feature Toggles panel"""
     props = context.scene.UAS_shot_manager_props
-    prefs = context.preferences.addons["shotmanager"].preferences
+    prefs = config.getShotManagerPrefs()
     # layout = self.layout
 
     leftCol = layout.column()
@@ -55,7 +56,7 @@ def draw_settings(context, layout):
 #     """Used in Shot Manager Feature Toggles panel
 #     """
 #     props = context.scene.UAS_shot_manager_props
-#     prefs = context.preferences.addons["shotmanager"].preferences
+#     prefs = config.getShotManagerPrefs()
 #     layout = self.layout
 
 #     layout.alert = True
@@ -108,7 +109,7 @@ class UAS_ShotManager_OT_InteractShotsStackSettingsWind(Operator):
 
     def draw(self, context):
         props = context.scene.UAS_shot_manager_props
-        prefs = context.preferences.addons["shotmanager"].preferences
+        prefs = config.getShotManagerPrefs()
         layout = self.layout
 
         mainRow = layout.row(align=True)
@@ -128,13 +129,6 @@ class UAS_ShotManager_OT_InteractShotsStackSettingsWind(Operator):
         split.label(text="Target Dopesheet Editor")
 
         targetrow = split.row(align=True)
-        targetrow.prop(
-            context.window_manager,
-            "UAS_shot_manager_identify_dopesheets",
-            text="",
-            toggle=True,
-            icon="WORDWRAP_ON",
-        )
 
         targdoperow = targetrow.row(align=True)
         expected_target_area_ind = props.getTargetDopesheetIndex(context, only_valid=False)
@@ -142,6 +136,13 @@ class UAS_ShotManager_OT_InteractShotsStackSettingsWind(Operator):
         # print(f"display area targ: expected_target_area_ind:{expected_target_area_ind}, targ:{target_area_ind}")
         targdoperow.alert = target_area_ind < expected_target_area_ind
         targdoperow.prop(props, "interactShotsStack_target_dopesheet_index", text="")
+        targetrow.prop(
+            context.window_manager,
+            "UAS_shot_manager_identify_dopesheets",
+            text="",
+            toggle=True,
+            icon="WORDWRAP_ON",
+        )
 
         # seq timeline
         #######################
@@ -198,7 +199,7 @@ class UAS_ShotManager_OT_InteractShotsStackSettingsWind(Operator):
 
 # #     def draw(self, context):
 # #         props = context.scene.UAS_shot_manager_props
-# #         prefs = context.preferences.addons["shotmanager"].preferences
+# #         prefs = config.getShotManagerPrefs()
 
 # #         layout = self.layout
 

@@ -182,7 +182,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
 
     def initialize_shot_manager(self):
         _logger.info_ext(f"\nInitializing Ubisoft Shot Manager in the current scene ({bpy.context.scene.name})...")
-        prefs = bpy.context.preferences.addons["shotmanager"].preferences
+        prefs = config.getShotManagerPrefs()
 
         # self.parentScene = self.getParentScene()
 
@@ -325,7 +325,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         return True
 
     def dontRefreshUI(self):
-        prefs = bpy.context.preferences.addons["shotmanager"].preferences
+        prefs = config.getShotManagerPrefs()
         res = False
         if (
             bpy.context.screen.is_animation_playing
@@ -1385,7 +1385,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
     # not visible in the UI because radiobuttons are more suitable
 
     # def _update_layout_mode(self, context):
-    #     prefs = context.preferences.addons["shotmanager"].preferences
+    #     prefs = config.getShotManagerPrefs()
     #     # print("\n*** Props _update_layout_mode updated. New state: ", self._update_layout_mode)
     #     # self.layout_but_storyboard = "STORYBOARD" == self._update_layout_mode
     #     # self.layout_but_previez = "PREVIZ" == self._update_layout_mode
@@ -2069,7 +2069,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
     def _update_selected_shot_index(self, context):
         if self.selected_shot_index_call_update__flag:
             props = context.scene.UAS_shot_manager_props
-            prefs = context.preferences.addons["shotmanager"].preferences
+            prefs = config.getShotManagerPrefs()
             _logger.debug_ext(f"\n*** selected_shot_index. New state: {self.selected_shot_index}")
 
             setCurrentShot = False
@@ -3459,7 +3459,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         elif -1 < currentShotIndex < len(shotList):
             self.current_shot_index = currentShotIndex
 
-            prefs = bpy.context.preferences.addons["shotmanager"].preferences
+            prefs = config.getShotManagerPrefs()
             currentShot = shotList[currentShotIndex]
 
             if changeTime is None:
@@ -4400,7 +4400,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         Args: frame:    If provided then the result is a string of zeros followed by this value
                         If not provided then the returned string is made of #
         """
-        prefs = bpy.context.preferences.addons["shotmanager"].preferences
+        prefs = config.getShotManagerPrefs()
         formatedFrame = ""
         padding = self.project_img_name_digits_padding if self.use_project_settings else prefs.img_name_digits_padding
 

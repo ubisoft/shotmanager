@@ -38,6 +38,7 @@ from shotmanager.utils.utils_python import clamp
 from shotmanager.utils.utils_editors_dopesheet import getLaneHeight
 from shotmanager.utils.utils import color_to_sRGB, lighten_color, set_color_alpha, alpha_to_linear, color_to_linear
 
+
 from shotmanager.config import config
 from shotmanager.config import sm_logging
 
@@ -365,7 +366,7 @@ class ShotClipComponent(Component2D):
         if isSelected:
             _logger.debug_ext("\n\nClip isSelected set to True", col="RED")
             props = context.scene.UAS_shot_manager_props
-            prefs = context.preferences.addons["shotmanager"].preferences
+            prefs = config.getShotManagerPrefs()
 
             prefs.shot_selected_from_shots_stack__flag = True
             props.setSelectedShot(self.shot)

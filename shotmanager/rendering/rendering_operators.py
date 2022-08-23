@@ -16,7 +16,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 """
-To do: module description here.
+Render operators
 """
 
 from pathlib import Path
@@ -28,6 +28,8 @@ from bpy.props import EnumProperty, StringProperty
 from .rendering import launchRender
 
 from shotmanager.utils import utils
+
+from shotmanager.config import config
 
 
 def get_media_path(out_path, take_name, shot_name):
@@ -130,7 +132,7 @@ class UAS_PT_ShotManager_Render(Operator):
 
     def execute(self, context):
         props = context.scene.UAS_shot_manager_props
-        prefs = context.preferences.addons["shotmanager"].preferences
+        prefs = config.getShotManagerPrefs()
         prefs.renderMode = self.renderMode
 
         # update UI

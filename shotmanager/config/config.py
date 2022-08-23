@@ -26,6 +26,11 @@ from pathlib import Path
 import bpy.utils.previews
 
 
+def getShotManagerPrefs():
+    """Return the preferences of the add-on"""
+    return bpy.context.preferences.addons["shotmanager"].preferences
+
+
 def initGlobalVariables():
 
     # debug ############
@@ -38,7 +43,7 @@ def initGlobalVariables():
         devDebug = False
 
     # change this value to force debug at start time
-    devDebug = False
+    devDebug = True
 
     global devDebug_lastRedrawTime
     devDebug_lastRedrawTime = -1

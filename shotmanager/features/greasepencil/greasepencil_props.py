@@ -29,6 +29,7 @@ from shotmanager.utils import utils
 from shotmanager.utils import utils_greasepencil
 from shotmanager.features.greasepencil import greasepencil as gp
 
+from shotmanager.config import config
 from shotmanager.config import sm_logging
 
 _logger = sm_logging.getLogger(__name__)
@@ -57,7 +58,7 @@ class GreasePencilProperties(PropertyGroup):
         Args:
             mode: can be "STORYBOARD"
         """
-        prefs = bpy.context.preferences.addons["shotmanager"].preferences
+        prefs = config.getShotManagerPrefs()
         # print(f"\nInitializing new Grease Pencil Properties for shot {parentShot.name}...")
 
         if parentShot.isCameraValid():

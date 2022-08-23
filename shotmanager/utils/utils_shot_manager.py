@@ -24,6 +24,13 @@ import addon_utils
 
 from . import utils
 
+from shotmanager.config import config
+
+
+def getShotManagerPrefs():
+    """Return the preferences of the add-on"""
+    return config.getShotManagerPrefs()
+
 
 def getUbisoftName():
     addonHeaderWarning = [
@@ -50,7 +57,7 @@ def getStampInfo():
 
     return bpy.context.scene.UAS_SM_StampInfo_Settings
 
-    prefs = bpy.context.preferences.addons["shotmanager"].preferences
+    prefs = config.getShotManagerPrefs()
     stampInfoSettings = None
 
     # if getattr(scene, "UAS_SM_StampInfo_Settings", None) is None:

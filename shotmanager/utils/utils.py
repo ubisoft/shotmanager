@@ -619,6 +619,19 @@ def getViewports(context):
     return getAreasByType(context, "VIEW_3D")
 
 
+def getViewportsSpaceData(context):
+    """Return a list of all the space data of all the viewports found in the current layout
+    Return en empty list if no viewport exists in the screen
+    """
+    viewportAreas = getViewports(context)
+    spaceDatas = list()
+    for viewportArea in viewportAreas:
+        for space_data in viewportArea.spaces:
+            if "VIEW_3D" == space_data.type:
+                spaceDatas.append(space_data)
+    return spaceDatas
+
+
 def getViewportFromIndex(context, viewport_index):
     """
     Return: None if not found

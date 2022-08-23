@@ -27,6 +27,7 @@ from bpy.props import StringProperty, BoolProperty, EnumProperty
 # from shotmanager.utils import utils
 # from shotmanager.utils import utils_greasepencil
 
+from shotmanager.config import config
 from shotmanager.config import sm_logging
 
 _logger = sm_logging.getLogger(__name__)
@@ -232,7 +233,7 @@ class UAS_ShotManager_GpTemplatePanel(Operator):
     layer_Canvas_material: StringProperty(default="_Canvas_Mat")
 
     def invoke(self, context, event):
-        prefs = bpy.context.preferences.addons["shotmanager"].preferences
+        prefs = config.getShotManagerPrefs()
         if "SCENE" == self.mode:
             props = context.scene.UAS_shot_manager_props
         else:
@@ -297,7 +298,7 @@ class UAS_ShotManager_GpTemplatePanel(Operator):
         return context.window_manager.invoke_props_dialog(self, width=480)
 
     def draw(self, context):
-        prefs = bpy.context.preferences.addons["shotmanager"].preferences
+        prefs = config.getShotManagerPrefs()
         if "SCENE" == self.mode:
             props = context.scene.UAS_shot_manager_props
         else:
@@ -502,7 +503,7 @@ class UAS_ShotManager_GpTemplatePanel(Operator):
 
     def applySettings(self, context):
         # Can be SCENE or ADDON_PREFS"
-        prefs = bpy.context.preferences.addons["shotmanager"].preferences
+        prefs = config.getShotManagerPrefs()
         if "SCENE" == self.mode:
             props = context.scene.UAS_shot_manager_props
         else:

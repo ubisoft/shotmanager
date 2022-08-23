@@ -27,6 +27,8 @@ from random import uniform
 
 from shotmanager.utils import utils
 
+from shotmanager.config import config
+
 
 class UAS_ShotManager_CreateNStoryboardShots(Operator):
     bl_idname = "uas_shot_manager.create_n_storyboard_shots"
@@ -78,7 +80,7 @@ class UAS_ShotManager_CreateNStoryboardShots(Operator):
     def invoke(self, context, event):
         wm = context.window_manager
         props = context.scene.UAS_shot_manager_props
-        prefs = context.preferences.addons["shotmanager"].preferences
+        prefs = config.getShotManagerPrefs()
 
         # self.name = f"{props.new_shot_prefix}{len ( props.getShotsList() ) + 1:02}" + "0"
         # self.name = (props.project_shot_format.split("_")[2]).format((len(props.getShotsList()) + 1) * 10)
@@ -246,7 +248,7 @@ class UAS_ShotManager_OT_ShowHideStoryboardFrames(Operator):
     def invoke(self, context, event):
         props = context.scene.UAS_shot_manager_props
 
-        # prefs = context.preferences.addons["shotmanager"].preferences
+        # prefs = config.getShotManagerPrefs()
         # bpy.ops.uas_shots_settings.use_greasepencil(useGreasepencil=prefs.enableGreasePencil)
         # prefs.enableGreasePencil = not prefs.enableGreasePencil
 

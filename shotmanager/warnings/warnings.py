@@ -38,7 +38,7 @@ def getWarnings(props, scene):
             - the panel type, which can be 'ALL', 'MAIN' or 'RENDER'
         eg: [("Current file in Read-Only", 1, 'ALL'), ("Current scene fps and project fps are different !!", 2, 'MAIN')]
     """
-    prefs = bpy.context.preferences.addons["shotmanager"].preferences
+    prefs = config.getShotManagerPrefs()
     warningList = []
 
     # check if the current file is saved and not read only

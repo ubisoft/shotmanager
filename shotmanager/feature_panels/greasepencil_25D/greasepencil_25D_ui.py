@@ -25,6 +25,8 @@ from bpy.types import Panel
 
 from shotmanager.features.greasepencil.greasepencil_ui import draw_greasepencil_play_tools
 
+from shotmanager.config import config
+
 
 class UAS_PT_ShotManagerGreasePencilPanelStdalone(Panel):
     # bl_label = "Shot Manager - Grease Pencil"
@@ -44,8 +46,8 @@ class UAS_PT_ShotManagerGreasePencilPanelStdalone(Panel):
     @classmethod
     def poll(cls, context):
         # props = context.scene.UAS_shot_manager_props
-        prefs = context.preferences.addons["shotmanager"].preferences
-        # displayPanel = context.preferences.addons["shotmanager"].preferences.separatedRenderPanel
+        prefs = config.getShotManagerPrefs()
+        # displayPanel = prefs.preferences.separatedRenderPanel
         # displayPanel = displayPanel and props.getCurrentShot() is not None
         # return displayPanel and prefs.display_25D_greasepencil_panel
         return prefs.display_25D_greasepencil_panel

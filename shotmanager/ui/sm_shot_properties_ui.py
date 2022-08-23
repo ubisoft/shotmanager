@@ -20,7 +20,10 @@ Shot properties UI
 """
 
 from shotmanager.utils import utils_ui
-from shotmanager.features.greasepencil import greasepencil_overlay_ui
+
+from shotmanager.ui import sm_shots_global_settings_ui_cameras
+
+# from shotmanager.ui import sm_shots_global_settings_ui_overlays
 
 from shotmanager.config import config
 from shotmanager.config import sm_logging
@@ -36,7 +39,7 @@ _logger = sm_logging.getLogger(__name__)
 def draw_shot_properties(layout, context, shot):
     scene = context.scene
     props = scene.UAS_shot_manager_props
-    # prefs = context.preferences.addons["shotmanager"].preferences
+    # prefs = config.getShotManagerPrefs()
     iconExplorer = config.icons_col["General_Explorer_32"]
 
     #  shotPropertiesModeIsCurrent = not ('SELECTED' == props.current_shot_properties_mode)
@@ -340,16 +343,16 @@ def draw_shot_properties(layout, context, shot):
 
 def draw_shots_global_properties(layout, context):
     props = context.scene.UAS_shot_manager_props
-    prefs = context.preferences.addons["shotmanager"].preferences
+    prefs = config.getShotManagerPrefs()
 
     box = layout.box()
     row = box.row()
     utils_ui.collapsable_panel(row, prefs, "shot_global_props_expanded", alert=False, text="Shots Global Control ")
 
     if prefs.shot_global_props_expanded:
-        rightRow = row.row()
-        rightRow.alignment = "RIGHT"
-        rightRow.prop(props.shotsGlobalSettings, "alsoApplyToDisabledShots")
+        # rightRow = row.row()
+        # rightRow.alignment = "RIGHT"
+        # rightRow.prop(props.shotsGlobalSettings, "alsoApplyToDisabledShots")
 
         # -
         ######################
@@ -377,6 +380,11 @@ def draw_shots_global_properties(layout, context):
 
             #  row.separator(factor=0.5)  # prevents stange look when panel is narrow
 
-        # overlay tools
+        # cameras tools
         #########################
-        greasepencil_overlay_ui.draw_greasepencil_overlay_tools(context, box, mode="SHOT")
+        row = box.row()
+        row.use_property_decorate = False
+        row.separator(factor=1.8)
+        col = row.column(align=True)
+        sm_shots_global_settings_ui_cameras.draw_camera_global_settings(context, col, mode="SHOT")
+        # sm_shots_global_settings_ui_overlays.draw_overlays_global_settings(context, col, mode="SHOT")

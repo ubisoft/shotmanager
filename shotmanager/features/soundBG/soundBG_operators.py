@@ -16,16 +16,15 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 """
-To do: module description here.
+Sound background
 """
 
 import bpy
 from bpy.types import Operator
-from bpy.props import StringProperty, BoolProperty, IntProperty
+from bpy.props import StringProperty
+
 
 from shotmanager.config import config
-from shotmanager.utils import utils
-
 from shotmanager.config import sm_logging
 
 _logger = sm_logging.getLogger(__name__)
@@ -41,7 +40,7 @@ class UAS_ShotManager_EnableDisableSoundBG(Operator):
     mode: StringProperty(default="All")
 
     def invoke(self, context, event):
-        prefs = context.preferences.addons["shotmanager"].preferences
+        prefs = config.getShotManagerPrefs()
 
         if "All" == self.mode or "Sound" == self.mode:
             bpy.ops.uas_shots_settings.use_background_sound(useBackgroundSound=prefs.toggleCamsSoundBG)
@@ -61,4 +60,3 @@ def register():
 def unregister():
     for cls in reversed(classes):
         bpy.utils.unregister_class(cls)
-

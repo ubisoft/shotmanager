@@ -34,7 +34,7 @@ class UAS_ShotManager_Sequence_Prefs(Operator):
 
     def draw(self, context):
         props = context.scene.UAS_shot_manager_props
-        # prefs = context.preferences.addons["shotmanager"].preferences
+        # prefs = config.getShotManagerPrefs()
         layout = self.layout
 
         layout.alert = True

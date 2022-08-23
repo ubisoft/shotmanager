@@ -35,7 +35,7 @@ _logger = sm_logging.getLogger(__name__)
 
 def ignoreWidget(context):
     props = context.scene.UAS_shot_manager_props
-    prefs = bpy.context.preferences.addons["shotmanager"].preferences
+    prefs = config.getShotManagerPrefs()
 
     if not len(props.get_shots()):
         return True
@@ -60,7 +60,7 @@ class UAS_ShotManager_sequenceTimeline(Operator):
     # @classmethod
     # def poll(cls, context):
     #     props = context.scene.UAS_shot_manager_props
-    #     prefs = context.preferences.addons["shotmanager"].preferences
+    #     prefs = config.getShotManagerPrefs()
     #     val = True
     #     if prefs.seqTimeline_not_disabled_with_overlays and not bpy.context.space_data.overlay.show_overlays:
     #         val = False
@@ -152,7 +152,7 @@ class UAS_ShotManager_sequenceTimeline(Operator):
 
     def modal(self, context, event):
         props = context.scene.UAS_shot_manager_props
-        prefs = context.preferences.addons["shotmanager"].preferences
+        prefs = config.getShotManagerPrefs()
 
         # _logger.debug_ext(f"uas_shot_manager.sequence_timeline  Modal", col="RED")
 

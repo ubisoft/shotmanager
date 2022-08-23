@@ -25,7 +25,7 @@ import bpy
 from bpy.types import Operator
 from bpy.props import StringProperty, BoolProperty, IntProperty
 
-
+from shotmanager.config import config
 from shotmanager.config import sm_logging
 
 _logger = sm_logging.getLogger(__name__)
@@ -162,7 +162,7 @@ class UAS_ShotManager_EnableDisableCamsBG(Operator):
     mode: StringProperty(default="All")
 
     def invoke(self, context, event):
-        prefs = context.preferences.addons["shotmanager"].preferences
+        prefs = config.getShotManagerPrefs()
 
         if "All" == self.mode or "Image" == self.mode:
             bpy.ops.uas_shots_settings.use_background(useBackground=prefs.toggleCamsBG)

@@ -19,17 +19,19 @@
 Shot Manager grease pencil tools and specific operators
 """
 
-from . import greasepencil_overlay_ui
+from shotmanager.ui import sm_shots_global_settings_ui_cameras
+from shotmanager.ui import sm_shots_global_settings_ui_overlays
 
 from shotmanager.utils import utils_ui
 from shotmanager.utils import utils_greasepencil
+
 
 from shotmanager.config import config
 
 
 def draw_greasepencil_play_tools(self, context, shot, layersListDropdown=None):
     props = context.scene.UAS_shot_manager_props
-    prefs = context.preferences.addons["shotmanager"].preferences
+    prefs = config.getShotManagerPrefs()
     scene = context.scene
     layout = self.layout
 
@@ -204,7 +206,11 @@ def draw_greasepencil_play_tools(self, context, shot, layersListDropdown=None):
 
     # overlay tools
     #########################
-    greasepencil_overlay_ui.draw_greasepencil_overlay_tools(context, box, mode="GP")
+    row = box.row()
+    row.use_property_decorate = False
+    row.separator(factor=1.8)
+    col = row.column(align=True)
+    sm_shots_global_settings_ui_overlays.draw_overlays_global_settings(context, col, mode="GP")
 
 
 def drawDrawingMatRow(context, layout, props, objIsValid, objIsGP):
@@ -369,7 +375,7 @@ def drawAutokey(context, layout):
 
 
 def drawLayersRow(context, props, layout, editedGpencil, objIsGP):
-    # prefs = context.preferences.addons["shotmanager"].preferences
+    # prefs = config.getShotManagerPrefs()
     framePreset = context.scene.UAS_shot_manager_props.stb_frameTemplate
     currentFrame = context.scene.frame_current
 
@@ -459,7 +465,7 @@ def drawLayersRow(context, props, layout, editedGpencil, objIsGP):
 
 
 def drawKeyFrameActionsRow(context, props, layout, editedGpencil, objIsGP):
-    # prefs = context.preferences.addons["shotmanager"].preferences
+    # prefs = config.getShotManagerPrefs()
     # framePreset = context.scene.UAS_shot_manager_props.stb_frameTemplate
     currentFrame = context.scene.frame_current
 

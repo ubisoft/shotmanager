@@ -16,11 +16,11 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 """
-To do: module description here.
+Pref tools
 """
 
 import bpy
-from bpy.types import Panel, Operator, Menu
+from bpy.types import Operator
 
 from shotmanager.config import config
 
@@ -43,9 +43,9 @@ class UAS_ShotManager_Tools_Prefs(Operator):
         return context.window_manager.invoke_props_dialog(self, width=480)
 
     def draw(self, context):
-        props = context.scene.UAS_shot_manager_props
-        prefs = bpy.context.preferences.addons["shotmanager"].preferences
-        scale_x = 0.85
+        # props = context.scene.UAS_shot_manager_props
+        prefs = config.getShotManagerPrefs()
+        # scale_x = 0.85
 
         layout = self.layout
         layout.alert = True

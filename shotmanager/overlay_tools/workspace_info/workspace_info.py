@@ -292,21 +292,39 @@ def draw_callback__viewport_info(self, context, callingArea, targetViewportIndex
             break
 
     if len(viewports):
-        position = Vector([70, 40])
-        size = 50
         if targetViewportIndex == contextViewportInd:
             color = (0.1, 0.95, 0.1, 1.0)
+            posY = 200
         else:
             color = (0.95, 0.95, 0.95, 1.0)
+            posY = 115
 
+        size = 50
+        posY -= 55
+        position = Vector([70, posY])
         areaIndStr = "?" if -1 == contextViewportInd else contextViewportInd
         draw_typo_2d(color, f"3D View: {areaIndStr}", position, size)
 
-        # position = Vector([70, 38])
-        # draw_typo_2d(color, f"{str(message)}", position, 20)
+        if targetViewportIndex == contextViewportInd:
+            size = 20
+            posY -= 28
+            message = "Current Shot Manager Target"
+            position = Vector([70, posY])
+            draw_typo_2d(color, f"{message}", position, size)
 
-        # position = Vector([70, 20])
-        # draw_typo_2d(color, f"{str(message2)}", position, 20)
+            size = 14
+            posY -= 22
+            message = "Shot Manager is using this viewport to set the camera of the current shot"
+            position = Vector([70, posY])
+            draw_typo_2d(color, f"{message}", position, size)
+            posY -= 18
+            message = "and control several overlays settings."
+            position = Vector([70, posY])
+            draw_typo_2d(color, f"{message}", position, size)
+            posY -= 18
+            message = "The target viewport can be changed from the Shot Manager panel."
+            position = Vector([70, posY])
+            draw_typo_2d(color, f"{message}", position, size)
 
 
 ###################

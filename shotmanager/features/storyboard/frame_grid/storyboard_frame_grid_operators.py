@@ -23,6 +23,8 @@ import bpy
 from bpy.types import Operator
 from bpy.props import StringProperty, IntProperty, FloatProperty, FloatVectorProperty, EnumProperty
 
+from shotmanager.config import config
+
 
 class UAS_ShotManager_StoryboardGridUpdate(Operator):
     bl_idname = "uas_shot_manager.storyboard_grid_update"
@@ -73,7 +75,7 @@ class UAS_ShotManager_StoryboardGridDisplaySettings(Operator):
 
     def draw(self, context):
         props = context.scene.UAS_shot_manager_props
-        prefs = context.preferences.addons["shotmanager"].preferences
+        prefs = config.getShotManagerPrefs()
         layout = self.layout
 
         # layout.alert = True

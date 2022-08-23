@@ -55,7 +55,7 @@ def renderStampedImage(
         print("\n       renderTmpImageWithStampedInfo ")
 
     siSettings = scene.UAS_SM_StampInfo_Settings
-    # prefs = bpy.context.preferences.addons["shotmanager"].preferences
+    # prefs = config.getShotManagerPrefs()
     paddingLeftMetadataTopNorm = 0.0
     paddingLeftMetadataBottomNorm = 0.0
 

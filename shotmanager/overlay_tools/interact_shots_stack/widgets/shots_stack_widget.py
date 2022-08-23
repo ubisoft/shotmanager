@@ -44,6 +44,7 @@ from shotmanager.gpu.gpu_2d.class_Text2D import Text2D
 
 from shotmanager.overlay_tools.workspace_info import workspace_info
 
+
 from shotmanager.config import config
 from shotmanager.config import sm_logging
 
@@ -54,7 +55,7 @@ UNIFORM_SHADER_2D = gpu.shader.from_builtin("2D_UNIFORM_COLOR")
 
 class BL_UI_ShotStack:
     def __init__(self, target_area=None):
-        prefs = bpy.context.preferences.addons["shotmanager"].preferences
+        prefs = config.getShotManagerPrefs()
 
         self.useDebugComponents = False
         self.use_shots_old_way = False
@@ -474,7 +475,7 @@ class BL_UI_ShotStack:
 
     def handle_event(self, context, event, region):
         """Return True if the event is handled for BL_UI_ShotStack"""
-        prefs = bpy.context.preferences.addons["shotmanager"].preferences
+        prefs = config.getShotManagerPrefs()
 
         # _logger.debug_ext("*** handle event for BL_UI_ShotStack", col="GREEN", tag="SHOTSTACK_EVENT")
         if not context.window_manager.UAS_shot_manager_toggle_shots_stack_interaction:

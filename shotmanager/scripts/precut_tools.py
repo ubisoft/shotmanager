@@ -77,7 +77,7 @@ class UAS_ShotManager_PredecTools_CreateShotsFromSingleCamera(Operator):
 
     def invoke(self, context, event):
         wm = context.window_manager
-        prefs = context.preferences.addons["shotmanager"].preferences
+        prefs = config.getShotManagerPrefs()
 
         self.start = context.scene.frame_current
         self.end = context.scene.frame_current + prefs.new_shot_duration

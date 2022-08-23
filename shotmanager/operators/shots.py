@@ -31,6 +31,7 @@ import json
 from shotmanager.utils import utils
 from shotmanager.utils.utils_time import zoom_dopesheet_view_to_range
 
+from shotmanager.config import config
 from shotmanager.config import sm_logging
 
 _logger = sm_logging.getLogger(__name__)
@@ -107,7 +108,7 @@ class UAS_ShotManager_SetShotStart(Operator):
 
     # @classmethod
     # def poll(cls, context):
-    #     return bpy.context.preferences.addons["shotmanager"].preferences.display_frame_range_tool
+    #     return config.getShotManagerPrefs().display_frame_range_tool
 
     newStart: IntProperty(default=-99999)
 
@@ -186,7 +187,7 @@ class UAS_ShotManager_SetCurrentShot(Operator):
     def execute(self, context):
         scene = context.scene
         props = scene.UAS_shot_manager_props
-        prefs = bpy.context.preferences.addons["shotmanager"].preferences
+        prefs = config.getShotManagerPrefs()
         shot = props.getShotByIndex(self.index)
 
         #     _logger.debug_ext("Set Current Shot Operator exec: ", col="RED")
@@ -280,7 +281,7 @@ class UAS_ShotManager_ToggleContinuousGPEditingMode(Operator):
 
     def execute(self, context):
         props = context.scene.UAS_shot_manager_props
-        # prefs = context.preferences.addons["shotmanager"].preferences
+        # prefs = config.getShotManagerPrefs()
 
         props.useContinuousGPEditing = not props.useContinuousGPEditing
 
@@ -402,7 +403,7 @@ class UAS_ShotManager_ShowNotes(Operator):
 
     def invoke(self, context, event):
         props = context.scene.UAS_shot_manager_props
-        prefs = context.preferences.addons["shotmanager"].preferences
+        prefs = config.getShotManagerPrefs()
         shot = props.getShotByIndex(self.index)
         shot.selectShotInUI()
         prefs.shot_notes_expanded = True
@@ -484,7 +485,7 @@ class UAS_ShotManager_ShotAdd_GetCurrentFrameFor(Operator):
     def execute(self, context):
         scene = context.scene
         # props = scene.UAS_shot_manager_props
-        prefs = context.preferences.addons["shotmanager"].preferences
+        prefs = config.getShotManagerPrefs()
 
         currentFrame = scene.frame_current
 
@@ -572,7 +573,7 @@ class UAS_ShotManager_ShotAdd(Operator):
         wm = context.window_manager
         scene = context.scene
         props = scene.UAS_shot_manager_props
-        prefs = context.preferences.addons["shotmanager"].preferences
+        prefs = config.getShotManagerPrefs()
         selectedShot = props.getSelectedShot()
 
         self.name = props.getShotPrefix((len(props.getShotsList()) + 1) * 10)
@@ -630,7 +631,7 @@ class UAS_ShotManager_ShotAdd(Operator):
     def draw(self, context):
         # scene = context.scene
         props = context.scene.UAS_shot_manager_props
-        prefs = context.preferences.addons["shotmanager"].preferences
+        prefs = config.getShotManagerPrefs()
         isPrevizLayout = "PREVIZ" == self.layout_mode
         splitFactor = 0.3 if isPrevizLayout else 0.35
         layout = self.layout
@@ -810,7 +811,7 @@ class UAS_ShotManager_ShotAdd(Operator):
     def execute(self, context):
         scene = context.scene
         props = scene.UAS_shot_manager_props
-        prefs = context.preferences.addons["shotmanager"].preferences
+        prefs = config.getShotManagerPrefs()
         selectedShotInd = props.getSelectedShotIndex()
         newShotInd = selectedShotInd + 1
 
@@ -1087,7 +1088,7 @@ def convertMarkersFromCameraBindingToShots(scene):
     New shots are added at the end of the shots list of the current take
     """
     props = scene.UAS_shot_manager_props
-    prefs = bpy.context.preferences.addons["shotmanager"].preferences
+    prefs = config.getShotManagerPrefs()
     lastShotInd = props.getLastShotIndex()
 
     if len(scene.timeline_markers) <= 0:
@@ -1207,7 +1208,7 @@ class UAS_ShotManager_CreateNShots(Operator):
     def invoke(self, context, event):
         wm = context.window_manager
         props = context.scene.UAS_shot_manager_props
-        prefs = context.preferences.addons["shotmanager"].preferences
+        prefs = config.getShotManagerPrefs()
 
         self.name = props.project_naming_shot_format if props.use_project_settings else props.naming_shot_format
 
@@ -1487,7 +1488,7 @@ class UAS_ShotManager_ShotRemoveMultiple(Operator):
         return len(shots)
 
     def invoke(self, context, event):
-        prefs = context.preferences.addons["shotmanager"].preferences
+        prefs = config.getShotManagerPrefs()
         self.deleteCameras = prefs.removeShot_deleteCameras
         if event.shift and not event.ctrl and not event.alt:
             self.skipDialogBox = True
@@ -1521,7 +1522,7 @@ class UAS_ShotManager_ShotRemoveMultiple(Operator):
     def execute(self, context):
         scene = context.scene
         props = scene.UAS_shot_manager_props
-        prefs = context.preferences.addons["shotmanager"].preferences
+        prefs = config.getShotManagerPrefs()
         shots = props.get_shots()
         currentShotInd = props.current_shot_index
         selectedShotInd = props.getSelectedShotIndex()

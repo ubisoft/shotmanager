@@ -40,7 +40,7 @@ class UAS_PT_ShotManagerRetimer(Panel):
     @classmethod
     def poll(cls, context):
         props = context.scene.UAS_shot_manager_props
-        prefs = context.preferences.addons["shotmanager"].preferences
+        prefs = config.getShotManagerPrefs()
         val = prefs.display_retimer_panel and not props.dontRefreshUI()
         return val
 
@@ -305,7 +305,7 @@ class UAS_PT_ShotManagerRetimer_Settings(Panel):
 
     def draw(self, context):
         retimerProps = context.scene.UAS_shot_manager_props.retimer
-        prefs = context.preferences.addons["shotmanager"].preferences
+        prefs = config.getShotManagerPrefs()
 
         layout = self.layout
 

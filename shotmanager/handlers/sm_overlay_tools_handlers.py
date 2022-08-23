@@ -23,6 +23,8 @@ import bpy
 
 from shotmanager.utils import utils_handlers
 
+
+from shotmanager.config import config
 from shotmanager.config import sm_logging
 
 _logger = sm_logging.getLogger(__name__)
@@ -61,7 +63,7 @@ def install_handler_for_shot(self, context):
 
 def toggle_overlay_tools_display(context):
     # print("  toggle_overlay_tools_display:  self.UAS_shot_manager_display_overlay_tools: ", self.UAS_shot_manager_display_overlay_tools)
-    prefs = context.preferences.addons["shotmanager"].preferences
+    prefs = config.getShotManagerPrefs()
     from shotmanager.overlay_tools.interact_shots_stack.shots_stack import display_state_changed_intShStack
 
     if context.window_manager.UAS_shot_manager_display_overlay_tools:
@@ -70,7 +72,7 @@ def toggle_overlay_tools_display(context):
 
         if prefs.toggle_overlays_turnOn_interactiveShotsStack:
             display_state_changed_intShStack(context)
-    ###         context.window_manager.UAS_shot_manager__useInteracShotsStack = True
+    #         context.window_manager.UAS_shot_manager__useInteracShotsStack = True
 
     # bpy.ops.uas_shot_manager.draw_camera_hud_in_viewports("INVOKE_DEFAULT")
     else:
@@ -78,7 +80,7 @@ def toggle_overlay_tools_display(context):
             a = bpy.ops.uas_shot_manager.sequence_timeline("INVOKE_DEFAULT")
 
         if prefs.toggle_overlays_turnOn_interactiveShotsStack:
-            ###         context.window_manager.UAS_shot_manager__useInteracShotsStack = False
+            #         context.window_manager.UAS_shot_manager__useInteracShotsStack = False
             display_state_changed_intShStack(context)
 
         pass

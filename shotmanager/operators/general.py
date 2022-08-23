@@ -28,6 +28,7 @@ from shotmanager.config import config
 from shotmanager.operators.shots import convertMarkersFromCameraBindingToShots
 from shotmanager.utils.utils import getSceneVSE, convertVersionIntToStr, clearMarkersFromCameraBinding
 
+
 from shotmanager.config import sm_logging
 
 _logger = sm_logging.getLogger(__name__)
@@ -282,7 +283,7 @@ class UAS_ShotManager_OT_SetProjectSequenceName(Operator):
 
     def execute(self, context):
         props = context.scene.UAS_shot_manager_props
-        prefs = context.preferences.addons["shotmanager"].preferences
+        prefs = config.getShotManagerPrefs()
 
         props.project_naming_project_index = self.naming_project_index
         props.project_naming_sequence_index = self.naming_sequence_index

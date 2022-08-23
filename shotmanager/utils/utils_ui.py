@@ -36,7 +36,6 @@ from .utils_os import open_folder
 from .utils import convertVersionIntToStr
 
 from shotmanager.config import config
-
 from shotmanager.config import sm_logging
 
 _logger = sm_logging.getLogger(__name__)
@@ -59,7 +58,7 @@ def drawStampInfoBut(layout):
     Return True if Stamp Info is available, false otherwise"""
     prefs_stampInfo = None
     if bpy.context.scene.UAS_shot_manager_props.isStampInfoAvailable():
-        prefs_stampInfo = bpy.context.preferences.addons["shotmanager"].preferences
+        prefs_stampInfo = config.getShotManagerPrefs()
     icon = config.icons_col["StampInfo_32"]
     butsubrow = layout.row()
     butsubrow.scale_x = 1.5
@@ -82,7 +81,7 @@ def drawSeparatorLine(layout, lower_height=1.0, higher_height=0.0):
         row.separator()
 
     row = col.row()
-    row.scale_y = 0.2
+    row.scale_y = 0.1
     row.alignment = "CENTER"
     row.label(text="_____________________")
 
@@ -330,7 +329,7 @@ class UAS_ShotManager_UpdateDialog(Operator):
         return context.window_manager.invoke_props_dialog(self, width=450)
 
     def draw(self, context):
-        prefs = context.preferences.addons["shotmanager"].preferences
+        prefs = config.getShotManagerPrefs()
 
         layout = self.layout
         box = layout.box()

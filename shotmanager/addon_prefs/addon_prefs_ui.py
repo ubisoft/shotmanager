@@ -33,7 +33,6 @@ from shotmanager.prefs.features import draw_features_prefs
 def draw_addon_prefs(self, context):
     layout = self.layout
     layout = layout.column(align=False)
-    # prefs = context.preferences.addons["shotmanager"].preferences
 
     # Dependencies
     ###############

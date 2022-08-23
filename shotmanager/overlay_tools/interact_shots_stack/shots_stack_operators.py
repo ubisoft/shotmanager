@@ -22,6 +22,7 @@ Operators for the Interactive Shots Stack overlay tool
 import bpy
 from bpy.types import Operator
 
+from shotmanager.config import config
 from shotmanager.config import sm_logging
 
 _logger = sm_logging.getLogger(__name__)
@@ -34,7 +35,7 @@ class UAS_ShotManager_OT_ToggleShotsStackWithOverlayTools(Operator):
     bl_options = {"INTERNAL"}
 
     def invoke(self, context, event):
-        prefs = context.preferences.addons["shotmanager"].preferences
+        prefs = config.getShotManagerPrefs()
         prefs.toggle_overlays_turnOn_interactiveShotsStack = not prefs.toggle_overlays_turnOn_interactiveShotsStack
 
         # toggle on or off the overlay tools mode
