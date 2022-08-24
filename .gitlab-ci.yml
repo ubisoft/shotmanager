@@ -12,9 +12,15 @@ stages:
 #     - flake8 -v shotmanager
 
 doc:
+  services:
+    - docker:20.10.10-dind
+  variables:
+    DOCKER_HOST: tcp://localhost:2376
+    DOCKER_TLS_VERIFY: 1
+    DOCKER_CERT_PATH: /certs/client
   stage: pre_release
   tags:
-    - docker
+    - square_linux_dind
   image: python:3
   when: manual
   script:
@@ -28,8 +34,14 @@ doc:
     expire_in: 1 week
 
 zip:
+  services:
+    - docker:20.10.10-dind
+  variables:
+    DOCKER_HOST: tcp://localhost:2376
+    DOCKER_TLS_VERIFY: 1
+    DOCKER_CERT_PATH: /certs/client
   tags:
-    - docker
+    - square_linux_dind
   image: alpine
   stage: pre_release
   script:
@@ -49,12 +61,18 @@ zip:
       - /^v([0-9]+)\.([0-9]+)\.([0-9]+)(\-[0-9A-Za-z-]+)?(\+[0-9A-Za-z-]+)?$/
 
 release:
+  services:
+    - docker:20.10.10-dind
+  variables:
+    DOCKER_HOST: tcp://localhost:2376
+    DOCKER_TLS_VERIFY: 1
+    DOCKER_CERT_PATH: /certs/client
   extends:
     - .only_version_tag
   dependencies:
     - zip
   tags:
-    - docker
+    - square_linux_dind
   image: python:3
   stage: release
   script:
@@ -64,6 +82,3 @@ release:
   artifacts:
     paths:
       - shotmanager-${CI_COMMIT_REF_NAME}.zip
-
-####################################################################################
-
