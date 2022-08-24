@@ -58,6 +58,7 @@ from .ui import sm_ui
 from .utils import utils
 from .utils import utils_render
 from .utils import utils_operators
+from .utils import utils_operators_overlays
 from .tools import frame_range
 from .utils.utils_os import module_can_be_imported
 
@@ -79,7 +80,7 @@ bl_info = {
     "author": "Ubisoft - Julien Blervaque (aka Werwack), Romain Carriquiry Borchiari",
     "description": "Easily manage shots and cameras in the 3D View and see the resulting edit in real-time",
     "blender": (3, 1, 0),
-    "version": (2, 0, 220),
+    "version": (2, 0, 222),
     "location": "View3D > Shot Mng",
     "doc_url": "https://ubisoft-shotmanager.readthedocs.io",
     "tracker_url": "https://github.com/ubisoft/shotmanager/issues",
@@ -191,6 +192,7 @@ def register():
     addon_prefs.register()
 
     utils_operators.register()
+    utils_operators_overlays.register()
 
     # operators
     # markers_nav_bar_addon_prefs.register()
@@ -316,7 +318,7 @@ def register():
     if config.devDebug:
         print(f"\n ------ Ubisoft Shot Manager debug: {config.devDebug} ------- ")
 
-    addon_prefs_inst = bpy.context.preferences.addons["shotmanager"].preferences
+    addon_prefs_inst = config.getShotManagerPrefs()
     addon_prefs_inst.displaySMDebugPanel = False
 
     # _props = bpy.context.scene.UAS_shot_manager_props
@@ -325,7 +327,7 @@ def register():
     #     _props.initialize_shot_manager()
 
     # storyboard
-    # prefs_properties = bpy.context.preferences.addons["shotmanager"].preferences
+    # prefs_properties = config.getShotManagerPrefs()
     # prefs_properties.stb_frameTemplate.initialize(fromPrefs=True)
 
     print("")
@@ -409,6 +411,8 @@ def unregister():
     shots_global_settings.unregister()
     shots.unregister()
     takes.unregister()
+
+    utils_operators_overlays.unregister()
     utils_operators.unregister()
     frame_range.unregister()
     storyboard.unregister()

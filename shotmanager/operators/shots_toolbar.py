@@ -16,11 +16,13 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 """
-To do: module description here.
+Toolbar
 """
 
 import bpy
 from bpy.types import Operator
+
+from shotmanager.config import config
 
 #
 # Removed and replaced by a property in props
@@ -66,7 +68,7 @@ class UAS_ShotManager_EnableDisableAll(Operator):
     def invoke(self, context, event):
         scene = context.scene
         props = scene.UAS_shot_manager_props
-        prefs = context.preferences.addons["shotmanager"].preferences
+        prefs = config.getShotManagerPrefs()
 
         enableMode = "ENABLEALL"
         if event.shift and not event.ctrl and not event.alt:

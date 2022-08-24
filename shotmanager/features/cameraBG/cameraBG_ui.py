@@ -25,7 +25,7 @@ from shotmanager.config import config
 
 def draw_cameraBG_shot_properties(layout, context, shot):
     props = context.scene.UAS_shot_manager_props
-    prefs = context.preferences.addons["shotmanager"].preferences
+    prefs = config.getShotManagerPrefs()
 
     if shot is None:
         return

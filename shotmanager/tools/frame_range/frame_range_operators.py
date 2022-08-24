@@ -26,6 +26,8 @@ from bpy.props import FloatProperty
 from shotmanager.utils.utils_time import zoom_dopesheet_view_to_range
 from shotmanager.utils import utils_ui
 
+from shotmanager.config import config
+
 
 class UAS_ShotManager_SetTimeRangeStart(Operator):
     bl_idname = "uas_shot_manager.set_time_range_start"
@@ -35,7 +37,7 @@ class UAS_ShotManager_SetTimeRangeStart(Operator):
 
     @classmethod
     def poll(cls, context):
-        return bpy.context.preferences.addons["shotmanager"].preferences.display_frame_range_tool
+        return config.getShotManagerPrefs().display_frame_range_tool
 
     def execute(self, context):
         scene = context.scene
@@ -55,7 +57,7 @@ class UAS_ShotManager_SetTimeRangeEnd(Operator):
 
     @classmethod
     def poll(cls, context):
-        return bpy.context.preferences.addons["shotmanager"].preferences.display_frame_range_tool
+        return config.getShotManagerPrefs().display_frame_range_tool
 
     def execute(self, context):
         scene = context.scene
@@ -79,7 +81,7 @@ class UAS_ShotManager_FrameTimeRange(Operator):
 
     @classmethod
     def poll(cls, context):
-        return bpy.context.preferences.addons["shotmanager"].preferences.display_frame_range_tool
+        return config.getShotManagerPrefs().display_frame_range_tool
 
     # def invoke(self, context, event):
     #     props = context.scene.UAS_shot_manager_props
@@ -87,7 +89,7 @@ class UAS_ShotManager_FrameTimeRange(Operator):
     #     return {"FINISHED"}
 
     def execute(self, context):
-        ## note: possibility to use the optional parameter changeTime: to prevent current time to be changed
+        # NOTE: possibility to use the optional parameter changeTime: to prevent current time to be changed
         if context.scene.use_preview_range:
             zoom_dopesheet_view_to_range(context, context.scene.frame_preview_start, context.scene.frame_preview_end)
         else:
@@ -129,11 +131,13 @@ def register():
     # lets add ourselves to the main header
     # bpy.types.TIME_MT_editor_menus.prepend(draw_frame_range_tool_in_editor)
 
-    prefs = bpy.context.preferences.addons["shotmanager"].preferences
+    prefs = config.getShotManagerPrefs()
+
     display_frame_range_in_editor(prefs.display_frame_range_tool)
 
-    # vse
-    # bpy.types.SEQUENCER_HT_header.append(draw_frame_range_tool_in_editor)
+
+# vse
+# bpy.types.SEQUENCER_HT_header.append(draw_frame_range_tool_in_editor)
 
 
 #   bpy.types.TIME_HT_editor_buttons.append(draw_frame_range_tool_in_editor)

@@ -22,7 +22,8 @@ Data patch
 import bpy
 from ..utils import utils
 
-from ..config import sm_logging
+from shotmanager.config import config
+from shotmanager.config import sm_logging
 
 _logger = sm_logging.getLogger(__name__)
 
@@ -46,7 +47,7 @@ def data_patch_to_v2_0_204():
                 f"   Data version: {props.dataVersion}, SM version: {bpy.context.window_manager.UAS_shot_manager_version}"
             )
             if props.dataVersion <= 0 or props.dataVersion < bpy.context.window_manager.UAS_shot_manager_version:
-                prefs = bpy.context.preferences.addons["shotmanager"].preferences
+                prefs = config.getShotManagerPrefs()
 
                 # apply patch and apply new data version
                 #       print("       Applying data patch data_patch_to_v2_0_12 to scenes")

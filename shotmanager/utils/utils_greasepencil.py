@@ -861,8 +861,7 @@ def activateGpLayerAndMat(gpencil: bpy.types.GreasePencil, layerName, materialNa
     if materialName not in mat_dict:
         _logger.debug_ext(f"SM: Material {materialName} not found in gp materials", col="ORANGE")
         # check in material exist in scene
-        if materialName in bpy.data.materials.keys():
-            gp_mat = bpy.data.materials[materialName]
+        gp_mat = bpy.data.materials[materialName] if materialName in bpy.data.materials.keys() else None
 
         if gp_mat and gpencil:
             gpencil.data.materials.append(gp_mat)

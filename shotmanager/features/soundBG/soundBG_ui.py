@@ -16,11 +16,9 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 """
-To do: module description here.
+Sounds bg ui
 """
 
-import bpy
-from bpy.types import Operator
 
 from shotmanager.config import config
 
@@ -28,7 +26,7 @@ from shotmanager.config import config
 def draw_soundBG_shot_properties(sm_ui, context, shot):
     layout = sm_ui.layout
     props = context.scene.UAS_shot_manager_props
-    prefs = context.preferences.addons["shotmanager"].preferences
+    prefs = config.getShotManagerPrefs()
     scene = context.scene
 
     shotHasCamBG = len(shot.camera.data.background_images) and shot.camera.data.background_images[0].clip is not None

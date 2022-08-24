@@ -19,6 +19,8 @@
 Draw the warnings component
 """
 
+from shotmanager.config import config
+
 
 def drawWarnings(context, ui_component, warningsList, panelType="MAIN"):
     """panelType can be 'MAIN' or 'RENDER'"""
@@ -49,7 +51,7 @@ def drawWarnings(context, ui_component, warningsList, panelType="MAIN"):
     if not numWarnings:
         return
 
-    prefs = context.preferences.addons["shotmanager"].preferences
+    prefs = config.getShotManagerPrefs()
     panelIcon = "TRIA_DOWN" if prefs.general_warning_expanded else "TRIA_RIGHT"
 
     box = ui_component.box()

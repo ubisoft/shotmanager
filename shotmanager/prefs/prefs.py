@@ -22,6 +22,7 @@ Shot template list preferences
 import bpy
 from bpy.types import Panel, Operator
 
+from shotmanager.config import config
 
 #############
 # Preferences
@@ -38,7 +39,7 @@ class UAS_ShotManager_General_Prefs(Operator):
         return context.window_manager.invoke_props_dialog(self, width=400)
 
     def draw(self, context):
-        prefs = context.preferences.addons["shotmanager"].preferences
+        prefs = config.getShotManagerPrefs()
         layout = self.layout
 
         layout.alert = True
@@ -96,7 +97,7 @@ class UAS_ShotManager_Shots_Prefs(Operator):
 
     def draw(self, context):
         props = context.scene.UAS_shot_manager_props
-        prefs = bpy.context.preferences.addons["shotmanager"].preferences
+        prefs = config.getShotManagerPrefs()
 
         layout = self.layout
 

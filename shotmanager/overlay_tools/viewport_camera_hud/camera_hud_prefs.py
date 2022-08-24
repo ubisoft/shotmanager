@@ -19,11 +19,13 @@
 Settings panel for the camera HUD tool
 """
 
+from shotmanager.config import config
+
 
 def draw_settings(context, layout):
     """Used in Shot Manager Feature Toggles panel"""
     props = context.scene.UAS_shot_manager_props
-    prefs = context.preferences.addons["shotmanager"].preferences
+    prefs = config.getShotManagerPrefs()
 
     leftCol = layout.column()
 

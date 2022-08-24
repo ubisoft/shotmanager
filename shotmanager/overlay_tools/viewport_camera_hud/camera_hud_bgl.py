@@ -30,7 +30,7 @@ from bpy_extras.view3d_utils import location_3d_to_region_2d
 from shotmanager.utils.utils_ogl import Rect, Quadrilater
 from shotmanager.utils import utils_greasepencil
 
-# font_info = {"font_id": 0, "handler": None}
+from shotmanager.config import config
 
 
 def draw_shots_names(context):
@@ -113,7 +113,7 @@ def draw_all_shots_names(context, cam, pos_x, pos_y, vertical=False, screen_offs
         screen_offset: array [x, y] to offset the drawing origin
     """
     props = context.scene.UAS_shot_manager_props
-    prefs = context.preferences.addons["shotmanager"].preferences
+    prefs = config.getShotManagerPrefs()
     current_shot = props.getCurrentShot()
     # hud_offset_x = 19
 

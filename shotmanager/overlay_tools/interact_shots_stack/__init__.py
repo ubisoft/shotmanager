@@ -20,8 +20,6 @@ Interactive Shots Stack overlay tool
 """
 
 import bpy
-from bpy.props import BoolProperty
-
 from . import shots_stack_operators
 
 # from . import shots_stack_widgets
@@ -31,6 +29,7 @@ from . import shots_stack
 
 # from . import shots_stack_bgl
 
+from shotmanager.config import config
 from shotmanager.config import sm_logging
 
 _logger = sm_logging.getLogger(__name__)
@@ -39,7 +38,8 @@ _logger = sm_logging.getLogger(__name__)
 def register():
     _logger.debug_ext("       - Registering Interactive Shots Stack Package", form="REG")
 
-    prefs = bpy.context.preferences.addons["shotmanager"].preferences
+    # prefs = config.getShotManagerPrefs()
+    prefs = config.getShotManagerPrefs()
 
     shots_stack_operators.register()
     shots_stack_prefs.register()

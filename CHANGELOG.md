@@ -1,4 +1,21 @@
 -----
+## 2.0.222 (2022-08-23)
+- Fixed error message at install time when internet connection is not available
+
+-----
+## 2.0.221 (2022-08-22)
+### UX/UI
+- In the Shots Global Settings the Passepartout has been moved out of the Overlays box since it is not an overlay property
+- Improved the message displayed in the 3D views to identify the target viewport
+- Added a dropdown property to be able to change the Overlays for every viewport, not only the target one
+
+### Code
+- Big refactor in files to introduce a function to get the add-on preferences
+
+- Fixed Overlays Layer Opacity that wasn't working every time
+- Fixed error message when material was not available for the drawing preset
+
+-----
 ## 2.0.220 (2022-08-11)
 - Small fix on the storyboard shot type icon
 

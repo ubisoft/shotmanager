@@ -23,7 +23,9 @@ Greasep pencil and storyboard draw functions for UI
 from shotmanager.utils import utils_ui
 from shotmanager.utils import utils_greasepencil
 
-from ..greasepencil import greasepencil_overlay_ui
+from shotmanager.ui import sm_shots_global_settings_ui_cameras
+from shotmanager.ui import sm_shots_global_settings_ui_overlays
+
 
 from shotmanager.config import config
 
@@ -32,7 +34,7 @@ from . import storyboard_drawing_ui as drawing_ui
 
 def draw_greasepencil_shot_properties(layout, context, shot):
     props = context.scene.UAS_shot_manager_props
-    prefs = context.preferences.addons["shotmanager"].preferences
+    prefs = config.getShotManagerPrefs()
 
     if shot is None:
         return
@@ -73,9 +75,12 @@ def draw_greasepencil_shot_properties(layout, context, shot):
     extendSubRow = row.row(align=True)
     # extendSubRow.alignment = "RIGHT"
     subrowleft = extendSubRow.row()
-    subrowleft.alignment = "EXPAND"
+    #  subrowleft.alignment = "EXPAND"
     # subrowleft.scale_x = 0.8
-    subrowleft.label(text=propertiesModeStr + "Shot Storyboard Frame:")
+
+    subsubrowleft = subrowleft.row(align=True)
+    subsubrowleft.alignment = "LEFT"
+    subsubrowleft.label(text=propertiesModeStr + "Shot Storyboard Frame:")
 
     # panelIcon = "TRIA_DOWN" if prefs.shot_greasepencil_expanded and gp_child is not None else "TRIA_RIGHT"
     # extendSubRow.prop(prefs, "shot_greasepencil_expanded", text="", icon=panelIcon, emboss=False)
@@ -86,6 +91,12 @@ def draw_greasepencil_shot_properties(layout, context, shot):
 
     if gp_child is None:
         # extendSubRow.enabled = False
+        subrowright = row.row(align=True)
+        subrowright.alignment = "RIGHT"
+        subrowright.label(text="Add a Storyboard Frame Here ")
+        subrowright.label(icon="FORWARD")
+        subrowright.separator(factor=1.0)
+
         row.operator("uas_shot_manager.add_grease_pencil", text="", icon="ADD", emboss=True).shotName = shot.name
         row.separator(factor=1.4)
         row.prop(props, "display_greasepencil_in_shotlist", text="")
@@ -99,12 +110,14 @@ def draw_greasepencil_shot_properties(layout, context, shot):
         subRow.operator("uas_shot_manager.add_grease_pencil", text="", icon="ADD", emboss=True).shotName = shot.name
 
     else:
-        extendSubRow.alignment = "EXPAND"
+        # extendSubRow.alignment = "EXPAND"
         subRow = extendSubRow.row(align=False)
         subRow.separator(factor=0.9)
-        subRow.ui_units_x = 8
+        # subRow.ui_units_x = 8
+        subRow.alignment = "RIGHT"
 
         propSubRow = subRow.row(align=True)
+        propSubRow.ui_units_x = 5
         propSubRow.prop(gpProperties, "visibility", text="")
         propSubRow.prop(gp_child, "hide_select", text="")
 
@@ -503,7 +516,7 @@ def draw_lock_but(layout, gp_child, lockItem):
 
 def draw_greasepencil_global_properties(layout, context):
     props = context.scene.UAS_shot_manager_props
-    prefs = context.preferences.addons["shotmanager"].preferences
+    prefs = config.getShotManagerPrefs()
 
     box = layout.box()
     row = box.row()
@@ -545,17 +558,25 @@ def draw_greasepencil_global_properties(layout, context):
             "uas_shot_manager.remove_grease_pencil", text="", icon="PANEL_CLOSE"
         ).alsoApplyToDisabledShots = props.shotsGlobalSettings.alsoApplyToDisabledShots
 
-        sepRow = col.row()
-        sepRow.separator(factor=0.5)
+        col.separator(factor=0.5)
 
         subRow = col.row()
         draw_frame_grid(subRow)
 
-        utils_ui.drawSeparatorLine(col, lower_height=1.4, higher_height=0.8)
-
-        # overlay tools
+        # cameras tools
         #########################
-        greasepencil_overlay_ui.draw_greasepencil_overlay_tools(context, col, mode="STORYBOARD")
+        col.separator(factor=0.5)
+        sm_shots_global_settings_ui_cameras.draw_camera_global_settings(context, col, mode="STORYBOARD")
+
+        utils_ui.drawSeparatorLine(box, lower_height=0.0, higher_height=0.1)
+
+        # overlays tools
+        #########################
+        row = box.row()
+        row.use_property_decorate = False
+        row.separator(factor=1.8)
+        col = row.column(align=True)
+        sm_shots_global_settings_ui_overlays.draw_overlays_global_settings(context, col, mode="STORYBOARD")
 
         row = col.row(align=True)
         row.separator(factor=0.5)

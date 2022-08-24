@@ -19,11 +19,10 @@
 Layout settings: UI parameters to store the Storyboard and the Previz layout
 """
 
-import bpy
-
 from bpy.types import PropertyGroup
 from bpy.props import BoolProperty, EnumProperty, StringProperty
 
+from shotmanager.config import config
 from shotmanager.config import sm_logging
 
 _logger = sm_logging.getLogger(__name__)
@@ -112,7 +111,7 @@ class UAS_ShotManager_LayoutSettings(PropertyGroup):
         """
         _logger.debug_ext(f"initialize Layout Settings {layoutMode}", col="GREEN")
 
-        prefs = bpy.context.preferences.addons["shotmanager"].preferences
+        prefs = config.getShotManagerPrefs()
 
         # common values
 

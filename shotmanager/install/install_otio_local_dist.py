@@ -93,6 +93,8 @@ def install_otio_local_dist():
                         "-m",
                         "pip",
                         "install",
+                        # "--upgrade",
+                        # "--force-reinstall",
                         package_path,
                     ]
                 )

@@ -108,7 +108,7 @@ def launchRenderWithVSEComposite(
     scene = context.scene
     props = scene.UAS_shot_manager_props
     vse_render = context.window_manager.UAS_vse_render
-    prefs = context.preferences.addons["shotmanager"].preferences
+    prefs = config.getShotManagerPrefs()
 
     currentShot = props.getCurrentShot()
 

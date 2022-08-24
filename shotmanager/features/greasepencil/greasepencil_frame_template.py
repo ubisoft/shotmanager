@@ -31,6 +31,8 @@ from bpy.props import (
 from .greasepencil_frame_usage_preset import UAS_ShotManager_FrameUsagePreset
 from shotmanager.features.storyboard.frame_grid.storyboard_frame_grid_props import UAS_ShotManager_FrameGrid
 from shotmanager.utils import utils_greasepencil
+
+from shotmanager.config import config
 from shotmanager.config import sm_logging
 
 _logger = sm_logging.getLogger(__name__)
@@ -51,7 +53,7 @@ class UAS_GreasePencil_FrameTemplate(PropertyGroup):
     def getParentProps(self):
         """return the property settings instance owner of this instance of frame template.
         This can be the general add-on preferences or the props settings from one of the scenes of the file"""
-        prefs = bpy.context.preferences.addons["shotmanager"].preferences
+        prefs = config.getShotManagerPrefs()
         if self == prefs.stb_frameTemplate:
             return prefs
 
@@ -80,7 +82,7 @@ class UAS_GreasePencil_FrameTemplate(PropertyGroup):
         """
         _logger.debug_ext(f"updatePresets() for storyboard template preset list for {mode}", col="GREEN")
         # Can be SCENE or ADDON_PREFS"
-        prefs = bpy.context.preferences.addons["shotmanager"].preferences
+        prefs = config.getShotManagerPrefs()
         if "SCENE" == mode:
             props = bpy.context.scene.UAS_shot_manager_props
         else:
@@ -257,7 +259,7 @@ class UAS_GreasePencil_FrameTemplate(PropertyGroup):
 
     def resetPresetToDefault(self, preset):
         """Set all the properties (except id) of the provided preset back to their default value"""
-        prefs = bpy.context.preferences.addons["shotmanager"].preferences
+        prefs = config.getShotManagerPrefs()
 
         # parentProps = self.getParentProps()
 

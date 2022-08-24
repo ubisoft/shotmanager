@@ -23,8 +23,9 @@ Shot Manager debug ui panel
 import bpy
 
 from bpy.types import Panel
-from ..config import config
+
 from ..utils import utils
+from shotmanager.config import config
 
 # ------------------------------------------------------------------------#
 #                                debug Panel                              #
@@ -44,7 +45,7 @@ class UAS_PT_Shot_Manager_Debug(Panel):
 
     @classmethod
     def poll(self, context):
-        prefs = context.preferences.addons["shotmanager"].preferences
+        prefs = config.getShotManagerPrefs()
         # return True
         return config.devDebug and prefs.displaySMDebugPanel
 

@@ -28,6 +28,7 @@ from . import greasepencil as gp
 from shotmanager.utils import utils
 from shotmanager.utils import utils_greasepencil
 
+from shotmanager.config import config
 from shotmanager.config import sm_logging
 
 _logger = sm_logging.getLogger(__name__)
@@ -420,7 +421,7 @@ class UAS_ShotManager_OT_ShowHideGreasePencil(Operator):
     def invoke(self, context, event):
         props = context.scene.UAS_shot_manager_props
 
-        # prefs = context.preferences.addons["shotmanager"].preferences
+        # prefs = config.getShotManagerPrefs()
         # bpy.ops.uas_shots_settings.use_greasepencil(useGreasepencil=prefs.enableGreasePencil)
         # prefs.enableGreasePencil = not prefs.enableGreasePencil
 
@@ -760,7 +761,7 @@ class UAS_ShotManager_ResetUsagePreset(Operator):
     presetID: StringProperty(default="")
 
     def execute(self, context):
-        prefs = bpy.context.preferences.addons["shotmanager"].preferences
+        prefs = config.getShotManagerPrefs()
 
         if "SCENE" == self.mode:
             props = context.scene.UAS_shot_manager_props
@@ -857,7 +858,7 @@ class UAS_ShotManager_GreasePencil_NavigateInKeyFrames(Operator):
 
     def execute(self, context):
         props = context.scene.UAS_shot_manager_props
-        prefs = context.preferences.addons["shotmanager"].preferences
+        prefs = config.getShotManagerPrefs()
 
         gp = None
         gpIsStoryboardFrame = False
@@ -1090,36 +1091,6 @@ class UAS_ShotManager_GreasePencil_DeleteKeyFrame(Operator):
         return {"FINISHED"}
 
 
-class UAS_ShotManager_GreasePencil_ToggleOnionSkin(Operator):
-    bl_idname = "uas_shot_manager.greasepencil_toggleonionskin"
-    bl_label = "Onion Skin"
-    bl_description = "Toggle Grease Pencil viewport overlay onion skin"
-    bl_options = {"INTERNAL"}
-
-    # https://blender.stackexchange.com/questions/162459/access-viewport-overlay-options-using-python-api
-    def invoke(self, context, event):
-        props = context.scene.UAS_shot_manager_props
-        spaceDataViewport = props.getValidTargetViewportSpaceData(context)
-        if spaceDataViewport is not None:
-            spaceDataViewport.overlay.use_gpencil_onion_skin = not spaceDataViewport.overlay.use_gpencil_onion_skin
-        return {"FINISHED"}
-
-
-class UAS_ShotManager_GreasePencil_ToggleCanvas(Operator):
-    bl_idname = "uas_shot_manager.greasepencil_togglecanvas"
-    bl_label = "Canvas"
-    bl_description = "Toggle Grease Pencil viewport overlay canvas"
-    bl_options = {"INTERNAL"}
-
-    # https://blender.stackexchange.com/questions/162459/access-viewport-overlay-options-using-python-api
-    def invoke(self, context, event):
-        props = context.scene.UAS_shot_manager_props
-        spaceDataViewport = props.getValidTargetViewportSpaceData(context)
-        if spaceDataViewport is not None:
-            spaceDataViewport.overlay.use_gpencil_grid = not spaceDataViewport.overlay.use_gpencil_grid
-        return {"FINISHED"}
-
-
 class UAS_ShotManager_GreasePencil_SetLayerAndMat(Operator):
     bl_idname = "uas_shot_manager.greasepencil_setlayerandmat"
     bl_label = ""
@@ -1161,7 +1132,7 @@ class UAS_ShotManager_GreasePencil_SetLayerAndMat(Operator):
         return descr
 
     def invoke(self, context, event):
-        # prefs = context.preferences.addons["shotmanager"].preferences
+        # prefs = config.getShotManagerPrefs()
         # props = context.scene.UAS_shot_manager_props
         # print(f"Layer and mat - ID: {self.layerID}, name:{self.gpObjName}")
 
@@ -1221,7 +1192,7 @@ class UAS_ShotManager_GreasePencil_SetLayerAndMatAndVisib(Operator):
         return descr
 
     def invoke(self, context, event):
-        # prefs = context.preferences.addons["shotmanager"].preferences
+        # prefs = config.getShotManagerPrefs()
         props = context.scene.UAS_shot_manager_props
         # print(f"Layer and mat - ID: {self.layerID}, name:{self.gpObjName}")
 
@@ -1294,7 +1265,7 @@ class UAS_ShotManager_GreasePencil_SetKeyframe(Operator):
         return descr
 
     def invoke(self, context, event):
-        # prefs = context.preferences.addons["shotmanager"].preferences
+        # prefs = config.getShotManagerPrefs()
         # props = context.scene.UAS_shot_manager_props
         # print(f"Layer and mat - ID: {self.layerID}, name:{self.gpObjName}")
 
@@ -1394,8 +1365,6 @@ _classes = (
     UAS_ShotManager_GreasePencil_NewKeyFrame,
     UAS_ShotManager_GreasePencil_DuplicateKeyFrame,
     UAS_ShotManager_GreasePencil_DeleteKeyFrame,
-    UAS_ShotManager_GreasePencil_ToggleOnionSkin,
-    UAS_ShotManager_GreasePencil_ToggleCanvas,
     UAS_ShotManager_GreasePencil_SetLayerAndMat,
     UAS_ShotManager_GreasePencil_SetLayerAndMatAndVisib,
     UAS_ShotManager_GreasePencil_SetKeyframe,

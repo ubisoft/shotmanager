@@ -60,7 +60,7 @@ class UAS_SMStampInfoSettings(bpy.types.PropertyGroup):
     def initialize_stamp_info(self):
         print(f"\nInitializing Stamp Info in the current scene ({bpy.context.scene.name})...")
 
-        # prefs = bpy.context.preferences.addons["shotmanager"].preferences
+        # prefs = config.getShotManagerPrefs()
         # if not prefs.isInitialized:
         #     prefs.initialize_stamp_info_prefs()
 

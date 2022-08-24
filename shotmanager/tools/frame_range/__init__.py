@@ -19,7 +19,6 @@
 Frame Range Init
 """
 
-import bpy
 from . import frame_range_operators
 from shotmanager.config import sm_logging
 

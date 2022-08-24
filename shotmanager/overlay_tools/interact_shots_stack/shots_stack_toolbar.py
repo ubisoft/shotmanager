@@ -20,10 +20,9 @@ Shots Stack menubar
 """
 
 import bpy
-from bpy.types import Operator
-from bpy.props import FloatProperty
 
 from shotmanager.utils.utils import sceneContainsCameraBinding
+
 
 from shotmanager.config import config
 from shotmanager.config import sm_logging
@@ -33,7 +32,7 @@ _logger = sm_logging.getLogger(__name__)
 
 def draw_shots_stack_toolbar_in_editor(self, context):
     props = context.scene.UAS_shot_manager_props
-    prefs = context.preferences.addons["shotmanager"].preferences
+    prefs = config.getShotManagerPrefs()
     layout = self.layout
     butScale = 1.4
 

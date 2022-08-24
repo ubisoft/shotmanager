@@ -55,7 +55,7 @@ class UAS_PT_ShotManager(Panel):
     @classmethod
     def poll(cls, context):
         props = context.scene.UAS_shot_manager_props
-        # prefs = bpy.context.preferences.addons["shotmanager"].preferences
+        # prefs = config.getShotManagerPrefs()
 
         # hide the whole panel if used
         # return not props.dontRefreshUI()
@@ -72,7 +72,7 @@ class UAS_PT_ShotManager(Panel):
         import addon_utils
 
         props = context.scene.UAS_shot_manager_props
-        # prefs = context.preferences.addons["shotmanager"].preferences
+        # prefs = config.getShotManagerPrefs()
         layout = self.layout
         layout.emboss = "NONE"
 
@@ -104,7 +104,7 @@ class UAS_PT_ShotManager(Panel):
                 betaRow.label(text=f" *** {addonHeaderWarning[0]} ***")
 
     def draw_header_preset(self, context):
-        prefs = context.preferences.addons["shotmanager"].preferences
+        prefs = config.getShotManagerPrefs()
         layout = self.layout
         layout.emboss = "NONE"
 
@@ -146,7 +146,7 @@ class UAS_PT_ShotManager(Panel):
         layout = self.layout
         scene = context.scene
         props = scene.UAS_shot_manager_props
-        prefs = context.preferences.addons["shotmanager"].preferences
+        prefs = config.getShotManagerPrefs()
 
         currentLayout = props.getCurrentLayout()
         # currentLayoutIsStb = "STORYBOARD" == props.currentLayoutMode()
@@ -384,8 +384,18 @@ class UAS_PT_ShotManager(Panel):
 
         # subnamerow.alignment = "RIGHT"
         activeindrow = subnamerow.row(align=True)
+        activeindrow.alignment = "RIGHT"
+
         # activeindrow.scale_x = 0.4
         subactiveindrow = activeindrow.row(align=True)
+        targviewprow = subactiveindrow.row(align=True)
+        targviewprow.alignment = "RIGHT"
+        targviewprow.ui_units_x = 4
+        expected_target_area_ind = props.getTargetViewportIndex(context, only_valid=False)
+        target_area_ind = props.getTargetViewportIndex(context, only_valid=True)
+        # print(f"display area targ: expected_target_area_ind:{expected_target_area_ind}, targ:{target_area_ind}")
+        targviewprow.alert = target_area_ind < expected_target_area_ind
+        targviewprow.prop(props, "target_viewport_index", text="")
         subactiveindrow.prop(
             context.window_manager,
             "UAS_shot_manager_identify_3dViews",
@@ -393,12 +403,6 @@ class UAS_PT_ShotManager(Panel):
             toggle=True,
             icon="WORDWRAP_ON",
         )
-        targviewprow = subactiveindrow.row(align=True)
-        expected_target_area_ind = props.getTargetViewportIndex(context, only_valid=False)
-        target_area_ind = props.getTargetViewportIndex(context, only_valid=True)
-        # print(f"display area targ: expected_target_area_ind:{expected_target_area_ind}, targ:{target_area_ind}")
-        targviewprow.alert = target_area_ind < expected_target_area_ind
-        targviewprow.prop(props, "target_viewport_index", text="")
 
         # target_area = props.getValidTargetViewport(context)
 

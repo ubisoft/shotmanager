@@ -21,6 +21,7 @@ Retimer functions
 
 import bpy
 
+from shotmanager.config import config
 
 # FCurve
 ################################################
@@ -37,8 +38,7 @@ class FCurve:
         self.fcurve.keyframe_points[index].co = coordinates
 
     def get_key_index_at_frame(self, frame):
-        """Return the index of the key at the specified frame, -1 if no key found
-        """
+        """Return the index of the key at the specified frame, -1 if no key found"""
         for i in range(len(self.fcurve.keyframe_points)):
             if frame == self.fcurve.keyframe_points[i].co[0]:
                 return i
@@ -144,8 +144,7 @@ class FCurve:
 
 
 def compute_offset(frame_value, pivot, factor):
-    """Compute the new value of frame_value when scaled from the pivot and by the given factor
-    """
+    """Compute the new value of frame_value when scaled from the pivot and by the given factor"""
     duration_to_pivot = frame_value - pivot
     return round(duration_to_pivot * factor)  # + pivot
 
@@ -249,8 +248,7 @@ def _offset_frames(fcurve: FCurve, start_incl, offset):
 
 
 def _offset_GPframes(layer, start_incl, offset):
-    """Move the layer frames that are AT THE SAME TIME or later than the reference frame
-    """
+    """Move the layer frames that are AT THE SAME TIME or later than the reference frame"""
     # print(f"layer:{layer.info}")
     for f in layer.frames:
         if start_incl <= f.frame_number:
@@ -258,8 +256,7 @@ def _offset_GPframes(layer, start_incl, offset):
 
 
 def retime_GPframes(layer, mode, start_incl=0, end_incl=0, remove_gap=True, factor=1.0, pivot=0):
-    """Retime "frames" (= each drawing of a Grease Pencil object)
-    """
+    """Retime "frames" (= each drawing of a Grease Pencil object)"""
     offset = end_incl - start_incl + 1
 
     if mode == "INSERT":
@@ -735,20 +732,20 @@ def retimeScene(
     pivot=0,
 ):
     """Apply the time change for each type of entities
-    
+
     For the following lines keep in mind that:
        - retimerProps.insert_duration is inclusive
        - retimerProps.start_frame is EXCLUSIVE   (in other words it is NOT modified)
        - retimerProps.end_frame is EXCLUSIVE     (in other words is the first frame to be offset)
-    
+
     But retimeScene() requires INCLUSIVE range of time for the modifications (= all the frames
     created or deleted, not the moved ones).
-    
+
     Args:
         start_incl (int): The included start frame
         duration_incl (int): The range of retime frames (new or deleted)
     """
-    prefs = context.preferences.addons["shotmanager"].preferences
+    prefs = config.getShotManagerPrefs()
     scene = context.scene
     end_incl = start_incl + duration_incl - 1
 
@@ -919,4 +916,3 @@ def retimeScene(
 # - shape keys
 # - vse
 # - finir fonction generic
-

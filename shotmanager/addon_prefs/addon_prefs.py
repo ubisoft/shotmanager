@@ -30,6 +30,10 @@ from shotmanager.features.greasepencil.greasepencil_frame_template import UAS_Gr
 from shotmanager.utils import utils
 from shotmanager.utils.utils_os import get_latest_release_version
 
+from shotmanager.utils.utils_operators_overlays import getOverlaysPropertyState
+
+from shotmanager.tools.frame_range.frame_range_operators import display_frame_range_in_editor
+
 from shotmanager.config import config
 from shotmanager.config import sm_logging
 
@@ -52,7 +56,7 @@ def list_greasepencil_layers(self, context):
 class UAS_ShotManager_AddonPrefs(AddonPreferences):
     """
     Use this to get these prefs:
-    prefs = context.preferences.addons["shotmanager"].preferences
+    prefs = config.getShotManagerPrefs()
     """
 
     # this must match the add-on name, use '__package__'
@@ -263,7 +267,7 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
         # print(f"*** _set_take_properties_expanded: {self.take_properties_expanded}, value: {value}")
         # close other panels
         if self.take_properties_expanded != value and not value:
-            prefs = bpy.context.preferences.addons["shotmanager"].preferences
+            prefs = config.getShotManagerPrefs()
             prefs.take_renderSettings_expanded = False
             prefs.take_notes_expanded = False
         self["take_properties_expanded"] = value
@@ -322,40 +326,6 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
     stb_global_props_expanded: BoolProperty(
         name="Expand Global Properties",
         default=False,
-    )
-
-    def _get_stb_overlay_layers_opacity(self):
-        # print(" get_projectSeqName")
-        props = bpy.context.scene.UAS_shot_manager_props
-        spaceDataViewport = props.getValidTargetViewportSpaceData(bpy.context)
-        if spaceDataViewport is not None:
-            val = spaceDataViewport.overlay.gpencil_fade_layer
-        else:
-            val = 1.0
-        return val
-
-    def _set_stb_overlay_layers_opacity(self, value):
-        #  print(" set_projectSeqName: value: ", value)
-        self["stb_overlay_layers_opacity"] = value
-
-    def _update_stb_overlay_layers_opacity(self, context):
-        # print("stb_overlay_layers_opacity")
-        props = context.scene.UAS_shot_manager_props
-        spaceDataViewport = props.getValidTargetViewportSpaceData(context)
-        if spaceDataViewport is not None:
-            spaceDataViewport.overlay.gpencil_fade_layer = utils.value_to_linear(self["stb_overlay_layers_opacity"])
-
-    stb_overlay_layers_opacity: FloatProperty(
-        name="Layers Opacity",
-        description="Opacity of the Grease Pencil layers in the viewport overlay",
-        min=0.0,
-        max=1.0,
-        step=0.1,
-        get=_get_stb_overlay_layers_opacity,
-        set=_set_stb_overlay_layers_opacity,
-        update=_update_stb_overlay_layers_opacity,
-        default=1.0,
-        options=set(),
     )
 
     ##############################
@@ -984,7 +954,7 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
     ###################################
     def _update_display_frame_range_tool(self, context):
         # print("\n*** _update_display_frame_range_tool. New state: ", self.display_frame_range_tool)
-        from shotmanager.tools.frame_range.frame_range_operators import display_frame_range_in_editor
+        # from shotmanager.tools.frame_range.frame_range_operators import display_frame_range_in_editor
 
         display_frame_range_in_editor(self.display_frame_range_tool)
 
@@ -1085,10 +1055,9 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
     toggleCamsSoundBG: BoolProperty(name=" ", default=False)
     enableGreasePencil: BoolProperty(name=" ", default=False)
 
-    ##################
-    # ui helpers   ###
-    ##################
-
+    # -----------------------------------------------------------
+    # ui helpers - Not exposed
+    # -----------------------------------------------------------
     # used for example as a placehoder in VSM to have a text field when no strip is selected
     emptyField: StringProperty(name=" ")
     emptyBool: BoolProperty(name=" ", default=False)
@@ -1123,8 +1092,218 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
     )
 
     ##################
-    # add new shot ###
+    # Overlays - Not exposed in the prefs
     ##################
+
+    # overlay ########
+    ##################
+    def _get_overlays_toggleoverlays_ui(self):
+        val = getOverlaysPropertyState(bpy.context, "show_overlays")
+        return val
+
+    def _set_overlays_toggleoverlays_ui(self, value):
+        self["overlays_toggleoverlays_ui"] = value
+
+    def _update_overlays_toggleoverlays_ui(self, context):
+        props = context.scene.UAS_shot_manager_props
+        applyToAllViewports = "ALL" == props.shotsGlobalSettings.stb_overlaysViewportMode
+        bpy.ops.uas_shot_manager.overlays_toggleoverlays(
+            allViewports=applyToAllViewports, newState=not self.overlays_toggleoverlays_ui
+        )
+
+    # ui property used only as a visual component to display a checkbox for an operator
+    overlays_toggleoverlays_ui: BoolProperty(
+        name="Shot Overlays",
+        description="Display overlayes like gizmos and outlines",
+        get=_get_overlays_toggleoverlays_ui,
+        set=_set_overlays_toggleoverlays_ui,
+        update=_update_overlays_toggleoverlays_ui,
+        default=True,
+    )
+
+    # onion skin #####
+    ##################
+    def _get_overlays_toggleonionskin_ui(self):
+        val = getOverlaysPropertyState(bpy.context, "use_gpencil_onion_skin")
+        return val
+
+    def _set_overlays_toggleonionskin_ui(self, value):
+        self["overlays_toggleonionskin_ui"] = value
+
+    def _update_overlays_toggleonionskin_ui(self, context):
+        props = context.scene.UAS_shot_manager_props
+        applyToAllViewports = "ALL" == props.shotsGlobalSettings.stb_overlaysViewportMode
+        bpy.ops.uas_shot_manager.overlays_toggleonionskin(
+            allViewports=applyToAllViewports, newState=not self.overlays_toggleonionskin_ui
+        )
+
+    # ui property used only as a visual component to display a checkbox for an operator
+    overlays_toggleonionskin_ui: BoolProperty(
+        name="Onion Skin",
+        description="Show ghosts of the keyframes before and after the current keyframe",
+        get=_get_overlays_toggleonionskin_ui,
+        set=_set_overlays_toggleonionskin_ui,
+        update=_update_overlays_toggleonionskin_ui,
+        default=True,
+    )
+
+    # grid ###########
+    ##################
+    def _get_overlays_togglegrid_ui(self):
+        val = getOverlaysPropertyState(bpy.context, "use_gpencil_grid")
+        return val
+
+    def _set_overlays_togglegrid_ui(self, value):
+        self["overlays_togglegrid_ui"] = value
+
+    def _update_overlays_togglegrid_ui(self, context):
+        props = context.scene.UAS_shot_manager_props
+        applyToAllViewports = "ALL" == props.shotsGlobalSettings.stb_overlaysViewportMode
+        bpy.ops.uas_shot_manager.overlays_togglegrid(
+            allViewports=applyToAllViewports, newState=not self.overlays_togglegrid_ui
+        )
+
+    # ui property used only as a visual component to display a checkbox for an operator
+    overlays_togglegrid_ui: BoolProperty(
+        name="Use Grid",
+        description="Display a grid over Grease Pencil paper",
+        get=_get_overlays_togglegrid_ui,
+        set=_set_overlays_togglegrid_ui,
+        update=_update_overlays_togglegrid_ui,
+        default=True,
+    )
+
+    def _get_stb_overlay_grid_opacity(self):
+        props = bpy.context.scene.UAS_shot_manager_props
+        spaceDataViewport = props.getValidTargetViewportSpaceData(bpy.context)
+        if spaceDataViewport is not None:
+            val = spaceDataViewport.overlay.gpencil_grid_opacity
+        else:
+            val = 1.0
+        return val
+
+    def _set_stb_overlay_grid_opacity(self, value):
+        self["stb_overlay_grid_opacity"] = value
+
+    def _update_stb_overlay_grid_opacity(self, context):
+        props = context.scene.UAS_shot_manager_props
+        applyToAllViewports = "ALL" == props.shotsGlobalSettings.stb_overlaysViewportMode
+        bpy.ops.uas_shot_manager.overlays_gridopacity(
+            allViewports=applyToAllViewports, opacity=self["stb_overlay_grid_opacity"]
+        )
+        # spaceDataViewport = props.getValidTargetViewportSpaceData(context)
+        # if spaceDataViewport is not None:
+        #     # spaceDataViewport.overlay.gpencil_fade_layer = utils.value_to_linear(self["stb_overlay_grid_opacity"])
+        #     spaceDataViewport.overlay.gpencil_grid_opacity = self["stb_overlay_grid_opacity"]
+
+    stb_overlay_grid_opacity: FloatProperty(
+        name="Grid Opacity",
+        description="Opacity of the Grease Pencil grid (also called Canvas) in the viewport overlay",
+        min=0.1,
+        max=1.0,
+        step=0.01,
+        precision=2,
+        get=_get_stb_overlay_grid_opacity,
+        set=_set_stb_overlay_grid_opacity,
+        update=_update_stb_overlay_grid_opacity,
+        default=1.0,
+        options=set(),
+    )
+
+    def _get_overlays_togglegridtofront_ui(self):
+        val = getOverlaysPropertyState(bpy.context, "use_gpencil_canvas_xray")
+        return val
+
+    def _set_overlays_togglegridtofront_ui(self, value):
+        self["use_gpencil_canvas_xray"] = value
+
+    def _update_overlays_togglegridtofront_ui(self, context):
+        props = context.scene.UAS_shot_manager_props
+        applyToAllViewports = "ALL" == props.shotsGlobalSettings.stb_overlaysViewportMode
+        bpy.ops.uas_shot_manager.overlays_togglegridtofront(
+            allViewports=applyToAllViewports, newState=not self.overlays_togglegridtofront_ui
+        )
+
+    # ui property used only as a visual component to display a checkbox for an operator
+    overlays_togglegridtofront_ui: BoolProperty(
+        name="Canvas X-Ray",
+        description="Toggle canvas grid between front and back for the specifed viewports",
+        get=_get_overlays_togglegridtofront_ui,
+        set=_set_overlays_togglegridtofront_ui,
+        update=_update_overlays_togglegridtofront_ui,
+        default=True,
+    )
+
+    # fade layers ####
+    ##################
+    def _get_overlays_togglefadelayers_ui(self):
+        val = getOverlaysPropertyState(bpy.context, "use_gpencil_fade_layers")
+        return val
+
+    def _set_overlays_togglefadelayers_ui(self, value):
+        self["overlays_togglefadelayers_ui"] = value
+
+    def _update_overlays_togglefadelayers_ui(self, context):
+        props = context.scene.UAS_shot_manager_props
+        applyToAllViewports = "ALL" == props.shotsGlobalSettings.stb_overlaysViewportMode
+        bpy.ops.uas_shot_manager.overlays_togglefadelayers(
+            allViewports=applyToAllViewports, newState=not self.overlays_togglefadelayers_ui
+        )
+
+    # ui property used only as a visual component to display a checkbox for an operator
+    overlays_togglefadelayers_ui: BoolProperty(
+        name="Fade Layers",
+        description="Toggle fading of Greazse Pencil layers except the active one",
+        get=_get_overlays_togglefadelayers_ui,
+        set=_set_overlays_togglefadelayers_ui,
+        update=_update_overlays_togglefadelayers_ui,
+        default=True,
+    )
+
+    def _get_stb_overlay_layers_opacity(self):
+        props = bpy.context.scene.UAS_shot_manager_props
+        spaceDataViewport = props.getValidTargetViewportSpaceData(bpy.context)
+        if spaceDataViewport is not None:
+            val = spaceDataViewport.overlay.gpencil_fade_layer
+        else:
+            val = 1.0
+        return val
+
+    def _set_stb_overlay_layers_opacity(self, value):
+        self["stb_overlay_layers_opacity"] = value
+
+    def _update_stb_overlay_layers_opacity(self, context):
+        props = context.scene.UAS_shot_manager_props
+        applyToAllViewports = "ALL" == props.shotsGlobalSettings.stb_overlaysViewportMode
+        # spaceDataViewport = props.getValidTargetViewportSpaceData(context)
+        # if spaceDataViewport is not None:
+        #     # spaceDataViewport.overlay.gpencil_fade_layer = utils.value_to_linear(self["stb_overlay_layers_opacity"])
+        #     spaceDataViewport.overlay.gpencil_fade_layer = self["stb_overlay_layers_opacity"]
+        bpy.ops.uas_shot_manager.overlays_fadelayersopacity(
+            allViewports=applyToAllViewports, opacity=self["stb_overlay_layers_opacity"]
+        )
+
+    stb_overlay_layers_opacity: FloatProperty(
+        name="Layers Opacity",
+        description="Opacity of the Grease Pencil layers in the viewport overlay",
+        min=0.0,
+        max=1.0,
+        step=0.01,
+        precision=2,
+        get=_get_stb_overlay_layers_opacity,
+        set=_set_stb_overlay_layers_opacity,
+        update=_update_stb_overlay_layers_opacity,
+        default=1.0,
+        options=set(),
+    )
+
+    ##################
+    # dialog boxes
+    ##################
+
+    # -----------------------------------------------------------
+    # add new shot  - Not exposed
+    # -----------------------------------------------------------
 
     def _get_addShot_start(self):
         val = self.get("addShot_start", 25)

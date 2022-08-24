@@ -16,11 +16,11 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 """
-To do: module description here.
+Prefs overlays tools
 """
 
 import bpy
-from bpy.types import Panel, Operator, Menu
+from bpy.types import Operator
 
 from shotmanager import config
 
@@ -38,8 +38,8 @@ class UAS_ShotManager_OverlayTools_Prefs(Operator):
         return context.window_manager.invoke_props_dialog(self, width=480)
 
     def draw(self, context):
-        props = context.scene.UAS_shot_manager_props
-        prefs = bpy.context.preferences.addons["shotmanager"].preferences
+        # props = context.scene.UAS_shot_manager_props
+        prefs = config.getShotManagerPrefs()
 
         layout = self.layout
         layout.alert = True
@@ -71,10 +71,14 @@ class UAS_ShotManager_OverlayTools_Prefs(Operator):
         col.use_property_split = False
         linerow = col.row()
         linerow.prop(
-            prefs, "toggle_overlays_turnOn_sequenceTimeline", text="Sequence Timeline",
+            prefs,
+            "toggle_overlays_turnOn_sequenceTimeline",
+            text="Sequence Timeline",
         )
         linerow.prop(
-            prefs, "toggle_overlays_turnOn_interactiveShotsStack", text="Interactive Shots Stack",
+            prefs,
+            "toggle_overlays_turnOn_interactiveShotsStack",
+            text="Interactive Shots Stack",
         )
 
         ###################################
@@ -100,10 +104,14 @@ class UAS_ShotManager_OverlayTools_Prefs(Operator):
         col.use_property_split = False
         linerow = col.row()
         linerow.prop(
-            prefs, "best_play_perfs_turnOff_sequenceTimeline", text="Sequence Timeline",
+            prefs,
+            "best_play_perfs_turnOff_sequenceTimeline",
+            text="Sequence Timeline",
         )
         linerow.prop(
-            prefs, "best_play_perfs_turnOff_interactiveShotsStack", text="Interactive Shots Stack",
+            prefs,
+            "best_play_perfs_turnOff_interactiveShotsStack",
+            text="Interactive Shots Stack",
         )
         linerow.prop(prefs, "best_play_perfs_turnOff_mainUI", text="Main Panel UI")
 
