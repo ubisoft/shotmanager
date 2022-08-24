@@ -198,7 +198,7 @@ def install_dependencies(dependencies_list, retries=2, timeout=100):
     for dependencyLib in dependencies_list:
         installation_errors = install_library(dependencyLib, pip_retries=retries, pip_timeout=timeout)
 
-        if 0 < len(installation_errors):
+        if len(installation_errors):
             _logger.error_ext(
                 "   !!! Something went wrong during the installation of the add-on - Check the Shot Manager add-on Preferences panel !!!\n"
             )
@@ -213,8 +213,6 @@ def unregister_from_failed_install():
     # unregistering add-on in the case it has been registered with install errors
     prefs_addon = config.getShotManagerPrefs()
     if hasattr(prefs_addon, "install_failed") and prefs_addon.install_failed:
-        from . import addon_error_prefs
-
         _logger.error_ext("\n*** --- Unregistering Failed Install for Shot Manager Add-on --- ***")
         addon_error_prefs.unregister()
         return True

@@ -1,4 +1,8 @@
 -----
+## 2.0.222 (2022-08-23)
+- Fixed error message at install time when internet connection is not available
+
+-----
 ## 2.0.221 (2022-08-22)
 ### UX/UI
 - In the Shots Global Settings the Passepartout has been moved out of the Overlays box since it is not an overlay property

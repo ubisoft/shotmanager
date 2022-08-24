@@ -27,8 +27,7 @@ from bpy.props import BoolProperty, StringProperty
 
 from ..ui.dependencies_ui import drawDependencies
 
-#
-
+from shotmanager.config import config
 from shotmanager.config import sm_logging
 
 _logger = sm_logging.getLogger(__name__)
@@ -140,7 +139,10 @@ def register():
     _logger.debug_ext("       - Registering Add-on Installation Error Preferences", form="REG")
 
     for cls in _classes:
-        bpy.utils.register_class(cls)
+        try:
+            bpy.utils.register_class(cls)
+        except Exception:
+            _logger.warning_ext("SM: Trying to register again 'addon_error_prefs'")
 
 
 def unregister():
