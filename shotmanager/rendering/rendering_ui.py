@@ -188,7 +188,7 @@ def drawRenderInfos(context, layout):
     col = layout.column()
     col.scale_y = 0.7
 
-    utils_ui.drawSeparatorLine(col, lower_height=1.5, higher_height=0.2)
+    utils_ui.separatorLine(col, padding_bottom=1.5, padding_top=0.2)
 
     titleRow = col.row()
     titleRow.label(text="Output Infos:")

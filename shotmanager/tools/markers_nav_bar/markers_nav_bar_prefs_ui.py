@@ -16,21 +16,28 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 """
-Settings panel for the camera HUD tool
+Markers navigation toolbar prefs ui
 """
 
 from shotmanager.utils.utils_ui import propertyColumn
-
 from shotmanager.config import config
 
 
-def draw_settings(context, layout):
-    """Used in Shot Manager Feature Toggles panel"""
-    props = context.scene.UAS_shot_manager_props
+def draw_markers_nav_bar_settings(layout):
     prefs = config.getShotManagerPrefs()
 
     propCol = propertyColumn(layout)
 
-    propCol.prop(props, "camera_hud_display_in_viewports", text="Display Shot name in 3D Viewport")
-    propCol.prop(props, "camera_hud_display_in_pov", text="Display HUD in 3D Viewport")
-    propCol.prop(prefs, "cameraHUD_shotNameSize", text="Size of the shot names")
+    propCol.label(text="Display in Editors:")
+    row = propCol.row()
+    row.separator(factor=5)
+    row.prop(prefs, "mnavbar_display_in_timeline", text="Timeline")
+    row.prop(prefs, "mnavbar_display_in_dopesheet", text="Dopesheet")
+    row.prop(prefs, "mnavbar_display_in_vse", text="VSE")
+
+    propCol.label(text="Show Widgets:")
+    row = propCol.row()
+    row.separator(factor=5)
+    row.prop(prefs, "mnavbar_display_addRename", text="Add and Rename")
+    row.prop(prefs, "mnavbar_display_filter", text="Filter")
+    row.label(text=" ")

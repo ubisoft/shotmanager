@@ -25,6 +25,7 @@ from bpy.types import Panel, Operator
 from shotmanager.utils import utils
 from shotmanager.utils import utils_shot_manager
 from shotmanager.utils import utils_ui
+from shotmanager.utils import utils_markers
 
 from . import sm_shots_ui_previz_layout
 from . import sm_shots_ui_storyboard_layout
@@ -216,7 +217,7 @@ class UAS_PT_ShotManager(Panel):
 
         # play and timeline
         ################
-        playEnabled = not utils.sceneContainsCameraBinding(scene)
+        playEnabled = not utils_markers.sceneContainsCameraBinding(scene)
         row = layout.row()
         row.scale_y = 1.3
         rowPlayButton = row.row()
@@ -341,7 +342,7 @@ class UAS_PT_ShotManager(Panel):
             layout.separator(factor=0.4)
             return None
 
-        utils_ui.drawSeparatorLine(layout, lower_height=0.8, higher_height=0.6)
+        utils_ui.separatorLine(layout, padding_bottom=0.8, padding_top=0.6)
 
         # sequence name
         ################

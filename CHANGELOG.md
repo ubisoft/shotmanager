@@ -1,4 +1,10 @@
 -----
+## 2.0.223 (2022-08-24)
+### Markers
+- Integrated the tool Markers Nav Bar from the add-on Ubisoft Video Tracks
+
+
+-----
 ## 2.0.222 (2022-08-23)
 - Fixed error message at install time when internet connection is not available
 

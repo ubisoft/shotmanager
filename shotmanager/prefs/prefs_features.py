@@ -22,12 +22,17 @@ Features preference panel
 import bpy
 from bpy.types import Operator
 
-from shotmanager.config import config
 from shotmanager.overlay_tools.interact_shots_stack import shots_stack_prefs
 from shotmanager.overlay_tools.viewport_camera_hud import camera_hud_prefs
+
 from shotmanager.utils import utils_ui
+from shotmanager.utils.utils_ui import propertyColumn
 
 # from shotmanager.utils.utils_ui import collapsable_panel
+
+from shotmanager.tools.markers_nav_bar import markers_nav_bar_prefs_ui
+
+from shotmanager.config import config
 
 
 class UAS_ShotManager_Features(Operator):
@@ -83,6 +88,7 @@ def draw_features_prefs(mode, layout):
     separatorRight = 0.25
     separatorVertTopics = 0.2
     leftSepFactor = 3
+    leftSepFact_props = 9
 
     def _draw_separator_row(layout, factor=0.9):
         separatorrow = layout.row()
@@ -406,7 +412,9 @@ def draw_features_prefs(mode, layout):
         subrowright.label(text="(in 3D View)")
 
         if prefs.cameraHUD_settings_expanded:
-            camera_hud_prefs.draw_settings(bpy.context, box)
+            subrow = box.row()
+            propCol = propertyColumn(subrow, padding_left=leftSepFact_props)
+            camera_hud_prefs.draw_settings(bpy.context, propCol)
 
     ###################################
     # Sequence timeline ######
@@ -434,17 +442,10 @@ def draw_features_prefs(mode, layout):
         subrowright.label(text="(in 3D View)")
 
         if prefs.seqTimeline_settings_expanded:
-            leftCol = box.column()
-
-            # empty spacer column
-            row = leftCol.row()
-            col = row.column()
-            col.scale_x = 0.25
-            col.label(text=" ")
-            col = row.column(align=True)
-
-            col.prop(props, "seqTimeline_displayDisabledShots", text="Display Disabled Shots")
-            col.prop(prefs, "seqTimeline_not_disabled_with_overlays")
+            subrow = box.row()
+            propCol = propertyColumn(subrow, padding_left=leftSepFact_props)
+            propCol.prop(props, "seqTimeline_displayDisabledShots", text="Display Disabled Shots")
+            propCol.prop(prefs, "seqTimeline_not_disabled_with_overlays")
 
     ###################################
     # Interactive Shots Stack ######
@@ -472,7 +473,9 @@ def draw_features_prefs(mode, layout):
         subrowright.label(text="(in Timeline and Dopesheet)")
 
         if prefs.shtStack_settings_expanded:
-            shots_stack_prefs.draw_settings(bpy.context, box)
+            subrow = box.row()
+            propCol = propertyColumn(subrow, padding_left=leftSepFact_props)
+            shots_stack_prefs.draw_settings(bpy.context, propCol)
 
     ###################################
     # Frame Range #####################
@@ -488,6 +491,29 @@ def draw_features_prefs(mode, layout):
     subrowright = subrow.row()
     subrowright.alignment = "RIGHT"
     subrowright.label(text="(on Timeline Menu)")
+
+    ###################################
+    # Markers Nav Bar #################
+    ###################################
+    box = layout.box()
+    subrow = box.row()
+
+    panelIcon = "TRIA_DOWN" if prefs.mnavbar_settings_expanded else "TRIA_RIGHT"
+    subrow.prop(prefs, "mnavbar_settings_expanded", text="", icon_only=True, icon=panelIcon, emboss=False)
+
+    butsubrow = subrow.row()
+    butsubrow.scale_x = 1.5
+    butsubrow.prop(prefs, "display_markersNavBar_tool", text="", icon="CENTER_ONLY")
+    subrow.label(text="Markers Nav Bar")
+
+    subrowright = subrow.row()
+    subrowright.alignment = "RIGHT"
+    subrowright.label(text="(on Timeline Menu)")
+
+    if prefs.mnavbar_settings_expanded:
+        subrow = box.row()
+        propCol = propertyColumn(subrow, padding_left=leftSepFact_props)
+        markers_nav_bar_prefs_ui.draw_markers_nav_bar_settings(propCol)
 
     ###################################
 

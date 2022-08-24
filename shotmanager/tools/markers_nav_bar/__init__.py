@@ -16,22 +16,27 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 """
-Frame Range Init
+Markers navigation toolbar
 """
 
-from . import frame_range_operators
+from . import markers_nav_bar
+from . import markers_nav_bar_operators
+
+# from shotmanager.config import config
 from shotmanager.config import sm_logging
 
 _logger = sm_logging.getLogger(__name__)
 
 
 def register():
-    _logger.debug_ext("       - Registering Tool: Frame Range Package", form="REG")
+    _logger.debug_ext("       - Registering Tool: Markers Nav Bar Package", form="REG")
 
-    frame_range_operators.register()
+    markers_nav_bar_operators.register()
+    markers_nav_bar.register()
 
 
 def unregister():
-    _logger.debug_ext("       - Unregistering Tool: Frame Range Package", form="UNREG")
+    _logger.debug_ext("       - Unregistering Tool: Markers Nav Bar Package", form="UNREG")
 
-    frame_range_operators.unregister()
+    markers_nav_bar.unregister()
+    markers_nav_bar_operators.unregister()

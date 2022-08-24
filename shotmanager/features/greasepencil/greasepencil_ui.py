@@ -85,7 +85,7 @@ def draw_greasepencil_play_tools(self, context, shot, layersListDropdown=None):
     leftSepFactor = 0.1
 
     box = layout.box()
-    # utils_ui.drawSeparatorLine(layout)
+    # utils_ui.separatorLine(layout)
 
     parentShot = props.getParentShotFromGpChild(editedGpencil)
     objIsValid = parentShot is None
@@ -202,7 +202,7 @@ def draw_greasepencil_play_tools(self, context, shot, layersListDropdown=None):
 
         drawMatRow(context, col, props, objIsGP)
 
-        utils_ui.drawSeparatorLine(box)
+        utils_ui.separatorLine(box)
 
     # overlay tools
     #########################

@@ -21,7 +21,7 @@ Shots Stack menubar
 
 import bpy
 
-from shotmanager.utils.utils import sceneContainsCameraBinding
+from shotmanager.utils.utils_markers import sceneContainsCameraBinding
 
 
 from shotmanager.config import config

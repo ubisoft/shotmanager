@@ -132,7 +132,6 @@ def register():
     # bpy.types.TIME_MT_editor_menus.prepend(draw_frame_range_tool_in_editor)
 
     prefs = config.getShotManagerPrefs()
-
     display_frame_range_in_editor(prefs.display_frame_range_tool)
 
 
@@ -146,7 +145,7 @@ def register():
 
 
 def unregister():
+    display_frame_range_in_editor(False)
+
     for cls in reversed(_classes):
         bpy.utils.unregister_class(cls)
-
-    display_frame_range_in_editor(False)

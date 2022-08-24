@@ -72,12 +72,13 @@ def drawStampInfoBut(layout):
     return prefs_stampInfo is not None
 
 
-def drawSeparatorLine(layout, lower_height=1.0, higher_height=0.0):
+def separatorLine(layout, padding_top=0.0, padding_bottom=1.0):
+    """Draw a centered line in the specified layout component"""
     col = layout.column()
 
-    if 0 < higher_height:
+    if 0 < padding_top:
         row = col.row()
-        row.scale_y = higher_height
+        row.scale_y = padding_top
         row.separator()
 
     row = col.row()
@@ -85,9 +86,41 @@ def drawSeparatorLine(layout, lower_height=1.0, higher_height=0.0):
     row.alignment = "CENTER"
     row.label(text="_____________________")
 
-    row = col.row()
-    row.scale_y = lower_height
-    row.separator()
+    if 0 < padding_bottom:
+        row = col.row()
+        row.scale_y = padding_bottom
+        row.separator()
+
+
+def propertyColumn(layout, padding_top=0.0, padding_right=0.0, padding_bottom=0.0, padding_left=0.0):
+    """Return a column to add components in a more compact way that the standart layout"""
+    propRow = layout.row(align=True)
+
+    if 0 < padding_left:
+        leftRow = propRow.row(align=True)
+        leftRow.scale_x = padding_left
+        leftRow.separator(factor=1)
+
+    col = propRow.column(align=True)
+    # col.scale_y = 0.5
+    if 0 < padding_top:
+        sepRow = col.row()
+        sepRow.scale_y = padding_top
+        sepRow.separator()
+
+    propCol = col.column(align=True)
+
+    if 0 < padding_bottom:
+        sepRow = col.row()
+        sepRow.scale_y = padding_bottom
+        sepRow.separator()
+
+    if 0 < padding_right:
+        rightRow = propRow.row(align=True)
+        rightRow.scale_x = padding_right
+        rightRow.separator(factor=1)
+
+    return propCol
 
 
 def collapsable_panel(
@@ -95,6 +128,7 @@ def collapsable_panel(
 ):
     """Draw an arrow to collapse or extend a panel.
     Return the title row
+
     Args:
         layout: parent component
         data: the object with the properties

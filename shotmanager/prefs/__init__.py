@@ -22,9 +22,9 @@ Prefs dialog windows Init
 
 from . import about
 from . import dialog_menu
-from . import features
 
 # from . import general
+from . import prefs_features
 from . import prefs_overlay_tools
 from . import prefs_project
 from . import prefs_sequence
@@ -42,7 +42,7 @@ def register():
     _logger.debug_ext("       - Registering Prefs Package", form="REG")
 
     about.register()
-    features.register()
+    prefs_features.register()
     dialog_menu.register()
     #   general.register()
     prefs_overlay_tools.register()
@@ -68,5 +68,5 @@ def unregister():
     prefs_overlay_tools.unregister()
     #  general.unregister()
     dialog_menu.unregister()
-    features.unregister()
+    prefs_features.unregister()
     about.unregister()
