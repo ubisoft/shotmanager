@@ -29,7 +29,7 @@ import bpy
 def drawDependencies(context, layout: bpy.types.UILayout, **kwargs):
     # prefs = config.getShotManagerPrefs()
 
-    splitFactor = 0.25
+    splitFactor = 0.45
 
     box = layout.box()
     col = box.column()

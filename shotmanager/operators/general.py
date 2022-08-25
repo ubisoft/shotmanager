@@ -24,11 +24,12 @@ from bpy.types import Operator
 from bpy.props import BoolProperty, StringProperty, IntProperty
 
 from shotmanager.utils import utils
-from shotmanager.config import config
 from shotmanager.operators.shots import convertMarkersFromCameraBindingToShots
-from shotmanager.utils.utils import getSceneVSE, convertVersionIntToStr, clearMarkersFromCameraBinding
+from shotmanager.utils.utils import getSceneVSE, convertVersionIntToStr
+from shotmanager.utils.utils_markers import clearMarkersFromCameraBinding
 
 
+from shotmanager.config import config
 from shotmanager.config import sm_logging
 
 _logger = sm_logging.getLogger(__name__)

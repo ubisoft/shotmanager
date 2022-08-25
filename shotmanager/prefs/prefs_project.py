@@ -94,7 +94,7 @@ class UAS_ShotManager_ProjectSettings_Prefs(Operator):
         ############
         # naming conventions
         ############
-        utils_ui.drawSeparatorLine(mainCol, lower_height=sepLowerHeight, higher_height=sepHigherHeight)
+        utils_ui.separatorLine(mainCol, padding_bottom=sepLowerHeight, padding_top=sepHigherHeight)
 
         mainCol.label(text="Naming Conventions:")
         col = mainCol.column(align=False)
@@ -128,7 +128,7 @@ class UAS_ShotManager_ProjectSettings_Prefs(Operator):
         ############
         # settings
         ############
-        utils_ui.drawSeparatorLine(mainCol, lower_height=sepLowerHeight, higher_height=sepHigherHeight)
+        utils_ui.separatorLine(mainCol, padding_bottom=sepLowerHeight, padding_top=sepHigherHeight)
 
         mainCol.label(text="Settings:")
         col = mainCol.column(align=False)
@@ -173,7 +173,7 @@ class UAS_ShotManager_ProjectSettings_Prefs(Operator):
         ############
         # camera assets file
         ############
-        utils_ui.drawSeparatorLine(mainCol, lower_height=sepLowerHeight, higher_height=sepHigherHeight)
+        utils_ui.separatorLine(mainCol, padding_bottom=sepLowerHeight, padding_top=sepHigherHeight)
 
         propRow = mainCol.row(align=False)
         propRowSplit = propRow.split(factor=0.4)
@@ -190,7 +190,7 @@ class UAS_ShotManager_ProjectSettings_Prefs(Operator):
         ############
         # outputs
         ############
-        utils_ui.drawSeparatorLine(mainCol, lower_height=sepLowerHeight, higher_height=sepHigherHeight)
+        utils_ui.separatorLine(mainCol, padding_bottom=sepLowerHeight, padding_top=sepHigherHeight)
 
         mainCol.label(text="Outputs:")
         col = mainCol.column(align=False)
@@ -214,7 +214,7 @@ class UAS_ShotManager_ProjectSettings_Prefs(Operator):
 
         if config.devDebug:
             # additional settings
-            utils_ui.drawSeparatorLine(mainCol, lower_height=sepLowerHeight, higher_height=sepHigherHeight)
+            utils_ui.separatorLine(mainCol, padding_bottom=sepLowerHeight, padding_top=sepHigherHeight)
 
             mainCol.label(text="Additional Settings:")
             col = mainCol.column()

@@ -22,6 +22,8 @@ Settings panel for the Interactive Shots Stack overlay tool
 import bpy
 from bpy.types import Operator
 
+from shotmanager.utils.utils_ui import propertyColumn
+
 from shotmanager.config import config
 
 
@@ -29,27 +31,16 @@ def draw_settings(context, layout):
     """Used in Shot Manager Feature Toggles panel"""
     props = context.scene.UAS_shot_manager_props
     prefs = config.getShotManagerPrefs()
-    # layout = self.layout
 
-    leftCol = layout.column()
+    propCol = propertyColumn(layout)
 
-    # empty spacer column
-    row = leftCol.row()
-    col = row.column()
-    col.scale_x = 0.25
-    col.label(text=" ")
-    col = row.column(align=True)
-
-    col.prop(prefs, "display_shtStack_toolbar")
-
-    col.prop(props, "interactShotsStack_displayDisabledShots", text="Display Disabled Shots")
-
-    col.prop(
+    propCol.prop(prefs, "display_shtStack_toolbar")
+    propCol.prop(props, "interactShotsStack_displayDisabledShots", text="Display Disabled Shots")
+    propCol.prop(
         props,
         "interactShotsStack_displayInCompactMode",
         text="Compact Shots Display (= decrease visual stack height)",
     )
-    # return {"FINISHED"}
 
 
 # def draw_settings_in_menu(self, context):

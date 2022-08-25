@@ -25,6 +25,7 @@ from bpy.types import Panel, Operator
 from shotmanager.utils import utils
 from shotmanager.utils import utils_shot_manager
 from shotmanager.utils import utils_ui
+from shotmanager.utils import utils_markers
 
 from . import sm_shots_ui_previz_layout
 from . import sm_shots_ui_storyboard_layout
@@ -90,18 +91,14 @@ class UAS_PT_ShotManager(Panel):
             else:
                 row.label(text=props.project_name)
 
-        addonHeaderWarning = [
-            addon.bl_info.get("warning", "")
-            for addon in addon_utils.modules()
-            if addon.bl_info["name"] == "Shot Manager"
-        ]
-        if False and len(addonHeaderWarning):
+        addonWarning = utils_shot_manager.getShotManagerWanring()
+        if "" != addonWarning:
             betaRow = row.row()
             betaRow.alert = True
-            if "beta" in addonHeaderWarning[0].lower():
+            if "beta" in addonWarning.lower():
                 betaRow.label(text=" ** BETA **")
             else:
-                betaRow.label(text=f" *** {addonHeaderWarning[0]} ***")
+                betaRow.label(text=f" ** {addonWarning} **")
 
     def draw_header_preset(self, context):
         prefs = config.getShotManagerPrefs()
@@ -216,7 +213,7 @@ class UAS_PT_ShotManager(Panel):
 
         # play and timeline
         ################
-        playEnabled = not utils.sceneContainsCameraBinding(scene)
+        playEnabled = not utils_markers.sceneContainsCameraBinding(scene)
         row = layout.row()
         row.scale_y = 1.3
         rowPlayButton = row.row()
@@ -341,7 +338,7 @@ class UAS_PT_ShotManager(Panel):
             layout.separator(factor=0.4)
             return None
 
-        utils_ui.drawSeparatorLine(layout, lower_height=0.8, higher_height=0.6)
+        utils_ui.separatorLine(layout, padding_bottom=0.8, padding_top=0.6)
 
         # sequence name
         ################

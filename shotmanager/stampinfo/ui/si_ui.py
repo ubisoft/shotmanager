@@ -23,7 +23,6 @@ Main panel UI
 import bpy
 import bpy.utils.previews
 from bpy.types import Panel, Operator
-import addon_utils
 
 import importlib
 
@@ -33,6 +32,7 @@ from .. import stampInfoSettings
 
 from shotmanager.utils.utils_ui import collapsable_panel
 from shotmanager.utils.utils_os import module_can_be_imported
+from shotmanager.utils.utils_shot_manager import getShotManagerWanring
 
 from ..operators import debug
 
@@ -74,18 +74,14 @@ class UAS_PT_ShotManagerStampInfoPanelStdalone(Panel):
         icon = config.icons_col["StampInfo_32"]
         row.label(text="", icon_value=icon.icon_id)
 
-        addonWarning = [
-            addon.bl_info.get("warning", "")
-            for addon in addon_utils.modules()
-            if addon.bl_info["name"] == "Shot Manager"
-        ]
-        if len(addonWarning):
+        addonWarning = getShotManagerWanring()
+        if "" != addonWarning:
             betaRow = row.row()
             betaRow.alert = True
-            if "beta" in addonWarning[0].lower():
+            if "beta" in addonWarning.lower():
                 betaRow.label(text=" ** BETA **")
             else:
-                betaRow.label(text=f" *** {addonWarning[0]} ***")
+                betaRow.label(text=f" *** {addonWarning} ***")
 
         if config.devDebug:
             subrow = row.row()

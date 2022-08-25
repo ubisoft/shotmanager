@@ -1,0 +1,157 @@
+# GPLv3 License
+#
+# Copyright (C) 2021 Ubisoft
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+"""
+Retimer ApplyTo settings
+"""
+
+from bpy.types import PropertyGroup
+from bpy.props import BoolProperty, StringProperty
+
+from shotmanager.config import sm_logging
+
+_logger = sm_logging.getLogger(__name__)
+
+
+class UAS_Retimer_ApplyToSettings(PropertyGroup):
+    """Contextual settings to define to which entitites the retiming will be applied to"""
+
+    id: StringProperty(name="ID", default="DEFAULT")
+    name: StringProperty(name="Name", default="Retimer ApplyTo Default Settings")
+
+    onlyOnSelection: BoolProperty(
+        name="Apply Only on Selection",
+        description="Apply time change only to objects selected in the scene",
+        default=False,
+        options=set(),
+    )
+    includeLockAnim: BoolProperty(
+        name="Apply Also on Locked Anim",
+        description="Apply time change even if animation curves or action are locked",
+        default=True,
+        options=set(),
+    )
+
+    applyToObjects: BoolProperty(
+        name="Objects",
+        description="Apply time change to objects in the scene.\nGrease Pencil objects are ignored",
+        default=True,
+        options=set(),
+    )
+    applyToShapeKeys: BoolProperty(
+        name="Shape Keys",
+        description="Apply time change to objects with shape keys",
+        default=True,
+        options=set(),
+    )
+    applytToGreasePencil: BoolProperty(
+        name="Grease Pencil",
+        description="Apply time change to Grease Pencil objects",
+        default=True,
+        options=set(),
+    )
+
+    applyToMarkers: BoolProperty(
+        name="Markers",
+        description="Apply time change to markers",
+        default=True,
+        options=set(),
+    )
+
+    applyToCameraShots: BoolProperty(
+        name="Shots",
+        description="Apply time change to the range of the shots of type Camera (*** NOT to Storyboard shots ! ***",
+        default=True,
+        options=set(),
+    )
+    applyToStoryboardShots: BoolProperty(
+        name="Shots",
+        description="Apply time change to the range of the shots of type Storyboard (*** NOT to Camera shots ! ***",
+        default=False,
+        options=set(),
+    )
+
+    applyToVSE: BoolProperty(
+        name="VSE",
+        description="Apply time change to the content of the VSE",
+        default=True,
+        options=set(),
+    )
+
+    # moved to add-on preferences
+    # applyToTimeCursor: BoolProperty(
+    #     name="Apply to Time Cursor", description="Apply retime operation to the time cursor", default=True,
+    # )
+    # applyToSceneRange: BoolProperty(
+    #     name="Apply to Scene Range",
+    #     description="Apply retime operation to the animation start and end of the scene",
+    #     default=True,
+    # )
+
+    def initialize(self, applyToMode):
+        """
+        Args:
+            applyToMode: the mode of the applyTo settings. Can be SCENE, SELECTED_OBJECTS, LEGACY
+        """
+        _logger.debug_ext(f"initialize Retimer ApplyTo Settings {applyToMode}", col="GREEN", tag="RETIMER")
+
+        # common values
+        # -
+
+        # Scene
+        if "SCENE" == applyToMode:
+            self.id = applyToMode
+            self.name = "Apply to Scene Preset"
+
+            self.onlyOnSelection = False
+            self.includeLockAnim = True
+
+            self.applyToObjects = True
+            self.applyToShapeKeys = True
+            self.applytToGreasePencil = True
+
+            self.applyToMarkers = True
+
+            self.applyToCameraShots = True
+            self.applyToStoryboardShots = False
+
+            self.applyToVSE = True
+
+        # Selected objects
+        if "SELECTED_OBJECTS" == applyToMode:
+            self.id = applyToMode
+            self.name = "Apply to Selected Objects Preset"
+
+            self.onlyOnSelection = False
+            self.includeLockAnim = True
+
+            # NOTE: a camera from a shot is an object belonging to the scene
+            self.applyToObjects = True
+            self.applyToShapeKeys = True
+            self.applytToGreasePencil = True
+
+            self.applyToMarkers = False
+
+            self.applyToCameraShots = False
+            self.applyToStoryboardShots = False
+
+            self.applyToVSE = False
+
+        # Legacy
+        if "LEGACY" == applyToMode:
+            self.id = applyToMode
+            self.name = "Apply to Legacy Preset"

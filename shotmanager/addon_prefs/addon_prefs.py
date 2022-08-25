@@ -33,6 +33,7 @@ from shotmanager.utils.utils_os import get_latest_release_version
 from shotmanager.utils.utils_operators_overlays import getOverlaysPropertyState
 
 from shotmanager.tools.frame_range.frame_range_operators import display_frame_range_in_editor
+from shotmanager.tools.markers_nav_bar.markers_nav_bar import display_markersNavBar_in_editor
 
 from shotmanager.config import config
 from shotmanager.config import sm_logging
@@ -819,11 +820,19 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
         options=set(),
     )
 
+    ########################################################################
     # Retimer
+    ########################################################################
+
+    retimer_applyTo_expanded: BoolProperty(
+        name="Expand Layout Settings",
+        default=True,
+    )
+
     display_retimer_panel: BoolProperty(
         name="Display Retimer",
         description="Display the Retimer sub-panel in the Shot Manager panel.\n\n(saved in the add-on preferences)",
-        default=False,
+        default=True,
     )
     applyToTimeCursor: BoolProperty(
         name="Apply to Time Cursor",
@@ -950,21 +959,102 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
     )
 
     ###################################
-    # Frame Range #####################
+    # Frame Range tool ################
     ###################################
+
     def _update_display_frame_range_tool(self, context):
         # print("\n*** _update_display_frame_range_tool. New state: ", self.display_frame_range_tool)
-        # from shotmanager.tools.frame_range.frame_range_operators import display_frame_range_in_editor
-
         display_frame_range_in_editor(self.display_frame_range_tool)
 
     display_frame_range_tool: BoolProperty(
         name="Frame Time Range",
-        description="Easily get and set the time range from the Timeline editor."
+        description="Easy get and set the time range from the Timeline editor."
         "\nA tool from Ubisoft Shot Manager"
         "\n\n(saved in the add-on preferences)",
         update=_update_display_frame_range_tool,
         default=True,
+    )
+
+    ###################################
+    # Markers Nav Bar Tool ############
+    ###################################
+
+    def _update_display_markersNavBar_tool(self, context):
+        # print("\n*** _update_display_markersNavBar_tool. New state: ", self.display_frame_range_tool)
+        display_markersNavBar_in_editor(self.display_markersNavBar_tool)
+
+    display_markersNavBar_tool: BoolProperty(
+        name="Markers Nav Bar",
+        description="Jump from marker to marker, filter them for faster navigation."
+        "\nA tool from Ubisoft Shot Manager"
+        "\n\n(saved in the add-on preferences)",
+        update=_update_display_markersNavBar_tool,
+        default=False,
+    )
+
+    mnavbar_settings_expanded: BoolProperty(
+        name="Expand Panel Settings",
+        default=False,
+    )
+
+    mnavbar_display_in_timeline: BoolProperty(
+        name="Display in Timeline",
+        description="Display Markers Nav Bar in the Timeline toolbar",
+        default=False,
+    )
+    mnavbar_display_in_dopesheet: BoolProperty(
+        name="Display in Dopesheet",
+        description="Display Markers Nav Bar in the Dopesheet toolbar",
+        default=False,
+    )
+    mnavbar_display_in_vse: BoolProperty(
+        name="Display in VSE",
+        description="Display Markers Nav Bar in the VSE toolbar",
+        default=True,
+    )
+    mnavbar_display_addRename: BoolProperty(
+        name="Display Add and Rename",
+        description="Display buttons for Add and Rename markers",
+        default=True,
+    )
+    mnavbar_display_filter: BoolProperty(
+        name="Display Filter",
+        description="Display the filter tools",
+        default=True,
+    )
+
+    # Markers Nav Bar component controls ###
+
+    markerEmptyField: StringProperty(name=" ")
+
+    mnavbar_use_filter: BoolProperty(
+        name="Filter Markers",
+        default=False,
+    )
+
+    mnavbar_filter_text: StringProperty(
+        name="Filter Text",
+        default="",
+    )
+
+    # TOFIX: replace ops by functions
+    def _update_mnavbar_use_view_frame(self, context):
+        if self.mnavbar_use_view_frame:
+            # timeline
+            try:
+                bpy.ops.action.view_frame()
+            except Exception as e:
+                _logger.debug_ext(f"Exception in _update_mnavbar_use_view_frame. e: {e}")
+            # vse
+            try:
+                bpy.ops.sequencer.view_frame()
+            except Exception as e:
+                _logger.debug_ext(f"Exception in _update_mnavbar_use_view_frame. e: {e}")
+
+    mnavbar_use_view_frame: BoolProperty(
+        name="View Frame",
+        default=True,
+        update=_update_mnavbar_use_view_frame,
     )
 
     ########################################################################

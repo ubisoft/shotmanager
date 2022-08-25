@@ -254,7 +254,7 @@ def draw_greasepencil_shot_properties(layout, context, shot):
         # row = col.row()
         # row.separator(factor=hSepFactor)
 
-        utils_ui.drawSeparatorLine(col, lower_height=1.4, higher_height=0.6)
+        utils_ui.separatorLine(col, padding_bottom=1.4, padding_top=0.6)
 
         row = col.row()
 
@@ -568,7 +568,7 @@ def draw_greasepencil_global_properties(layout, context):
         col.separator(factor=0.5)
         sm_shots_global_settings_ui_cameras.draw_camera_global_settings(context, col, mode="STORYBOARD")
 
-        utils_ui.drawSeparatorLine(box, lower_height=0.0, higher_height=0.1)
+        utils_ui.separatorLine(box, padding_bottom=0.0, padding_top=0.1)
 
         # overlays tools
         #########################

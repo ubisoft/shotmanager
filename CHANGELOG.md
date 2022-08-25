@@ -1,4 +1,17 @@
 -----
+## 2.0.224 (2022-08-24)
+### Retimer, markers
+- Retimer UI and structure refactored and simplified
+- Added support for markers in Retimer
+
+- Fixed header title display when add-on has a warning
+
+-----
+## 2.0.223 (2022-08-24)
+### Markers
+- Integrated the tool Markers Nav Bar from the add-on Ubisoft Video Tracks
+
+-----
 ## 2.0.222 (2022-08-23)
 - Fixed error message at install time when internet connection is not available
 

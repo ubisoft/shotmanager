@@ -24,6 +24,7 @@ from pathlib import Path
 import bpy
 
 from shotmanager.utils import utils
+from shotmanager.utils import utils_markers
 from shotmanager.utils import utils_vse
 from shotmanager.utils.utils_os import module_can_be_imported
 from shotmanager.config import config
@@ -220,7 +221,7 @@ def rrs_sequence_to_vsm(scene, sequenceName):
     importSequenceAtFrame = 0
 
     # find if a marker exists with the name of the first shot
-    markers = utils.sortMarkers(scene.timeline_markers, sequenceName)
+    markers = utils_markers.sortMarkers(scene.timeline_markers, sequenceName)
     if len(markers):
         # if firstShotMarker is not None:
         importSequenceAtFrame = markers[0].frame
@@ -373,7 +374,7 @@ def rrs_playblast_to_vsm(playblastInfo=None, editVideoFile=None, otioFile=None, 
     importPlayblastAtFrame = playblastInfo["startFrameInEdit"]
 
     # find if a marker exists with the name of the first shot
-    firstShotMarker = utils.getMarkerbyName(scene, playblastInfo["startShotName"])
+    firstShotMarker = utils_markers.getMarkerbyName(scene, playblastInfo["startShotName"])
     if firstShotMarker is not None:
         importPlayblastAtFrame = firstShotMarker.frame
 

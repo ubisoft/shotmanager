@@ -23,7 +23,8 @@ from shotmanager.config import config
 from shotmanager.ui.dependencies_ui import drawDependencies
 from shotmanager.utils.utils_ui import collapsable_panel
 
-from shotmanager.prefs.features import draw_features_prefs
+from shotmanager.prefs.prefs_features import draw_features_prefs
+
 
 ##################################################################################
 # Draw

@@ -25,6 +25,7 @@ from pathlib import Path
 import bpy
 from shotmanager.config import config
 from shotmanager.utils import utils
+from shotmanager.utils.utils_markers import sceneContainsCameraBinding
 
 
 def getWarnings(props, scene):
@@ -68,7 +69,7 @@ def getWarnings(props, scene):
 
     # check if some camera markers bound to cameras are used in the scene
     ###########
-    if utils.sceneContainsCameraBinding(scene):
+    if sceneContainsCameraBinding(scene):
         warningList.append(
             (
                 "Scene contains markers binded to cameras"

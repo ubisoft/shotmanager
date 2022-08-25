@@ -59,8 +59,10 @@ from .utils import utils
 from .utils import utils_render
 from .utils import utils_operators
 from .utils import utils_operators_overlays
-from .tools import frame_range
 from .utils.utils_os import module_can_be_imported
+
+from .tools import frame_range
+from .tools import markers_nav_bar
 
 from . import keymaps
 
@@ -80,11 +82,12 @@ bl_info = {
     "author": "Ubisoft - Julien Blervaque (aka Werwack), Romain Carriquiry Borchiari",
     "description": "Easily manage shots and cameras in the 3D View and see the resulting edit in real-time",
     "blender": (3, 1, 0),
-    "version": (2, 0, 222),
+    "version": (2, 0, 224),
     "location": "View3D > Shot Mng",
     "doc_url": "https://ubisoft-shotmanager.readthedocs.io",
     "tracker_url": "https://github.com/ubisoft/shotmanager/issues",
     #  "warning": "BETA Version",
+    "warning": "Pre-Release",
     "category": "Ubisoft",
 }
 
@@ -201,6 +204,7 @@ def register():
     greasepencil.register()
     storyboard.register()
     frame_range.register()
+    markers_nav_bar.register()
     rendering.register()
     takes.register()
     shots.register()
@@ -414,6 +418,7 @@ def unregister():
 
     utils_operators_overlays.unregister()
     utils_operators.unregister()
+    markers_nav_bar.unregister()
     frame_range.unregister()
     storyboard.unregister()
     greasepencil.unregister()

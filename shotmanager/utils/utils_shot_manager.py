@@ -32,11 +32,29 @@ def getShotManagerPrefs():
     return config.getShotManagerPrefs()
 
 
+def getShotManagerAddon():
+    """Return the add-on"""
+    sm_addon = None
+    for addon in addon_utils.modules():
+        if addon.bl_info["name"] == "Ubisoft Shot Manager":
+            sm_addon = addon
+            break
+    return sm_addon
+
+
+def getShotManagerWanring():
+    """Return the add-on"""
+    addonWarning = ""
+    sm_addon = getShotManagerAddon()
+    if sm_addon:
+        addonWarning = sm_addon.bl_info.get("warning", "")
+    return addonWarning
+
+
 def getUbisoftName():
-    addonHeaderWarning = [
-        addon.bl_info.get("warning", "") for addon in addon_utils.modules() if addon.bl_info["name"] == "Shot Manager"
-    ]
-    if len(addonHeaderWarning):
+    """Return the Ubisoft name only if there is no warning message"""
+    addonWarning = getShotManagerWanring()
+    if "" != addonWarning:
         return ""
     return "Ubisoft"
 
