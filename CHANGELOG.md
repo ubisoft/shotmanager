@@ -1,5 +1,6 @@
 -----
 ## 2.0.224 (2022-08-24)
+**Pre-Release**
 ### Retimer, markers
 - Retimer UI and structure refactored and simplified
 - Added support for markers in Retimer
@@ -31,6 +32,10 @@
 -----
 ## 2.0.220 (2022-08-11)
 - Small fix on the storyboard shot type icon
+
+-----
+## 2.0.214 (2022-08-10)
+**Release**
 
 -----
 ## 2.0.210 (2022-08-09)
