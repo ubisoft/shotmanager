@@ -167,8 +167,11 @@ class UAS_Retimer_RetimeEngine(PropertyGroup):
     """
     start_frame: IntProperty(
         name="Start Frame",
-        description="The time operation will occur right AFTER this frame."
-        "\nThis frame is then NOT MODIFIED (except during a Time Rescale)",
+        description=(
+            "When labeled 'Ref. Frame' this value is used as an example for the computation text below."
+            "\n\nOtherwise this value is used as the 'start frame'. The time operation then will occur right AFTER this frame."
+            "\nThis frame is then NOT MODIFIED (except during a Time Rescale)"
+        ),
         get=_get_start_frame,
         set=_set_start_frame,
         # update=_update_start_frame,

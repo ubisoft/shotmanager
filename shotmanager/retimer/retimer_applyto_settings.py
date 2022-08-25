@@ -30,7 +30,7 @@ _logger = sm_logging.getLogger(__name__)
 class UAS_Retimer_ApplyToSettings(PropertyGroup):
     """Contextual settings to define to which entitites the retiming will be applied to"""
 
-    id: StringProperty(name="ID", default="Retimer ApplyTo Default Settings ID")
+    id: StringProperty(name="ID", default="DEFAULT")
     name: StringProperty(name="Name", default="Retimer ApplyTo Default Settings")
 
     onlyOnSelection: BoolProperty(
@@ -61,6 +61,13 @@ class UAS_Retimer_ApplyToSettings(PropertyGroup):
     applytToGreasePencil: BoolProperty(
         name="Grease Pencil",
         description="Apply time change to Grease Pencil objects",
+        default=True,
+        options=set(),
+    )
+
+    applyToMarkers: BoolProperty(
+        name="Markers",
+        description="Apply time change to markers",
         default=True,
         options=set(),
     )
@@ -117,6 +124,8 @@ class UAS_Retimer_ApplyToSettings(PropertyGroup):
             self.applyToShapeKeys = True
             self.applytToGreasePencil = True
 
+            self.applyToMarkers = True
+
             self.applyToCameraShots = True
             self.applyToStoryboardShots = False
 
@@ -130,11 +139,12 @@ class UAS_Retimer_ApplyToSettings(PropertyGroup):
             self.onlyOnSelection = False
             self.includeLockAnim = True
 
+            # NOTE: a camera from a shot is an object belonging to the scene
             self.applyToObjects = True
             self.applyToShapeKeys = True
             self.applytToGreasePencil = True
 
-            # NOTE: a camera from a shot is an object belonging to the scene
+            self.applyToMarkers = False
 
             self.applyToCameraShots = False
             self.applyToStoryboardShots = False

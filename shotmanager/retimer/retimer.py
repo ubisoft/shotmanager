@@ -21,7 +21,12 @@ Retimer functions
 
 import bpy
 
+from shotmanager.utils.utils_markers import sortMarkers
+
 from shotmanager.config import config
+from shotmanager.config import sm_logging
+
+_logger = sm_logging.getLogger(__name__)
 
 # FCurve
 ################################################
@@ -440,7 +445,7 @@ def retime_shot(shot, mode, start_incl=0, end_incl=0, remove_gap=True, factor=1.
 
     elif mode == "RESCALE":
         offset = (end_frame - start_frame) * factor - end_frame + start_frame
-        print(f" In retime_shot() Rescale mode: offset: {offset}")
+        _logger.debug_ext(f" In retime_shot() Rescale mode: offset: {offset}")
 
         if shot.durationLocked:
             if offset > 0:
@@ -662,6 +667,60 @@ def retime_shot(shot, mode, start_incl=0, end_incl=0, remove_gap=True, factor=1.
         pass
 
 
+def computeNewTimeValue(frameVal, mode, start_incl=0, end_incl=0, remove_gap=True, factor=1.0, pivot=0):
+    """Return the value of the time (in frames) after the retiming
+    Return None if the new time value is not available (deleted time for example)"""
+
+    newFrameVal = frameVal
+
+    if mode == "INSERT":
+        offset = end_incl - start_incl + 1
+        if start_incl <= frameVal:
+            return frameVal + offset
+
+    elif mode == "DELETE" or mode == "CLEAR_ANIM":
+        if start_incl <= frameVal:
+            if frameVal <= end_incl:
+                return None
+            else:
+                offset = end_incl - start_incl + 1
+                return frameVal - offset
+
+    elif mode == "RESCALE":
+        newFrameVal = rescale_frame(frameVal, start_incl, end_incl, pivot, factor)
+        return newFrameVal
+        # if start_incl <= frameVal:
+        #     if frameVal <= end_incl:
+        #         return None
+        #     else:
+        #         offset = (end_incl - start_incl - 1) * factor - end_incl + start_incl - 1
+        #         # _logger.debug_ext(f" In computeNewTimeValue() Rescale mode: offset: {offset}")
+        #         return frameVal + offset
+
+    elif mode == "FREEZE":
+        pass
+
+    return newFrameVal
+
+
+def retime_markers(scene, mode, start_incl=0, end_incl=0, remove_gap=True, factor=1.0, pivot=0):
+    # NOTE: there can be several markers per frame!!!
+
+    if mode == "RESCALE":
+        offset = (end_incl - start_incl - 1) * factor - end_incl + start_incl - 1
+        _logger.debug_ext(f" In retime_markers() Rescale mode: offset: {offset}")
+
+    markers = sortMarkers(scene.timeline_markers)
+    if len(markers):
+        for m in markers:
+            newFrameVal = computeNewTimeValue(m.frame, mode, start_incl, end_incl, remove_gap, factor, pivot)
+            if newFrameVal is None:
+                # delete marker
+                scene.timeline_markers.remove(m)
+            else:
+                m.frame = newFrameVal
+
+
 def retime_vse(scene, mode, start_frame, end_frame, remove_gap=True):
     def insert_time(sed, start_frame, end_frame):
         # This will be a two pass process since we will use operators to cut the clips.
@@ -724,6 +783,7 @@ def retimeScene(
     context,
     retimerProps,
     mode: str,
+    retimerApplyToSettings,
     objects,
     start_incl: int,
     duration_incl: float,
@@ -764,19 +824,19 @@ def retimeScene(
         # print(f"Retiming object named: {obj.name}")
 
         # Standard object keyframes
-        if retimerProps.applyToObjects:
+        if retimerApplyToSettings.applyToObjects:
             if obj.type != "GPENCIL":
                 if obj.animation_data is not None:
                     action = obj.animation_data.action
                     if action is not None and action not in actions_done:
                         # wkip can we have animated properties that are not actions?
                         for fcurve in action.fcurves:
-                            if not fcurve.lock or retimerProps.includeLockAnim:
+                            if not fcurve.lock or retimerApplyToSettings.includeLockAnim:
                                 retime_frames(FCurve(fcurve), *retime_args)
                         actions_done.add(action)
 
         # Shape keys
-        if retimerProps.applyToShapeKeys:
+        if retimerApplyToSettings.applyToShapeKeys:
             if (
                 obj.type == "MESH"
                 and obj.data.shape_keys is not None
@@ -785,12 +845,12 @@ def retimeScene(
                 action = obj.data.shape_keys.animation_data.action
                 if action is not None and action not in actions_done:
                     for fcurve in action.fcurves:
-                        if not fcurve.lock or retimerProps.includeLockAnim:
+                        if not fcurve.lock or retimerApplyToSettings.includeLockAnim:
                             retime_frames(FCurve(fcurve), *retime_args)
                     actions_done.add(action)
 
         # Grease pencil
-        if retimerProps.applytToGreasePencil:
+        if retimerApplyToSettings.applytToGreasePencil:
             #    retime_args = (mode, start_incl, end_incl, join_gap, factor, pivot)
 
             if obj.type == "GPENCIL":
@@ -811,14 +871,14 @@ def retimeScene(
                     action = obj.animation_data.action
                     if action is not None and action not in actions_done:
                         for fcurve in action.fcurves:
-                            if not fcurve.lock or retimerProps.includeLockAnim:
+                            if not fcurve.lock or retimerApplyToSettings.includeLockAnim:
                                 retime_frames(FCurve(fcurve), *retime_args)
                         if not action_tmp_added:
                             actions_done.add(action)
 
                 for layer in obj.data.layers:
                     #    print(f"Treating GP object: {obj.name} layer: {layer}")
-                    if not layer.lock or retimerProps.includeLockAnim:
+                    if not layer.lock or retimerApplyToSettings.includeLockAnim:
                         retime_GPframes(layer, *retime_args)
 
                 if action_tmp_added:
@@ -834,17 +894,21 @@ def retimeScene(
     # VSE
     # no operation for CLEAR_ANIM
     if "CLEAR_ANIM" != mode:
-        if retimerProps.applyToVSE:
+        if retimerApplyToSettings.applyToVSE:
             retime_vse(scene, mode, start_incl, end_incl)
 
     # Shots
-    if retimerProps.applyToCameraShots:
+    if retimerApplyToSettings.applyToCameraShots:
         props = scene.UAS_shot_manager_props
         shotList = props.getShotsList(ignoreDisabled=False)
 
         if "CLEAR_ANIM" != mode:
             for shot in shotList:
                 retime_shot(shot, *retime_args)
+
+    # markers
+    if retimerApplyToSettings.applyToMarkers:
+        retime_markers(scene, *retime_args)
 
     # anim range
     def compute_retimed_frame(frame_value, mode, start_incl, end_incl, duration_incl, pivot, factor):

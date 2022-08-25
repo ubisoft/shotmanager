@@ -32,8 +32,19 @@ def drawApplyTo(context, retimerSettings, layout):
     # layout = layout.box()
     # layout = propCol
 
-    if config.devDebug:
-        propCol.label(text=f"Settings: {retimerSettings.name}")
+    if config.devDebug or "DEFAULT" == retimerSettings.id:
+        settingsNameRow = propCol.row()
+
+        if "DEFAULT" != retimerSettings.id:
+            settingsNameRow.label(text="Settings:")
+            settingsNameRow = settingsNameRow.row()
+            settingsNameRow.label(text=f"{retimerSettings.name}")
+        else:
+            settingsNameRow.alert = True
+            settingsNameRow.label(text="*** Invalid Settings: Default ***")
+            settingsNameRow = settingsNameRow.row()
+            settingsNameRow.operator("uas_shot_manager.retimerinitialize", text="Reset", icon="LOOP_BACK")
+
         propCol.separator(factor=0.5)
 
     if "SCENE" == retimerSettings.id:
@@ -59,6 +70,9 @@ def drawApplyTo(context, retimerSettings, layout):
         row.prop(retimerSettings, "applyToObjects")
         row.prop(retimerSettings, "applyToShapeKeys")
         row.prop(retimerSettings, "applytToGreasePencil")
+
+        row = col.row(align=True)
+        row.prop(retimerSettings, "applyToMarkers")
 
     if "LEGACY" == retimerSettings.id or config.devDebug:
 
@@ -88,6 +102,9 @@ def drawApplyTo(context, retimerSettings, layout):
             row.prop(retimerSettings, "applyToShapeKeys")
             row.prop(retimerSettings, "applytToGreasePencil")
 
+            row = col.row(align=True)
+            row.prop(retimerSettings, "applyToMarkers")
+
         row = col.row(align=True)
         row.scale_y = 0.3
 
@@ -98,11 +115,13 @@ def drawApplyTo(context, retimerSettings, layout):
 
     # time cursor and range
     ##########################
+    if "SCENE" == retimerSettings.id or "LEGACY" == retimerSettings.id or config.devDebug:
+        box = propCol.box()
+        box.alert = "SCENE" != retimerSettings.id
 
-    box = propCol.box()
-    col = box.column()
+        col = box.column()
 
-    row = col.row(align=True)
-    row.prop(prefs, "applyToTimeCursor", text="Time Cursor")
-    row.prop(prefs, "applyToSceneRange", text="Scene Range")
-    # row.label(text="")
+        row = col.row(align=True)
+        row.prop(prefs, "applyToTimeCursor", text="Time Cursor")
+        row.prop(prefs, "applyToSceneRange", text="Scene Range")
+        # row.label(text="")

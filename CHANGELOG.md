@@ -1,7 +1,10 @@
 -----
 ## 2.0.224 (2022-08-24)
-### Retimer
-- Retimer UI and structure refactor
+### Retimer, markers
+- Retimer UI and structure refactored and simplified
+- Added support for markers in Retimer
+
+- Fixed header title display when add-on has a warning
 
 -----
 ## 2.0.223 (2022-08-24)

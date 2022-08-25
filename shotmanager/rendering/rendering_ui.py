@@ -23,12 +23,12 @@ from pathlib import Path
 
 import bpy
 from bpy.types import Panel
-import addon_utils
 
 from ..config import config
 from ..utils import utils
 from ..utils import utils_ui
 
+from shotmanager.utils.utils_shot_manager import getShotManagerWanring
 from shotmanager.warnings.warnings_ui import drawWarnings
 
 
@@ -65,18 +65,14 @@ class UAS_PT_ShotManagerRenderPanelStdalone(Panel):
             else:
                 row.label(text=props.project_name)
 
-        addonWarning = [
-            addon.bl_info.get("warning", "")
-            for addon in addon_utils.modules()
-            if addon.bl_info["name"] == "Shot Manager"
-        ]
-        if len(addonWarning):
+        addonWarning = getShotManagerWanring()
+        if "" != addonWarning:
             betaRow = row.row()
             betaRow.alert = True
-            if "beta" in addonWarning[0].lower():
+            if "beta" in addonWarning.lower():
                 betaRow.label(text=" ** BETA **")
             else:
-                betaRow.label(text=f" *** {addonWarning[0]} ***")
+                betaRow.label(text=f" *** {addonWarning} ***")
 
     def draw_header_preset(self, context):
         drawHeaderPreset(self, context)

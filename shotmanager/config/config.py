@@ -43,7 +43,7 @@ def initGlobalVariables():
         devDebug = False
 
     # change this value to force debug at start time
-    devDebug = True
+    devDebug = False
 
     global devDebug_lastRedrawTime
     devDebug_lastRedrawTime = -1
