@@ -92,7 +92,9 @@ def separatorLine(layout, padding_top=0.0, padding_bottom=1.0):
         row.separator()
 
 
-def propertyColumn(layout, padding_top=0.0, padding_right=0.0, padding_bottom=0.0, padding_left=0.0):
+def propertyColumn(
+    layout, padding_top=0.0, padding_right=0.0, padding_bottom=0.0, padding_left=0.0, align=True, scale_y=1.0
+):
     """Return a column to add components in a more compact way that the standart layout"""
     propRow = layout.row(align=True)
 
@@ -108,7 +110,8 @@ def propertyColumn(layout, padding_top=0.0, padding_right=0.0, padding_bottom=0.
         sepRow.scale_y = padding_top
         sepRow.separator()
 
-    propCol = col.column(align=True)
+    propCol = col.column(align=align)
+    col.scale_y = scale_y
 
     if 0 < padding_bottom:
         sepRow = col.row()
@@ -121,6 +124,16 @@ def propertyColumn(layout, padding_top=0.0, padding_right=0.0, padding_bottom=0.
         rightRow.separator(factor=1)
 
     return propCol
+
+
+def labelBold(layout, text):
+    """Draw a label that is (slightly) brighter than the standard one"""
+    # prefs = config.getShotManagerPrefs()
+    row = layout.row(align=True)
+    row.alignment = "LEFT"
+    row.scale_x = 0.8
+    # row.prop(prefs, "emptyBool", text=text, emboss=True, icon_only=True)
+    row.operator("uas.empty_operator", text=text, emboss=False, depress=False)
 
 
 def collapsable_panel(

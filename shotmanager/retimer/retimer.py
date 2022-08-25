@@ -838,7 +838,7 @@ def retimeScene(
             retime_vse(scene, mode, start_incl, end_incl)
 
     # Shots
-    if retimerProps.applyToShots:
+    if retimerProps.applyToCameraShots:
         props = scene.UAS_shot_manager_props
         shotList = props.getShotsList(ignoreDisabled=False)
 

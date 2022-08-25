@@ -820,11 +820,19 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
         options=set(),
     )
 
+    ########################################################################
     # Retimer
+    ########################################################################
+
+    retimer_applyTo_expanded: BoolProperty(
+        name="Expand Layout Settings",
+        default=True,
+    )
+
     display_retimer_panel: BoolProperty(
         name="Display Retimer",
         description="Display the Retimer sub-panel in the Shot Manager panel.\n\n(saved in the add-on preferences)",
-        default=False,
+        default=True,
     )
     applyToTimeCursor: BoolProperty(
         name="Apply to Time Cursor",

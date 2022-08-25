@@ -26,9 +26,7 @@ from shotmanager.overlay_tools.interact_shots_stack import shots_stack_prefs
 from shotmanager.overlay_tools.viewport_camera_hud import camera_hud_prefs
 
 from shotmanager.utils import utils_ui
-from shotmanager.utils.utils_ui import propertyColumn
-
-# from shotmanager.utils.utils_ui import collapsable_panel
+from shotmanager.utils.utils_ui import propertyColumn, collapsable_panel
 
 from shotmanager.tools.markers_nav_bar import markers_nav_bar_prefs_ui
 

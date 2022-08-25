@@ -1,8 +1,12 @@
 -----
+## 2.0.224 (2022-08-24)
+### Retimer
+- Retimer UI and structure refactor
+
+-----
 ## 2.0.223 (2022-08-24)
 ### Markers
 - Integrated the tool Markers Nav Bar from the add-on Ubisoft Video Tracks
-
 
 -----
 ## 2.0.222 (2022-08-23)
