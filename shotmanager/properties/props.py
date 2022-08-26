@@ -1739,7 +1739,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
                 pass
                 val = self.get("greasePencil_layersModeB", 0)
                 print(f" gpencil.name: {gpencil.name}, val:{val}")
-                gpSettings = self.stb_frameTemplate.getEditedGPByName(gpencil.name)
+                # gpSettings = self.stb_frameTemplate.getEditedGPByName(gpencil.name)
             # if gpSettings is not None:
             #     # Create a lookup-dict for the object layers
             #     # layers_dict = {layer.info: i for i, layer in enumerate(gpencil.data.layers)}
@@ -3764,6 +3764,39 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
             firstShotInd = -1
 
         return firstShotInd
+
+    #############################################
+    # shot cameras
+    #############################################
+
+    def getCameras(self, fromAllTakes=False, ignoreDisabled=False, takeIndex=-1, onlyShotsOfType=None):
+        """Return the list of all the valid cameras used by the shots of the specified take
+        Cameras are present only 1 time in the returned list
+        Args:
+            fromAllTakes: If True, then takeIndex is ignored
+            onlyShotOfType: Can be None, "STORYBOARD" or "PREVIZ"
+        """
+        takeInd = (
+            self.getCurrentTakeIndex()
+            if -1 == takeIndex
+            else (takeIndex if 0 <= takeIndex and takeIndex < len(self.getTakes()) else -1)
+        )
+        if -1 == takeInd:
+            return None
+
+        takes = self.takes if fromAllTakes else [self.takes[takeInd]]
+
+        shotCameras = list()
+        for take in takes:
+            for shot in take.shots:
+                if shot.enabled or ignoreDisabled:
+                    if onlyShotsOfType is None or onlyShotsOfType == shot.shotType:
+                        if shot.isCameraValid():
+                            cam = shot.camera
+                            if cam not in shotCameras:
+                                shotCameras.append(cam)
+
+        return shotCameras
 
     def getShotsUsingCamera(self, cam, ignoreDisabled=False, takeIndex=-1):
         """Return the list of all the shots used by the specified camera in the specified take"""

@@ -306,9 +306,7 @@ class UAS_PT_ShotManagerRetimer(Panel):
         split.prop(retimerProps, "applyTo", text="")
 
         if prefs.retimer_applyTo_expanded:
-            retimerApplyToSettings = retimerProps.getCurrentApplyToSettings()
-
-            drawApplyTo(context, retimerApplyToSettings, box)
+            drawApplyTo(context, retimerProps, box)
 
         # apply button ################
         ###############################

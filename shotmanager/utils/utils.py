@@ -694,6 +694,20 @@ def getSceneVSE(vsm_sceneName, createVseTab=False):
 # Objects
 ###################
 
+def getChildrenHierarchy(parentObject):
+    """Return a list with all the children - recursive - of the specified object"""
+
+    allChildren = list()
+    
+    def _getChildrenHierarchyRec(parentObject):
+        for child in parentObject.children:
+            allChildren.append(child)
+            _getChildrenHierarchyRec(child)
+
+    _getChildrenHierarchyRec(parentObject)
+
+    return allChildren
+
 
 def duplicateObject(sourceObject, newName=None, duplicateHierarchy=False):
     """Duplicate (deepcopy) an object and place it in the same collection

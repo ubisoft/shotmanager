@@ -25,6 +25,7 @@ from bpy.props import StringProperty
 
 from . import retimer
 
+from shotmanager.utils.utils_storyboard import getStoryboardObjects
 from shotmanager.config import sm_logging
 
 _logger = sm_logging.getLogger(__name__)
@@ -103,9 +104,15 @@ class UAS_ShotManager_RetimerApply(Operator):
         retimerApplyToSettings = context.scene.UAS_shot_manager_props.retimer.getCurrentApplyToSettings()
 
         if retimerApplyToSettings.onlyOnSelection:
-            obj_list = context.selected_objects
+            sceneObjs = [obj for obj in context.selected_objects]
         else:
-            obj_list = context.scene.objects
+            sceneObjs = [obj for obj in context.scene.objects]
+
+        if not retimerApplyToSettings.applyToStoryboardShots:
+            stbObjs = getStoryboardObjects(context.scene)
+            for obj in stbObjs:
+                if obj in sceneObjs:
+                    sceneObjs.remove(obj)
 
         # startFrame = retimeEngine.start_frame
         # endFrame = retimeEngine.end_frame
@@ -138,7 +145,7 @@ class UAS_ShotManager_RetimerApply(Operator):
                 retimeEngine,
                 offsetMode,
                 retimerApplyToSettings,
-                obj_list,
+                sceneObjs,
                 farRefPoint + 1,
                 abs(retimeEngine.offset_duration),
                 retimeEngine.gap,
@@ -159,7 +166,7 @@ class UAS_ShotManager_RetimerApply(Operator):
                 retimeEngine,
                 "INSERT",
                 retimerApplyToSettings,
-                obj_list,
+                sceneObjs,
                 start_excl + 1,
                 retimeEngine.insert_duration,
                 retimeEngine.gap,
@@ -179,7 +186,7 @@ class UAS_ShotManager_RetimerApply(Operator):
                 retimeEngine,
                 "DELETE",
                 retimerApplyToSettings,
-                obj_list,
+                sceneObjs,
                 start_excl + 1,
                 duration_incl,
                 True,
@@ -199,7 +206,7 @@ class UAS_ShotManager_RetimerApply(Operator):
                 retimeEngine,
                 retimeEngine.mode,
                 retimerApplyToSettings,
-                obj_list,
+                sceneObjs,
                 start_excl,
                 duration_incl,
                 True,
@@ -219,7 +226,7 @@ class UAS_ShotManager_RetimerApply(Operator):
                 retimeEngine,
                 retimeEngine.mode,
                 retimerApplyToSettings,
-                obj_list,
+                sceneObjs,
                 start_excl + 1,
                 duration_incl,
                 False,

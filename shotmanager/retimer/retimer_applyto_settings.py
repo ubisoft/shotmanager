@@ -155,3 +155,33 @@ class UAS_Retimer_ApplyToSettings(PropertyGroup):
         if "LEGACY" == applyToMode:
             self.id = applyToMode
             self.name = "Apply to Legacy Preset"
+
+    def getQuickHelp(self, topic):
+        """Args:
+        topic:  Can be APPLYTO_STORYBOARDSHOTS"""
+
+        docPath = "https://ubisoft-shotmanager.readthedocs.io/en/latest/feature-toggles/retimer.html"
+
+        if "APPLYTO_STORYBOARDSHOTS" == topic:
+            title = "Storyboard Shots"
+            text = "Except if you have some very specific needs, it is usually not necessary to"
+            text += "\napply the Scene Retiming to the Storyboard shots since they do not"
+            text += "\nreally depends on the scene content."
+            # TODO wkip add doc anchor to each path
+            docPath += ""
+        # elif "INSERT_BEFORE" == topic:
+        #     text += ""
+        # elif "INSERT_AFTER" == topic:
+        #     text += ""
+        # elif "DELETE_RANGE" == topic:
+        #     text += ""
+        # elif "RESCALE" == topic:
+        #     text += ""
+        # elif "CLEAR_ANIM" == topic:
+        #     text += ""
+        else:
+            title = "description"
+            text = "text"
+
+        tooltip = "Quick tips about " + title
+        return (tooltip, title, text, docPath)

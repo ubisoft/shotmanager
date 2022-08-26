@@ -26,7 +26,7 @@ from pathlib import Path
 import subprocess
 
 import bpy
-from bpy.types import Operator
+from bpy.types import Operator, Panel
 from bpy.props import StringProperty
 
 # for file browser:
@@ -126,14 +126,16 @@ def propertyColumn(
     return propCol
 
 
-def labelBold(layout, text):
-    """Draw a label that is (slightly) brighter than the standard one"""
+def labelBold(layout, text, scale_x=0.8, emboss=False):
+    """Draw a label that is (slightly) brighter than the standard one
+    Args:
+            emboss: used for debug"""
     # prefs = config.getShotManagerPrefs()
     row = layout.row(align=True)
     row.alignment = "LEFT"
-    row.scale_x = 0.8
+    row.scale_x = scale_x
     # row.prop(prefs, "emptyBool", text=text, emboss=True, icon_only=True)
-    row.operator("uas.empty_operator", text=text, emboss=False, depress=False)
+    row.operator("uas.empty_operator", text=text, emboss=emboss, depress=False)
 
 
 def collapsable_panel(
@@ -173,6 +175,67 @@ def collapsable_panel(
     row.alert = False
 
     return row
+
+
+class UAS_PT_SM_QuickToolip(Panel):
+    bl_idname = "UAS_PT_SM_quicktooltip"
+    bl_label = "Shot Manager - Quick Tooltip"
+    bl_space_type = "VIEW_3D"
+    bl_region_type = "HEADER"
+    bl_ui_units_x = 20
+
+    title: StringProperty(default="")
+    message: StringProperty(default="")
+    path: StringProperty()
+
+    @classmethod
+    def setTitle(self, text):
+        self.title = text
+
+    # self.bl_ui_units_x = 190
+
+    @classmethod
+    def setMessage(self, text):
+        self.message = text
+
+    def draw(self, context):
+        layout = self.layout
+
+        if "" != self.title:
+            labelBold(layout, self.title, scale_x=1.0)
+
+        messages = self.message.split("\n")
+        propsCol = propertyColumn(layout, padding_left=0, padding_bottom=0, scale_y=0.8)
+
+        for s in messages:
+            propsCol.label(text=s)
+
+
+def quickTooltip(layout, message, title="", text="", icon="INFO", alert=False):
+    """Draw a quick tooltip component
+    A message can be drawn on several lines when containing the separator \n
+    """
+
+    UAS_PT_SM_QuickToolip.setTitle(title)
+    UAS_PT_SM_QuickToolip.setMessage(message)
+
+    # get the panel to change its unit_x
+    popPanelCls = getattr(bpy.types, "UAS_PT_SM_quicktooltip")
+    # # print(popPanelCls)
+    # popPanelCls.bl_ui_units_x = 155
+    # # print(popPanelCls.bl_ui_units_x)
+    # popPanelCls.bl_label = "toto"
+
+    row = layout.row()
+
+    # doesn't work on the popover component :S
+    row.alert = alert
+
+    popIcon = "COLORSET_01_VEC" if alert else icon
+
+    # row.label(text="ttt")
+
+    row.popover(panel="UAS_PT_SM_quicktooltip", text=text, icon=popIcon)
 
 
 ###################
@@ -410,7 +473,9 @@ class UAS_ShotManager_UpdateDialog(Operator):
 
 
 _classes = (
+    UAS_PT_SM_QuickToolip,
     UAS_ShotManager_OpenExplorer,
+    #   UAS_SM_QuickTooltip,
     UAS_SM_Open_Documentation_Url,
     UAS_ShotManager_OpenFileBrowser,
     UAS_ShotManager_OT_Querybox,
