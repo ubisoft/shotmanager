@@ -68,6 +68,7 @@ class BL_UI_ShotStack:
 
         self.manipulated_clip = None
         self.manipulated_clip_handle = None
+        self.manipulated_clip_objs = None
 
         self.prev_mouse_x = 0
         self.prev_mouse_y = 0
@@ -464,6 +465,7 @@ class BL_UI_ShotStack:
             self.manipulated_clip.highlight = False
             self.manipulated_clip = None
             self.manipulated_clip_handle = None
+            self.manipulated_clip_objs = None
 
     def cancelAction(self):
         # TODO restore the initial
@@ -472,6 +474,7 @@ class BL_UI_ShotStack:
             self.manipulated_clip.highlight = False
             self.manipulated_clip = None
             self.manipulated_clip_handle = None
+            self.manipulated_clip_objs = None
 
     def handle_event(self, context, event, region):
         """Return True if the event is handled for BL_UI_ShotStack"""
@@ -537,6 +540,8 @@ class BL_UI_ShotStack:
                                 # active clip ##################
                                 self.manipulated_clip = uiShot
                                 self.manipulated_clip_handle = manipulated_clip_handle
+                                # if uiShot.shot.isStoryboardType()
+                                #     self.manipulated_clip_objs = getChildren
                                 self.mouseFrame = int(region.view2d.region_to_view(event.mouse_x - region.x, 0)[0])
                                 self.previousMouseFrame = self.mouseFrame
 

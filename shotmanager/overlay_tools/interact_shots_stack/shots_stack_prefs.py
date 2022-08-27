@@ -42,6 +42,8 @@ def draw_settings(context, layout):
         text="Compact Shots Display (= decrease visual stack height)",
     )
 
+    propCol.prop(prefs, "shtStack_link_stb_clips_to_keys")
+
 
 # def draw_settings_in_menu(self, context):
 #     """Used in Shot Manager Feature Toggles panel

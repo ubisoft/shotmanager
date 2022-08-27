@@ -456,6 +456,11 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
         description="Automatically zoom the timeline content to frame the shot when the current shot is changed.\n(Add-on preference)",
         default=False,
     )
+    current_shot_select_stb_frame: BoolProperty(
+        name="Select Storyboard Frame of the Current Short",
+        description="Automatically select the storyboard frame (= grease pencil) of the shot when the current shot is changed.\n(Add-on preference)",
+        default=True,
+    )
     # current_shot_changes_edited_frame_in_stb: BoolProperty(
     #     name="Set selected shot to edited",
     #     description="When a shot is selected in the shot list, in Storyboard layout mode, and another one is being edited, then"
@@ -928,6 +933,12 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
         name="Display Interactive Shots Stack Toolbar",
         description="Display Interactive Shots Stack toolbar in the Timeline editor",
         update=_update_display_shtStack_toolbar,
+        default=True,
+    )
+    
+    shtStack_link_stb_clips_to_keys: BoolProperty(
+        name="Link Storyboard Clips to Keyframes",
+        description="Link the Storyboard shot clips ",
         default=True,
     )
 

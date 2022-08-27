@@ -219,6 +219,12 @@ class UAS_ShotManager_SetCurrentShot(Operator):
                     context, shot.start, shot.end, changeTime=prefs.current_shot_changes_current_time_to_start
                 )
 
+            if prefs.current_shot_select_stb_frame:
+                if "STORYBOARD" == shot.shotType:
+                    gpChild = shot.getStoryboardFrame()
+                    if gpChild:
+                        utils.select_object(gpChild)
+
         # change shot
         if not self.event_ctrl:
             props.setCurrentShotByIndex(

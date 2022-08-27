@@ -201,6 +201,7 @@ class UAS_ShotManager_InteractiveShotsStack(Operator):
         props = context.scene.UAS_shot_manager_props
         prefs = config.getShotManagerPrefs()
 
+        event_handled = False
         # _logger.debug_ext(f"uas_shot_manager.interactive_shots_stack  Modal", col="PURPLE")
 
         # if event.type not in ["TIMER", "MOUSEMOVE"]:

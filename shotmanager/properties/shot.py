@@ -663,7 +663,7 @@ class UAS_ShotManager_Shot(ShotInterface, PropertyGroup):
             return False
 
     # wkip to update with the gp list
-    def getGreasePencilObject(self, mode):
+    def getGreasePencilObject(self, mode="STORYBOARD"):
         """Set the grease pencil object of the specified mode associated to the camera.
         Return the created - or corresponding if one existed - grease pencil object, or None if the camera was invalid
         Args:
@@ -755,6 +755,23 @@ class UAS_ShotManager_Shot(ShotInterface, PropertyGroup):
                 gp_child.name = gp_child.name[4:] + "_Free"
 
             self.shotType = "PREVIZ"
+
+    #############
+    # storyboard
+    #############
+
+    def isStoryboardType(self):
+        return 'S' == self.shotType[0]
+
+    # wkip to update with the gp list
+    def getStoryboardFrame(self):
+        """Set the grease pencil object of the specified mode associated to the camera.
+        Return the created - or corresponding if one existed - grease pencil object, or None if the camera was invalid
+        Args:
+            mode: can be "STORYBOARD"
+        """
+        return self.getGreasePencilObject(mode="STORYBOARD")
+
 
     #############
     # notes #####

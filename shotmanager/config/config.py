@@ -43,7 +43,7 @@ def initGlobalVariables():
         devDebug = False
 
     # change this value to force debug at start time
-    devDebug = False
+    devDebug = True
 
     global devDebug_lastRedrawTime
     devDebug_lastRedrawTime = -1
@@ -100,6 +100,9 @@ def initGlobalVariables():
 
     global gModulePath
     gModulePath = None
+
+    global gShotsStack_ui_scale
+    gShotsStack_ui_scale = 1.25
 
     # dependencies #############
     global STAMP_INFO_MIN_VERSION
