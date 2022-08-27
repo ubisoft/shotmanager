@@ -20,7 +20,7 @@ UI for the Interactive Shots Stack overlay tool
 """
 
 
-from .widgets.shots_stack_widget import BL_UI_ShotStack
+from .widgets.shots_stack_widget import ShotStackWidget
 
 import bpy
 from bpy.types import Operator
@@ -127,7 +127,7 @@ class UAS_ShotManager_InteractiveShotsStack(Operator):
             _logger.debug_ext("Canceled op uas_shot_manager.interactive_shots_stack area", col="PURPLE")
             return {"CANCELLED"}
         else:
-            self.init_widgets(context, [BL_UI_ShotStack(target_area=self.target_area)])
+            self.init_widgets(context, [ShotStackWidget(target_area=self.target_area)])
 
         args = (self, context, self.widgets)
         self.register_handlers(args, context)

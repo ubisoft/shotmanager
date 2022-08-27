@@ -4,7 +4,7 @@
         |
         |
         |_ shots_stack_widget       - Main graphic widget: holds the events on the widget and its components,
-           (BL_UI_ShotStack)          as well as the draw functions
+           (ShotStackWidget)          as well as the draw functions
                 |                     
                 |
                 |
