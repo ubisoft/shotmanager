@@ -63,10 +63,6 @@ class ShotStackWidget:
         self.ui_shots = list()
         self.shotComponents = []
 
-        self.manipulated_clip = None
-        self.manipulated_clip_handle = None
-        self.manipulated_clip_objs = None
-
         self.prev_mouse_x = 0
         self.prev_mouse_y = 0
         self.frame_under_mouse = -1
@@ -380,20 +376,12 @@ class ShotStackWidget:
 
     def validateAction(self):
         _logger.debug_ext("Validating Shot Stack action", col="GREEN", tag="SHOTSTACK_EVENT")
-        if self.manipulated_clip:
-            self.manipulated_clip.highlight = False
-            self.manipulated_clip = None
-            self.manipulated_clip_handle = None
-            self.manipulated_clip_objs = None
+        pass
 
     def cancelAction(self):
         # TODO restore the initial
         _logger.debug_ext("Canceling Shot Stack action 22", col="ORANGE", tag="SHOTSTACK_EVENT")
-        if self.manipulated_clip:
-            self.manipulated_clip.highlight = False
-            self.manipulated_clip = None
-            self.manipulated_clip_handle = None
-            self.manipulated_clip_objs = None
+        pass
 
     def handle_event(self, context, event, region):
         """Return True if the event is handled for ShotStackWidget"""

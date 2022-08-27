@@ -286,9 +286,6 @@ class InteractiveComponent:
 
             elif event.value == "RELEASE":
                 #  bpy.ops.ed.undo_push(message=f"Change Shot...")
-                # self.manipulated_clip = None
-                # self.manipulated_clip_handle = None
-                # print("Titi")
                 if self.isManipulated:
                     self.cancelAction(context)
                     event_handled = True
@@ -310,10 +307,6 @@ class InteractiveComponent:
                 #     tag="SHOTSTACK_EVENT",
                 # )
 
-                # self.manipulated_clip.update()
-
-                # if self.manipulated_clip_handle != 0:
-                #     self.frame_under_mouse = mouse_frame
                 if self.isManipulated:
                     self.frame_under_mouse = mouse_frame
                 event_handled = True

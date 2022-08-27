@@ -170,7 +170,7 @@ class UAS_ShotManager_InteractiveShotsStack(Operator):
 
         # events canceling the action
         # for widget in self.widgets:
-        #     if widget.manipulated_clip:
+        ##     if widget.manipulated_clip:  # removed
         #         if (
         #             (event.type == "LEFTMOUSE" and event.value == "RELEASE")
         #             or (event.type == "RIGHTMOUSE" and event.value == "RELEASE")
