@@ -781,8 +781,7 @@ def retime_vse(scene, mode, start_frame, end_frame, remove_gap=True):
 
 def retimeScene(
     context,
-    retimerProps,
-    mode: str,
+    retimeMode: str,
     retimerApplyToSettings,
     objects,
     start_incl: int,
@@ -793,14 +792,6 @@ def retimeScene(
 ):
     """Apply the time change for each type of entities
 
-    For the following lines keep in mind that:
-       - retimerProps.insert_duration is inclusive
-       - retimerProps.start_frame is EXCLUSIVE   (in other words it is NOT modified)
-       - retimerProps.end_frame is EXCLUSIVE     (in other words is the first frame to be offset)
-
-    But retimeScene() requires INCLUSIVE range of time for the modifications (= all the frames
-    created or deleted, not the moved ones).
-
     Args:
         start_incl (int): The included start frame
         duration_incl (int): The range of retime frames (new or deleted)
@@ -808,10 +799,20 @@ def retimeScene(
     prefs = config.getShotManagerPrefs()
     scene = context.scene
     end_incl = start_incl + duration_incl - 1
+    current_frame = scene.frame_current
 
     print(
-        f" - retimeScene(): {retimerProps.mode}, start_incl: {start_incl}, end_incl: {end_incl}, duration_incl: {duration_incl}"
+        f" - retimeScene(): {retimeMode}, start_incl: {start_incl}, end_incl: {end_incl}, duration_incl: {duration_incl}"
     )
+
+    mode = retimeMode
+    if "GLOBAL_OFFSET" == retimeMode:
+        if 0 < duration_incl:
+            mode = "INSERT"
+        else:
+            mode = "DELETE"
+            duration_incl = -1 * duration_incl
+            end_incl = start_incl + duration_incl - 1
 
     #    print("Retiming scene: , factor: ", mode, factor)
     retime_args = (mode, start_incl, end_incl, join_gap, factor, pivot)
@@ -911,7 +912,7 @@ def retimeScene(
         retime_markers(scene, *retime_args)
 
     # anim range
-    def compute_retimed_frame(frame_value, mode, start_incl, end_incl, duration_incl, pivot, factor):
+    def _compute_retimed_frame(frame_value, mode, start_incl, end_incl, duration_incl, pivot, factor):
         new_frame_value = frame_value
 
         if "INSERT" == mode:
@@ -931,16 +932,19 @@ def retimeScene(
         return new_frame_value
 
     # anim range
-    if prefs.applyToSceneRange and "CLEAR_ANIM" != mode:
 
-        new_range_start = compute_retimed_frame(
+    if retimerApplyToSettings.applyToSceneRange and "CLEAR_ANIM" != mode:
+
+        new_range_start = _compute_retimed_frame(
             scene.frame_start, mode, start_incl, end_incl, duration_incl, pivot, factor
         )
-        new_range_end = compute_retimed_frame(scene.frame_end, mode, start_incl, end_incl, duration_incl, pivot, factor)
-        new_range_preview_start = compute_retimed_frame(
+        new_range_end = _compute_retimed_frame(
+            scene.frame_end, mode, start_incl, end_incl, duration_incl, pivot, factor
+        )
+        new_range_preview_start = _compute_retimed_frame(
             scene.frame_preview_start, mode, start_incl, end_incl, duration_incl, pivot, factor
         )
-        new_range_preview_end = compute_retimed_frame(
+        new_range_preview_end = _compute_retimed_frame(
             scene.frame_preview_end, mode, start_incl, end_incl, duration_incl, pivot, factor
         )
 
@@ -963,20 +967,23 @@ def retimeScene(
         scene.frame_preview_end = max(new_range_preview_end, 0)
 
     # time cursor
-    if prefs.applyToTimeCursor and "CLEAR_ANIM" != mode:
-        new_current_frame = max(
-            compute_retimed_frame(scene.frame_current, mode, start_incl, end_incl, duration_incl, pivot, factor), 0
+    if retimerApplyToSettings.applyToTimeCursor and "CLEAR_ANIM" != mode:
+        new_current_frame = _compute_retimed_frame(
+            current_frame, mode, start_incl, end_incl, duration_incl, pivot, factor
         )
+        if scene.use_preview_range:
+            rangeStart = scene.frame_preview_start
+            rangeEnd = scene.frame_preview_end
+        else:
+            rangeStart = scene.frame_start
+            rangeEnd = scene.frame_end
+        new_current_frame = max(new_current_frame, rangeStart)
+        new_current_frame = min(new_current_frame, rangeEnd)
         scene.frame_set(new_current_frame)
 
-    bpy.data.actions.remove(action_tmp)
+    # NOTE: should be kept but returns an error message in the log:
+    # ERROR (bke.lib_id_delete): C:\Users\blender\git\blender-v320\blender.git\source\blender\blenkernel\intern\lib_id_delete.c:344
+    # id_delete: Deleting ACRetimer_TmpAction which still has 1 users (including 0 'extra' shallow users)
+    # bpy.data.actions.remove(action_tmp)
 
     return ()
-
-
-# to do:
-# - faire marcher le rescale
-#     - verif shots
-# - shape keys
-# - vse
-# - finir fonction generic
