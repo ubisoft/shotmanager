@@ -20,7 +20,7 @@ Shot Manager initialization
 """
 
 import bpy
-from bpy.props import BoolProperty, IntProperty, FloatProperty
+from bpy.props import BoolProperty, IntProperty, FloatProperty, PointerProperty
 
 from .config import config
 
@@ -48,6 +48,8 @@ from .properties import shots_global_settings
 from . import prefs
 from . import retimer
 from .retimer import retimer_ui
+from .retimer.retimer_applyto_settings import UAS_Retimer_ApplyToSettings
+
 from . import rendering
 from .rendering import rendering_ui
 
@@ -318,6 +320,8 @@ def register():
         default=0,
         options=set(),
     )
+
+    bpy.types.WindowManager.UAS_shot_manager_shots_stack_retimerApplyTo = PointerProperty(type=UAS_Retimer_ApplyToSettings)
 
     if config.devDebug:
         print(f"\n ------ Ubisoft Shot Manager debug: {config.devDebug} ------- ")

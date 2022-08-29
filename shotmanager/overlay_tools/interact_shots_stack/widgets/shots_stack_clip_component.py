@@ -31,6 +31,8 @@ from shotmanager.gpu.gpu_2d.class_QuadObject import QuadObject
 
 from .shots_stack_handle_component import ShotHandleComponent
 
+from shotmanager.retimer.retimer import retimeScene
+
 # from shotmanager.gpu.gpu_2d.gpu_2d import loadImageAsTexture
 
 from shotmanager.utils import utils
@@ -93,6 +95,10 @@ class ShotClipComponent(Component2D):
         self._name_color_light = (0.9, 0.9, 0.9, 1)
         self._name_color_dark = (0.07, 0.07, 0.07, 1)
         self._name_color_disabled = (0.8, 0.8, 0.8, 1)
+
+        # manipulation
+        # filled when isManipulated changes
+        self.manipulatedChildren = None
 
         # text component #########
         self.textComponent = Text2D(
@@ -378,19 +384,18 @@ class ShotClipComponent(Component2D):
         function is called
         """
         if isManipulated:
-            # _logger.debug_ext("component2D handle_events set manipulated true", col="PURPLE", tag="EVENT"
+            _logger.debug_ext("component2D handle_events set manipulated True", col="PURPLE", tag="EVENT")
+            if self.shot.isStoryboardType():
+                self.manipulatedChildren = self.shot.getStoryboardChildren()
             pass
         else:
+            _logger.debug_ext("component2D handle_events set manipulated False", col="PURPLE", tag="EVENT")
+            self.manipulatedChildren = None
             pass
 
     # override of InteractiveComponent
     def _on_manipulated_mouse_moved(self, context, mouse_delta_frames=0):
-        """wkip note: delta_frames is in frames but may need to be in pixels in some cases
-        handle: if handle == -1:    left clip handle (start)
-                if handle == 0:     clip (start and end)
-                if handle == 1:     right clip handle (end)
-        """
-
+        """wkip note: delta_frames is in frames but may need to be in pixels in some cases"""
         # Very important, don't use properties for changing both start and ends. Depending of the amount of displacement duration can change.
         if self.shot.durationLocked:
             if mouse_delta_frames > 0:
@@ -406,6 +411,22 @@ class ShotClipComponent(Component2D):
             else:
                 self.shot.start += mouse_delta_frames
                 self.shot.end += mouse_delta_frames
+
+        if self.manipulatedChildren is not None:
+            retimerApplyToSettings = context.window_manager.UAS_shot_manager_shots_stack_retimerApplyTo
+            retimerApplyToSettings.initialize("STORYBOARD_CLIP")
+
+            # if offset_duration > 0 we insert time from a point far in negative time
+            # if offset_duration < 0 we delete time from a point very far in negative time
+            farRefPoint = -100000
+            retimeScene(
+                context,
+                "GLOBAL_OFFSET",
+                retimerApplyToSettings,
+                self.manipulatedChildren,
+                farRefPoint + 1,
+                mouse_delta_frames,
+            )
 
     # to override by inheriting classes
     def _on_doublecliked(self, context, event, region):

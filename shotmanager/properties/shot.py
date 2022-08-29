@@ -761,9 +761,9 @@ class UAS_ShotManager_Shot(ShotInterface, PropertyGroup):
     #############
 
     def isStoryboardType(self):
-        return 'S' == self.shotType[0]
+        return "S" == self.shotType[0]
 
-    # wkip to update with the gp list
+    # TODO: wkip to update with the gp list
     def getStoryboardFrame(self):
         """Set the grease pencil object of the specified mode associated to the camera.
         Return the created - or corresponding if one existed - grease pencil object, or None if the camera was invalid
@@ -772,6 +772,27 @@ class UAS_ShotManager_Shot(ShotInterface, PropertyGroup):
         """
         return self.getGreasePencilObject(mode="STORYBOARD")
 
+    # TODO: wkip check that the empty is the one of the storyboard frame
+    def getStoryboardEmptyChild(self):
+        """Return the Empty object used as the parent of the storyboard frame
+        Note: This doesn't depend on the shot type since camera shots can also have a storyboard frame"""
+        emptyChild = None
+        if self.isCameraValid():
+            emptyChild = utils_greasepencil.get_greasepencil_child(self.camera, childType="EMPTY")
+        return emptyChild
+
+    # wkip to update with the gp list
+    def getStoryboardChildren(self):
+        """If the shot has a valid camera: return the list of all the children of the camera associated
+        to the Storyboard Frame
+        Return None otherwise
+        Note: This doesn't depend on the shot type since camera shots can also have a storyboard frame"""
+        stbChildren = None
+        # if self.isStoryboardType():
+        emptyChild = self.getStoryboardEmptyChild()
+        if emptyChild is not None:
+            stbChildren = utils.getChildrenHierarchy(emptyChild)
+        return stbChildren
 
     #############
     # notes #####

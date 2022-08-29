@@ -133,24 +133,16 @@ class UAS_ShotManager_RetimerApply(Operator):
 
             # if offset_duration > 0 we insert time from a point far in negative time
             # if offset_duration < 0 we delete time from a point very far in negative time
-            farRefPoint = -10000
-
-            if 0 < retimeEngine.offset_duration:
-                offsetMode = "INSERT"
-            else:
-                offsetMode = "DELETE"
+            farRefPoint = -100000
 
             retimer.retimeScene(
                 context,
-                retimeEngine,
-                offsetMode,
+                "GLOBAL_OFFSET",
                 retimerApplyToSettings,
                 sceneObjs,
                 farRefPoint + 1,
-                abs(retimeEngine.offset_duration),
+                retimeEngine.offset_duration,
                 retimeEngine.gap,
-                1.0,
-                retimeEngine.pivot,
             )
 
         elif -1 < retimeEngine.mode.find("INSERT"):
@@ -163,7 +155,6 @@ class UAS_ShotManager_RetimerApply(Operator):
             )
             retimer.retimeScene(
                 context,
-                retimeEngine,
                 "INSERT",
                 retimerApplyToSettings,
                 sceneObjs,
@@ -183,7 +174,6 @@ class UAS_ShotManager_RetimerApply(Operator):
             )
             retimer.retimeScene(
                 context,
-                retimeEngine,
                 "DELETE",
                 retimerApplyToSettings,
                 sceneObjs,
@@ -203,8 +193,7 @@ class UAS_ShotManager_RetimerApply(Operator):
             )
             retimer.retimeScene(
                 context,
-                retimeEngine,
-                retimeEngine.mode,
+                "RESCALE",
                 retimerApplyToSettings,
                 sceneObjs,
                 start_excl,
@@ -223,8 +212,7 @@ class UAS_ShotManager_RetimerApply(Operator):
             )
             retimer.retimeScene(
                 context,
-                retimeEngine,
-                retimeEngine.mode,
+                "CLEAR_ANIM",
                 retimerApplyToSettings,
                 sceneObjs,
                 start_excl + 1,

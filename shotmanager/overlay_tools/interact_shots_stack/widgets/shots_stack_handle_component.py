@@ -25,6 +25,7 @@ from shotmanager.gpu.gpu_2d.class_Component2D import Component2D
 
 from shotmanager.utils.utils_python import clamp
 from shotmanager.utils.utils import color_to_sRGB, lighten_color, set_color_alpha, alpha_to_linear
+from shotmanager.retimer.retimer import retimeScene
 
 from shotmanager.config import config
 from shotmanager.config import sm_logging
@@ -59,8 +60,11 @@ class ShotHandleComponent(Component2D):
         self.zOrder = -1.0
 
         self.isStart = isStart
-
         self.color = self.shot.color
+
+        # manipulation
+        # filled when isManipulated changes
+        self.manipulatedChildren = None
 
         # green or orange
         self.color_highlight = (0.2, 0.7, 0.2, 1) if self.isStart else (0.7, 0.3, 0.0, 1)
@@ -153,8 +157,11 @@ class ShotHandleComponent(Component2D):
         # we use this to set the color of the clip as for when manipulated
         if isManipulated:
             self.parent.isManipulatedByAnotherComponent = True
+            if self.shot.isStoryboardType():
+                self.manipulatedChildren = self.shot.getStoryboardChildren()
         else:
             self.parent.isManipulatedByAnotherComponent = False
+            self.manipulatedChildren = None
 
     # override of InteractiveComponent
     def _on_manipulated_mouse_moved(self, context, mouse_delta_frames=0):
@@ -163,5 +170,21 @@ class ShotHandleComponent(Component2D):
         if self.isStart:
             self.shot.start += mouse_delta_frames
             # bpy.ops.uas_shot_manager.set_shot_start(newStart=self.start + mouse_delta_frames)
+
+            if self.manipulatedChildren is not None:
+                retimerApplyToSettings = context.window_manager.UAS_shot_manager_shots_stack_retimerApplyTo
+                retimerApplyToSettings.initialize("STORYBOARD_CLIP")
+                # retimeScene(
+                #     context,
+                #     "RESCALE",
+                #     retimerApplyToSettings,
+                #     self.manipulatedChildren,
+                #     farRefPoint + 1,
+                #     mouse_delta_frames,
+                #     True,
+                #     retimeEngine.factor,
+                #     start_excl,
+                # )
+
         else:
             self.shot.end += mouse_delta_frames

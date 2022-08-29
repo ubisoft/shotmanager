@@ -148,19 +148,19 @@ def getLoggingTags():
     tags["REG"] = False
     tags["UNREG"] = False
 
-    tags["INIT_AND_DATA"] = True
+    tags["INIT_AND_DATA"] = False
 
     tags["SHOTS_PLAY_MODE"] = True
 
     tags["RENDER"] = False
     tags["LAYOUT"] = False
-    tags["RETIMER"] = True
+    tags["RETIMER"] = False
 
     tags["EDIT_IO"] = True
 
     tags["TIMELINE_EVENT"] = False
-    tags["SHOTSTACK_EVENT"] = False
-    tags["EVENT"] = False
+    tags["SHOTSTACK_EVENT"] = True
+    tags["EVENT"] = True
 
     # info tags
     tags["RENDERTIME"] = False

@@ -115,8 +115,10 @@ class UAS_Retimer_RetimeEngine(PropertyGroup):
 
     mode: EnumProperty(
         name="Time Mode",
+        description="Can be GLOBAL_OFFSET, INSERT_BEFORE, INSERT_AFTER, DELETE_RANGE, RESCALE, CLEAR_ANIM",
         items=list_retime_modes,
         # default="GLOBAL_OFFSET",
+        default=0,
         options=set(),
     )
 

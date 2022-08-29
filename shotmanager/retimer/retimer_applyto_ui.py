@@ -27,19 +27,19 @@ from shotmanager.config import config
 
 def drawApplyTo(context, retimerProps, layout):
     prefs = config.getShotManagerPrefs()
-    retimerSettings = retimerProps.getCurrentApplyToSettings()
+    retimerApplyToSettings = retimerProps.getCurrentApplyToSettings()
 
     propCol = propertyColumn(layout, padding_left=2, align=False)
     # layout = layout.box()
     # layout = propCol
 
-    if config.devDebug or "DEFAULT" == retimerSettings.id:
+    if config.devDebug or "DEFAULT" == retimerApplyToSettings.id:
         settingsNameRow = propCol.row()
 
-        if "DEFAULT" != retimerSettings.id:
+        if "DEFAULT" != retimerApplyToSettings.id:
             settingsNameRow.label(text="Settings:")
             settingsNameRow = settingsNameRow.row()
-            settingsNameRow.label(text=f"{retimerSettings.name}")
+            settingsNameRow.label(text=f"{retimerApplyToSettings.name}")
         else:
             settingsNameRow.alert = True
             settingsNameRow.label(text="*** Invalid Settings: Default ***")
@@ -48,7 +48,7 @@ def drawApplyTo(context, retimerProps, layout):
 
         propCol.separator(factor=0.5)
 
-    if "SCENE" == retimerSettings.id:
+    if "SCENE" == retimerApplyToSettings.id:
         propCol.label(text="Retiming is applied to EVERYTHING in the scene, except:")
 
         messagesCol = propertyColumn(propCol, padding_left=4, padding_bottom=1, scale_y=0.8)
@@ -61,7 +61,7 @@ def drawApplyTo(context, retimerProps, layout):
 
         stbRow = entitiesCol.row()
         stbRow.prop(
-            retimerSettings,
+            retimerApplyToSettings,
             "applyToStoryboardShots",
             text="Storyboard Shots",
         )
@@ -69,11 +69,11 @@ def drawApplyTo(context, retimerProps, layout):
 
         # doesnt work, need an enum
         # stbRow.prop_with_popover(
-        #     retimerSettings, "applyToStoryboardShots", panel="UAS_PT_SM_quicktooltip", text="tototo", icon="INFO"
+        #     retimerApplyToSettings, "applyToStoryboardShots", panel="UAS_PT_SM_quicktooltip", text="tototo", icon="INFO"
         # )
 
         stbRowRight = stbRow.row()
-        stbRowRight.alert = retimerSettings.applyToStoryboardShots
+        stbRowRight.alert = retimerApplyToSettings.applyToStoryboardShots
 
         quickHelpInfo = retimerProps.getQuickHelp("APPLYTO_STORYBOARDSHOTS")
         # doc_op = stbRowRight.operator("shotmanager.open_documentation_url", text="", icon="INFO", emboss=False)
@@ -83,82 +83,82 @@ def drawApplyTo(context, retimerProps, layout):
         # tooltipStr += f"\n\nOpen Shot Manager Retimer online documentation:\n     {doc_op.path}"
         # doc_op.tooltip = tooltipStr
 
-        # quickTooltip(stbRowRight, "patate", title="Storyboard Shots", alert=retimerSettings.applyToStoryboardShots)
+        # quickTooltip(stbRowRight, "patate", title="Storyboard Shots", alert=retimerApplyToSettings.applyToStoryboardShots)
         quickTooltip(
-            stbRowRight, quickHelpInfo[2], title=quickHelpInfo[1], alert=retimerSettings.applyToStoryboardShots
+            stbRowRight, quickHelpInfo[2], title=quickHelpInfo[1], alert=retimerApplyToSettings.applyToStoryboardShots
         )
 
         entitiesCol.separator(factor=0.5)
-        entitiesCol.prop(prefs, "applyToTimeCursor", text="Time Cursor")
-        entitiesCol.prop(prefs, "applyToSceneRange", text="Scene Range")
+        entitiesCol.prop(retimerApplyToSettings, "applyToTimeCursor", text="Time Cursor")
+        entitiesCol.prop(retimerApplyToSettings, "applyToSceneRange", text="Scene Range")
 
-    if "SELECTED_OBJECTS" == retimerSettings.id:
+    if "SELECTED_OBJECTS" == retimerApplyToSettings.id:
         split = propCol.split(factor=0.326)
         row = split.row(align=True)
         row.separator(factor=0.7)
-        row.prop(retimerSettings, "onlyOnSelection", text="Selection Only")
+        row.prop(retimerApplyToSettings, "onlyOnSelection", text="Selection Only")
         row = split.row(align=True)
-        row.prop(retimerSettings, "includeLockAnim", text="Include Locked Anim")
+        row.prop(retimerApplyToSettings, "includeLockAnim", text="Include Locked Anim")
 
         box = propCol.box()
         col = box.column()
 
         row = col.row(align=True)
-        row.prop(retimerSettings, "applyToObjects")
-        row.prop(retimerSettings, "applyToShapeKeys")
-        row.prop(retimerSettings, "applytToGreasePencil")
+        row.prop(retimerApplyToSettings, "applyToObjects")
+        row.prop(retimerApplyToSettings, "applyToShapeKeys")
+        row.prop(retimerApplyToSettings, "applytToGreasePencil")
 
         row = col.row(align=True)
-        row.prop(retimerSettings, "applyToMarkers")
+        row.prop(retimerApplyToSettings, "applyToMarkers")
 
-    if "LEGACY" == retimerSettings.id or config.devDebug:
+    if "LEGACY" == retimerApplyToSettings.id or config.devDebug:
 
         propRow = propCol.row()
-        propRow.alert = config.devDebug and "LEGACY" != retimerSettings.id
+        propRow.alert = config.devDebug and "LEGACY" != retimerApplyToSettings.id
 
-        if config.devDebug and "LEGACY" != retimerSettings.id:
+        if config.devDebug and "LEGACY" != retimerApplyToSettings.id:
             propRow.label(text="Debug Infos:")
 
-        if "SELECTED_OBJECTS" != retimerSettings.id:
+        if "SELECTED_OBJECTS" != retimerApplyToSettings.id:
             split = propRow.split(factor=0.326)
             row = split.row(align=True)
             row.separator(factor=0.7)
-            row.prop(retimerSettings, "onlyOnSelection", text="Selection Only")
+            row.prop(retimerApplyToSettings, "onlyOnSelection", text="Selection Only")
             row = split.row(align=True)
-            row.prop(retimerSettings, "includeLockAnim", text="Include Locked Anim")
+            row.prop(retimerApplyToSettings, "includeLockAnim", text="Include Locked Anim")
 
         propRow = propCol.row()
-        propRow.alert = config.devDebug and "LEGACY" != retimerSettings.id
+        propRow.alert = config.devDebug and "LEGACY" != retimerApplyToSettings.id
 
         box = propRow.box()
         col = box.column()
 
-        if "SELECTED_OBJECTS" != retimerSettings.id:
+        if "SELECTED_OBJECTS" != retimerApplyToSettings.id:
             row = col.row(align=True)
-            row.prop(retimerSettings, "applyToObjects")
-            row.prop(retimerSettings, "applyToShapeKeys")
-            row.prop(retimerSettings, "applytToGreasePencil")
+            row.prop(retimerApplyToSettings, "applyToObjects")
+            row.prop(retimerApplyToSettings, "applyToShapeKeys")
+            row.prop(retimerApplyToSettings, "applytToGreasePencil")
 
             row = col.row(align=True)
-            row.prop(retimerSettings, "applyToMarkers")
+            row.prop(retimerApplyToSettings, "applyToMarkers")
 
         row = col.row(align=True)
         row.scale_y = 0.3
 
         row = col.row(align=True)
-        row.prop(retimerSettings, "applyToCameraShots")
-        row.prop(retimerSettings, "applyToVSE")
+        row.prop(retimerApplyToSettings, "applyToCameraShots")
+        row.prop(retimerApplyToSettings, "applyToVSE")
         row.label(text="")
 
     # time cursor and range
     ##########################
-    if "LEGACY" == retimerSettings.id or config.devDebug:
+    if "LEGACY" == retimerApplyToSettings.id or config.devDebug:
         box = propCol.box()
-        # box.alert = "SCENE" != retimerSettings.id
+        # box.alert = "SCENE" != retimerApplyToSettings.id
 
         col = box.column()
 
         row = col.row(align=True)
-        row.prop(prefs, "applyToTimeCursor", text="Time Cursor")
-        row.prop(prefs, "applyToSceneRange", text="Scene Range")
+        row.prop(retimerApplyToSettings, "applyToTimeCursor", text="Time Cursor")
+        row.prop(retimerApplyToSettings, "applyToSceneRange", text="Scene Range")
         # row.label(text="")

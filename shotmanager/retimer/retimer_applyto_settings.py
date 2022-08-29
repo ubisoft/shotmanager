@@ -93,19 +93,24 @@ class UAS_Retimer_ApplyToSettings(PropertyGroup):
     )
 
     # moved to add-on preferences
-    # applyToTimeCursor: BoolProperty(
-    #     name="Apply to Time Cursor", description="Apply retime operation to the time cursor", default=True,
-    # )
-    # applyToSceneRange: BoolProperty(
-    #     name="Apply to Scene Range",
-    #     description="Apply retime operation to the animation start and end of the scene",
-    #     default=True,
-    # )
+    applyToTimeCursor: BoolProperty(
+        name="Apply to Time Cursor",
+        description="Apply retime operation to the time cursor",
+        default=True,
+        options=set(),
+    )
+    applyToSceneRange: BoolProperty(
+        name="Apply to Scene Range",
+        description="Apply retime operation to the animation start and end of the scene",
+        default=True,
+        options=set(),
+    )
 
     def initialize(self, applyToMode):
         """
         Args:
             applyToMode: the mode of the applyTo settings. Can be SCENE, SELECTED_OBJECTS, LEGACY
+                         Internaly if can also be: STORYBOARD_CLIP
         """
         _logger.debug_ext(f"initialize Retimer ApplyTo Settings {applyToMode}", col="GREEN", tag="RETIMER")
 
@@ -131,6 +136,9 @@ class UAS_Retimer_ApplyToSettings(PropertyGroup):
 
             self.applyToVSE = True
 
+            self.applyToTimeCursor = True
+            self.applyToSceneRange = True
+
         # Selected objects
         if "SELECTED_OBJECTS" == applyToMode:
             self.id = applyToMode
@@ -150,6 +158,32 @@ class UAS_Retimer_ApplyToSettings(PropertyGroup):
             self.applyToStoryboardShots = False
 
             self.applyToVSE = False
+
+            self.applyToTimeCursor = False
+            self.applyToSceneRange = False
+
+        # Storyboard clip - fos shot stack clip manipulations
+        ########################
+        if "STORYBOARD_CLIP" == applyToMode:
+            self.id = applyToMode
+            self.name = "Apply to Storyboard Clips"
+
+            self.onlyOnSelection = False
+            self.includeLockAnim = True
+
+            self.applyToObjects = True
+            self.applyToShapeKeys = True
+            self.applytToGreasePencil = True
+
+            self.applyToMarkers = False
+
+            self.applyToCameraShots = False
+            self.applyToStoryboardShots = False
+
+            self.applyToVSE = False
+
+            self.applyToTimeCursor = False
+            self.applyToSceneRange = False
 
         # Legacy
         if "LEGACY" == applyToMode:

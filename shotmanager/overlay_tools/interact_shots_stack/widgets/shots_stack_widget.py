@@ -368,7 +368,6 @@ class ShotStackWidget:
 
             # return
 
-        #  print("draw shot stack")
         if props.interactShotsStack_displayInCompactMode:
             self.drawShots_compactMode(preDrawOnly=preDrawOnly)
         else:
@@ -395,12 +394,11 @@ class ShotStackWidget:
         # if event.type not in ["MOUSEMOVE", "INBETWEEN_MOUSEMOVE", "TIMER"]:
         #     _logger.debug_ext(f"  *** event in ShotStackWidget: {event.type}", col="GREEN", tag="SHOTSTACK_EVENT")
 
+        # NOTE: context is different. Normal?
         context = self.context
         props = context.scene.UAS_shot_manager_props
 
         mouse_x, mouse_y = region.view2d.region_to_view(event.mouse_x - region.x, event.mouse_y - region.y)
-
-        currentDrawIsInAClip = False
 
         if event.type not in ["TIMER"]:
             _logger.debug_ext(f"event: type: {event.type}, value: {event.value}", col="GREEN", tag="SHOTSTACK_EVENT")

@@ -31,6 +31,8 @@ def getStoryboardObjects(scene):
     """Return a list of all the objects of the scene that are belonging to storyboard shots
     This includes the shots cameras and all their hierarchy (empty, gp, children of all kinds),
     this for all takes
+
+    See also shot.getStoryboardChildren()
     """
     props = scene.UAS_shot_manager_props
 

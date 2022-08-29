@@ -839,16 +839,16 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
         description="Display the Retimer sub-panel in the Shot Manager panel.\n\n(saved in the add-on preferences)",
         default=True,
     )
-    applyToTimeCursor: BoolProperty(
-        name="Apply to Time Cursor",
-        description="Apply retime operation to the time cursor.\n\n(saved in the add-on preferences)",
-        default=True,
-    )
-    applyToSceneRange: BoolProperty(
-        name="Apply to Scene Range",
-        description="Apply retime operation to the animation start and end of the scene.\n\n(saved in the add-on preferences)",
-        default=True,
-    )
+    # applyToTimeCursor: BoolProperty(
+    #     name="Apply to Time Cursor",
+    #     description="Apply retime operation to the time cursor.\n\n(saved in the add-on preferences)",
+    #     default=True,
+    # )
+    # applyToSceneRange: BoolProperty(
+    #     name="Apply to Scene Range",
+    #     description="Apply retime operation to the animation start and end of the scene.\n\n(saved in the add-on preferences)",
+    #     default=True,
+    # )
 
     ########################################################################
     # additional tools ###
@@ -935,7 +935,7 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
         update=_update_display_shtStack_toolbar,
         default=True,
     )
-    
+
     shtStack_link_stb_clips_to_keys: BoolProperty(
         name="Link Storyboard Clips to Keyframes",
         description="Link the Storyboard shot clips ",
