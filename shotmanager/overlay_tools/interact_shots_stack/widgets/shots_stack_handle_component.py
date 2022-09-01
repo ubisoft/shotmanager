@@ -65,6 +65,7 @@ class ShotHandleComponent(Component2D):
         # manipulation
         # filled when isManipulated changes
         self.manipulatedChildren = None
+        self.manipulationBeginningFrame = None
 
         # green or orange
         self.color_highlight = (0.2, 0.7, 0.2, 1) if self.isStart else (0.7, 0.3, 0.0, 1)
@@ -159,9 +160,11 @@ class ShotHandleComponent(Component2D):
             self.parent.isManipulatedByAnotherComponent = True
             if self.shot.isStoryboardType():
                 self.manipulatedChildren = self.shot.getStoryboardChildren()
+                self.manipulationBeginningFrame = context.scene.frame_current
         else:
             self.parent.isManipulatedByAnotherComponent = False
             self.manipulatedChildren = None
+            self.manipulationBeginningFrame = None
 
     # override of InteractiveComponent
     def _on_manipulated_mouse_moved(self, context, mouse_delta_frames=0):
@@ -174,12 +177,13 @@ class ShotHandleComponent(Component2D):
             if self.manipulatedChildren is not None:
                 retimerApplyToSettings = context.window_manager.UAS_shot_manager_shots_stack_retimerApplyTo
                 retimerApplyToSettings.initialize("STORYBOARD_CLIP")
+
                 # retimeScene(
                 #     context,
                 #     "RESCALE",
                 #     retimerApplyToSettings,
                 #     self.manipulatedChildren,
-                #     farRefPoint + 1,
+                #     self.shot.end,
                 #     mouse_delta_frames,
                 #     True,
                 #     retimeEngine.factor,

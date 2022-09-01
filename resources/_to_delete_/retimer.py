@@ -151,9 +151,7 @@ class FCurve:
 def computeNewFrameValue(frame_value, mode, start_incl=0, end_incl=0, pivot=0, factor=1.0, roundToNearestFrame=True):
     """Return the value of the time (in frames) after the retiming
     Return None if the new time value is not available (deleted time for example)
-    It supports floating time frames.
-    ARgs:
-        roundToNearestFrame:  round to nearest frame
+    It supports floating time frames
     """
 
     new_frame_value = frame_value
@@ -174,7 +172,7 @@ def computeNewFrameValue(frame_value, mode, start_incl=0, end_incl=0, pivot=0, f
                 new_frame_value = frame_value - offset
 
     elif mode == "RESCALE":
-        new_frame_value = rescale_frame(frame_value, start_incl, end_incl, pivot, factor, roundToNearestFrame=False)
+        new_frame_value = rescale_frame(frame_value, start_incl, end_incl, pivot, factor)
 
         # if start_incl <= frame_value:
         #     if frame_value <= end_incl:
@@ -194,15 +192,13 @@ def computeNewFrameValue(frame_value, mode, start_incl=0, end_incl=0, pivot=0, f
     return new_frame_value
 
 
-def compute_offset(frame_value, pivot, factor, roundToNearestFrame=True):
+def compute_offset(frame_value, pivot, factor):
     """Compute the new value of frame_value when scaled from the pivot and by the given factor"""
     duration_to_pivot = frame_value - pivot
-    offset = duration_to_pivot * factor
-    return round(offset) if roundToNearestFrame else offset
-    # return round(duration_to_pivot * factor)  # + pivot
+    return round(duration_to_pivot * factor)  # + pivot
 
 
-def rescale_frame(frame_value, start_incl, end_incl, pivot, factor, roundToNearestFrame=True):
+def rescale_frame(frame_value, start_incl, end_incl, pivot, factor):
     """Compute the new value of frame_value when scaled from the pivot and by the given factor
     in the specified range
     Note: this works only for frames, not floating points
@@ -961,18 +957,12 @@ def retimeScene(
         # new_range_preview_end = _compute_retimed_frame(
         #     scene.frame_preview_end, mode, start_incl, end_incl, duration_incl, pivot, factor
         # )
-        new_range_start = computeNewFrameValue(
-            scene.frame_start, mode, start_incl, end_incl, pivot, factor, roundToNearestFrame=True
-        )
-        new_range_end = computeNewFrameValue(
-            scene.frame_end, mode, start_incl, end_incl, pivot, factor, roundToNearestFrame=True
-        )
+        new_range_start = computeNewFrameValue(scene.frame_start, mode, start_incl, end_incl, pivot, factor)
+        new_range_end = computeNewFrameValue(scene.frame_end, mode, start_incl, end_incl, pivot, factor)
         new_range_preview_start = computeNewFrameValue(
-            scene.frame_preview_start, mode, start_incl, end_incl, pivot, factor, roundToNearestFrame=True
+            scene.frame_preview_start, mode, start_incl, end_incl, pivot, factor
         )
-        new_range_preview_end = computeNewFrameValue(
-            scene.frame_preview_end, mode, start_incl, end_incl, pivot, factor, roundToNearestFrame=True
-        )
+        new_range_preview_end = computeNewFrameValue(scene.frame_preview_end, mode, start_incl, end_incl, pivot, factor)
 
         # extension of the animation range end is wanted in these cases
         if "INSERT" == mode:
