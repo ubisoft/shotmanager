@@ -1,4 +1,9 @@
 -----
+## 2.0.225 (2022-09-02)
+**Release**
+- Improved documentation
+
+-----
 ## 2.0.224 (2022-08-24)
 **Pre-Release**
 ### Retimer, markers

@@ -1,6 +1,6 @@
-.. _cstoryboard-frames-visibility:
+.. _storyboard-frames-visibility:
 
-Storyboard frames visibility
+Storyboard Frames Visibility
 ============================
 
 
@@ -25,8 +25,8 @@ is set to Auto or Visible.
 
 For the other storyboard frames:
 - The storyboard frame of a shot of type **Camera shot** is visible in the viewport only if set to **Visible**.
-  Hidding the storyboard frames of the other camera shots avoid to see things that belongs to another shot 
-  when cameras have overlapping fields of view. 
+Hidding the storyboard frames of the other camera shots avoid to see things that belongs to another shot 
+when cameras have overlapping fields of view. 
 
 - The storyboard frame of a shot of type **Storyboard shot** is visible in the viewport if set to **Visible or to Auto**.
   This allows the other storyboard shots to stay visible all the time and to compare shots.

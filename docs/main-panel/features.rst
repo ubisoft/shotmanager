@@ -18,11 +18,6 @@ Overview
 - Edit forth and back with VSE (experimental)
 - ...
 
-Latest improvements
--------------------
-
-See the `detailed changelog <https://github.com/ubisoft/shotmanager/blob/main/CHANGELOG.md>`__ on the GitHub project.
-
 
 Limitations
 -----------

@@ -83,7 +83,7 @@ Then:
    :caption: Features
 
    /features/features
-   /features/main-panel
+   /features/features_main-panel
    /feature-toggles/feature-toggles-list
    /overlay-tools/overlay-tools
    

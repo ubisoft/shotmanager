@@ -2,7 +2,7 @@
 
 
 
-Camera backgrounds
-------------------
+Camera Backgrounds
+==================
 
 Doc to come...

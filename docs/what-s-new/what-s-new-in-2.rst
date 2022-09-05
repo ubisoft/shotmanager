@@ -1,6 +1,6 @@
 .. _what-s-new-in-2:
 
-What's new in 2.0
+What's New in 2.0
 =================
 
 
@@ -25,7 +25,7 @@ A property **Type** has been added to the shots to differenciate the shots that 
 they are called the :ref:`Storyboard Shots <storyboard-shot>` -
 from those that are shooting 3D elements or are associated to a camera that is moving in space - they are called :ref:`Camera Shots <camera-shot>`.
 
-More here: :ref:`Shot Type <shot_type>`
+More here: :ref:`Shot Type <shot-type>`
 
 On the workflow side we introduced a notion of "layout" to distinguish the context for creating a storyboard from the one to do the previz.
 Indeed in the first one most of the work lays in drawing the frames reprensenting what will be shot later in the process. In the previz context

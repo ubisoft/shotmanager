@@ -42,7 +42,7 @@ def getViewportOverlayState(targetArea):
     # and props.getValidTargetViewport
 
     if targetArea is None:
-        _logger.warning_ext("getViewportOverlayState: Specified target area is None")
+        _logger.warning_ext("getViewportOverlayState: Specified target area is None getViewportOverlayState: Specified target area is None")
         return False
 
     if "VIEW_3D" != targetArea.type:

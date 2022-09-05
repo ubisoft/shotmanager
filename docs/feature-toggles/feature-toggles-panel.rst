@@ -4,8 +4,6 @@ Feature Toggles panel
 =====================
 
 
-
-
 Feature toggles are a set of toggles that can be triggered to display additional features extending the capabilities of Shot Manager.
 When activated a module and its related graphics components will become visible in the main panel, at various places
 according to its way of working.
@@ -18,7 +16,6 @@ It is then strongly advised to activate only the ones you need, at the time you 
 
 Opening the Feature Toggles panel
 ---------------------------------
-
 
 
 There are 2 ways to open the Feature Toggles panel:

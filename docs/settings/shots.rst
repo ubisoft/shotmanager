@@ -14,7 +14,7 @@ Since Shot Manager V 2.0 we make the disctinction between shots that are used pu
 camera, the :ref:`Camera Shots <camera-shot>`. Because their purpose is different we also treat them differently in the UI.
 
 
-.. _shot_type:
+.. _shot-type:
 
 Shot type
 ---------
