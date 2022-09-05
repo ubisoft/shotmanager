@@ -87,7 +87,7 @@ bl_info = {
     "doc_url": "https://ubisoft-shotmanager.readthedocs.io",
     "tracker_url": "https://github.com/ubisoft/shotmanager/issues",
     #  "warning": "BETA Version",
-    "warning": "Pre-Release",
+    # "warning": "Pre-Release",
     "category": "Ubisoft",
 }
 
