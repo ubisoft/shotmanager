@@ -84,12 +84,12 @@ bl_info = {
     "author": "Ubisoft - Julien Blervaque (aka Werwack), Romain Carriquiry Borchiari",
     "description": "Easily manage shots and cameras in the 3D View and see the resulting edit in real-time",
     "blender": (3, 1, 0),
-    "version": (2, 0, 224),
+    "version": (2, 0, 226),
     "location": "View3D > Shot Mng",
     "doc_url": "https://ubisoft-shotmanager.readthedocs.io",
     "tracker_url": "https://github.com/ubisoft/shotmanager/issues",
-    #  "warning": "BETA Version",
-    "warning": "Pre-Release",
+    "warning": "BETA Version",
+    # "warning": "Pre-Release",
     "category": "Ubisoft",
 }
 
@@ -321,7 +321,9 @@ def register():
         options=set(),
     )
 
-    bpy.types.WindowManager.UAS_shot_manager_shots_stack_retimerApplyTo = PointerProperty(type=UAS_Retimer_ApplyToSettings)
+    bpy.types.WindowManager.UAS_shot_manager_shots_stack_retimerApplyTo = PointerProperty(
+        type=UAS_Retimer_ApplyToSettings
+    )
 
     if config.devDebug:
         print(f"\n ------ Ubisoft Shot Manager debug: {config.devDebug} ------- ")

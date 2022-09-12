@@ -1,4 +1,9 @@
 -----
+## 2.0.226 (2022-09-12)
+### Shots Stack UI
+- Added a user preference to automaticaly detect the sceen display factor (Windows only)
+
+-----
 ## 2.0.224 (2022-08-24)
 **Pre-Release**
 ### Retimer, markers

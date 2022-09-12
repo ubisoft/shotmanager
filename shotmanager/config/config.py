@@ -101,12 +101,9 @@ def initGlobalVariables():
     global gModulePath
     gModulePath = None
 
-    global gShotsStack_ui_scale
-    gShotsStack_ui_scale = 1.25
-
     # dependencies #############
-    global STAMP_INFO_MIN_VERSION
-    STAMP_INFO_MIN_VERSION = ("1.3.5", 1003005)
+    # global STAMP_INFO_MIN_VERSION
+    # STAMP_INFO_MIN_VERSION = ("1.3.5", 1003005)
 
     # otio #############
     global gImportOpenTimelineIO

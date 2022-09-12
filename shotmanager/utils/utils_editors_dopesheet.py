@@ -93,14 +93,16 @@ def getPrefsUIScale():
 
 def getRulerHeight():
     """Return the height in pixels of the time ruler of a dopesheet"""
-    RULER_HEIGHT = 23 * config.gShotsStack_ui_scale
+    prefs = config.getShotManagerPrefs()
+    RULER_HEIGHT = 23 * prefs.shtStack_screen_display_factor
     # RULER_HEIGHT = 28  # on laptop
     return RULER_HEIGHT * getPrefsUIScale()
 
 
 def getLaneHeight():
     """Return the height of a lane in pixels"""
-    LANE_HEIGHT = 18 * config.gShotsStack_ui_scale
+    prefs = config.getShotManagerPrefs()
+    LANE_HEIGHT = 18 * prefs.shtStack_screen_display_factor
     # LANE_HEIGHT = 18.5
     # LANE_HEIGHT = 22.5  # on laptop
     return LANE_HEIGHT * getPrefsUIScale()

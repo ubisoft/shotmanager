@@ -19,6 +19,9 @@
 add-on global preferences
 """
 
+import platform
+import ctypes
+
 import bpy
 from bpy.types import AddonPreferences
 from bpy.props import StringProperty, IntProperty, BoolProperty, EnumProperty, FloatProperty, PointerProperty
@@ -794,7 +797,7 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
     )
 
     ########################################################################
-    # Overlay tools
+    # overlay tools
     ########################################################################
 
     # tools disabled during play
@@ -826,7 +829,7 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
     )
 
     ########################################################################
-    # Retimer
+    # retimer
     ########################################################################
 
     retimer_applyTo_expanded: BoolProperty(
@@ -855,7 +858,7 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
     ########################################################################
 
     ###################################
-    # Sequence Timeline ###############
+    # sequence timeline ###############
     ###################################
 
     # displayed when toggle overlays button is on
@@ -886,7 +889,7 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
     )
 
     ###################################
-    # Interactive Shots Stack #########
+    # interactive shots stack #########
     ###################################
 
     # displayed when toggle overlays button is on
@@ -951,8 +954,53 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
         default=0.7,
     )
 
+    def _update_shtStack_screen_display_factor_mode(self, context):
+        # read also:
+        # https://stackoverflow.com/questions/53889520/getting-screen-pixels-taking-into-account-the-scale-factor
+        if "Windows" == platform.system():
+            if "AUTO" == self.shtStack_screen_display_factor_mode:
+                self.shtStack_screen_display_factor = ctypes.windll.shcore.GetScaleFactorForDevice(0) / 100
+            elif "100" == self.shtStack_screen_display_factor_mode:
+                self.shtStack_screen_display_factor = 1.0
+            elif "125" == self.shtStack_screen_display_factor_mode:
+                self.shtStack_screen_display_factor = 1.25
+            elif "150" == self.shtStack_screen_display_factor_mode:
+                self.shtStack_screen_display_factor = 1.5
+            elif "175" == self.shtStack_screen_display_factor_mode:
+                self.shtStack_screen_display_factor = 1.75
+        else:
+            self.shtStack_screen_display_factor = 1.0
+
+    shtStack_screen_display_factor_mode: EnumProperty(
+        name="Windows Screen Factor Mode",
+        description=(
+            "*** Windows Only ***"
+            "Set the scale factor for the display of the Shots Stack so that the shot clips match the line size of the Dopesheet editor."
+            "In Windows this parameter corresponds to the Display Scale Percentage. Usually it should be let to Auto, unless you"
+            "use 2 screens with different display factors"
+        ),
+        items=(
+            ("AUTO", "Auto", "Screen resolution factor is automatically detected"),
+            ("100", "100%", "(default)"),
+            ("125", "125%", ""),
+            ("150", "150%", ""),
+            ("175", "175%", ""),
+        ),
+        update=_update_shtStack_screen_display_factor_mode,
+        default="AUTO",
+    )
+
+    shtStack_screen_display_factor: FloatProperty(
+        name="Windows Screen Factor Value",
+        description="Hidden value",
+        min=1.0,
+        max=1.75,
+        step=0.25,
+        default=1.0,
+    )
+
     ###################################
-    # Camera HUD ######################
+    # camera hud ######################
     ###################################
 
     cameraHUD_shotNameSize: IntProperty(
@@ -970,7 +1018,7 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
     )
 
     ###################################
-    # Frame Range tool ################
+    # frame range tool ################
     ###################################
 
     def _update_display_frame_range_tool(self, context):
@@ -987,7 +1035,7 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
     )
 
     ###################################
-    # Markers Nav Bar Tool ############
+    # markers nav bar tool ############
     ###################################
 
     def _update_display_markersNavBar_tool(self, context):

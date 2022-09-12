@@ -19,6 +19,8 @@
 Settings panel for the Interactive Shots Stack overlay tool
 """
 
+import platform
+
 import bpy
 from bpy.types import Operator
 
@@ -43,6 +45,13 @@ def draw_settings(context, layout):
     )
 
     propCol.prop(prefs, "shtStack_link_stb_clips_to_keys")
+
+    diplFactRow = propCol.row(align=False)
+    diplFactRow.enabled = "Windows" == platform.system()
+    diplFactRow.label(text="Windows Only - Display Screen Factor:")
+    diplFactSubRow = diplFactRow.row(align=True)
+    diplFactSubRow.ui_units_x = 4
+    diplFactSubRow.prop(prefs, "shtStack_screen_display_factor_mode", text="")
 
 
 # def draw_settings_in_menu(self, context):

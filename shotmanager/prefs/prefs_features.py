@@ -464,7 +464,7 @@ def draw_features_prefs(mode, layout):
             icon="NLA_PUSHDOWN",
             depress=prefs.toggle_overlays_turnOn_interactiveShotsStack,
         )
-        subrow.label(text="Interaction Shots Stack")
+        subrow.label(text="Interactive Shots Stack")
 
         subrowright = subrow.row()
         subrowright.alignment = "RIGHT"

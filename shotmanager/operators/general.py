@@ -64,7 +64,11 @@ class UAS_ShotManager_OT_DisplayOverlayTools(Operator):
         # _logger.debug_ext(f"uas_shot_manager.display_overlay_tools Poll", col="PURPLE")
         return len(context.scene.UAS_shot_manager_props.get_shots())
 
-    def invoke(self, context, event):
+    def execute(self, context):
+        prefs = config.getShotManagerPrefs()
+        # we force the update of the prefs display factor value
+        prefs.shtStack_screen_display_factor_mode = prefs.shtStack_screen_display_factor_mode
+
         #  _logger.debug_ext(f"uas_shot_manager.display_overlay_tools Invoke", col="PURPLE")
         context.window_manager.UAS_shot_manager_display_overlay_tools = (
             not context.window_manager.UAS_shot_manager_display_overlay_tools
