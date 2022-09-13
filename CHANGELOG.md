@@ -1,5 +1,6 @@
 -----
 ## 2.1.001 (2022-09-12)
+**Beta Release**
 ### Keymaps
 - Separated key mappings per category
 - Added a Preferences parameter to toggle the vertical arrows used to navigate from shot to shot
