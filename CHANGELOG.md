@@ -1,7 +1,7 @@
 -----
 ## 2.1.003 (2022-09-12)
 - Fixed regression bug on Convert Camera Binding
-
+- Fixed the detached grease pencil transform lock state
 
 -----
 ## 2.1.002 (2022-09-12)

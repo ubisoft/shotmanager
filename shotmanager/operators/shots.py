@@ -191,9 +191,14 @@ class UAS_ShotManager_SetCurrentShot(Operator):
         prefs = config.getShotManagerPrefs()
         shot = props.getShotByIndex(self.index)
 
+        if not shot:
+            _logger.error_ext(f"Set Current Shot Operator exec: shot is None. index: {self.index}")
         #     _logger.debug_ext("Set Current Shot Operator exec: ", col="RED")
 
         def _updateEditors(changeTime=True, zoom_mode=""):
+            if shot is None:
+                return
+
             # change time range to match shot range
             if prefs.current_shot_changes_time_range:
                 if scene.use_preview_range:

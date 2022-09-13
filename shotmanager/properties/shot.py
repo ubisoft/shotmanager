@@ -752,6 +752,7 @@ class UAS_ShotManager_Shot(ShotInterface, PropertyGroup):
             # unparent: bpy.ops.object.parent_clear(type='CLEAR')
             _ClearParent(gp_child)
 
+            utils.lockTransforms(gp_child, lock=False)
             utils.clearTransformAnimation(gp_child)
 
             if 0 == gp_child.name.find("Cam_"):

@@ -694,11 +694,12 @@ def getSceneVSE(vsm_sceneName, createVseTab=False):
 # Objects
 ###################
 
+
 def getChildrenHierarchy(parentObject):
     """Return a list with all the children - recursive - of the specified object"""
 
     allChildren = list()
-    
+
     def _getChildrenHierarchyRec(parentObject):
         for child in parentObject.children:
             allChildren.append(child)
@@ -1183,6 +1184,18 @@ def clearTransformAnimation(obj: bpy.types.Object, clearPos=True, clearRot=True,
     # bpy.ops.object.location_clear()
     # bpy.ops.object.rotation_clear()
     # bpy.ops.object.scale_clear()
+
+
+def lockTransforms(obj, *, lock=True):
+    obj.lock_location[0] = lock
+    obj.lock_location[1] = lock
+    obj.lock_location[2] = lock
+    obj.lock_rotation[0] = lock
+    obj.lock_rotation[1] = lock
+    obj.lock_rotation[2] = lock
+    obj.lock_scale[0] = lock
+    obj.lock_scale[1] = lock
+    obj.lock_scale[2] = lock
 
 
 ###################
