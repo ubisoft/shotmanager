@@ -93,7 +93,8 @@ class UAS_PT_Shot_Manager_Debug(Panel):
         # https://blender.stackexchange.com/questions/64129/get-blender-scripts-path
         # x = bpy.utils.script_path_user()
         # bpy.utils.script_paths() returns the list of script folders
-        filePath = utils.getAddonsFolder()
+        # filePath = utils.getAddonsFolder()
+        filePath = utils.getPythonPackagesFolder()
         row.operator(
             "uas_shot_manager.open_explorer", text="Open add-ons Folder", icon_value=iconExplorer.icon_id
         ).path = filePath
@@ -156,6 +157,60 @@ class UAS_PT_Shot_Manager_Debug(Panel):
         row.operator("uas_debug.timeline_modal_rect")
 
         layout.separator()
+
+        self.drawDebugAnim(layout)
+
+    def drawDebugAnim(self, layout):
+        def _getSelectedKeysInDopesheet():
+            keys = []
+            for area in bpy.context.screen.areas:  # loop through areas
+                if area.type == "DOPESHEET_EDITOR":  # find the dopesheet
+                    dopesheet = area.spaces[0]
+                    # print(dopesheet.type)
+                    action = dopesheet.action
+                    if action:
+                        for fcurve in action.fcurves:
+                            for p in fcurve.keyframe_points:
+                                # print(p.co[0], p.select_control_point)
+                                keys.append(p)
+                    break
+            return keys
+
+        def _getSelectedKeysOfSelObj():
+            # https://blender.stackexchange.com/questions/28005/how-do-i-know-if-i-have-a-selected-keyframe-using-python
+            keys = []
+            obj = bpy.context.object
+
+            if not obj:
+                return keys
+
+            if "GPENCIL" == obj.type:
+                gpencil = obj
+                for gpLayer in gpencil.data.layers:
+                    for kf in gpLayer.frames:
+                        if kf.select:
+                            keys.append([kf.frame_number])
+
+            else:
+                if obj.animation_data:
+                    action = obj.animation_data.action
+
+                    for fcurve in action.fcurves:
+                        for p in fcurve.keyframe_points:
+                            if p.select_control_point:
+                                # print(p.co[0], p.select_control_point)
+                                keys.append([p.co[0]])
+            return keys
+
+        keys = _getSelectedKeysOfSelObj()
+        layout.label(text=f"Selected keys: {len(keys)}")
+        if len(keys):
+            for i, k in enumerate(keys):
+                if i < 3:
+                    layout.label(text=f"  key at fr. {k[0]}")
+                else:
+                    layout.label(text=f"... and {len(keys) - 3} other keys")
+                    break
 
 
 _classes = (UAS_PT_Shot_Manager_Debug,)

@@ -715,7 +715,9 @@ def retime_shot(shot, mode, start_incl=0, end_incl=0, remove_gap=True, factor=1.
         pass
 
 
-def retime_markers(scene, mode, start_incl=0, end_incl=0, remove_gap=True, factor=1.0, pivot=0):
+def retime_markers(
+    scene, mode, start_incl=0, end_incl=0, remove_gap=True, factor=1.0, pivot=0, roundToNearestFrame=True
+):
     # NOTE: there can be several markers per frame!!!
 
     if mode == "RESCALE":
@@ -725,7 +727,9 @@ def retime_markers(scene, mode, start_incl=0, end_incl=0, remove_gap=True, facto
     markers = sortMarkers(scene.timeline_markers)
     if len(markers):
         for m in markers:
-            newFrameVal = computeNewFrameValue(m.frame, mode, start_incl, end_incl, pivot, factor)
+            newFrameVal = computeNewFrameValue(
+                m.frame, mode, start_incl, end_incl, pivot, factor, roundToNearestFrame=True
+            )
             if newFrameVal is None:
                 # delete marker
                 scene.timeline_markers.remove(m)
@@ -997,7 +1001,9 @@ def retimeScene(
         # new_current_frame = _compute_retimed_frame(
         #     current_frame, mode, start_incl, end_incl, duration_incl, pivot, factor
         # )
-        new_current_frame = computeNewFrameValue(current_frame, mode, start_incl, end_incl, pivot, factor)
+        new_current_frame = computeNewFrameValue(
+            current_frame, mode, start_incl, end_incl, pivot, factor, roundToNearestFrame=True
+        )
         if scene.use_preview_range:
             rangeStart = scene.frame_preview_start
             rangeEnd = scene.frame_preview_end

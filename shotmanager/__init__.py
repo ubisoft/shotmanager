@@ -84,7 +84,7 @@ bl_info = {
     "author": "Ubisoft - Julien Blervaque (aka Werwack), Romain Carriquiry Borchiari",
     "description": "Easily manage shots and cameras in the 3D View and see the resulting edit in real-time",
     "blender": (3, 1, 0),
-    "version": (2, 0, 226),
+    "version": (2, 1, 1),
     "location": "View3D > Shot Mng",
     "doc_url": "https://ubisoft-shotmanager.readthedocs.io",
     "tracker_url": "https://github.com/ubisoft/shotmanager/issues",
@@ -329,7 +329,7 @@ def register():
         print(f"\n ------ Ubisoft Shot Manager debug: {config.devDebug} ------- ")
 
     addon_prefs_inst = config.getShotManagerPrefs()
-    addon_prefs_inst.displaySMDebugPanel = False
+    addon_prefs_inst.displaySMDebugPanel = True
 
     # _props = bpy.context.scene.UAS_shot_manager_props
     # # currentLayout = props.getCurrentLayout()

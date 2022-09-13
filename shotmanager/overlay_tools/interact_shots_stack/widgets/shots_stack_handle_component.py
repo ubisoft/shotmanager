@@ -131,7 +131,7 @@ class ShotHandleComponent(Component2D):
     #################################################################
 
     # override of InteractiveComponent
-    def _on_highlighted_changed(self, context, isHighlighted):
+    def _on_highlighted_changed(self, context, event, isHighlighted):
         """isHighlighted has the same value than self.isHighlighted, which is set right before this
         function is called
         """
@@ -142,7 +142,7 @@ class ShotHandleComponent(Component2D):
             config.gRedrawShotStack = True
 
     # override of InteractiveComponent
-    def _on_selected_changed(self, context, isSelected):
+    def _on_selected_changed(self, context, event, isSelected):
         """isSelected has the same value than self.isSelected, which is set right before this
         function is called
         """
@@ -151,7 +151,7 @@ class ShotHandleComponent(Component2D):
             self.isSelected = False
 
     # override of InteractiveComponent
-    def _on_manipulated_changed(self, context, isManipulated):
+    def _on_manipulated_changed(self, context, event, isManipulated):
         """isManipulated has the same value than self.isManipulated, which is set right before this
         function is called
         """
@@ -167,28 +167,33 @@ class ShotHandleComponent(Component2D):
             self.manipulationBeginningFrame = None
 
     # override of InteractiveComponent
-    def _on_manipulated_mouse_moved(self, context, mouse_delta_frames=0):
+    def _on_manipulated_mouse_moved(self, context, event, mouse_delta_frames=0):
         """wkip note: delta_frames is in frames but may need to be in pixels in some cases"""
         # !! we have to be sure we work on the selected shot !!!
         if self.isStart:
+            prevShotStart = self.shot.start
             self.shot.start += mouse_delta_frames
             # bpy.ops.uas_shot_manager.set_shot_start(newStart=self.start + mouse_delta_frames)
 
-            if self.manipulatedChildren is not None:
-                retimerApplyToSettings = context.window_manager.UAS_shot_manager_shots_stack_retimerApplyTo
-                retimerApplyToSettings.initialize("STORYBOARD_CLIP")
+            prefs = config.getShotManagerPrefs()
+            if prefs.shtStack_link_stb_clips_to_keys and event.ctrl:
+                if self.manipulatedChildren is not None:
+                    retimerApplyToSettings = context.window_manager.UAS_shot_manager_shots_stack_retimerApplyTo
+                    retimerApplyToSettings.initialize("STORYBOARD_CLIP")
 
-                # retimeScene(
-                #     context,
-                #     "RESCALE",
-                #     retimerApplyToSettings,
-                #     self.manipulatedChildren,
-                #     self.shot.end,
-                #     mouse_delta_frames,
-                #     True,
-                #     retimeEngine.factor,
-                #     start_excl,
-                # )
+                    retimeFactor = (self.shot.end - self.shot.start) / (self.shot.end - prevShotStart)
+                    #  retimeFactor = 0.5
+                    retimeScene(
+                        context,
+                        "RESCALE",
+                        retimerApplyToSettings,
+                        self.manipulatedChildren,
+                        -10000,
+                        90000,
+                        True,
+                        retimeFactor,
+                        self.shot.end,
+                    )
 
         else:
             self.shot.end += mouse_delta_frames

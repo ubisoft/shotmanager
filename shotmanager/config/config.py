@@ -142,8 +142,8 @@ def getLoggingTags():
     # debug tags
     tags["DEPRECATED"] = False
 
-    tags["REG"] = False
-    tags["UNREG"] = False
+    tags["REG"] = True
+    tags["UNREG"] = True
 
     tags["INIT_AND_DATA"] = False
 

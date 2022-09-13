@@ -357,7 +357,7 @@ class ShotClipComponent(Component2D):
     ######################################################################
 
     # override of InteractiveComponent
-    def _on_highlighted_changed(self, context, isHighlighted):
+    def _on_highlighted_changed(self, context, event, isHighlighted):
         """isHighlighted has the same value than self.isHighlighted, which is set right before this
         function is called
         """
@@ -368,7 +368,7 @@ class ShotClipComponent(Component2D):
             config.gRedrawShotStack = True
 
     # override of InteractiveComponent
-    def _on_selected_changed(self, context, isSelected):
+    def _on_selected_changed(self, context, event, isSelected):
         if isSelected:
             _logger.debug_ext("\n\nClip isSelected set to True", col="RED")
             props = context.scene.UAS_shot_manager_props
@@ -379,7 +379,7 @@ class ShotClipComponent(Component2D):
             prefs.shot_selected_from_shots_stack__flag = False
 
     # override of InteractiveComponent
-    def _on_manipulated_changed(self, context, isManipulated):
+    def _on_manipulated_changed(self, context, event, isManipulated):
         """isManipulated has the same value than self.isManipulated, which is set right before this
         function is called
         """
@@ -394,7 +394,7 @@ class ShotClipComponent(Component2D):
             pass
 
     # override of InteractiveComponent
-    def _on_manipulated_mouse_moved(self, context, mouse_delta_frames=0):
+    def _on_manipulated_mouse_moved(self, context, event, mouse_delta_frames=0):
         """wkip note: delta_frames is in frames but may need to be in pixels in some cases"""
         # Very important, don't use properties for changing both start and ends. Depending of the amount of displacement duration can change.
         if self.shot.durationLocked:
@@ -412,7 +412,8 @@ class ShotClipComponent(Component2D):
                 self.shot.start += mouse_delta_frames
                 self.shot.end += mouse_delta_frames
 
-        if self.manipulatedChildren is not None:
+        prefs = config.getShotManagerPrefs()
+        if prefs.shtStack_link_stb_clips_to_keys and self.manipulatedChildren is not None:
             retimerApplyToSettings = context.window_manager.UAS_shot_manager_shots_stack_retimerApplyTo
             retimerApplyToSettings.initialize("STORYBOARD_CLIP")
 
