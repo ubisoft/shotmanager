@@ -196,7 +196,7 @@ class GreasePencilProperties(PropertyGroup):
 
         self.updateGreasePencil()
 
-    def updateCanvas(self):
+    def updateCanvas(self, rebuildIfMissing=True):
         props = bpy.context.scene.UAS_shot_manager_props
 
         # res = props.getRenderResolution()
@@ -216,6 +216,10 @@ class GreasePencilProperties(PropertyGroup):
 
         canvasLayer = self.getCanvasLayer()
         if canvasLayer is not None:
+
+            if not len(canvasLayer.frames) and rebuildIfMissing:
+                utils_greasepencil.create_grease_pencil_canvas_frame(canvasLayer)
+
             if len(canvasLayer.frames):
                 gpFrame = canvasLayer.frames[0]
                 if len(gpFrame.strokes):

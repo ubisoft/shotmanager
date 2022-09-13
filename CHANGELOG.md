@@ -2,6 +2,7 @@
 ## 2.1.003 (2022-09-12)
 - Fixed regression bug on Convert Camera Binding
 - Fixed the detached grease pencil transform lock state
+- Added a function to get the canvas frame when missing
 
 -----
 ## 2.1.002 (2022-09-12)

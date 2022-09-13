@@ -1320,12 +1320,17 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         Only cameras related to storyboard frames, and not shots, are affected"""
 
         grid = self.stb_frameTemplate.frameGrid
-        frameList = self.getStoryboardFramesList(ignoreDisabled=False)
+        stbShots = self.getStoryboardShots(ignoreDisabled=False)
 
-        grid.updateStoryboardGrid(frameList)
+        # clear camera animation
+        for shot in stbShots:
+            if shot.isCameraValid():
+                utils.clearTransformAnimation(shot.camera)
 
-    def getStoryboardFramesList(self, ignoreDisabled=False, takeIndex=-1):
-        """Return a list of the shots that are flagged as storyboard frames"""
+        grid.updateStoryboardGrid(stbShots)
+
+    def getStoryboardShots(self, ignoreDisabled=False, takeIndex=-1):
+        """Return a list of the shots that are of the type storyboard shot"""
         takeInd = (
             self.getCurrentTakeIndex()
             if -1 == takeIndex

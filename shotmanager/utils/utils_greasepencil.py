@@ -222,6 +222,17 @@ def add_grease_pencil_canvas_layer(
         gpencil, gpencil_layer_name=gpencil_layer_name, clear_layer=clear_layer, order=order
     )
 
+    gpStroke = create_grease_pencil_canvas_frame(gpencil_layer)
+    gpStroke.material_index = mat_index
+
+    fitCanvasToFrustum(gpStroke, camera)
+
+    gpencil_layer.lock = True
+
+    return gpencil_layer
+
+
+def create_grease_pencil_canvas_frame(gpencil_layer):
     keyFrame = addLayerKeyFrameAtTime(gpencil_layer, 0)
 
     zDistance = 0.0  # -5
@@ -230,13 +241,7 @@ def add_grease_pencil_canvas_layer(
     ptTopLeft = (-0.5, -0.5, zDistance)
     ptBottomRight = (0.5, 0.5, zDistance)
     gpStroke = draw_canvas_rect(keyFrame, ptTopLeft, ptBottomRight)
-    gpStroke.material_index = mat_index
-
-    fitCanvasToFrustum(gpStroke, camera)
-
-    gpencil_layer.lock = True
-
-    return gpencil_layer
+    return gpStroke
 
 
 def fitGreasePencilToFrustum(camera, distance=None):
