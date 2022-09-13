@@ -97,6 +97,7 @@ def propertyColumn(
 ):
     """Return a column to add components in a more compact way that the standart layout"""
     propRow = layout.row(align=True)
+    # propRow.use_property_split = True
 
     if 0 < padding_left:
         leftRow = propRow.row(align=True)

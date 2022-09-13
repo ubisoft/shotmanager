@@ -243,6 +243,7 @@ class ShotStackWidget:
 
     def drawShots(self, preDrawOnly=False):
         props = self.context.scene.UAS_shot_manager_props
+        prefs = config.getShotManagerPrefs()
         self.rebuildShotComponents()
 
         currentShotInd = props.getCurrentShotIndex()
@@ -250,7 +251,7 @@ class ShotStackWidget:
 
         debug_maxShots = 5000  # 6
 
-        lane = 1
+        lane = 1 + prefs.shtStack_firstLineIndex
         shotCompoCurrent = None
         for i, shotCompo in enumerate(self.shotComponents):
             shotCompo.isCurrent = i == currentShotInd
@@ -281,6 +282,7 @@ class ShotStackWidget:
     def drawShots_compactMode(self, preDrawOnly=False):
         # return
         props = self.context.scene.UAS_shot_manager_props
+        prefs = config.getShotManagerPrefs()
         self.rebuildShotComponents()
 
         currentShot = props.getCurrentShot()
@@ -295,7 +297,7 @@ class ShotStackWidget:
             if not props.interactShotsStack_displayDisabledShots and not shotCompo.shot.enabled:
                 shotCompo.isVisible = False
                 continue
-            lane = 1
+            lane = 1 + prefs.shtStack_firstLineIndex
             if i > 0:
                 for ln, shots_in_lane in shots_from_lane.items():
                     for s in shots_in_lane:

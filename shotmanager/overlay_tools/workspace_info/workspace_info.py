@@ -211,7 +211,7 @@ def draw_callback__dopesheet_size(self, context, callingArea):
     # blf.size(0, round(self.font_size * get_prefs_ui_scale()), 72)
     blf.size(0, 12, 72)
     # textPos_y = self.origin.y + 6 * get_prefs_ui_scale()
-    # textPos_y = self.origin.y + get_lane_height() * 0.2 * get_prefs_ui_scale()
+    # textPos_y = self.origin.y + utils_editors_dopesheet.getLaneHeight() * 0.2
     # blf.position(0, *context.region.view2d.view_to_region(self.origin.x + 1.4, textPos_y), 0)
 
     offset_y = 20

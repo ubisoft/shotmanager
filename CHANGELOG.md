@@ -5,6 +5,10 @@
 - Added a Preferences parameter to toggle the vertical arrows used to navigate from shot to shot
 - Made the up arrow go to next shots by default instead of previous ones
 
+### Shots Stack UI
+- Added a Preferences setting to make the shots stack starts at the specified lane
+- Set the first lane to 1 instead of 0 to see the keys of the Summany lane
+
 -----
 ## 2.0.226 (2022-09-12)
 ### Shots Stack UI

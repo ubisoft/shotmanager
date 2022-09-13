@@ -960,6 +960,17 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
         default=0.7,
     )
 
+    shtStack_firstLineIndex: IntProperty(
+        name="Shots Stack Fisrt Row",
+        description=(
+            "Set the line at which the first shot of the stack is placed."
+            "\nDefault is 1 in order to let the keys of the Summary line visible"
+        ),
+        min=0,
+        max=10,
+        default=1,
+    )
+
     def _update_shtStack_screen_display_factor_mode(self, context):
         # read also:
         # https://stackoverflow.com/questions/53889520/getting-screen-pixels-taking-into-account-the-scale-factor

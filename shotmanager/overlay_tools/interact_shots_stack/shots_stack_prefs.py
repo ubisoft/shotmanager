@@ -44,6 +44,10 @@ def draw_settings(context, layout):
         text="Compact Shots Display (= decrease visual stack height)",
     )
 
+    firstLineRow = propCol.row(align=False)
+    # firstLineRow.use_property_split = True
+    firstLineRow.prop(prefs, "shtStack_firstLineIndex")
+
     propCol.prop(prefs, "shtStack_link_stb_clips_to_keys")
 
     diplFactRow = propCol.row(align=False)
