@@ -31,6 +31,8 @@ _logger = sm_logging.getLogger(__name__)
 
 
 def registerKeymaps():
+    keymaps = config.gAddonKeymaps_storyboard
+
     # Add the hotkey
     wm = bpy.context.window_manager
     kc = wm.keyconfigs.addon
@@ -49,21 +51,21 @@ def registerKeymaps():
             "uas_shot_manager.greasepencil_navigateinkeyframes", type="LEFT_ARROW", value="PRESS", ctrl=True
         )
         kmi.properties.navigDirection = "PREVIOUS"
-        config.gAddonKeymaps.append((km, kmi))
+        keymaps.append((km, kmi))
 
         km = wm.keyconfigs.addon.keymaps.new(name="Dopesheet", space_type="DOPESHEET_EDITOR")
         kmi = km.keymap_items.new(
             "uas_shot_manager.greasepencil_navigateinkeyframes", type="LEFT_ARROW", value="PRESS", ctrl=True
         )
         kmi.properties.navigDirection = "PREVIOUS"
-        config.gAddonKeymaps.append((km, kmi))
+        keymaps.append((km, kmi))
 
         km = wm.keyconfigs.addon.keymaps.new(name="Graph Editor", space_type="GRAPH_EDITOR")
         kmi = km.keymap_items.new(
             "uas_shot_manager.greasepencil_navigateinkeyframes", type="LEFT_ARROW", value="PRESS", ctrl=True
         )
         kmi.properties.navigDirection = "PREVIOUS"
-        config.gAddonKeymaps.append((km, kmi))
+        keymaps.append((km, kmi))
 
         # next key frame
         ###############################
@@ -73,18 +75,27 @@ def registerKeymaps():
             "uas_shot_manager.greasepencil_navigateinkeyframes", type="RIGHT_ARROW", value="PRESS", ctrl=True
         )
         kmi.properties.navigDirection = "NEXT"
-        config.gAddonKeymaps.append((km, kmi))
+        keymaps.append((km, kmi))
 
         km = wm.keyconfigs.addon.keymaps.new(name="Dopesheet", space_type="DOPESHEET_EDITOR")
         kmi = km.keymap_items.new(
             "uas_shot_manager.greasepencil_navigateinkeyframes", type="RIGHT_ARROW", value="PRESS", ctrl=True
         )
         kmi.properties.navigDirection = "NEXT"
-        config.gAddonKeymaps.append((km, kmi))
+        keymaps.append((km, kmi))
 
         km = wm.keyconfigs.addon.keymaps.new(name="Graph Editor", space_type="GRAPH_EDITOR")
         kmi = km.keymap_items.new(
             "uas_shot_manager.greasepencil_navigateinkeyframes", type="RIGHT_ARROW", value="PRESS", ctrl=True
         )
         kmi.properties.navigDirection = "NEXT"
-        config.gAddonKeymaps.append((km, kmi))
+        keymaps.append((km, kmi))
+
+
+def unregisterKeymaps():
+    keymaps = config.gAddonKeymaps_storyboard
+
+    # Remove the hotkeys
+    for km, kmi in keymaps:
+        km.keymap_items.remove(kmi)
+    keymaps.clear()

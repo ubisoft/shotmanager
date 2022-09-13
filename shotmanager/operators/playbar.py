@@ -74,7 +74,7 @@ class UAS_ShotManager_Playbar_GoToLastShot(Operator):
 
 class UAS_ShotManager_Playbar_GoToShotBoundary(Operator):
     bl_idname = "uas_shot_manager.playbar_gotoshotboundary"
-    bl_label = "Shot Manager - Navigate on shots boundaries"
+    bl_label = "Ubisoft Shot Mng - Navigate on shots boundaries"
     bl_description = "Go from start to end of each shot"
     bl_options = {"INTERNAL", "UNDO"}
 

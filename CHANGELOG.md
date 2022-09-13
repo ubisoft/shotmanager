@@ -1,6 +1,9 @@
 -----
 ## 2.1.001 (2022-09-12)
-### Shots Stack UI
+### Keymaps
+- Separated key mappings per category
+- Added a Preferences parameter to toggle the vertical arrows used to navigate from shot to shot
+- Made the up arrow go to next shots by default instead of previous ones
 
 -----
 ## 2.0.226 (2022-09-12)

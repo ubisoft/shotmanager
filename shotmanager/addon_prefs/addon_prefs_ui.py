@@ -21,7 +21,7 @@ UI for the Add-on Preferences
 
 from shotmanager.config import config
 from shotmanager.ui.dependencies_ui import drawDependencies
-from shotmanager.utils.utils_ui import collapsable_panel
+from shotmanager.utils.utils_ui import collapsable_panel, propertyColumn
 
 from shotmanager.prefs.prefs_features import draw_features_prefs
 
@@ -34,6 +34,7 @@ from shotmanager.prefs.prefs_features import draw_features_prefs
 def draw_addon_prefs(self, context):
     layout = self.layout
     layout = layout.column(align=False)
+    padding_left = 4
 
     # Dependencies
     ###############
@@ -62,6 +63,10 @@ def draw_addon_prefs(self, context):
     # Stamp Info
     ###############
     drawStampInfo(context, self, layout)
+
+    # Key Mapping
+    ###############
+    drawKeyMapping(context, self, layout, padding_left)
 
     # Tools
     ###############
@@ -250,6 +255,19 @@ def drawFeatures(context, prefs, layout):
     collapsable_panel(box, prefs, "addonPrefs_features_expanded", text=title)
     if prefs.addonPrefs_features_expanded:
         draw_features_prefs("ADDON_PREFS", box)
+
+
+def drawKeyMapping(context, prefs, layout, padding_left):
+    box = layout.box()
+    title = "Key Mapping"
+    collapsable_panel(box, prefs, "addonPrefs_keymapping_expanded", text=title)
+    if prefs.addonPrefs_keymapping_expanded:
+        propCol = propertyColumn(box, padding_left=padding_left, padding_bottom=0.2, scale_y=0.8)
+        propCol.label(text="Key mappings are located in the Keymap section of this Preferences panel.")
+        propCol.label(text='They can be listed by typing "Ubisoft Shot Mng" in the Keympap Search field.')
+
+        propCol = propertyColumn(box, padding_left=padding_left)
+        propCol.prop(prefs, "kmap_shots_nav_invert_direction")
 
 
 def drawDevAndDebug(context, prefs, layout):

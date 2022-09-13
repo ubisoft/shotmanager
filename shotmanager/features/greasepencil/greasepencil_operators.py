@@ -840,7 +840,7 @@ class UAS_ShotManager_GreasePencil_UINavigationKeys(Operator):
 
 class UAS_ShotManager_GreasePencil_NavigateInKeyFrames(Operator):
     bl_idname = "uas_shot_manager.greasepencil_navigateinkeyframes"
-    bl_label = "Shot Manager - Navigate in grease pencil key frames"
+    bl_label = "Ubisoft Shot Mng - Navigate in grease pencil key frames"
     bl_description = "Jump from key frame to key frame on the specified grease pencil layer"
     bl_options = {"INTERNAL", "UNDO"}
 

@@ -87,6 +87,10 @@ def initGlobalVariables():
     # keymaps ##########
     global gAddonKeymaps
     gAddonKeymaps = []
+    global gAddonKeymaps_shotsNav
+    gAddonKeymaps_shotsNav = []
+    global gAddonKeymaps_storyboard
+    gAddonKeymaps_storyboard = []
 
     # interactive shots stack ############
     global tmpTimelineModalRect
@@ -145,7 +149,7 @@ def getLoggingTags():
     tags["REG"] = True
     tags["UNREG"] = True
 
-    tags["INIT_AND_DATA"] = False
+    tags["INIT_AND_DATA"] = True
 
     tags["SHOTS_PLAY_MODE"] = True
 

@@ -109,6 +109,7 @@ def register():
     if config.devDebug:
         _logger.setLevel("DEBUG")  # CRITICAL ERROR WARNING INFO DEBUG NOTSET
 
+    _logger.tags = config.getLoggingTags()
     logger_level = f"Logger level: {sm_logging.getLevelName()}"
     versionTupple = utils.display_addon_registered_version("Ubisoft Shot Manager", more_info=logger_level)
 

@@ -22,10 +22,11 @@ Eg here: https://blender.stackexchange.com/questions/196483/create-keyboard-shor
 """
 
 from . import general_keymaps
+from . import playbar_wrappers_operators
+from . import playbar_keymaps
 from . import storyboard_keymaps
 
 from shotmanager import config
-
 from shotmanager.config import sm_logging
 
 _logger = sm_logging.getLogger(__name__)
@@ -33,7 +34,9 @@ _logger = sm_logging.getLogger(__name__)
 
 def register():
     _logger.debug_ext("       - Registering Keymaps Package", form="REG")
+    playbar_wrappers_operators.register()
     general_keymaps.registerKeymaps()
+    playbar_keymaps.registerKeymaps()
     storyboard_keymaps.registerKeymaps()
 
 
@@ -41,6 +44,12 @@ def unregister():
     _logger.debug_ext("       - Unregistering Keymaps Package", form="UNREG")
 
     # Remove the hotkeys
-    for km, kmi in config.gAddonKeymaps:
-        km.keymap_items.remove(kmi)
-    config.gAddonKeymaps.clear()
+    # for km, kmi in config.gAddonKeymaps:
+    #     km.keymap_items.remove(kmi)
+    # config.gAddonKeymaps.clear()
+    # general_wrappers_operators.unregister()
+
+    storyboard_keymaps.unregisterKeymaps()
+    playbar_keymaps.unregisterKeymaps()
+    general_keymaps.unregisterKeymaps()
+    playbar_wrappers_operators.unregister()

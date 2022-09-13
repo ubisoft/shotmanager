@@ -38,6 +38,8 @@ from shotmanager.utils.utils_operators_overlays import getOverlaysPropertyState
 from shotmanager.tools.frame_range.frame_range_operators import display_frame_range_in_editor
 from shotmanager.tools.markers_nav_bar.markers_nav_bar import display_markersNavBar_in_editor
 
+from shotmanager.keymaps import playbar_keymaps
+
 from shotmanager.config import config
 from shotmanager.config import sm_logging
 
@@ -437,6 +439,10 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
     )
     addonPrefs_stampInfo_expanded: BoolProperty(
         name="Expand Stamp Info Preferences",
+        default=False,
+    )
+    addonPrefs_keymapping_expanded: BoolProperty(
+        name="Expand Key Mapping Preferences",
         default=False,
     )
     addonPrefs_debug_expanded: BoolProperty(
@@ -1516,7 +1522,7 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
     ##################
 
     ####################
-    # Playblast
+    # playblast
     ####################
 
     playblastFileName: StringProperty(name="Temporary Playblast File", default="toto.mp4")
@@ -1536,10 +1542,28 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
     )
 
     ##################################################################################
-    # Draw
+    # draw
     ##################################################################################
     def draw(self, context):
         draw_addon_prefs(self, context)
+
+    ##################################################################################
+    # key mapping
+    ##################################################################################
+
+    def _update_kmap_shots_nav_invert_direction(self, context):
+        playbar_keymaps.unregisterKeymaps()
+        playbar_keymaps.registerKeymaps()
+
+    kmap_shots_nav_invert_direction: BoolProperty(
+        name="Invert Shots Navigation Direction",
+        description=(
+            "Invert Up and Down arrows to navigate between shots boundaries."
+            "\nBy default Up goes to Next shots and Down to Previous shots"
+        ),
+        update=_update_kmap_shots_nav_invert_direction,
+        default=False,
+    )
 
 
 _classes = (UAS_ShotManager_AddonPrefs,)
