@@ -2983,7 +2983,8 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
             newShotInd = atValidIndex
 
         if addGreasePencilStoryboard:
-            newShot.addGreasePencil(mode="STORYBOARD")
+            # newShot.addGreasePencil(mode=shotType)
+            newShot.addStoryboardFrame()
 
         # update the current take if needed
         if takeInd == currentTakeInd:

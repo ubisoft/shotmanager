@@ -1,4 +1,8 @@
 -----
+## 2.1.002 (2022-09-12)
+- Fixed the type of shot that was set to Storyboard when a storyboard frame was added
+
+-----
 ## 2.1.001 (2022-09-12)
 **Beta Release**
 ### Keymaps

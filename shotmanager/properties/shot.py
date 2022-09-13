@@ -624,7 +624,10 @@ class UAS_ShotManager_Shot(ShotInterface, PropertyGroup):
 
             if "STORYBOARD" == mode:
                 gpObj = gp.createStoryboarFrameGP(gpName, framePreset, parentCamera=self.camera, location=[0, 0, -0.5])
-                self.shotType = "STORYBOARD"
+
+                # No !!!
+                # self.shotType = "STORYBOARD"
+
                 gpProps.updateGreasePencil()
 
         return (gpProps, gpObj)
@@ -759,6 +762,15 @@ class UAS_ShotManager_Shot(ShotInterface, PropertyGroup):
     #############
     # storyboard
     #############
+
+    def addStoryboardFrame(self):
+        """Add a grase pencil object to the shot as well as a Storyboard frame preset
+        The type of the shot is NOT changed.
+        Return a tupple with the grease pencil properties and the created object."""
+
+        # the mode used here is to specify the kind of grease pencil object to create
+        # it is not related to the shot type since any shot type can have a storyboard frame
+        return self.addGreasePencil(mode="STORYBOARD")
 
     def isStoryboardType(self):
         return "S" == self.shotType[0]
