@@ -22,6 +22,12 @@ Mark Down language memo: https://github.com/tchapi/markdown-cheatsheet/blob/mast
         propsCol = mainRow.column(align=True)
 
         
+To do:
+clear anim on stb cameras
+pbs paul
+play with the stb
+
+
 
 Pb icons lot loaded:
 

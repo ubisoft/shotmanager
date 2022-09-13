@@ -1,4 +1,9 @@
 -----
+## 2.1.003 (2022-09-12)
+- Fixed regression bug on Convert Camera Binding
+
+
+-----
 ## 2.1.002 (2022-09-12)
 - Fixed the type of shot that was set to Storyboard when a storyboard frame was added
 

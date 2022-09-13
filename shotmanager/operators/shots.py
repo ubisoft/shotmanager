@@ -29,6 +29,7 @@ from random import uniform
 import json
 
 from shotmanager.utils import utils
+from shotmanager.utils import utils_markers
 from shotmanager.utils.utils_time import zoom_dopesheet_view_to_range
 
 from shotmanager.config import config
@@ -1107,7 +1108,7 @@ def convertMarkersFromCameraBindingToShots(scene):
         if m.camera is not None:
             boundMarkers.append(m)
 
-    boundMarkers = utils.sortMarkers(boundMarkers)
+    boundMarkers = utils_markers.sortMarkers(boundMarkers)
 
     # display sorted markers
     # for m in boundMarkers:
