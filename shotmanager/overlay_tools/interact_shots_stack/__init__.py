@@ -29,6 +29,9 @@ from . import shots_stack
 
 # from . import shots_stack_bgl
 
+# debug
+from shotmanager.gpu.gpu_2d.samples import dopesheet_gpu_sample
+
 from shotmanager.config import config
 from shotmanager.config import sm_logging
 
@@ -47,6 +50,8 @@ def register():
     # shots_stack_widgets.register()
     shots_stack.register()
     # shots_stack_bgl.register()
+
+    dopesheet_gpu_sample.register()
 
     # # # def _update_UAS_shot_manager__useInteracShotsStack(self, context):
     # # #     # toggle_overlay_tools_display(context)
@@ -68,6 +73,8 @@ def register():
 
 def unregister():
     _logger.debug_ext("       - Unregistering Interactive Shots Stack Package", form="UNREG")
+
+    dopesheet_gpu_sample.unregister()
 
     # shots_stack_toolbar.unregister()
     shots_stack_toolbar.display_shots_stack_toolbar_in_editor(False)

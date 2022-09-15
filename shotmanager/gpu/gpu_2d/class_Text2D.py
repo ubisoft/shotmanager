@@ -42,8 +42,9 @@ UNIFORM_SHADER_2D = gpu.shader.from_builtin("2D_UNIFORM_COLOR")
 class Text2D(Object2D):
     def __init__(
         self,
+        *,
         posXIsInRegionCS=True,
-        posX=30,
+        posX=0,
         posYIsInRegionCS=True,
         posY=0,
         alignment="BOTTOM_LEFT",
@@ -90,7 +91,6 @@ class Text2D(Object2D):
 
     def _drawText(self, shader=None, region=None, pX=10, pY=10):
         # bgl.glDisable(bgl.GL_BLEND)
-
         blf.enable(0, blf.CLIPPING)
         # blf.clipping(0, *self._clamped_bBox)
         margin = 20

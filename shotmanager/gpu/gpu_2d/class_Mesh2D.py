@@ -38,7 +38,7 @@ UNIFORM_SHADER_2D = gpu.shader.from_builtin("2D_UNIFORM_COLOR")
 
 
 class Mesh2D:
-    def __init__(self, vertices=None, indices=None, texcoords=None):
+    def __init__(self, *, vertices=None, indices=None, texcoords=None):
         self._vertices = list() if vertices is None else vertices
         self._indices = list() if indices is None else indices
         self._indicesLine = list()

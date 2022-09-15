@@ -796,6 +796,7 @@ def retime_vse(scene, mode, start_frame, end_frame, remove_gap=True):
 
 
 def retimeScene(
+    *,
     context,
     retimeMode: str,
     retimerApplyToSettings,
@@ -812,7 +813,7 @@ def retimeScene(
         start_incl (int): The included start frame
         duration_incl (int): The range of retime frames (new or deleted)
     """
-    prefs = config.getShotManagerPrefs()
+    # prefs = config.getShotManagerPrefs()
     scene = context.scene
 
     current_frame = scene.frame_current

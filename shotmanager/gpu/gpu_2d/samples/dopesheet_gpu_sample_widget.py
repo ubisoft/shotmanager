@@ -28,7 +28,7 @@ import bgl
 import gpu
 
 
-from ..shots_stack_bgl import get_lane_origin_y
+from shotmanager.overlay_tools.interact_shots_stack.shots_stack_bgl import get_lane_origin_y
 
 from shotmanager.utils import utils_editors_dopesheet
 from shotmanager.utils.utils import color_to_linear
@@ -41,8 +41,6 @@ from shotmanager.gpu.gpu_2d.class_Text2D import Text2D
 
 from shotmanager.overlay_tools.workspace_info import workspace_info
 
-from shotmanager.overlay_tools.interact_shots_stack.widgets.shots_stack_clip_component import ShotClipComponent
-from shotmanager.overlay_tools.interact_shots_stack.widgets.shots_stack_info_component import InfoComponent
 
 from shotmanager.config import config
 from shotmanager.config import sm_logging
@@ -52,18 +50,14 @@ _logger = sm_logging.getLogger(__name__)
 UNIFORM_SHADER_2D = gpu.shader.from_builtin("2D_UNIFORM_COLOR")
 
 
-class ShotStackWidget:
+class DopesheetGpuSampleWidget:
     def __init__(self, target_area=None):
         prefs = config.getShotManagerPrefs()
 
-        self.useDebugComponents = False
+        self.useDebugComponents = True
 
         self.context = None
         self.target_area = target_area
-
-        self.ui_shots = list()
-        self.shotComponents = []
-        self.infoComponent = None
 
         self.prev_mouse_x = 0
         self.prev_mouse_y = 0
@@ -73,7 +67,6 @@ class ShotStackWidget:
         self.previousMouseFrame = -1
 
         self.previousDrawWasInAClip = False
-        self.manipulatedComponent = None
 
         self.debug_mesh = None
         self.debug_quadObject = None
@@ -88,10 +81,10 @@ class ShotStackWidget:
         self.opacity = prefs.shtStack_opacity
         self.color_text = (0.0, 0.0, 0.0, 1)
 
+        self.numRedraws = 0
+
     def init(self, context):
         self.context = context
-
-        self.rebuildShotComponents()
 
         self.currentShotBorder = QuadObject(
             posXIsInRegionCS=False,
@@ -109,11 +102,8 @@ class ShotStackWidget:
         # self.currentShotBorder.lineOffsetPerEdge = [0, -1, -1, 0]
 
         # wip not super clean
-        config.gRedrawShotStack = True
-        config.gRedrawShotStack_preDrawOnly = True
-
-        self.infoComponent = InfoComponent(shotsStack=self)
-        self.infoComponent.init(context)
+        # config.gRedrawShotStack = True
+        # config.gRedrawShotStack_preDrawOnly = True
 
         if self.useDebugComponents:
             ###############################################
@@ -202,145 +192,18 @@ class ShotStackWidget:
                 fontSize=20,
             )
 
-    def rebuildShotComponents(self, forceRebuild=False):
-        props = self.context.scene.UAS_shot_manager_props
-        shots = props.get_shots()
-        # lenShots = len(shots)
-
-        if not len(shots):
-            self.shotComponents = []
-            return
-
-        rebuildList = forceRebuild or len(self.shotComponents) != len(shots)
-
-        # check if the components list matches the shots list
-        if not rebuildList:
-            shotCompoInd = 0
-            for _i, shot in enumerate(shots):
-                if self.shotComponents[shotCompoInd].shot != shot:
-                    rebuildList = True
-                    break
-                shotCompoInd += 1
-
-        # rebuild the list with ALL the shots
-        if rebuildList:
-            self.shotComponents = []
-
-            lane = 1
-            for _i, shot in enumerate(shots):
-                shotCompo = ShotClipComponent(self.target_area, posY=lane, shot=shot, shotsStack=self)
-                shotCompo.opacity = self.opacity
-                shotCompo.color_text = self.color_text
-
-                self.shotComponents.append(shotCompo)
-                lane += 1
-
-    def drawCurrentShotDecoration(self, shotCompoCurrent, preDrawOnly=False):
-        """Draw the quad lines for the current shot"""
-        if shotCompoCurrent:
-            self.currentShotBorder.posX = shotCompoCurrent.posX
-            self.currentShotBorder.posY = shotCompoCurrent.posY
-            self.currentShotBorder.width = shotCompoCurrent.width
-            self.currentShotBorder.height = shotCompoCurrent.height
-            self.currentShotBorder.isVisible = True
-            self.currentShotBorder.draw(None, self.context.region, preDrawOnly=preDrawOnly)
-        else:
-            self.currentShotBorder.isVisible = False
-
-    def drawShots(self, preDrawOnly=False):
-        props = self.context.scene.UAS_shot_manager_props
-        prefs = config.getShotManagerPrefs()
-        self.rebuildShotComponents()
-
-        currentShotInd = props.getCurrentShotIndex()
-        selectedShotInd = props.getSelectedShotIndex()
-
-        debug_maxShots = 5000  # 6
-
-        lane = 1 + prefs.shtStack_firstLineIndex
-        shotCompoCurrent = None
-        for i, shotCompo in enumerate(self.shotComponents):
-            shotCompo.isCurrent = i == currentShotInd
-
-            # NOTE: we use _isSelected instead of the property isSelected in order
-            # to avoid the call of the callback function _on_selected_changed, otherwise
-            # the event loops and keep redrawing all the time
-            shotCompo._isSelected = i == selectedShotInd
-
-            if debug_maxShots < i:
-                shotCompo.isVisible = False
-                continue
-            if not shotCompo.shot.enabled and not props.interactShotsStack_displayDisabledShots:
-                shotCompo.isVisible = False
-                continue
-
-            if i == currentShotInd:
-                shotCompoCurrent = shotCompo
-            shotCompo.isVisible = True
-            shotCompo.posY = lane
-
-            shotCompo.draw(None, self.context.region, preDrawOnly=preDrawOnly)
-            lane += 1
-
-        # draw quad for current shot over the result
-        self.drawCurrentShotDecoration(shotCompoCurrent, preDrawOnly=preDrawOnly)
-
-    def drawShots_compactMode(self, preDrawOnly=False):
-        # return
-        props = self.context.scene.UAS_shot_manager_props
-        prefs = config.getShotManagerPrefs()
-        self.rebuildShotComponents()
-
-        currentShot = props.getCurrentShot()
-        selectedShot = props.getSelectedShot()
-
-        shotComponentsSorted = sorted(self.shotComponents, key=lambda shotCompo: shotCompo.shot.start)
-
-        shots_from_lane = defaultdict(list)
-
-        shotCompoCurrent = None
-        for i, shotCompo in enumerate(shotComponentsSorted):
-            if not props.interactShotsStack_displayDisabledShots and not shotCompo.shot.enabled:
-                shotCompo.isVisible = False
-                continue
-            lane = 1 + prefs.shtStack_firstLineIndex
-            if i > 0:
-                for ln, shots_in_lane in shots_from_lane.items():
-                    for s in shots_in_lane:
-                        if s.start <= shotCompo.shot.start <= s.end:
-                            break
-                    else:
-                        lane = ln
-                        break
-                else:
-                    if len(shots_from_lane):
-                        lane = max(shots_from_lane) + 1  # No free lane, make a new one.
-                    else:
-                        #   lane = ln
-                        pass
-            shots_from_lane[lane].append(shotCompo.shot)
-
-            shotCompo.isCurrent = shotCompo.shot == currentShot
-
-            # NOTE: we use _isSelected instead of the property isSelected in order
-            # to avoid the call of the callback function _on_selected_changed, otherwise
-            # the event loops and keep redrawing all the time
-            shotCompo._isSelected = shotCompo.shot == selectedShot
-
-            if shotCompo.isCurrent:
-                shotCompoCurrent = shotCompo
-            shotCompo.isVisible = True
-            shotCompo.posY = lane
-            shotCompo.draw(None, self.context.region, preDrawOnly=preDrawOnly)
-
-        # draw quad for current shot over the result
-        self.drawCurrentShotDecoration(shotCompoCurrent, preDrawOnly=preDrawOnly)
+            self.redrawCounter_Text2D = Text2D(
+                posX=100,
+                posY=20,
+                alignment="BOTTOM_RIGHT",
+                alignmentToRegion="BOTTOM_RIGHT",
+                text="Num redraws: -",
+                fontSize=16,
+            )
 
     def draw(self, preDrawOnly=False):
         if self.target_area is not None and self.context.area != self.target_area:
             return
-
-        props = self.context.scene.UAS_shot_manager_props
 
         # Debug - red rectangle ####################
         if self.useDebugComponents:
@@ -362,26 +225,23 @@ class ShotStackWidget:
             ###############################
 
             # self.debug_quadObject_Ruler.draw(None, self.context.region)
-            self.debug_quadObject_test.draw(None, self.context.region)
+            # self.debug_quadObject_test.draw(None, self.context.region)
             # self.debug_quadObject.draw(None, self.context.region)
-            self.debug_component2D.draw(None, self.context.region)
-            self.debug_Text2D.draw(None, self.context.region)
+            # self.debug_component2D.draw(None, self.context.region)
+            # self.debug_Text2D.draw(None, self.context.region)
 
             # draw text
             ###############################
 
-            workspace_info.draw_callback__dopesheet_size(self, self.context, self.target_area)
-            workspace_info.draw_callback__dopesheet_mouse_pos(self, self.context, self.target_area)
-            workspace_info.draw_callback__dopesheet_lane_numbers(self, self.context, self.target_area)
+            # workspace_info.draw_callback__dopesheet_size(self, self.context, self.target_area)
+            # workspace_info.draw_callback__dopesheet_mouse_pos(self, self.context, self.target_area)
+            # workspace_info.draw_callback__dopesheet_lane_numbers(self, self.context, self.target_area)
 
-            # return
-
-        self.infoComponent.draw(None, self.context.region)
-
-        if props.interactShotsStack_displayInCompactMode:
-            self.drawShots_compactMode(preDrawOnly=preDrawOnly)
-        else:
-            self.drawShots(preDrawOnly=preDrawOnly)
+            # redraw counter
+            ###############################
+            self.numRedraws += 1
+            self.redrawCounter_Text2D.text = f"Num redraws: {self.numRedraws}"
+            self.redrawCounter_Text2D.draw(None, self.context.region)
 
     def validateAction(self):
         _logger.debug_ext("Validating Shot Stack action", col="GREEN", tag="SHOTSTACK_EVENT")
@@ -393,45 +253,30 @@ class ShotStackWidget:
         pass
 
     def handle_event(self, context, event, region):
-        """Return True if the event is handled for ShotStackWidget"""
+        """Return True if the event is handled for DopesheetGpuSampleWidget"""
         # props = context.scene.UAS_shot_manager_props
         # prefs = config.getShotManagerPrefs()
 
-        # _logger.debug_ext("*** handle event for ShotStackWidget", col="GREEN", tag="SHOTSTACK_EVENT")
-        if not context.window_manager.UAS_shot_manager_toggle_shots_stack_interaction:
+        # _logger.debug_ext("*** handle event for DopesheetGpuSampleWidget", col="GREEN", tag="SHOTSTACK_EVENT")
+        if not context.window_manager.UAS_shot_manager_display_dopesheet_gpu_sample:
             return False
 
         event_handled = False
         # if event.type not in ["MOUSEMOVE", "INBETWEEN_MOUSEMOVE", "TIMER"]:
-        #     _logger.debug_ext(f"  *** event in ShotStackWidget: {event.type}", col="GREEN", tag="SHOTSTACK_EVENT")
+        #     _logger.debug_ext(f"  *** event in DopesheetGpuSampleWidget: {event.type}", col="GREEN", tag="SHOTSTACK_EVENT")
 
         # NOTE: context is different. Normal?
         context = self.context
 
         mouse_x, mouse_y = region.view2d.region_to_view(event.mouse_x - region.x, event.mouse_y - region.y)
 
-        # update info component
-        self.infoComponent.updateFromEvent(event)
-        # if event.shift:
-        #     # self.infoComponent.posY = 80
-        #     # self.infoComponent.textLine01.posX = 40
+        # if event.ctrl:
         #     self.infoComponent.setText("Ctrl")
-        #     self.infoComponent.setModifierKeyState(True)
         # else:
-        #     # self.infoComponent.posY = 20
-        #     # self.infoComponent.textLine01.posX = 10
         #     self.infoComponent.setText("4")
-        #     self.infoComponent.setModifierKeyState(False)
 
         if event.type not in ["TIMER"]:
             _logger.debug_ext(f"event: type: {event.type}, value: {event.value}", col="GREEN", tag="SHOTSTACK_EVENT")
-
-        for shotCompo in self.shotComponents:
-            if not shotCompo.isVisible:
-                continue
-            event_handled = shotCompo.handle_event(context, event)
-            if event_handled:
-                break
 
         # debug
         if not event_handled:

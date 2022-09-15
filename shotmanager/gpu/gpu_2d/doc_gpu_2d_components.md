@@ -3,11 +3,11 @@
    Mesh2D  - draw simple quad (fill, line)
       \
        \
-        \             Object2D   - pos, alignment, children
-         \             /    \
+        \             Object2D     - pos, alignment, children
+         \             /    \      - no draw functions !
           \           /      \
-           \         /      text2D
-            \       /
+           \         /        \
+            \       /        Text2D
              \     /
               \   /
             QuadObject
@@ -19,6 +19,12 @@
                      \      /
                       \    /
                     Component2D
+
+## Alignment:
+
+  Instances of classes inheriting from Object2D have a transformation (only position is supported at the moment)
+  that is dependent on the alignment of their pivot in regard to their bounding box and on their alignment
+  to the parent. See [Object2D] description for more details.
 
 
 ## Draw:
@@ -36,7 +42,19 @@
      |
      |_ [Component2D].draw()
 
-
+  Children components are recursively drawn from parent to each ends of the hierarchy.
+  To do so:
+    - Do NOT explicitely call the draw() function of a child in the parent draw() function
+    - Either:
+      - Call the parent class (not the parent component!) draw() function, which will draw
+        the component as expected and will also collect the children and draw them
+        wkNote: add a drawChildren() somewhere?
+      - Or, in case the component draw() function has been customized and the draw() of the
+        parent class is not relevant, then explicitely call the children draw() functions
+        with such code:
+            sortedChildren = self.getChildren(sortedByIncreasingZ=True)
+            for child in sortedChildren:
+                child.draw(None, region)
 
 ## Event:
 
@@ -100,5 +118,10 @@
 
 
 # To do:
-  - simplify the arguments of the draw() function
+  - simplify the arguments of the draw() function, and in particular place the region arg first
+  - add an alignmentToParent to [Object2D]
+  - add a display / visible flag to hide the component
+  - add a disable
+
+  
   

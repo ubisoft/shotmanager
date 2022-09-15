@@ -945,9 +945,15 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
         default=True,
     )
 
+    shtStack_display_info_widget: BoolProperty(
+        name="Display Information Widget",
+        description="Display the Information Widget with the modifier tips in the Shots Stack",
+        default=True,
+    )
+
     shtStack_link_stb_clips_to_keys: BoolProperty(
-        name="Link Storyboard Clips to Keyframes",
-        description="Link the Storyboard shot clips ",
+        name="Link Storyboard Frame Content to Storyboard Clips",
+        description="Link the Storyboard Frame content and the animation keys to the manipulated Storyboard shot clip",
         default=True,
     )
 

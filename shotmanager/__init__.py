@@ -84,7 +84,7 @@ bl_info = {
     "author": "Ubisoft - Julien Blervaque (aka Werwack), Romain Carriquiry Borchiari",
     "description": "Easily manage shots and cameras in the 3D View and see the resulting edit in real-time",
     "blender": (3, 1, 0),
-    "version": (2, 1, 3),
+    "version": (2, 1, 4),
     "location": "View3D > Shot Mng",
     "doc_url": "https://ubisoft-shotmanager.readthedocs.io",
     "tracker_url": "https://github.com/ubisoft/shotmanager/issues",
@@ -111,6 +111,8 @@ def register():
 
     _logger.tags = config.getLoggingTags()
     logger_level = f"Logger level: {sm_logging.getLevelName()}"
+    sm_logging.loggerFormatTest(message="Logger test message")
+
     versionTupple = utils.display_addon_registered_version("Ubisoft Shot Manager", more_info=logger_level)
 
     from .overlay_tools.workspace_info import workspace_info

@@ -80,7 +80,7 @@ class Object2D:
         width:              The width of the object. Its unit is in pixels if widthIsInRegionCS is True, in frames otherwise
 
 
-        heightIsInRegionCS:   If True the height is in the View coordinate system of the region, height is then in pixels
+        heightIsInRegionCS: If True the height is in the View coordinate system of the region, height is then in pixels
                             Height of the object will NOT change even if the region scale on y is changed (eg: not dependent on lines scale)
 
                             If False the height is in the Region coordinate system, in number of lines.
@@ -92,16 +92,20 @@ class Object2D:
 
         height:             The height of the object. Its unit is in pixels if heightIsInRegionCS is True, in lines otherwise
 
-        alignment:          aligment of the object to its origin
+        alignment:          aligment of the object to its origin. It can be seen as being the placement of the pivot relatively
+                            to the component bounding box.
                             can be TOP_LEFT, TOP_MID, TOP_RIGHT, MID_RIGHT, BOTTOM_RIGHT, BOTTOM_MID, BOTTOM_LEFT (default), MID_LEFT, MID_MID
 
-        alignmentToRegion: aligment of the object to its parent region
+        alignmentToRegion:  aligment of the object to the REGION in which it belongs to (and not to its parent component).
+                            *** When this component has to be displayed in its parent component coordinate system then alignmentToRegion
+                            must be ignored and let to default ***
                             can be TOP_LEFT, TOP_MID, TOP_RIGHT, MID_RIGHT, BOTTOM_RIGHT, BOTTOM_MID, BOTTOM_LEFT (default), MID_LEFT, MID_MID
 
     """
 
     def __init__(
         self,
+        *,
         posXIsInRegionCS=True,
         posX=30,
         posYIsInRegionCS=True,

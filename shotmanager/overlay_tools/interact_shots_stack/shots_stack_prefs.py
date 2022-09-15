@@ -43,6 +43,7 @@ def draw_settings(context, layout):
         "interactShotsStack_displayInCompactMode",
         text="Compact Shots Display (= decrease visual stack height)",
     )
+    propCol.prop(prefs, "shtStack_display_info_widget")
 
     firstLineRow = propCol.row(align=False)
     # firstLineRow.use_property_split = True
@@ -120,14 +121,13 @@ class UAS_ShotManager_OT_InteractShotsStackSettingsWind(Operator):
 
         mainRow = layout.row(align=True)
         mainRow.separator(factor=0.7)
-        col = mainRow.column(align=True)
-        col.separator(factor=0.7)
-        mainRow.separator(factor=0.7)
+
+        propCol = propertyColumn(mainRow)
 
         # target dopesheet
         #######################
 
-        targetrow = col.row(align=True)
+        targetrow = propCol.row(align=True)
         # activeindrow.scale_x = 0.4
         targetrow.separator(factor=4)
 
@@ -153,7 +153,7 @@ class UAS_ShotManager_OT_InteractShotsStackSettingsWind(Operator):
         # seq timeline
         #######################
 
-        targetrow = col.row(align=True)
+        targetrow = propCol.row(align=True)
         targetrow.operator(
             "uas_shot_manager.toggle_seq_timeline_with_overlay_tools",
             text="",
@@ -165,13 +165,13 @@ class UAS_ShotManager_OT_InteractShotsStackSettingsWind(Operator):
 
         # shots stack
         #######################
-        row = col.row(align=True)
-        row.label(text="Shots Stack:")
+        propCol.separator(factor=1)
+        propCol.label(text="Shots Stack:")
 
-        row = col.row(align=False)
-        row.prop(prefs, "shtStack_opacity", text="Shots Stack Opacity", slider=True)
+        propCol.prop(prefs, "shtStack_opacity", text="Shots Stack Opacity", slider=True)
+        propCol.prop(prefs, "shtStack_display_info_widget")
 
-        col.separator(factor=0.7)
+        propCol.separator(factor=0.7)
 
     def execute(self, context):
         return {"FINISHED"}

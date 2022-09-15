@@ -2075,7 +2075,8 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         if self.selected_shot_index_call_update__flag:
             props = context.scene.UAS_shot_manager_props
             prefs = config.getShotManagerPrefs()
-            _logger.debug_ext(f"\n*** selected_shot_index. New state: {self.selected_shot_index}")
+            if -1 != self.selected_shot_index:
+                _logger.debug_ext(f"\n*** selected_shot_index. New state: {self.selected_shot_index}")
 
             setCurrentShot = False
             # if False:

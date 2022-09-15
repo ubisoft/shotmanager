@@ -52,10 +52,10 @@ UNIFORM_SHADER_2D = gpu.shader.from_builtin("2D_UNIFORM_COLOR")
 class ShotClipComponent(Component2D):
     """Shot clip component"""
 
-    def __init__(self, targetArea, posY=2, shot=None):
+    def __init__(self, targetArea, posY=2, shot=None, shotsStack=None):
         Component2D.__init__(
             self,
-            targetArea,
+            targetArea=targetArea,
             posXIsInRegionCS=False,
             posX=10,
             posYIsInRegionCS=False,
@@ -67,6 +67,8 @@ class ShotClipComponent(Component2D):
             alignment="BOTTOM_LEFT",
             alignmentToRegion="TOP_LEFT",
         )
+
+        self.shotsStackWidget = shotsStack
 
         # preferences ############
         self.pref_handleWidth = int(getLaneHeight() * 0.5)
@@ -153,6 +155,7 @@ class ShotClipComponent(Component2D):
             parent=self,
             shot=self.shot,
             isStart=True,
+            shotsStack=self.shotsStackWidget,
         )
 
         # end handle component ########
@@ -164,6 +167,7 @@ class ShotClipComponent(Component2D):
             parent=self,
             shot=self.shot,
             isStart=False,
+            shotsStack=self.shotsStackWidget,
         )
 
     #################################################################
@@ -385,11 +389,13 @@ class ShotClipComponent(Component2D):
         """
         if isManipulated:
             _logger.debug_ext("component2D handle_events set manipulated True", col="PURPLE", tag="EVENT")
+            self.shotsStackWidget.manipulatedComponent = self
             if self.shot.isStoryboardType():
                 self.manipulatedChildren = self.shot.getStoryboardChildren()
             pass
         else:
             _logger.debug_ext("component2D handle_events set manipulated False", col="PURPLE", tag="EVENT")
+            self.shotsStackWidget.manipulatedComponent = None
             self.manipulatedChildren = None
             pass
 
@@ -414,20 +420,21 @@ class ShotClipComponent(Component2D):
 
         prefs = config.getShotManagerPrefs()
         if prefs.shtStack_link_stb_clips_to_keys and self.manipulatedChildren is not None:
-            retimerApplyToSettings = context.window_manager.UAS_shot_manager_shots_stack_retimerApplyTo
-            retimerApplyToSettings.initialize("STORYBOARD_CLIP")
+            if not (not event.ctrl and event.alt and not event.shift):
+                retimerApplyToSettings = context.window_manager.UAS_shot_manager_shots_stack_retimerApplyTo
+                retimerApplyToSettings.initialize("STORYBOARD_CLIP")
 
-            # if offset_duration > 0 we insert time from a point far in negative time
-            # if offset_duration < 0 we delete time from a point very far in negative time
-            farRefPoint = -100000
-            retimeScene(
-                context,
-                "GLOBAL_OFFSET",
-                retimerApplyToSettings,
-                self.manipulatedChildren,
-                farRefPoint + 1,
-                mouse_delta_frames,
-            )
+                # if offset_duration > 0 we insert time from a point far in negative time
+                # if offset_duration < 0 we delete time from a point very far in negative time
+                farRefPoint = -100000
+                retimeScene(
+                    context=context,
+                    retimeMode="GLOBAL_OFFSET",
+                    retimerApplyToSettings=retimerApplyToSettings,
+                    objects=self.manipulatedChildren,
+                    start_incl=farRefPoint + 1,
+                    duration_incl=mouse_delta_frames,
+                )
 
     # to override by inheriting classes
     def _on_doublecliked(self, context, event, region):

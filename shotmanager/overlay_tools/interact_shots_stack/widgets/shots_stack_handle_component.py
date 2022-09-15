@@ -38,7 +38,17 @@ UNIFORM_SHADER_2D = gpu.shader.from_builtin("2D_UNIFORM_COLOR")
 class ShotHandleComponent(Component2D):
     """Handle for shot clip component"""
 
-    def __init__(self, targetArea, posY=2, width=32, alignment="BOTTOM_LEFT", parent=None, shot=None, isStart=True):
+    def __init__(
+        self,
+        targetArea,
+        posY=2,
+        width=32,
+        alignment="BOTTOM_LEFT",
+        parent=None,
+        shot=None,
+        isStart=True,
+        shotsStack=None,
+    ):
         Component2D.__init__(
             self,
             targetArea,
@@ -55,6 +65,8 @@ class ShotHandleComponent(Component2D):
             parent=parent,
         )
 
+        self.shotsStackWidget = shotsStack
+
         # shot ###################
         self.shot = shot
         self.zOrder = -1.0
@@ -65,7 +77,7 @@ class ShotHandleComponent(Component2D):
         # manipulation
         # filled when isManipulated changes
         self.manipulatedChildren = None
-        self.manipulationBeginningFrame = None
+        self.manipulationBeginingFrame = None
 
         # green or orange
         self.color_highlight = (0.2, 0.7, 0.2, 1) if self.isStart else (0.7, 0.3, 0.0, 1)
@@ -156,44 +168,54 @@ class ShotHandleComponent(Component2D):
         function is called
         """
         # we use this to set the color of the clip as for when manipulated
+        self.manipulatedChildren = None
+
         if isManipulated:
+            self.shotsStackWidget.manipulatedComponent = self
             self.parent.isManipulatedByAnotherComponent = True
+            self.manipulationBeginingFrame = context.scene.frame_current
             if self.shot.isStoryboardType():
                 self.manipulatedChildren = self.shot.getStoryboardChildren()
-                self.manipulationBeginningFrame = context.scene.frame_current
+            else:
+                if self.shot.isCameraValid():
+                    self.manipulatedChildren = [self.shot.camera]
         else:
+            self.shotsStackWidget.manipulatedComponent = None
             self.parent.isManipulatedByAnotherComponent = False
-            self.manipulatedChildren = None
-            self.manipulationBeginningFrame = None
+            self.manipulationBeginingFrame = None
 
     # override of InteractiveComponent
     def _on_manipulated_mouse_moved(self, context, event, mouse_delta_frames=0):
         """wkip note: delta_frames is in frames but may need to be in pixels in some cases"""
         # !! we have to be sure we work on the selected shot !!!
+        prevShotStart = self.shot.start
+        prevShotEnd = self.shot.end
+
         if self.isStart:
-            prevShotStart = self.shot.start
             self.shot.start += mouse_delta_frames
-            # bpy.ops.uas_shot_manager.set_shot_start(newStart=self.start + mouse_delta_frames)
-
-            prefs = config.getShotManagerPrefs()
-            if prefs.shtStack_link_stb_clips_to_keys and event.ctrl:
-                if self.manipulatedChildren is not None:
-                    retimerApplyToSettings = context.window_manager.UAS_shot_manager_shots_stack_retimerApplyTo
-                    retimerApplyToSettings.initialize("STORYBOARD_CLIP")
-
-                    retimeFactor = (self.shot.end - self.shot.start) / (self.shot.end - prevShotStart)
-                    #  retimeFactor = 0.5
-                    retimeScene(
-                        context,
-                        "RESCALE",
-                        retimerApplyToSettings,
-                        self.manipulatedChildren,
-                        -10000,
-                        90000,
-                        True,
-                        retimeFactor,
-                        self.shot.end,
-                    )
-
+            pivot = self.shot.end
         else:
             self.shot.end += mouse_delta_frames
+            pivot = self.shot.start
+
+        # bpy.ops.uas_shot_manager.set_shot_start(newStart=self.start + mouse_delta_frames)
+
+        prefs = config.getShotManagerPrefs()
+        if prefs.shtStack_link_stb_clips_to_keys and self.manipulatedChildren is not None:
+            if not event.ctrl and not event.alt and event.shift:
+                retimerApplyToSettings = context.window_manager.UAS_shot_manager_shots_stack_retimerApplyTo
+                retimerApplyToSettings.initialize("STORYBOARD_CLIP")
+
+                retimeFactor = (self.shot.end - self.shot.start) / (prevShotEnd - prevShotStart)
+                #  retimeFactor = 0.5
+                retimeScene(
+                    context=context,
+                    retimeMode="RESCALE",
+                    retimerApplyToSettings=retimerApplyToSettings,
+                    objects=self.manipulatedChildren,
+                    start_incl=-10000,
+                    duration_incl=90000,
+                    join_gap=True,
+                    factor=retimeFactor,
+                    pivot=pivot,
+                )

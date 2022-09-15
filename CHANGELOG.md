@@ -1,4 +1,13 @@
 -----
+## 2.1.004 (2022-09-14)
+### Interactive Shots Stack
+- Added an info component
+- Added mode and scale keyframe changes when a shot clip is manipulated
+
+### Code
+- Added a sample widget to the gpu components library
+
+-----
 ## 2.1.003 (2022-09-12)
 - Fixed regression bug on Convert Camera Binding
 - Fixed the detached grease pencil transform lock state
