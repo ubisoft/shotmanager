@@ -45,6 +45,9 @@ def initGlobalVariables():
     # change this value to force debug at start time
     devDebug = True
 
+    global devDebug_displayDebugPanel
+    devDebug_displayDebugPanel = True
+
     global devDebug_lastRedrawTime
     devDebug_lastRedrawTime = -1
 
@@ -149,9 +152,9 @@ def getLoggingTags():
     tags["REG"] = True
     tags["UNREG"] = True
 
-    tags["INIT_AND_DATA"] = True
+    tags["INIT_AND_DATA"] = False
 
-    tags["SHOTS_PLAY_MODE"] = True
+    tags["SHOTS_PLAY_MODE"] = False
 
     tags["RENDER"] = False
     tags["LAYOUT"] = False
@@ -160,8 +163,8 @@ def getLoggingTags():
     tags["EDIT_IO"] = True
 
     tags["TIMELINE_EVENT"] = False
-    tags["SHOTSTACK_EVENT"] = True
-    tags["EVENT"] = True
+    tags["SHOTSTACK_EVENT"] = False
+    tags["EVENT"] = False
 
     # info tags
     tags["RENDERTIME"] = False

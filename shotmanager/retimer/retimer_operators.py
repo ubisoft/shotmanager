@@ -108,7 +108,7 @@ class UAS_ShotManager_RetimerApply(Operator):
         else:
             sceneObjs = [obj for obj in context.scene.objects]
 
-        if not retimerApplyToSettings.applyToStoryboardShots:
+        if not retimerApplyToSettings.applyToStoryboardShotRanges:
             stbObjs = getStoryboardObjects(context.scene)
             for obj in stbObjs:
                 if obj in sceneObjs:
@@ -201,6 +201,8 @@ class UAS_ShotManager_RetimerApply(Operator):
                 join_gap=True,
                 factor=retimeEngine.factor,
                 pivot=start_excl,
+                keysBeforeRangeMode="DO_NOTHING",
+                keysAfterRangeMode="OFFSET",
             )
 
         elif "CLEAR_ANIM" == retimeEngine.mode:

@@ -23,7 +23,7 @@ import bpy
 
 from shotmanager.utils.utils_markers import sortMarkers
 
-from shotmanager.config import config
+# from shotmanager.config import config
 from shotmanager.config import sm_logging
 
 _logger = sm_logging.getLogger(__name__)
@@ -56,10 +56,11 @@ class FCurve:
     # def set_handles ( self, index, value ):
     #    self.fcurve.keyframe_points[ index ].handle_left, self.fcurve.keyframe_points[ index ].handle_right = value
 
-    def insert_frame(self, coordinates):
-        kf = self.fcurve.keyframe_points.insert(coordinates[0], coordinates[1])
+    def insert_frame(self, coordinates, roundToNearestFrame=True):
+        frame_val = round(coordinates[0]) if roundToNearestFrame else coordinate[0]
+        self.fcurve.keyframe_points.insert(frame_val, coordinates[1])
 
-    def remove_frames(self, start_incl, end_incl, remove_gap=False):
+    def remove_frames(self, start_incl, end_incl, remove_gap=False, roundToNearestFrame=True):
         to_remove = list()
 
         for k in self.fcurve.keyframe_points:
@@ -95,13 +96,13 @@ class FCurve:
         #         print(f" rr04 start_incl_key_right_handle_right02 {start_incl_key_right_handle_right02}")
 
         if remove_gap:
-            _offset_frames(self, end_incl, start_incl - end_incl - 1)
+            _offset_fCurve_frames(self, end_incl, start_incl - end_incl - 1, roundToNearestFrame)
 
     def __len__(self):
         return len(self.fcurve.keyframe_points)
 
 
-# def _offset_frames(fcurve: FCurve, start_incl, offset):
+# def _offset_fCurve_frames(fcurve: FCurve, start_incl, offset):
 #     for i in range(len(fcurve)):
 #         key_time, value = fcurve.get_key_coordinates(i)
 #         if start_incl <= key_time:
@@ -152,8 +153,8 @@ def computeNewFrameValue(frame_value, mode, start_incl=0, end_incl=0, pivot=0, f
     """Return the value of the time (in frames) after the retiming
     Return None if the new time value is not available (deleted time for example)
     It supports floating time frames.
-    ARgs:
-        roundToNearestFrame:  round to nearest frame
+    Args:
+        roundToNearestFrame:  round the frame time value
     """
 
     new_frame_value = frame_value
@@ -195,11 +196,23 @@ def computeNewFrameValue(frame_value, mode, start_incl=0, end_incl=0, pivot=0, f
 
 
 def compute_offset(frame_value, pivot, factor, roundToNearestFrame=True):
+    """Compute the offset value to add to frame_value to scale it from the pivot and by the given factor.
+    If frame_value > pivot then the computed offset is negative.
+    Return the offset"""
+    duration_to_pivot = pivot - frame_value
+    new_duration_to_pivot = duration_to_pivot * factor
+    offset = duration_to_pivot - new_duration_to_pivot
+    offset = round(offset) if roundToNearestFrame else offset
+    return offset
+
+
+def apply_offset(frame_value, pivot, factor, roundToNearestFrame=True):
     """Compute the new value of frame_value when scaled from the pivot and by the given factor"""
     duration_to_pivot = frame_value - pivot
     offset = duration_to_pivot * factor
-    return round(offset) if roundToNearestFrame else offset
-    # return round(duration_to_pivot * factor)  # + pivot
+    new_frame_value = frame_value + offset
+    new_frame_value = round(new_frame_value) if roundToNearestFrame else new_frame_value
+    return new_frame_value
 
 
 def rescale_frame(frame_value, start_incl, end_incl, pivot, factor, roundToNearestFrame=True):
@@ -246,8 +259,28 @@ def rescale_frame(frame_value, start_incl, end_incl, pivot, factor, roundToNeare
 #     new_value = if round_result else
 #     return new_value
 
+##########################################################################
+# fcurve
+##########################################################################
 
-def _stretch_frames(fcurve: FCurve, start_incl, end_incl, factor, pivot_value, clamp):
+
+def _rescale_fCurve_frames(
+    *,
+    fcurve: FCurve,
+    start_incl,
+    end_incl,
+    factor,
+    pivot,
+    clamp=False,
+    roundToNearestFrame=True,
+    keysBeforeRangeMode="DO_NOTHING",
+    keysAfterRangeMode="DO_NOTHING",
+):
+    """
+    Args:
+        keysBeforeRangeMode: Action to do on keys located before the specified time range. Can be "DO_NOTHING", "OFFSET", "RESCALE"
+        keysAfterRangeMode: Action to do on keys located after the specified time range. Can be "DO_NOTHING", "OFFSET", "RESCALE"
+    """
     # First pass.
     if clamp:
         remove_pre_start = list()
@@ -265,41 +298,173 @@ def _stretch_frames(fcurve: FCurve, start_incl, end_incl, factor, pivot_value, c
 
         if remove_post_end:
             fcurve.remove_frames(min(remove_post_end), max(remove_post_end), False)
-    else:
-        if factor > 1:
-            _offset_frames(
-                fcurve, end_incl + 1, compute_offset(end_incl + 1, pivot_value, factor) - (end_incl - start_incl + 1)
-            )
-            # print(f" rescale offset 01: {compute_offset(end_incl + 1, pivot_value, factor)}")
 
-    # wkip delete existing keys when factor < 1.0
+    # else:
+    #     if factor > 1:
+    #         _offset_fCurve_frames(
+    #             fcurve,
+    #             end_incl + 1,
+    #             compute_offset(end_incl + 1, pivot, factor, roundToNearestFrame=False)
+    #             - (end_incl - start_incl + 1),
+    #             roundToNearestFrame,
+    #         )
+    #         # print(f" rescale offset 01: {compute_offset(end_incl + 1, pivot, factor)}")
+
+    # TODO: wkip delete existing or ducplicated keys when factor < 1.0
+
     # bpy.ops.action.clean(threshold=0.001, channels=False)
     for i in range(len(fcurve)):
-        coordinates = fcurve.get_key_coordinates(i)
-        if start_incl <= coordinates[0] <= end_incl:
-            handles = fcurve.handles(i)
-            offset = compute_offset(coordinates[0], pivot_value, factor)  # - start_incl + 1
-            # fcurve.set_key_coordinates(i, (coordinates[0] + offset, coordinates[1]))
-            fcurve.set_key_coordinates(i, (pivot_value + offset, coordinates[1]))
-            handles[0][0] = pivot_value + compute_offset(handles[0][0], pivot_value, factor)
-            handles[1][0] = pivot_value + compute_offset(handles[1][0], pivot_value, factor)
+        key_time, key_value = fcurve.get_key_coordinates(i)
+        changeMode = "RESCALE"
+        if key_time < start_incl:
+            changeMode = keysBeforeRangeMode
+        elif end_incl < key_time:
+            changeMode = keysAfterRangeMode
 
-    if factor < 1.0:
-        _offset_frames(
-            fcurve, end_incl + 1, compute_offset(end_incl + 1, pivot_value, factor) - (end_incl - start_incl + 1)
-        )
+        #  if start_incl <= key_time <= end_incl:
+
+        if "RESCALE" == changeMode:
+            offset = compute_offset(key_time, pivot, factor, roundToNearestFrame=False)  # - start_incl + 1
+            new_key_time = key_time + offset
+            if roundToNearestFrame:
+                new_key_time = round(new_key_time)
+            fcurve.set_key_coordinates(i, (new_key_time, key_value))
+
+            # handle coordinates are absolute, not changing when the key position changes
+            # we want to apply the scaling on the x axis of the handles that corresponds to the
+            # final move of the key (so including the rounding, if applicated)
+            # To do so we then compute back the corresponding scale factor
+
+            # offset_with_rounded_added_offset = new_key_time - key_time
+
+            left_handle, right_handle = fcurve.handles(i)
+            if key_time != pivot:
+                factor_for_rounded_offset = (new_key_time - pivot) / (key_time - pivot)
+
+                left_handle[0] += compute_offset(
+                    left_handle[0], pivot, factor_for_rounded_offset, roundToNearestFrame=False
+                )
+                right_handle[0] += compute_offset(
+                    right_handle[0], pivot, factor_for_rounded_offset, roundToNearestFrame=False
+                )
+
+            # since the handle is on the pivot it is not affected by the scaling... but at least
+            # one of its handles is (if the pivot is one of the boundaries of the range), if not
+            # both, if the pivot is inbetween
+            else:
+                if start_incl < left_handle[0]:
+                    left_handle[0] += compute_offset(left_handle[0], pivot, factor, roundToNearestFrame=False)
+                if right_handle[0] < end_incl:
+                    right_handle[0] += compute_offset(right_handle[0], pivot, factor, roundToNearestFrame=False)
+
+        elif "OFFSET" == changeMode:
+            if key_time < start_incl:
+                offset = compute_offset(start_incl, pivot, factor, roundToNearestFrame=False)
+            elif end_incl < key_time:
+                offset = compute_offset(end_incl, pivot, factor, roundToNearestFrame=False)
+
+            new_key_time = key_time + offset
+            if roundToNearestFrame:
+                new_key_time = round(new_key_time)
+            fcurve.set_key_coordinates(i, (new_key_time, key_value))
+
+            offset_with_rounded_added_offset = new_key_time - key_time
+            left_handle, right_handle = fcurve.handles(i)
+            left_handle[0] += offset_with_rounded_added_offset
+            right_handle[0] += offset_with_rounded_added_offset
+
+    # if factor < 1.0:
+    #     _offset_fCurve_frames(
+    #         fcurve,
+    #         end_incl + 1,
+    #         compute_offset(end_incl + 1, pivot, factor) - (end_incl - start_incl + 1),
+    #         roundToNearestFrame,
+    #     )
 
 
-def _offset_frames(fcurve: FCurve, start_incl, offset):
+def _offset_fCurve_frames(fcurve: FCurve, start_incl, offset, roundToNearestFrame):
     for i in range(len(fcurve)):
         key_time, value = fcurve.get_key_coordinates(i)
         if start_incl <= key_time:
-            fcurve.set_key_coordinates(i, (key_time + offset, value))
+            # key_time = key_time + offset
+            # if roundToNearestFrame:
+            #     key_time = round(key_time)
+            # fcurve.set_key_coordinates(i, (key_time, value))
+            # left_handle, right_handle = fcurve.handles(i)
+            # left_handle[0] += offset
+            # right_handle[0] += offset
+
+            new_key_time = key_time + offset
+            if roundToNearestFrame:
+                new_key_time = round(new_key_time)
+
+            offset_with_rounded_added_offset = new_key_time - key_time
             left_handle, right_handle = fcurve.handles(i)
-            left_handle[0] += offset
-            right_handle[0] += offset
+            left_handle[0] += offset_with_rounded_added_offset
+            right_handle[0] += offset_with_rounded_added_offset
+            fcurve.set_key_coordinates(i, (new_key_time, value))
 
 
+def retime_fCurve_frames(
+    fcurve: FCurve,
+    mode,
+    start_incl=0,
+    end_incl=0,
+    remove_gap=True,
+    factor=1.0,
+    pivot=0,
+    roundToNearestFrame=True,
+    keysBeforeRangeMode="DO_NOTHING",
+    keysAfterRangeMode="DO_NOTHING",
+):
+    """
+    Args:
+        keysBeforeRangeMode: Action to do on keys located before the specified time range. Can be "DO_NOTHING", "OFFSET", "RESCALE"
+        keysAfterRangeMode: Action to do on keys located after the specified time range. Can be "DO_NOTHING", "OFFSET", "RESCALE"
+    """
+
+    if mode == "INSERT":
+        _offset_fCurve_frames(fcurve, start_incl, end_incl - start_incl + 1, roundToNearestFrame)
+
+    elif mode == "DELETE" or mode == "CLEAR_ANIM":
+        fcurve.remove_frames(start_incl, end_incl, remove_gap)
+
+    elif mode == "RESCALE":
+        _rescale_fCurve_frames(
+            fcurve=fcurve,
+            start_incl=start_incl,
+            end_incl=end_incl,
+            factor=factor,
+            pivot=pivot,
+            clamp=False,
+            roundToNearestFrame=roundToNearestFrame,
+            keysBeforeRangeMode=keysBeforeRangeMode,
+            keysAfterRangeMode=keysAfterRangeMode,
+        )
+
+    elif mode == "FREEZE":
+        for i in range(len(fcurve)):
+            key_time, value = fcurve.get_key_coordinates(i)
+            new_keys = list()
+            if key_time == start_incl:
+                new_keys.append((key_time, value))
+                new_keys.append((key_time + end_incl - start_incl, value))
+
+            if key_time >= start_incl:
+                fcurve.set_key_coordinates(i, (key_time + end_incl - start_incl, value))
+
+                left_handle, right_handle = fcurve.get_handles(i)
+                left_handle[0] += end_incl - start_incl
+                right_handle[0] += end_incl - start_incl
+                fcurve.set_handles(i, (left_handle, right_handle))
+
+            for v in new_keys:
+                fcurve.insert_frame(v, roundToNearestFrame)
+
+
+##########################################################################
+# grease pencil
+##########################################################################
 def _offset_GPframes(layer, start_incl, offset):
     """Move the layer frames that are AT THE SAME TIME or later than the reference frame"""
     # print(f"layer:{layer.info}")
@@ -308,7 +473,9 @@ def _offset_GPframes(layer, start_incl, offset):
             f.frame_number += offset
 
 
-def retime_GPframes(layer, mode, start_incl=0, end_incl=0, remove_gap=True, factor=1.0, pivot=0):
+def retime_GPframes(
+    layer, mode, start_incl=0, end_incl=0, remove_gap=True, factor=1.0, pivot=0, roundToNearestFrame=True
+):
     """Retime "frames" (= each drawing of a Grease Pencil object)"""
     offset = end_incl - start_incl + 1
 
@@ -359,37 +526,9 @@ def retime_GPframes(layer, mode, start_incl=0, end_incl=0, remove_gap=True, fact
     return ()
 
 
-def retime_frames(fcurve: FCurve, mode, start_incl=0, end_incl=0, remove_gap=True, factor=1.0, pivot=0):
-
-    if mode == "INSERT":
-        _offset_frames(fcurve, start_incl, end_incl - start_incl + 1)
-
-    elif mode == "DELETE" or mode == "CLEAR_ANIM":
-        fcurve.remove_frames(start_incl, end_incl, remove_gap)
-
-    elif mode == "RESCALE":
-        _stretch_frames(fcurve, start_incl, end_incl, factor, pivot, False)
-
-    elif mode == "FREEZE":
-        for i in range(len(fcurve)):
-            key_time, value = fcurve.get_key_coordinates(i)
-            new_keys = list()
-            if key_time == start_incl:
-                new_keys.append((key_time, value))
-                new_keys.append((key_time + end_incl - start_incl, value))
-
-            if key_time >= start_incl:
-                fcurve.set_key_coordinates(i, (key_time + end_incl - start_incl, value))
-
-                left_handle, right_handle = fcurve.get_handles(i)
-                left_handle[0] += end_incl - start_incl
-                right_handle[0] += end_incl - start_incl
-                fcurve.set_handles(i, (left_handle, right_handle))
-
-            for v in new_keys:
-                fcurve.insert_frame(v)
-
-
+##########################################################################
+# shot range
+##########################################################################
 # wkip warining here start_frame is EXCLUSIF - To change!!
 # end frame is inclusive
 def retime_shot(shot, mode, start_incl=0, end_incl=0, remove_gap=True, factor=1.0, pivot=0):
@@ -806,12 +945,16 @@ def retimeScene(
     join_gap=True,
     factor=1.0,
     pivot=0,
+    keysBeforeRangeMode="DO_NOTHING",
+    keysAfterRangeMode="DO_NOTHING",
 ):
     """Apply the time change for each type of entities
-
     Args:
+        retimeMode: Can be GLOBAL_OFFSET, INSERT_BEFORE, INSERT_AFTER, DELETE_RANGE, RESCALE, CLEAR_ANIM",
         start_incl (int): The included start frame
         duration_incl (int): The range of retime frames (new or deleted)
+        keysBeforeRangeMode: Action to do on keys located before the specified time range. Can be "DO_NOTHING", "OFFSET", "RESCALE"
+        keysAfterRangeMode: Action to do on keys located after the specified time range. Can be "DO_NOTHING", "OFFSET", "RESCALE"
     """
     # prefs = config.getShotManagerPrefs()
     scene = context.scene
@@ -833,42 +976,63 @@ def retimeScene(
     )
 
     #    print("Retiming scene: , factor: ", mode, factor)
+    roundToNearestFrame = retimerApplyToSettings.snapKeysToFrames
     retime_args = (mode, start_incl, end_incl, join_gap, factor, pivot)
     #    print("retime_args: ", retime_args)
 
-    actions_done = set()  # Actions can be linked so we must make sure to only retime them once
+    # Actions can be linked so we must make sure to only retime them once
+    actions_done = set()
     action_tmp = bpy.data.actions.new("Retimer_TmpAction")
 
+    def _retimeFcurve(action):
+        if action is not None and action not in actions_done:
+            # wkip can we have animated properties that are not actions?
+            for fcurve in action.fcurves:
+                if not fcurve.lock or retimerApplyToSettings.includeLockAnim:
+                    retime_fCurve_frames(
+                        FCurve(fcurve), *retime_args, roundToNearestFrame, keysBeforeRangeMode, keysAfterRangeMode
+                    )
+            actions_done.add(action)
+            _logger.debug_ext(f"_retimerFcurve: actions_done len: {len(actions_done)}")
+
+    sceneMaterials = []
     for obj in objects:
         # print(f"Retiming object named: {obj.name}")
 
-        # Standard object keyframes
+        # standard object keyframes
         if retimerApplyToSettings.applyToObjects:
             if obj.type != "GPENCIL":
                 if obj.animation_data is not None:
-                    action = obj.animation_data.action
-                    if action is not None and action not in actions_done:
-                        # wkip can we have animated properties that are not actions?
-                        for fcurve in action.fcurves:
-                            if not fcurve.lock or retimerApplyToSettings.includeLockAnim:
-                                retime_frames(FCurve(fcurve), *retime_args)
-                        actions_done.add(action)
+                    _retimeFcurve(obj.animation_data.action)
 
-        # Shape keys
-        if retimerApplyToSettings.applyToShapeKeys:
-            if (
-                obj.type == "MESH"
-                and obj.data.shape_keys is not None
-                and obj.data.shape_keys.animation_data is not None
-            ):
-                action = obj.data.shape_keys.animation_data.action
-                if action is not None and action not in actions_done:
-                    for fcurve in action.fcurves:
-                        if not fcurve.lock or retimerApplyToSettings.includeLockAnim:
-                            retime_frames(FCurve(fcurve), *retime_args)
-                    actions_done.add(action)
+                # data animation
+                if obj.data is not None and obj.data.animation_data is not None:
+                    _retimeFcurve(obj.data.animation_data.action)
 
-        # Grease pencil
+                # shape keys
+                if retimerApplyToSettings.applyToShapeKeys:
+                    if (
+                        obj.type == "MESH"
+                        and obj.data.shape_keys is not None
+                        and obj.data.shape_keys.animation_data is not None
+                    ):
+                        _retimeFcurve(obj.data.shape_keys.animation_data.action)
+
+                # animated materials
+                for matSlot in obj.material_slots:
+                    if matSlot is not None:
+                        mat = matSlot.material
+                        if mat not in sceneMaterials:
+                            sceneMaterials.append(mat)
+                            if mat.animation_data is not None and mat.animation_data.action is not None:
+                                _retimeFcurve(mat.animation_data.action)
+                            if (
+                                mat.node_tree.animation_data is not None
+                                and mat.node_tree.animation_data.action is not None
+                            ):
+                                _retimeFcurve(mat.node_tree.animation_data.action)
+
+        # grease pencil
         if retimerApplyToSettings.applytToGreasePencil:
             #    retime_args = (mode, start_incl, end_incl, join_gap, factor, pivot)
 
@@ -883,7 +1047,6 @@ def retimeScene(
                     # the stroke frames are not updated. As a turnaround we force an action and
                     # remove it afterward
                     if obj.animation_data.action is None:
-
                         obj.animation_data.action = action_tmp
                         action_tmp_added = True
 
@@ -891,19 +1054,19 @@ def retimeScene(
                     if action is not None and action not in actions_done:
                         for fcurve in action.fcurves:
                             if not fcurve.lock or retimerApplyToSettings.includeLockAnim:
-                                retime_frames(FCurve(fcurve), *retime_args)
+                                retime_fCurve_frames(FCurve(fcurve), *retime_args, roundToNearestFrame)
                         if not action_tmp_added:
                             actions_done.add(action)
 
                 for layer in obj.data.layers:
                     #    print(f"Treating GP object: {obj.name} layer: {layer}")
                     if not layer.lock or retimerApplyToSettings.includeLockAnim:
-                        retime_GPframes(layer, *retime_args)
+                        retime_GPframes(layer, *retime_args, roundToNearestFrame)
 
                 if action_tmp_added:
                     obj.animation_data.action = None
 
-        # Force an update on the actions (cause bug. Other approach would be to save the file and reload it)
+        # force an update on the actions (cause bug. Other approach would be to save the file and reload it)
         if obj.animation_data is not None:
             if obj.animation_data.action is not None:
                 action_backup = obj.animation_data.action
@@ -916,8 +1079,8 @@ def retimeScene(
         if retimerApplyToSettings.applyToVSE:
             retime_vse(scene, mode, start_incl, end_incl)
 
-    # Shots
-    if retimerApplyToSettings.applyToCameraShots:
+    # Shot ranges
+    if retimerApplyToSettings.applyToCameraShotRanges:
         props = scene.UAS_shot_manager_props
         shotList = props.getShotsList(ignoreDisabled=False)
 
@@ -927,7 +1090,7 @@ def retimeScene(
 
     # markers
     if retimerApplyToSettings.applyToMarkers:
-        retime_markers(scene, *retime_args)
+        retime_markers(scene, *retime_args, roundToNearestFrame)
 
     # anim range
     # NOTE: end_incl = start_incl + duration_incl - 1  <=>  duration_incl = end_incl - start_incl + 1

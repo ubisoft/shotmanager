@@ -45,6 +45,12 @@ class UAS_Retimer_ApplyToSettings(PropertyGroup):
         default=True,
         options=set(),
     )
+    snapKeysToFrames: BoolProperty(
+        name="Snap Keys to Frames",
+        description="Snap the retime keys to the nearest frame value",
+        default=True,
+        options=set(),
+    )
 
     applyToObjects: BoolProperty(
         name="Objects",
@@ -72,15 +78,15 @@ class UAS_Retimer_ApplyToSettings(PropertyGroup):
         options=set(),
     )
 
-    applyToCameraShots: BoolProperty(
-        name="Shots",
-        description="Apply time change to the range of the shots of type Camera (*** NOT to Storyboard shots ! ***",
+    applyToCameraShotRanges: BoolProperty(
+        name="Camera Shot Ranges",
+        description="Apply time change to the range (but not the shot content) of the shots of type Camera (*** NOT to Storyboard shots ! ***",
         default=True,
         options=set(),
     )
-    applyToStoryboardShots: BoolProperty(
-        name="Shots",
-        description="Apply time change to the range of the shots of type Storyboard (*** NOT to Camera shots ! ***",
+    applyToStoryboardShotRanges: BoolProperty(
+        name="Storyboard Shot Ranges",
+        description="Apply time change to the range (but not the shot content) of the shots of type Storyboard (*** NOT to Camera shots ! ***",
         default=False,
         options=set(),
     )
@@ -110,7 +116,7 @@ class UAS_Retimer_ApplyToSettings(PropertyGroup):
         """
         Args:
             applyToMode: the mode of the applyTo settings. Can be SCENE, SELECTED_OBJECTS, LEGACY
-                         Internaly if can also be: STORYBOARD_CLIP
+                         Internaly if can also be: STB_SHOT_CLIP
         """
         _logger.debug_ext(f"initialize Retimer ApplyTo Settings {applyToMode}", col="GREEN", tag="RETIMER")
 
@@ -124,6 +130,7 @@ class UAS_Retimer_ApplyToSettings(PropertyGroup):
 
             self.onlyOnSelection = False
             self.includeLockAnim = True
+            self.snapKeysToFrames = True
 
             self.applyToObjects = True
             self.applyToShapeKeys = True
@@ -131,8 +138,8 @@ class UAS_Retimer_ApplyToSettings(PropertyGroup):
 
             self.applyToMarkers = True
 
-            self.applyToCameraShots = True
-            self.applyToStoryboardShots = False
+            self.applyToCameraShotRanges = True
+            self.applyToStoryboardShotRanges = False
 
             self.applyToVSE = True
 
@@ -146,6 +153,7 @@ class UAS_Retimer_ApplyToSettings(PropertyGroup):
 
             self.onlyOnSelection = False
             self.includeLockAnim = True
+            self.snapKeysToFrames = True
 
             # NOTE: a camera from a shot is an object belonging to the scene
             self.applyToObjects = True
@@ -154,22 +162,23 @@ class UAS_Retimer_ApplyToSettings(PropertyGroup):
 
             self.applyToMarkers = False
 
-            self.applyToCameraShots = False
-            self.applyToStoryboardShots = False
+            self.applyToCameraShotRanges = False
+            self.applyToStoryboardShotRanges = False
 
             self.applyToVSE = False
 
             self.applyToTimeCursor = False
             self.applyToSceneRange = False
 
-        # Storyboard clip - fos shot stack clip manipulations
+        # Storyboard shot clip - for shot stack clip manipulations
         ########################
-        if "STORYBOARD_CLIP" == applyToMode:
+        if "STB_SHOT_CLIP" == applyToMode:
             self.id = applyToMode
-            self.name = "Apply to Storyboard Clips"
+            self.name = "Apply to Storyboard Shot Clips"
 
             self.onlyOnSelection = False
             self.includeLockAnim = True
+            self.snapKeysToFrames = True
 
             self.applyToObjects = True
             self.applyToShapeKeys = True
@@ -177,8 +186,32 @@ class UAS_Retimer_ApplyToSettings(PropertyGroup):
 
             self.applyToMarkers = False
 
-            self.applyToCameraShots = False
-            self.applyToStoryboardShots = False
+            self.applyToCameraShotRanges = False
+            self.applyToStoryboardShotRanges = False
+
+            self.applyToVSE = False
+
+            self.applyToTimeCursor = False
+            self.applyToSceneRange = False
+
+        # Camera (or previz) shot clip - for shot stack clip manipulations
+        ########################
+        if "PVZ_SHOT_CLIP" == applyToMode:
+            self.id = applyToMode
+            self.name = "Apply to Camera Shot Clips"
+
+            self.onlyOnSelection = False
+            self.includeLockAnim = True
+            self.snapKeysToFrames = True
+
+            self.applyToObjects = True
+            self.applyToShapeKeys = True
+            self.applytToGreasePencil = True
+
+            self.applyToMarkers = False
+
+            self.applyToCameraShotRanges = False
+            self.applyToStoryboardShotRanges = False
 
             self.applyToVSE = False
 

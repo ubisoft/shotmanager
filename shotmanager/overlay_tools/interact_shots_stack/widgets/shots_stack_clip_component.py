@@ -387,17 +387,20 @@ class ShotClipComponent(Component2D):
         """isManipulated has the same value than self.isManipulated, which is set right before this
         function is called
         """
+
+        self.manipulatedChildren = None
+
         if isManipulated:
             _logger.debug_ext("component2D handle_events set manipulated True", col="PURPLE", tag="EVENT")
             self.shotsStackWidget.manipulatedComponent = self
             if self.shot.isStoryboardType():
                 self.manipulatedChildren = self.shot.getStoryboardChildren()
-            pass
+            else:
+                if self.shot.isCameraValid():
+                    self.manipulatedChildren = [self.shot.camera]
         else:
             _logger.debug_ext("component2D handle_events set manipulated False", col="PURPLE", tag="EVENT")
             self.shotsStackWidget.manipulatedComponent = None
-            self.manipulatedChildren = None
-            pass
 
     # override of InteractiveComponent
     def _on_manipulated_mouse_moved(self, context, event, mouse_delta_frames=0):
@@ -420,10 +423,18 @@ class ShotClipComponent(Component2D):
 
         prefs = config.getShotManagerPrefs()
         if prefs.shtStack_link_stb_clips_to_keys and self.manipulatedChildren is not None:
-            if not (not event.ctrl and event.alt and not event.shift):
-                retimerApplyToSettings = context.window_manager.UAS_shot_manager_shots_stack_retimerApplyTo
-                retimerApplyToSettings.initialize("STORYBOARD_CLIP")
 
+            retimerApplyToSettings = context.window_manager.UAS_shot_manager_shots_stack_retimerApplyTo
+
+            offsetShotContent = False
+            if self.shot.isStoryboardType():
+                offsetShotContent = not (not event.ctrl and event.alt and not event.shift)
+                retimerApplyToSettings.initialize("STB_SHOT_CLIP")
+            else:
+                offsetShotContent = not event.ctrl and not event.alt and event.shift
+                retimerApplyToSettings.initialize("PVZ_SHOT_CLIP")
+
+            if offsetShotContent:
                 # if offset_duration > 0 we insert time from a point far in negative time
                 # if offset_duration < 0 we delete time from a point very far in negative time
                 farRefPoint = -100000

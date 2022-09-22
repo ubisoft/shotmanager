@@ -189,17 +189,28 @@ class UAS_PT_Shot_Manager_Debug(Panel):
                 for gpLayer in gpencil.data.layers:
                     for kf in gpLayer.frames:
                         if kf.select:
-                            keys.append([kf.frame_number])
+                            keys.append([kf.frame_number, 0])
 
             else:
+                # transformation anim
                 if obj.animation_data:
                     action = obj.animation_data.action
+                    if action:
+                        for fcurve in action.fcurves:
+                            for p in fcurve.keyframe_points:
+                                if p.select_control_point:
+                                    # print(p.co[0], p.select_control_point)
+                                    keys.append(p)
 
-                    for fcurve in action.fcurves:
-                        for p in fcurve.keyframe_points:
-                            if p.select_control_point:
-                                # print(p.co[0], p.select_control_point)
-                                keys.append([p.co[0]])
+                # data anim
+                if obj.data.animation_data:
+                    action = obj.data.animation_data.action
+                    if action:
+                        for fcurve in action.fcurves:
+                            for p in fcurve.keyframe_points:
+                                if p.select_control_point:
+                                    # print(p.co[0], p.select_control_point)
+                                    keys.append(p)
             return keys
 
         keys = _getSelectedKeysOfSelObj()
@@ -207,7 +218,13 @@ class UAS_PT_Shot_Manager_Debug(Panel):
         if len(keys):
             for i, k in enumerate(keys):
                 if i < 3:
-                    layout.label(text=f"  key at fr. {k[0]}")
+                    # try:
+                    layout.label(
+                        text=f"  key at fr. {k.co[0]:0.2f}, val: {k.co[1]:0.2f}, left h: {k.handle_left}, right h: {k.handle_right}"
+                    )
+                    # except Exception:
+                    #     layout.label(text=f"  GP key at fr. {k}")
+
                 else:
                     layout.label(text=f"... and {len(keys) - 3} other keys")
                     break

@@ -174,6 +174,7 @@ class ShotHandleComponent(Component2D):
             self.shotsStackWidget.manipulatedComponent = self
             self.parent.isManipulatedByAnotherComponent = True
             self.manipulationBeginingFrame = context.scene.frame_current
+
             if self.shot.isStoryboardType():
                 self.manipulatedChildren = self.shot.getStoryboardChildren()
             else:
@@ -202,20 +203,32 @@ class ShotHandleComponent(Component2D):
 
         prefs = config.getShotManagerPrefs()
         if prefs.shtStack_link_stb_clips_to_keys and self.manipulatedChildren is not None:
-            if not event.ctrl and not event.alt and event.shift:
-                retimerApplyToSettings = context.window_manager.UAS_shot_manager_shots_stack_retimerApplyTo
-                retimerApplyToSettings.initialize("STORYBOARD_CLIP")
+
+            retimerApplyToSettings = context.window_manager.UAS_shot_manager_shots_stack_retimerApplyTo
+
+            scaleShotContent = False
+            if self.shot.isStoryboardType():
+                scaleShotContent = not event.ctrl and not event.alt and event.shift
+                retimerApplyToSettings.initialize("STB_SHOT_CLIP")
+            else:
+                scaleShotContent = not event.ctrl and not event.alt and event.shift
+                retimerApplyToSettings.initialize("PVZ_SHOT_CLIP")
+
+            if scaleShotContent:
+                # do NOT snap on frames during scaling transformation otherwhise frames will be lost because merged at the same time !
+                retimerApplyToSettings.snapKeysToFrames = False
 
                 retimeFactor = (self.shot.end - self.shot.start) / (prevShotEnd - prevShotStart)
-                #  retimeFactor = 0.5
                 retimeScene(
                     context=context,
                     retimeMode="RESCALE",
                     retimerApplyToSettings=retimerApplyToSettings,
                     objects=self.manipulatedChildren,
                     start_incl=-10000,
-                    duration_incl=90000,
+                    duration_incl=900000,
                     join_gap=True,
                     factor=retimeFactor,
                     pivot=pivot,
+                    keysBeforeRangeMode="RESCALE",
+                    keysAfterRangeMode="RESCALE",
                 )

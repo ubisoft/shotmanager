@@ -26,7 +26,7 @@ from shotmanager.config import config
 
 
 def drawApplyTo(context, retimerProps, layout):
-    prefs = config.getShotManagerPrefs()
+    # prefs = config.getShotManagerPrefs()
     retimerApplyToSettings = retimerProps.getCurrentApplyToSettings()
 
     propCol = propertyColumn(layout, padding_left=2, align=False)
@@ -62,18 +62,18 @@ def drawApplyTo(context, retimerProps, layout):
         stbRow = entitiesCol.row()
         stbRow.prop(
             retimerApplyToSettings,
-            "applyToStoryboardShots",
+            "applyToStoryboardShotRanges",
             text="Storyboard Shots",
         )
         # text="Storyboard Shots: Their temporality is not related to the scene",
 
         # doesnt work, need an enum
         # stbRow.prop_with_popover(
-        #     retimerApplyToSettings, "applyToStoryboardShots", panel="UAS_PT_SM_quicktooltip", text="tototo", icon="INFO"
+        #     retimerApplyToSettings, "applyToStoryboardShotRanges", panel="UAS_PT_SM_quicktooltip", text="tototo", icon="INFO"
         # )
 
         stbRowRight = stbRow.row()
-        stbRowRight.alert = retimerApplyToSettings.applyToStoryboardShots
+        stbRowRight.alert = retimerApplyToSettings.applyToStoryboardShotRanges
 
         quickHelpInfo = retimerProps.getQuickHelp("APPLYTO_STORYBOARDSHOTS")
         # doc_op = stbRowRight.operator("shotmanager.open_documentation_url", text="", icon="INFO", emboss=False)
@@ -83,9 +83,12 @@ def drawApplyTo(context, retimerProps, layout):
         # tooltipStr += f"\n\nOpen Shot Manager Retimer online documentation:\n     {doc_op.path}"
         # doc_op.tooltip = tooltipStr
 
-        # quickTooltip(stbRowRight, "patate", title="Storyboard Shots", alert=retimerApplyToSettings.applyToStoryboardShots)
+        # quickTooltip(stbRowRight, "patate", title="Storyboard Shots", alert=retimerApplyToSettings.applyToStoryboardShotRanges)
         quickTooltip(
-            stbRowRight, quickHelpInfo[2], title=quickHelpInfo[1], alert=retimerApplyToSettings.applyToStoryboardShots
+            stbRowRight,
+            quickHelpInfo[2],
+            title=quickHelpInfo[1],
+            alert=retimerApplyToSettings.applyToStoryboardShotRanges,
         )
 
         entitiesCol.separator(factor=0.5)
@@ -99,6 +102,10 @@ def drawApplyTo(context, retimerProps, layout):
         row.prop(retimerApplyToSettings, "onlyOnSelection", text="Selection Only")
         row = split.row(align=True)
         row.prop(retimerApplyToSettings, "includeLockAnim", text="Include Locked Anim")
+
+        row = propCol.row(align=True)
+        row.separator(factor=0.7)
+        row.prop(retimerApplyToSettings, "snapKeysToFrames", text="Snap Keys to Frames")
 
         box = propCol.box()
         col = box.column()
@@ -127,6 +134,10 @@ def drawApplyTo(context, retimerProps, layout):
             row = split.row(align=True)
             row.prop(retimerApplyToSettings, "includeLockAnim", text="Include Locked Anim")
 
+            row = propCol.row(align=True)
+            row.separator(factor=0.7)
+            row.prop(retimerApplyToSettings, "snapKeysToFrames", text="Snap Keys to Frames")
+
         propRow = propCol.row()
         propRow.alert = config.devDebug and "LEGACY" != retimerApplyToSettings.id
 
@@ -146,7 +157,7 @@ def drawApplyTo(context, retimerProps, layout):
         row.scale_y = 0.3
 
         row = col.row(align=True)
-        row.prop(retimerApplyToSettings, "applyToCameraShots")
+        row.prop(retimerApplyToSettings, "applyToCameraShotRanges")
         row.prop(retimerApplyToSettings, "applyToVSE")
         row.label(text="")
 

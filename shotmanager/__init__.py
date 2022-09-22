@@ -332,7 +332,7 @@ def register():
         print(f"\n ------ Ubisoft Shot Manager debug: {config.devDebug} ------- ")
 
     addon_prefs_inst = config.getShotManagerPrefs()
-    addon_prefs_inst.displaySMDebugPanel = False
+    addon_prefs_inst.displaySMDebugPanel = config.devDebug_displayDebugPanel
 
     # _props = bpy.context.scene.UAS_shot_manager_props
     # # currentLayout = props.getCurrentLayout()
