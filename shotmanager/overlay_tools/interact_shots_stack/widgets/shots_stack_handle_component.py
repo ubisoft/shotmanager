@@ -195,9 +195,15 @@ class ShotHandleComponent(Component2D):
         if self.isStart:
             self.shot.start += mouse_delta_frames
             pivot = self.shot.end
+            start_incl = prevShotStart
+            end_incl = self.shot.end
+            duration_incl = end_incl - start_incl + 1
         else:
             self.shot.end += mouse_delta_frames
             pivot = self.shot.start
+            start_incl = self.shot.start
+            end_incl = prevShotEnd
+            duration_incl = end_incl - start_incl + 1
 
         # bpy.ops.uas_shot_manager.set_shot_start(newStart=self.start + mouse_delta_frames)
 
@@ -224,8 +230,10 @@ class ShotHandleComponent(Component2D):
                     retimeMode="RESCALE",
                     retimerApplyToSettings=retimerApplyToSettings,
                     objects=self.manipulatedChildren,
-                    start_incl=-10000,
-                    duration_incl=900000,
+                    # start_incl=-10000,
+                    # duration_incl=900000,
+                    start_incl=start_incl,
+                    duration_incl=duration_incl,
                     join_gap=True,
                     factor=retimeFactor,
                     pivot=pivot,

@@ -184,6 +184,7 @@ class UAS_PT_Shot_Manager_Debug(Panel):
             if not obj:
                 return keys
 
+            # C.object.data.layers[8].frames[0].frame_number
             if "GPENCIL" == obj.type:
                 gpencil = obj
                 for gpLayer in gpencil.data.layers:
@@ -218,12 +219,13 @@ class UAS_PT_Shot_Manager_Debug(Panel):
         if len(keys):
             for i, k in enumerate(keys):
                 if i < 3:
-                    # try:
-                    layout.label(
-                        text=f"  key at fr. {k.co[0]:0.2f}, val: {k.co[1]:0.2f}, left h: {k.handle_left}, right h: {k.handle_right}"
-                    )
-                    # except Exception:
-                    #     layout.label(text=f"  GP key at fr. {k}")
+                    try:
+                        layout.label(
+                            text=f"  key at fr. {k.co[0]:0.2f}, val: {k.co[1]:0.2f}, left h: {k.handle_left}, right h: {k.handle_right}"
+                        )
+                    except Exception:
+                        # GP frames
+                        layout.label(text=f"  GP key at fr. {k}")
 
                 else:
                     layout.label(text=f"... and {len(keys) - 3} other keys")

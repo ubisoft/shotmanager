@@ -264,6 +264,29 @@ def rescale_frame(frame_value, start_incl, end_incl, pivot, factor, roundToNeare
 ##########################################################################
 
 
+def _offset_fCurve_frames(fcurve: FCurve, start_incl, offset, roundToNearestFrame):
+    for i in range(len(fcurve)):
+        key_time, value = fcurve.get_key_coordinates(i)
+        if start_incl <= key_time:
+            # key_time = key_time + offset
+            # if roundToNearestFrame:
+            #     key_time = round(key_time)
+            # fcurve.set_key_coordinates(i, (key_time, value))
+            # left_handle, right_handle = fcurve.handles(i)
+            # left_handle[0] += offset
+            # right_handle[0] += offset
+
+            new_key_time = key_time + offset
+            if roundToNearestFrame:
+                new_key_time = round(new_key_time)
+
+            offset_with_rounded_added_offset = new_key_time - key_time
+            left_handle, right_handle = fcurve.handles(i)
+            left_handle[0] += offset_with_rounded_added_offset
+            right_handle[0] += offset_with_rounded_added_offset
+            fcurve.set_key_coordinates(i, (new_key_time, value))
+
+
 def _rescale_fCurve_frames(
     *,
     fcurve: FCurve,
@@ -287,10 +310,10 @@ def _rescale_fCurve_frames(
         remove_post_end = list()
         for i in range(len(fcurve)):
             coordinates = fcurve.get_key_coordinates(i)
-            dist_from_pivot = coordinates[0] - pivot_value
-            if start_incl >= round(pivot_value + dist_from_pivot * factor):
+            dist_from_pivot = coordinates[0] - pivot
+            if start_incl >= round(pivot + dist_from_pivot * factor):
                 remove_pre_start.append(coordinates[0])
-            elif round(pivot_value + dist_from_pivot * factor) >= end_incl:
+            elif round(pivot + dist_from_pivot * factor) >= end_incl:
                 remove_post_end.append(coordinates[0])
 
         if remove_pre_start:
@@ -320,8 +343,6 @@ def _rescale_fCurve_frames(
             changeMode = keysBeforeRangeMode
         elif end_incl < key_time:
             changeMode = keysAfterRangeMode
-
-        #  if start_incl <= key_time <= end_incl:
 
         if "RESCALE" == changeMode:
             offset = compute_offset(key_time, pivot, factor, roundToNearestFrame=False)  # - start_incl + 1
@@ -380,29 +401,6 @@ def _rescale_fCurve_frames(
     #         compute_offset(end_incl + 1, pivot, factor) - (end_incl - start_incl + 1),
     #         roundToNearestFrame,
     #     )
-
-
-def _offset_fCurve_frames(fcurve: FCurve, start_incl, offset, roundToNearestFrame):
-    for i in range(len(fcurve)):
-        key_time, value = fcurve.get_key_coordinates(i)
-        if start_incl <= key_time:
-            # key_time = key_time + offset
-            # if roundToNearestFrame:
-            #     key_time = round(key_time)
-            # fcurve.set_key_coordinates(i, (key_time, value))
-            # left_handle, right_handle = fcurve.handles(i)
-            # left_handle[0] += offset
-            # right_handle[0] += offset
-
-            new_key_time = key_time + offset
-            if roundToNearestFrame:
-                new_key_time = round(new_key_time)
-
-            offset_with_rounded_added_offset = new_key_time - key_time
-            left_handle, right_handle = fcurve.handles(i)
-            left_handle[0] += offset_with_rounded_added_offset
-            right_handle[0] += offset_with_rounded_added_offset
-            fcurve.set_key_coordinates(i, (new_key_time, value))
 
 
 def retime_fCurve_frames(
@@ -473,8 +471,61 @@ def _offset_GPframes(layer, start_incl, offset):
             f.frame_number += offset
 
 
+def _rescale_GPframes(
+    *,
+    layer,
+    start_incl,
+    end_incl,
+    factor,
+    pivot,
+    roundToNearestFrame=True,
+    keysBeforeRangeMode="DO_NOTHING",
+    keysAfterRangeMode="DO_NOTHING",
+):
+
+    for f in layer.frames:
+        # NOTE: whereas key_time in fcurve is a float, here frameNumber is an int !!!
+        frame_number_float = f.frame_number
+        changeMode = "RESCALE"
+        if frame_number_float < start_incl:
+            changeMode = keysBeforeRangeMode
+        elif end_incl < frame_number_float:
+            changeMode = keysAfterRangeMode
+
+        if "RESCALE" == changeMode:
+            offset = compute_offset(frame_number_float, pivot, factor, roundToNearestFrame=False)  # - start_incl + 1
+            new_frame_number_float = frame_number_float + offset
+
+            # rounding has to be done anyway since GP frames are integer
+            # if roundToNearestFrame:
+            new_frame_number_float = round(new_frame_number_float)
+            f.frame_number = new_frame_number_float
+
+        elif "OFFSET" == changeMode:
+            if frame_number_float < start_incl:
+                offset = compute_offset(start_incl, pivot, factor, roundToNearestFrame=False)
+            elif end_incl < frame_number_float:
+                offset = compute_offset(end_incl, pivot, factor, roundToNearestFrame=False)
+
+            new_frame_number_float = frame_number_float + offset
+
+            # rounding has to be done anyway since GP frames are integer
+            # if roundToNearestFrame:
+            new_frame_number_float = round(new_frame_number_float)
+            f.frame_number = new_frame_number_float
+
+
 def retime_GPframes(
-    layer, mode, start_incl=0, end_incl=0, remove_gap=True, factor=1.0, pivot=0, roundToNearestFrame=True
+    layer,
+    mode,
+    start_incl=0,
+    end_incl=0,
+    remove_gap=True,
+    factor=1.0,
+    pivot=0,
+    roundToNearestFrame=True,
+    keysBeforeRangeMode="DO_NOTHING",
+    keysAfterRangeMode="DO_NOTHING",
 ):
     """Retime "frames" (= each drawing of a Grease Pencil object)"""
     offset = end_incl - start_incl + 1
@@ -504,24 +555,35 @@ def retime_GPframes(
             #             f.frame_number -= end_incl - start_incl
 
     elif mode == "RESCALE":
-        # push out of range frames later in time
-        if factor > 1.0:
-            # wkip sur du +1 on end frame????
-            _offset_GPframes(
-                layer, end_incl + 1, compute_offset(end_incl + 1, pivot, factor) - (end_incl - start_incl + 1)
-            )
+        _rescale_GPframes(
+            layer=layer,
+            start_incl=start_incl,
+            end_incl=end_incl,
+            factor=factor,
+            pivot=pivot,
+            roundToNearestFrame=roundToNearestFrame,
+            keysBeforeRangeMode=keysBeforeRangeMode,
+            keysAfterRangeMode=keysAfterRangeMode,
+        )
 
-        # scale range
-        for f in layer.frames:
-            if start_incl <= f.frame_number <= end_incl:
-                offset = compute_offset(f.frame_number, pivot, factor)
-                f.frame_number = offset + pivot
+        # # push out of range frames later in time
+        # if factor > 1.0:
+        #     # wkip sur du +1 on end frame????
+        #     _offset_GPframes(
+        #         layer, end_incl + 1, compute_offset(end_incl + 1, pivot, factor) - (end_incl - start_incl + 1)
+        #     )
 
-        # pull out of range frames sooner in time
-        if factor < 1.0:
-            _offset_GPframes(
-                layer, end_incl + 1, compute_offset(end_incl + 1, pivot, factor) - (end_incl - start_incl + 1)
-            )
+        # # scale range
+        # for f in layer.frames:
+        #     if start_incl <= f.frame_number <= end_incl:
+        #         offset = compute_offset(f.frame_number, pivot, factor)
+        #         f.frame_number = offset + pivot
+
+        # # pull out of range frames sooner in time
+        # if factor < 1.0:
+        #     _offset_GPframes(
+        #         layer, end_incl + 1, compute_offset(end_incl + 1, pivot, factor) - (end_incl - start_incl + 1)
+        #     )
 
     return ()
 
@@ -971,9 +1033,8 @@ def retimeScene(
 
     end_incl = start_incl + duration_incl - 1
 
-    print(
-        f" - retimeScene(): {retimeMode}, start_incl: {start_incl}, end_incl: {end_incl}, duration_incl: {duration_incl}"
-    )
+    # duration_incl: {duration_incl}
+    print(f" - retimeScene(): {retimeMode}, str_inc:{start_incl}, ed_inc:{end_incl}, pivot:{pivot}, factor:{factor}")
 
     #    print("Retiming scene: , factor: ", mode, factor)
     roundToNearestFrame = retimerApplyToSettings.snapKeysToFrames
@@ -984,7 +1045,7 @@ def retimeScene(
     actions_done = set()
     action_tmp = bpy.data.actions.new("Retimer_TmpAction")
 
-    def _retimeFcurve(action):
+    def _retimeFcurve(action, addActionToDone=True):
         if action is not None and action not in actions_done:
             # wkip can we have animated properties that are not actions?
             for fcurve in action.fcurves:
@@ -992,8 +1053,10 @@ def retimeScene(
                     retime_fCurve_frames(
                         FCurve(fcurve), *retime_args, roundToNearestFrame, keysBeforeRangeMode, keysAfterRangeMode
                     )
-            actions_done.add(action)
-            _logger.debug_ext(f"_retimerFcurve: actions_done len: {len(actions_done)}")
+            # NOTE: wkip keep the test??
+            if addActionToDone:
+                actions_done.add(action)
+            # _logger.debug_ext(f"_retimerFcurve: actions_done len: {len(actions_done)}")
 
     sceneMaterials = []
     for obj in objects:
@@ -1050,18 +1113,21 @@ def retimeScene(
                         obj.animation_data.action = action_tmp
                         action_tmp_added = True
 
-                    action = obj.animation_data.action
-                    if action is not None and action not in actions_done:
-                        for fcurve in action.fcurves:
-                            if not fcurve.lock or retimerApplyToSettings.includeLockAnim:
-                                retime_fCurve_frames(FCurve(fcurve), *retime_args, roundToNearestFrame)
-                        if not action_tmp_added:
-                            actions_done.add(action)
+                    _retimeFcurve(obj.animation_data.action, addActionToDone=not action_tmp_added)
+                    # action = obj.animation_data.action
+                    # if action is not None and action not in actions_done:
+                    #     for fcurve in action.fcurves:
+                    #         if not fcurve.lock or retimerApplyToSettings.includeLockAnim:
+                    #             retime_fCurve_frames(FCurve(fcurve), *retime_args, roundToNearestFrame)
+                    #     if not action_tmp_added:
+                    #         actions_done.add(action)
 
                 for layer in obj.data.layers:
                     #    print(f"Treating GP object: {obj.name} layer: {layer}")
                     if not layer.lock or retimerApplyToSettings.includeLockAnim:
-                        retime_GPframes(layer, *retime_args, roundToNearestFrame)
+                        retime_GPframes(
+                            layer, *retime_args, roundToNearestFrame, keysBeforeRangeMode, keysAfterRangeMode
+                        )
 
                 if action_tmp_added:
                     obj.animation_data.action = None
