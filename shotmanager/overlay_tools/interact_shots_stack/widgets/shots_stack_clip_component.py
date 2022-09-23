@@ -395,9 +395,11 @@ class ShotClipComponent(Component2D):
             self.shotsStackWidget.manipulatedComponent = self
             if self.shot.isStoryboardType():
                 self.manipulatedChildren = self.shot.getStoryboardChildren()
+                bpy.ops.ed.undo_push()
             else:
                 if self.shot.isCameraValid():
                     self.manipulatedChildren = [self.shot.camera]
+                    bpy.ops.ed.undo_push()
         else:
             _logger.debug_ext("component2D handle_events set manipulated False", col="PURPLE", tag="EVENT")
             self.shotsStackWidget.manipulatedComponent = None

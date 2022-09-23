@@ -198,3 +198,8 @@ To do dans le support des noms de seq:
         - faire un test alert qd le nom de la seq est vide
     - otio import
 
+Avoir un rename de shots batch
+
+mettre le Snap to Frame
+Avoir un warning / clean pour quand les GP frames s'overlappent
+

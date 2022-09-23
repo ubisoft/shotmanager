@@ -75,6 +75,7 @@ def display_state_changed_intShStack(context):
 class UAS_ShotManager_InteractiveShotsStack(Operator):
     bl_idname = "uas_shot_manager.interactive_shots_stack"
     bl_label = "Draw Interactive Shots Stack in timeline"
+    # bl_options = {"INTERNAL"}
     bl_options = {"REGISTER", "INTERNAL"}
     # bl_options = {"UNDO"}
     # !!! Important note: Do not set undo here: it doesn't work and it will be in conflic with the

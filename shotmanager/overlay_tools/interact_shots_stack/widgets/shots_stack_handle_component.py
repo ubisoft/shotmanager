@@ -20,6 +20,7 @@ UI in BGL for the Interactive Shots Stack overlay tool
 """
 
 import gpu
+import bpy
 
 from shotmanager.gpu.gpu_2d.class_Component2D import Component2D
 
@@ -177,9 +178,11 @@ class ShotHandleComponent(Component2D):
 
             if self.shot.isStoryboardType():
                 self.manipulatedChildren = self.shot.getStoryboardChildren()
+                bpy.ops.ed.undo_push()
             else:
                 if self.shot.isCameraValid():
                     self.manipulatedChildren = [self.shot.camera]
+                    bpy.ops.ed.undo_push()
         else:
             self.shotsStackWidget.manipulatedComponent = None
             self.parent.isManipulatedByAnotherComponent = False
