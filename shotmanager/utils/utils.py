@@ -1206,7 +1206,9 @@ def lockTransforms(obj, *, lock=True):
 def slightlyRandomizeColor(refColor, weight=0.8):
     """
     refColor is supposed to be linear, returned color is linear too
-    refColor can be RGB or RGBA. Alpha is not modified.
+    Args:
+        refColor: the input color. Can be RGB or RGBA. Alpha is not modified.
+        weight: value in [0, 1]. The closer weight is to 1, the less the color is changed
     """
     from random import uniform
 

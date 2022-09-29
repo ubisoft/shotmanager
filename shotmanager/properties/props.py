@@ -187,6 +187,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         # self.parentScene = self.getParentScene()
 
         if not prefs.isInitialized:
+
             prefs.initialize_shot_manager_prefs()
 
         if self.parentScene is None:
@@ -1102,15 +1103,24 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
     ####################
 
     useContinuousGPEditing: BoolProperty(
-        name="Continuous GP Editing",
-        description="When used, the current storyboard frame or shot grease pencil will be switched"
-        "\nto edit mode if the edit mode is activated on a shot in the scene",
+        name="Continuous Drawing Mode",
+        description="When used, the Storyboard Frame of each shot set to be the current"
+        "\none will be automaticaly selected and switched to Draw mode",
         default=True,
     )
 
-    def isInContinuousGPEditing(self):
-        """Call this to get the state of continuous editing instead of directly using useContinuousGPEditing"""
-        state = self.useContinuousGPEditing and "STORYBOARD" == self.currentLayoutMode()
+    def isContinuousGPEditingModeActive(self):
+        """Return True if the context required to enter in a continuous drawing session is valid: the button
+        has to be visible and checked.
+        Note that the returned value is not dependent on the fact that a Grease Pencil object is being edited or not.
+        Query wkip for that.
+        Call this to get the state of continuous editing instead of directly using useContinuousGPEditing"""
+
+        state = False
+        currentLayout = self.getCurrentLayout()
+        if currentLayout:
+            state = currentLayout.display_storyboard_in_properties and self.useContinuousGPEditing
+        # state = state and "STORYBOARD" == self.currentLayoutMode()
         return state
 
     def getParentShotFromGpChild(self, obj):
@@ -1348,10 +1358,14 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
 
         return shotList
 
-    def getEditedGPShot(self, shotType=None):  # , takeIndex=-1):
-        """Return the edited grease pencil parent shot, None if no grease pencil child is currently being edited
+    def getEditedGPShot(self, shotType=None, onlyInCurrentTake=True):  # , takeIndex=-1):
+        """Return the edited grease pencil parent shot, None if no grease pencil child is currently being edited.
+        If onlyInCurrentTake is set to True then if the edited shot is not in the current take the returned value
+        is None.
         Args:
-            shotType: can be None, PREVIZ or STORYBOARD"""
+            shotType: can be None to get the shot no matter which type it is, PREVIZ or STORYBOARD
+            onlyInCurrentTake: if True, the edited shot is returned only if it belongs to the current shot
+        """
         # takeInd = (
         #     self.getCurrentTakeIndex()
         #     if -1 == takeIndex
@@ -1361,13 +1375,17 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         #     return None
 
         editedGP = utils_greasepencil.getObjectInSubMode()
+
+        # NOTE: we don't ckeck if the editing mode is Draw, Edit, Sculpt... this in order to
+        # still navigate between edited objects without changing the mode
         if editedGP is not None and "GPENCIL" == editedGP.type:
             parentShot = self.getParentShotFromGpChild(editedGP)
             if parentShot is not None:
-                if shotType is None:
-                    return parentShot
-                elif shotType == parentShot.shotType:
-                    return parentShot
+                if not onlyInCurrentTake or parentShot.getParentTakeIndex() == self.getCurrentTakeIndex():
+                    if shotType is None:
+                        return parentShot
+                    elif shotType == parentShot.shotType:
+                        return parentShot
         return None
 
     def getEditedStoryboardFrame(self):  # , takeIndex=-1):
@@ -1494,6 +1512,9 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
             return self.layouts[self.current_layout_index]
         return None
 
+    def getCurrentLayoutIndex(self):
+        return self.current_layout_index
+
     def setCurrentLayout(self, layoutMode):
         """Args:
         layoutMode: Can be "STORYBOARD or PREVIZ"""
@@ -1502,17 +1523,6 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
                 self.current_layout_index = ind
                 break
 
-    def getLayout(self, layoutMode):
-        """Args:
-        layoutMode: Can be "STORYBOARD or PREVIZ"""
-        for layout in self.layouts:
-            if layoutMode == layout.layoutMode:
-                return layout
-        return None
-
-    def getCurrentLayoutIndex(self):
-        return self.current_layout_index
-
     def setCurrentLayoutByIndex(self, layoutIndex):
         """Args:
         layoutMode: Can be 0 for "STORYBOARD or 1 for PREVIZ"""
@@ -1520,6 +1530,14 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
             self.current_layout_index = layoutIndex
         else:
             self.current_layout_index = -1
+
+    def getLayout(self, layoutMode):
+        """Args:
+        layoutMode: Can be "STORYBOARD or PREVIZ"""
+        for layout in self.layouts:
+            if layoutMode == layout.layoutMode:
+                return layout
+        return None
 
     def createLayoutSettings(self):
         _logger.debug_ext("createLayerSettings", col="GREEN", tag="LAYOUT")
@@ -2071,48 +2089,52 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
 
     selected_shot_index_call_update__flag: BoolProperty(default=True)
 
+    def selectedShotShouldBecomeCurrent(self):
+        """Return True if, according to the Preference settings and the current UI and scene context,
+        the actualy selected shot should be set as the current one.
+        Call this function just after the considered shot has been selected."""
+        prefs = config.getShotManagerPrefs()
+
+        setCurrentShot = False
+        # if False:
+        # if "STORYBOARD" == self.layout_mode:
+        if "STORYBOARD" == self.currentLayoutMode():
+            if prefs.shot_selected_from_shots_stack__flag:
+                # print("   call from shots stack")
+                if prefs.stb_selected_shot_in_shots_stack_changes_current_shot:
+                    #    print("   sel in shots stack")
+                    setCurrentShot = True
+            else:
+                if self.isContinuousGPEditingModeActive():
+                    setCurrentShot = True
+                elif prefs.stb_selected_shot_changes_current_shot:
+                    _logger.debug_ext("  Stb _update_selected_shot_index from shot list")
+                    # print("\n*** selected_shot_index. New state: ", self.selected_shot_index)
+                    setCurrentShot = True
+        # PREVIZ
+        else:
+            if prefs.shot_selected_from_shots_stack__flag:
+                # print("   call from shots stack")
+                if prefs.pvz_selected_shot_in_shots_stack_changes_current_shot:
+                    #    print("   sel in shots stack")
+                    setCurrentShot = True
+            else:
+                if self.isContinuousGPEditingModeActive():
+                    setCurrentShot = True
+                elif prefs.pvz_selected_shot_changes_current_shot:
+                    _logger.debug_ext("  Pvz _update_selected_shot_index from shot list")
+                    # print("\n*** selected_shot_index. New state: ", self.selected_shot_index)
+                    setCurrentShot = True
+
+        return setCurrentShot
+
     def _update_selected_shot_index(self, context):
         if self.selected_shot_index_call_update__flag:
-            props = context.scene.UAS_shot_manager_props
-            prefs = config.getShotManagerPrefs()
             if -1 != self.selected_shot_index:
                 _logger.debug_ext(f"\n*** selected_shot_index. New state: {self.selected_shot_index}")
 
-            setCurrentShot = False
-            # if False:
-            # if "STORYBOARD" == self.layout_mode:
-            if "STORYBOARD" == self.currentLayoutMode():
-                if prefs.shot_selected_from_shots_stack__flag:
-                    # print("   call from shots stack")
-                    if prefs.stb_selected_shot_in_shots_stack_changes_current_shot:
-                        #    print("   sel in shots stack")
-                        setCurrentShot = True
-                else:
-                    # if props.useContinuousGPEditing:
-                    if props.isInContinuousGPEditing():
-                        setCurrentShot = True
-                    elif prefs.stb_selected_shot_changes_current_shot:
-                        _logger.debug_ext("  Stb _update_selected_shot_index from shot list")
-                        # print("\n*** selected_shot_index. New state: ", self.selected_shot_index)
-                        setCurrentShot = True
-            # PREVIZ
-            else:
-                if prefs.shot_selected_from_shots_stack__flag:
-                    # print("   call from shots stack")
-                    if prefs.pvz_selected_shot_in_shots_stack_changes_current_shot:
-                        #    print("   sel in shots stack")
-                        setCurrentShot = True
-                else:
-                    # if props.useContinuousGPEditing:
-                    if props.isInContinuousGPEditing():
-                        setCurrentShot = True
-                    elif prefs.pvz_selected_shot_changes_current_shot:
-                        _logger.debug_ext("  Pvz _update_selected_shot_index from shot list")
-                        # print("\n*** selected_shot_index. New state: ", self.selected_shot_index)
-                        setCurrentShot = True
-
-            if setCurrentShot:
-                bpy.ops.uas_shot_manager.set_current_shot(index=self.selected_shot_index)
+                if self.selectedShotShouldBecomeCurrent():
+                    bpy.ops.uas_shot_manager.set_current_shot(index=self.selected_shot_index)
 
     selected_shot_index: IntProperty(name="Shot Name", update=_update_selected_shot_index, default=-1)
 
@@ -2517,7 +2539,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
 
         shots = take.getShotsList(ignoreDisabled=ignoreDisabled)
         for shot in shots:
-            self.copyShot(shot, targetTakeIndex=newTakeInd, copyCamera=copyCamera)
+            self.copyShot(shot, targetTakeIndex=newTakeInd, copyCamera=copyCamera, copyGreasePencil=True)
 
         return newTake
 
@@ -3490,8 +3512,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
             # storyboard
             ##########################
             # if "STORYBOARD" == self.layout_mode and prefs.current_shot_changes_edited_frame_in_stb:
-            # if self.useContinuousGPEditing:
-            if self.isInContinuousGPEditing():
+            if self.isContinuousGPEditingModeActive():
                 # if self.getEditedStoryboardFrame() is not None:
                 if self.getEditedGPShot() is not None:
                     bpy.ops.uas_shot_manager.greasepencil_select_and_draw(

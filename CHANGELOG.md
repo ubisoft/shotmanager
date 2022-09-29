@@ -1,5 +1,16 @@
 -----
-## 2.1.004 (2022-09-14)
+## 2.1.20 (2022-09-29)
+- Several fixes related to the continuous draw mode
+- Fixed storyboard frame that was not duplicated following to a take duplication
+- Added shot name in the Render panel, near Current Shot label
+- Refactored the Duplicate Shot dialog box and added a checkbox for color variation
+
+-----
+## 2.1.5 (2022-09-27)
+- Fixed a crash on Storyboard Grid because of Python 3.10 code
+
+-----
+## 2.1.4 (2022-09-14)
 ### Interactive Shots Stack
 - Added an info component
 - Added mode and scale keyframe changes when a shot clip is manipulated
@@ -8,17 +19,17 @@
 - Added a sample widget to the gpu components library
 
 -----
-## 2.1.003 (2022-09-12)
+## 2.1.3 (2022-09-12)
 - Fixed regression bug on Convert Camera Binding
 - Fixed the detached grease pencil transform lock state
 - Added a function to get the canvas frame when missing
 
 -----
-## 2.1.002 (2022-09-12)
+## 2.1.2 (2022-09-12)
 - Fixed the type of shot that was set to Storyboard when a storyboard frame was added
 
 -----
-## 2.1.001 (2022-09-12)
+## 2.1.1 (2022-09-12)
 **Beta Release**
 ### Keymaps
 - Separated key mappings per category

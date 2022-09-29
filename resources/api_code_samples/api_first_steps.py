@@ -26,7 +26,7 @@ print("SM scene name: ", sm_scene.name)
 
 
 #############################
-# Takes manipulation
+# Take manipulations
 #############################
 
 
@@ -65,7 +65,7 @@ take.set_name(current_take, "My New Take Renamed")
 
 
 #############################
-# Shots manipulation
+# Shot manipulations
 #############################
 
 

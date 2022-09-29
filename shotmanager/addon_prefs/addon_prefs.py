@@ -69,6 +69,23 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
     # when defining this in a submodule of a python package
     bl_idname = "shotmanager"
 
+    previousInstalledVersion: IntProperty(
+        description="Internal setting"
+        "\nStore (as an integer) the version of the release of the add-on that was installed before this release."
+        "\nIf there was none then the value is 0"
+        "\nThis version is updated when self.initialize_shot_manager_prefs() is called, which should occur"
+        "\nwhen the add-on is installed. So after the installation of a new version the value of previousInstalledVersion"
+        "\nshould be the same as self.version()[1]",
+        default=0,
+    )
+
+    def isPrefsVersionUpToDate(self):
+        """Used in the __init__() of the add-on to see if a call to initialize_shot_manager_prefs() is required.
+        This allows the prefs update to be done only when necessary (= when the add-on is updated), and not
+        at every register of the add-on.
+        """
+        return self.version()[1] == self.previousInstalledVersion
+
     install_failed: BoolProperty(
         name="Install failed",
         default=False,
@@ -149,9 +166,16 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
             else:
                 self.newAvailableVersion = 0
 
-        # layout default values
-        self.stb_selected_shot_changes_current_shot = False
+        # *** layouts initialization ***
+        ####################################
+
+        # storyboard layout default values
+        ##########################
+        self.stb_selected_shot_changes_current_shot = True
         self.stb_selected_shot_in_shots_stack_changes_current_shot = False
+        self.stb_current_stb_shot_changes_time_zoom = True
+        self.stb_current_pvz_shot_changes_time_zoom = True
+
         self.stb_display_storyboard_in_properties = True
         self.stb_display_notes_in_properties = True
         self.stb_display_cameraBG_in_properties = False
@@ -160,8 +184,13 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
         self.stb_display_globaleditintegr_in_properties = False
         self.stb_display_advanced_infos = False
 
+        # previz layout default values
+        ##########################
         self.pvz_selected_shot_changes_current_shot = False
         self.pvz_selected_shot_in_shots_stack_changes_current_shot = False
+        self.pvz_current_stb_shot_changes_time_zoom = True
+        self.pvz_current_pvz_shot_changes_time_zoom = False
+
         self.pvz_display_storyboard_in_properties = False
         self.pvz_display_notes_in_properties = False
         self.pvz_display_cameraBG_in_properties = False
@@ -172,6 +201,7 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
 
         # self.display_25D_greasepencil_panel = True
 
+        self.previousInstalledVersion = self.version()[1]
         self.isInitialized = True
 
     ########################################################################
@@ -425,6 +455,10 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
         name="Expand UI Preferences",
         default=False,
     )
+    addonPrefs_shotManips_expanded: BoolProperty(
+        name="Expand Shot Manipulations Preferences",
+        default=False,
+    )
     addonPrefs_features_expanded: BoolProperty(
         name="Expand Features Preferences",
         default=False,
@@ -460,16 +494,32 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
         description="Set the animation range to match the shot range when the current shot is changed.\n(Add-on preference)",
         default=False,
     )
-    current_shot_changes_time_zoom: BoolProperty(
-        name="Zoom Timeline to Shot Range",
-        description="Automatically zoom the timeline content to frame the shot when the current shot is changed.\n(Add-on preference)",
-        default=False,
-    )
-    current_shot_select_stb_frame: BoolProperty(
-        name="Select Storyboard Frame of the Current Short",
-        description="Automatically select the storyboard frame (= grease pencil) of the shot when the current shot is changed.\n(Add-on preference)",
+
+    # split to 2 properties, one for the storyboard layout mode and the other for the previz mode
+    # current_shot_changes_time_zoom: BoolProperty(
+    #     name="Zoom Timeline to Shot Range",
+    #     description="Automatically zoom the timeline content to frame the shot when the current shot is changed.\n(Add-on preference)",
+    #     default=False,
+    # )
+
+    # NOTE: these 2 settings are related to the SHOT TYPE, not to the current layout mode
+    # changed to current_stb_shot_select_stb_frame and current_pvz_shot_select_stb_frame
+    # current_shot_select_stb_frame: BoolProperty(
+    #     name="Select Storyboard Frame of the Current Short",
+    #     description="Automatically select the storyboard frame (= grease pencil) of the shot when the current shot is changed.\n(Add-on preference)",
+    #     default=True,
+    # )
+    current_stb_shot_select_stb_frame: BoolProperty(
+        name="Select Storyboard Frame of the Current Storyboard Short",
+        description="For shots of type Storyboard Shot: Automatically select the Storyboard Frame (= grease pencil) of the shot when the current shot is changed.\n(Add-on preference)",
         default=True,
     )
+    current_pvz_shot_select_stb_frame: BoolProperty(
+        name="Select Storyboard Frame of the Current Camera Short",
+        description="For shots of type Camera Shot: Automatically select the Storyboard Frame (= grease pencil) of the shot when the current shot is changed.\n(Add-on preference)",
+        default=True,
+    )
+
     # current_shot_changes_edited_frame_in_stb: BoolProperty(
     #     name="Set selected shot to edited",
     #     description="When a shot is selected in the shot list, in Storyboard layout mode, and another one is being edited, then"
@@ -602,20 +652,42 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
     ########################################################################
 
     #########################
-    # storyboard
+    # storyboard LAYOUT
+    #
+    # NOTE:
+    # Settings prefixed by "stb_" are contextual to the STORYBOARD LAYOUT mode (not to the camera type!)
+    # They are all initialized in the initialize_shot_manager_prefs() function. Search for: *** layouts initialization ***
     #########################
 
-    # NOTE: when the Continuous Editing mode is on then the selected and current shots are tied anyway
+    # NOTE: behaviors with (*) are automatically applied when the Continuous Editing mode is used
+
     stb_selected_shot_changes_current_shot: BoolProperty(
-        name="Set selected shot to current",
-        description="When a shot is selected in the shot list, in Storyboard layout mode, the shot is also set to be the current one",
-        default=True,
+        name="Set Shot Selected in the Shots List to Current  (*)",
+        description="When a shot is selected in the Shot List, in Storyboard layout mode, the shot is also set to be the current one",
+        default=False,
     )
     stb_selected_shot_in_shots_stack_changes_current_shot: BoolProperty(
-        name="Set selected shot in Shots Stack to current",
+        name="Set Shot Selected in the Interactive Shots Stack to Current  (*)",
         description="When a shot is selected in the Interactive Shots Stack, in Storyboard layout mode, the shot is also set to be the current one",
         default=False,
     )
+
+    stb_current_stb_shot_changes_time_zoom: BoolProperty(
+        name="Storyboard Shot: Zoom Timeline to Shot Range",
+        description="When the current layout is Storyboard: automatically zoom the timeline content to frame the shot when the current shot is changed"
+        "\nand if the shot type is Storyboard",
+        default=False,
+    )
+    stb_current_pvz_shot_changes_time_zoom: BoolProperty(
+        name="Camera Shot: Zoom Timeline to Shot Range",
+        description="When the current layout is Storyboard: automatically zoom the timeline content to frame the shot when the current shot is changed"
+        "\nand if the shot type is Camera",
+        default=False,
+    )
+
+    ####
+    # Following settings are also created in the layout class UAS_ShotManager_LayoutSettings
+    ####
 
     stb_display_storyboard_in_properties: BoolProperty(
         name="Storyboard Frames and Grease Pencil Tools",
@@ -663,24 +735,46 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
 
     #########################
     # previz
+    #
+    # NOTE:
+    # Settings prefixed by "pvz_" are contextual to the PREVIZ LAYOUT mode (not to the camera type!)
+    # They are all initialized in the initialize_shot_manager_prefs() function. Search for: *** layouts initialization ***
     #########################
 
+    # NOTE: behaviors with (*) are automatically applied when the Continuous Editing mode is used
+
     pvz_selected_shot_changes_current_shot: BoolProperty(
-        name="Set selected shot to current",
-        description="When a shot is selected in the shot list, in Previz layout mode, the shot is also set to be the current one",
+        name="Set Shot Selected in the Shots List to Current  (*)",
+        description="When a shot is selected in the Shot List, in Previz layout mode, the shot is also set to be the current one",
         default=False,
     )
     pvz_selected_shot_in_shots_stack_changes_current_shot: BoolProperty(
-        name="Set selected shot in Shots Stack to current",
+        name="Set Shot Selected in the Interactive Shots Stack to Current  (*)",
         description="When a shot is selected in the Interactive Shots Stack, in Previz layout mode, the shot is also set to be the current one",
         default=False,
     )
 
+    pvz_current_stb_shot_changes_time_zoom: BoolProperty(
+        name="Storyboard Shot: Zoom Timeline to Shot Range",
+        description="When the current layout is Previz: automatically zoom the timeline content to frame the shot when the current shot is changed"
+        "\nand if the shot type is Storyboard",
+        default=False,
+    )
+    pvz_current_pvz_shot_changes_time_zoom: BoolProperty(
+        name="Camera Shot: Zoom Timeline to Shot Range",
+        description="When the current layout is Previz: automatically zoom the timeline content to frame the shot when the current shot is changed"
+        "\nand if the shot type is Camera",
+        default=False,
+    )
+
+    ####
+    # Following settings are also created in the layout class UAS_ShotManager_LayoutSettings
+    ####
     pvz_display_storyboard_in_properties: BoolProperty(
         name="Storyboard Frames and Grease Pencil Tools",
         description="Display the storyboard frames properties and tools in the Shot properties panel."
         "\nA storyboard frame is a Grease Pencil drawing surface associated to the camera of each shot",
-        default=True,
+        default=False,
     )
 
     pvz_display_notes_in_properties: BoolProperty(

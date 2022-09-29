@@ -43,16 +43,22 @@ class UAS_ShotManager_LayoutSettings(PropertyGroup):
         default="PREVIZ",
     )
 
-    selected_shot_changes_current_shot: BoolProperty(
-        name="Set selected shot to current",
-        description="When a shot is selected in the shot list, the shot is also set to be the current one",
-        default=False,
-    )
-    selected_shot_in_shots_stack_changes_current_shot: BoolProperty(
-        name="Set selected shot in Shots Stack to current",
-        description="When a shot is selected in the Interactive Shots Stack, the shot is also set to be the current one",
-        default=False,
-    )
+    # selected_shot_changes_current_shot: BoolProperty(
+    #     name="Set selected shot to current",
+    #     description="When a shot is selected in the shot list, the shot is also set to be the current one",
+    #     default=False,
+    # )
+    # selected_shot_in_shots_stack_changes_current_shot: BoolProperty(
+    #     name="Set selected shot in Shots Stack to current",
+    #     description="When a shot is selected in the Interactive Shots Stack, the shot is also set to be the current one",
+    #     default=False,
+    # )
+
+    # current_shot_changes_time_zoom: BoolProperty(
+    #     name="Zoom Timeline to Shot Range",
+    #     description="Automatically zoom the timeline content to frame the shot when the current shot is changed",
+    #     default=False,
+    # )
 
     display_storyboard_in_properties: BoolProperty(
         name="Storyboard Frames and Grease Pencil Tools",
@@ -120,10 +126,11 @@ class UAS_ShotManager_LayoutSettings(PropertyGroup):
             self.name = "Storyboard"
             self.layoutMode = "STORYBOARD"
 
-            self.selected_shot_changes_current_shot = prefs.stb_selected_shot_changes_current_shot
-            self.selected_shot_in_shots_stack_changes_current_shot = (
-                prefs.stb_selected_shot_in_shots_stack_changes_current_shot
-            )
+            # self.selected_shot_changes_current_shot = prefs.stb_selected_shot_changes_current_shot
+            # self.selected_shot_in_shots_stack_changes_current_shot = (
+            #     prefs.stb_selected_shot_in_shots_stack_changes_current_shot
+            # )
+            # self.current_shot_changes_time_zoom = prefs.stb_current_shot_changes_time_zoom
             self.display_storyboard_in_properties = prefs.stb_display_storyboard_in_properties
             self.display_notes_in_properties = prefs.stb_display_notes_in_properties
             self.display_cameraBG_in_properties = prefs.stb_display_cameraBG_in_properties
@@ -137,10 +144,11 @@ class UAS_ShotManager_LayoutSettings(PropertyGroup):
             self.name = "Previz"
             self.layoutMode = "PREVIZ"
 
-            self.selected_shot_changes_current_shot = prefs.pvz_selected_shot_changes_current_shot
-            self.selected_shot_in_shots_stack_changes_current_shot = (
-                prefs.pvz_selected_shot_in_shots_stack_changes_current_shot
-            )
+            # self.selected_shot_changes_current_shot = prefs.pvz_selected_shot_changes_current_shot
+            # self.selected_shot_in_shots_stack_changes_current_shot = (
+            #     prefs.pvz_selected_shot_in_shots_stack_changes_current_shot
+            # )
+            # self.current_shot_changes_time_zoom = prefs.pvz_current_shot_changes_time_zoom
             self.display_storyboard_in_properties = prefs.pvz_display_storyboard_in_properties
             self.display_notes_in_properties = prefs.pvz_display_notes_in_properties
             self.display_cameraBG_in_properties = prefs.pvz_display_cameraBG_in_properties

@@ -785,6 +785,9 @@ class UAS_ShotManager_Shot(ShotInterface, PropertyGroup):
         """
         return self.getGreasePencilObject(mode="STORYBOARD")
 
+    def hasStoryboardFrame(self):
+        return self.getGreasePencilObject("STORYBOARD") is not None
+
     # TODO: wkip check that the empty is the one of the storyboard frame
     def getStoryboardEmptyChild(self):
         """Return the Empty object used as the parent of the storyboard frame
@@ -797,7 +800,7 @@ class UAS_ShotManager_Shot(ShotInterface, PropertyGroup):
     # wkip to update with the gp list
     def getStoryboardChildren(self):
         """If the shot has a valid camera: return the list of all the children of the camera associated
-        to the Storyboard Frame
+        to the Storyboard Frame. The camera is NOT included, but the empty object is.
         Return None otherwise
         Note: This doesn't depend on the shot type since camera shots can also have a storyboard frame"""
         stbChildren = None

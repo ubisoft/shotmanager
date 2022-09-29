@@ -48,3 +48,33 @@ supported.
 ### Naming:
 - Shot: Association of a period of time in the 3D scene, given by a start and a end, and a point of view, given
 by the camera held by the shot.
+
+
+## Props, the main properties class
+Terminology:
+    We distinguish the "selected shot", which is the one selected in the shots list, from the "current shot",
+    which is the shot actualy displayed in the viewport and identified in the shots list with an orange icon
+    in the first column.
+
+
+## Shot select, set current, set to Draw Mode
+
+The manipulation behaviors are defined in the Shot Manipulations rollout of the add-on Preferences.
+They are all part of the add-on preferences settings, so any change is applied to every scenes.
+
+Key functions and operators to manage those manipulations are:
+
+### When a shot becomes selected
+- *In props.py:* The update() function of selected_shot_index: IntProperty holds all the actions done when
+  a shot is selected
+
+- The fact that a shot that has just been selected should be made as the current one is defined by the
+  function props.selectedShotShouldBecomeCurrent()
+
+### When a shot becomes current
+- *In shots.py:* The operator uas_shot_manager.set_current_shot holds all the actions done when a shot is
+  made current
+- In props.setCurrentShotByIndex()
+
+### When a shot has to be set to Draw mode
+- To set the draw mode of a shot, when in Continuous mode: uas_shot_manager.greasepencil_select_and_draw

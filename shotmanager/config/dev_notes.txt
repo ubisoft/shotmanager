@@ -203,3 +203,11 @@ Avoir un rename de shots batch
 mettre le Snap to Frame
 Avoir un warning / clean pour quand les GP frames s'overlappent
 
+timer pour la sel des clips
+couleur pour les locked duration
+selection du clip qd il est trop petit et qu'on tape dans les handles
+
+Bug: transform truc from paul
+
+truc information message contextuel
+

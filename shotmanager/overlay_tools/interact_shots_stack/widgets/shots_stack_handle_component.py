@@ -79,6 +79,7 @@ class ShotHandleComponent(Component2D):
         # filled when isManipulated changes
         self.manipulatedChildren = None
         self.manipulationBeginingFrame = None
+        self.scalingShot = False
 
         # green or orange
         self.color_highlight = (0.2, 0.7, 0.2, 1) if self.isStart else (0.7, 0.3, 0.0, 1)
@@ -169,24 +170,56 @@ class ShotHandleComponent(Component2D):
         function is called
         """
         # we use this to set the color of the clip as for when manipulated
-        self.manipulatedChildren = None
 
         if isManipulated:
+            self.manipulatedChildren = None
+            self.scalingShot = False
             self.shotsStackWidget.manipulatedComponent = self
             self.parent.isManipulatedByAnotherComponent = True
             self.manipulationBeginingFrame = context.scene.frame_current
 
             if self.shot.isStoryboardType():
                 self.manipulatedChildren = self.shot.getStoryboardChildren()
-                bpy.ops.ed.undo_push()
+                bpy.ops.ed.undo_push(message="Pre-Modify Storyboard Shot Clip Handle in the Interactive Shots Stack")
             else:
                 if self.shot.isCameraValid():
-                    self.manipulatedChildren = [self.shot.camera]
-                    bpy.ops.ed.undo_push()
+                    self.manipulatedChildren = self.shot.getStoryboardChildren()
+                    if self.manipulatedChildren is None:
+                        self.manipulatedChildren = list()
+                    self.manipulatedChildren.append(self.shot.camera)
+                    bpy.ops.ed.undo_push(message="Pre-Modify Camera Shot Clip Handle in the Interactive Shots Stack")
         else:
+            # snap keys to frames
+            if self.scalingShot:
+                retimerApplyToSettings = context.window_manager.UAS_shot_manager_shots_stack_retimerApplyTo
+
+                if self.shot.isStoryboardType():
+                    retimerApplyToSettings.initialize("STB_SHOT_CLIP")
+                else:
+                    retimerApplyToSettings.initialize("PVZ_SHOT_CLIP")
+
+                start_incl = self.shot.start
+                duration_incl = self.shot.end - start_incl + 1
+
+                retimeScene(
+                    context=context,
+                    retimeMode="SNAP",
+                    retimerApplyToSettings=retimerApplyToSettings,
+                    objects=self.manipulatedChildren,
+                    # start_incl=-10000,
+                    # duration_incl=900000,
+                    start_incl=start_incl,
+                    duration_incl=duration_incl,
+                    keysBeforeRangeMode="SNAP",
+                    keysAfterRangeMode="SNAP",
+                )
+
+            self.manipulatedChildren = None
+            self.manipulationBeginingFrame = None
             self.shotsStackWidget.manipulatedComponent = None
             self.parent.isManipulatedByAnotherComponent = False
-            self.manipulationBeginingFrame = None
+            self.scalingShot = False
+        #   bpy.ops.ed.undo_push(message="Modified Shot Clip Handle in the Interactive Shots Stack")
 
     # override of InteractiveComponent
     def _on_manipulated_mouse_moved(self, context, event, mouse_delta_frames=0):
@@ -225,6 +258,7 @@ class ShotHandleComponent(Component2D):
 
             if scaleShotContent:
                 # do NOT snap on frames during scaling transformation otherwhise frames will be lost because merged at the same time !
+                self.scalingShot = True
                 retimerApplyToSettings.snapKeysToFrames = False
 
                 retimeFactor = (self.shot.end - self.shot.start) / (prevShotEnd - prevShotStart)

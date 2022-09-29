@@ -36,6 +36,9 @@ class FCurve:
     def __init__(self, fcurve):
         self.fcurve = fcurve
 
+    def get_key(self, index):
+        return self.fcurve.keyframe_points[index]
+
     def get_key_coordinates(self, index):
         return self.fcurve.keyframe_points[index].co
 
@@ -57,7 +60,7 @@ class FCurve:
     #    self.fcurve.keyframe_points[ index ].handle_left, self.fcurve.keyframe_points[ index ].handle_right = value
 
     def insert_frame(self, coordinates, roundToNearestFrame=True):
-        frame_val = round(coordinates[0]) if roundToNearestFrame else coordinate[0]
+        frame_val = round(coordinates[0]) if roundToNearestFrame else coordinates[0]
         self.fcurve.keyframe_points.insert(frame_val, coordinates[1])
 
     def remove_frames(self, start_incl, end_incl, remove_gap=False, roundToNearestFrame=True):
@@ -264,9 +267,27 @@ def rescale_frame(frame_value, start_incl, end_incl, pivot, factor, roundToNeare
 ##########################################################################
 
 
+def _offset_fCurve_key(key, offset):
+    key_time, value = key.co
+    new_key_time = key_time + offset
+    key.handle_left[0] += offset
+    key.handle_right[0] += offset
+    key.co = (new_key_time, value)
+
+
+def _set_time_fCurve_key(key, new_key_time):
+    key_time, value = key.co
+    offset = new_key_time - key_time
+    key.handle_left[0] += offset
+    key.handle_right[0] += offset
+    key.co = (new_key_time, value)
+
+
 def _offset_fCurve_frames(fcurve: FCurve, start_incl, offset, roundToNearestFrame):
     for i in range(len(fcurve)):
-        key_time, value = fcurve.get_key_coordinates(i)
+        key = fcurve.get_key(i)
+        key_time = key.co[0]
+        # key_time, value = fcurve.get_key_coordinates(i)
         if start_incl <= key_time:
             # key_time = key_time + offset
             # if roundToNearestFrame:
@@ -280,11 +301,12 @@ def _offset_fCurve_frames(fcurve: FCurve, start_incl, offset, roundToNearestFram
             if roundToNearestFrame:
                 new_key_time = round(new_key_time)
 
-            offset_with_rounded_added_offset = new_key_time - key_time
-            left_handle, right_handle = fcurve.handles(i)
-            left_handle[0] += offset_with_rounded_added_offset
-            right_handle[0] += offset_with_rounded_added_offset
-            fcurve.set_key_coordinates(i, (new_key_time, value))
+            _set_time_fCurve_key(key, new_key_time)
+            # offset_with_rounded_added_offset = new_key_time - key_time
+            # left_handle, right_handle = fcurve.handles(i)
+            # left_handle[0] += offset_with_rounded_added_offset
+            # right_handle[0] += offset_with_rounded_added_offset
+            # fcurve.set_key_coordinates(i, (new_key_time, value))
 
 
 def _rescale_fCurve_frames(
@@ -337,7 +359,9 @@ def _rescale_fCurve_frames(
 
     # bpy.ops.action.clean(threshold=0.001, channels=False)
     for i in range(len(fcurve)):
-        key_time, key_value = fcurve.get_key_coordinates(i)
+        key = fcurve.get_key(i)
+        key_time, key_value = key.co
+        # key_time, key_value = fcurve.get_key_coordinates(i)
         changeMode = "RESCALE"
         if key_time < start_incl:
             changeMode = keysBeforeRangeMode
@@ -387,12 +411,14 @@ def _rescale_fCurve_frames(
             new_key_time = key_time + offset
             if roundToNearestFrame:
                 new_key_time = round(new_key_time)
-            fcurve.set_key_coordinates(i, (new_key_time, key_value))
 
-            offset_with_rounded_added_offset = new_key_time - key_time
-            left_handle, right_handle = fcurve.handles(i)
-            left_handle[0] += offset_with_rounded_added_offset
-            right_handle[0] += offset_with_rounded_added_offset
+            _set_time_fCurve_key(key, new_key_time)
+            # fcurve.set_key_coordinates(i, (new_key_time, key_value))
+
+            # offset_with_rounded_added_offset = new_key_time - key_time
+            # left_handle, right_handle = fcurve.handles(i)
+            # left_handle[0] += offset_with_rounded_added_offset
+            # right_handle[0] += offset_with_rounded_added_offset
 
     # if factor < 1.0:
     #     _offset_fCurve_frames(
@@ -401,6 +427,37 @@ def _rescale_fCurve_frames(
     #         compute_offset(end_incl + 1, pivot, factor) - (end_incl - start_incl + 1),
     #         roundToNearestFrame,
     #     )
+
+
+def _snap_fCurve_frames(
+    *,
+    fcurve: FCurve,
+    start_incl,
+    end_incl,
+    keysBeforeRangeMode="DO_NOTHING",
+    keysAfterRangeMode="DO_NOTHING",
+):
+    """
+    Args:
+        keysBeforeRangeMode: Action to do on keys located before the specified time range. Can be DO_NOTHING, SNAP
+        keysAfterRangeMode: Action to do on keys located after the specified time range. Can be DO_NOTHING, SNAP
+    """
+    # TODO: wkip delete ducplicated keys !!!
+
+    # bpy.ops.action.clean(threshold=0.001, channels=False)
+    for i in range(len(fcurve)):
+        key = fcurve.get_key(i)
+        key_time, key_value = key.co
+        # key_time, key_value = fcurve.get_key_coordinates(i)
+        changeMode = "SNAP"
+        if key_time < start_incl:
+            changeMode = keysBeforeRangeMode
+        elif end_incl < key_time:
+            changeMode = keysAfterRangeMode
+
+        if "SNAP" == changeMode:
+            # fcurve.set_key_coordinates(i, (round(key_time), key_value))
+            _set_time_fCurve_key(key, round(key_time))
 
 
 def retime_fCurve_frames(
@@ -417,8 +474,11 @@ def retime_fCurve_frames(
 ):
     """
     Args:
-        keysBeforeRangeMode: Action to do on keys located before the specified time range. Can be "DO_NOTHING", "OFFSET", "RESCALE"
-        keysAfterRangeMode: Action to do on keys located after the specified time range. Can be "DO_NOTHING", "OFFSET", "RESCALE"
+        retimeMode: Can be GLOBAL_OFFSET, INSERT_BEFORE, INSERT_AFTER, DELETE_RANGE, RESCALE, CLEAR_ANIM, SNAP, FREEZE
+        start_incl (int): The included start frame
+        duration_incl (int): The range of retime frames (new or deleted)
+        keysBeforeRangeMode: Action to do on keys located before the specified time range. Can be DO_NOTHING, OFFSET, RESCALE, SNAP
+        keysAfterRangeMode: Action to do on keys located after the specified time range. Can be DO_NOTHING, OFFSET, RESCALE, SNAP
     """
 
     if mode == "INSERT":
@@ -436,6 +496,15 @@ def retime_fCurve_frames(
             pivot=pivot,
             clamp=False,
             roundToNearestFrame=roundToNearestFrame,
+            keysBeforeRangeMode=keysBeforeRangeMode,
+            keysAfterRangeMode=keysAfterRangeMode,
+        )
+
+    elif mode == "SNAP":
+        _snap_fCurve_frames(
+            fcurve=fcurve,
+            start_incl=start_incl,
+            end_incl=end_incl,
             keysBeforeRangeMode=keysBeforeRangeMode,
             keysAfterRangeMode=keysAfterRangeMode,
         )
@@ -1012,11 +1081,11 @@ def retimeScene(
 ):
     """Apply the time change for each type of entities
     Args:
-        retimeMode: Can be GLOBAL_OFFSET, INSERT_BEFORE, INSERT_AFTER, DELETE_RANGE, RESCALE, CLEAR_ANIM",
+        retimeMode: Can be GLOBAL_OFFSET, INSERT_BEFORE, INSERT_AFTER, DELETE_RANGE, RESCALE, CLEAR_ANIM, SNAP,
         start_incl (int): The included start frame
         duration_incl (int): The range of retime frames (new or deleted)
-        keysBeforeRangeMode: Action to do on keys located before the specified time range. Can be "DO_NOTHING", "OFFSET", "RESCALE"
-        keysAfterRangeMode: Action to do on keys located after the specified time range. Can be "DO_NOTHING", "OFFSET", "RESCALE"
+        keysBeforeRangeMode: Action to do on keys located before the specified time range. Can be DO_NOTHING, OFFSET, RESCALE, SNAP
+        keysAfterRangeMode: Action to do on keys located after the specified time range. Can be NOTHING, OFFSET, RESCALE, SNAP
     """
     # prefs = config.getShotManagerPrefs()
     scene = context.scene
@@ -1085,7 +1154,7 @@ def retimeScene(
                 for matSlot in obj.material_slots:
                     if matSlot is not None:
                         mat = matSlot.material
-                        if mat not in sceneMaterials:
+                        if mat is not None and mat not in sceneMaterials:
                             sceneMaterials.append(mat)
                             if mat.animation_data is not None and mat.animation_data.action is not None:
                                 _retimeFcurve(mat.animation_data.action)

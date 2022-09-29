@@ -21,6 +21,7 @@ UI for the Add-on Preferences
 
 from shotmanager.config import config
 from shotmanager.ui.dependencies_ui import drawDependencies
+from shotmanager.utils.utils import convertVersionIntToStr
 from shotmanager.utils.utils_ui import collapsable_panel, propertyColumn
 
 from shotmanager.prefs.prefs_features import draw_features_prefs
@@ -36,6 +37,35 @@ def draw_addon_prefs(self, context):
     layout = layout.column(align=False)
     padding_left = 4
 
+    if config.devDebug:
+        layout.label(
+            text=f"Previously Installed Version: {self.previousInstalledVersion} - Current version: {self.version()[1]}"
+        )
+
+    if self.previousInstalledVersion > self.version()[1]:
+        warningRow = layout.row()
+        warningRow.alert = True
+        restartRow.alignment = "CENTER"
+        warningRow.label(
+            text="***  Warning: The add-on version that has been installed is older than the one that was in place  ***"
+        )
+
+        restartRow = layout.row()
+        restartRow.alert = True
+        restartRow.alignment = "CENTER"
+        restartRow.label(text="***  Please re-start Blender to finish the update of the add-on Preferences ***")
+
+    elif 0 != self.previousInstalledVersion and self.previousInstalledVersion < self.version()[1]:
+        restartRow = layout.row()
+        restartRow.alignment = "CENTER"
+        restartRow.label(
+            text=f"--  Version {self.version()[0]} has just been installed over version {convertVersionIntToStr(self.previousInstalledVersion)}  --"
+        )
+        restartRow = layout.row()
+        restartRow.alert = True
+        restartRow.alignment = "CENTER"
+        restartRow.label(text="***  Please re-start Blender to finish the update of the add-on Preferences ***")
+
     # Dependencies
     ###############
     drawDependencies(context, layout)
@@ -44,13 +74,17 @@ def draw_addon_prefs(self, context):
     ###############
     drawGeneral(context, self, layout)
 
+    # Settings
+    ###############
+    drawSettings(context, self, layout)
+
     # Features
     ###############
     drawFeatures(context, self, layout)
 
-    # Settings
+    # Shot manipulations
     ###############
-    drawSettings(context, self, layout)
+    drawShotManipulations(context, self, layout)
 
     # General UI
     ###############
@@ -184,6 +218,141 @@ def drawSettings(context, prefs, layout):
         rowLeft.label(text="Default Shot Duration")
         rowRight = split.row()
         rowRight.prop(prefs, "storyboard_new_shot_duration", slider=True, text="Frames")
+
+
+def drawShotManipulations(context, prefs, layout):
+    box = layout.box()
+    collapsable_panel(box, prefs, "addonPrefs_shotManips_expanded", text="Shot Manipulations")
+    if prefs.addonPrefs_shotManips_expanded:
+
+        mainCol = propertyColumn(box, padding_left=3)
+        mainCol.label(text="When Current Shot Is Changed:")
+
+        propsCol = propertyColumn(mainCol, padding_left=4)
+
+        propsCol.prop(
+            prefs,
+            "current_shot_changes_current_time_to_start",
+            text="Set Current Frame To Shot Start",
+        )
+        propsCol.prop(
+            prefs,
+            "current_shot_changes_time_range",
+            text="Set Scene Animation Range To Shot Range",
+        )
+
+        propsCol.prop(
+            prefs,
+            "current_stb_shot_select_stb_frame",
+        )
+        propsCol.prop(
+            prefs,
+            "current_pvz_shot_select_stb_frame",
+        )
+
+        propsCol.separator(factor=0.8)
+
+        # in storyboard mode
+        ##########################
+        stbLayoutCol = propertyColumn(propsCol, padding_left=0)
+
+        stbLayoutRow = stbLayoutCol.row()
+        stbLayoutRow.label(text="In Storyboard Layout:")
+
+        stbLayoutPropsCol = propertyColumn(stbLayoutCol, padding_left=3)
+
+        # propsCol.prop(
+        #     prefs,
+        #     "current_shot_changes_edited_frame_in_stb",
+        #     text="Storyboard Shots List: Set Selected Shot to Edited One",
+        # )
+
+        # storyboard shots #######
+        # propsCol.separator(factor=0.5)
+        # propsCol.label(text="Storyboard Shots:")
+
+        stbLayoutPropsCol.prop(
+            prefs,
+            "stb_selected_shot_changes_current_shot",
+        )
+        stbLayoutPropsCol.prop(
+            prefs,
+            "stb_selected_shot_in_shots_stack_changes_current_shot",
+        )
+
+        stbLayoutPropsCol.prop(
+            prefs,
+            "stb_current_stb_shot_changes_time_zoom",
+        )
+        stbLayoutPropsCol.prop(
+            prefs,
+            "stb_current_pvz_shot_changes_time_zoom",
+        )
+
+        propsCol.separator(factor=0.8)
+
+        # in previz mode
+        ##########################
+        pvzLayoutCol = propertyColumn(propsCol, padding_left=0)
+
+        pvzLayoutRow = pvzLayoutCol.row()
+        pvzLayoutRow.label(text="In Previz Layout:")
+
+        pvzLayoutPropsCol = propertyColumn(pvzLayoutCol, padding_left=3)
+
+        # pvzLayoutPropsCol.prop(
+        #     prefs,
+        #     "current_stb_shot_select_stb_frame",
+        # )
+        # pvzLayoutPropsCol.prop(
+        #     prefs,
+        #     "current_pvz_shot_select_stb_frame",
+        # )
+
+        pvzLayoutPropsCol.prop(
+            prefs,
+            "pvz_selected_shot_changes_current_shot",
+        )
+        pvzLayoutPropsCol.prop(
+            prefs,
+            "pvz_selected_shot_in_shots_stack_changes_current_shot",
+        )
+
+        pvzLayoutPropsCol.prop(
+            prefs,
+            "pvz_current_stb_shot_changes_time_zoom",
+        )
+        pvzLayoutPropsCol.prop(
+            prefs,
+            "pvz_current_pvz_shot_changes_time_zoom",
+        )
+
+        # storyboard shots #######
+        # propsCol.separator(factor=0.5)
+        # propsCol.label(text="Storyboard Shots:")
+
+        # stbPropsCol = propertyColumn(propsCol, padding_left=3)
+        # stbPropsCol.prop(
+        #     prefs,
+        #     "current_stb_shot_select_stb_frame",
+        #     text="Select Storyboard Frame of the Current Storyboard Short",
+        # )
+
+        # # previz shots ###########
+        # propsCol.separator(factor=0.5)
+        # propsCol.label(text="Camera Shots:")
+
+        # pvzPropsCol = propertyColumn(propsCol, padding_left=3)
+        # pvzPropsCol.prop(
+        #     prefs,
+        #     "current_pvz_shot_select_stb_frame",
+        #     text="Select Storyboard Frame of the Current Camera Short",
+        # )
+
+        propsCol.separator(factor=0.8)
+        propsCol.label(text="(*) : Automaticaly activated in Continuous Draw Mode")
+
+        mainCol.separator(factor=0.8)
 
 
 def drawGeneralUI(context, prefs, layout):

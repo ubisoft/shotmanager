@@ -395,14 +395,19 @@ class ShotClipComponent(Component2D):
             self.shotsStackWidget.manipulatedComponent = self
             if self.shot.isStoryboardType():
                 self.manipulatedChildren = self.shot.getStoryboardChildren()
-                bpy.ops.ed.undo_push()
+                bpy.ops.ed.undo_push(message="Pre-Modify Shot Clip in the Interactive Shots Stack")
             else:
                 if self.shot.isCameraValid():
-                    self.manipulatedChildren = [self.shot.camera]
-                    bpy.ops.ed.undo_push()
+                    self.manipulatedChildren = self.shot.getStoryboardChildren()
+                    if self.manipulatedChildren is None:
+                        self.manipulatedChildren = list()
+                    self.manipulatedChildren.append(self.shot.camera)
+                    bpy.ops.ed.undo_push(message="Pre-Modify Shot Clip in the Interactive Shots Stack")
         else:
             _logger.debug_ext("component2D handle_events set manipulated False", col="PURPLE", tag="EVENT")
             self.shotsStackWidget.manipulatedComponent = None
+
+    #     bpy.ops.ed.undo_push(message="Modified Shot Clip in the Interactive Shots Stack")
 
     # override of InteractiveComponent
     def _on_manipulated_mouse_moved(self, context, event, mouse_delta_frames=0):

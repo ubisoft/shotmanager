@@ -32,8 +32,8 @@ from shotmanager.config import config
 
 class UAS_ShotManager_Shots_Prefs(Operator):
     bl_idname = "uas_shot_manager.shots_prefs"
-    bl_label = "Shots Display Settings"
-    bl_description = "Display the Shots Settings panel\nfor the Shot Manager instanced in this scene"
+    bl_label = "Shots Display and Manipulation Settings"
+    bl_description = "Display the Shots Display and Manipulation Settings panel"
     bl_options = {"INTERNAL"}
 
     def invoke(self, context, event):
@@ -49,17 +49,19 @@ class UAS_ShotManager_Shots_Prefs(Operator):
         layout.label(text="Any change is effective immediately")
         layout.alert = False
 
-        # Shot List
-        ##############
-        layout.label(text="Shot List:")
+        # Shot List display
+        ################
+        sceneDisplayRow = layout.row()
+        sceneDisplayRow.label(text="Shot List Display:")
+        sceneDisplayRightRow = sceneDisplayRow.row()
+        sceneDisplayRightRow.alignment = "RIGHT"
+        sceneDisplayRightRow.label(text="(in Current Scene)")
+
         box = layout.box()
         box.use_property_decorate = False
 
         # main column, to allow title offset
         maincol = box.column()
-        row = maincol.row()
-        row.separator(factor=2)
-        row.label(text="Display:")
 
         # empty spacer column
         row = maincol.row()
@@ -88,54 +90,6 @@ class UAS_ShotManager_Shots_Prefs(Operator):
         row.label(text="Display Shot Properties Mode:")
         row.prop(props, "current_shot_properties_mode", text="")
         row.separator()
-
-        # User Prefs at addon level
-        ###############
-
-        box.separator(factor=0.5)
-        # main column, to allow title offset
-        maincol = box.column()
-        row = maincol.row()
-        row.separator(factor=2)
-        row.label(text="When Current Shot Is Changed:  (Settings stored in the Add-on Preferences):")
-
-        # col.scale_x = 0.28
-
-        propsCol = propertyColumn(maincol, padding_left=7)
-
-        # col.separator(factor=1.0)
-        # col.label(text="Time Change:")
-        #  col.label(text="User Preferenes (in Preference Add-on Window):")
-        # col.use_property_split = False
-        propsCol.prop(
-            prefs,
-            "current_shot_changes_current_time_to_start",
-            text="Set Current Frame To Shot Start",
-        )
-        propsCol.prop(
-            prefs,
-            "current_shot_changes_time_range",
-            text="Set Scene Animation Range To Shot Range",
-        )
-        propsCol.prop(
-            prefs,
-            "current_shot_changes_time_zoom",
-            text="Zoom Timeline Content To Frame The Current Shot",
-        )
-
-        # propsCol.prop(
-        #     prefs,
-        #     "current_shot_changes_edited_frame_in_stb",
-        #     text="Storyboard Shots List: Set Selected Shot to Edited One",
-        # )
-
-        propsCol.separator(factor=0.5)
-        propsCol.label(text="Storyboard Shots:")
-        propsCol.prop(
-            prefs,
-            "current_shot_select_stb_frame",
-            text="Select Storyboard Frame of the Current Short",
-        )
 
         layout.separator(factor=2)
 
