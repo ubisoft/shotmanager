@@ -211,3 +211,8 @@ Bug: transform truc from paul
 
 truc information message contextuel
 
+rajouter bouton de framing shot a coté de gpu
+
+shift qui ne marche pas lorsqu'on fait un set courant en continuous mode
+finir zoom dans continous
+

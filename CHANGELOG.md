@@ -4,6 +4,7 @@
 - Fixed storyboard frame that was not duplicated following to a take duplication
 - Added shot name in the Render panel, near Current Shot label
 - Refactored the Duplicate Shot dialog box and added a checkbox for color variation
+- Added a key map for activating the draw mode on a current shot
 
 -----
 ## 2.1.5 (2022-09-27)

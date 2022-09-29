@@ -1113,7 +1113,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         """Return True if the context required to enter in a continuous drawing session is valid: the button
         has to be visible and checked.
         Note that the returned value is not dependent on the fact that a Grease Pencil object is being edited or not.
-        Query wkip for that.
+        Query props.getEditedGPShot() for that.
         Call this to get the state of continuous editing instead of directly using useContinuousGPEditing"""
 
         state = False

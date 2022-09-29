@@ -598,7 +598,11 @@ class UAS_ShotManager_GreasePencilSelectAndDraw(Operator):
     bl_options = {"INTERNAL", "UNDO"}
 
     index: IntProperty(default=0)
+
+    # can be SELECT, DRAW
     mode: StringProperty(default="SELECT")
+
+    # can be DO_NOTHING, SELECT, SELECT_AND_DRAW, ADD_TO_SELECTION
     action: StringProperty(default="DO_NOTHING")
     ignoreSetCurrentShot: BoolProperty(default=False)
     toggleDrawEditing: BoolProperty(default=False)

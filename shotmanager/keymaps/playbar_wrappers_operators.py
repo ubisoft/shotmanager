@@ -23,7 +23,7 @@ There wrappers allow a clearer identification of the shortcuts in the Keymaps Pr
 import bpy
 
 from bpy.types import Operator
-from bpy.props import BoolProperty, StringProperty
+from bpy.props import StringProperty
 
 from shotmanager import config
 from shotmanager.config import sm_logging

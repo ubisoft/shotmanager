@@ -24,10 +24,10 @@ from bpy.types import Operator
 from bpy.props import BoolProperty, StringProperty, IntProperty
 
 from shotmanager.utils import utils
+from shotmanager.utils import utils_greasepencil
 from shotmanager.operators.shots import convertMarkersFromCameraBindingToShots
 from shotmanager.utils.utils import getSceneVSE, convertVersionIntToStr
 from shotmanager.utils.utils_markers import clearMarkersFromCameraBinding
-
 
 from shotmanager.config import config
 from shotmanager.config import sm_logging
@@ -45,7 +45,7 @@ class UAS_ShotManager_OT_ShotsPlayMode(Operator):
     bl_description = "Enable / disable the Shots Play Mode"
     bl_options = {"INTERNAL"}
 
-    def invoke(self, context, event):
+    def execute(self, context):
         context.window_manager.UAS_shot_manager_shots_play_mode = (
             not context.window_manager.UAS_shot_manager_shots_play_mode
         )
@@ -115,6 +115,30 @@ class UAS_ShotManager_OT_ChangeLayout(Operator):
             props.setCurrentLayout("PREVIZ")
         else:
             props.setCurrentLayout("STORYBOARD")
+
+        return {"FINISHED"}
+
+
+class UAS_ShotManager_OT_StbFrameDrawing(Operator):
+    bl_idname = "uas_shot_manager.stb_frame_drawing"
+    bl_label = "Ubisoft Shot Mng - Toggle Storyboard Frame Draw Mode"
+    bl_description = "Enable / disable the Storyboard Frame Draw Mode"
+    bl_options = {"INTERNAL"}
+
+    def execute(self, context):
+        props = context.scene.UAS_shot_manager_props
+
+        if props.getEditedGPShot() is not None:
+            utils_greasepencil.switchToObjectMode()
+        else:
+            currentShotInd = props.getCurrentShotIndex()
+            if -1 != currentShotInd and props.isContinuousGPEditingModeActive():
+                # context.window_manager.UAS_shot_manager_shots_play_mode = (
+                #     not context.window_manager.UAS_shot_manager_shots_play_mode
+                # )
+                bpy.ops.uas_shot_manager.greasepencil_select_and_draw(
+                    action="SELECT_AND_DRAW", index=currentShotInd, toggleDrawEditing=True, mode="DRAW"
+                )
 
         return {"FINISHED"}
 
@@ -461,6 +485,7 @@ _classes = (
     UAS_ShotManager_OT_DisplayDisabledShotsInOverlays,
     UAS_ShotManager_OT_DisplayOverlayTools,
     UAS_ShotManager_OT_ChangeLayout,
+    UAS_ShotManager_OT_StbFrameDrawing,
     UAS_ShotManager_OT_TurnOffBurnIntoImage,
     UAS_ShotManager_OT_TurnOffPixelAspect,
     UAS_ShotManager_OT_SetFpsAsProjectFps,

@@ -76,6 +76,14 @@ def registerKeymaps():
         # kmi = km.keymap_items.new("uas_shot_manager.display_overlay_tools", type="NONE", value="PRESS")
         # keymaps.append((km, kmi))
 
+        # toggle storyboard frame draw mode
+        ###############################
+
+        # VIEW_3D works also for timeline
+        km = wm.keyconfigs.addon.keymaps.new(name="3D View", space_type="VIEW_3D")
+        kmi = km.keymap_items.new("uas_shot_manager.stb_frame_drawing", type="X", value="PRESS", ctrl=True, shift=True)
+        keymaps.append((km, kmi))
+
 
 def unregisterKeymaps():
     keymaps = config.gAddonKeymaps
