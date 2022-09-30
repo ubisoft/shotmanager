@@ -22,6 +22,7 @@ Greasep pencil and storyboard draw functions for UI
 # from shotmanager.utils import utils
 from shotmanager.utils import utils_ui
 from shotmanager.utils import utils_greasepencil
+from shotmanager.utils.utils_ui import propertyColumn
 
 from shotmanager.ui import sm_shots_global_settings_ui_cameras
 from shotmanager.ui import sm_shots_global_settings_ui_overlays
@@ -330,36 +331,53 @@ def draw_greasepencil_shot_properties(layout, context, shot):
             depressedOp=not channelsLocked,
         )
         if prefs.stb_anim_props_expanded:
+            lockSplitFactor = 0.9
+
+            def _drawAxisText(propsCol, axisText, warningMessage=False):
+                ZPropsRow = propsCol.row(align=True)
+                ZPropsRow.alignment = "RIGHT"
+                textPropsRow = ZPropsRow.row(align=True)
+                textPropsRow.alignment = "RIGHT"
+                textPropsRow.ui_units_x = 4
+                if warningMessage:
+                    textPropsRow.alert = True
+                    textPropsRow.label(text="Don't Change !")
+                else:
+                    textPropsRow.label(text=" ")
+
+                axisPropsRow = ZPropsRow.row(align=True)
+                axisPropsRow.alignment = "RIGHT"
+                axisPropsRow.label(text=axisText)
 
             col.separator(factor=0.5)
-
             animRow = col.row()
             animRow.separator(factor=2.0)
             animBox = animRow.box()
-            # canvasCol = animBox.column()
-            #  animRow.enabled = not channelsLocked
-
             transformCol = animBox.column()
-
-            transformRow = transformCol.row()
-            transformRow.separator(factor=hSepFactor)
-
-            # transformRow = transformCol.row()
-            # transformRow.separator(factor=hSepFactor)
-            # # or prefs.shot_greasepencil_expanded:
-
-            lockSplitFactor = 0.9
 
             # location
             ###################
+            locLocked = not (gp_child.lock_location[0] and gp_child.lock_location[1] and gp_child.lock_location[2])
+            transformCol.label(text="Location:")
             transformRow = transformCol.row()
-            # transformRow.label(text="Location:")
+            transformRow.alignment = "CENTER"
             transformRow.use_property_split = True
             transformRow.use_property_decorate = True
+            propsCol = propertyColumn(transformRow)
+            propsCol.enabled = locLocked
 
-            split = transformRow.split(factor=lockSplitFactor)
-            split.prop(gp_child, "location")
-            splitRightCol = split.column()
+            _drawAxisText(propsCol, "X", warningMessage=False)
+            _drawAxisText(propsCol, "Y", warningMessage=False)
+            _drawAxisText(propsCol, "Z", warningMessage=True)
+
+            rightRow = transformRow.row()
+            rightRow.alignment = "RIGHT"
+
+            rightSubRow = rightRow.row()
+            transfoRow = rightSubRow.row()
+            transfoRow.enabled = locLocked
+            transfoRow.prop(gp_child, "location", text="")
+            splitRightCol = rightSubRow.column()
 
             subCol = splitRightCol.column(align=True)
             draw_lock_but(subCol, gp_child, "LOCK_LOCATION_X")
@@ -368,17 +386,28 @@ def draw_greasepencil_shot_properties(layout, context, shot):
 
             # rotation
             ###################
-
+            transformCol.separator(factor=0.5)
+            rotLocked = not (gp_child.lock_rotation[0] and gp_child.lock_rotation[1] and gp_child.lock_rotation[2])
+            transformCol.label(text="Rotation:")
             transformRow = transformCol.row()
-            transformRow.separator(factor=hSepFactor)
-
-            transformRow = transformCol.row()
+            transformRow.alignment = "CENTER"
             transformRow.use_property_split = True
             transformRow.use_property_decorate = True
+            propsCol = propertyColumn(transformRow)
+            propsCol.enabled = rotLocked
 
-            split = transformRow.split(factor=lockSplitFactor)
-            split.prop(gp_child, "rotation_euler")
-            splitRightCol = split.column()
+            _drawAxisText(propsCol, "X", warningMessage=True)
+            _drawAxisText(propsCol, "Y", warningMessage=True)
+            _drawAxisText(propsCol, "Z", warningMessage=False)
+
+            rightRow = transformRow.row()
+            rightRow.alignment = "RIGHT"
+
+            rightSubRow = rightRow.row()
+            transfoRow = rightSubRow.row()
+            transfoRow.enabled = rotLocked
+            transfoRow.prop(gp_child, "rotation_euler", text="")
+            splitRightCol = rightSubRow.column()
 
             subCol = splitRightCol.column(align=True)
             draw_lock_but(subCol, gp_child, "LOCK_ROTATION_X")
@@ -387,28 +416,33 @@ def draw_greasepencil_shot_properties(layout, context, shot):
 
             # scale
             ###################
-
+            transformCol.separator(factor=0.5)
+            scaleLocked = not (gp_child.lock_scale[0] and gp_child.lock_scale[1] and gp_child.lock_scale[2])
+            transformCol.label(text="Scale:")
             transformRow = transformCol.row()
-            transformRow.separator(factor=hSepFactor)
-
-            transformRow = transformCol.row()
+            transformRow.alignment = "CENTER"
             transformRow.use_property_split = True
             transformRow.use_property_decorate = True
+            propsCol = propertyColumn(transformRow)
+            propsCol.enabled = scaleLocked
 
-            split = transformRow.split(factor=lockSplitFactor)
-            split.prop(gp_child, "scale")
-            splitRightCol = split.column()
+            _drawAxisText(propsCol, "X", warningMessage=False)
+            _drawAxisText(propsCol, "Y", warningMessage=False)
+            _drawAxisText(propsCol, "Z", warningMessage=False)
+
+            rightRow = transformRow.row()
+            rightRow.alignment = "RIGHT"
+
+            rightSubRow = rightRow.row()
+            transfoRow = rightSubRow.row()
+            transfoRow.enabled = scaleLocked
+            transfoRow.prop(gp_child, "scale", text="")
+            splitRightCol = rightSubRow.column()
 
             subCol = splitRightCol.column(align=True)
             draw_lock_but(subCol, gp_child, "LOCK_SCALE_X")
             draw_lock_but(subCol, gp_child, "LOCK_SCALE_Y")
             draw_lock_but(subCol, gp_child, "LOCK_SCALE_Z")
-
-            # transformRow = col.row()
-            # transformRow.label(text="test")
-            # transformRow.use_property_split = True
-            # transformRow.use_property_decorate = True
-            # transformRow.prop(gp_child.location, "x")
 
             transformRow = transformCol.row()
             transformRow.separator(factor=hSepFactor)

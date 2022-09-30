@@ -216,3 +216,8 @@ rajouter bouton de framing shot a coté de gpu
 shift qui ne marche pas lorsqu'on fait un set courant en continuous mode
 finir zoom dans continous
 
+mettre nom de canvas dont touch
+
+overlay desactive des qu'on sort du full scerenfull screnn (ctrl alt space)
+
+

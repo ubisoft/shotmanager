@@ -1,4 +1,8 @@
 -----
+## 2.1.21 (2022-09-30)
+- Revamped the UI of the Animated Frame Transformation to minimize UI ambiguities
+
+-----
 ## 2.1.20 (2022-09-29)
 - Several fixes related to the continuous draw mode
 - Fixed storyboard frame that was not duplicated following to a take duplication
