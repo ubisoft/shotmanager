@@ -44,7 +44,8 @@ def registerKeymaps():
         ###############################
 
         # VIEW_3D works also for timeline
-        km = wm.keyconfigs.addon.keymaps.new(name="3D View", space_type="VIEW_3D")
+        # NOTE: For the keymap to work also over the add-on panel, it has to use the name 3D View Generic, not just 3D View
+        km = wm.keyconfigs.addon.keymaps.new(name="3D View Generic", space_type="VIEW_3D")
         kmi = km.keymap_items.new("uas_shot_manager.shots_play_mode", type="SPACE", value="PRESS", alt=True)
         keymaps.append((km, kmi))
 
@@ -80,7 +81,15 @@ def registerKeymaps():
         ###############################
 
         # VIEW_3D works also for timeline
-        km = wm.keyconfigs.addon.keymaps.new(name="3D View", space_type="VIEW_3D")
+        km = wm.keyconfigs.addon.keymaps.new(name="3D View Generic", space_type="VIEW_3D", tool=False)
+        kmi = km.keymap_items.new("uas_shot_manager.stb_frame_drawing", type="X", value="PRESS", ctrl=True, shift=True)
+        keymaps.append((km, kmi))
+
+        km = wm.keyconfigs.addon.keymaps.new(name="Dopesheet", space_type="DOPESHEET_EDITOR")
+        kmi = km.keymap_items.new("uas_shot_manager.stb_frame_drawing", type="X", value="PRESS", ctrl=True, shift=True)
+        keymaps.append((km, kmi))
+
+        km = wm.keyconfigs.addon.keymaps.new(name="Graph Editor", space_type="GRAPH_EDITOR")
         kmi = km.keymap_items.new("uas_shot_manager.stb_frame_drawing", type="X", value="PRESS", ctrl=True, shift=True)
         keymaps.append((km, kmi))
 
