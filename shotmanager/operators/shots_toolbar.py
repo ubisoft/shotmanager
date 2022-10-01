@@ -21,6 +21,7 @@ Toolbar
 
 import bpy
 from bpy.types import Operator
+from bpy.props import FloatProperty
 
 from shotmanager.config import config
 
@@ -106,6 +107,8 @@ class UAS_ShotManager_SceneRangeFromTake(Operator):
     bl_description = "Set scene time range with take range" "\n+ Alt: Set the preview time range"
     bl_options = {"INTERNAL"}
 
+    spacerPercent: FloatProperty(default=5)
+
     def invoke(self, context, event):
         scene = context.scene
         props = scene.UAS_shot_manager_props
@@ -126,7 +129,7 @@ class UAS_ShotManager_SceneRangeFromTake(Operator):
                         scene.frame_start = currentTake.getMinFrame(ignoreDisabled=False)
                         scene.frame_end = currentTake.getMaxFrame(ignoreDisabled=False)
 
-                    bpy.ops.uas_shot_manager.frame_time_range(spacerPercent=5)
+                    bpy.ops.uas_shot_manager.frame_time_range(spacerPercent=self.spacerPercent)
 
         return {"FINISHED"}
 

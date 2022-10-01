@@ -21,7 +21,7 @@ Frame Range operators
 
 import bpy
 from bpy.types import Operator
-from bpy.props import FloatProperty
+from bpy.props import FloatProperty, StringProperty, IntProperty
 
 from shotmanager.utils.utils_time import zoom_dopesheet_view_to_range
 from shotmanager.utils import utils_ui
@@ -75,6 +75,8 @@ class UAS_ShotManager_FrameTimeRange(Operator):
     bl_description = "Change the VSE zoom value to fit the scene time range"
     bl_options = {"REGISTER"}
 
+    start: IntProperty(description="Time start", default=-100000)
+    end: IntProperty(description="Time end", default=-100000)
     spacerPercent: FloatProperty(
         description="Range of time, in percentage, before and after the time range", min=0.0, max=40.0, default=5
     )
@@ -83,18 +85,104 @@ class UAS_ShotManager_FrameTimeRange(Operator):
     def poll(cls, context):
         return config.getShotManagerPrefs().display_frame_range_tool
 
-    # def invoke(self, context, event):
-    #     props = context.scene.UAS_shot_manager_props
+    def execute(self, context):
+        currentFrame = context.scene.frame_current
+        recenterCurrentFrame = False
+        if context.scene.use_preview_range:
+            rangeStart = context.scene.frame_preview_start if self.start < -10000 else self.start
+            rangeEnd = context.scene.frame_preview_end if self.end < -10000 else self.end
+        else:
+            rangeStart = context.scene.frame_start if self.start < -10000 else self.start
+            rangeEnd = context.scene.frame_end if self.end < -10000 else self.end
 
-    #     return {"FINISHED"}
+        if not rangeStart <= currentFrame <= rangeEnd:
+            recenterCurrentFrame = True
+
+        # NOTE: possibility to use the optional parameter changeTime: to prevent current time to be changed
+        zoom_dopesheet_view_to_range(context, rangeStart, rangeEnd, changeTime=recenterCurrentFrame)
+        utils_ui.redrawAll(context)
+
+        return {"FINISHED"}
+
+
+class UAS_ShotManager_FrameTimeRangeFromShot(Operator):
+    bl_idname = "uas_shot_manager.frame_time_range_from_shot"
+    bl_label = "Set scene time range with current SHOT range and zoom on it"
+    bl_description = (
+        "\n+ Ctrl: Zoom on SHOT range without changing time range"
+        "\n+ Shift: Set scene time range with current TAKE range and zoom on it"
+        "\n+ Ctrl + Shift: Zoom on TAKE range without changing time range"
+        "\n+ Alt: Set the preview time range"
+    )
+    bl_options = {"INTERNAL"}
+
+    @classmethod
+    def poll(cls, context):
+        return config.getShotManagerPrefs().display_frame_range_tool
+
+    action: StringProperty(default="DO_NOTHING")
+    spacerPercent: FloatProperty(default=35)
+
+    def invoke(self, context, event):
+        self.action = "DO_NOTHING"
+
+        # if not event.ctrl and not event.shift and not event.alt:
+        #     self.action = "CURRENT"
+        # elif not event.ctrl and event.shift and not event.alt:
+        #     self.action = "ALL"
+
+        # this is computed when the operator is called without a specified action
+        if "DO_NOTHING" == self.action:
+            if event.ctrl and not event.shift and not event.alt:
+                self.action = "SHOT"
+            elif not event.ctrl and not event.shift:
+                self.action = "SHOT_TIMERANGE"
+                if event.alt:
+                    self.action += "_PREVIEW"
+
+            elif event.ctrl and event.shift and not event.alt:
+                self.action = "TAKE"
+            elif not event.ctrl and event.shift:
+                self.action = "TAKE_TIMERANGE"
+                if event.alt:
+                    self.action += "_PREVIEW"
+
+        if "DO_NOTHING" == self.action:
+            return {"FINISHED"}
+        return self.execute(context)
 
     def execute(self, context):
-        # NOTE: possibility to use the optional parameter changeTime: to prevent current time to be changed
-        if context.scene.use_preview_range:
-            zoom_dopesheet_view_to_range(context, context.scene.frame_preview_start, context.scene.frame_preview_end)
-        else:
-            zoom_dopesheet_view_to_range(context, context.scene.frame_start, context.scene.frame_end)
-        utils_ui.redrawAll(context)
+        scene = context.scene
+        props = scene.UAS_shot_manager_props
+        currentShot = props.getCurrentShot()
+
+        if currentShot:
+            if "SHOT" in self.action:
+                rangeStart = currentShot.start
+                rangeEnd = currentShot.end
+                bpy.ops.uas_shot_manager.frame_time_range(
+                    start=rangeStart, end=rangeEnd, spacerPercent=self.spacerPercent
+                )
+            elif "TAKE" in self.action:
+                currentTake = props.getCurrentTake()
+                if currentTake and 0 < currentTake.getNumShots(ignoreDisabled=True):
+                    rangeStart = currentTake.getMinFrame(ignoreDisabled=False)
+                    rangeEnd = currentTake.getMaxFrame(ignoreDisabled=False)
+                    bpy.ops.uas_shot_manager.frame_time_range(
+                        start=rangeStart, end=rangeEnd, spacerPercent=self.spacerPercent
+                    )
+
+            if "TIMERANGE" in self.action:
+                # preview time range
+                if "PREVIEW" in self.action:
+                    scene.use_preview_range = True
+                    scene.frame_preview_start = rangeStart
+                    scene.frame_preview_end = rangeEnd
+                else:
+                    scene.use_preview_range = False
+                    scene.frame_start = rangeStart
+                    scene.frame_end = rangeEnd
+
         return {"FINISHED"}
 
 
@@ -107,6 +195,7 @@ def draw_frame_range_tool_in_editor(self, context):
     # row.operator("bpy.ops.time.view_all")
     row.operator("uas_shot_manager.set_time_range_start", text="", icon="TRIA_UP_BAR")
     row.operator("uas_shot_manager.frame_time_range", text="", icon="CENTER_ONLY")
+    row.operator("uas_shot_manager.frame_time_range_from_shot", text="", icon="PREVIEW_RANGE")
     row.operator("uas_shot_manager.set_time_range_end", text="", icon="TRIA_UP_BAR")
 
 
@@ -121,6 +210,7 @@ _classes = (
     UAS_ShotManager_SetTimeRangeStart,
     UAS_ShotManager_SetTimeRangeEnd,
     UAS_ShotManager_FrameTimeRange,
+    UAS_ShotManager_FrameTimeRangeFromShot,
 )
 
 

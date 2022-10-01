@@ -1,4 +1,12 @@
 -----
+## 2.1.23 (2022-10-01)
+- Added a button to set the time range to shot or take range in the Frame Range toolbar
+
+-----
+## 2.1.22 (2022-10-01)
+- Fixed keymap for draw mode to work when the mouve is over the add-on panel
+
+-----
 ## 2.1.21 (2022-09-30)
 - Revamped the UI of the Animated Frame Transformation to minimize UI ambiguities
 

@@ -67,9 +67,8 @@ def draw_shots_stack_toolbar_in_editor(self, context):
         icon_value=icon.icon_id,
     )
 
-    row.separator(factor=0.8)
-
     if config.devDebug:
+        row.separator(factor=0.8)
         # row.operator(
         #     "uas_gpu.dopesheet_gpu_sample",
         #     text="GPU",
