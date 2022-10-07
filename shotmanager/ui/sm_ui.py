@@ -700,11 +700,28 @@ class UAS_PT_ShotManager(Panel):
             subrowedit.operator("uas_shot_manager.enabledisableall", text="", icon=iconCheckBoxes, emboss=False)
 
             if currentLayout.display_storyboard_in_properties:
-                subrowedit.operator(
+                iconEditingMode = "RESTRICT_SELECT_OFF"
+                depressState = True
+                alertState = False
+                if props.isContinuousGPEditingModeActive():
+                    iconEditingMode = "GREASEPENCIL"
+                    if props.isEditingStoryboardFrame:
+                        # cannot be set to True if the mode is activated cause button will appear purple instead of red
+                        depressState = False
+                        alertState = True
+
+                # isEditingStoryboardFrame
+
+                # depressState = props.useContinuousGPEditing
+                # depressState=props.isContinuousGPEditingModeActive()
+
+                subsubrowedit = subrowedit.row(align=True)
+                subsubrowedit.alert = alertState
+                subsubrowedit.operator(
                     "uas_shot_manager.toggle_continuous_gp_editing_mode",
                     text="",
-                    icon="GREASEPENCIL",
-                    depress=props.useContinuousGPEditing,
+                    depress=depressState,
+                    icon=iconEditingMode,
                 )
 
             if currentLayout.display_editmode_in_properties:

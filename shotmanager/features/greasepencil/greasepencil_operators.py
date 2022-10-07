@@ -271,6 +271,8 @@ class UAS_ShotManager_OT_ToggleGreasePencilDrawMode(Operator):
                 utils_greasepencil.switchToObjectMode()
             else:
                 utils_greasepencil.switchToDrawMode(context, gp)
+                props.isEditingStoryboardFrame = True
+
                 if props.shotsGlobalSettings.stb_camPOV_forFreeGP:
                     props.getCurrentShot().setCameraToViewport()
                     context.scene.tool_settings.gpencil_stroke_placement_view3d = (
@@ -331,6 +333,8 @@ class UAS_ShotManager_OT_DrawOnGreasePencil(Operator):
             gp.setInkLayerReadyToDraw(gp_child)
 
             utils_greasepencil.switchToDrawMode(context, gp_child)
+            props.isEditingStoryboardFrame = True
+
             # gp_child.select_set(True)
             # gp_child.hide_select = False
             # gp_child.hide_viewport = False
@@ -705,6 +709,7 @@ class UAS_ShotManager_GreasePencilSelectAndDraw(Operator):
                     if editedGP == shot:
                         utils_greasepencil.switchToObjectMode()
                         utils.select_object(gp_child)
+                        props.isEditingStoryboardFrame = False
                         return {"FINISHED"}
 
                 # get out of GP Draw mode for the edited shot
@@ -728,6 +733,7 @@ class UAS_ShotManager_GreasePencilSelectAndDraw(Operator):
                     # set ink layer, else topmost layer
                     gp.setInkLayerReadyToDraw(gp_child)
                     utils_greasepencil.switchToDrawMode(context, gp_child)
+                    props.isEditingStoryboardFrame = True
 
         # utils.setPropertyPanelContext(context, "DATA")
 

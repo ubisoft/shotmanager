@@ -30,6 +30,7 @@ import json
 
 from shotmanager.utils import utils
 from shotmanager.utils import utils_markers
+from shotmanager.utils import utils_greasepencil
 from shotmanager.utils.utils_time import zoom_dopesheet_view_to_range
 from shotmanager.utils.utils_ui import propertyColumn
 from shotmanager.utils.utils import slightlyRandomizeColor
@@ -308,15 +309,44 @@ class UAS_ShotManager_ToggleContinuousGPEditingMode(Operator):
     bl_label = "Continuous Draw Mode"
     bl_description = (
         "When used, the Storyboard Frame of each shot set to be the current"
-        "\none will be automaticaly selected and switched to Draw mode"
+        "\none will be automaticaly selected and switched to Draw mode."
+        "\n+ Alt: Toggle the button between Draw and Select context for the Storyboard Frame"
     )
     bl_options = {"REGISTER"}
+
+    # can be:
+    #   - TOGGLE_USE_EDITING: will toggle the context between where the drawing state is available and the selection of the
+    #     storyboard frame is available (basically the action button of each shot in the shot list will be changed).
+    #     *** This does not activate the Drawing mode itself, but it can change it to Object mode in some cases ***
+    #   - TOGGLE_ACTIVATE_EDITING_MODE: When the drawing context is available (one of the 2 states set by the mode above) then
+    #     toggling between edit modes will alternate between Drawing mode activated (even if no stb frame is current)
+    #     and Object mode activated.
+    action: StringProperty(default="DO_NOTHING")
+
+    def invoke(self, context, event):
+        if event.alt:
+            self.action = "TOGGLE_USE_EDITING"
+        else:
+            self.action = "TOGGLE_ACTIVATE_EDITING_MODE"
+
+        return self.execute(context)
 
     def execute(self, context):
         props = context.scene.UAS_shot_manager_props
         # prefs = config.getShotManagerPrefs()
 
-        props.useContinuousGPEditing = not props.useContinuousGPEditing
+        if "TOGGLE_USE_EDITING" == self.action:
+            props.useContinuousGPEditing = not props.useContinuousGPEditing
+            if not props.useContinuousGPEditing:
+                props.isEditingStoryboardFrame = False
+                utils_greasepencil.switchToObjectMode()
+        else:
+            props.isEditingStoryboardFrame = not props.isEditingStoryboardFrame
+            if props.isEditingStoryboardFrame:
+                bpy.ops.uas_shot_manager.stb_frame_drawing()
+            else:
+                props.isEditingStoryboardFrame = False
+                utils_greasepencil.switchToObjectMode()
 
         # NOTE: when the Continuous Editing mode is on then the selected and current shots are tied anyway
         # in the "change selection" code

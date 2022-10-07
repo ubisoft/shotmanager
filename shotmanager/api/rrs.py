@@ -16,7 +16,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 """
-To do: module description here.
+Shot Manager API - Interface with RRS Publishing
 """
 
 from shotmanager.scripts.rrs import publish_rrs
@@ -37,18 +37,18 @@ def publishRRS(
     settings_dict=None,
 ):
     """
-        Arguments:
-        settings_dict: a dictionary with various custom settings
+    Arguments:
+    settings_dict: a dictionary with various custom settings
 
-        Return a dictionary with the rendered and the failed file paths
-        The dictionary have the following entries:
-            - rendered_files_in_cache: rendered files when cache is used
-            - failed_files_in_cache: failed files when cache is used
-            - edl_files_in_cache: edl files when cache is used
-            - rendered_files: rendered files (either from direct rendering or from copy from cache)
-            - failed_files: failed files (either from direct rendering or from copy from cache)
-            - edl_files: edl files
-            - other_files: json dumped file list
+    Return a dictionary with the rendered and the failed file paths
+    The dictionary have the following entries:
+        - rendered_files_in_cache: rendered files when cache is used
+        - failed_files_in_cache: failed files when cache is used
+        - edl_files_in_cache: edl files when cache is used
+        - rendered_files: rendered files (either from direct rendering or from copy from cache)
+        - failed_files: failed files (either from direct rendering or from copy from cache)
+        - edl_files: edl files
+        - other_files: json dumped file list
     """
     return publish_rrs.publishRRS(
         prodFilePath,

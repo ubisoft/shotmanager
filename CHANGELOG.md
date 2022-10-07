@@ -1,6 +1,8 @@
 -----
 ## 2.1.23 (2022-10-01)
 - Added a button to set the time range to shot or take range in the Frame Range toolbar
+- Improved the Storyborad Frame Editing Mode button
+- Improved the API (documentation, samples, code)
 
 -----
 ## 2.1.22 (2022-10-01)

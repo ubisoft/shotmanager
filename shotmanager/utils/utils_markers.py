@@ -98,6 +98,7 @@ def addMarkerAtFrame(scene, frame, name):
         if "" == name:
             name = f"F_{scene.frame_current}"
         marker = scene.timeline_markers.new(name, frame=frame)
+    return marker
 
 
 def deleteMarkerAtFrame(scene, frame):

@@ -1102,11 +1102,21 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
     # storyboard
     ####################
 
+    # NOTE: call isContinuousGPEditingModeActive() to query the state of this value
     useContinuousGPEditing: BoolProperty(
         name="Continuous Drawing Mode",
         description="When used, the Storyboard Frame of each shot set to be the current"
         "\none will be automaticaly selected and switched to Draw mode",
         default=True,
+    )
+
+    isEditingStoryboardFrame: BoolProperty(
+        name="Editing Storyboard Frame",
+        description="If True, the storyboard frame of any shot that becomes current will be set to Draw Mode."
+        "\n*** Do NOT change it directly ***"
+        "\nThis is changed by the operators uas_shot_manager.toggle_continuous_gp_editing_mode and"
+        "\nuas_shot_manager.greasepencil_select_and_draw",
+        default=False,
     )
 
     def isContinuousGPEditingModeActive(self):
