@@ -1,0 +1,38 @@
+.. _release-change-log_v2-0-225:
+
+Release v2.0.225 Change Log
+===========================
+
+Retimer, markers
+----------------
+- Retimer UI and structure refactored and simplified
+- Added support for markers in Retimer
+
+
+Features
+--------
+- Integrated the tool Markers Nav Bar from the add-on Ubisoft Video Tracks
+
+
+UX/UI
+-----
+- In the Shots Global Settings the Passepartout has been moved out of the Overlays box since it is not an overlay property
+- Improved the message displayed in the 3D views to identify the target viewport
+- Added a dropdown property to be able to change the Overlays for every viewport, not only the target one
+
+
+Code
+----
+
+- Big refactor in files to introduce a function to get the add-on preferences
+
+
+Fixes
+-----
+
+- Fixed header title display when add-on has a warning
+- Fixed error message at install time when internet connection is not available
+- Fixed Overlays Layer Opacity that wasn't working every time
+- Fixed error message when material was not available for the drawing preset
+- Small fix on the storyboard shot type icon
+
