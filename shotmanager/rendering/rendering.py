@@ -30,6 +30,7 @@ import bpy
 
 from shotmanager.config import config
 from shotmanager.rendering.rendering_stampinfo import setStampInfoSettings, renderStampedInfoForShot
+from shotmanager.rendering import rendering_functions
 
 from shotmanager.utils import utils
 from shotmanager.utils import utils_editors_3dview
@@ -220,8 +221,10 @@ def launchRenderWithVSEComposite(
 
     # override local variables with project settings
     if props.use_project_settings:
+        # wkip needed???
         props.applyProjectSettings()
-        scene.render.image_settings.file_format = props.project_images_output_format
+
+        # scene.render.image_settings.file_format = props.project_images_output_format
         projectFps = props.project_fps
         # # # renderResolution = [props.project_resolution_x, props.project_resolution_y]
         # # # renderResolutionFramed = [props.project_resolution_framed_x, props.project_resolution_framed_y]
@@ -296,12 +299,14 @@ def launchRenderWithVSEComposite(
     # video settings
     ################
 
-    # scene.render.image_settings.file_format = "FFMPEG"
-    # scene.render.ffmpeg.format = "MPEG4"
-    # scene.render.ffmpeg.constant_rate_factor = "PERC_LOSSLESS"  # "PERC_LOSSLESS"
-    # scene.render.ffmpeg.gopsize = 5  # keyframe interval
-    # scene.render.ffmpeg.audio_codec = "AAC"
-    scene.render.use_file_extension = True
+    rendering_functions.applyVideoSettings(scene, props, "SHOT", renderMode, renderPreset)
+    # scene.render.image_settings.file_format = props.project_images_output_format
+    # # scene.render.image_settings.file_format = "FFMPEG"
+    # # scene.render.ffmpeg.format = "MPEG4"
+    # # scene.render.ffmpeg.constant_rate_factor = "PERC_LOSSLESS"  # "PERC_LOSSLESS"
+    # # scene.render.ffmpeg.gopsize = 5  # keyframe interval
+    # # scene.render.ffmpeg.audio_codec = "AAC"
+    # scene.render.use_file_extension = True
 
     # set render quality
     #######################
@@ -748,8 +753,10 @@ def launchRenderWithVSEComposite(
                         deleteTempFiles = False
                 else:
                     deleteTempFiles = not renderPreset.keepIntermediateFiles
-                # ... or not config.devDebug_keepVSEContent
-                # deleteTempFiles = False
+
+                if deleteTempFiles and config.devDebug and config.devDebug_keepVSEContent:
+                    deleteTempFiles = False
+
                 # deleteTempFiles = not config.devDebug_keepVSEContent and not renderPreset.keepIntermediateFiles
                 if deleteTempFiles:
                     _deleteTempFiles(newTempRenderPath)
@@ -860,7 +867,9 @@ def launchRenderWithVSEComposite(
                     deleteTempFiles = False
             else:
                 deleteTempFiles = not renderPreset.keepIntermediateFiles
-            # ... or not config.devDebug_keepVSEContent
+
+            if deleteTempFiles and config.devDebug and config.devDebug_keepVSEContent:
+                deleteTempFiles = False
 
             # deleteTempFiles = not config.devDebug_keepVSEContent and not renderPreset.keepIntermediateFiles
             # deleteTempFiles = False

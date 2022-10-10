@@ -57,8 +57,8 @@ def delete_folder(dir_path):
                 print(f"\n*** File locked (by system?): {path_to_file}")
         try:
             os.rmdir(dir_path)
-        except Exception:
-            print("Cannot delete Dir: ", dir_path)
+        except OSError as error:
+            _logger.warning_ext(f"Cannot delete directory: {dir_path}, error:{error}")
 
 
 def internet_on():

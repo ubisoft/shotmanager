@@ -43,7 +43,7 @@ def initGlobalVariables():
         devDebug = False
 
     # change this value to force debug at start time
-    devDebug = True
+    devDebug = False
 
     global devDebug_displayDebugPanel
     devDebug_displayDebugPanel = True
@@ -51,17 +51,19 @@ def initGlobalVariables():
     global devDebug_lastRedrawTime
     devDebug_lastRedrawTime = -1
 
+    global devDebug_ignoreLoggerFormatting
+    devDebug_ignoreLoggerFormatting = True and devDebug
+
+    # rendering ##########
+
     # keep the intermediate images after rendering (ie the original  Blender renderings
     # and the Stamp Info temporaty images)
     global devDebug_keepVSEContent
     devDebug_keepVSEContent = False
 
-    global devDebug_ignoreLoggerFormatting
-    devDebug_ignoreLoggerFormatting = True and devDebug
-
     # installation #############
-    # internet/github timeout, in seconds
 
+    # internet/github timeout, in seconds
     global LATEST_VERSION_TIMEOUT
     LATEST_VERSION_TIMEOUT = 1
 

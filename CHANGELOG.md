@@ -1,4 +1,10 @@
 -----
+## 2.1.24 (2022-10-11)
+- Added a function applyVideoSettings() in the rendering process to change the rendering file
+  format in a cleanest way (to be continued)
+- Fixed a bug when plablast video appeared all black when called without Project Settings
+
+-----
 ## 2.1.23 (2022-10-01)
 - Added a button to set the time range to shot or take range in the Frame Range toolbar
 - Improved the Storyborad Frame Editing Mode button
