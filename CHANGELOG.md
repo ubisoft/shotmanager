@@ -1,7 +1,70 @@
 -----
-## 2.0.225 (2022-09-02)
-**Release**
-- Improved documentation
+## 2.1.24 (2022-10-11)
+- Added a function applyVideoSettings() in the rendering process to change the rendering file
+  format in a cleanest way (to be continued)
+- Fixed a bug when plablast video appeared all black when called without Project Settings
+
+-----
+## 2.1.23 (2022-10-01)
+- Added a button to set the time range to shot or take range in the Frame Range toolbar
+- Improved the Storyborad Frame Editing Mode button
+- Improved the API (documentation, samples, code)
+
+-----
+## 2.1.22 (2022-10-01)
+- Fixed keymap for draw mode to work when the mouve is over the add-on panel
+
+-----
+## 2.1.21 (2022-09-30)
+- Revamped the UI of the Animated Frame Transformation to minimize UI ambiguities
+
+-----
+## 2.1.20 (2022-09-29)
+- Several fixes related to the continuous draw mode
+- Fixed storyboard frame that was not duplicated following to a take duplication
+- Added shot name in the Render panel, near Current Shot label
+- Refactored the Duplicate Shot dialog box and added a checkbox for color variation
+- Added a key map for activating the draw mode on a current shot
+
+-----
+## 2.1.5 (2022-09-27)
+- Fixed a crash on Storyboard Grid because of Python 3.10 code
+
+-----
+## 2.1.4 (2022-09-14)
+### Interactive Shots Stack
+- Added an info component
+- Added mode and scale keyframe changes when a shot clip is manipulated
+
+### Code
+- Added a sample widget to the gpu components library
+
+-----
+## 2.1.3 (2022-09-12)
+- Fixed regression bug on Convert Camera Binding
+- Fixed the detached grease pencil transform lock state
+- Added a function to get the canvas frame when missing
+
+-----
+## 2.1.2 (2022-09-12)
+- Fixed the type of shot that was set to Storyboard when a storyboard frame was added
+
+-----
+## 2.1.1 (2022-09-12)
+**Beta Release**
+### Keymaps
+- Separated key mappings per category
+- Added a Preferences parameter to toggle the vertical arrows used to navigate from shot to shot
+- Made the up arrow go to next shots by default instead of previous ones
+
+### Shots Stack UI
+- Added a Preferences setting to make the shots stack starts at the specified lane
+- Set the first lane to 1 instead of 0 to see the keys of the Summany lane
+
+-----
+## 2.0.226 (2022-09-12)
+### Shots Stack UI
+- Added a user preference to automaticaly detect the sceen display factor (Windows only)
 
 -----
 ## 2.0.224 (2022-08-24)

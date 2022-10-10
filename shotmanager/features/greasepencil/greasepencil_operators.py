@@ -271,6 +271,8 @@ class UAS_ShotManager_OT_ToggleGreasePencilDrawMode(Operator):
                 utils_greasepencil.switchToObjectMode()
             else:
                 utils_greasepencil.switchToDrawMode(context, gp)
+                props.isEditingStoryboardFrame = True
+
                 if props.shotsGlobalSettings.stb_camPOV_forFreeGP:
                     props.getCurrentShot().setCameraToViewport()
                     context.scene.tool_settings.gpencil_stroke_placement_view3d = (
@@ -331,6 +333,8 @@ class UAS_ShotManager_OT_DrawOnGreasePencil(Operator):
             gp.setInkLayerReadyToDraw(gp_child)
 
             utils_greasepencil.switchToDrawMode(context, gp_child)
+            props.isEditingStoryboardFrame = True
+
             # gp_child.select_set(True)
             # gp_child.hide_select = False
             # gp_child.hide_viewport = False
@@ -598,7 +602,11 @@ class UAS_ShotManager_GreasePencilSelectAndDraw(Operator):
     bl_options = {"INTERNAL", "UNDO"}
 
     index: IntProperty(default=0)
+
+    # can be SELECT, DRAW
     mode: StringProperty(default="SELECT")
+
+    # can be DO_NOTHING, SELECT, SELECT_AND_DRAW, ADD_TO_SELECTION
     action: StringProperty(default="DO_NOTHING")
     ignoreSetCurrentShot: BoolProperty(default=False)
     toggleDrawEditing: BoolProperty(default=False)
@@ -701,6 +709,7 @@ class UAS_ShotManager_GreasePencilSelectAndDraw(Operator):
                     if editedGP == shot:
                         utils_greasepencil.switchToObjectMode()
                         utils.select_object(gp_child)
+                        props.isEditingStoryboardFrame = False
                         return {"FINISHED"}
 
                 # get out of GP Draw mode for the edited shot
@@ -724,6 +733,7 @@ class UAS_ShotManager_GreasePencilSelectAndDraw(Operator):
                     # set ink layer, else topmost layer
                     gp.setInkLayerReadyToDraw(gp_child)
                     utils_greasepencil.switchToDrawMode(context, gp_child)
+                    props.isEditingStoryboardFrame = True
 
         # utils.setPropertyPanelContext(context, "DATA")
 
@@ -840,7 +850,7 @@ class UAS_ShotManager_GreasePencil_UINavigationKeys(Operator):
 
 class UAS_ShotManager_GreasePencil_NavigateInKeyFrames(Operator):
     bl_idname = "uas_shot_manager.greasepencil_navigateinkeyframes"
-    bl_label = "Shot Manager - Navigate in grease pencil key frames"
+    bl_label = "Ubisoft Shot Mng - Navigate in grease pencil key frames"
     bl_description = "Jump from key frame to key frame on the specified grease pencil layer"
     bl_options = {"INTERNAL", "UNDO"}
 

@@ -20,7 +20,7 @@ UI for the Interactive Shots Stack overlay tool
 """
 
 
-from .widgets.shots_stack_widget import BL_UI_ShotStack
+from .widgets.shots_stack_widget import ShotStackWidget
 
 import bpy
 from bpy.types import Operator
@@ -75,6 +75,7 @@ def display_state_changed_intShStack(context):
 class UAS_ShotManager_InteractiveShotsStack(Operator):
     bl_idname = "uas_shot_manager.interactive_shots_stack"
     bl_label = "Draw Interactive Shots Stack in timeline"
+    # bl_options = {"INTERNAL"}
     bl_options = {"REGISTER", "INTERNAL"}
     # bl_options = {"UNDO"}
     # !!! Important note: Do not set undo here: it doesn't work and it will be in conflic with the
@@ -127,7 +128,7 @@ class UAS_ShotManager_InteractiveShotsStack(Operator):
             _logger.debug_ext("Canceled op uas_shot_manager.interactive_shots_stack area", col="PURPLE")
             return {"CANCELLED"}
         else:
-            self.init_widgets(context, [BL_UI_ShotStack(target_area=self.target_area)])
+            self.init_widgets(context, [ShotStackWidget(target_area=self.target_area)])
 
         args = (self, context, self.widgets)
         self.register_handlers(args, context)
@@ -170,7 +171,7 @@ class UAS_ShotManager_InteractiveShotsStack(Operator):
 
         # events canceling the action
         # for widget in self.widgets:
-        #     if widget.manipulated_clip:
+        ##     if widget.manipulated_clip:  # removed
         #         if (
         #             (event.type == "LEFTMOUSE" and event.value == "RELEASE")
         #             or (event.type == "RIGHTMOUSE" and event.value == "RELEASE")
@@ -201,6 +202,7 @@ class UAS_ShotManager_InteractiveShotsStack(Operator):
         props = context.scene.UAS_shot_manager_props
         prefs = config.getShotManagerPrefs()
 
+        event_handled = False
         # _logger.debug_ext(f"uas_shot_manager.interactive_shots_stack  Modal", col="PURPLE")
 
         # if event.type not in ["TIMER", "MOUSEMOVE"]:

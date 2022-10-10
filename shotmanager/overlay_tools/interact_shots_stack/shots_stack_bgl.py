@@ -28,6 +28,7 @@ import gpu
 from mathutils import Vector
 
 from shotmanager.utils import utils
+from shotmanager.utils import utils_editors_dopesheet
 from shotmanager.overlay_tools.workspace_info.workspace_info import draw_typo_2d
 
 from shotmanager.config import config
@@ -65,15 +66,9 @@ def get_lane_origin_y(lane):
     """Return the offset to put under the timeline ruler"""
     RULER_HEIGHT = 52
     RULER_HEIGHT = 40
-    return math.floor(-1.0 * get_lane_height() * lane - (RULER_HEIGHT * bpy.context.preferences.view.ui_scale))
-
-
-# deprecated - use getLaneHeight
-def get_lane_height():
-    """Return the offset to put under the timeline ruler"""
-    LANE_HEIGHT = 22.5
-    LANE_HEIGHT = 18
-    return LANE_HEIGHT * get_prefs_ui_scale()
+    return math.floor(
+        -1.0 * utils_editors_dopesheet.getLaneHeight() * lane - (RULER_HEIGHT * bpy.context.preferences.view.ui_scale)
+    )
 
 
 ##############################################################################################################

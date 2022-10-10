@@ -670,7 +670,7 @@ def _addNewShot(
 
         # add media as camera background
         if useMediaAsCameraBG:
-            print("Import Otio clip.media_reference.target_url: ", clip.media_reference.target_url)
+            # print("Import Otio clip.media_reference.target_url: ", clip.media_reference.target_url)
             # media_path = Path(utils.file_path_from_url(clip.media_reference.target_url))
             # print("Import Otio media_path: ", media_path)
             # if not media_path.exists():

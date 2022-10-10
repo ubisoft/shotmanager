@@ -28,6 +28,7 @@ from . import prefs_features
 from . import prefs_overlay_tools
 from . import prefs_project
 from . import prefs_sequence
+from . import prefs_shots_display
 from . import prefs_tools
 from . import prefs
 
@@ -48,6 +49,7 @@ def register():
     prefs_overlay_tools.register()
     prefs_project.register()
     prefs_sequence.register()
+    prefs_shots_display.register()
     prefs_tools.register()
     prefs.register()
 
@@ -63,6 +65,7 @@ def unregister():
 
     prefs.unregister()
     prefs_tools.unregister()
+    prefs_shots_display.unregister()
     prefs_sequence.unregister()
     prefs_project.unregister()
     prefs_overlay_tools.unregister()

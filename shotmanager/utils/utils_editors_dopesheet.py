@@ -34,6 +34,7 @@ import math
 import bpy
 
 from shotmanager.utils.utils import clamp
+from shotmanager.config import config
 
 
 def getRegionFrameRange(context, targetArea, inViewUnits=True):
@@ -90,19 +91,25 @@ def getPrefsUIScale():
     return bpy.context.preferences.view.ui_scale
 
 
-def getRulerHeight():
+def getRulerHeight(firstLaneIndex=0):
     """Return the height in pixels of the time ruler of a dopesheet"""
+    prefs = config.getShotManagerPrefs()
     RULER_HEIGHT = 23
-    # RULER_HEIGHT = 28  # on laptop
-    return RULER_HEIGHT * getPrefsUIScale()
+    # RULER_HEIGHT = 28  # on laptop at display 125%
+    rulerHeight = (
+        RULER_HEIGHT * prefs.shtStack_screen_display_factor
+    ) * getPrefsUIScale() + firstLaneIndex * getLaneHeight()
+    # rulerHeight = rulerHeight * getPrefsUIScale()
+    return rulerHeight
 
 
 def getLaneHeight():
     """Return the height of a lane in pixels"""
+    prefs = config.getShotManagerPrefs()
     LANE_HEIGHT = 18
-    # LANE_HEIGHT = 18.5
-    # LANE_HEIGHT = 22.5  # on laptop
-    return LANE_HEIGHT * getPrefsUIScale()
+    # LANE_HEIGHT = 22.5  # on laptop at display 125%
+    laneHeight = LANE_HEIGHT * prefs.shtStack_screen_display_factor
+    return laneHeight * getPrefsUIScale()
 
 
 # same as pixel to lane

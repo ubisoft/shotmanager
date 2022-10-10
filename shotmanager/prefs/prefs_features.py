@@ -173,10 +173,25 @@ def draw_features_prefs(mode, layout):
 
     if "SCENE" == mode:
         layout.separator(factor=separatorVertTopics)
-        row = layout.row(align=True)
-        leftRow = row.row(align=True)
-        leftRow.label(text="Takes and Shots features to toggle with the selected layout:")
 
+    row = layout.row(align=True)
+    leftRow = row.row(align=True)
+    leftRow.alignment = "LEFT"
+    # leftRow.label(text="Takes and Shots features to toggle with the selected layout:")
+    subLeftRow01 = leftRow.row(align=True)
+    subLeftRow01.alignment = "RIGHT"
+    subLeftRow01.label(text="Takes and Shots features")
+    subLeftRow02 = subLeftRow01.row(align=True)
+    subLeftRow02.alert = True
+    subLeftRow02.alignment = "LEFT"
+    txt = (
+        " toggled with the selected layout:"
+        if "SCENE" == mode
+        else " to enable by default with the selected layout in new scenes:"
+    )
+    subLeftRow02.label(text=txt)
+
+    if "SCENE" == mode:
         rightRow = row.row(align=False)
         rightRow.alignment = "RIGHT"
         resetOp = rightRow.operator("uas_shotmanager.querybox", text="Reset", icon="LOOP_BACK")
@@ -188,8 +203,8 @@ def draw_features_prefs(mode, layout):
         rightRow.operator("preferences.addon_show", text="", icon="PREFERENCES").module = "shotmanager"
     #  rightRow.separator()
 
-    else:
-        layout.label(text="Takes and Shots features to enable by default with the selected layout:")
+    # else:
+    #     layout.label(text="Takes and Shots features to enable by default with the selected layout:")
     box = layout.box()
 
     boxSplit = box.split(factor=0.5)
@@ -273,27 +288,47 @@ def draw_features_prefs(mode, layout):
     subrow.prop(propsLayout, f"{layoutPrefix}display_advanced_infos", text="", icon="SYNTAX_ON")
     subrow.label(text="Display Advanced Infos")
 
-    ################
-    # Selection settings
-    propsRow = box.row()
-    propsRow.separator(factor=leftSepFactor)
-    propsCol = propsRow.column(align=True)
-    propsCol.label(text="Make the selected shot also the current one when it is selected from:")
-    row = propsCol.row()
-    row.separator(factor=3)
-    subCol = row.column(align=True)
+    # ################
+    # # Selection settings
+    # propsRow = box.row()
+    # propsRow.separator(factor=leftSepFactor)
+    # propsCol = propsRow.column(align=True)
+    # propsCol.label(text="Make the selected shot also the current one when it is selected from:")
+    # row = propsCol.row()
+    # row.separator(factor=3)
 
-    # NOTE: when the Continuous Editing mode is on then the selected and current shots are tied anyway
-    subCol.prop(
-        propsLayout,
-        f"{layoutPrefix}selected_shot_changes_current_shot",
-        text="The Shots List",
-    )
-    subCol.prop(
-        propsLayout,
-        f"{layoutPrefix}selected_shot_in_shots_stack_changes_current_shot",
-        text="The Interactive Shots Stack",
-    )
+    # # subCol = row.column(align=True)
+    # split = row.split(factor=0.35)
+
+    # # NOTE: when the Continuous Editing mode is on then the selected and current shots are tied anyway
+    # split.prop(
+    #     propsLayout,
+    #     f"{layoutPrefix}selected_shot_changes_current_shot",
+    #     text="The Shots List",
+    # )
+    # split.prop(
+    #     propsLayout,
+    #     f"{layoutPrefix}selected_shot_in_shots_stack_changes_current_shot",
+    #     text="The Interactive Shots Stack",
+    # )
+
+    # ################
+    # # Timeline zoom settings
+    # propsRow = box.row()
+    # propsRow.separator(factor=leftSepFactor)
+    # propsCol = propsRow.column(align=True)
+    # propsCol.label(text="When current shot is changed:")
+    # row = propsCol.row()
+    # row.separator(factor=3)
+
+    # subCol = row.column(align=True)
+
+    # # NOTE: when the Continuous Editing mode is on then the selected and current shots are tied anyway
+    # subCol.prop(
+    #     propsLayout,
+    #     f"{layoutPrefix}current_shot_changes_time_zoom",
+    #     text="Zoom Timeline Content to Frame The Current Shot",
+    # )
 
     #################################################################
     #
@@ -464,7 +499,7 @@ def draw_features_prefs(mode, layout):
             icon="NLA_PUSHDOWN",
             depress=prefs.toggle_overlays_turnOn_interactiveShotsStack,
         )
-        subrow.label(text="Interaction Shots Stack")
+        subrow.label(text="Interactive Shots Stack")
 
         subrowright = subrow.row()
         subrowright.alignment = "RIGHT"

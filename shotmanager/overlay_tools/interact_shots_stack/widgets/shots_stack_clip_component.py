@@ -31,6 +31,8 @@ from shotmanager.gpu.gpu_2d.class_QuadObject import QuadObject
 
 from .shots_stack_handle_component import ShotHandleComponent
 
+from shotmanager.retimer.retimer import retimeScene
+
 # from shotmanager.gpu.gpu_2d.gpu_2d import loadImageAsTexture
 
 from shotmanager.utils import utils
@@ -50,10 +52,10 @@ UNIFORM_SHADER_2D = gpu.shader.from_builtin("2D_UNIFORM_COLOR")
 class ShotClipComponent(Component2D):
     """Shot clip component"""
 
-    def __init__(self, targetArea, posY=2, shot=None):
+    def __init__(self, targetArea, posY=2, shot=None, shotsStack=None):
         Component2D.__init__(
             self,
-            targetArea,
+            targetArea=targetArea,
             posXIsInRegionCS=False,
             posX=10,
             posYIsInRegionCS=False,
@@ -65,6 +67,8 @@ class ShotClipComponent(Component2D):
             alignment="BOTTOM_LEFT",
             alignmentToRegion="TOP_LEFT",
         )
+
+        self.shotsStackWidget = shotsStack
 
         # preferences ############
         self.pref_handleWidth = int(getLaneHeight() * 0.5)
@@ -93,6 +97,10 @@ class ShotClipComponent(Component2D):
         self._name_color_light = (0.9, 0.9, 0.9, 1)
         self._name_color_dark = (0.07, 0.07, 0.07, 1)
         self._name_color_disabled = (0.8, 0.8, 0.8, 1)
+
+        # manipulation
+        # filled when isManipulated changes
+        self.manipulatedChildren = None
 
         # text component #########
         self.textComponent = Text2D(
@@ -147,6 +155,7 @@ class ShotClipComponent(Component2D):
             parent=self,
             shot=self.shot,
             isStart=True,
+            shotsStack=self.shotsStackWidget,
         )
 
         # end handle component ########
@@ -158,6 +167,7 @@ class ShotClipComponent(Component2D):
             parent=self,
             shot=self.shot,
             isStart=False,
+            shotsStack=self.shotsStackWidget,
         )
 
     #################################################################
@@ -351,7 +361,7 @@ class ShotClipComponent(Component2D):
     ######################################################################
 
     # override of InteractiveComponent
-    def _on_highlighted_changed(self, context, isHighlighted):
+    def _on_highlighted_changed(self, context, event, isHighlighted):
         """isHighlighted has the same value than self.isHighlighted, which is set right before this
         function is called
         """
@@ -362,7 +372,7 @@ class ShotClipComponent(Component2D):
             config.gRedrawShotStack = True
 
     # override of InteractiveComponent
-    def _on_selected_changed(self, context, isSelected):
+    def _on_selected_changed(self, context, event, isSelected):
         if isSelected:
             _logger.debug_ext("\n\nClip isSelected set to True", col="RED")
             props = context.scene.UAS_shot_manager_props
@@ -373,24 +383,35 @@ class ShotClipComponent(Component2D):
             prefs.shot_selected_from_shots_stack__flag = False
 
     # override of InteractiveComponent
-    def _on_manipulated_changed(self, context, isManipulated):
+    def _on_manipulated_changed(self, context, event, isManipulated):
         """isManipulated has the same value than self.isManipulated, which is set right before this
         function is called
         """
+
+        self.manipulatedChildren = None
+
         if isManipulated:
-            # _logger.debug_ext("component2D handle_events set manipulated true", col="PURPLE", tag="EVENT"
-            pass
+            _logger.debug_ext("component2D handle_events set manipulated True", col="PURPLE", tag="EVENT")
+            self.shotsStackWidget.manipulatedComponent = self
+            if self.shot.isStoryboardType():
+                self.manipulatedChildren = self.shot.getStoryboardChildren()
+                bpy.ops.ed.undo_push(message="Pre-Modify Shot Clip in the Interactive Shots Stack")
+            else:
+                if self.shot.isCameraValid():
+                    self.manipulatedChildren = self.shot.getStoryboardChildren()
+                    if self.manipulatedChildren is None:
+                        self.manipulatedChildren = list()
+                    self.manipulatedChildren.append(self.shot.camera)
+                    bpy.ops.ed.undo_push(message="Pre-Modify Shot Clip in the Interactive Shots Stack")
         else:
-            pass
+            _logger.debug_ext("component2D handle_events set manipulated False", col="PURPLE", tag="EVENT")
+            self.shotsStackWidget.manipulatedComponent = None
+
+    #     bpy.ops.ed.undo_push(message="Modified Shot Clip in the Interactive Shots Stack")
 
     # override of InteractiveComponent
-    def _on_manipulated_mouse_moved(self, context, mouse_delta_frames=0):
-        """wkip note: delta_frames is in frames but may need to be in pixels in some cases
-        handle: if handle == -1:    left clip handle (start)
-                if handle == 0:     clip (start and end)
-                if handle == 1:     right clip handle (end)
-        """
-
+    def _on_manipulated_mouse_moved(self, context, event, mouse_delta_frames=0):
+        """wkip note: delta_frames is in frames but may need to be in pixels in some cases"""
         # Very important, don't use properties for changing both start and ends. Depending of the amount of displacement duration can change.
         if self.shot.durationLocked:
             if mouse_delta_frames > 0:
@@ -406,6 +427,32 @@ class ShotClipComponent(Component2D):
             else:
                 self.shot.start += mouse_delta_frames
                 self.shot.end += mouse_delta_frames
+
+        prefs = config.getShotManagerPrefs()
+        if prefs.shtStack_link_stb_clips_to_keys and self.manipulatedChildren is not None:
+
+            retimerApplyToSettings = context.window_manager.UAS_shot_manager_shots_stack_retimerApplyTo
+
+            offsetShotContent = False
+            if self.shot.isStoryboardType():
+                offsetShotContent = not (not event.ctrl and event.alt and not event.shift)
+                retimerApplyToSettings.initialize("STB_SHOT_CLIP")
+            else:
+                offsetShotContent = not event.ctrl and not event.alt and event.shift
+                retimerApplyToSettings.initialize("PVZ_SHOT_CLIP")
+
+            if offsetShotContent:
+                # if offset_duration > 0 we insert time from a point far in negative time
+                # if offset_duration < 0 we delete time from a point very far in negative time
+                farRefPoint = -100000
+                retimeScene(
+                    context=context,
+                    retimeMode="GLOBAL_OFFSET",
+                    retimerApplyToSettings=retimerApplyToSettings,
+                    objects=self.manipulatedChildren,
+                    start_incl=farRefPoint + 1,
+                    duration_incl=mouse_delta_frames,
+                )
 
     # to override by inheriting classes
     def _on_doublecliked(self, context, event, region):

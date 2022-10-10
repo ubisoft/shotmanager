@@ -40,6 +40,7 @@ UNIFORM_SHADER_2D = gpu.shader.from_builtin("2D_UNIFORM_COLOR")
 class QuadObject(Object2D, Mesh2D):
     def __init__(
         self,
+        *,
         posXIsInRegionCS=True,
         posX=30,
         posYIsInRegionCS=True,
@@ -55,16 +56,16 @@ class QuadObject(Object2D, Mesh2D):
     ):
         Object2D.__init__(
             self,
-            posXIsInRegionCS,
-            posX,
-            posYIsInRegionCS,
-            posY,
-            widthIsInRegionCS,
-            width,
-            heightIsInRegionCS,
-            height,
-            alignment,
-            alignmentToRegion,
+            posXIsInRegionCS=posXIsInRegionCS,
+            posX=posX,
+            posYIsInRegionCS=posYIsInRegionCS,
+            posY=posY,
+            widthIsInRegionCS=widthIsInRegionCS,
+            width=width,
+            heightIsInRegionCS=heightIsInRegionCS,
+            height=height,
+            alignment=alignment,
+            alignmentToRegion=alignmentToRegion,
             parent=parent,
         )
         Mesh2D.__init__(self)
@@ -336,6 +337,7 @@ class QuadObject(Object2D, Mesh2D):
         if False:
             draw_bBox(self._bBox, color=(0, 1, 1, 1))
             draw_bBox(self._clamped_bBox)
+
         # draw tripod
         if False:
             draw_tripod(self._pivot_posX, self._pivot_posY, 20)

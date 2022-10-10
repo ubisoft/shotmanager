@@ -40,7 +40,7 @@ def draw_shots_names(context):
 
     # return
     # For all camera which have a shot draw on the ui a list of shots associated with it
-    cameras = [obj for obj in scene.objects if obj.type == "CAMERA"]
+    cameras = [obj for obj in scene.objects if obj is not None and obj.type == "CAMERA"]
     for cam in cameras:
         if cam.type == "CAMERA":
             # print(f"cam: {cam.name}, cam.visible_get(): {cam.visible_get()}")

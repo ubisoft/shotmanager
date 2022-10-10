@@ -67,6 +67,22 @@ def draw_shots_stack_toolbar_in_editor(self, context):
         icon_value=icon.icon_id,
     )
 
+    if config.devDebug:
+        row.separator(factor=0.8)
+        # row.operator(
+        #     "uas_gpu.dopesheet_gpu_sample",
+        #     text="GPU",
+        #     depress=context.window_manager.UAS_shot_manager_display_dopesheet_gpu_sample,
+        #     # icon_value=icon.icon_id,
+        # )
+        row.prop(
+            context.window_manager,
+            "UAS_shot_manager_display_dopesheet_gpu_sample",
+            text="GPU",
+            # depress=context.window_manager.UAS_shot_manager_display_dopesheet_gpu_sample,
+            # icon_value=icon.icon_id,
+        )
+
     row.separator(factor=0.8)
 
     row.operator(

@@ -27,8 +27,8 @@ def main():
 
     # to use for debug in VSC:
     # pathArr = [
-    #     "self",
-    #     "Z:\\EvalSofts\\Blender\\DevPython\\WkZipAddon\\WkSamples\\myAddon_Addon\\myaddon",
+        # "self",
+        # "Z:\\EvalSofts\\Blender\\DevPython\\WkZipAddon\\WkSamples\\myAddon_Addon\\myaddon",
     # ]
 
     # "Z:\\EvalSofts\\Blender\\DevPython\\WkZipAddon\\WkSamples\\toto.py",

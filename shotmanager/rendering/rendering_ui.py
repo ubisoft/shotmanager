@@ -538,8 +538,15 @@ def draw3DRenderPanel(self, context):
 
     # STILL ###
     if props.displayStillProps:
-        row = layout.row()
-        row.label(text="Render Image:")
+        titleRow = layout.row(align=False)
+        titleLeftRow = titleRow.row()
+        titleLeftRow.alignment = "RIGHT"
+        titleLeftRow.label(text="Render Image:")
+        # currentShot = props.getCurrentShot()
+        # txt = currentShot.name if currentShot else "*** No Current Shot ***"
+        txt = f"Frame {scene.frame_current}"
+        titleRow.label(text=txt)
+
         box = layout.box()
 
         if props.use_project_settings:
@@ -588,8 +595,14 @@ def draw3DRenderPanel(self, context):
 
     # ANIMATION ###
     elif props.displayAnimationProps:
-        row = layout.row()
-        row.label(text="Render Current Shot:")
+        titleRow = layout.row(align=False)
+        titleLeftRow = titleRow.row()
+        titleLeftRow.alignment = "RIGHT"
+        titleLeftRow.label(text="Render Current Shot:")
+        currentShot = props.getCurrentShot()
+        txt = currentShot.name if currentShot else "*** No Current Shot ***"
+        titleRow.label(text=txt)
+
         box = layout.box()
 
         if props.use_project_settings:
@@ -649,8 +662,9 @@ def draw3DRenderPanel(self, context):
 
     # ALL EDITS ###
     elif props.displayAllEditsProps:
-        row = layout.row()
-        row.label(text="Render All:")
+        titleRow = layout.row(align=True)
+        titleRow.separator(factor=0.5)
+        titleRow.label(text="Render All:")
         box = layout.box()
 
         if props.use_project_settings:
@@ -728,8 +742,9 @@ def draw3DRenderPanel(self, context):
 
     # EDIT FILE ###
     elif props.displayOtioProps:
-        row = layout.row()
-        row.label(text="Generate Edit File:")
+        titleRow = layout.row(align=True)
+        titleRow.separator(factor=0.5)
+        titleRow.label(text="Generate Edit File:")
 
         box = layout.box()
 
@@ -757,8 +772,9 @@ def draw3DRenderPanel(self, context):
 
     # PLAYBLAST ###
     elif props.displayPlayblastProps:
-        row = layout.row()
-        row.label(text="Playblast:")
+        titleRow = layout.row(align=True)
+        titleRow.separator(factor=0.5)
+        titleRow.label(text="Playblast:")
 
         # video tracks available?
         versionStr = utils.addonVersion("Video Tracks")

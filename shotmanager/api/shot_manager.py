@@ -16,25 +16,28 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 """
-Shot Manager API
+Shot Manager API - Interface with Shot Manager class
 """
 
 import bpy
+from shotmanager.properties.props import UAS_ShotManager_Props
+from shotmanager.properties.take import UAS_ShotManager_Take
+from shotmanager.properties.shot import UAS_ShotManager_Shot
 
 
-def get_shot_manager(scene):
+def get_shot_manager(scene: bpy.types.Scene):
     return scene.UAS_shot_manager_props
 
 
-def initialize_shot_manager(shot_manager):
+def initialize_shot_manager(shot_manager: UAS_ShotManager_Props):
     shot_manager.initialize_shot_manager()
 
 
-def get_parent_scene(shot_manager):
+def get_parent_scene(shot_manager: UAS_ShotManager_Props) -> bpy.types.Scene:
     return shot_manager.getParentScene()
 
 
-def get_warnings(shot_manager):
+def get_warnings(shot_manager: UAS_ShotManager_Props):
     """Check if some warnings are to be mentioned to the user/
     A warning message can be on several lines when the separator \n is used.
 
@@ -52,41 +55,41 @@ def get_warnings(shot_manager):
 #############
 
 
-def get_unique_take_name(shot_manager, name):
+def get_unique_take_name(shot_manager: UAS_ShotManager_Props, name: str):
     return shot_manager.getUniqueTakeName(name)
 
 
-def get_takes(shot_manager):
+def get_takes(shot_manager: UAS_ShotManager_Props):
     return shot_manager.takes
 
 
-def get_take_by_index(shot_manager, take_index):
+def get_take_by_index(shot_manager: UAS_ShotManager_Props, take_index: int):
     """Return the take corresponding to the specified index"""
     return shot_manager.getTakeByIndex(take_index)
 
 
-def get_take_index(shot_manager, take):
+def get_take_index(shot_manager: UAS_ShotManager_Props, take: UAS_ShotManager_Take):
     return shot_manager.getTakeIndex(take)
 
 
-def get_current_take_index(shot_manager):
+def get_current_take_index(shot_manager: UAS_ShotManager_Props):
     return shot_manager.getCurrentTakeIndex()
 
 
-def set_current_take_by_index(shot_manager, current_take_index):
+def set_current_take_by_index(shot_manager: UAS_ShotManager_Props, current_take_index: int):
     shot_manager.setCurrentTakeByIndex(current_take_index)
 
 
-def get_current_take(shot_manager):
+def get_current_take(shot_manager: UAS_ShotManager_Props):
     return shot_manager.getCurrentTake()
 
 
-def get_current_take_name(shot_manager):
+def get_current_take_name(shot_manager: UAS_ShotManager_Props):
     """Return the name of the current take,"""
     return shot_manager.getCurrentTakeName()
 
 
-def add_take(shot_manager, at_index=-1, name="New Take"):
+def add_take(shot_manager: UAS_ShotManager_Props, at_index: int = -1, name: str = "New Take"):
     """Add a new take after the current take if possible or at the end of the take list otherwise
     Return the newly added take. If it is the only take of the Shot Manager and the project settings
     are not used then its name will be "Main Take"
@@ -94,7 +97,9 @@ def add_take(shot_manager, at_index=-1, name="New Take"):
     return shot_manager.addTake(atIndex=at_index, name=name)
 
 
-def copy_take(shot_manager, take, at_index=-1, copy_camera=False):
+def copy_take(
+    shot_manager: UAS_ShotManager_Props, take: UAS_ShotManager_Take, at_index: int = -1, copy_camera: bool = False
+):
     """Copy a take after the current take if possible or at the end of the takes list otherwise
     Return the newly added take
     """
@@ -106,20 +111,20 @@ def copy_take(shot_manager, take, at_index=-1, copy_camera=False):
 ####################
 
 
-def get_unique_shot_name(shot_manager, name, take_index):
+def get_unique_shot_name(shot_manager: UAS_ShotManager_Props, name: str, take_index: int):
     return shot_manager.getUniqueShotName(shot_manager, name, takeIndex=take_index)
 
 
 def add_shot(
-    shot_manager,
-    at_index=-1,
-    take_index=-1,
-    name="defaultShot",
-    start=10,
-    end=20,
-    camera=None,
-    color=(0.2, 0.6, 0.8, 1),
-    enabled=True,
+    shot_manager: UAS_ShotManager_Props,
+    at_index: int = -1,
+    take_index: int = -1,
+    name: str = "defaultShot",
+    start: float = 10,
+    end: float = 20,
+    camera: bpy.types.Camera = None,
+    color: tuple = (0.2, 0.6, 0.8, 1),
+    enabled: bool = True,
 ):
     """Add a new shot after the current shot if possible or at the end of the shot list otherwise (case of an add in a take
     that is not the current one)
@@ -138,7 +143,13 @@ def add_shot(
     )
 
 
-def copy_shot(shot_manager, shot, at_index=-1, target_take_index=-1, copy_camera=False):
+def copy_shot(
+    shot_manager: UAS_ShotManager_Props,
+    shot: UAS_ShotManager_Shot,
+    at_index: int = -1,
+    target_take_index: int = -1,
+    copy_camera: bool = False,
+):
     """Copy a shot after the current shot if possible or at the end of the shot list otherwise (case of an add in a take
     that is not the current one)
     Return the newly added shot
@@ -147,51 +158,53 @@ def copy_shot(shot_manager, shot, at_index=-1, target_take_index=-1, copy_camera
     return shot_manager.copyShot(shot, atIndex=at_index, targetTakeIndex=target_take_index, copyCamera=copy_camera)
 
 
-def remove_shot(shot_manager, shot):
+def remove_shot(shot_manager: UAS_ShotManager_Props, shot: UAS_ShotManager_Shot):
     shot_manager.removeShot(shot)
 
 
-def move_shot_to_index(shot_manager, shot, new_index):
+def move_shot_to_index(shot_manager: UAS_ShotManager_Props, shot: UAS_ShotManager_Shot, new_index: int):
     shot_manager.moveShotToIndex(shot, new_index)
 
 
-def set_current_shot_by_index(shot_manager, current_shot_index):
+def set_current_shot_by_index(shot_manager: UAS_ShotManager_Props, current_shot_index: int):
     """Changing the current shot doesn't affect the selected one"""
     return shot_manager.setCurrentShotByIndex(current_shot_index)
 
 
-def set_current_shot(shot_manager, current_shot):
+def set_current_shot(shot_manager: UAS_ShotManager_Props, current_shot: UAS_ShotManager_Shot):
     return shot_manager.setCurrentShot(current_shot)
 
 
-def get_shot_index(shot_manager, shot, take_index=-1):
+def get_shot_index(shot_manager: UAS_ShotManager_Props, shot: UAS_ShotManager_Shot, take_index: int = -1):
     return shot_manager.getShotIndex(shot, takeIndex=take_index)
 
 
-def get_shot(shot_manager, shot_index, ignore_disabled=False, take_index=-1):
+def get_shot(shot_manager: UAS_ShotManager_Props, shot_index: int, ignore_disabled: bool = False, take_index: int = -1):
     return shot_manager.getShotByIndex(shot_index, ignoreDisabled=ignore_disabled, takeIndex=take_index)
 
 
-def get_shot_by_name(shot_manager, shot_name, ignore_disabled=False, takeIndex=-1):
+def get_shot_by_name(
+    shot_manager: UAS_ShotManager_Props, shot_name: str, ignore_disabled: bool = False, takeIndex: int = -1
+):
     return shot_manager.getShotByName(shot_name, ignoreDisabled=ignore_disabled, takeIndex=takeIndex)
 
 
-def get_shots(shot_manager, take_index=-1):
+def get_shots(shot_manager: UAS_ShotManager_Props, take_index: int = -1):
     """Return the actual shots array of the specified take"""
     return shot_manager.get_shots(takeIndex=take_index)
 
 
-def get_shots_list(shot_manager, ignore_disabled=False, take_index=-1):
+def get_shots_list(shot_manager: UAS_ShotManager_Props, ignore_disabled: bool = False, take_index: int = -1):
     """Return a filtered shots array of the specified take"""
     return shot_manager.getShotsList(ignoreDisabled=ignore_disabled, takeIndex=take_index)
 
 
-def get_num_shots(shot_manager, ignore_disabled=False, take_index=-1):
+def get_num_shots(shot_manager: UAS_ShotManager_Props, ignore_disabled: bool = False, take_index: int = -1):
     """Return the number of shots of the specified take"""
     return shot_manager.getNumShots(ignoreDisabled=ignore_disabled, takeIndex=take_index)
 
 
-def get_current_shot_index(shot_manager, ignore_disabled=False, take_index=-1):
+def get_current_shot_index(shot_manager: UAS_ShotManager_Props, ignore_disabled: bool = False, take_index: int = -1):
     """Return the index of the current shot in the enabled shot list of the current take
     Use this function instead of a direct call to shot_manager.current_shot_index
 
@@ -204,11 +217,11 @@ def get_current_shot_index(shot_manager, ignore_disabled=False, take_index=-1):
     return shot_manager.getCurrentShotIndex(ignoreDisabled=ignore_disabled, takeIndex=take_index)
 
 
-def get_current_shot(shot_manager):
+def get_current_shot(shot_manager: UAS_ShotManager_Props):
     return shot_manager.getCurrentShot()
 
 
-def get_first_shot_index(shot_manager, ignore_disabled=False, take_index=-1):
+def get_first_shot_index(shot_manager: UAS_ShotManager_Props, ignore_disabled: bool = False, take_index: int = -1):
     return shot_manager.getFirstShotIndex(ignoreDisabled=ignore_disabled, takeIndex=take_index)
 
 
@@ -221,31 +234,31 @@ def get_first_shot_index(shot_manager, ignore_disabled=False, take_index=-1):
 #             currentIndexInEnabledList -= 1
 
 #     return currentIndexInEnabledList
-def get_last_shot_index(shot_manager, ignore_disabled=False, take_index=-1):
+def get_last_shot_index(shot_manager: UAS_ShotManager_Props, ignore_disabled: bool = False, take_index: int = -1):
     return shot_manager.getLastShotIndex(ignoreDisabled=ignore_disabled, takeIndex=take_index)
 
 
-def get_first_shot(shot_manager, ignore_disabled=False, take_index=-1):
+def get_first_shot(shot_manager: UAS_ShotManager_Props, ignore_disabled: bool = False, take_index: int = -1):
     return shot_manager.getFirstShot(ignoreDisabled=ignore_disabled, takeIndex=take_index)
 
 
-def get_last_shot(shot_manager, ignore_disabled=False, take_index=-1):
+def get_last_shot(shot_manager: UAS_ShotManager_Props, ignore_disabled: bool = False, take_index: int = -1):
     return shot_manager.getLastShot(ignoreDisabled=ignore_disabled, takeIndex=take_index)
 
 
 # currentShotIndex is given in the WHOLE list of shots (including disabled)
 # returns the index of the previous enabled shot in the WHOLE list, -1 if none
-def get_previous_enabled_shot_index(shot_manager, current_shot_index, take_index=-1):
+def get_previous_enabled_shot_index(shot_manager: UAS_ShotManager_Props, current_shot_index: int, take_index: int = -1):
     return shot_manager.getPreviousEnabledShotIndex(current_shot_index, takeIndex=take_index)
 
 
 # currentShotIndex is given in the WHOLE list of shots (including disabled)
 # returns the index of the next enabled shot in the WHOLE list, -1 if none
-def get_next_enabled_shot_index(shot_manager, current_shot_index, take_index=-1):
+def get_next_enabled_shot_index(shot_manager: UAS_ShotManager_Props, current_shot_index: int, take_index: int = -1):
     return shot_manager.getNextEnabledShotIndex(current_shot_index, takeIndex=take_index)
 
 
-def delete_shot_camera(shot_manager, shot):
+def delete_shot_camera(shot_manager: UAS_ShotManager_Props, shot: UAS_ShotManager_Shot):
     """Check in all takes if the camera is used by another shot and if not then delete it"""
     return shot_manager.deleteShotCamera(shot)
 
@@ -255,7 +268,7 @@ def delete_shot_camera(shot_manager, shot):
 ###############
 
 
-def get_shots_play_mode(shot_manager):
+def get_shots_play_mode(shot_manager: UAS_ShotManager_Props):
     """Return True if the Shots Play Mode is active, False otherwise
     Warning: Currently the play mode status is shared between all the scenes of the file,
     it is not (yet) specific to an instance of shot manager.
@@ -263,7 +276,7 @@ def get_shots_play_mode(shot_manager):
     return bpy.context.window_manager.UAS_shot_manager_shots_play_mode
 
 
-def set_shots_play_mode(shot_manager, activate):
+def set_shots_play_mode(shot_manager: UAS_ShotManager_Props, activate: bool):
     """Set to True to have the Shots Play Mode active, False otherwise
     Warning: Currently the play mode status is shared between all the scenes of the file,
     it is not (yet) specific to an instance of shot manager.
@@ -271,7 +284,7 @@ def set_shots_play_mode(shot_manager, activate):
     bpy.context.window_manager.UAS_shot_manager_shots_play_mode = activate
 
 
-def go_to_previous_shot(shot_manager, current_frame):
+def go_to_previous_shot(shot_manager: UAS_ShotManager_Props, current_frame: float):
     """
     works only on current take
     behavior of this button:
@@ -284,7 +297,7 @@ def go_to_previous_shot(shot_manager, current_frame):
 
 
 # works only on current take
-def go_to_next_shot(shot_manager, current_frame):
+def go_to_next_shot(shot_manager: UAS_ShotManager_Props, current_frame: float):
     return shot_manager.goToNextShotBoundary(current_frame)
 
 
@@ -296,34 +309,40 @@ def go_to_next_shot(shot_manager, current_frame):
 #   - fisrt click: put current time at the end of the previous enabled shot
 
 
-def go_to_previous_frame(shot_manager, current_frame):
+def go_to_previous_frame(shot_manager: UAS_ShotManager_Props, current_frame: float):
     #  print(" ** -- ** goToPreviousFrame")
     return shot_manager.goToPreviousFrame(current_frame)
 
 
 # works only on current take
-def go_to_next_frame(shot_manager, current_frame):
+def go_to_next_frame(shot_manager: UAS_ShotManager_Props, current_frame: float):
     #   print(" ** -- ** goToNextShotBoundary")
     return shot_manager.goToNextFrame(current_frame)
 
 
 # works only on current take
-def get_first_shot_index_containing_frame(shot_manager, frame_index, ignore_disabled=False):
+def get_first_shot_index_containing_frame(
+    shot_manager: UAS_ShotManager_Props, frame_index: int, ignore_disabled: bool = False
+):
     """Return the first shot containing the specifed frame, -1 if not found"""
     return shot_manager.getFirstShotIndexContainingFrame(frame_index, ignoreDisabled=ignore_disabled)
 
 
 # works only on current take
-def get_first_shot_index_after_frame(shot_manager, frame_index, ignore_disabled=False):
+def get_first_shot_index_after_frame(
+    shot_manager: UAS_ShotManager_Props, frame_index: int, ignore_disabled: bool = False
+):
     """Return the first shot after the specifed frame (supposing thanks to getFirstShotIndexContainingFrame than
     frameIndex is not in a shot), -1 if not found
     """
     return shot_manager.getFirstShotIndexAfterFrame(frame_index, ignoreDisabled=ignore_disabled)
 
 
-def get_shots_using_camera(cam, ignore_disabled=False, take_index=-1):
+def get_shots_using_camera(
+    shot_manager: UAS_ShotManager_Props, cam: bpy.types.Camera, ignore_disabled: bool = False, take_index: int = -1
+):
     """Return the list of all the shots used by the specified camera in the specified take"""
-    return shot_manager.getShotsUsingCamera(self, cam, ignoreDisabled=ignore_disabled, takeIndex=take_index)
+    return shot_manager.getShotsUsingCamera(cam, ignoreDisabled=ignore_disabled, takeIndex=take_index)
 
 
 ####################
@@ -331,12 +350,17 @@ def get_shots_using_camera(cam, ignore_disabled=False, take_index=-1):
 ####################
 
 
-def get_edit_duration(shot_manager, take_index):
+def get_edit_duration(shot_manager: UAS_ShotManager_Props, take_index: int = -1):
     """Return edit duration in frames"""
     return shot_manager.getEditDuration(takeIndex=take_index)
 
 
-def get_edit_time(shot_manager, reference_shot, frame_index_in_3D_time, reference_level="TAKE"):
+def get_edit_time(
+    shot_manager: UAS_ShotManager_Props,
+    reference_shot: UAS_ShotManager_Shot,
+    frame_index_in_3D_time: int,
+    reference_level: str = "TAKE",
+):
     """Return edit current time in frames, -1 if no shots or if current shot is disabled
     Works on the take from which referenceShot is coming from.
     Disabled shots are always ignored and considered as not belonging to the edit.
@@ -346,7 +370,7 @@ def get_edit_time(shot_manager, reference_shot, frame_index_in_3D_time, referenc
     return shot_manager.getEditTime(reference_shot, frame_index_in_3D_time, referenceLevel=reference_level)
 
 
-def get_edit_current_time(shot_manager, reference_level="TAKE"):
+def get_edit_current_time(shot_manager: UAS_ShotManager_Props, reference_level: str = "TAKE"):
     """Return edit current time in frames, -1 if no shots or if current shot is disabled
     works only on current take
     reference_level can be "TAKE" or "GLOBAL_EDIT"

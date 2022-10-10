@@ -45,20 +45,25 @@ def initGlobalVariables():
     # change this value to force debug at start time
     devDebug = False
 
+    global devDebug_displayDebugPanel
+    devDebug_displayDebugPanel = True
+
     global devDebug_lastRedrawTime
     devDebug_lastRedrawTime = -1
+
+    global devDebug_ignoreLoggerFormatting
+    devDebug_ignoreLoggerFormatting = True and devDebug
+
+    # rendering ##########
 
     # keep the intermediate images after rendering (ie the original  Blender renderings
     # and the Stamp Info temporaty images)
     global devDebug_keepVSEContent
     devDebug_keepVSEContent = False
 
-    global devDebug_ignoreLoggerFormatting
-    devDebug_ignoreLoggerFormatting = True and devDebug
-
     # installation #############
-    # internet/github timeout, in seconds
 
+    # internet/github timeout, in seconds
     global LATEST_VERSION_TIMEOUT
     LATEST_VERSION_TIMEOUT = 1
 
@@ -87,6 +92,10 @@ def initGlobalVariables():
     # keymaps ##########
     global gAddonKeymaps
     gAddonKeymaps = []
+    global gAddonKeymaps_shotsNav
+    gAddonKeymaps_shotsNav = []
+    global gAddonKeymaps_storyboard
+    gAddonKeymaps_storyboard = []
 
     # interactive shots stack ############
     global tmpTimelineModalRect
@@ -102,8 +111,8 @@ def initGlobalVariables():
     gModulePath = None
 
     # dependencies #############
-    global STAMP_INFO_MIN_VERSION
-    STAMP_INFO_MIN_VERSION = ("1.3.5", 1003005)
+    # global STAMP_INFO_MIN_VERSION
+    # STAMP_INFO_MIN_VERSION = ("1.3.5", 1003005)
 
     # otio #############
     global gImportOpenTimelineIO
@@ -142,16 +151,16 @@ def getLoggingTags():
     # debug tags
     tags["DEPRECATED"] = False
 
-    tags["REG"] = False
-    tags["UNREG"] = False
+    tags["REG"] = True
+    tags["UNREG"] = True
 
-    tags["INIT_AND_DATA"] = True
+    tags["INIT_AND_DATA"] = False
 
-    tags["SHOTS_PLAY_MODE"] = True
+    tags["SHOTS_PLAY_MODE"] = False
 
     tags["RENDER"] = False
     tags["LAYOUT"] = False
-    tags["RETIMER"] = True
+    tags["RETIMER"] = False
 
     tags["EDIT_IO"] = True
 

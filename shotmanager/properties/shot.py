@@ -624,7 +624,10 @@ class UAS_ShotManager_Shot(ShotInterface, PropertyGroup):
 
             if "STORYBOARD" == mode:
                 gpObj = gp.createStoryboarFrameGP(gpName, framePreset, parentCamera=self.camera, location=[0, 0, -0.5])
-                self.shotType = "STORYBOARD"
+
+                # No !!!
+                # self.shotType = "STORYBOARD"
+
                 gpProps.updateGreasePencil()
 
         return (gpProps, gpObj)
@@ -663,7 +666,7 @@ class UAS_ShotManager_Shot(ShotInterface, PropertyGroup):
             return False
 
     # wkip to update with the gp list
-    def getGreasePencilObject(self, mode):
+    def getGreasePencilObject(self, mode="STORYBOARD"):
         """Set the grease pencil object of the specified mode associated to the camera.
         Return the created - or corresponding if one existed - grease pencil object, or None if the camera was invalid
         Args:
@@ -749,12 +752,63 @@ class UAS_ShotManager_Shot(ShotInterface, PropertyGroup):
             # unparent: bpy.ops.object.parent_clear(type='CLEAR')
             _ClearParent(gp_child)
 
+            utils.lockTransforms(gp_child, lock=False)
             utils.clearTransformAnimation(gp_child)
 
             if 0 == gp_child.name.find("Cam_"):
                 gp_child.name = gp_child.name[4:] + "_Free"
 
             self.shotType = "PREVIZ"
+
+    #############
+    # storyboard
+    #############
+
+    def addStoryboardFrame(self):
+        """Add a grase pencil object to the shot as well as a Storyboard frame preset
+        The type of the shot is NOT changed.
+        Return a tupple with the grease pencil properties and the created object."""
+
+        # the mode used here is to specify the kind of grease pencil object to create
+        # it is not related to the shot type since any shot type can have a storyboard frame
+        return self.addGreasePencil(mode="STORYBOARD")
+
+    def isStoryboardType(self):
+        return "S" == self.shotType[0]
+
+    # TODO: wkip to update with the gp list
+    def getStoryboardFrame(self):
+        """Set the grease pencil object of the specified mode associated to the camera.
+        Return the created - or corresponding if one existed - grease pencil object, or None if the camera was invalid
+        Args:
+            mode: can be "STORYBOARD"
+        """
+        return self.getGreasePencilObject(mode="STORYBOARD")
+
+    def hasStoryboardFrame(self):
+        return self.getGreasePencilObject("STORYBOARD") is not None
+
+    # TODO: wkip check that the empty is the one of the storyboard frame
+    def getStoryboardEmptyChild(self):
+        """Return the Empty object used as the parent of the storyboard frame
+        Note: This doesn't depend on the shot type since camera shots can also have a storyboard frame"""
+        emptyChild = None
+        if self.isCameraValid():
+            emptyChild = utils_greasepencil.get_greasepencil_child(self.camera, childType="EMPTY")
+        return emptyChild
+
+    # wkip to update with the gp list
+    def getStoryboardChildren(self):
+        """If the shot has a valid camera: return the list of all the children of the camera associated
+        to the Storyboard Frame. The camera is NOT included, but the empty object is.
+        Return None otherwise
+        Note: This doesn't depend on the shot type since camera shots can also have a storyboard frame"""
+        stbChildren = None
+        # if self.isStoryboardType():
+        emptyChild = self.getStoryboardEmptyChild()
+        if emptyChild is not None:
+            stbChildren = utils.getChildrenHierarchy(emptyChild)
+        return stbChildren
 
     #############
     # notes #####

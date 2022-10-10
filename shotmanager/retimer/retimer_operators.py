@@ -25,6 +25,7 @@ from bpy.props import StringProperty
 
 from . import retimer
 
+from shotmanager.utils.utils_storyboard import getStoryboardObjects
 from shotmanager.config import sm_logging
 
 _logger = sm_logging.getLogger(__name__)
@@ -103,9 +104,15 @@ class UAS_ShotManager_RetimerApply(Operator):
         retimerApplyToSettings = context.scene.UAS_shot_manager_props.retimer.getCurrentApplyToSettings()
 
         if retimerApplyToSettings.onlyOnSelection:
-            obj_list = context.selected_objects
+            sceneObjs = [obj for obj in context.selected_objects]
         else:
-            obj_list = context.scene.objects
+            sceneObjs = [obj for obj in context.scene.objects]
+
+        if not retimerApplyToSettings.applyToStoryboardShotRanges:
+            stbObjs = getStoryboardObjects(context.scene)
+            for obj in stbObjs:
+                if obj in sceneObjs:
+                    sceneObjs.remove(obj)
 
         # startFrame = retimeEngine.start_frame
         # endFrame = retimeEngine.end_frame
@@ -126,24 +133,16 @@ class UAS_ShotManager_RetimerApply(Operator):
 
             # if offset_duration > 0 we insert time from a point far in negative time
             # if offset_duration < 0 we delete time from a point very far in negative time
-            farRefPoint = -10000
-
-            if 0 < retimeEngine.offset_duration:
-                offsetMode = "INSERT"
-            else:
-                offsetMode = "DELETE"
+            farRefPoint = -100000
 
             retimer.retimeScene(
-                context,
-                retimeEngine,
-                offsetMode,
-                retimerApplyToSettings,
-                obj_list,
-                farRefPoint + 1,
-                abs(retimeEngine.offset_duration),
-                retimeEngine.gap,
-                1.0,
-                retimeEngine.pivot,
+                context=context,
+                retimeMode="GLOBAL_OFFSET",
+                retimerApplyToSettings=retimerApplyToSettings,
+                objects=sceneObjs,
+                start_incl=farRefPoint + 1,
+                duration_incl=retimeEngine.offset_duration,
+                join_gap=retimeEngine.gap,
             )
 
         elif -1 < retimeEngine.mode.find("INSERT"):
@@ -155,16 +154,15 @@ class UAS_ShotManager_RetimerApply(Operator):
                 f"\nRetimer - Inserting time: new created frames: [{start_excl + 1} .. {end_excl - 1}], duration: {retimeEngine.insert_duration}"
             )
             retimer.retimeScene(
-                context,
-                retimeEngine,
-                "INSERT",
-                retimerApplyToSettings,
-                obj_list,
-                start_excl + 1,
-                retimeEngine.insert_duration,
-                retimeEngine.gap,
-                1.0,
-                retimeEngine.pivot,
+                context=context,
+                retimeMode="INSERT",
+                retimerApplyToSettings=retimerApplyToSettings,
+                objects=sceneObjs,
+                start_incl=start_excl + 1,
+                duration_incl=retimeEngine.insert_duration,
+                join_gap=retimeEngine.gap,
+                factor=1.0,
+                pivot=retimeEngine.pivot,
             )
 
         elif -1 < retimeEngine.mode.find("DELETE"):
@@ -175,16 +173,15 @@ class UAS_ShotManager_RetimerApply(Operator):
                 f"\nRetimer - Deleting time: deleted frames: [{start_excl + 1} .. {end_excl - 1}], duration: {duration_incl}"
             )
             retimer.retimeScene(
-                context,
-                retimeEngine,
-                "DELETE",
-                retimerApplyToSettings,
-                obj_list,
-                start_excl + 1,
-                duration_incl,
-                True,
-                1.0,
-                retimeEngine.pivot,
+                context=context,
+                retimeMode="DELETE",
+                retimerApplyToSettings=retimerApplyToSettings,
+                objects=sceneObjs,
+                start_incl=start_excl + 1,
+                duration_incl=duration_incl,
+                join_gap=True,
+                factor=1.0,
+                pivot=retimeEngine.pivot,
             )
         elif "RESCALE" == retimeEngine.mode:
             # *** Warning: due to the nature of the time operation the duration is not computed as for Delete Time ***
@@ -195,16 +192,17 @@ class UAS_ShotManager_RetimerApply(Operator):
                 f"\nRetimer - Rescaling time: modified frames: [{start_excl} .. {end_excl - 1}], duration: {duration_incl}"
             )
             retimer.retimeScene(
-                context,
-                retimeEngine,
-                retimeEngine.mode,
-                retimerApplyToSettings,
-                obj_list,
-                start_excl,
-                duration_incl,
-                True,
-                retimeEngine.factor,
-                start_excl,
+                context=context,
+                retimeMode="RESCALE",
+                retimerApplyToSettings=retimerApplyToSettings,
+                objects=sceneObjs,
+                start_incl=start_excl,
+                duration_incl=duration_incl,
+                join_gap=True,
+                factor=retimeEngine.factor,
+                pivot=start_excl,
+                keysBeforeRangeMode="DO_NOTHING",
+                keysAfterRangeMode="OFFSET",
             )
 
         elif "CLEAR_ANIM" == retimeEngine.mode:
@@ -215,16 +213,15 @@ class UAS_ShotManager_RetimerApply(Operator):
                 f"\nRetimer - Deleting animation: cleared frames: [{start_excl + 1} .. {end_excl - 1}], duration:{duration_incl}"
             )
             retimer.retimeScene(
-                context,
-                retimeEngine,
-                retimeEngine.mode,
-                retimerApplyToSettings,
-                obj_list,
-                start_excl + 1,
-                duration_incl,
-                False,
-                retimeEngine.factor,
-                retimeEngine.pivot,
+                context=context,
+                retimeMode="CLEAR_ANIM",
+                retimerApplyToSettings=retimerApplyToSettings,
+                objects=sceneObjs,
+                start_incl=start_excl + 1,
+                duration_incl=duration_incl,
+                join_gap=False,
+                factor=retimeEngine.factor,
+                pivot=retimeEngine.pivot,
             )
         else:
             print(f"*** Retimer failed: No Retimer mode named {retimeEngine.mode} ***")

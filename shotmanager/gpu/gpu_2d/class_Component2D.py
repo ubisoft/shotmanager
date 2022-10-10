@@ -56,20 +56,20 @@ class Component2D(InteractiveComponent, QuadObject):
     ):
         InteractiveComponent.__init__(
             self,
-            targetArea,
+            targetArea=targetArea,
         )
         QuadObject.__init__(
             self,
-            posXIsInRegionCS,
-            posX,
-            posYIsInRegionCS,
-            posY,
-            widthIsInRegionCS,
-            width,
-            heightIsInRegionCS,
-            height,
-            alignment,
-            alignmentToRegion,
+            posXIsInRegionCS=posXIsInRegionCS,
+            posX=posX,
+            posYIsInRegionCS=posYIsInRegionCS,
+            posY=posY,
+            widthIsInRegionCS=widthIsInRegionCS,
+            width=width,
+            heightIsInRegionCS=heightIsInRegionCS,
+            height=height,
+            alignment=alignment,
+            alignmentToRegion=alignmentToRegion,
             parent=parent,
         )
 

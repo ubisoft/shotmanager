@@ -16,20 +16,29 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 """
-To do: module description here.
+Shot Manager API - Interface with Otio
 """
 
 from shotmanager.utils.utils_os import module_can_be_imported
+
+from shotmanager.properties.props import UAS_ShotManager_Props
 
 from shotmanager.config import sm_logging
 
 _logger = sm_logging.getLogger(__name__)
 
 
-def export_otio(shot_manager, file_path="", file_name="", add_take_name_to_path=False, take_index=-1, fps=-1):
-    """ Create an OpenTimelineIO XML file for the specified take
-        Return the file path of the created file
-        If file_name is left to default then the rendered file will be a .xml
+def export_otio(
+    shot_manager: UAS_ShotManager_Props,
+    file_path: str = "",
+    file_name: str = "",
+    add_take_name_to_path: bool = False,
+    take_index: int = -1,
+    fps: float = -1,
+):
+    """Create an OpenTimelineIO XML file for the specified take
+    Return the file path of the created file
+    If file_name is left to default then the rendered file will be a .xml
     """
     if module_can_be_imported("shotmanager.otio"):
         from shotmanager.otio import exports
@@ -47,7 +56,3 @@ def export_otio(shot_manager, file_path="", file_name="", add_take_name_to_path=
         _logger.error("Otio module not available (no OpenTimelineIO)")
         res = None
     return res
-
-
-# wkip to do: add import otio
-

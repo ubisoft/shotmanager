@@ -135,7 +135,9 @@ class SM_Logger(logging.getLoggerClass()):
         elif "INFO" == form:
             if "" == col:
                 color = self._colors["DEFAULT"]
-            f = Formatter(color + "{message:<140}" + _ENDCOLOR, style="{")
+            # f = Formatter(color + "{message:<140}" + _ENDCOLOR, style="{")
+            f = Formatter(color + "{message}" + _ENDCOLOR, style="{")
+            f.append_origin = False
         elif "WARNING" == form:
             if "" == col:
                 color = self._colors["ORANGE"]
@@ -244,6 +246,8 @@ class SM_Logger(logging.getLoggerClass()):
 class Formatter(logging.Formatter):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.append_origin = kwargs.get("append_origin", True)
+        # print(f"Formatter init: self.append_origin: {self.append_origin}")
 
     def format(self, record: logging.LogRecord):
         """
@@ -253,16 +257,17 @@ class Formatter(logging.Formatter):
         """
         s = super().format(record)
 
-        MODULE_PATH = Path(__file__).parent.parent
-        # print("MODULE_PATH:" + str(MODULE_PATH))
-        pathname = Path(record.pathname).relative_to(MODULE_PATH)
+        if self.append_origin:
+            MODULE_PATH = Path(__file__).parent.parent
+            # print("MODULE_PATH:" + str(MODULE_PATH))
+            pathname = Path(record.pathname).relative_to(MODULE_PATH)
 
-        # display the full relative path
-        # s += f"  [{os.curdir}{os.sep}{pathname}:{record.lineno}]"
+            # display the full relative path
+            # s += f"  [{os.curdir}{os.sep}{pathname}:{record.lineno}]"
 
-        # display only the file name
-        filename = pathname.stem
-        s += f"  [{filename}:{record.lineno}]"
+            # display only the file name
+            filename = pathname.stem
+            s += f"  [{filename}:{record.lineno}]"
 
         return s
 

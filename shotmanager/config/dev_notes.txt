@@ -22,6 +22,12 @@ Mark Down language memo: https://github.com/tchapi/markdown-cheatsheet/blob/mast
         propsCol = mainRow.column(align=True)
 
         
+To do:
+clear anim on stb cameras
+pbs paul
+play with the stb
+
+
 
 Pb icons lot loaded:
 
@@ -191,4 +197,28 @@ To do dans le support des noms de seq:
     - bug dans le path donné sur les shots
         - faire un test alert qd le nom de la seq est vide
     - otio import
+
+Avoir un rename de shots batch
+
+mettre le Snap to Frame
+Avoir un warning / clean pour quand les GP frames s'overlappent
+
+Shots stack:
+    timer pour la sel des clips
+    couleur pour les locked duration
+    selection du clip qd il est trop petit et qu'on tape dans les handles
+    refresh issue pour l'affichage initial
+    Refresh issue quand on rechoisi la meme target
+
+truc information message contextuel
+
+rajouter bouton de framing shot a coté de gpu
+
+shift qui ne marche pas lorsqu'on fait un set courant en continuous mode
+finir zoom dans continous
+
+mettre nom de canvas dont touch
+
+overlay desactive des qu'on sort du full scerenfull screnn (ctrl alt space)
+
 

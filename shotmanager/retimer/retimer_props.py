@@ -105,6 +105,13 @@ class UAS_Retimer_Properties(PropertyGroup):
         self.applyToSettingsSelectedObjects.initialize("SELECTED_OBJECTS")
         self.applyToSettingsLegacy.initialize("LEGACY")
 
+    def getQuickHelp(self, topic):
+        if -1 != topic.find("APPLYTO_"):
+            retimerSettings = self.getCurrentApplyToSettings()
+            return retimerSettings.getQuickHelp(topic)
+        else:
+            return self.retimeEngine.getQuickHelp(topic)
+
 
 _classes = (
     UAS_Retimer_ApplyToSettings,

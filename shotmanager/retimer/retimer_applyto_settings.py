@@ -45,6 +45,12 @@ class UAS_Retimer_ApplyToSettings(PropertyGroup):
         default=True,
         options=set(),
     )
+    snapKeysToFrames: BoolProperty(
+        name="Snap Keys to Frames",
+        description="Snap the retime keys to the nearest frame value",
+        default=True,
+        options=set(),
+    )
 
     applyToObjects: BoolProperty(
         name="Objects",
@@ -72,15 +78,15 @@ class UAS_Retimer_ApplyToSettings(PropertyGroup):
         options=set(),
     )
 
-    applyToCameraShots: BoolProperty(
-        name="Shots",
-        description="Apply time change to the range of the shots of type Camera (*** NOT to Storyboard shots ! ***",
+    applyToCameraShotRanges: BoolProperty(
+        name="Camera Shot Ranges",
+        description="Apply time change to the range (but not the shot content) of the shots of type Camera (*** NOT to Storyboard shots ! ***",
         default=True,
         options=set(),
     )
-    applyToStoryboardShots: BoolProperty(
-        name="Shots",
-        description="Apply time change to the range of the shots of type Storyboard (*** NOT to Camera shots ! ***",
+    applyToStoryboardShotRanges: BoolProperty(
+        name="Storyboard Shot Ranges",
+        description="Apply time change to the range (but not the shot content) of the shots of type Storyboard (*** NOT to Camera shots ! ***",
         default=False,
         options=set(),
     )
@@ -93,19 +99,24 @@ class UAS_Retimer_ApplyToSettings(PropertyGroup):
     )
 
     # moved to add-on preferences
-    # applyToTimeCursor: BoolProperty(
-    #     name="Apply to Time Cursor", description="Apply retime operation to the time cursor", default=True,
-    # )
-    # applyToSceneRange: BoolProperty(
-    #     name="Apply to Scene Range",
-    #     description="Apply retime operation to the animation start and end of the scene",
-    #     default=True,
-    # )
+    applyToTimeCursor: BoolProperty(
+        name="Apply to Time Cursor",
+        description="Apply retime operation to the time cursor",
+        default=True,
+        options=set(),
+    )
+    applyToSceneRange: BoolProperty(
+        name="Apply to Scene Range",
+        description="Apply retime operation to the animation start and end of the scene",
+        default=True,
+        options=set(),
+    )
 
     def initialize(self, applyToMode):
         """
         Args:
             applyToMode: the mode of the applyTo settings. Can be SCENE, SELECTED_OBJECTS, LEGACY
+                         Internaly if can also be: STB_SHOT_CLIP
         """
         _logger.debug_ext(f"initialize Retimer ApplyTo Settings {applyToMode}", col="GREEN", tag="RETIMER")
 
@@ -119,6 +130,7 @@ class UAS_Retimer_ApplyToSettings(PropertyGroup):
 
             self.onlyOnSelection = False
             self.includeLockAnim = True
+            self.snapKeysToFrames = True
 
             self.applyToObjects = True
             self.applyToShapeKeys = True
@@ -126,10 +138,13 @@ class UAS_Retimer_ApplyToSettings(PropertyGroup):
 
             self.applyToMarkers = True
 
-            self.applyToCameraShots = True
-            self.applyToStoryboardShots = False
+            self.applyToCameraShotRanges = True
+            self.applyToStoryboardShotRanges = False
 
             self.applyToVSE = True
+
+            self.applyToTimeCursor = True
+            self.applyToSceneRange = True
 
         # Selected objects
         if "SELECTED_OBJECTS" == applyToMode:
@@ -138,6 +153,7 @@ class UAS_Retimer_ApplyToSettings(PropertyGroup):
 
             self.onlyOnSelection = False
             self.includeLockAnim = True
+            self.snapKeysToFrames = True
 
             # NOTE: a camera from a shot is an object belonging to the scene
             self.applyToObjects = True
@@ -146,12 +162,93 @@ class UAS_Retimer_ApplyToSettings(PropertyGroup):
 
             self.applyToMarkers = False
 
-            self.applyToCameraShots = False
-            self.applyToStoryboardShots = False
+            self.applyToCameraShotRanges = False
+            self.applyToStoryboardShotRanges = False
 
             self.applyToVSE = False
+
+            self.applyToTimeCursor = False
+            self.applyToSceneRange = False
+
+        # Storyboard shot clip - for shot stack clip manipulations
+        ########################
+        if "STB_SHOT_CLIP" == applyToMode:
+            self.id = applyToMode
+            self.name = "Apply to Storyboard Shot Clips"
+
+            self.onlyOnSelection = False
+            self.includeLockAnim = True
+            self.snapKeysToFrames = True
+
+            self.applyToObjects = True
+            self.applyToShapeKeys = True
+            self.applytToGreasePencil = True
+
+            self.applyToMarkers = False
+
+            self.applyToCameraShotRanges = False
+            self.applyToStoryboardShotRanges = False
+
+            self.applyToVSE = False
+
+            self.applyToTimeCursor = False
+            self.applyToSceneRange = False
+
+        # Camera (or previz) shot clip - for shot stack clip manipulations
+        ########################
+        if "PVZ_SHOT_CLIP" == applyToMode:
+            self.id = applyToMode
+            self.name = "Apply to Camera Shot Clips"
+
+            self.onlyOnSelection = False
+            self.includeLockAnim = True
+            self.snapKeysToFrames = True
+
+            self.applyToObjects = True
+            self.applyToShapeKeys = True
+            self.applytToGreasePencil = True
+
+            self.applyToMarkers = False
+
+            self.applyToCameraShotRanges = False
+            self.applyToStoryboardShotRanges = False
+
+            self.applyToVSE = False
+
+            self.applyToTimeCursor = False
+            self.applyToSceneRange = False
 
         # Legacy
         if "LEGACY" == applyToMode:
             self.id = applyToMode
             self.name = "Apply to Legacy Preset"
+
+    def getQuickHelp(self, topic):
+        """Args:
+        topic:  Can be APPLYTO_STORYBOARDSHOTS"""
+
+        docPath = "https://ubisoft-shotmanager.readthedocs.io/en/latest/feature-toggles/retimer.html"
+
+        if "APPLYTO_STORYBOARDSHOTS" == topic:
+            title = "Storyboard Shots"
+            text = "Except if you have some very specific needs, it is usually not necessary to"
+            text += "\napply the Scene Retiming to the Storyboard shots since they do not"
+            text += "\nreally depends on the scene content."
+            # TODO wkip add doc anchor to each path
+            docPath += ""
+        # elif "INSERT_BEFORE" == topic:
+        #     text += ""
+        # elif "INSERT_AFTER" == topic:
+        #     text += ""
+        # elif "DELETE_RANGE" == topic:
+        #     text += ""
+        # elif "RESCALE" == topic:
+        #     text += ""
+        # elif "CLEAR_ANIM" == topic:
+        #     text += ""
+        else:
+            title = "description"
+            text = "text"
+
+        tooltip = "Quick tips about " + title
+        return (tooltip, title, text, docPath)

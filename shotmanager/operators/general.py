@@ -24,10 +24,10 @@ from bpy.types import Operator
 from bpy.props import BoolProperty, StringProperty, IntProperty
 
 from shotmanager.utils import utils
+from shotmanager.utils import utils_greasepencil
 from shotmanager.operators.shots import convertMarkersFromCameraBindingToShots
 from shotmanager.utils.utils import getSceneVSE, convertVersionIntToStr
 from shotmanager.utils.utils_markers import clearMarkersFromCameraBinding
-
 
 from shotmanager.config import config
 from shotmanager.config import sm_logging
@@ -41,11 +41,11 @@ _logger = sm_logging.getLogger(__name__)
 
 class UAS_ShotManager_OT_ShotsPlayMode(Operator):
     bl_idname = "uas_shot_manager.shots_play_mode"
-    bl_label = "Shot Manager - Toggle Shots Play Mode"
+    bl_label = "Ubisoft Shot Mng - Toggle Shots Play Mode"
     bl_description = "Enable / disable the Shots Play Mode"
     bl_options = {"INTERNAL"}
 
-    def invoke(self, context, event):
+    def execute(self, context):
         context.window_manager.UAS_shot_manager_shots_play_mode = (
             not context.window_manager.UAS_shot_manager_shots_play_mode
         )
@@ -55,7 +55,7 @@ class UAS_ShotManager_OT_ShotsPlayMode(Operator):
 
 class UAS_ShotManager_OT_DisplayOverlayTools(Operator):
     bl_idname = "uas_shot_manager.display_overlay_tools"
-    bl_label = "Shot Manager - Toggle Overlay Tools Display"
+    bl_label = "Ubisoft Shot Mng - Toggle Overlay Tools Display"
     bl_description = "Show or hide the Sequence Timeline, Interactive Shots Stack and some other tools"
     bl_options = {"INTERNAL"}
 
@@ -64,7 +64,11 @@ class UAS_ShotManager_OT_DisplayOverlayTools(Operator):
         # _logger.debug_ext(f"uas_shot_manager.display_overlay_tools Poll", col="PURPLE")
         return len(context.scene.UAS_shot_manager_props.get_shots())
 
-    def invoke(self, context, event):
+    def execute(self, context):
+        prefs = config.getShotManagerPrefs()
+        # we force the update of the prefs display factor value
+        prefs.shtStack_screen_display_factor_mode = prefs.shtStack_screen_display_factor_mode
+
         #  _logger.debug_ext(f"uas_shot_manager.display_overlay_tools Invoke", col="PURPLE")
         context.window_manager.UAS_shot_manager_display_overlay_tools = (
             not context.window_manager.UAS_shot_manager_display_overlay_tools
@@ -79,7 +83,7 @@ class UAS_ShotManager_OT_DisplayDisabledShotsInOverlays(Operator):
     # bl_description = "Display Disabled Shots in Overlay Tools"
     bl_options = {"INTERNAL"}
 
-    def invoke(self, context, event):
+    def execute(self, context):
         props = context.scene.UAS_shot_manager_props
 
         val = not props.interactShotsStack_displayDisabledShots
@@ -111,6 +115,30 @@ class UAS_ShotManager_OT_ChangeLayout(Operator):
             props.setCurrentLayout("PREVIZ")
         else:
             props.setCurrentLayout("STORYBOARD")
+
+        return {"FINISHED"}
+
+
+class UAS_ShotManager_OT_StbFrameDrawing(Operator):
+    bl_idname = "uas_shot_manager.stb_frame_drawing"
+    bl_label = "Ubisoft Shot Mng - Toggle Storyboard Frame Draw Mode"
+    bl_description = "Enable / disable the Storyboard Frame Draw Mode"
+    bl_options = {"INTERNAL"}
+
+    def execute(self, context):
+        props = context.scene.UAS_shot_manager_props
+
+        if props.getEditedGPShot() is not None:
+            utils_greasepencil.switchToObjectMode()
+        else:
+            currentShotInd = props.getCurrentShotIndex()
+            if -1 != currentShotInd and props.isContinuousGPEditingModeActive():
+                # context.window_manager.UAS_shot_manager_shots_play_mode = (
+                #     not context.window_manager.UAS_shot_manager_shots_play_mode
+                # )
+                bpy.ops.uas_shot_manager.greasepencil_select_and_draw(
+                    action="SELECT_AND_DRAW", index=currentShotInd, toggleDrawEditing=True, mode="DRAW"
+                )
 
         return {"FINISHED"}
 
@@ -457,6 +485,7 @@ _classes = (
     UAS_ShotManager_OT_DisplayDisabledShotsInOverlays,
     UAS_ShotManager_OT_DisplayOverlayTools,
     UAS_ShotManager_OT_ChangeLayout,
+    UAS_ShotManager_OT_StbFrameDrawing,
     UAS_ShotManager_OT_TurnOffBurnIntoImage,
     UAS_ShotManager_OT_TurnOffPixelAspect,
     UAS_ShotManager_OT_SetFpsAsProjectFps,

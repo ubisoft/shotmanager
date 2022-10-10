@@ -695,6 +695,21 @@ def getSceneVSE(vsm_sceneName, createVseTab=False):
 ###################
 
 
+def getChildrenHierarchy(parentObject):
+    """Return a list with all the children - recursive - of the specified object"""
+
+    allChildren = list()
+
+    def _getChildrenHierarchyRec(parentObject):
+        for child in parentObject.children:
+            allChildren.append(child)
+            _getChildrenHierarchyRec(child)
+
+    _getChildrenHierarchyRec(parentObject)
+
+    return allChildren
+
+
 def duplicateObject(sourceObject, newName=None, duplicateHierarchy=False):
     """Duplicate (deepcopy) an object and place it in the same collection
     Can be any 3D object, camera...
@@ -1171,6 +1186,18 @@ def clearTransformAnimation(obj: bpy.types.Object, clearPos=True, clearRot=True,
     # bpy.ops.object.scale_clear()
 
 
+def lockTransforms(obj, *, lock=True):
+    obj.lock_location[0] = lock
+    obj.lock_location[1] = lock
+    obj.lock_location[2] = lock
+    obj.lock_rotation[0] = lock
+    obj.lock_rotation[1] = lock
+    obj.lock_rotation[2] = lock
+    obj.lock_scale[0] = lock
+    obj.lock_scale[1] = lock
+    obj.lock_scale[2] = lock
+
+
 ###################
 # Color
 ###################
@@ -1179,7 +1206,9 @@ def clearTransformAnimation(obj: bpy.types.Object, clearPos=True, clearRot=True,
 def slightlyRandomizeColor(refColor, weight=0.8):
     """
     refColor is supposed to be linear, returned color is linear too
-    refColor can be RGB or RGBA. Alpha is not modified.
+    Args:
+        refColor: the input color. Can be RGB or RGBA. Alpha is not modified.
+        weight: value in [0, 1]. The closer weight is to 1, the less the color is changed
     """
     from random import uniform
 

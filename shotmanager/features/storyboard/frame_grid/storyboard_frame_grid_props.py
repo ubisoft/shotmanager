@@ -107,15 +107,24 @@ class UAS_ShotManager_FrameGrid(PropertyGroup):
                         shot.camera.location[1] = grid.origin[1]  # + grid.offset_z * ((i - 1) % grid.numShotsPerRow)
 
                         # the whole grid has to be re-oriented for this to work...
-                        match grid.orientTowardAxis:
-                            case "X_POSITIVE":
-                                shot.camera.rotation_euler = (radians(90), 0.0, radians(-90))
-                            case "X_NEGATIVE":
-                                shot.camera.rotation_euler = (radians(90), 0.0, radians(90))
-                            case "Y_POSITIVE":
-                                shot.camera.rotation_euler = (radians(90), 0.0, 0.0)
-                            case "Y_NEGATIVE":
-                                shot.camera.rotation_euler = (radians(90), 0.0, radians(-180))
+                        # match grid.orientTowardAxis:
+                        #     case "X_POSITIVE":
+                        #         shot.camera.rotation_euler = (radians(90), 0.0, radians(-90))
+                        #     case "X_NEGATIVE":
+                        #         shot.camera.rotation_euler = (radians(90), 0.0, radians(90))
+                        #     case "Y_POSITIVE":
+                        #         shot.camera.rotation_euler = (radians(90), 0.0, 0.0)
+                        #     case "Y_NEGATIVE":
+                        #         shot.camera.rotation_euler = (radians(90), 0.0, radians(-180))
+
+                        if "X_POSITIVE" == grid.orientTowardAxis:
+                            shot.camera.rotation_euler = (radians(90), 0.0, radians(-90))
+                        elif "X_NEGATIVE" == grid.orientTowardAxis:
+                            shot.camera.rotation_euler = (radians(90), 0.0, radians(90))
+                        elif "Y_POSITIVE" == grid.orientTowardAxis:
+                            shot.camera.rotation_euler = (radians(90), 0.0, 0.0)
+                        elif "Y_NEGATIVE" == grid.orientTowardAxis:
+                            shot.camera.rotation_euler = (radians(90), 0.0, radians(-180))
 
 
 _classes = (UAS_ShotManager_FrameGrid,)

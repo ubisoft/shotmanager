@@ -20,11 +20,13 @@ UI in BGL for the Interactive Shots Stack overlay tool
 """
 
 import gpu
+import bpy
 
 from shotmanager.gpu.gpu_2d.class_Component2D import Component2D
 
 from shotmanager.utils.utils_python import clamp
 from shotmanager.utils.utils import color_to_sRGB, lighten_color, set_color_alpha, alpha_to_linear
+from shotmanager.retimer.retimer import retimeScene
 
 from shotmanager.config import config
 from shotmanager.config import sm_logging
@@ -37,7 +39,17 @@ UNIFORM_SHADER_2D = gpu.shader.from_builtin("2D_UNIFORM_COLOR")
 class ShotHandleComponent(Component2D):
     """Handle for shot clip component"""
 
-    def __init__(self, targetArea, posY=2, width=32, alignment="BOTTOM_LEFT", parent=None, shot=None, isStart=True):
+    def __init__(
+        self,
+        targetArea,
+        posY=2,
+        width=32,
+        alignment="BOTTOM_LEFT",
+        parent=None,
+        shot=None,
+        isStart=True,
+        shotsStack=None,
+    ):
         Component2D.__init__(
             self,
             targetArea,
@@ -54,13 +66,20 @@ class ShotHandleComponent(Component2D):
             parent=parent,
         )
 
+        self.shotsStackWidget = shotsStack
+
         # shot ###################
         self.shot = shot
         self.zOrder = -1.0
 
         self.isStart = isStart
-
         self.color = self.shot.color
+
+        # manipulation
+        # filled when isManipulated changes
+        self.manipulatedChildren = None
+        self.manipulationBeginingFrame = None
+        self.scalingShot = False
 
         # green or orange
         self.color_highlight = (0.2, 0.7, 0.2, 1) if self.isStart else (0.7, 0.3, 0.0, 1)
@@ -126,7 +145,7 @@ class ShotHandleComponent(Component2D):
     #################################################################
 
     # override of InteractiveComponent
-    def _on_highlighted_changed(self, context, isHighlighted):
+    def _on_highlighted_changed(self, context, event, isHighlighted):
         """isHighlighted has the same value than self.isHighlighted, which is set right before this
         function is called
         """
@@ -137,7 +156,7 @@ class ShotHandleComponent(Component2D):
             config.gRedrawShotStack = True
 
     # override of InteractiveComponent
-    def _on_selected_changed(self, context, isSelected):
+    def _on_selected_changed(self, context, event, isSelected):
         """isSelected has the same value than self.isSelected, which is set right before this
         function is called
         """
@@ -146,22 +165,115 @@ class ShotHandleComponent(Component2D):
             self.isSelected = False
 
     # override of InteractiveComponent
-    def _on_manipulated_changed(self, context, isManipulated):
+    def _on_manipulated_changed(self, context, event, isManipulated):
         """isManipulated has the same value than self.isManipulated, which is set right before this
         function is called
         """
         # we use this to set the color of the clip as for when manipulated
+
         if isManipulated:
+            self.manipulatedChildren = None
+            self.scalingShot = False
+            self.shotsStackWidget.manipulatedComponent = self
             self.parent.isManipulatedByAnotherComponent = True
+            self.manipulationBeginingFrame = context.scene.frame_current
+
+            if self.shot.isStoryboardType():
+                self.manipulatedChildren = self.shot.getStoryboardChildren()
+                bpy.ops.ed.undo_push(message="Pre-Modify Storyboard Shot Clip Handle in the Interactive Shots Stack")
+            else:
+                if self.shot.isCameraValid():
+                    self.manipulatedChildren = self.shot.getStoryboardChildren()
+                    if self.manipulatedChildren is None:
+                        self.manipulatedChildren = list()
+                    self.manipulatedChildren.append(self.shot.camera)
+                    bpy.ops.ed.undo_push(message="Pre-Modify Camera Shot Clip Handle in the Interactive Shots Stack")
         else:
+            # snap keys to frames
+            if self.scalingShot:
+                retimerApplyToSettings = context.window_manager.UAS_shot_manager_shots_stack_retimerApplyTo
+
+                if self.shot.isStoryboardType():
+                    retimerApplyToSettings.initialize("STB_SHOT_CLIP")
+                else:
+                    retimerApplyToSettings.initialize("PVZ_SHOT_CLIP")
+
+                start_incl = self.shot.start
+                duration_incl = self.shot.end - start_incl + 1
+
+                retimeScene(
+                    context=context,
+                    retimeMode="SNAP",
+                    retimerApplyToSettings=retimerApplyToSettings,
+                    objects=self.manipulatedChildren,
+                    # start_incl=-10000,
+                    # duration_incl=900000,
+                    start_incl=start_incl,
+                    duration_incl=duration_incl,
+                    keysBeforeRangeMode="SNAP",
+                    keysAfterRangeMode="SNAP",
+                )
+
+            self.manipulatedChildren = None
+            self.manipulationBeginingFrame = None
+            self.shotsStackWidget.manipulatedComponent = None
             self.parent.isManipulatedByAnotherComponent = False
+            self.scalingShot = False
+        #   bpy.ops.ed.undo_push(message="Modified Shot Clip Handle in the Interactive Shots Stack")
 
     # override of InteractiveComponent
-    def _on_manipulated_mouse_moved(self, context, mouse_delta_frames=0):
+    def _on_manipulated_mouse_moved(self, context, event, mouse_delta_frames=0):
         """wkip note: delta_frames is in frames but may need to be in pixels in some cases"""
         # !! we have to be sure we work on the selected shot !!!
+        prevShotStart = self.shot.start
+        prevShotEnd = self.shot.end
+
         if self.isStart:
             self.shot.start += mouse_delta_frames
-            # bpy.ops.uas_shot_manager.set_shot_start(newStart=self.start + mouse_delta_frames)
+            pivot = self.shot.end
+            start_incl = prevShotStart
+            end_incl = self.shot.end
+            duration_incl = end_incl - start_incl + 1
         else:
             self.shot.end += mouse_delta_frames
+            pivot = self.shot.start
+            start_incl = self.shot.start
+            end_incl = prevShotEnd
+            duration_incl = end_incl - start_incl + 1
+
+        # bpy.ops.uas_shot_manager.set_shot_start(newStart=self.start + mouse_delta_frames)
+
+        prefs = config.getShotManagerPrefs()
+        if prefs.shtStack_link_stb_clips_to_keys and self.manipulatedChildren is not None:
+
+            retimerApplyToSettings = context.window_manager.UAS_shot_manager_shots_stack_retimerApplyTo
+
+            scaleShotContent = False
+            if self.shot.isStoryboardType():
+                scaleShotContent = not event.ctrl and not event.alt and event.shift
+                retimerApplyToSettings.initialize("STB_SHOT_CLIP")
+            else:
+                scaleShotContent = not event.ctrl and not event.alt and event.shift
+                retimerApplyToSettings.initialize("PVZ_SHOT_CLIP")
+
+            if scaleShotContent:
+                # do NOT snap on frames during scaling transformation otherwhise frames will be lost because merged at the same time !
+                self.scalingShot = True
+                retimerApplyToSettings.snapKeysToFrames = False
+
+                retimeFactor = (self.shot.end - self.shot.start) / (prevShotEnd - prevShotStart)
+                retimeScene(
+                    context=context,
+                    retimeMode="RESCALE",
+                    retimerApplyToSettings=retimerApplyToSettings,
+                    objects=self.manipulatedChildren,
+                    # start_incl=-10000,
+                    # duration_incl=900000,
+                    start_incl=start_incl,
+                    duration_incl=duration_incl,
+                    join_gap=True,
+                    factor=retimeFactor,
+                    pivot=pivot,
+                    keysBeforeRangeMode="RESCALE",
+                    keysAfterRangeMode="RESCALE",
+                )

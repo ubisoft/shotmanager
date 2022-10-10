@@ -4,7 +4,7 @@
         |
         |
         |_ shots_stack_widget       - Main graphic widget: holds the events on the widget and its components,
-           (BL_UI_ShotStack)          as well as the draw functions
+           (ShotStackWidget)          as well as the draw functions
                 |                     
                 |
                 |
@@ -20,6 +20,14 @@
 
 
 ## See classes inheritance here: [GPU 2D Components](../../gpu/gpu_2d/doc_gpu_2d_components)
+
+## Todebug:
+
+To display debug messages and information in opengl over the dopesheets use the functions draw_callback__dopesheet_lane_numbers and so
+in workspace_info.py.
+Just place them in a draw function:
+    workspace_info.draw_callback__dopesheet_mouse_pos(self, self.context, self.target_area)
+
 
 ## To do:
 

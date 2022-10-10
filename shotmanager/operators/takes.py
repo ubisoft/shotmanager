@@ -23,20 +23,6 @@ import bpy
 from bpy.types import Operator
 from bpy.props import StringProperty, BoolProperty, IntProperty
 
-# import shotmanager.operators.shots as shots
-
-
-# from ..properties import get_takes
-
-
-def _copy_shot(src_shot, dst_shot):
-    dst_shot.name = src_shot.name
-    dst_shot.start = src_shot.start
-    dst_shot.end = src_shot.end
-    dst_shot.enabled = src_shot.enabled
-    dst_shot.camera = src_shot.camera
-    dst_shot.color = src_shot.color
-
 
 class UAS_ShotManager_TakeAdd(Operator):
     bl_idname = "uas_shot_manager.take_add"

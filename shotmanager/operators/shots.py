@@ -29,7 +29,11 @@ from random import uniform
 import json
 
 from shotmanager.utils import utils
+from shotmanager.utils import utils_markers
+from shotmanager.utils import utils_greasepencil
 from shotmanager.utils.utils_time import zoom_dopesheet_view_to_range
+from shotmanager.utils.utils_ui import propertyColumn
+from shotmanager.utils.utils import slightlyRandomizeColor
 
 from shotmanager.config import config
 from shotmanager.config import sm_logging
@@ -187,12 +191,18 @@ class UAS_ShotManager_SetCurrentShot(Operator):
     def execute(self, context):
         scene = context.scene
         props = scene.UAS_shot_manager_props
+        # propsCurrentLayout = props.getCurrentLayout()
         prefs = config.getShotManagerPrefs()
         shot = props.getShotByIndex(self.index)
 
+        if not shot:
+            _logger.error_ext(f"Set Current Shot Operator exec: shot is None. index: {self.index}")
         #     _logger.debug_ext("Set Current Shot Operator exec: ", col="RED")
 
         def _updateEditors(changeTime=True, zoom_mode=""):
+            if shot is None:
+                return
+
             # change time range to match shot range
             if prefs.current_shot_changes_time_range:
                 if scene.use_preview_range:
@@ -214,10 +224,33 @@ class UAS_ShotManager_SetCurrentShot(Operator):
                     zoom_dopesheet_view_to_range(
                         context, edit_start, edit_end, changeTime=prefs.current_shot_changes_current_time_to_start
                     )
-            elif "SHOT" == zoom_mode or prefs.current_shot_changes_time_zoom:
-                zoom_dopesheet_view_to_range(
-                    context, shot.start, shot.end, changeTime=prefs.current_shot_changes_current_time_to_start
-                )
+            elif "SHOT" == zoom_mode:
+                zoomView = False
+                currentLayoutIsStb = "STORYBOARD" == props.currentLayoutMode()
+                if currentLayoutIsStb:
+                    if "STORYBOARD" == shot.shotType and prefs.stb_current_stb_shot_changes_time_zoom:
+                        zoomView = True
+                    elif "PREVIZ" == shot.shotType and prefs.stb_current_pvz_shot_changes_time_zoom:
+                        zoomView = True
+                else:
+                    if "STORYBOARD" == shot.shotType and prefs.pvz_current_stb_shot_changes_time_zoom:
+                        zoomView = True
+                    elif "PREVIZ" == shot.shotType and prefs.pvz_current_pvz_shot_changes_time_zoom:
+                        zoomView = True
+
+                if zoomView:
+                    zoom_dopesheet_view_to_range(
+                        context, shot.start, shot.end, changeTime=prefs.current_shot_changes_current_time_to_start
+                    )
+
+            if "STORYBOARD" == shot.shotType and prefs.current_stb_shot_select_stb_frame:
+                gpChild = shot.getStoryboardFrame()
+                if gpChild:
+                    utils.select_object(gpChild)
+            elif "PREVIZ" == shot.shotType and prefs.current_pvz_shot_select_stb_frame:
+                gpChild = shot.getStoryboardFrame()
+                if gpChild:
+                    utils.select_object(gpChild)
 
         # change shot
         if not self.event_ctrl:
@@ -240,6 +273,7 @@ class UAS_ShotManager_SetCurrentShot(Operator):
         #     shot.enabled = not shot.enabled
 
         # frame shot range in timeline
+        ###############################
         elif self.event_ctrl and not self.event_alt:
             # if event.alt:
             #     props.setCurrentShotByIndex(self.index, changeTime=False, source_area=context.area)
@@ -272,18 +306,47 @@ class UAS_ShotManager_ToggleContinuousGPEditingMode(Operator):
     """Set the specifed shot as current"""
 
     bl_idname = "uas_shot_manager.toggle_continuous_gp_editing_mode"
-    bl_label = "Continuous GP Editing"
+    bl_label = "Continuous Draw Mode"
     bl_description = (
-        "When used, the current storyboard frame or shot grease pencil will be switched"
-        "\nto edit mode if the edit mode is activated on a shot in the scene"
+        "When used, the Storyboard Frame of each shot set to be the current"
+        "\none will be automaticaly selected and switched to Draw mode."
+        "\n+ Alt: Toggle the button between Draw and Select context for the Storyboard Frame"
     )
     bl_options = {"REGISTER"}
+
+    # can be:
+    #   - TOGGLE_USE_EDITING: will toggle the context between where the drawing state is available and the selection of the
+    #     storyboard frame is available (basically the action button of each shot in the shot list will be changed).
+    #     *** This does not activate the Drawing mode itself, but it can change it to Object mode in some cases ***
+    #   - TOGGLE_ACTIVATE_EDITING_MODE: When the drawing context is available (one of the 2 states set by the mode above) then
+    #     toggling between edit modes will alternate between Drawing mode activated (even if no stb frame is current)
+    #     and Object mode activated.
+    action: StringProperty(default="DO_NOTHING")
+
+    def invoke(self, context, event):
+        if event.alt:
+            self.action = "TOGGLE_USE_EDITING"
+        else:
+            self.action = "TOGGLE_ACTIVATE_EDITING_MODE"
+
+        return self.execute(context)
 
     def execute(self, context):
         props = context.scene.UAS_shot_manager_props
         # prefs = config.getShotManagerPrefs()
 
-        props.useContinuousGPEditing = not props.useContinuousGPEditing
+        if "TOGGLE_USE_EDITING" == self.action:
+            props.useContinuousGPEditing = not props.useContinuousGPEditing
+            if not props.useContinuousGPEditing:
+                props.isEditingStoryboardFrame = False
+                utils_greasepencil.switchToObjectMode()
+        else:
+            props.isEditingStoryboardFrame = not props.isEditingStoryboardFrame
+            if props.isEditingStoryboardFrame:
+                bpy.ops.uas_shot_manager.stb_frame_drawing()
+            else:
+                props.isEditingStoryboardFrame = False
+                utils_greasepencil.switchToObjectMode()
 
         # NOTE: when the Continuous Editing mode is on then the selected and current shots are tied anyway
         # in the "change selection" code
@@ -919,11 +982,13 @@ class UAS_ShotManager_ShotDuplicate(Operator):
     bl_options = {"REGISTER", "UNDO"}
 
     name: StringProperty(name="Name")
-    startAtCurrentTime: BoolProperty(name="Start at Current Frame", default=True)
-    addToEndOfList: BoolProperty(name="Add at the End of the List")
+    startAtCurrentTime: BoolProperty(name="Start at Current Frame", default=False)
+    addToEndOfList: BoolProperty(name="Add at the End of the List", default=False)
+
     duplicateCam: BoolProperty(name="Duplicate Camera", default=True)
     camName: StringProperty(name="Camera Name")
-    duplicateStoryboardGP: BoolProperty(name="Duplicate Storyboard Frame", default=True)
+    useDifferentColor: BoolProperty(name="Slightly Different Color", default=True)
+    duplicateStoryboardFrame: BoolProperty(name="Duplicate Storyboard Frame", default=True)
 
     @classmethod
     def poll(cls, context):
@@ -941,40 +1006,53 @@ class UAS_ShotManager_ShotDuplicate(Operator):
         return context.window_manager.invoke_props_dialog(self, width=350)
 
     def draw(self, context):
+        props = context.scene.UAS_shot_manager_props
+        selectedShot = props.getSelectedShot()
+        shotIsStoryboard = selectedShot.isStoryboardType()
+
         layout = self.layout
         # scene = context.scene
 
         box = layout.box()
-        box.separator(factor=0.2)
-        row = box.row(align=True)
-        row.label(text="New Shot Name:")
+
+        mainCol = propertyColumn(box, padding_top=0.2, padding_left=0, padding_right=2)
+        shType = "Storyboard" if shotIsStoryboard else "Camera"
+        mainCol.label(text=f"New {shType} Shot:")
+
+        propsCol = propertyColumn(mainCol, padding_top=0.8, padding_left=3)
+        row = propsCol.row(align=True)
+        row.label(text="Name:")
         row.scale_x = 1.6
         row.prop(self, "name", text="")
 
-        box.separator(factor=0.1)
-        row = box.row(align=True)
-        row.separator(factor=2.5)
-        subgrid_flow = row.grid_flow(align=True, row_major=True, columns=1, even_columns=False)
-        # subgrid_flow.separator( factor=0.5)
-        # subgrid_flow.use_property_split = True
-        subgrid_flow.prop(self, "startAtCurrentTime")
-        subgrid_flow.prop(self, "addToEndOfList")
-        subgrid_flow.separator(factor=1.0)
-        subgrid_flow.prop(self, "duplicateCam")
+        #         propsCol = propertyColumn(mainCol, padding_top=0.2, padding_left=4)
+        propsCol.separator(factor=1.0)
 
-        row = subgrid_flow.row()
+        # propsCol.prop(self, "useDifferentColor")
+        if shotIsStoryboard:
+            propsCol.prop(self, "startAtCurrentTime")
+        propsCol.prop(self, "addToEndOfList")
+        propsCol.separator(factor=1.0)
+        propsCol.prop(self, "duplicateCam")
+
+        camPropsCol = propertyColumn(propsCol, padding_left=3)
+        row = camPropsCol.row()
         row.enabled = self.duplicateCam
         row.scale_x = 1.6
-        row.separator(factor=2.0)
         row.label(text="New Camera Name:")
         row.scale_x = 2.4
         row.prop(self, "camName", text="")
         row.separator(factor=0.5)
 
-        row = subgrid_flow.row()
-        row.enabled = self.duplicateCam
-        row.separator(factor=5)
-        row.prop(self, "duplicateStoryboardGP")
+        # propsCol.separator(factor=0.5)
+        # camSubPropsCol = propertyColumn(camPropsCol, padding_left=3)
+        if props.use_camera_color:
+            camPropsCol.prop(self, "useDifferentColor", text="Slightly Change the Camera Identification Color")
+
+        if selectedShot.hasStoryboardFrame():
+            row = camPropsCol.row()
+            row.enabled = self.duplicateCam
+            row.prop(self, "duplicateStoryboardFrame")
 
         box.separator(factor=0.4)
 
@@ -987,7 +1065,7 @@ class UAS_ShotManager_ShotDuplicate(Operator):
             return {"CANCELLED"}
 
         newShotInd = len(props.get_shots()) if self.addToEndOfList else selectedShotInd + 1
-        copyGreasePencil = self.duplicateCam and self.duplicateStoryboardGP
+        copyGreasePencil = self.duplicateCam and self.duplicateStoryboardFrame
         newShot = props.copyShot(
             selectedShot, atIndex=newShotInd, copyCamera=self.duplicateCam, copyGreasePencil=copyGreasePencil
         )
@@ -997,6 +1075,10 @@ class UAS_ShotManager_ShotDuplicate(Operator):
         if self.startAtCurrentTime:
             newShot.start = context.scene.frame_current
             newShot.end = newShot.start + selectedShot.end - selectedShot.start
+
+        if self.useDifferentColor:
+            if props.use_camera_color:
+                newShot.camera.color = slightlyRandomizeColor(selectedShot.camera.color, weight=0.55)
 
         # if self.duplicateCam and newShot.camera is not None:
         #     newCam = utils.duplicateObject(newShot.camera)
@@ -1101,7 +1183,7 @@ def convertMarkersFromCameraBindingToShots(scene):
         if m.camera is not None:
             boundMarkers.append(m)
 
-    boundMarkers = utils.sortMarkers(boundMarkers)
+    boundMarkers = utils_markers.sortMarkers(boundMarkers)
 
     # display sorted markers
     # for m in boundMarkers:
