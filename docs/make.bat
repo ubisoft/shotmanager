@@ -4,8 +4,12 @@ pushd %~dp0
 
 REM Command file for Sphinx documentation
 
-REM temp fix
-set SPHINXBUILD="Z:\EvalSofts\Blender\DevPython\UAS_ShotManager_Addon\.venv\Scripts\sphinx-build.exe"
+set currentpath=%cd%
+set SPHINXBUILD="%currentpath%\..\.venv\Scripts\sphinx-build.exe"
+
+REM delete existing folders
+@echo %currentpath%
+@RD /S /Q "%currentpath%/_build"
 
 if "%SPHINXBUILD%" == "" (
 	set SPHINXBUILD=sphinx-build

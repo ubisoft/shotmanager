@@ -1,8 +1,8 @@
 .. _feature-toggles-list:
 
 
-Feature Toggles
----------------
+Toggling Features
+=================
 
 .. toctree::
    :maxdepth: 3
@@ -13,6 +13,7 @@ Feature Toggles
    /feature-toggles/notes
    /feature-toggles/camerabg
    /feature-toggles/retimer
+   /feature-toggles/markers-nav-bar
 
 The following features add their UI control components into the Take and the Shots panels:
 
@@ -23,6 +24,7 @@ The following features add their UI control components into the Take and the Sho
 Retimer is a tool on its own. When turned on a new panel named *Retimer* will appear below the Shots panel.
 
 - :ref:`Retimer <retimer>`: Insert, delete or scale time globally or on selected entities of the scene.
+- :ref:`Markers Navigation Toolbar <markers-nav-bar>`: Navigate in time from marker to marker.
 
 
 

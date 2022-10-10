@@ -21,5 +21,5 @@ being recorded and should be available soon.
 
 Read the following topics to get a better underdstanding of how the entities of Shot Manager intervene in the scene and UI:
 
-   - :ref:`Shot Type <shot_type>`
+   - :ref:`Shot Type <shot-type>`
    - :ref:`Frame Visibility <storyboard-frames-visibility>`

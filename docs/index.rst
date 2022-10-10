@@ -89,11 +89,12 @@ Read this article to see how we used this tool on the TV production of Rabbids I
 
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 3
    :hidden:
    
    /getting-started/general-philosophy
    /what-s-new/what-s-new-in-2
+   /what-s-new/release-change-logs
 
 .. toctree::
    :maxdepth: 2
@@ -104,16 +105,26 @@ Read this article to see how we used this tool on the TV production of Rabbids I
    /getting-started/first-steps
    /getting-started/glossary
    
+
+.. toctree::
+   :maxdepth: 3
+   :hidden:
+   :caption: Shot Manager Panel
+
+   /main-panel/features
+   /main-panel/main-panel
+   /storyboard/storyboard
+
+
 .. toctree::
    :maxdepth: 3
    :hidden:
    :caption: Features
 
-   /features/features
-   /features/main-panel
    /feature-toggles/feature-toggles-list
    /overlay-tools/overlay-tools
-   
+
+
 .. toctree::
    :maxdepth: 3
    :hidden:
@@ -124,6 +135,7 @@ Read this article to see how we used this tool on the TV production of Rabbids I
    /settings/shots
    /settings/keymap
    
+
 .. toctree::
    :maxdepth: 2
    :hidden:

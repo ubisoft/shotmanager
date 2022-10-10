@@ -20,6 +20,7 @@ available as a beta pre-release.
 
 See also:
     :ref:`What's new in Shot Manager 2.0 <what-s-new-in-2>`
+    :ref:`Release Change Logs <release-change-logs>`
 
 
 
