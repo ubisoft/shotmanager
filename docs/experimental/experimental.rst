@@ -17,7 +17,7 @@ available as a beta pre-release.
 
 **Latest pre-release:**
 
-    - `v2.1.24_Beta <https://github.com/ubisoft/shotmanager/releases/tag/v2.1.24_Beta>`__
+    - `v2.1.27_Beta <https://github.com/ubisoft/shotmanager/releases/tag/v2.1.27_Beta>`__
 
 ..
     - No pre-releases at the moment
