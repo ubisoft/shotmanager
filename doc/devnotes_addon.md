@@ -1,13 +1,19 @@
 # Dev Notes for Shot Manager
 
 - [Installation](#installation)
-- [dependencies](#dependencies)
+- [Dependencies](#dependencies)
+- [Widgets and components](#widgets-and-components)
 - [Important points in Shot Manager](#important-points-in-shot-manager)
 
+
+</br>
 
 ## Installation
 The addon must be installed in Administrator mode so that the OpenTimelineIO Python library can
 be downloaded and deployed correctly. Also be sure that your firewall doesn't block the download (or use OpenVPN or equivalent).
+
+
+</br>
 
 ## Dependencies
 Shot Manager requires the following packages and add-ons to run at its best:
@@ -20,6 +26,17 @@ Shot Manager requires the following packages and add-ons to run at its best:
     It is NOT mandatory, Shot Manager can run without it but some features will then not be available.
 
     It has to be installed manually, it can be downloaded here: [https://github.com/ubisoft/stampinfo](https://github.com/ubisoft/stampinfo)
+
+
+</br>
+
+## Widgets and components
+
+- [Interactive Shots Stack](../shotmanager/overlay_tools/interact_shots_stack/doc/interac_shots_stack.md)
+- [Doc GPU Library](../shotmanager/gpu/gpu_2d/doc_gpu_2d_components.md)
+
+
+</br>
 
 ## Important points in Shot Manager
 
@@ -50,12 +67,15 @@ supported.
 by the camera held by the shot.
 
 
+</br>
+
 ## Props, the main properties class
 Terminology:
     We distinguish the "selected shot", which is the one selected in the shots list, from the "current shot",
     which is the shot actualy displayed in the viewport and identified in the shots list with an orange icon
     in the first column.
 
+</br>
 
 ## Shot select, set current, set to Draw Mode
 

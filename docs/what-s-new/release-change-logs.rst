@@ -6,7 +6,7 @@ Release Change Logs
 .. toctree::
    :maxdepth: 3
    :hidden:
-   :caption: Feature Toggles List
+   :caption: Release Change Log
 
    /what-s-new/change-logs/v2.0.225-change-log
 

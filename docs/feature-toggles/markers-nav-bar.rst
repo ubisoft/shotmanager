@@ -1,5 +1,9 @@
 .. _markers-nav-bar:
 
+.. |br| raw:: html
+
+  <br/>
+
 Markers Navigation Toolbar
 ==========================
 
@@ -13,3 +17,10 @@ The widget can be displayed from the :ref:`Features panel<feature-toggles-panel>
 the Timeline editor toolbar, the Dopesheet toolbar or on the Video Sequence Editor.
 
 
+..  image:: /img/toggles/SM_Toggles_MarkersNavBar.png
+    :align: center
+    :scale: 100%
+
+
+|br|
+As for the rest of Shot Manager, refer to the tooltips of the buttons for a description of their purpose.

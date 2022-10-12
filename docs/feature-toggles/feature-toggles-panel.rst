@@ -1,5 +1,9 @@
 .. _feature-toggles-panel:
 
+.. |br| raw:: html
+
+  <br/>
+
 Feature Toggles panel
 =====================
 
@@ -26,6 +30,7 @@ There are 2 ways to open the Feature Toggles panel:
     :align: center
     :scale: 100%
 
+|br|
 - Or directly click on the *Feature Toggles* button.
   
     This button offers a quick access to the Features dialog box, which you may find convenient when you often toggle some features in order
@@ -35,12 +40,14 @@ There are 2 ways to open the Feature Toggles panel:
     :align: center
     :scale: 100%
 
+|br|
 The Feature Toggles panel gets opened. It allows the listed featuers to be toggled by a simple click on they associated button.
 
 ..  image:: /img/feature-toggles/SM_Features_DialogBox.png
     :align: center
     :scale: 100%
 
+|br|
 
    
  

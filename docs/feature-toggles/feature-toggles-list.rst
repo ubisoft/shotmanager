@@ -10,15 +10,17 @@ Toggling Features
    :caption: Feature Toggles List
 
    /feature-toggles/feature-toggles-panel
-   /feature-toggles/notes
-   /feature-toggles/camerabg
+   ..
+      /feature-toggles/notes
+      /feature-toggles/camerabg
    /feature-toggles/retimer
    /feature-toggles/markers-nav-bar
 
-The following features add their UI control components into the Take and the Shots panels:
+..
+   The following features add their UI control components into the Take and the Shots panels:
 
-- :ref:`Shot and take notes <shot-and-take-notes>`: Add notes on shots and takes to better manage your scene content.
-- :ref:`Camera backgrounds <camera-backgrounds>`: Use and toggle camera backgrounds.
+   - :ref:`Shot and take notes <shot-and-take-notes>`: Add notes on shots and takes to better manage your scene content.
+   - :ref:`Camera backgrounds <camera-backgrounds>`: Use and toggle camera backgrounds.
 
 
 Retimer is a tool on its own. When turned on a new panel named *Retimer* will appear below the Shots panel.

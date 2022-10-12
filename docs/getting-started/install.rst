@@ -14,10 +14,14 @@ The currently supported Blender versions are 3.1, 3.0 and 2.93 LTS.
 Download
 --------
 
-Open the `latest release <https://github.com/ubisoft/shotmanager/releases/latest>`__  page from the Shot Manager Gihub `releases page <https://github.com/ubisoft/shotmanager/releases>`_.
-Download the zip file listed in **Assets** that has the package icon: |package-icon|.
+Open the `latest release <https://github.com/ubisoft/shotmanager/releases/latest>`__  page from the Shot Manager Gihub and
+download the zip file listed in **Assets** that has the package icon: |package-icon|.
 
 .. |package-icon| image:: /img/package-icon.png
+
+
+In very specific cases you may want to give a try to a pre-release or experimental build.
+Get more information about those versions here: :ref:`Pre-Releases and Experimental <experimental>`
 
 .. _installing:
 
