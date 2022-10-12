@@ -575,6 +575,8 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
     # built-in project settings
     project_images_output_format: StringProperty(
         name="Image Output Format",
+        description="File format for the rendered output images, BEFORE composition with the Stamp Info framing images."
+        "\nExpected values: PNG, OPEN_EXR",
         default="PNG",
         options=set(),
     )
@@ -3522,9 +3524,10 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
             # storyboard
             ##########################
             # if "STORYBOARD" == self.layout_mode and prefs.current_shot_changes_edited_frame_in_stb:
-            if self.isContinuousGPEditingModeActive():
+            if self.isContinuousGPEditingModeActive() and self.isEditingStoryboardFrame:
                 # if self.getEditedStoryboardFrame() is not None:
-                if self.getEditedGPShot() is not None:
+                if True:
+                    # self.getEditedGPShot() is not None:
                     bpy.ops.uas_shot_manager.greasepencil_select_and_draw(
                         index=currentShotIndex,
                         action="SELECT_AND_DRAW",
@@ -4673,6 +4676,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
                 - for an entity shot:
                     SH_STILL:
                     SH_IMAGE_SEQ:
+                    SH_IMAGE_SEQ_PLAYBLAST:
                     SH_VIDEO:
                     SH_AUDIO:
                     SH_INTERM_IMAGE_SEQ:
@@ -4701,6 +4705,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
             genericFrame: if genericFrame is True then #### is used instead of the specific frame index
         """
 
+        prefs = config.getShotManagerPrefs()
         filePath = ""
         fileName = ""
         fileExtension = ""
@@ -4757,7 +4762,8 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
                     fileName += entity.getName_PathCompliant(withPrefix=insertSeqPrefix)
 
                 # wkip hack degueu
-                if "SH_IMAGE_SEQ" == outputMedia and not genericFrame and specificFrame is None:
+                # if "SH_IMAGE_SEQ" == outputMedia and not genericFrame and specificFrame is None:
+                if "SH_IMAGE_SEQ" in outputMedia and not genericFrame and specificFrame is None:
                     # required by the OTIO edit file for img seq generation
                     fileName += "_" + self.getFramePadding(frame=0)
                 else:
@@ -4783,22 +4789,45 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
                 if "SH_" == outputMedia[0:3]:
                     if "SH_INTERM_STAMPINFO_SEQ" == outputMedia:
                         fileExtension += ".png"
-                    elif "SH_IMAGE_SEQ" == outputMedia or "SH_INTERM_IMAGE_SEQ" == outputMedia:
-                        # wkipwkipwkip
-                        if self.use_project_settings:
-                            fileExtension += ".png"
-                        else:
+                    elif "SH_IMAGE_SEQ" in outputMedia or "SH_INTERM_IMAGE_SEQ" == outputMedia:
+                        if "_PLAYBLAST" in outputMedia:
                             fileExtension += "."
-                            sceneFileFormat = self.parentScene.render.image_settings.file_format.lower()
-                            if "jpeg" == sceneFileFormat:
+                            if "JPEG" == prefs.playblastImagesOutputFormat:
                                 fileExtension += "jpg"
-                            elif "png" == sceneFileFormat:
+                            elif "PNG" == prefs.playblastImagesOutputFormat:
                                 fileExtension += "png"
-                            elif "open_exr" == sceneFileFormat:
-                                fileExtension += "exr"
                             else:
-                                # output file is PNG otherwise
-                                fileExtension += "png"
+                                _logger.warning_ext(
+                                    f"Invalid Playblast image output format in Prefs: {self.project_images_output_format} - Using JPEG"
+                                )
+                                fileExtension += "jpg"
+                        else:
+                            if self.use_project_settings:
+                                fileExtension += "."
+                                if "PNG" == self.project_images_output_format:
+                                    fileExtension += "png"
+                                elif "OPEN_EXR" == self.project_images_output_format:
+                                    fileExtension += "exr"
+                                else:
+                                    _logger.warning_ext(
+                                        f"Invalid project image output format: {self.project_images_output_format} - Using PNG"
+                                    )
+                                    fileExtension += "png"
+                            else:
+                                fileExtension += "."
+                                sceneFileFormat = self.parentScene.render.image_settings.file_format.lower()
+                                if "jpeg" == sceneFileFormat:
+                                    fileExtension += "jpg"
+                                elif "png" == sceneFileFormat:
+                                    fileExtension += "png"
+                                elif "open_exr" == sceneFileFormat:
+                                    fileExtension += "exr"
+                                else:
+                                    # output file is PNG otherwise
+                                    _logger.warning_ext(
+                                        f"Invalid project image output format: {self.project_images_output_format} - Using PNG"
+                                    )
+                                    fileExtension += "png"
                     else:
                         fileExtension += "." + self.getOutputFileFormat(
                             isVideo=specificFrame is None and not genericFrame

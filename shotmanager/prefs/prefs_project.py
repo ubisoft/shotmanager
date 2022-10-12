@@ -24,7 +24,7 @@ from pathlib import Path
 
 import bpy
 from bpy.types import Operator
-from bpy.props import StringProperty
+from bpy.props import StringProperty, EnumProperty
 
 # for file browser:
 from bpy_extras.io_utils import ImportHelper
@@ -42,6 +42,17 @@ class UAS_ShotManager_ProjectSettings_Prefs(Operator):
     bl_label = "Project Settings"
     bl_description = "Display the Project Settings panel\nfor the Shot Manager instanced in this scene"
     bl_options = {"INTERNAL"}
+
+    uiImagesOutputFormat: EnumProperty(
+        name="Image Output Format",
+        description="File format for the rendered output images, BEFORE composition with the Stamp Info framing images"
+        "\nExpected values: PNG, OPEN_EXR",
+        items=(
+            ("PNG", "PNG", ""),
+            ("OPEN_EXR", "OPEN_EXR", ""),
+        ),
+        default="PNG",
+    )
 
     def invoke(self, context, event):
         return context.window_manager.invoke_props_dialog(self, width=450)
@@ -209,7 +220,8 @@ class UAS_ShotManager_ProjectSettings_Prefs(Operator):
         col.prop(props, "project_img_name_digits_padding", text="Frame Digits Padding")
         col.separator(factor=sepPropsHeight)
         col.prop(props, "project_output_format", text="Video Output Format")
-        col.prop(props, "project_images_output_format", text="Image Output Format")
+        # col.prop(props, "project_images_output_format", text="Image Output Format")
+        col.prop(self, "uiImagesOutputFormat", text="Image Output Format")
         col.prop(props, "project_sounds_output_format", text="Sound Output Format")
 
         if config.devDebug:
@@ -239,13 +251,23 @@ class UAS_ShotManager_ProjectSettings_Prefs(Operator):
                 split.label(text=str(prop[1]))
 
     def execute(self, context):
+        scene = context.scene
+        props = scene.UAS_shot_manager_props
+        props.project_images_output_format = self.uiImagesOutputFormat
+
         context.scene.UAS_shot_manager_props.applyProjectSettings()
         return {"FINISHED"}
 
     def cancel(self, context):
         # since project properties are immediatly applied to Shot Manager properties then we also force the
         # application of the settings in the scene even if the user is not clicking on OK button
+        scene = context.scene
+        props = scene.UAS_shot_manager_props
+        props.project_images_output_format = self.uiImagesOutputFormat
+
         context.scene.UAS_shot_manager_props.applyProjectSettings()
+        # return {'CANCELLED'}
+        return {"FINISHED"}
 
 
 # This operator requires   from bpy_extras.io_utils import ImportHelper

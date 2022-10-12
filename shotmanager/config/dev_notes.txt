@@ -14,14 +14,26 @@ To add to every description of a parameter saved in the Preferences and exposed 
 "\n\n(saved in the add-on preferences)"
 
 Doc:
-Mark Down language memo: https://github.com/tchapi/markdown-cheatsheet/blob/master/README.md
+    Mark Down:
+        language memo: https://github.com/tchapi/markdown-cheatsheet/blob/master/README.md
 
-        leftSepFactor = 2
-        mainRow = box.row()
-        mainRow.separator(factor=leftSepFactor)
-        propsCol = mainRow.column(align=True)
+        Highlight text in orange (or color):  `shotmanager` 
+        Comment: use .. jump one line and indent
+
+        ..
+            my commented text
+
+            
+UI memo:
+
+    leftSepFactor = 2
+    mainRow = box.row()
+    mainRow.separator(factor=leftSepFactor)
+    propsCol = mainRow.column(align=True)
 
         
+
+
 To do:
 clear anim on stb cameras
 pbs paul
@@ -69,6 +81,8 @@ Urgent:
     - bug ds le Comparaison à l'import d'un edit: reorder pas pris en compte
 
     - faire un playblast qui marche pour un time range quelconque
+    - faise en sorte que le playblast n'écrase pas les autres rendus
+    
     - cleaner preset_useStampInfo dans launchRenderWithVSEComposite
 
     

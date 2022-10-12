@@ -269,11 +269,14 @@ class UAS_ShotManager_OpenExplorer(Operator):
         else:
             # wkipwkip
             if Path(absPathToOpen).exists():
-                subprocess.Popen(f'explorer "{Path(absPathToOpen)}"')
+                # subprocess.Popen(f'explorer "{Path(absPathToOpen)}"')
+                open_folder(str(Path(absPathToOpen)))
             elif Path(absPathToOpen).parent.exists():
-                subprocess.Popen(f'explorer "{Path(absPathToOpen).parent}"')
+                # subprocess.Popen(f'explorer "{Path(absPathToOpen).parent}"')
+                open_folder(str(Path(absPathToOpen).parent))
             elif Path(absPathToOpen).parent.parent.exists():
-                subprocess.Popen(f'explorer "{Path(absPathToOpen).parent.parent}"')
+                # subprocess.Popen(f'explorer "{Path(absPathToOpen).parent.parent}"')
+                open_folder(str(Path(absPathToOpen).parent.parent))
             else:
                 print(f"Open Explorer failed: Path not found: {Path(absPathToOpen)}")
                 from ..utils.utils import ShowMessageBox
