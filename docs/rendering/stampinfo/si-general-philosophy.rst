@@ -52,7 +52,7 @@ panel. The images are then computed, composited and displayed (for a still image
 If the "Use Stamp Info" checkbox is not checked then the Blender usual rendering process is launched.
 
 Printable data are sorted in several panels, gathered by theme. The list is available in the
-:ref:`Stamp Info Features page <features>` 
+:ref:`Stamp Info Features page <si-features>` 
 
 
 One setting is very different from the others though, it is the :ref:`Final Resolution Mode <final-resolution>`.
@@ -66,4 +66,4 @@ it saves rendering time while preserving the same aspect ratio for the cameras i
 Help and feedback
 -----------------
 
-If you have any question or feedback please enter an issue on `the add-on GitHub <https://github.com/ubisoft/stampinfo/issues>`_.
+If you have any question or feedback please enter an issue on `the add-on GitHub <https://github.com/ubisoft/shotmanager/issues>`_.
