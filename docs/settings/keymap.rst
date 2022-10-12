@@ -1,22 +1,21 @@
 .. _keymap:
 
+.. |br| raw:: html
+
+  <br/>
+
 Keymap
 ======
 
-Shot Manager currently exposes the following key maps.
+Shot Manager currently exposes several key maps.
+To see all of them and possibly change some to adapt them to your way of working,
+open the Blender Preferences panel, go to the Keymap tab and in the field dedicated
+to search type "shot".
 
-<>: The action has been exposed but no mapping is configured for it by default.
+..  image:: /img/keymaps_prefs.png
+    :align: center
+    :scale: 80%
 
-
-==============  ==========================  ==============================================
-Keymap          Action                      Description
-==============  ==========================  ==============================================
-Alt + Space     Shots Play Mode             Toggle the Shots Play Mode
-<>              Display Overlay tools       Toggle the display of the overlay tools
-                                            
-                                            (sequence timeline, interactive shots stack...)
-==============  ==========================  ==============================================
-
-
+|br|
 
 

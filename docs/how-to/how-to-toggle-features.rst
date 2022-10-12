@@ -3,22 +3,23 @@
 How to toggle advanced features
 ===============================
 
-Manage cameras
---------------
+..
+    Manage cameras
+    --------------
 
-- :ref:`How to use camera backgrounds <camera-backgrounds>`
+    - :ref:`How to use camera backgrounds <camera-backgrounds>`
 
-.. toctree::
-    :maxdepth: 2
-    :hidden:
-    
-    features/how-to-usecamerabackgrounds
+    .. toctree::
+        :maxdepth: 2
+        :hidden:
+        
+        features/how-to-usecamerabackgrounds
 
 
-Manage shots and takes
-----------------------
+    Manage shots and takes
+    ----------------------
 
-- :ref:`Shot and take notes <shot-and-take-notes>`
+    - :ref:`Shot and take notes <shot-and-take-notes>`
 
 
 Retime the scene content

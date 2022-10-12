@@ -81,7 +81,8 @@ def launchRenderWithVSEComposite(
 
         if os.path.exists(dirPath):
             files_in_directory = os.listdir(dirPath)
-            filtered_files = [file for file in files_in_directory if file.endswith(".png") or file.endswith(".wav")]
+            # filtered_files = [file for file in files_in_directory if file.endswith(".png") or file.endswith(".wav")]
+            filtered_files = [file for file in files_in_directory]
 
             for file in filtered_files:
                 path_to_file = os.path.join(dirPath, file)
@@ -654,8 +655,9 @@ def launchRenderWithVSEComposite(
                 # bpy.ops.sound.mixdown(filepath=audioFilePath, relative_path=False, container="MP3", codec="MP3")
 
             # renderedImgSeq = newTempRenderPath + shot.getOutputMediaPath(providePath=False, genericFrame=True)
+            playblastSuf = "_PLAYBLAST" if "PLAYBLAST" == renderMode else ""
             renderedImgSeq = newTempRenderPath + shot.getOutputMediaPath(
-                "SH_IMAGE_SEQ", providePath=False, genericFrame=True
+                "SH_IMAGE_SEQ" + playblastSuf, providePath=False, genericFrame=True
             )
 
             if generateShotVideos:
@@ -673,8 +675,9 @@ def launchRenderWithVSEComposite(
                     # vse_render.inputBGMediaPath = newTempRenderPath + shot.getOutputMediaPath(
                     #     providePath=False, specificFrame=specificFrame
                     # )
+                    playblastSuf = "_PLAYBLAST" if "PLAYBLAST" == renderMode else ""
                     vse_render.inputBGMediaPath = newTempRenderPath + shot.getOutputMediaPath(
-                        "SH_IMAGE_SEQ", providePath=False, specificFrame=specificFrame
+                        "SH_IMAGE_SEQ" + playblastSuf, providePath=False, specificFrame=specificFrame
                     )
 
                 _logger.debug(f"\n - BGMediaPath: {vse_render.inputBGMediaPath}")
@@ -700,7 +703,10 @@ def launchRenderWithVSEComposite(
                 # Warning: this defines the start index of the first image (usually 0 or 1)
                 # This is different from props.editStartFrame which is the offset of the scene take relatively to a main edit
                 #   compositedMedia_PathOnly = shot.getOutputMediaPath(rootPath=rootPath, provideName=False)
-                compositedImgSeqPath = shot.getOutputMediaPath("SH_IMAGE_SEQ", rootPath=rootPath, genericFrame=True)
+                playblastSuf = "_PLAYBLAST" if "PLAYBLAST" == renderMode else ""
+                compositedImgSeqPath = shot.getOutputMediaPath(
+                    "SH_IMAGE_SEQ" + playblastSuf, rootPath=rootPath, genericFrame=True
+                )
                 compositedMedia_NameOnly = shot.getName_PathCompliant()
                 print("--    newTempRenderPath: ", newTempRenderPath)
                 print("--    compositedMediaPath: ", compositedMediaPath)

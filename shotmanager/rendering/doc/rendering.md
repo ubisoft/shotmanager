@@ -45,8 +45,9 @@ A Playblast rendering:
         - each enabled shot of the current take is rendered as PNG file in its own temp directory
         - for each enabled shot the SI files are rendered in the directory of each shot
 
-        - each shot is rendered as a video?
-        Or the full seq is based on all the shots?
+        - each shot is rendered as a sequence of images, with the file format specified in the prefs for playblast (playblastImagesOutputFormat), in jpg by default
+        the seq ed is called on the basis of the rendered images sequences
+        - **Note that at the moment the playblast overrides the content of the rendering**
 
     - if Stamp Info is NOT activated:
         - 

@@ -1,6 +1,8 @@
 .. _retimer:
 
+.. |br| raw:: html
 
+  <br/>
 
 Retimer
 =======
@@ -21,12 +23,14 @@ To display the Retimer panel open the :ref:`Feature Toggles panel <feature-toggl
     :align: center
     :scale: 100%
 
+|br|
 The panel then appears below the Shot Manager main panel.
 
 ..  image:: /img/feature-toggles/SM_Retimer_Panel.png
     :align: center
     :scale: 80%
 
+|br|
 
 Insert, scale or delete time
 ----------------------------

@@ -17,6 +17,20 @@
 
 """
 Shot Manager API Sample - Exporting shots as camera bound markers
+
+To run the script:
+    - once your project file is opened in Blender, go to the Scripting workspace
+      and load that Python file in the editor
+    - then just press on the Run Script (button with the arrow on the right of the editor toolbar)
+    - a set of markers is then created in the timeline. Each marker received the name of a shot
+      and is bound to the camera of this shot
+
+Note: Due to the nature of this operation the camera switch resulting from the use
+of this script may very likely not match the editing that is provided by Shot Manager.
+Indeed the camera binding makes a linear switch of point of view over time whereas
+with Shot Manager the scene time can be set to earlier or later values.
+
+Aditionaly the use of camera binding in a scene will prevent the "Shot Play Mode" to work as expected.
 """
 
 import bpy

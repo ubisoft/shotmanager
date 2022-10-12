@@ -1638,6 +1638,17 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
 
     playblastFileName: StringProperty(name="Temporary Playblast File", default="toto.mp4")
 
+    playblastImagesOutputFormat: EnumProperty(
+        name="Playblast Image Output Format",
+        description="File format for the rendered output images of the playblast, BEFORE composition with the Stamp Info framing images"
+        "\nExpected values: JPEG, PNG",
+        items=(
+            ("JPEG", "JPEG", ""),
+            ("PNG", "PNG", ""),
+        ),
+        default="JPEG",
+    )
+
     ##################
     # markers ###
     ##################

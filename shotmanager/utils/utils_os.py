@@ -31,7 +31,7 @@ from shotmanager.config import sm_logging
 _logger = sm_logging.getLogger(__name__)
 
 
-def open_folder(path):
+def open_folder(path: str):
     """
     Open a path or an URL with the application specified by the os
     """
@@ -43,7 +43,7 @@ def open_folder(path):
         subprocess.Popen(f'explorer "{Path(path)}"')
 
 
-def delete_folder(dir_path):
+def delete_folder(dir_path: str):
     if os.path.exists(dir_path):
         files_in_directory = os.listdir(dir_path)
         # filtered_files = [file for file in files_in_directory if file.endswith(".png") or file.endswith(".wav")]

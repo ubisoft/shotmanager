@@ -1,5 +1,20 @@
 -----
+## 2.1.27 (2022-10-12)
+**Beta Release**
+- Merge for beta release
+
+-----
+## 2.1.26 (2022-10-12)
+- Bug fix for invalid Playblast output image format [Issue #46](https://github.com/ubisoft/shotmanager/issues/46)
+- Bug fix on Mac: the Explorer couldn't be opened
+
+-----
+## 2.1.25 (2022-10-11)
+- Improvements on the Continuous Draw Mode
+
+-----
 ## 2.1.24 (2022-10-11)
+**Beta Release**
 - Added a function applyVideoSettings() in the rendering process to change the rendering file
   format in a cleanest way (to be continued)
 - Fixed a bug when plablast video appeared all black when called without Project Settings

@@ -25,7 +25,7 @@
   <img src="doc/images/Documentation.png" width="160" />
   </a>
   &nbsp;&nbsp;&nbsp;
-  <a href="https://github.com/ubisoft/shotmanager/releases/latest" title="Download latest version">
+  <a href="https://github.com/ubisoft/shotmanager/releases/latest" title="Download the latest release. For betas and experimental builds see the link below in the page">
   <img src="doc/images/Download.png" width="160" />
   </a>
   &nbsp;&nbsp;&nbsp;
@@ -88,23 +88,37 @@ It is currently used on several projects inside Ubisoft as well as on production
 
 
 ## Pre-releases
-Pre-releases and available beta versions are listed here: [Pre-releases and Experimental](https://ubisoft-shotmanager.readthedocs.io/en/latest/experimental/experimental.html#experimental) 
+Pre-releases and available beta versions appear in the [list of the release versions](https://github.com/ubisoft/shotmanager/tags) with a "beta" in their tag.
 
+For major releases some aditional information about their content is provided here: [Pre-releases and Experimental](https://ubisoft-shotmanager.readthedocs.io/en/latest/experimental/experimental.html#experimental) 
+
+
+## License and copyright
+The original code is Copyright (C) 2022 Ubisoft.
+
+All the code included in this depot and in the Ubisoft Shot Mmanager package is under the [GPLv3 license](https://www.gnu.org/licenses/gpl-3.0.html).
+
+## Support
+The active support repository is on the [Shot Manager Github repository](https://github.com/ubisoft/shotmanager) which is part of the [Ubisoft open source](https://github.com/ubisoft) projects group.
+
+
+# Development, project and code
+
+## API
+If, as a script developer, you want to write some code that it not part of Shot Manager but that communicates with it, the [Shot Manager API](.api/doc/shot_manager_api.md) is made for you!
 
 ## Dev notes
 Follow the development and the date of the upcoming releases on [the wiki](https://github.com/ubisoft/shotmanager/wiki).
 
-Various development notes related to the add-on itself, to the Git project or to the installation are available here: [Dev Notes](./doc/devnotes.md)
 
-# Support
-The active support repository is on the [Shot Manager Github repository](https://github.com/ubisoft/shotmanager) which is part of the [Ubisoft open source](https://github.com/ubisoft) projects group.
+  - [Shot Manager dev notes](./doc/devnotes_addon.md): Notes about the add-on itself, its architecture, dependencies
 
-
-# License and copyright
-The original code is Copyright (C) 2022 Ubisoft.
-
-All code of the `shotmanager` package is under the GPLv3 license.
+  - [Development Environment](./doc/development.md): Python venv, CI CD
+  - [Releases](./doc/release.md): How to make a release
+  - [Documentation](./doc/devdoc.md): How to update and generate the documentation with Sphinx and ReadTheDoc
 
 
-# Contributions
-The contribution process will be defined soon. At the moment and since we are in the beta process of version 2.0 prefer opening an issue than submit a direct contribution.
+
+## Contributions
+The contribution process will be defined soon. At the moment and since we are still quite often refactoring a few things please
+prefer opening an issue and discuss your need and expectations rather than submit a direct contribution.
