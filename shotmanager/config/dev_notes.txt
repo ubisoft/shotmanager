@@ -236,3 +236,7 @@ mettre nom de canvas dont touch
 overlay desactive des qu'on sort du full scerenfull screnn (ctrl alt space)
 
 
+Bug context
+# wkip toto 2022_10_14
+class UAS_ShotManager_OT_DrawOnGreasePencil(Operator):
+    bl_idname = "uas_shot_manager.draw_on_grease_pencil"

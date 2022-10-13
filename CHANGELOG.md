@@ -1,4 +1,9 @@
 -----
+## 2.1.28 (2022-10-14)
+- Bug fix on Mac for rendering video files
+- Made the playblast temp directories different from the rendering directories
+
+-----
 ## 2.1.27 (2022-10-12)
 **Beta Release**
 - Merge for beta release

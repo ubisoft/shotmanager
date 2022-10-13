@@ -21,7 +21,7 @@ Shot Manager properties
 
 import re
 import sys
-from pathlib import Path
+from pathlib import Path, PurePath
 
 import bpy
 from bpy.types import Scene
@@ -54,6 +54,7 @@ from ..features.greasepencil.greasepencil_frame_template import UAS_GreasePencil
 from shotmanager.feature_panels.greasepencil_25D.greasepencil_25D_props import UAS_GreasePencil_Tools_Properties
 
 from shotmanager.utils import utils
+from shotmanager.utils import utils_os
 from shotmanager.utils.utils_shot_manager import getStampInfo
 from shotmanager.utils import utils_greasepencil
 
@@ -953,7 +954,6 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
     )
 
     def _update_camera_hud_display_in_viewports(self, context):
-        # print("\n*** Stamp Info updated. New state: ", self.stampInfoUsed)
         if self.camera_hud_display_in_viewports:
             bpy.ops.uas_shot_manager.draw_camera_hud_in_viewports("INVOKE_DEFAULT")
 
@@ -966,7 +966,6 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
     )
 
     def _update_camera_hud_display_in_pov(self, context):
-        # print("\n*** Stamp Info updated. New state: ", self.stampInfoUsed)
         if self.camera_hud_display_in_pov:
             bpy.ops.uas_shot_manager.draw_camera_hud_in_pov("INVOKE_DEFAULT")
 
@@ -4681,6 +4680,8 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
                     SH_AUDIO:
                     SH_INTERM_IMAGE_SEQ:
                     SH_INTERM_STAMPINFO_SEQ:
+                    SH_INTERM_IMAGE_SEQ_PLAYBLAST:
+                    SH_INTERM_STAMPINFO_SEQ_PLAYBLAST:
                 - for an entity take:
                     TK_IMAGE_SEQ:
                     TK_VIDEO:
@@ -4710,6 +4711,13 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         fileName = ""
         fileExtension = ""
 
+        # intermediate directory name. Used in the directory name of the shot renderings
+        INTERM_DIR = "_Intermediate"
+        # intermediate playblast directory name. Used in the directory name of the playblast renderings
+        INTERM_PLAYBLAST_DIR = "_IntermPlayblast"
+
+        FOLDER_SEPARATOR = "\\"
+
         # file path
         if providePath:
             if rootPath is not None:
@@ -4719,40 +4727,47 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
                 filePath += bpy.path.abspath(self.renderRootPath)
 
             if not (filePath.endswith("/") or filePath.endswith("\\")):
-                filePath += "\\"
+                filePath += FOLDER_SEPARATOR
 
             # if insertTakeName or insertShotFolder or insertTempFolder or insertStampInfoPrefix:
-            #     filePath += shot.getParentTake().getName_PathCompliant() + "\\"
+            #     filePath += shot.getParentTake().getName_PathCompliant() + FOLDER_SEPARATOR
 
             if "SH_" == outputMedia[0:3]:
                 # entity is a shot
-                filePath += entity.getParentTake().getName_PathCompliant() + "\\"
+                filePath += entity.getParentTake().getName_PathCompliant() + FOLDER_SEPARATOR
 
                 if "SH_VIDEO" != outputMedia:
                     filePath += f"{entity.getName_PathCompliant()}"
 
-                    if "INTERM_" == outputMedia[3:10]:
-                        filePath += "_Intermediate"
+                    # if "INTERM_" == outputMedia[3:10]:
+                    if "_INTERM" in outputMedia:
+                        if "_PLAYBLAST" in outputMedia:
+                            filePath += INTERM_PLAYBLAST_DIR
+                        else:
+                            filePath += INTERM_DIR
                     if "AUDIO" == outputMedia[3:8]:
-                        filePath += "_Intermediate"
+                        if "_PLAYBLAST" in outputMedia:
+                            filePath += INTERM_PLAYBLAST_DIR
+                        else:
+                            filePath += INTERM_DIR
 
-                    filePath += "\\"
+                    filePath += FOLDER_SEPARATOR
 
             # if insertShotFolder or insertTempFolder:
             #     filePath += f"{shot.getName_PathCompliant()}"
             #     if insertTempFolder:
             #         filePath += "_Intermediate"
-            #     filePath += "\\"
+            #     filePath += FOLDER_SEPARATOR
 
             elif "TK_" == outputMedia[0:3]:
                 # entity is a take
-                filePath += entity.getName_PathCompliant() + "\\"
+                filePath += entity.getName_PathCompliant() + FOLDER_SEPARATOR
             # elif "EDIT_" == outputMedia[0:5]:
 
         # file name
         if provideName:
             if "SH_" == outputMedia[0:3]:
-                if "SH_INTERM_STAMPINFO_SEQ" == outputMedia:
+                if "SH_INTERM_STAMPINFO_SEQ" in outputMedia:
                     fileName += "_tmp_StampInfo_"
                     # entity is a shot
                     fileName += entity.getName_PathCompliant(withPrefix=insertSeqPrefix)
@@ -4762,7 +4777,6 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
                     fileName += entity.getName_PathCompliant(withPrefix=insertSeqPrefix)
 
                 # wkip hack degueu
-                # if "SH_IMAGE_SEQ" == outputMedia and not genericFrame and specificFrame is None:
                 if "SH_IMAGE_SEQ" in outputMedia and not genericFrame and specificFrame is None:
                     # required by the OTIO edit file for img seq generation
                     fileName += "_" + self.getFramePadding(frame=0)
@@ -4839,11 +4853,12 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
                     elif "TK_PLAYBLAST" == outputMedia:
                         fileExtension += "." + "mp4"
 
+        # used to get a path with \\ for Windows, with / for Mac and Linux
+        # unfortunately it removes the separator char at the end of the path
+        filePath = str(PurePath(filePath)) + utils_os.get_dir_separator_char()
+
         # result
         resultStr = filePath + fileName + fileExtension
-        resultStr.replace("\\", "/")  # //
-
-        #   _logger.debug(f" ** resultStr: {resultStr}")
 
         return resultStr
 

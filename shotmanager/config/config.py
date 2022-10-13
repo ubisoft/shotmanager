@@ -46,7 +46,7 @@ def initGlobalVariables():
     devDebug = False
 
     global devDebug_displayDebugPanel
-    devDebug_displayDebugPanel = True
+    devDebug_displayDebugPanel = False
 
     global devDebug_lastRedrawTime
     devDebug_lastRedrawTime = -1
@@ -151,8 +151,8 @@ def getLoggingTags():
     # debug tags
     tags["DEPRECATED"] = False
 
-    tags["REG"] = True
-    tags["UNREG"] = True
+    tags["REG"] = False
+    tags["UNREG"] = False
 
     tags["INIT_AND_DATA"] = False
 
@@ -162,6 +162,8 @@ def getLoggingTags():
     tags["LAYOUT"] = False
     tags["RETIMER"] = False
 
+    tags["GREASE_PENCIL"] = False
+
     tags["EDIT_IO"] = True
 
     tags["TIMELINE_EVENT"] = False
@@ -169,6 +171,6 @@ def getLoggingTags():
     tags["EVENT"] = False
 
     # info tags
-    tags["RENDERTIME"] = False
+    tags["RENDERTIME"] = True
 
     return tags

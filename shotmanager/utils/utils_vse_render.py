@@ -559,8 +559,7 @@ class ShotManager_Vse_Render(PropertyGroup):
         if "UNKNOWN" != mediaType:
             mediaInfo = f"   - createNewClip(): Name: {newClip.name}, Media Type: {mediaType}, path: {mediaPath}"
 
-            if config.devDebug:
-                print(mediaInfo)
+            _logger.debug_ext(mediaInfo)
 
         # print(
         #     f"           frame_offset_start: {newClip.frame_offset_start}, frame_offset_end: {newClip.frame_offset_end}, frame_final_duration: {newClip.frame_final_duration}"
@@ -803,7 +802,7 @@ class ShotManager_Vse_Render(PropertyGroup):
                 # sequenceScene.sequence_editor
                 frameToPaste = self.get_frame_end_from_content(sequenceScene)
                 print("\n---- Importing image sequences ----")
-                print(f"  frametopaste: {frameToPaste}")
+                # print(f"  frametopaste: {frameToPaste}")
 
                 bgClip = None
                 shotDuration = 0
@@ -913,7 +912,7 @@ class ShotManager_Vse_Render(PropertyGroup):
                 # sequenceScene.sequence_editor
                 frameToPaste = self.get_frame_end_from_content(sequenceScene)
                 print("\n---- Importing video ----")
-                print(f"  frametopaste: {frameToPaste}")
+                # print(f"  frametopaste: {frameToPaste}")
                 # video clip
                 self.createNewClip(
                     sequenceScene,
@@ -981,7 +980,7 @@ class ShotManager_Vse_Render(PropertyGroup):
 
         def _setOutputMediaAndRender(output_media_type):
             """output_media_type can be "IMAGE", "IMAGE_SEQ" or "VIDEO" """
-            _logger.debug_ext(f"_setOutputMediaAndRender output_media_type: {output_media_type}", form="REG")
+            # _logger.debug_ext(f"_setOutputMediaAndRender output_media_type: {output_media_type}")
 
             # get output file format from specified output (can be emtpy !!)
             fileExt = str(Path(output_filepath).suffix).upper()

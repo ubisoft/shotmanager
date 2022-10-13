@@ -52,7 +52,6 @@ def addEditCharacteristicsToXML(xml_filename, montageCharacteristics):
     seqMedia = utils_xml.getFirstChildWithName(seq, "media")
     if seqMedia is not None:
         seqMediaVideo = utils_xml.getFirstChildWithName(seqMedia, "video")
-        print(f"seqMediaVideo: {seqMediaVideo}")
 
         # sequence characteristics
         newNodeFormat = dom1.createElement("format")
@@ -185,7 +184,7 @@ def fillEditFile(scene, props, take, sceneFps, output_media_mode, rootPath):
             # shotFileName = Path(shotFileFullPath).name
             shotFileName = shot.getName_PathCompliant(withPrefix=True)
 
-            _logger.info(f" Adding shot: {shotFileFullPath}")
+            _logger.debug_ext(f" Adding shot to Edit file: {shotFileFullPath}", tag="EDIT_IO")
             if not Path(shotFileFullPath).exists():
                 _logger.warning_ext("    File not found ! ")
 
@@ -241,13 +240,15 @@ def exportTakeEditToOtio(
     output_media_mode: can be "IMAGE_SEQ", "VIDEO", "IMAGE_SEQ_AND_VIDEO". Specify the file format of the rendered
     media.
     """
-    print("  ** -- ** exportTakeEditToOtio from exports.py, fileListOnly: ", fileListOnly)
     props = scene.UAS_shot_manager_props
     sceneFps = fps if fps != -1 else utils.getSceneEffectiveFps(scene)
     #   import opentimelineio as opentimelineio
 
-    print("\n--- --- --- --- --- --- --- --- --- ---")
-    print(f"\nExporting Edit file: {output_filepath}\n")
+    infoStr = "\n--- --- --- --- --- --- --- --- --- ---"
+    infoStr += "\n   Exporting edit file"
+    infoStr += "\n--- --- --- --- --- --- --- --- --- ---"
+    infoStr += f"\n\n    File: {output_filepath}\n"
+    _logger.info_ext(infoStr, col="GREEN")
 
     if fileListOnly:
         return output_filepath

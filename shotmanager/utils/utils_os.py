@@ -61,6 +61,30 @@ def delete_folder(dir_path: str):
             _logger.warning_ext(f"Cannot delete directory: {dir_path}, error:{error}")
 
 
+def open_media_in_player(path: str):
+    if not os.path.exists(path):
+        _logger.info_ext(f"Media to open not found: {path}")
+        return
+
+    if "Darwin" == platform.system():
+        # subprocess.call(("open", path))
+        # subprocess.check_call(['open', '-a', 'Quicktime Player', path)
+        subprocess.check_call(["open", "--", path])
+    elif "Linux" == platform.system():
+        subprocess.call(("xdg-open", path))
+    elif "Windows" == platform.system():
+        os.startfile(path)
+
+
+def get_dir_separator_char():
+    if "Darwin" == platform.system():
+        return "/"
+    elif "Linux" == platform.system():
+        return "/"
+    elif "Windows" == platform.system():
+        return "\\"
+
+
 def internet_on():
     """Check if a web url can be reached.
     Return True if the url is found, False otherwise.

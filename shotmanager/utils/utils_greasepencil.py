@@ -500,7 +500,13 @@ def isAnotherObjectInSubMode(obj):
     # NOTE: we use context.object here instead of context.active_object because
     # when the eye icon of the object is closed (meaning object.hide_get() == True)
     # then context.active_object is None
-    return bpy.context.object is not None and obj != bpy.context.object and "OBJECT" != bpy.context.object.mode
+    isAnyObjInSubMode = False
+    if bpy.context.object is not None:
+        if obj != bpy.context.object:
+            if "OBJECT" != bpy.context.object.mode:
+                isAnyObjInSubMode = True
+    # return bpy.context.object is not None and obj != bpy.context.object and "OBJECT" != bpy.context.object.mode
+    return isAnyObjInSubMode
 
 
 def getObjectInSubMode():
