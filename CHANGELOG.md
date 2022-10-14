@@ -1,6 +1,7 @@
 -----
 ## 2.1.29 (2022-10-14)
 - Bug fix on Mac for rendering video files - again
+- Forced render step to 1
 
 -----
 ## 2.1.28 (2022-10-14)

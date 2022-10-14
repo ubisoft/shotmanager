@@ -473,6 +473,7 @@ def launchRenderWithVSEComposite(
             previousFrameRenderTime = time.monotonic()
             currentFrameRenderTime = previousFrameRenderTime
 
+            scene.frame_step = 1
             if specificFrame is None:
                 if renderHandles:
                     scene.frame_start = shot.start - handles
