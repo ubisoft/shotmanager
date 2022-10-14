@@ -37,7 +37,7 @@ from shotmanager.utils import utils
 from shotmanager.utils import utils_editors_3dview
 from shotmanager.utils.utils_shot_manager import getStampInfo
 from shotmanager.utils import utils_store_context as utilsStore
-from shotmanager.utils.utils_os import module_can_be_imported
+from shotmanager.utils.utils_os import module_can_be_imported, format_path_for_os
 
 
 from shotmanager.config import sm_logging
@@ -164,8 +164,9 @@ def launchRenderWithVSEComposite(
     # use absolute path
     rootPath = bpy.path.abspath(rootPath)
 
-    if not rootPath.endswith("\\"):
-        rootPath += "\\"
+    # if not rootPath.endswith("\\"):
+    #     rootPath += "\\"
+    rootPath = format_path_for_os(rootPath)
 
     # preset_useStampInfo = False
     stampInfoSettings = None
@@ -670,6 +671,8 @@ def launchRenderWithVSEComposite(
                 # bpy.ops.sound.mixdown(filepath=audioFilePath, relative_path=False, container="MP3", codec="MP3")
 
             # renderedImgSeq = newTempRenderPath + shot.getOutputMediaPath(providePath=False, genericFrame=True)
+
+            # wkip \\ pb
             renderedImgSeq = newTempRenderPath + shot.getOutputMediaPath(
                 "SH_IMAGE_SEQ" + playblastSuffix, providePath=False, genericFrame=True
             )
@@ -721,10 +724,11 @@ def launchRenderWithVSEComposite(
                 )
                 compositedMedia_NameOnly = shot.getName_PathCompliant()
 
-                if verbose or config.devDebug:
-                    print("--    newTempRenderPath: ", newTempRenderPath)
-                    print("--    compositedMediaPath: ", compositedMediaPath)
-                    print("--    compositedImgSeqPath: ", compositedImgSeqPath)
+                if verbose or config.devDebug or True:
+                    print(f"{'--    renderedImgSeq: ': <30}{renderedImgSeq}")
+                    print(f"{'--    newTempRenderPath: ': <30}{newTempRenderPath}")
+                    print(f"{'--    compositedMediaPath: ': <30}{compositedMediaPath}")
+                    print(f"{'--    compositedImgSeqPath: ': <30}{compositedImgSeqPath}")
 
                 if specificFrame is None:
                     video_frame_start = (
@@ -842,15 +846,21 @@ def launchRenderWithVSEComposite(
             # render sequence video based on shot videos
             #######################
 
-            _logger.debug_ext(" --- In generateShotVideos")
-            sequenceOutputFullPath = f"{rootPath}{takeName}\\{sequenceFileName}"
-            # if props.use_project_settings:
-            #     sequenceOutputFullPath += props.project_naming_separator_char
-            # else:
-            #     sequenceOutputFullPath += "_"
-            sequenceOutputFullPath += f"{takeName}"
-            sequenceOutputFullPath += f".{props.getOutputFileFormat()}"
-            _logger.debug_ext(f"  Rendered sequence from shot videos: {sequenceOutputFullPath}")
+            # _logger.info_ext(" --- In generateShotVideos")
+            # sequenceOutputFullPath = f"{rootPath}{takeName}\\{sequenceFileName}"
+            # # if props.use_project_settings:
+            # #     sequenceOutputFullPath += props.project_naming_separator_char
+            # # else:
+            # #     sequenceOutputFullPath += "_"
+            # sequenceOutputFullPath += f"{takeName}"
+            # sequenceOutputFullPath += f".{props.getOutputFileFormat()}"
+
+            # _logger.info_ext(f"  Rendered sequence from shot videos - AVANT *** : {sequenceOutputFullPath}")
+            sequenceOutputFullPath = props.getOutputMediaPath("TK_VIDEO", take, rootPath=rootPath, insertSeqPrefix=True)
+
+            # output_filepath = f"{props.getOutputMediaPath('TK_EDIT_VIDEO', take, rootPath=props.renderRootPath, insertSeqPrefix=True, provideExtension=False)}.{props.renderSettingsOtio.otioFileType.lower()}"
+
+            _logger.info_ext(f"  Rendered sequence from shot videos: {sequenceOutputFullPath}")
 
             if not fileListOnly:
                 # print(f"sequenceFiles: {sequenceFiles}")

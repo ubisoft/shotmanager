@@ -21,7 +21,7 @@ Utility functions that may require os/platform specific adjustments
 
 import subprocess
 import os
-from pathlib import Path
+from pathlib import Path, PurePath
 import platform
 import requests
 
@@ -83,6 +83,28 @@ def get_dir_separator_char():
         return "/"
     elif "Windows" == platform.system():
         return "\\"
+
+
+def format_path_for_os(path: str, addSeparatorAtTheEnd: bool = True):
+    """Format the provided path for the current OS.
+    Path can be a file or a directory.
+    Return a formated string.
+    Args:
+        addSeparatorAtTheEnd: it path is a folder then add a folder separator characted at the end of it"""
+
+    formattedPath = str(PurePath(path))
+
+    # if "Windows" == platform.system():
+    #     # convert \\ to \
+    #     formattedPath.replace("\\\\", "++++")
+    #     formattedPath.replace("++++", "\\")
+
+    isFile = "" != Path(formattedPath).suffix
+
+    if not isFile and addSeparatorAtTheEnd:
+        formattedPath = formattedPath + get_dir_separator_char()
+
+    return formattedPath
 
 
 def internet_on():

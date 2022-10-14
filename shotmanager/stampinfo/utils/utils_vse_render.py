@@ -925,7 +925,7 @@ class StampInfo_Vse_Render(PropertyGroup):
                 bgClip = self.createNewClip(vse_scene, self.inputBGMediaPath, 1, atFrame=renderAtFrame)
             #    print("BG Media OK")
             except Exception:
-                print(f" *** Rendered shot not found: {self.inputBGMediaPath}")
+                _logger.error_ext(f" *** Rendered shot not found: {self.inputBGMediaPath}")
 
             # bgClip = None
             # if os.path.exists(self.inputBGMediaPath):
@@ -950,7 +950,7 @@ class StampInfo_Vse_Render(PropertyGroup):
                 overClip = self.createNewClip(vse_scene, self.inputOverMediaPath, 2, atFrame=renderAtFrame)
             #    print("Over Media OK")
             except Exception:
-                print(f" *** Rendered shot not found: {self.inputOverMediaPath}")
+                _logger.error_ext(f" *** Rendered shot not found: {self.inputOverMediaPath}")
             # overClip = None
             # if os.path.exists(self.inputOverMediaPath):
             #     overClip = self.createNewClip(vse_scene, self.inputOverMediaPath, 2, 1)
@@ -971,7 +971,7 @@ class StampInfo_Vse_Render(PropertyGroup):
                 if os.path.exists(self.inputAudioMediaPath):
                     self.createNewClip(vse_scene, self.inputAudioMediaPath, 3, atFrame=renderAtFrame)
                 else:
-                    print(f" *** Rendered shot not found: {self.inputAudioMediaPath}")
+                    _logger.error_ext(f" *** Rendered shot not found: {self.inputAudioMediaPath}")
 
         # bpy.context.scene.sequence_editor.sequences
         # get res of video: bpy.context.scene.sequence_editor.sequences[1].elements[0].orig_width

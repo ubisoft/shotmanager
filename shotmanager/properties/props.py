@@ -532,6 +532,15 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         options=set(),
     )
 
+    # built-in project settings
+    project_images_output_format: StringProperty(
+        name="Image Output Format",
+        description="File format for the rendered output images, BEFORE composition with the Stamp Info framing images."
+        "\nExpected values: PNG, OPEN_EXR",
+        default="PNG",
+        options=set(),
+    )
+
     project_output_format: StringProperty(
         name="Video Output Format",
         default="mp4",
@@ -570,15 +579,6 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         "\nThis setting overrides the related Add-on Preference",
         min=0,
         default=4,
-        options=set(),
-    )
-
-    # built-in project settings
-    project_images_output_format: StringProperty(
-        name="Image Output Format",
-        description="File format for the rendered output images, BEFORE composition with the Stamp Info framing images."
-        "\nExpected values: PNG, OPEN_EXR",
-        default="PNG",
         options=set(),
     )
 
@@ -4806,21 +4806,21 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
                     elif "SH_IMAGE_SEQ" in outputMedia or "SH_INTERM_IMAGE_SEQ" == outputMedia:
                         if "_PLAYBLAST" in outputMedia:
                             fileExtension += "."
-                            if "JPEG" == prefs.playblastImagesOutputFormat:
+                            if "jpeg" == prefs.playblastImagesOutputFormat.lower():
                                 fileExtension += "jpg"
-                            elif "PNG" == prefs.playblastImagesOutputFormat:
+                            elif "png" == prefs.playblastImagesOutputFormat.lower():
                                 fileExtension += "png"
                             else:
                                 _logger.warning_ext(
-                                    f"Invalid Playblast image output format in Prefs: {self.project_images_output_format} - Using JPEG"
+                                    f"Invalid Playblast image output format in Prefs: {prefs.playblastImagesOutputFormat} - Using JPEG"
                                 )
                                 fileExtension += "jpg"
                         else:
                             if self.use_project_settings:
                                 fileExtension += "."
-                                if "PNG" == self.project_images_output_format:
+                                if "png" == self.project_images_output_format.lower():
                                     fileExtension += "png"
-                                elif "OPEN_EXR" == self.project_images_output_format:
+                                elif "open_exr" == self.project_images_output_format.lower():
                                     fileExtension += "exr"
                                 else:
                                     _logger.warning_ext(
@@ -4838,9 +4838,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
                                     fileExtension += "exr"
                                 else:
                                     # output file is PNG otherwise
-                                    _logger.warning_ext(
-                                        f"Invalid project image output format: {self.project_images_output_format} - Using PNG"
-                                    )
+                                    _logger.warning_ext(f"Invalid image output format: {sceneFileFormat} - Using PNG")
                                     fileExtension += "png"
                     else:
                         fileExtension += "." + self.getOutputFileFormat(
@@ -4848,17 +4846,41 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
                         )
 
                 elif "TK_" == outputMedia[0:3]:
-                    if "TK_EDIT_" == outputMedia[3:8]:
+                    if "TK_VIDEO" in outputMedia:
+                        if self.use_project_settings:
+                            fileExtension += "."
+                            if "mp4" == self.project_output_format.lower():
+                                fileExtension += "mp4"
+                            else:
+                                _logger.warning_ext(
+                                    f"Invalid project video output format: {self.project_output_format} - Using MP4"
+                                )
+                                fileExtension += "mp4"
+                        else:
+                            fileExtension += "."
+                            sceneFileFormat = self.parentScene.render.image_settings.file_format.lower()
+                            if "ffmpeg" == sceneFileFormat:
+                                fileExtension += "mp4"
+                            else:
+                                # output file is MP4 otherwise
+                                _logger.warning_ext(
+                                    f"Invalid project video output format: {self.project_output_format} - Using FFMPEG - MP4"
+                                )
+                                fileExtension += "mp4"
+                    elif "TK_EDIT_" in outputMedia:
                         fileExtension += "." + "xml"
                     elif "TK_PLAYBLAST" == outputMedia:
                         fileExtension += "." + "mp4"
 
+        resultStr = ""
         # used to get a path with \\ for Windows, with / for Mac and Linux
         # unfortunately it removes the separator char at the end of the path
-        filePath = str(PurePath(filePath)) + utils_os.get_dir_separator_char()
+        if providePath:
+            # formattedFilePath = str(PurePath(filePath)) + utils_os.get_dir_separator_char()
+            formattedFilePath = utils_os.format_path_for_os(filePath, addSeparatorAtTheEnd=True)
+            resultStr += formattedFilePath
 
-        # result
-        resultStr = filePath + fileName + fileExtension
+        resultStr += fileName + fileExtension
 
         return resultStr
 
