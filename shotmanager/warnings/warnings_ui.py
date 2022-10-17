@@ -93,7 +93,7 @@ def drawWarnings(context, ui_component, warningsList, panelType="MAIN"):
                     butsrow.separator(factor=0.5)
                     butsrow.operator("uas_shot_manager.clear_markers_from_camera_binding", text="Clear Binding")
                     butsrow.operator(
-                        "uas_shot_manager.convert_markers_from_camera_binding_to_shots", text="Convert Binding"
+                        "uas_shot_manager.convert_markers_from_cam_binding_to_shots", text="Convert Binding"
                     )
                     butsrow.separator(factor=0.5)
 

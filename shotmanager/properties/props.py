@@ -4716,7 +4716,8 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         # intermediate playblast directory name. Used in the directory name of the playblast renderings
         INTERM_PLAYBLAST_DIR = "_IntermPlayblast"
 
-        FOLDER_SEPARATOR = "\\"
+        #  FOLDER_SEPARATOR = "\\"
+        FOLDER_SEPARATOR = utils_os.get_dir_separator_char()
 
         # file path
         if providePath:
@@ -4863,8 +4864,8 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
                                 fileExtension += "mp4"
                             else:
                                 # output file is MP4 otherwise
-                                _logger.warning_ext(
-                                    f"Invalid project video output format: {self.project_output_format} - Using FFMPEG - MP4"
+                                _logger.info_ext(
+                                    f"Invalid scene video output format: {sceneFileFormat} - Using FFMPEG - MP4"
                                 )
                                 fileExtension += "mp4"
                     elif "TK_EDIT_" in outputMedia:

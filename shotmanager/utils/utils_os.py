@@ -31,6 +31,15 @@ from shotmanager.config import sm_logging
 _logger = sm_logging.getLogger(__name__)
 
 
+def getPlatformName():
+    if "Darwin" == platform.system():
+        return "Mac"
+    elif "Linux" == platform.system():
+        return "Linux"
+    elif "Windows" == platform.system():
+        return "Windows"
+
+
 def open_folder(path: str):
     """
     Open a path or an URL with the application specified by the os
@@ -77,12 +86,18 @@ def open_media_in_player(path: str):
 
 
 def get_dir_separator_char():
+
+    separator = "*"
     if "Darwin" == platform.system():
-        return "/"
+        separator = "/"
     elif "Linux" == platform.system():
-        return "/"
+        separator = "/"
     elif "Windows" == platform.system():
-        return "\\"
+        separator = "\\"
+
+    _logger.info_ext(f"OS Specific: get_dir_separator_char: Platform is: {getPlatformName()}")
+
+    return separator
 
 
 def format_path_for_os(path: str, addSeparatorAtTheEnd: bool = True):
@@ -103,6 +118,7 @@ def format_path_for_os(path: str, addSeparatorAtTheEnd: bool = True):
 
     if not isFile and addSeparatorAtTheEnd:
         formattedPath = formattedPath + get_dir_separator_char()
+        _logger.info_ext(f"OS Specific: format_path_for_os: formattedPath: {formattedPath}")
 
     return formattedPath
 
