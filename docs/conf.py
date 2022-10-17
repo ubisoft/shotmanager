@@ -18,7 +18,7 @@
 # -- Project information -----------------------------------------------------
 
 project = "Ubisoft Shot Manager"
-copyright = "2022, Ubisoft, under GPLv3 License"
+copyright = "2022, Ubisoft, under CC BY 4.0 License"
 author = "Julien Blervaque"
 
 

@@ -217,6 +217,9 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         # self.display_globaleditintegr_in_properties = prefs.display_globaleditintegr_in_properties
         # self.display_advanced_infos = prefs.display_advanced_infos
 
+        # retimer
+        self.retimer.initialize()
+
         # storyboard
         self.stb_frameTemplate.initialize()
 
