@@ -709,7 +709,8 @@ def duplicateObject(sourceObject, newName=None, duplicateHierarchy=False):
         # empty objects don't have data
         if sourceObject.data is not None:
             newObject.data = sourceObject.data.copy()
-            if newObject.data.animation_data is not None:
+            #  if newObject.data.animation_data is not None:
+            if sourceObject.data.animation_data is not None and sourceObject.data.animation_data.action is not None:
                 newObject.data.animation_data.action = sourceObject.data.animation_data.action.copy()
 
         sourceCollections = sourceObject.users_collection

@@ -1,6 +1,10 @@
 -----
+## 2.1.31 (2022-10-17)
+- 
+
+-----
 ## 2.1.30 (2022-10-15)
-- Bug fix on Mac for rendering video files - again
+- Bug fix on Mac for rendering video files - final
 
 -----
 ## 2.1.29 (2022-10-14)
