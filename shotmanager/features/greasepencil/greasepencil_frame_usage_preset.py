@@ -55,7 +55,7 @@ class UAS_ShotManager_FrameUsagePreset(PropertyGroup):
 
     def _set_layerName(self, value):
         self["layerName"] = value
-        _logger.debug_ext(f"\n _set_layerName: {value} - {self['layerName']}", col="RED")
+        _logger.debug_ext(f"\n _set_layerName: {value} - {self['layerName']}", col="RED", tag="GREASE_PENCIL")
 
     layerName: StringProperty(name="Layer Name", get=_get_layerName, set=_set_layerName, default="")
 

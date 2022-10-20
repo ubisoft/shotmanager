@@ -24,6 +24,7 @@ from pathlib import Path
 from stat import S_IMODE, S_IWRITE
 
 import json
+from tabnanny import verbose
 import time
 
 import bpy
@@ -36,7 +37,7 @@ from shotmanager.utils import utils
 from shotmanager.utils import utils_editors_3dview
 from shotmanager.utils.utils_shot_manager import getStampInfo
 from shotmanager.utils import utils_store_context as utilsStore
-from shotmanager.utils.utils_os import module_can_be_imported
+from shotmanager.utils.utils_os import module_can_be_imported, format_path_for_os
 
 
 from shotmanager.config import sm_logging
@@ -77,9 +78,10 @@ def launchRenderWithVSEComposite(
     def _deleteTempFiles(dirPath):
         # delete unsused rendered frames
         if config.devDebug:
-            print(f"Cleaning shot temp dir: {dirPath}")
+            _logger.debug_ext(f"Cleaning shot temp dir: {dirPath}")
 
         if os.path.exists(dirPath):
+            _logger.info_ext(f"Deleting shot temp folder: {dirPath}\n", col="PINK")
             files_in_directory = os.listdir(dirPath)
             # filtered_files = [file for file in files_in_directory if file.endswith(".png") or file.endswith(".wav")]
             filtered_files = [file for file in files_in_directory]
@@ -89,15 +91,15 @@ def launchRenderWithVSEComposite(
                 try:
                     os.remove(path_to_file)
                 except Exception:
-                    _logger.exception(f"\n*** File locked (by system?): {path_to_file}")
+                    _logger.exception(f"*** File locked (by system?): {path_to_file}")
                     print(f"\n*** File locked (by system?): {path_to_file}")
             try:
                 os.rmdir(dirPath)
             except Exception:
-                print("Cannot delete Dir: ", dirPath)
+                _logger.error_ext(f"Cannot delete folder: {dirPath}")
 
         if config.devDebug:
-            print("Cleaning temp scenes")
+            _logger.debug_ext("Cleaning temp scenes")
 
         scenesToDelete = [
             s
@@ -115,8 +117,10 @@ def launchRenderWithVSEComposite(
     currentShot = props.getCurrentShot()
 
     displayRenderTimes = True
+    colorRenderTimes = "CYAN"
 
     renderMode = "PROJECT" if renderPreset is None else renderPreset.renderMode
+    playblastSuffix = "_PLAYBLAST" if "PLAYBLAST" == renderMode else ""
     renderInfo = dict()
     preset_useStampInfo = useStampInfoForRendering(context, renderPreset)
 
@@ -160,8 +164,9 @@ def launchRenderWithVSEComposite(
     # use absolute path
     rootPath = bpy.path.abspath(rootPath)
 
-    if not rootPath.endswith("\\"):
-        rootPath += "\\"
+    # if not rootPath.endswith("\\"):
+    #     rootPath += "\\"
+    rootPath = format_path_for_os(rootPath)
 
     # preset_useStampInfo = False
     stampInfoSettings = None
@@ -396,7 +401,9 @@ def launchRenderWithVSEComposite(
         # bpy.ops.wm.redraw_timer(type="DRAW_WIN_SWAP", iterations=2)
 
         # newTempRenderPath = shot.getOutputMediaPath(rootPath=rootPath, insertTempFolder=True, provideName=False)
-        newTempRenderPath = shot.getOutputMediaPath("SH_INTERM_IMAGE_SEQ", rootPath=rootPath, provideName=False)
+        newTempRenderPath = shot.getOutputMediaPath(
+            "SH_INTERM_IMAGE_SEQ" + playblastSuffix, rootPath=rootPath, provideName=False
+        )
 
         compositedMediaPath = shot.getOutputMediaPath(
             "SH_VIDEO", rootPath=rootPath, insertSeqPrefix=True, specificFrame=specificFrame
@@ -414,9 +421,11 @@ def launchRenderWithVSEComposite(
         if not fileListOnly:
             startShotRenderTime = time.monotonic()
             infoStr = "\n----------------------------------------------------"
-            infoStr += f"\n\n  Rendering Shot: {shot.getName_PathCompliant(withPrefix=True)} - {shot.getDuration()} fr."
-            infoStr += "\n  ---------------"
-            infoStr += "\n\nRenderer: "
+            infoStr += f"\n\nRendering Shot:  {shot.getName_PathCompliant(withPrefix=True)} - {shot.getDuration()} fr."
+            infoStr += "\n---------------"
+            _logger.info_ext(infoStr, col="GREEN_LIGHT")
+
+            infoStr = "   Renderer: "
 
             if "PLAYBLAST" == renderMode:
                 infoStr += "PLAYBLAST: "
@@ -435,7 +444,9 @@ def launchRenderWithVSEComposite(
                     infoStr += f"{props.renderContext.renderEngine} - "
                 infoStr += f"{props.renderContext.renderHardwareMode} - {props.renderContext.renderFrameIterationMode}"
 
-            print(infoStr)
+            infoStr += "\n"
+
+            _logger.info_ext(infoStr, col="GREEN")
 
             # if False:  # debug
             _deleteTempFiles(newTempRenderPath)
@@ -462,6 +473,7 @@ def launchRenderWithVSEComposite(
             previousFrameRenderTime = time.monotonic()
             currentFrameRenderTime = previousFrameRenderTime
 
+            scene.frame_step = 1
             if specificFrame is None:
                 if renderHandles:
                     scene.frame_start = shot.start - handles
@@ -489,7 +501,9 @@ def launchRenderWithVSEComposite(
                         #     rootPath=rootPath, insertTempFolder=True, specificFrame=scene.frame_current
                         # )
                         scene.render.filepath = shot.getOutputMediaPath(
-                            "SH_INTERM_IMAGE_SEQ", rootPath=rootPath, specificFrame=scene.frame_current
+                            "SH_INTERM_IMAGE_SEQ" + playblastSuffix,
+                            rootPath=rootPath,
+                            specificFrame=scene.frame_current,
                         )
 
                         print("      \n")
@@ -529,7 +543,7 @@ def launchRenderWithVSEComposite(
                 # render all in one anim pass
                 else:
                     scene.render.filepath = shot.getOutputMediaPath(
-                        "SH_INTERM_IMAGE_SEQ",
+                        "SH_INTERM_IMAGE_SEQ" + playblastSuffix,
                         rootPath=rootPath,
                         provideExtension=False,
                         genericFrame=True,
@@ -572,7 +586,7 @@ def launchRenderWithVSEComposite(
                 #     providePath=False, insertStampInfoPrefix=True, genericFrame=True
                 # )
                 infoImgSeq = newTempRenderPath + shot.getOutputMediaPath(
-                    "SH_INTERM_STAMPINFO_SEQ", providePath=False, genericFrame=True
+                    "SH_INTERM_STAMPINFO_SEQ" + playblastSuffix, providePath=False, genericFrame=True
                 )
                 infoImgSeq_resolution = renderResolutionFramed
 
@@ -597,7 +611,10 @@ def launchRenderWithVSEComposite(
 
             deltaTime = time.monotonic() - startShotRenderTime
             _logger.info_ext(
-                f"Shot render time (images only): {deltaTime:0.2f} sec.", tag="RENDERTIME", display=displayRenderTimes
+                f"Shot render time (images only): {deltaTime:0.2f} sec.",
+                tag="RENDERTIME",
+                display=displayRenderTimes,
+                col=colorRenderTimes,
             )
 
             allRenderTimes[shot.name + "_" + "images"] = deltaTime
@@ -655,9 +672,10 @@ def launchRenderWithVSEComposite(
                 # bpy.ops.sound.mixdown(filepath=audioFilePath, relative_path=False, container="MP3", codec="MP3")
 
             # renderedImgSeq = newTempRenderPath + shot.getOutputMediaPath(providePath=False, genericFrame=True)
-            playblastSuf = "_PLAYBLAST" if "PLAYBLAST" == renderMode else ""
+
+            # wkip \\ pb
             renderedImgSeq = newTempRenderPath + shot.getOutputMediaPath(
-                "SH_IMAGE_SEQ" + playblastSuf, providePath=False, genericFrame=True
+                "SH_IMAGE_SEQ" + playblastSuffix, providePath=False, genericFrame=True
             )
 
             if generateShotVideos:
@@ -675,9 +693,8 @@ def launchRenderWithVSEComposite(
                     # vse_render.inputBGMediaPath = newTempRenderPath + shot.getOutputMediaPath(
                     #     providePath=False, specificFrame=specificFrame
                     # )
-                    playblastSuf = "_PLAYBLAST" if "PLAYBLAST" == renderMode else ""
                     vse_render.inputBGMediaPath = newTempRenderPath + shot.getOutputMediaPath(
-                        "SH_IMAGE_SEQ" + playblastSuf, providePath=False, specificFrame=specificFrame
+                        "SH_IMAGE_SEQ" + playblastSuffix, providePath=False, specificFrame=specificFrame
                     )
 
                 _logger.debug(f"\n - BGMediaPath: {vse_render.inputBGMediaPath}")
@@ -703,14 +720,16 @@ def launchRenderWithVSEComposite(
                 # Warning: this defines the start index of the first image (usually 0 or 1)
                 # This is different from props.editStartFrame which is the offset of the scene take relatively to a main edit
                 #   compositedMedia_PathOnly = shot.getOutputMediaPath(rootPath=rootPath, provideName=False)
-                playblastSuf = "_PLAYBLAST" if "PLAYBLAST" == renderMode else ""
                 compositedImgSeqPath = shot.getOutputMediaPath(
-                    "SH_IMAGE_SEQ" + playblastSuf, rootPath=rootPath, genericFrame=True
+                    "SH_IMAGE_SEQ" + playblastSuffix, rootPath=rootPath, genericFrame=True
                 )
                 compositedMedia_NameOnly = shot.getName_PathCompliant()
-                print("--    newTempRenderPath: ", newTempRenderPath)
-                print("--    compositedMediaPath: ", compositedMediaPath)
-                print("--    compositedImgSeqPath: ", compositedImgSeqPath)
+
+                if verbose or config.devDebug or True:
+                    print(f"{'--    renderedImgSeq: ': <30}{renderedImgSeq}")
+                    print(f"{'--    newTempRenderPath: ': <30}{newTempRenderPath}")
+                    print(f"{'--    compositedMediaPath: ': <30}{compositedMediaPath}")
+                    print(f"{'--    compositedImgSeqPath: ': <30}{compositedImgSeqPath}")
 
                 if specificFrame is None:
                     video_frame_start = (
@@ -786,28 +805,37 @@ def launchRenderWithVSEComposite(
 
                 renderedShotSequencesArr.append(videoAndSound)
 
-            print("\n** renderedShotSequencesArr:")
-            for item in renderedShotSequencesArr:
-                print(f"\n    {item}")
+            if len(renderedShotSequencesArr):
+                _logger.debug_ext("\n** renderedShotSequencesArr:")
+                for item in renderedShotSequencesArr:
+                    _logger.debug_ext(f"\n    {item}")
 
             # print render time
             #######################
 
             deltaTime = time.monotonic() - startShotRenderTime
             _logger.info_ext(
-                f"Shot render time (incl. video): {deltaTime:0.2f} sec.", tag="RENDERTIME", display=displayRenderTimes
+                f"Shot render time (incl. video): {deltaTime:0.2f} sec.",
+                tag="RENDERTIME",
+                display=displayRenderTimes,
+                col=colorRenderTimes,
             )
 
             allRenderTimes[shot.name + "_" + "full"] = deltaTime
 
-            print("----------------------------------------")
+            _logger.info_ext("\n----------------------------------------------------", col="GREEN")
 
     #######################
     # render sequence video
     #######################
 
     deltaTime = time.monotonic() - startRenderTime
-    _logger.info_ext(f"All shots render time: {deltaTime:0.2f} sec.", tag="RENDERTIME", display=displayRenderTimes)
+    _logger.info_ext(
+        f"All shots render time: {deltaTime:0.2f} sec.",
+        tag="RENDERTIME",
+        display=displayRenderTimes,
+        col=colorRenderTimes,
+    )
     allRenderTimes["AllShots"] = deltaTime
 
     startSequenceRenderTime = time.monotonic()
@@ -819,15 +847,21 @@ def launchRenderWithVSEComposite(
             # render sequence video based on shot videos
             #######################
 
-            print(" --- In generateShotVideos")
-            sequenceOutputFullPath = f"{rootPath}{takeName}\\{sequenceFileName}"
-            # if props.use_project_settings:
-            #     sequenceOutputFullPath += props.project_naming_separator_char
-            # else:
-            #     sequenceOutputFullPath += "_"
-            sequenceOutputFullPath += f"{takeName}"
-            sequenceOutputFullPath += f".{props.getOutputFileFormat()}"
-            print(f"  Rendered sequence from shot videos: {sequenceOutputFullPath}")
+            # _logger.info_ext(" --- In generateShotVideos")
+            # sequenceOutputFullPath = f"{rootPath}{takeName}\\{sequenceFileName}"
+            # # if props.use_project_settings:
+            # #     sequenceOutputFullPath += props.project_naming_separator_char
+            # # else:
+            # #     sequenceOutputFullPath += "_"
+            # sequenceOutputFullPath += f"{takeName}"
+            # sequenceOutputFullPath += f".{props.getOutputFileFormat()}"
+
+            # _logger.info_ext(f"  Rendered sequence from shot videos - AVANT *** : {sequenceOutputFullPath}")
+            sequenceOutputFullPath = props.getOutputMediaPath("TK_VIDEO", take, rootPath=rootPath, insertSeqPrefix=True)
+
+            # output_filepath = f"{props.getOutputMediaPath('TK_EDIT_VIDEO', take, rootPath=props.renderRootPath, insertSeqPrefix=True, provideExtension=False)}.{props.renderSettingsOtio.otioFileType.lower()}"
+
+            _logger.info_ext(f"  Rendered sequence from shot videos: {sequenceOutputFullPath}")
 
             if not fileListOnly:
                 # print(f"sequenceFiles: {sequenceFiles}")
@@ -844,10 +878,8 @@ def launchRenderWithVSEComposite(
             newMediaFiles.append(sequenceOutputFullPath)
 
         else:
-            print(" --- In else that generateShotVideos 01")
-            print(" --- In else that generateShotVideos")
-            print(" --- In else that generateShotVideos")
-            print(" --- In else that generateShotVideos 04")
+            _logger.debug_ext(" --- In else that generateShotVideos")
+
             #######################
             # render sequence video based on shot image sequences (case of Playblast)
             #######################
@@ -895,7 +927,6 @@ def launchRenderWithVSEComposite(
         renderInfo["renderSound"] = renderSound
 
         deltaTime = time.monotonic() - startSequenceRenderTime
-        _logger.info_ext(f"Sequence video render time: {deltaTime:0.2f} sec.", tag="RENDERTIME")
         allRenderTimes["SequenceVideo"] = deltaTime
     else:
         # set the shot from the Animation rendering as the output sequence so that it can be opened
@@ -921,15 +952,14 @@ def launchRenderWithVSEComposite(
         filesDict["playblastInfos"] = renderInfo
 
     deltaTime = time.monotonic() - startRenderTime
-    _logger.info_ext(f"Full Sequence render time: {deltaTime:0.2f} sec.", tag="RENDERTIME")
-    allRenderTimes["SequenceAndShots"] = deltaTime
+    allRenderTimes["Sequence and shots"] = deltaTime
 
     if displayRenderTimes:
-        _logger.info_ext("Render times:", tag="RENDERTIME")
+        _logger.info_ext("\nRender times:", tag="RENDERTIME", col=colorRenderTimes)
         for key, value in allRenderTimes.items():
-            _logger.info_ext(f"{key:>20}: {value:0.2f} sec.", tag="RENDERTIME")
+            _logger.info_ext(f"{key:>20}: {value:0.2f} sec.", tag="RENDERTIME", col=colorRenderTimes)
 
-        _logger.info_ext("\n", tag="RENDERTIME")
+        _logger.info_ext("\n", tag="RENDERTIME", col=colorRenderTimes)
 
     #######################
     # restore current scene settings
@@ -953,7 +983,7 @@ def launchRender(context, renderMode, rootPath, area=None):
     renderDisplayInfo = ""
 
     renderDisplayInfo += "\n\n*** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** ***\n"
-    renderDisplayInfo += "\n                                 *** Shot Manager V " + props.version()[0] + " - "
+    renderDisplayInfo += "\n                                 ***  Shot Manager V " + props.version()[0] + "   - "
 
     def _generateEditFiles():
         """renderedFilesDict is also updated"""
@@ -1013,8 +1043,9 @@ def launchRender(context, renderMode, rootPath, area=None):
 
     if preset is not None:
         _YELLOW = "\33[33m"
-        _ENDCOLOR = "\033[0m"
-        renderDisplayInfo += f"  Rendering with {_YELLOW}{presetName}{_ENDCOLOR}"
+        # _ENDCOLOR = "\033[0m"
+        _GREEN = "\33[32m"
+        renderDisplayInfo += f"  Rendering with {_YELLOW}{presetName}{_GREEN}"
 
     stampInfoSettings = None
     useStampInfo = preset.useStampInfo
@@ -1056,7 +1087,7 @@ def launchRender(context, renderMode, rootPath, area=None):
         renderDisplayInfo += f"{'   - Debug Mode: ': <20}{config.devDebug}\n"
 
     renderDisplayInfo += "\n"
-    print(renderDisplayInfo)
+    _logger.info_ext(renderDisplayInfo, col="GREEN")
 
     take = props.getCurrentTake()
     if take is None:
@@ -1223,11 +1254,11 @@ def launchRender(context, renderMode, rootPath, area=None):
     else:
         print("\n *** preset.renderMode is invalid, cannot render anything... ***\n")
 
-    if renderedFilesDict is not None:
+    if renderedFilesDict is not None and verbose:
         # TODO: improve rendering log display
         print(json.dumps(renderedFilesDict, indent=4))
 
-    print("Shot Manager rendering done\n")
+    _logger.info_ext("Shot Manager rendering done\n", col="GREEN")
 
 
 def useStampInfoForRendering(context, renderPreset):

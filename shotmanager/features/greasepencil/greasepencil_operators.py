@@ -288,6 +288,7 @@ class UAS_ShotManager_OT_ToggleGreasePencilDrawMode(Operator):
         return {"FINISHED"}
 
 
+# wkip toto 2022_10_14
 class UAS_ShotManager_OT_DrawOnGreasePencil(Operator):
     bl_idname = "uas_shot_manager.draw_on_grease_pencil"
     bl_label = "Draw on Grease Pencil"

@@ -21,7 +21,7 @@ Shot Manager properties
 
 import re
 import sys
-from pathlib import Path
+from pathlib import Path, PurePath
 
 import bpy
 from bpy.types import Scene
@@ -54,6 +54,7 @@ from ..features.greasepencil.greasepencil_frame_template import UAS_GreasePencil
 from shotmanager.feature_panels.greasepencil_25D.greasepencil_25D_props import UAS_GreasePencil_Tools_Properties
 
 from shotmanager.utils import utils
+from shotmanager.utils import utils_os
 from shotmanager.utils.utils_shot_manager import getStampInfo
 from shotmanager.utils import utils_greasepencil
 
@@ -215,6 +216,9 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         # self.display_editmode_in_properties = prefs.display_editmode_in_properties
         # self.display_globaleditintegr_in_properties = prefs.display_globaleditintegr_in_properties
         # self.display_advanced_infos = prefs.display_advanced_infos
+
+        # retimer
+        self.retimer.initialize()
 
         # storyboard
         self.stb_frameTemplate.initialize()
@@ -531,6 +535,15 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         options=set(),
     )
 
+    # built-in project settings
+    project_images_output_format: StringProperty(
+        name="Image Output Format",
+        description="File format for the rendered output images, BEFORE composition with the Stamp Info framing images."
+        "\nExpected values: PNG, OPEN_EXR",
+        default="PNG",
+        options=set(),
+    )
+
     project_output_format: StringProperty(
         name="Video Output Format",
         default="mp4",
@@ -569,15 +582,6 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         "\nThis setting overrides the related Add-on Preference",
         min=0,
         default=4,
-        options=set(),
-    )
-
-    # built-in project settings
-    project_images_output_format: StringProperty(
-        name="Image Output Format",
-        description="File format for the rendered output images, BEFORE composition with the Stamp Info framing images."
-        "\nExpected values: PNG, OPEN_EXR",
-        default="PNG",
         options=set(),
     )
 
@@ -953,7 +957,6 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
     )
 
     def _update_camera_hud_display_in_viewports(self, context):
-        # print("\n*** Stamp Info updated. New state: ", self.stampInfoUsed)
         if self.camera_hud_display_in_viewports:
             bpy.ops.uas_shot_manager.draw_camera_hud_in_viewports("INVOKE_DEFAULT")
 
@@ -966,7 +969,6 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
     )
 
     def _update_camera_hud_display_in_pov(self, context):
-        # print("\n*** Stamp Info updated. New state: ", self.stampInfoUsed)
         if self.camera_hud_display_in_pov:
             bpy.ops.uas_shot_manager.draw_camera_hud_in_pov("INVOKE_DEFAULT")
 
@@ -4681,6 +4683,8 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
                     SH_AUDIO:
                     SH_INTERM_IMAGE_SEQ:
                     SH_INTERM_STAMPINFO_SEQ:
+                    SH_INTERM_IMAGE_SEQ_PLAYBLAST:
+                    SH_INTERM_STAMPINFO_SEQ_PLAYBLAST:
                 - for an entity take:
                     TK_IMAGE_SEQ:
                     TK_VIDEO:
@@ -4710,6 +4714,14 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         fileName = ""
         fileExtension = ""
 
+        # intermediate directory name. Used in the directory name of the shot renderings
+        INTERM_DIR = "_Intermediate"
+        # intermediate playblast directory name. Used in the directory name of the playblast renderings
+        INTERM_PLAYBLAST_DIR = "_IntermPlayblast"
+
+        #  FOLDER_SEPARATOR = "\\"
+        FOLDER_SEPARATOR = utils_os.get_dir_separator_char()
+
         # file path
         if providePath:
             if rootPath is not None:
@@ -4719,40 +4731,47 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
                 filePath += bpy.path.abspath(self.renderRootPath)
 
             if not (filePath.endswith("/") or filePath.endswith("\\")):
-                filePath += "\\"
+                filePath += FOLDER_SEPARATOR
 
             # if insertTakeName or insertShotFolder or insertTempFolder or insertStampInfoPrefix:
-            #     filePath += shot.getParentTake().getName_PathCompliant() + "\\"
+            #     filePath += shot.getParentTake().getName_PathCompliant() + FOLDER_SEPARATOR
 
             if "SH_" == outputMedia[0:3]:
                 # entity is a shot
-                filePath += entity.getParentTake().getName_PathCompliant() + "\\"
+                filePath += entity.getParentTake().getName_PathCompliant() + FOLDER_SEPARATOR
 
                 if "SH_VIDEO" != outputMedia:
                     filePath += f"{entity.getName_PathCompliant()}"
 
-                    if "INTERM_" == outputMedia[3:10]:
-                        filePath += "_Intermediate"
+                    # if "INTERM_" == outputMedia[3:10]:
+                    if "_INTERM" in outputMedia:
+                        if "_PLAYBLAST" in outputMedia:
+                            filePath += INTERM_PLAYBLAST_DIR
+                        else:
+                            filePath += INTERM_DIR
                     if "AUDIO" == outputMedia[3:8]:
-                        filePath += "_Intermediate"
+                        if "_PLAYBLAST" in outputMedia:
+                            filePath += INTERM_PLAYBLAST_DIR
+                        else:
+                            filePath += INTERM_DIR
 
-                    filePath += "\\"
+                    filePath += FOLDER_SEPARATOR
 
             # if insertShotFolder or insertTempFolder:
             #     filePath += f"{shot.getName_PathCompliant()}"
             #     if insertTempFolder:
             #         filePath += "_Intermediate"
-            #     filePath += "\\"
+            #     filePath += FOLDER_SEPARATOR
 
             elif "TK_" == outputMedia[0:3]:
                 # entity is a take
-                filePath += entity.getName_PathCompliant() + "\\"
+                filePath += entity.getName_PathCompliant() + FOLDER_SEPARATOR
             # elif "EDIT_" == outputMedia[0:5]:
 
         # file name
         if provideName:
             if "SH_" == outputMedia[0:3]:
-                if "SH_INTERM_STAMPINFO_SEQ" == outputMedia:
+                if "SH_INTERM_STAMPINFO_SEQ" in outputMedia:
                     fileName += "_tmp_StampInfo_"
                     # entity is a shot
                     fileName += entity.getName_PathCompliant(withPrefix=insertSeqPrefix)
@@ -4762,7 +4781,6 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
                     fileName += entity.getName_PathCompliant(withPrefix=insertSeqPrefix)
 
                 # wkip hack degueu
-                # if "SH_IMAGE_SEQ" == outputMedia and not genericFrame and specificFrame is None:
                 if "SH_IMAGE_SEQ" in outputMedia and not genericFrame and specificFrame is None:
                     # required by the OTIO edit file for img seq generation
                     fileName += "_" + self.getFramePadding(frame=0)
@@ -4792,21 +4810,21 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
                     elif "SH_IMAGE_SEQ" in outputMedia or "SH_INTERM_IMAGE_SEQ" == outputMedia:
                         if "_PLAYBLAST" in outputMedia:
                             fileExtension += "."
-                            if "JPEG" == prefs.playblastImagesOutputFormat:
+                            if "jpeg" == prefs.playblastImagesOutputFormat.lower():
                                 fileExtension += "jpg"
-                            elif "PNG" == prefs.playblastImagesOutputFormat:
+                            elif "png" == prefs.playblastImagesOutputFormat.lower():
                                 fileExtension += "png"
                             else:
                                 _logger.warning_ext(
-                                    f"Invalid Playblast image output format in Prefs: {self.project_images_output_format} - Using JPEG"
+                                    f"Invalid Playblast image output format in Prefs: {prefs.playblastImagesOutputFormat} - Using JPEG"
                                 )
                                 fileExtension += "jpg"
                         else:
                             if self.use_project_settings:
                                 fileExtension += "."
-                                if "PNG" == self.project_images_output_format:
+                                if "png" == self.project_images_output_format.lower():
                                     fileExtension += "png"
-                                elif "OPEN_EXR" == self.project_images_output_format:
+                                elif "open_exr" == self.project_images_output_format.lower():
                                     fileExtension += "exr"
                                 else:
                                     _logger.warning_ext(
@@ -4824,9 +4842,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
                                     fileExtension += "exr"
                                 else:
                                     # output file is PNG otherwise
-                                    _logger.warning_ext(
-                                        f"Invalid project image output format: {self.project_images_output_format} - Using PNG"
-                                    )
+                                    _logger.warning_ext(f"Invalid image output format: {sceneFileFormat} - Using PNG")
                                     fileExtension += "png"
                     else:
                         fileExtension += "." + self.getOutputFileFormat(
@@ -4834,16 +4850,41 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
                         )
 
                 elif "TK_" == outputMedia[0:3]:
-                    if "TK_EDIT_" == outputMedia[3:8]:
+                    if "TK_VIDEO" in outputMedia:
+                        if self.use_project_settings:
+                            fileExtension += "."
+                            if "mp4" == self.project_output_format.lower():
+                                fileExtension += "mp4"
+                            else:
+                                _logger.warning_ext(
+                                    f"Invalid project video output format: {self.project_output_format} - Using MP4"
+                                )
+                                fileExtension += "mp4"
+                        else:
+                            fileExtension += "."
+                            sceneFileFormat = self.parentScene.render.image_settings.file_format.lower()
+                            if "ffmpeg" == sceneFileFormat:
+                                fileExtension += "mp4"
+                            else:
+                                # output file is MP4 otherwise
+                                _logger.info_ext(
+                                    f"Invalid scene video output format: {sceneFileFormat} - Using FFMPEG - MP4"
+                                )
+                                fileExtension += "mp4"
+                    elif "TK_EDIT_" in outputMedia:
                         fileExtension += "." + "xml"
                     elif "TK_PLAYBLAST" == outputMedia:
                         fileExtension += "." + "mp4"
 
-        # result
-        resultStr = filePath + fileName + fileExtension
-        resultStr.replace("\\", "/")  # //
+        resultStr = ""
+        # used to get a path with \\ for Windows, with / for Mac and Linux
+        # unfortunately it removes the separator char at the end of the path
+        if providePath:
+            # formattedFilePath = str(PurePath(filePath)) + utils_os.get_dir_separator_char()
+            formattedFilePath = utils_os.format_path_for_os(filePath, addSeparatorAtTheEnd=True)
+            resultStr += formattedFilePath
 
-        #   _logger.debug(f" ** resultStr: {resultStr}")
+        resultStr += fileName + fileExtension
 
         return resultStr
 

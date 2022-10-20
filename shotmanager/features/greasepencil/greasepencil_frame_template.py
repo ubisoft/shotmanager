@@ -72,7 +72,7 @@ class UAS_GreasePencil_FrameTemplate(PropertyGroup):
         """
         # self.parent = parent
 
-        _logger.debug_ext(f"Initializing storyboard template preset list for {mode}", col="GREEN")
+        _logger.debug_ext(f"Initializing storyboard template preset list for {mode}", col="GREEN", tag="GREASE_PENCIL")
         self.updatePresets(mode=mode)
 
     def updatePresets(self, mode="SCENE"):
@@ -80,7 +80,9 @@ class UAS_GreasePencil_FrameTemplate(PropertyGroup):
         Args:
             mode:   can be SCENE or ADDON_PREFS"
         """
-        _logger.debug_ext(f"updatePresets() for storyboard template preset list for {mode}", col="GREEN")
+        _logger.debug_ext(
+            f"updatePresets() for storyboard template preset list for {mode}", col="GREEN", tag="GREASE_PENCIL"
+        )
         # Can be SCENE or ADDON_PREFS"
         prefs = config.getShotManagerPrefs()
         if "SCENE" == mode:
@@ -89,7 +91,7 @@ class UAS_GreasePencil_FrameTemplate(PropertyGroup):
             props = prefs
 
         if "ADDON_PREFS" == mode:
-            _logger.debug_ext("   In ADDON PREFS Add Presets", col="GREEN")
+            _logger.debug_ext("   In ADDON PREFS Add Presets", col="GREEN", tag="GREASE_PENCIL")
             # initialize the add-on preferences set of presets
             # wkipwkipwkip
             # Canvas
@@ -144,7 +146,7 @@ class UAS_GreasePencil_FrameTemplate(PropertyGroup):
         else:
             # SCENE
             # initialize the template presets of the scene from the add-on preferences
-            _logger.debug_ext("   In SCENE Add Presets", col="GREEN")
+            _logger.debug_ext("   In SCENE Add Presets", col="GREEN", tag="GREASE_PENCIL")
             # bpy.ops.uas_shot_manager.greasepencil_template_panel(mode=mode)
 
             prefsTemplate = prefs.stb_frameTemplate
@@ -264,7 +266,7 @@ class UAS_GreasePencil_FrameTemplate(PropertyGroup):
         # parentProps = self.getParentProps()
 
         if prefs.stb_frameTemplate == self:
-            _logger.debug_ext(f"Resetting preset {preset.id} in the Preferences", col="PURPLE")
+            _logger.debug_ext(f"Resetting preset {preset.id} in the Preferences", col="PURPLE", tag="GREASE_PENCIL")
 
             if "ROUGH" == preset.id:
                 preset.used = True
@@ -317,7 +319,9 @@ class UAS_GreasePencil_FrameTemplate(PropertyGroup):
                 preset.materialName = "_Canvas_Mat"
 
         else:
-            _logger.debug_ext(f"Resetting preset {preset.id} in the scene {bpy.context.scene}", col="PURPLE")
+            _logger.debug_ext(
+                f"Resetting preset {preset.id} in the scene {bpy.context.scene}", col="PURPLE", tag="GREASE_PENCIL"
+            )
 
             defaulPresetFromPrefs = prefs.stb_frameTemplate.getPresetByID(preset.id)
             if defaulPresetFromPrefs is None:
@@ -389,7 +393,7 @@ class UAS_GreasePencil_FrameTemplate(PropertyGroup):
     def storeEditedGPSettings(self, gpName, refLayerName):
         """Update, or add if not found, the settings of the specifed edited grease pencil object
         Return the corresponding settings instance"""
-        _logger.debug_ext(f"storeEditedGPSettings: {gpName}{refLayerName}")
+        _logger.debug_ext(f"storeEditedGPSettings: {gpName}{refLayerName}", tag="GREASE_PENCIL")
 
         if gpName is None or "" == gpName:
             return None

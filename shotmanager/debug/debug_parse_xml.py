@@ -165,7 +165,6 @@ else:  # write to file
     seqMedia = _getFirstChildWithName(seq, "media")
     if seqMedia is not None:
         seqMediaVideo = _getFirstChildWithName(seqMedia, "video")
-        print(f"seqMediaVideo: {seqMediaVideo}")
 
         newNodeFormat = dom1.createElement("format")
         newNodeCharact = dom1.createElement("samplecharacteristics")

@@ -559,8 +559,7 @@ class ShotManager_Vse_Render(PropertyGroup):
         if "UNKNOWN" != mediaType:
             mediaInfo = f"   - createNewClip(): Name: {newClip.name}, Media Type: {mediaType}, path: {mediaPath}"
 
-            if config.devDebug:
-                print(mediaInfo)
+            _logger.debug_ext(mediaInfo)
 
         # print(
         #     f"           frame_offset_start: {newClip.frame_offset_start}, frame_offset_end: {newClip.frame_offset_end}, frame_final_duration: {newClip.frame_final_duration}"
@@ -803,7 +802,7 @@ class ShotManager_Vse_Render(PropertyGroup):
                 # sequenceScene.sequence_editor
                 frameToPaste = self.get_frame_end_from_content(sequenceScene)
                 print("\n---- Importing image sequences ----")
-                print(f"  frametopaste: {frameToPaste}")
+                # print(f"  frametopaste: {frameToPaste}")
 
                 bgClip = None
                 shotDuration = 0
@@ -813,7 +812,7 @@ class ShotManager_Vse_Render(PropertyGroup):
                         bgClip = self.createNewClip(sequenceScene, mediaDict["bg"], 2, atFrame)
                         shotDuration = bgClip.frame_final_duration
                     except Exception:
-                        print(f" *** Rendered shot not found: {mediaDict['bg']}")
+                        _logger.error_ext(f" *** Rendered shot not found: {mediaDict['bg']}")
 
                     # bgClip = None
                     # if os.path.exists(self.inputBGMediaPath):
@@ -829,7 +828,7 @@ class ShotManager_Vse_Render(PropertyGroup):
                         overClip = self.createNewClip(sequenceScene, mediaDict["fg_sequence"], 3, atFrame)
                         print("Over Media OK")
                     except Exception:
-                        print(f" *** Rendered shot not found: {mediaDict['fg_sequence']}")
+                        _logger.error_ext(f" *** Rendered shot not found: {mediaDict['fg_sequence']}")
                     # overClip = None
                     # if os.path.exists(self.inputOverMediaPath):
                     #     overClip = self.createNewClip(vse_scene, self.inputOverMediaPath, 2, 1)
@@ -870,7 +869,7 @@ class ShotManager_Vse_Render(PropertyGroup):
                             1,
                         )
                     else:
-                        print(f" *** Rendered shot not found: {mediaDict['sound']}")
+                        _logger.error_ext(f" *** Rendered shot not found: {mediaDict['sound']}")
 
                 # bpy.context.scene.sequence_editor.sequences
                 # get res of video: bpy.context.scene.sequence_editor.sequences[1].elements[0].orig_width
@@ -908,12 +907,13 @@ class ShotManager_Vse_Render(PropertyGroup):
             #     f"Render New W: {sequenceScene.render.resolution_x} and H: {sequenceScene.render.resolution_y}, %: {sequenceScene.render.resolution_percentage}"
             # )
 
+        # mediaFiles part
         else:
             for mediaPath in mediaFiles:
                 # sequenceScene.sequence_editor
                 frameToPaste = self.get_frame_end_from_content(sequenceScene)
                 print("\n---- Importing video ----")
-                print(f"  frametopaste: {frameToPaste}")
+                # print(f"  frametopaste: {frameToPaste}")
                 # video clip
                 self.createNewClip(
                     sequenceScene,
@@ -981,7 +981,7 @@ class ShotManager_Vse_Render(PropertyGroup):
 
         def _setOutputMediaAndRender(output_media_type):
             """output_media_type can be "IMAGE", "IMAGE_SEQ" or "VIDEO" """
-            _logger.debug_ext(f"_setOutputMediaAndRender output_media_type: {output_media_type}", form="REG")
+            # _logger.debug_ext(f"_setOutputMediaAndRender output_media_type: {output_media_type}")
 
             # get output file format from specified output (can be emtpy !!)
             fileExt = str(Path(output_filepath).suffix).upper()
@@ -1159,7 +1159,7 @@ class ShotManager_Vse_Render(PropertyGroup):
                 bgClip = self.createNewClip(vse_scene, self.inputBGMediaPath, 1, atFrame=importAtFrame)
             #    print("BG Media OK")
             except Exception:
-                print(f" *** Rendered shot not found: {self.inputBGMediaPath}")
+                _logger.error_ext(f" *** Rendered shot not found: {self.inputBGMediaPath}")
 
             # bgClip = None
             # if os.path.exists(self.inputBGMediaPath):
@@ -1207,7 +1207,7 @@ class ShotManager_Vse_Render(PropertyGroup):
                 if os.path.exists(self.inputAudioMediaPath):
                     audioClip = self.createNewClip(vse_scene, self.inputAudioMediaPath, 3, atFrame=importAtFrame)
                 else:
-                    print(f" *** Rendered shot not found: {self.inputAudioMediaPath}")
+                    _logger.error_ext(f" *** Rendered shot not found: {self.inputAudioMediaPath}")
 
         # bpy.context.scene.sequence_editor.sequences
         # get res of video: bpy.context.scene.sequence_editor.sequences[1].elements[0].orig_width

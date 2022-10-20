@@ -1,4 +1,23 @@
 -----
+## 2.1.31 (2022-10-17)
+- Bug fix when duplicating cameras that had animation data but no action
+- Init Retimer presets at Props creation to avoid warning msg
+
+-----
+## 2.1.30 (2022-10-15)
+- Bug fix on Mac for rendering video files - final
+
+-----
+## 2.1.29 (2022-10-14)
+- Bug fix on Mac for rendering video files - again
+- Forced render step to 1
+
+-----
+## 2.1.28 (2022-10-14)
+- Bug fix on Mac for rendering video files
+- Made the playblast temp directories different from the rendering directories
+
+-----
 ## 2.1.27 (2022-10-12)
 **Beta Release**
 - Merge for beta release

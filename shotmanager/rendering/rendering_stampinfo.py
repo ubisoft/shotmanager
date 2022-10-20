@@ -208,13 +208,15 @@ def renderStampedInfoForShot(
     Args:
         resolution: array [width, height], resolution of the image rendered in Blender
     """
-    txtIntro = "\n  ---------------"
-    txtIntro += "\n  Rendering StampInfo image sequence:"
-    txtIntro += f"    Shot: {shot.name}, handles: {render_handles} ({handles})"
-    txtIntro += f"\n{'   - Rendered image resolution: ': <20}{resolution[0]} x {resolution[1]}"
-    txtIntro += f"\n{'   - Final frame resolution: ': <20}{resolutionFramed[0]} x {resolutionFramed[1]}"
-    txtIntro += f"\n{'   - Path: ': <20}{newTempRenderPath}"
-    txtIntro += "\n  ---------------"
+    if not (newTempRenderPath.endswith("/") or newTempRenderPath.endswith("\\")):
+        newTempRenderPath += "\\"
+
+    txtIntro = "\nRendering StampInfo image sequence:"
+    txtIntro += f"   Shot: {shot.name}, handles: {render_handles} ({handles})"
+    txtIntro += f"\n{' - Rendered image resolution: ': <40}{resolution[0]} x {resolution[1]}"
+    txtIntro += f"\n{' - Final frame resolution: ': <40}{resolutionFramed[0]} x {resolutionFramed[1]}"
+    txtIntro += f"\n{' - Path: ': <20}{newTempRenderPath}"
+    txtIntro += "\n---------------\n"
     _logger.print_ext(txtIntro, col="CYAN")
     # scene.render.filepath
 
@@ -373,13 +375,13 @@ def renderStampedInfoForShot(
             "SH_INTERM_STAMPINFO_SEQ", providePath=False, specificFrame=currentFrame
         )
         if verbose:
-            txt = "      ------------------------------------------"
-            txt += f"\nStamp Info Frame:  Shot: {shot.name} {currentFrame}    ( {f + 1} / {numFramesInShot} )"
+            # txt = "      ------------------------------------------"
+            txt = f"Stamp Info Frame:  Shot: {shot.name} {currentFrame}   ( {f + 1} / {numFramesInShot} )"
             # txt += f"\n    File path: {scene.render.filepath}"
-            txt += f"\n{'   - File name: ': <20}{tmpShotFilename}"
+            # txt += f"\n{'   - File name: ': <20}{tmpShotFilename}"
+            txt += f"{'   File: '}{tmpShotFilename}"
             # txt += f"\n    stampInfoSettings.renderRootPath: {stampInfoSettings.renderRootPath}"
-
-            print(txt)
+            _logger.info_ext(txt)
 
         stampInfoSettings.renderTmpImageWithStampedInfo(
             scene,
@@ -392,8 +394,8 @@ def renderStampedInfoForShot(
         )
 
     if verbose:
-        txt = "\n      ------------------------------------------\n"
-        print(txt)
+        txt = "\n------------------------------------------\n"
+        _logger.info_ext(txt, col="CYAN")
 
     ##############
     # restore scene state

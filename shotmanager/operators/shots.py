@@ -195,6 +195,9 @@ class UAS_ShotManager_SetCurrentShot(Operator):
         prefs = config.getShotManagerPrefs()
         shot = props.getShotByIndex(self.index)
 
+        if shot:
+            _logger.debug_ext(f"Set Current Shot Op: {shot.name}")
+
         if not shot:
             _logger.error_ext(f"Set Current Shot Operator exec: shot is None. index: {self.index}")
         #     _logger.debug_ext("Set Current Shot Operator exec: ", col="RED")

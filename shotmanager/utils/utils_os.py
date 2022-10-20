@@ -21,7 +21,7 @@ Utility functions that may require os/platform specific adjustments
 
 import subprocess
 import os
-from pathlib import Path
+from pathlib import Path, PurePath
 import platform
 import requests
 
@@ -29,6 +29,15 @@ from shotmanager.config import config
 from shotmanager.config import sm_logging
 
 _logger = sm_logging.getLogger(__name__)
+
+
+def getPlatformName():
+    if "Darwin" == platform.system():
+        return "Mac"
+    elif "Linux" == platform.system():
+        return "Linux"
+    elif "Windows" == platform.system():
+        return "Windows"
 
 
 def open_folder(path: str):
@@ -59,6 +68,59 @@ def delete_folder(dir_path: str):
             os.rmdir(dir_path)
         except OSError as error:
             _logger.warning_ext(f"Cannot delete directory: {dir_path}, error:{error}")
+
+
+def open_media_in_player(path: str):
+    if not os.path.exists(path):
+        _logger.info_ext(f"Media to open not found: {path}")
+        return
+
+    if "Darwin" == platform.system():
+        # subprocess.call(("open", path))
+        # subprocess.check_call(['open', '-a', 'Quicktime Player', path)
+        subprocess.check_call(["open", "--", path])
+    elif "Linux" == platform.system():
+        subprocess.call(("xdg-open", path))
+    elif "Windows" == platform.system():
+        os.startfile(path)
+
+
+def get_dir_separator_char():
+
+    separator = "*"
+    if "Darwin" == platform.system():
+        separator = "/"
+    elif "Linux" == platform.system():
+        separator = "/"
+    elif "Windows" == platform.system():
+        separator = "\\"
+
+    # _logger.info_ext(f"OS Specific: get_dir_separator_char: Platform is: {getPlatformName()}")
+
+    return separator
+
+
+def format_path_for_os(path: str, addSeparatorAtTheEnd: bool = True):
+    """Format the provided path for the current OS.
+    Path can be a file or a directory.
+    Return a formated string.
+    Args:
+        addSeparatorAtTheEnd: it path is a folder then add a folder separator characted at the end of it"""
+
+    formattedPath = str(PurePath(path))
+
+    # if "Windows" == platform.system():
+    #     # convert \\ to \
+    #     formattedPath.replace("\\\\", "++++")
+    #     formattedPath.replace("++++", "\\")
+
+    isFile = "" != Path(formattedPath).suffix
+
+    if not isFile and addSeparatorAtTheEnd:
+        formattedPath = formattedPath + get_dir_separator_char()
+        # _logger.info_ext(f"OS Specific: format_path_for_os: formattedPath: {formattedPath}")
+
+    return formattedPath
 
 
 def internet_on():

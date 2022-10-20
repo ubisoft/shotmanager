@@ -30,6 +30,7 @@ from xmlrpc.client import Boolean
 
 import bpy
 
+from shotmanager.utils import utils_os
 from shotmanager.config import sm_logging
 
 _logger = sm_logging.getLogger(__name__)
@@ -313,22 +314,7 @@ def openMedia(media_filepath, inExternalPlayer=False):
         return
 
     if inExternalPlayer:
-
-        # wkip subprocess is said to be better but cannot make it work...
-        # import subprocess
-        #  p = subprocess.Popen(["display", media_filepath])
-        # subprocess.run(["open", media_filepath], check=True)
-
-        import subprocess
-        import os
-        import platform
-
-        if platform.system() == "Darwin":  # macOS
-            subprocess.call(("open", media_filepath))
-        elif platform.system() == "Windows":  # Windows
-            os.startfile(media_filepath)
-        else:  # linux variants
-            subprocess.call(("xdg-open", media_filepath))
+        utils_os.open_media_in_player(media_filepath)
     else:
         # Call user prefs window
         bpy.ops.screen.userpref_show("INVOKE_DEFAULT")
@@ -350,7 +336,6 @@ def openMedia(media_filepath, inExternalPlayer=False):
         _logger.debug_ext(f"media_filepath: {media_filepath}", col="RED")
         _logger.debug_ext(f"Path(media_filepath).name: {Path(media_filepath).name}", col="RED")
         myImg = bpy.data.images[Path(media_filepath).name]
-        #  print("myImg:" + str(myImg))
         bpy.context.area.spaces.active.image = myImg
 
     return
@@ -724,7 +709,8 @@ def duplicateObject(sourceObject, newName=None, duplicateHierarchy=False):
         # empty objects don't have data
         if sourceObject.data is not None:
             newObject.data = sourceObject.data.copy()
-            if newObject.data.animation_data is not None:
+            #  if newObject.data.animation_data is not None:
+            if sourceObject.data.animation_data is not None and sourceObject.data.animation_data.action is not None:
                 newObject.data.animation_data.action = sourceObject.data.animation_data.action.copy()
 
         sourceCollections = sourceObject.users_collection

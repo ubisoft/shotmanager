@@ -216,8 +216,8 @@ class UAS_ShotManager_OT_ClearMarkersFromCameraBinding(Operator):
         return {"FINISHED"}
 
 
-class UAS_ShotManager_OT_ConvertMarkersFromCameraBindingToShots(Operator):
-    bl_idname = "uas_shot_manager.convert_markers_from_camera_binding_to_shots"
+class UAS_ShotManager_OT_ConvertMarkersFromCamBindingToShots(Operator):
+    bl_idname = "uas_shot_manager.convert_markers_from_cam_binding_to_shots"
     bl_label = "Convert Camera Binding to Shots"
     bl_description = (
         "Convert the camera binding used by markers to shots and remove their binding.\nMarkers are not deleted"
@@ -491,7 +491,7 @@ _classes = (
     UAS_ShotManager_OT_SetFpsAsProjectFps,
     UAS_ShotManager_OT_SetRenderResAsProjectRes,
     UAS_ShotManager_OT_ClearMarkersFromCameraBinding,
-    UAS_ShotManager_OT_ConvertMarkersFromCameraBindingToShots,
+    UAS_ShotManager_OT_ConvertMarkersFromCamBindingToShots,
     UAS_ShotManager_OT_SetProjectSequenceName,
     UAS_ShotManager_OT_GoToVideoShotManager,
     UAS_ShotManager_OT_FileInfo,

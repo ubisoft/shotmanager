@@ -127,19 +127,19 @@ class UAS_SMStampInfoSettings(bpy.types.PropertyGroup):
     # ----------------------------------
 
     def activateStampInfo(self, activated):
-        _logger.debug(f"\n*** StampInfo is now:  {activated}")
+        # _logger.debug_ext(f"*** StampInfo is now:  {activated}")
         self.stampInfoUsed = activated
 
     def stampInfoUsed_StateChanged(self, context):
-        _logger.debug(f"\n*** Stamp Info updated. New state: {self.stampInfoUsed}")
+        # _logger.debug_ext(f"*** Stamp Info updated. New state: {self.stampInfoUsed}")
+        pass
 
     def get_stampInfoUsed(self):
         val = self.get("stampInfoUsed", True)
         return val
 
     def set_stampInfoUsed(self, value):
-        _logger.debug(f"\n*** set_stampInfoUsed: value: {value}")
-
+        # _logger.debug_ext(f"*** set_stampInfoUsed: value: {value}")
         self["stampInfoUsed"] = value
 
     stampInfoUsed: BoolProperty(
@@ -156,7 +156,7 @@ class UAS_SMStampInfoSettings(bpy.types.PropertyGroup):
         return val
 
     # values are integers
-    def set_stampInfoRenderMode(self, value):
+    def set_stampInfoRenderMode(self, value: int):
         _logger.debug(f" set_stampInfoRenderMode: value: {value}")
 
         self["stampInfoRenderMode"] = value

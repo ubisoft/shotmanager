@@ -32,11 +32,11 @@ from shotmanager.utils import utils
 from shotmanager.config import config
 
 
-def get_media_path(out_path, take_name, shot_name):
+# def get_media_path(out_path, take_name, shot_name):
 
-    if out_path.startswith("//"):
-        out_path = str(Path(bpy.data.filepath).parent.absolute()) + out_path[1:]
-    return f"{out_path}/{take_name}/{bpy.context.scene.UAS_shot_manager_props.getRenderShotPrefix()}_{shot_name}.mp4"
+#     if out_path.startswith("//"):
+#         out_path = str(Path(bpy.data.filepath).parent.absolute()) + out_path[1:]
+#     return f"{out_path}/{take_name}/{bpy.context.scene.UAS_shot_manager_props.getRenderShotPrefix()}_{shot_name}.mp4"
 
 
 ##########
