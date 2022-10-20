@@ -1,6 +1,7 @@
 -----
 ## 2.1.31 (2022-10-17)
-- 
+- Bug fix when duplicating cameras that had animation data but no action
+- Init Retimer presets at Props creation to avoid warning msg
 
 -----
 ## 2.1.30 (2022-10-15)

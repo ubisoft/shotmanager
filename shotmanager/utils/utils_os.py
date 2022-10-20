@@ -95,7 +95,7 @@ def get_dir_separator_char():
     elif "Windows" == platform.system():
         separator = "\\"
 
-    _logger.info_ext(f"OS Specific: get_dir_separator_char: Platform is: {getPlatformName()}")
+    # _logger.info_ext(f"OS Specific: get_dir_separator_char: Platform is: {getPlatformName()}")
 
     return separator
 
@@ -118,7 +118,7 @@ def format_path_for_os(path: str, addSeparatorAtTheEnd: bool = True):
 
     if not isFile and addSeparatorAtTheEnd:
         formattedPath = formattedPath + get_dir_separator_char()
-        _logger.info_ext(f"OS Specific: format_path_for_os: formattedPath: {formattedPath}")
+        # _logger.info_ext(f"OS Specific: format_path_for_os: formattedPath: {formattedPath}")
 
     return formattedPath
 
