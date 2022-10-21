@@ -173,6 +173,9 @@ class UAS_ShotManager_SetCurrentShot(Operator):
 
     index: IntProperty(default=-1)
 
+    # can be DO_NOTHING,
+    action: StringProperty(default="DO_NOTHING")
+
     event_ctrl: BoolProperty(default=False)
     event_alt: BoolProperty(default=False)
     event_shift: BoolProperty(default=False)
@@ -182,9 +185,32 @@ class UAS_ShotManager_SetCurrentShot(Operator):
     def invoke(self, context, event):
         _logger.debug_ext(f"Set Current Shot Operator invoke: event type: {event.type}", col="RED")
 
-        self.event_ctrl = event.ctrl
-        self.event_alt = event.alt
-        self.event_shift = event.shift
+        if "DO_NOTHING" == self.action:
+
+            self.event_ctrl = event.ctrl
+            self.event_alt = event.alt
+            self.event_shift = event.shift
+
+            self.action = "SETCURRENT"
+
+            if event.ctrl:
+                if event.shift:
+                    self.action += "_FRAMEEDIT"
+                else:
+                    self.action += "_FRAMESHOT"
+
+            else:
+                if event.shift:
+                    if event.alt:
+                        pass
+                    else:
+                        self.action += "_CHANGETIME"
+                else:
+                    if event.alt:
+                        self.action += "_CHANGEVIEWPORT"
+                    else:
+                        self.action += "_CHANGEVIEWPORT"
+                        self.action += "_CHANGETIME"
 
         return self.execute(context)
 
@@ -227,7 +253,8 @@ class UAS_ShotManager_SetCurrentShot(Operator):
                     zoom_dopesheet_view_to_range(
                         context, edit_start, edit_end, changeTime=prefs.current_shot_changes_current_time_to_start
                     )
-            elif "SHOT" == zoom_mode:
+            # elif "SHOT" == zoom_mode:
+            else:
                 zoomView = False
                 currentLayoutIsStb = "STORYBOARD" == props.currentLayoutMode()
                 if currentLayoutIsStb:
@@ -240,6 +267,10 @@ class UAS_ShotManager_SetCurrentShot(Operator):
                         zoomView = True
                     elif "PREVIZ" == shot.shotType and prefs.pvz_current_pvz_shot_changes_time_zoom:
                         zoomView = True
+
+                # shot zoom mode forced by use of key modifier
+                if "SHOT" == zoom_mode:
+                    zoomView = True
 
                 if zoomView:
                     zoom_dopesheet_view_to_range(
@@ -256,51 +287,73 @@ class UAS_ShotManager_SetCurrentShot(Operator):
                     utils.select_object(gpChild)
 
         # change shot
-        if not self.event_ctrl:
+        ###############################
+        if "SETCURRENT" in self.action:
+
             props.setCurrentShotByIndex(
                 self.index,
-                changeTime=not self.event_alt,
                 source_area=context.area,
-                setCamToViewport=not self.event_shift,
+                changeTime="CHANGETIME" in self.action,
+                setCamToViewport="CHANGEVIEWPORT" in self.action,
             )
+
             if self.index != props.selected_shot_index and not self.calledFromShotStack:
                 props.setSelectedShotByIndex(self.index)
-            _updateEditors(changeTime=False)
-        # else:
+
+            zoomMode = ""
+            if "FRAMESHOT" in self.action:
+                zoomMode = "SHOT"
+            elif "FRAMEEDIT" in self.action:
+                zoomMode = "EDIT"
+
+            _updateEditors(changeTime="CHANGETIME" in self.action, zoom_mode=zoomMode)
+
+        # if not self.event_ctrl:
+        #     props.setCurrentShotByIndex(
+        #         self.index,
+        #         changeTime=not self.event_alt,
+        #         source_area=context.area,
+        #         setCamToViewport=not self.event_shift,
+        #     )
+        #     if self.index != props.selected_shot_index and not self.calledFromShotStack:
+        #         props.setSelectedShotByIndex(self.index)
+        #     _updateEditors(changeTime=False)
+
+        # # else:
+        # #     props.setCurrentShotByIndex(self.index, source_area=context.area)
+        # #     props.setSelectedShotByIndex(self.index)
+        # #     _updateEditors(changeTime=True)
+
+        # # disable shot
+        # # elif event.shift and not event.ctrl and not event.alt:
+        # #     shot.enabled = not shot.enabled
+
+        # # frame shot range in timeline
+        # ###############################
+        # elif self.event_ctrl and not self.event_alt:
+        #     # if event.alt:
+        #     #     props.setCurrentShotByIndex(self.index, changeTime=False, source_area=context.area)
+        #     # else:
         #     props.setCurrentShotByIndex(self.index, source_area=context.area)
-        #     props.setSelectedShotByIndex(self.index)
-        #     _updateEditors(changeTime=True)
-
-        # disable shot
-        # elif event.shift and not event.ctrl and not event.alt:
-        #     shot.enabled = not shot.enabled
-
-        # frame shot range in timeline
-        ###############################
-        elif self.event_ctrl and not self.event_alt:
-            # if event.alt:
-            #     props.setCurrentShotByIndex(self.index, changeTime=False, source_area=context.area)
-            # else:
-            props.setCurrentShotByIndex(self.index, source_area=context.area)
-            if self.index != props.selected_shot_index and not self.calledFromShotStack:
-                props.setSelectedShotByIndex(self.index)
-            if self.event_shift:
-                _updateEditors(zoom_mode="EDIT")
-            else:
-                _updateEditors(zoom_mode="SHOT")
+        #     if self.index != props.selected_shot_index and not self.calledFromShotStack:
+        #         props.setSelectedShotByIndex(self.index)
+        #     if self.event_shift:
+        #         _updateEditors(zoom_mode="EDIT")
+        #     else:
+        #         _updateEditors(zoom_mode="SHOT")
 
         # # select camera
-        # elif event.ctrl and not event.shift and not event.alt:
-        #     scene.UAS_shot_manager_props.setSelectedShotByIndex(self.index)
-        #     scene.UAS_shot_manager_props.selectCamera(self.index)
+        # # elif event.ctrl and not event.shift and not event.alt:
+        # #     scene.UAS_shot_manager_props.setSelectedShotByIndex(self.index)
+        # #     scene.UAS_shot_manager_props.selectCamera(self.index)
 
-        # already handled in first condition
-        # elif event.alt and not event.shift and not event.ctrl:
-        #     props.setCurrentShotByIndex(self.index, changeTime=False, source_area=context.area)
-        #     props.setSelectedShotByIndex(self.index)
+        # # # already handled in first condition
+        # # elif event.alt and not event.shift and not event.ctrl:
+        # #     props.setCurrentShotByIndex(self.index, changeTime=False, source_area=context.area)
+        # #     props.setSelectedShotByIndex(self.index)
 
-        else:
-            pass
+        # else:
+        #     pass
 
         return {"INTERFACE"}
 

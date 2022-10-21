@@ -461,6 +461,7 @@ class ShotClipComponent(Component2D):
         mouse_frame = int(region.view2d.region_to_view(event.mouse_x - region.x, 0)[0])
         context.scene.frame_current = mouse_frame
         bpy.ops.uas_shot_manager.set_current_shot(
+            "INVOKE_DEFAULT",
             index=props.getShotIndex(self.shot),
             calledFromShotStack=True,
             event_ctrl=event.ctrl,

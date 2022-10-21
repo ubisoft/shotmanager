@@ -541,7 +541,7 @@ def switchToDrawMode(context, gpencil: bpy.types.GreasePencil):
         switchToObjectMode()
 
     # clear selection
-    bpy.ops.object.select_all(action="DESELECT")
+    # bpy.ops.object.select_all(action="DESELECT")
 
     gpencil.hide_select = False
     gpencil.hide_viewport = False

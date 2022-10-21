@@ -292,7 +292,19 @@ def drawGpToolbar(context, layout, props, editedGpencil, gpIsStoryboardFrame, sh
         # icon = "OUTLINER_OB_GREASEPENCIL"
         icon = "GREASEPENCIL"
         if gpIsStoryboardFrame:
-            gpToolsRow.operator("uas_shot_manager.draw_on_grease_pencil", text="", icon=icon)
+            # wkip operator removed ***
+            # gpToolsRow.operator("uas_shot_manager.draw_on_grease_pencil", text="", icon=icon)
+            opMode = "DRAW" if props.isContinuousGPEditingModeActive() else "SELECT"
+
+            # if gp == context.active_object and context.active_object.mode == "PAINT_GPENCIL":
+            # if gp.mode == "PAINT_GPENCIL":
+            icon = "GREASEPENCIL"
+            gpToolsRow.alert = True
+            op = gpToolsRow.operator("uas_shot_manager.greasepencil_select_and_draw", text="", icon=icon)
+            op.index = shotIndex
+            op.toggleDrawEditing = True
+            op.mode = opMode
+
         else:
             op = gpToolsRow.operator("uas_shot_manager.toggle_grease_pencil_draw_mode", text="", icon=icon)
             op.gpName = objName
