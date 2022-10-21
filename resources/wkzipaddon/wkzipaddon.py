@@ -11,12 +11,17 @@ Usage:
     (eg: /shotmanager), right click to display the menu then pick wkzipaddon.py.
     This script will be ran and it will create an archive, cleaned from the .pyc, ready to
     be installed in Blender.
+
+Working notes:
+    - When the terms "beta" or "pre-release" are found in the warning tag of the bl_info then
+      they are added at the end of the zip file name
 """
 
 
 import zipfile
 import os
-from os.path import basename
+
+# from os.path import basename
 import sys
 from pathlib import Path
 
@@ -27,8 +32,8 @@ def main():
 
     # to use for debug in VSC:
     # pathArr = [
-        # "self",
-        # "Z:\\EvalSofts\\Blender\\DevPython\\WkZipAddon\\WkSamples\\myAddon_Addon\\myaddon",
+    # "self",
+    # "Z:\\EvalSofts\\Blender\\DevPython\\WkZipAddon\\WkSamples\\myAddon_Addon\\myaddon",
     # ]
 
     # "Z:\\EvalSofts\\Blender\\DevPython\\WkZipAddon\\WkSamples\\toto.py",
@@ -56,15 +61,26 @@ def main():
     # get the zip file name from the add-on declaration
     ###################################################
 
+    def _isLineCommented(line):
+        lineStr = str(line)
+        commentCharFound = False
+        currentChar = " "
+        for c in lineStr:
+            if " " != c:
+                if "#" == c:
+                    return True
+                break
+        return False
+
     def _getAddonCategory(init_file):
         nameStr = ""
         with open(init_file) as fp:
             line = fp.readline()
-            versionFound = False
-            while line and not versionFound:
+            keywordFound = False
+            while line and not keywordFound:
                 if -1 != line.find('"category":'):
                     print(f"Line : {line.strip()}")
-                    versionFound = True
+                    keywordFound = True
                     startInd = line.find(":")
                     nameStr = line[startInd + 1 :]
                     startInd = nameStr.find('"')
@@ -81,11 +97,11 @@ def main():
         nameStr = ""
         with open(init_file) as fp:
             line = fp.readline()
-            versionFound = False
-            while line and not versionFound:
+            keywordFound = False
+            while line and not keywordFound:
                 if -1 != line.find('"name":'):
                     print(f"Line : {line.strip()}")
-                    versionFound = True
+                    keywordFound = True
                     startInd = line.find(":")
                     nameStr = line[startInd + 1 :]
                     startInd = nameStr.find('"')
@@ -103,11 +119,11 @@ def main():
         versionStr = ""
         with open(init_file) as fp:
             line = fp.readline()
-            versionFound = False
-            while line and not versionFound:
+            keywordFound = False
+            while line and not keywordFound:
                 if -1 != line.find('"version":'):
                     print(f"Line : {line.strip()}")
-                    versionFound = True
+                    keywordFound = True
                     startInd = line.find("(")
                     endInd = line.find(")")
                     numbers = line[startInd + 1 : endInd]
@@ -118,6 +134,33 @@ def main():
                 else:
                     line = fp.readline()
         return versionStr
+
+    def _getAddonWarning(init_file):
+        nameStr = ""
+        warningType = ""
+        with open(init_file) as fp:
+            line = fp.readline()
+            keywordFound = False
+            while line and not keywordFound:
+                if -1 != line.find('"warning":') and not _isLineCommented(line):
+                    print(f"Line : {line.strip()}")
+                    keywordFound = True
+                    startInd = line.find(":")
+                    nameStr = line[startInd + 1 :]
+                    startInd = nameStr.find('"')
+                    nameStr = nameStr[startInd + 1 :]
+                    endInd = nameStr.find('"')
+                    nameStr = nameStr[0:endInd]
+                    if "beta" in nameStr.lower():
+                        warningType = "BETA"
+                    elif "pre-release" in nameStr.lower():
+                        warningType = "PRERELEASE"
+
+                    # nameStr = nameStr.replace(" ", "-")
+                    print(f"warning nameStr : {nameStr}")
+                else:
+                    line = fp.readline()
+        return warningType
 
     p = Path(pathArr[1])
     output_dir = ""
@@ -138,6 +181,7 @@ def main():
         categStr = _getAddonCategory(init_file)
         nameStr = _getAddonName(init_file)
         versionStr = _getAddonVersion(init_file)
+        warningType = _getAddonWarning(init_file)
 
         # if the category appears at the start of the name it is removed
         categInd = nameStr.find(categStr)
@@ -158,6 +202,13 @@ def main():
         zip_file += str(p.stem)
     if "" != versionStr:
         zip_file += "_" + versionStr
+
+    if "" != warningType:
+        if "BETA" == warningType:
+            zip_file += "_Beta"
+        elif "PRERELEASE" == warningType:
+            zip_file += "_Pre-Release"
+
     zip_file += ".zip"
 
     outString += f"\n\nOutput Zip file: {zip_file}"
