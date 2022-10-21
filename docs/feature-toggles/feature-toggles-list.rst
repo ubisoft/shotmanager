@@ -10,11 +10,12 @@ Toggling Features
    :caption: Feature Toggles List
 
    /feature-toggles/feature-toggles-panel
-   ..
-      /feature-toggles/notes
-      /feature-toggles/camerabg
    /feature-toggles/retimer
    /feature-toggles/markers-nav-bar
+
+..
+   /feature-toggles/notes
+   /feature-toggles/camerabg
 
 ..
    The following features add their UI control components into the Take and the Shots panels:

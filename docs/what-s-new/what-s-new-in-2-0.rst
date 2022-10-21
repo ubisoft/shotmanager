@@ -1,19 +1,19 @@
-.. _what-s-new-in-2:
+.. _what-s-new-in-2-0:
 
 What's New in 2.0
 =================
 
 
-    - :ref:`Concept changes <concepts>`
-    - :ref:`Installation <installation>`
-    - :ref:`Storyboarding <storyboarding>`
-    - :ref:`UX/UI <ux-ui>`
-    - :ref:`Project settings <project-settings>`
-    - :ref:`Bug fixes <bug-fixes>`
-    - :ref:`Code and architecture <code-and-archi>`
+    - :ref:`Concept changes <concepts-2-0>`
+    - :ref:`Installation <installation-2-0>`
+    - :ref:`Storyboarding <storyboarding-2-0>`
+    - :ref:`UX/UI <ux-ui-2-0>`
+    - :ref:`Project settings <project-settings-2-0>`
+    - :ref:`Bug fixes <bug-fixes-2-0>`
+    - :ref:`Code and architecture <code-and-archi-2-0>`
 
 
-.. _concepts:
+.. _concepts-2-0:
 
 Concept changes
 ---------------
@@ -35,7 +35,7 @@ action as we would like).
 It is then now possible to switch from one layout to the other according to what we want to achieve in the scene.
 
 
-.. _installation:
+.. _installation-2-0:
 
 Installation
 ------------
@@ -49,7 +49,7 @@ the metadata information directly onto the rendered images. It has now been comp
 A visual feedback has also been added at the top right side of the main panel to inform the user of a new available version.
 
 
-.. _storyboarding:
+.. _storyboarding-2-0:
 
 Storyboarding
 -------------
@@ -64,7 +64,7 @@ A whole new world here to express your creativity! Just draw and play the sequen
 
 See more here: :ref:`Storyboard <storyboard>`
 
-.. _ux-ui:
+.. _ux-ui-2-0:
 
 UX/UI
 -----
@@ -88,7 +88,7 @@ A lot of improvements here since version 1.7:
     - ...
 
 
-.. _project-settings:
+.. _project-settings-2-0:
 
 Project settings
 ----------------
@@ -104,7 +104,7 @@ when in production), it has been improved in this release.
     - Template to use for the cameras created with new shots
 
 
-.. _bug-fixes:
+.. _bug-fixes-2-0:
 
 Bug fixes
 ---------
@@ -118,7 +118,7 @@ A lot of work here too. See the `change log <https://github.com/ubisoft/shotmana
     - ...
 
 
-.. _code-and-archi:
+.. _code-and-archi-2-0:
 
 Code and architecture
 ---------------------

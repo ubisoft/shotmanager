@@ -10,7 +10,7 @@ Ubisoft Shot Manager: Creative narration in Blender
 
 **Manage the cameras of your scenes inside** `Blender <https://www.blender.org/>`__. **and edit your sequence in real time and with great simplicity.**
 
-**Current version is 2.0. The currently supported Blender versions are 3.3 LTS and 2.93 LTS**
+**Current version is 2.1. The currently supported Blender versions are 3.3 LTS and 2.93 LTS**
 |br|. . .and the documentation is still in development :D
 |br|
 
@@ -26,7 +26,7 @@ Ubisoft Shot Manager: Creative narration in Blender
    </div>
    <br />
 
-**Check all the new features in** :ref:`What's new in 2.0<what-s-new-in-2>`
+**Check all the new features in** :ref:`What's new in 2.0<what-s-new-in-2-0>`
 
 
 .. raw:: html
@@ -93,7 +93,8 @@ Read this article to see how we used this tool on the TV production of Rabbids I
    :hidden:
    
    /getting-started/general-philosophy
-   /what-s-new/what-s-new-in-2
+   /what-s-new/what-s-new-in-2-1
+   /what-s-new/what-s-new-in-2-0
    /what-s-new/release-change-logs
 
 .. toctree::

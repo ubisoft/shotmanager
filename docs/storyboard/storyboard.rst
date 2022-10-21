@@ -3,6 +3,14 @@
 Storyboard
 ==========
 
+
+.. toctree::
+   :maxdepth: 3
+   :hidden:
+   :caption: Storyboard
+
+   /storyboard/storyboard-detach
+   
 Creating a full 2D storyboard can be very handy to prepare a 3D sequence. Thanks to Shot Manager it is a fast process,
 done in the same application and environment than the previz or 3D layout that will follow, and the transition to 3D shots
 is very smooth and natural in the workflow.
@@ -23,3 +31,6 @@ Read the following topics to get a better underdstanding of how the entities of 
 
    - :ref:`Shot Type <shot-type>`
    - :ref:`Frame Visibility <storyboard-frames-visibility>`
+
+See also:
+   - :ref:`Detaching a Storyboard Frame <storyboard-detach>`

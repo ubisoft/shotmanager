@@ -9,6 +9,7 @@ There are 3 ovelay tools:
 
 - :ref:`Sequence Timeline <sequence-timeline>`: Add notes on shots and takes to better manage your scene content.
 - :ref:`Interactive Shots Stack <shots-stack>`: Use and toggle camera backgrounds.
+
 ..
     - :ref:`Camera HUDs <camera-hud>`: Use and toggle camera backgrounds.
 

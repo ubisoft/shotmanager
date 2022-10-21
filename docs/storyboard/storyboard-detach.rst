@@ -1,5 +1,8 @@
+.. _storyboard-detach:
+
 Storyboard - Detach
 ===================
+
 
 When a storyboard frame is detached from a shot of type Storyboard here is what happens:
 
