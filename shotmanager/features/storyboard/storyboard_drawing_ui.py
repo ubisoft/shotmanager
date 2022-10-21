@@ -38,7 +38,7 @@ def drawDrawingToolbarRow(
     if True:
         gpOpsRow = layout.row(align=True)
         gpOpsRow.scale_y = scale_y_pgOpsRow
-        drawGpToolbar(context, gpOpsRow, editedGpencil, gpIsStoryboardFrame, shotIndex)
+        drawGpToolbar(context, props, gpOpsRow, editedGpencil, gpIsStoryboardFrame, shotIndex)
 
         scale_y_pgOpsRow
         gpOpsRow.scale_y = 1.0
@@ -58,7 +58,7 @@ def drawDrawingToolbarRow(
     if False:
         # leftgpOpsRow = gpOpsSplit.row(align=True)
         # leftgpOpsRow.alignment = "LEFT"
-        drawGpToolbar(context, gpOpsSplit, editedGpencil, gpIsStoryboardFrame, shotIndex)
+        drawGpToolbar(context, props, gpOpsSplit, editedGpencil, gpIsStoryboardFrame, shotIndex)
 
     # key frames
     #####################
@@ -155,7 +155,7 @@ def drawDrawingMatRow(context, layout, props, editedGpencil, objIsGP):
 ##########################################################
 
 
-def drawGpToolbar(context, layout, editedGpencil, gpIsStoryboardFrame, shotIndex):
+def drawGpToolbar(context, props, layout, editedGpencil, gpIsStoryboardFrame, shotIndex):
 
     gpToolsRow = layout.row(align=True)
     #   gpToolsRow.ui_units_x = 3
@@ -173,16 +173,28 @@ def drawGpToolbar(context, layout, editedGpencil, gpIsStoryboardFrame, shotIndex
     #             "uas_shot_manager.select_shot_grease_pencil", text="", icon="RESTRICT_SELECT_OFF"
     #         )  # .index = shotIndex
 
-    if editedGpencil.mode == "PAINT_GPENCIL":
+    # if editedGpencil.mode == "PAINT_GPENCIL":
+    if "OBJECT" != editedGpencil.mode:
         icon = "GREASEPENCIL"
         gpToolsRow.alert = True
         gpToolsRow.operator("uas_shot_manager.toggle_grease_pencil_draw_mode", text="", icon=icon)
         gpToolsRow.alert = False
     else:
         # icon = "OUTLINER_OB_GREASEPENCIL"
-        icon = "GREASEPENCIL"
+        icon = "OUTLINER_DATA_GP_LAYER"
         # if gpIsStoryboardFrame:
-        gpToolsRow.operator("uas_shot_manager.draw_on_grease_pencil", text="", icon=icon)
+        # wkip operator removed ***
+        # gpToolsRow.operator("uas_shot_manager.draw_on_grease_pencil", text="", icon=icon)
+
+        opMode = "DRAW" if props.isContinuousGPEditingModeActive() else "SELECT"
+
+        # if gp == context.active_object and context.active_object.mode == "PAINT_GPENCIL":
+        # if gp.mode == "PAINT_GPENCIL":
+        op = gpToolsRow.operator("uas_shot_manager.greasepencil_select_and_draw", text="", icon=icon)
+        op.index = shotIndex
+        op.toggleDrawEditing = True
+        op.mode = opMode
+
         # else:
         #     gpToolsRow.operator("uas_shot_manager.toggle_grease_pencil_draw_mode", text="", icon=icon)
 

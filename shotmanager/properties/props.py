@@ -2148,7 +2148,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
                 _logger.debug_ext(f"\n*** selected_shot_index. New state: {self.selected_shot_index}")
 
                 if self.selectedShotShouldBecomeCurrent():
-                    bpy.ops.uas_shot_manager.set_current_shot(index=self.selected_shot_index)
+                    bpy.ops.uas_shot_manager.set_current_shot("INVOKE_DEFAULT", index=self.selected_shot_index)
 
     selected_shot_index: IntProperty(name="Shot Name", update=_update_selected_shot_index, default=-1)
 
@@ -3511,7 +3511,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
             elif changeTime:
                 scene.frame_current = currentShot.start
 
-            # removed: timeline zoom should not be changed here
+            # removed: timeline zoom should not be changed here but in uas_shot_manager.set_current_shot
             # if prefs.current_shot_changes_time_range:
             #     zoom_dopesheet_view_to_range(bpy.context, currentShot.start, currentShot.end)
 

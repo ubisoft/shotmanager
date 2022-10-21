@@ -197,7 +197,19 @@ def draw_greasepencil_shot_properties(layout, context, shot):
                 gpToolsRow.alert = False
                 # bpy.ops.gpencil.paintmode_toggle()
             else:
-                gpToolsRow.operator("uas_shot_manager.draw_on_grease_pencil", text="", icon="OUTLINER_OB_GREASEPENCIL")
+                # wkip operator removed ***
+                # gpToolsRow.operator("uas_shot_manager.draw_on_grease_pencil", text="", icon="OUTLINER_OB_GREASEPENCIL")
+
+                opMode = "DRAW" if props.isContinuousGPEditingModeActive() else "SELECT"
+
+                # if gp == context.active_object and context.active_object.mode == "PAINT_GPENCIL":
+                # if gp.mode == "PAINT_GPENCIL":
+                icon = "GREASEPENCIL"
+                gpToolsRow.alert = True
+                op = gpToolsRow.operator("uas_shot_manager.greasepencil_select_and_draw", text="ttt", icon=icon)
+                op.index = shotIndex
+                op.toggleDrawEditing = True
+                op.mode = opMode
 
             gpToolsRow.operator(
                 "uas_shot_manager.update_grease_pencil", text="", icon="FILE_REFRESH"

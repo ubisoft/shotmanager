@@ -43,7 +43,7 @@ def initGlobalVariables():
         devDebug = False
 
     # change this value to force debug at start time
-    devDebug = False
+    devDebug = True
 
     global devDebug_displayDebugPanel
     devDebug_displayDebugPanel = False
