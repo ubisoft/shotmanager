@@ -239,117 +239,6 @@ class UAS_ShotManager_OT_AddCanvasToGreasePencil(Operator):
         return {"FINISHED"}
 
 
-class UAS_ShotManager_OT_ToggleGreasePencilDrawMode(Operator):
-    bl_idname = "uas_shot_manager.toggle_grease_pencil_draw_mode"
-    bl_label = ""
-    bl_description = "Toggle Grease Pencil Draw Mode"
-    bl_options = {"INTERNAL", "UNDO"}
-
-    gpName: StringProperty(default="")
-
-    layerName: StringProperty(
-        name="Layer Name",
-        default="",
-    )
-
-    def execute(self, context):
-        gp = None
-        if "" == self.gpName:
-            # NOTE: we use context.object here instead of context.active_object because
-            # when the eye icon of the object is closed (meaning object.hide_get() == True)
-            # then context.active_object is None
-            gp = context.object
-        else:
-            if self.gpName in context.scene.objects:
-                gp = context.scene.objects[self.gpName]
-
-        if gp is not None:
-            props = context.scene.UAS_shot_manager_props
-            if "OBJECT" != gp.mode:
-                # if context.active_object.mode == "PAINT_GPENCIL":
-                # bpy.ops.object.mode_set(mode="OBJECT")
-                utils_greasepencil.switchToObjectMode()
-            else:
-                utils_greasepencil.switchToDrawMode(context, gp)
-                props.isEditingStoryboardFrame = True
-
-                if props.shotsGlobalSettings.stb_camPOV_forFreeGP:
-                    props.getCurrentShot().setCameraToViewport()
-                    context.scene.tool_settings.gpencil_stroke_placement_view3d = (
-                        props.shotsGlobalSettings.stb_strokePlacement_forFreeGP
-                    )
-                    context.scene.tool_settings.gpencil_sculpt.lock_axis = "VIEW"
-
-                    if "" != self.layerName:
-                        if props.shotsGlobalSettings.stb_changeCursorPlacement_forFreeGP:
-                            layerName = self.layerName
-                            utils_greasepencil.place3DCursor(gp, context.scene.frame_current, layerName)
-
-        return {"FINISHED"}
-
-
-# wkip toto 2022_10_14
-class UAS_ShotManager_OT_DrawOnGreasePencil(Operator):
-    bl_idname = "uas_shot_manager.draw_on_grease_pencil"
-    bl_label = "Draw on Grease Pencil"
-    bl_description = "Draw on the Grease Pencil of the specified shot"
-    bl_options = {"INTERNAL"}
-
-    def execute(self, context):
-        scene = context.scene
-        props = scene.UAS_shot_manager_props
-
-        shot = None
-        gp_child = None
-        if not ("SELECTED" == props.current_shot_properties_mode):
-            shot = props.getCurrentShot()
-        else:
-            shot = props.getShotByIndex(props.selected_shot_index)
-
-        if shot is not None:
-            gp_child = utils_greasepencil.get_greasepencil_child(shot.camera)
-
-        props.setCurrentShotByIndex(props.selected_shot_index, changeTime=False)
-
-        if gp_child is None:
-            print("Grease Pencil Child is invalid for grease pencil parenting - Cancelling...")
-            return {"CANCELLED"}
-        elif not gp_child.visible_get():
-            print("Grease Pencil cannot be applied on hidden objects - Cancelling...")
-            return {"CANCELLED"}
-        else:
-            # if context.active_object.mode == "PAINT_GPENCIL":
-            #     if gp_child != context.active_object:
-            #         # we change the current object
-            #     bpy.ops.gpencil.paintmode_toggle()
-            #     return {"FINISHED"}
-
-            # if context.active_object is not None and context.active_object.mode != "OBJECT":
-            #     bpy.ops.object.mode_set(mode="OBJECT")
-            # bpy.ops.object.select_all(action="DESELECT")
-            # bpy.context.view_layer.objects.active = gp_child
-
-            # shot.updateGreasePencils()
-            # set ink layer, else topmost layer
-            gp.setInkLayerReadyToDraw(gp_child)
-
-            utils_greasepencil.switchToDrawMode(context, gp_child)
-            props.isEditingStoryboardFrame = True
-
-            # gp_child.select_set(True)
-            # gp_child.hide_select = False
-            # gp_child.hide_viewport = False
-            # gp_child.hide_render = False
-            # bpy.ops.gpencil.paintmode_toggle()
-
-            # context.scene.tool_settings.gpencil_stroke_placement_view3d = "ORIGIN"
-            # context.scene.tool_settings.gpencil_sculpt.lock_axis = "VIEW"
-
-            utils.setPropertyPanelContext(context, "DATA")
-
-        return {"FINISHED"}
-
-
 class UAS_ShotManager_OT_UpdateGreasePencil(Operator):
     bl_idname = "uas_shot_manager.update_grease_pencil"
     bl_label = "Update Grease Pencil"
@@ -590,6 +479,117 @@ class UAS_ShotManager_OT_PinGreasePencilObject(Operator):
         #     utils.setPropertyPanelContext(bpy.context, "DATA")
 
         return {"FINISHED"}
+
+
+class UAS_ShotManager_OT_ToggleGreasePencilDrawMode(Operator):
+    bl_idname = "uas_shot_manager.toggle_grease_pencil_draw_mode"
+    bl_label = ""
+    bl_description = "Toggle Grease Pencil Draw Mode"
+    bl_options = {"INTERNAL", "UNDO"}
+
+    gpName: StringProperty(default="")
+
+    layerName: StringProperty(
+        name="Layer Name",
+        default="",
+    )
+
+    def execute(self, context):
+        gp = None
+        if "" == self.gpName:
+            # NOTE: we use context.object here instead of context.active_object because
+            # when the eye icon of the object is closed (meaning object.hide_get() == True)
+            # then context.active_object is None
+            gp = context.object
+        else:
+            if self.gpName in context.scene.objects:
+                gp = context.scene.objects[self.gpName]
+
+        if gp is not None:
+            props = context.scene.UAS_shot_manager_props
+            if "OBJECT" != gp.mode:
+                # if context.active_object.mode == "PAINT_GPENCIL":
+                # bpy.ops.object.mode_set(mode="OBJECT")
+                utils_greasepencil.switchToObjectMode()
+            else:
+                utils_greasepencil.switchToDrawMode(context, gp)
+                props.isEditingStoryboardFrame = True
+
+                if props.shotsGlobalSettings.stb_camPOV_forFreeGP:
+                    props.getCurrentShot().setCameraToViewport()
+                    context.scene.tool_settings.gpencil_stroke_placement_view3d = (
+                        props.shotsGlobalSettings.stb_strokePlacement_forFreeGP
+                    )
+                    context.scene.tool_settings.gpencil_sculpt.lock_axis = "VIEW"
+
+                    if "" != self.layerName:
+                        if props.shotsGlobalSettings.stb_changeCursorPlacement_forFreeGP:
+                            layerName = self.layerName
+                            utils_greasepencil.place3DCursor(gp, context.scene.frame_current, layerName)
+
+        return {"FINISHED"}
+
+
+# wkip toto 2022_10_14
+# class UAS_ShotManager_OT_DrawOnGreasePencil(Operator):
+#     bl_idname = "uas_shot_manager.draw_on_grease_pencil"
+#     bl_label = "Draw on Grease Pencil"
+#     bl_description = "Draw on the Grease Pencil of the specified shot"
+#     bl_options = {"INTERNAL"}
+
+#     def execute(self, context):
+#         scene = context.scene
+#         props = scene.UAS_shot_manager_props
+
+#         shot = None
+#         gp_child = None
+#         if not ("SELECTED" == props.current_shot_properties_mode):
+#             shot = props.getCurrentShot()
+#         else:
+#             shot = props.getShotByIndex(props.selected_shot_index)
+
+#         if shot is not None:
+#             gp_child = utils_greasepencil.get_greasepencil_child(shot.camera)
+
+#         props.setCurrentShotByIndex(props.selected_shot_index, changeTime=False)
+
+#         if gp_child is None:
+#             print("Grease Pencil Child is invalid for grease pencil parenting - Cancelling...")
+#             return {"CANCELLED"}
+#         elif not gp_child.visible_get():
+#             print("Grease Pencil cannot be applied on hidden objects - Cancelling...")
+#             return {"CANCELLED"}
+#         else:
+#             # if context.active_object.mode == "PAINT_GPENCIL":
+#             #     if gp_child != context.active_object:
+#             #         # we change the current object
+#             #     bpy.ops.gpencil.paintmode_toggle()
+#             #     return {"FINISHED"}
+
+#             # if context.active_object is not None and context.active_object.mode != "OBJECT":
+#             #     bpy.ops.object.mode_set(mode="OBJECT")
+#             # bpy.ops.object.select_all(action="DESELECT")
+#             # bpy.context.view_layer.objects.active = gp_child
+
+#             # shot.updateGreasePencils()
+#             # set ink layer, else topmost layer
+#             gp.setInkLayerReadyToDraw(gp_child)
+
+#             utils_greasepencil.switchToDrawMode(context, gp_child)
+#             props.isEditingStoryboardFrame = True
+
+#             # gp_child.select_set(True)
+#             # gp_child.hide_select = False
+#             # gp_child.hide_viewport = False
+#             # gp_child.hide_render = False
+#             # bpy.ops.gpencil.paintmode_toggle()
+
+#             # context.scene.tool_settings.gpencil_stroke_placement_view3d = "ORIGIN"
+#             # context.scene.tool_settings.gpencil_sculpt.lock_axis = "VIEW"
+
+#             utils.setPropertyPanelContext(context, "DATA")
+
+#         return {"FINISHED"}
 
 
 class UAS_ShotManager_GreasePencilSelectAndDraw(Operator):
@@ -1360,7 +1360,7 @@ _classes = (
     UAS_ShotManager_OT_SelectGreasePencilObject,
     UAS_ShotManager_OT_AddCanvasToGreasePencil,
     UAS_ShotManager_OT_ToggleGreasePencilDrawMode,
-    UAS_ShotManager_OT_DrawOnGreasePencil,
+    #   UAS_ShotManager_OT_DrawOnGreasePencil,
     UAS_ShotManager_OT_UpdateGreasePencil,
     UAS_ShotManager_OT_RemoveGreasePencil,
     UAS_ShotManager_OT_ShowHideGreasePencil,
