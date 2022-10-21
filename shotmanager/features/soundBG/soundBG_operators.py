@@ -40,7 +40,7 @@ class UAS_ShotManager_EnableDisableSoundBG(Operator):
     mode: StringProperty(default="All")
 
     def invoke(self, context, event):
-        prefs = config.getShotManagerPrefs()
+        prefs = config.getAddonPrefs()
 
         if "All" == self.mode or "Sound" == self.mode:
             bpy.ops.uas_shots_settings.use_background_sound(useBackgroundSound=prefs.toggleCamsSoundBG)

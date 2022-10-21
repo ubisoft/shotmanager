@@ -26,7 +26,7 @@ from shotmanager.config import config
 def draw_soundBG_shot_properties(sm_ui, context, shot):
     layout = sm_ui.layout
     props = context.scene.UAS_shot_manager_props
-    prefs = config.getShotManagerPrefs()
+    prefs = config.getAddonPrefs()
     scene = context.scene
 
     shotHasCamBG = len(shot.camera.data.background_images) and shot.camera.data.background_images[0].clip is not None

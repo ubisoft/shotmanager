@@ -58,7 +58,7 @@ def drawStampInfoBut(layout):
     Return True if Stamp Info is available, false otherwise"""
     prefs_stampInfo = None
     if bpy.context.scene.UAS_shot_manager_props.isStampInfoAvailable():
-        prefs_stampInfo = config.getShotManagerPrefs()
+        prefs_stampInfo = config.getAddonPrefs()
     icon = config.icons_col["StampInfo_32"]
     butsubrow = layout.row()
     butsubrow.scale_x = 1.5
@@ -131,7 +131,7 @@ def labelBold(layout, text, scale_x=0.8, emboss=False):
     """Draw a label that is (slightly) brighter than the standard one
     Args:
             emboss: used for debug"""
-    # prefs = config.getShotManagerPrefs()
+    # prefs = config.getAddonPrefs()
     row = layout.row(align=True)
     row.alignment = "LEFT"
     row.scale_x = scale_x
@@ -443,7 +443,7 @@ class UAS_ShotManager_UpdateDialog(Operator):
         return context.window_manager.invoke_props_dialog(self, width=450)
 
     def draw(self, context):
-        prefs = config.getShotManagerPrefs()
+        prefs = config.getAddonPrefs()
 
         layout = self.layout
         box = layout.box()

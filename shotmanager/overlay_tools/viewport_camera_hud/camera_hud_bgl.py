@@ -113,7 +113,7 @@ def draw_all_shots_names(context, cam, pos_x, pos_y, vertical=False, screen_offs
         screen_offset: array [x, y] to offset the drawing origin
     """
     props = context.scene.UAS_shot_manager_props
-    prefs = config.getShotManagerPrefs()
+    prefs = config.getAddonPrefs()
     current_shot = props.getCurrentShot()
     # hud_offset_x = 19
 

@@ -694,7 +694,7 @@ class BL_UI_Timeline:
         _logger.debug_ext("*** handle event for BL_UI_Timeline", col="GREEN", tag="TIMELINE_EVENT")
 
         props = self.context.scene.UAS_shot_manager_props
-        prefs = config.getShotManagerPrefs()
+        prefs = config.getAddonPrefs()
 
         if not prefs.seqTimeline_not_disabled_with_overlays:
             overlaysOn = utils_editors_3dview.getViewportOverlayState(props.getValidTargetViewport(bpy.context))

@@ -69,7 +69,7 @@ class UAS_ShotManager_EnableDisableAll(Operator):
     def invoke(self, context, event):
         scene = context.scene
         props = scene.UAS_shot_manager_props
-        prefs = config.getShotManagerPrefs()
+        prefs = config.getAddonPrefs()
 
         enableMode = "ENABLEALL"
         if event.shift and not event.ctrl and not event.alt:

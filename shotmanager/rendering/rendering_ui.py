@@ -42,7 +42,7 @@ class UAS_PT_ShotManagerRenderPanelStdalone(Panel):
     @classmethod
     def poll(cls, context):
         props = context.scene.UAS_shot_manager_props
-        prefs = config.getShotManagerPrefs()
+        prefs = config.getAddonPrefs()
         displayPanel = prefs.separatedRenderPanel
         displayPanel = displayPanel and props.getCurrentShot() is not None
 
@@ -92,7 +92,7 @@ class UAS_PT_ShotManagerRenderPanel(Panel):
     @classmethod
     def poll(cls, context):
         props = context.scene.UAS_shot_manager_props
-        prefs = config.getShotManagerPrefs()
+        prefs = config.getAddonPrefs()
         val = not props.dontRefreshUI() and len(props.takes) and len(props.get_shots())
         val = val and not prefs.separatedRenderPanel
         return val and prefs.display_render_panel
@@ -327,7 +327,7 @@ def drawRenderInfos(context, layout):
         infosStr += f"{fps} fps"
         row.label(text=infosStr)
 
-        # prefs = config.getShotManagerPrefs()
+        # prefs = config.getAddonPrefs()
         #   filePath = props.renderRootPath + "\\" + prefs.playblastFileName
         # filePath = props.renderRootPath
         # if not filePath.endswith("\\") and not filePath.endswith("/"):

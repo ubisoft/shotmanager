@@ -63,7 +63,7 @@ def install_handler_for_shot(self, context):
 
 def toggle_overlay_tools_display(context):
     # print("  toggle_overlay_tools_display:  self.UAS_shot_manager_display_overlay_tools: ", self.UAS_shot_manager_display_overlay_tools)
-    prefs = config.getShotManagerPrefs()
+    prefs = config.getAddonPrefs()
     from shotmanager.overlay_tools.interact_shots_stack.shots_stack import display_state_changed_intShStack
 
     if context.window_manager.UAS_shot_manager_display_overlay_tools:

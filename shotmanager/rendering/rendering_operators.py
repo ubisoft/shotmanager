@@ -132,7 +132,7 @@ class UAS_PT_ShotManager_Render(Operator):
 
     def execute(self, context):
         props = context.scene.UAS_shot_manager_props
-        prefs = config.getShotManagerPrefs()
+        prefs = config.getAddonPrefs()
         prefs.renderMode = self.renderMode
 
         # update UI

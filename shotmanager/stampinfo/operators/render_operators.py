@@ -84,7 +84,7 @@ class UAS_PT_SMStampInfo_Render(Operator):
 
         scene = context.scene
         siSettings = scene.UAS_SM_StampInfo_Settings
-        prefs = config.getShotManagerPrefs()
+        prefs = config.getAddonPrefs()
         vse_render = context.window_manager.stampinfo_vse_render
 
         # Stamp Info not used: Blender standard rendering behavior

@@ -376,7 +376,7 @@ class ShotClipComponent(Component2D):
         if isSelected:
             _logger.debug_ext("\n\nClip isSelected set to True", col="RED")
             props = context.scene.UAS_shot_manager_props
-            prefs = config.getShotManagerPrefs()
+            prefs = config.getAddonPrefs()
 
             prefs.shot_selected_from_shots_stack__flag = True
             props.setSelectedShot(self.shot)
@@ -428,7 +428,7 @@ class ShotClipComponent(Component2D):
                 self.shot.start += mouse_delta_frames
                 self.shot.end += mouse_delta_frames
 
-        prefs = config.getShotManagerPrefs()
+        prefs = config.getAddonPrefs()
         if prefs.shtStack_link_stb_clips_to_keys and self.manipulatedChildren is not None:
 
             retimerApplyToSettings = context.window_manager.UAS_shot_manager_shots_stack_retimerApplyTo

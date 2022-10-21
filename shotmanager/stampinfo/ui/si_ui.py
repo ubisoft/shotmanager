@@ -62,7 +62,7 @@ class UAS_PT_ShotManagerStampInfoPanelStdalone(Panel):
     @classmethod
     def poll(self, context):
         props = context.scene.UAS_shot_manager_props
-        prefs = config.getShotManagerPrefs()
+        prefs = config.getAddonPrefs()
         displayPanel = prefs.stampInfo_display_properties and props.getCurrentShot() is not None
         return displayPanel and prefs.stampInfo_separatedPanel
 
@@ -106,7 +106,7 @@ class UAS_PT_ShotManagerStampInfoPanel(Panel):
     @classmethod
     def poll(cls, context):
         props = context.scene.UAS_shot_manager_props
-        prefs = config.getShotManagerPrefs()
+        prefs = config.getAddonPrefs()
         displayPanel = prefs.stampInfo_display_properties and props.getCurrentShot() is not None
         return displayPanel and not prefs.stampInfo_separatedPanel
 
@@ -145,7 +145,7 @@ def drawHeaderPreset(context, layout):
 
 def drawAllPanels(context, layout):
     props = context.scene.UAS_shot_manager_props
-    prefs = config.getShotManagerPrefs()
+    prefs = config.getAddonPrefs()
 
     enableProperties = not props.use_project_settings
 
@@ -184,7 +184,7 @@ def drawMainStampInfoPanel(context, layout, enabled=True):
     # layout = layout.column()
     # layout.enabled = enabled
 
-    prefs = config.getShotManagerPrefs()
+    prefs = config.getAddonPrefs()
     scene = context.scene
     siSettings = scene.UAS_SM_StampInfo_Settings
     okForRenderStill = True
@@ -427,7 +427,7 @@ def drawTimeAndFramesPanel(context, layout, enabled=True):
     scene = context.scene
     siSettings = scene.UAS_SM_StampInfo_Settings
     splitFactor = 0.35
-    # prefs = config.getShotManagerPrefs()
+    # prefs = config.getAddonPrefs()
 
     def _formatRangeString(current=None, animRange=None, handles=None, start=None, end=None, offset=0, padding=3):
         str = ""
@@ -615,7 +615,7 @@ def drawShotAndCameraPanel(context, layout, enabled=True):
     scene = context.scene
     siSettings = scene.UAS_SM_StampInfo_Settings
     splitFactor = 0.35
-    # prefs = config.getShotManagerPrefs()
+    # prefs = config.getAddonPrefs()
 
     # ---------- shot -------------
     # To be filled by a production script or by UAS Shot Manager
@@ -657,7 +657,7 @@ def drawMetadataPanel(context, layout, enabled=True):
     layout.enabled = enabled
 
     scene = context.scene
-    # prefs = config.getShotManagerPrefs()
+    # prefs = config.getAddonPrefs()
     siSettings = scene.UAS_SM_StampInfo_Settings
 
     layout.label(text="Top: Project and Editing Info")

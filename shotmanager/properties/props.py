@@ -183,7 +183,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
 
     def initialize_shot_manager(self):
         _logger.info_ext(f"\nInitializing Ubisoft Shot Manager in the current scene ({bpy.context.scene.name})...")
-        prefs = config.getShotManagerPrefs()
+        prefs = config.getAddonPrefs()
 
         # self.parentScene = self.getParentScene()
 
@@ -330,7 +330,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         return True
 
     def dontRefreshUI(self):
-        prefs = config.getShotManagerPrefs()
+        prefs = config.getAddonPrefs()
         res = False
         if (
             bpy.context.screen.is_animation_playing
@@ -1422,7 +1422,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
     # not visible in the UI because radiobuttons are more suitable
 
     # def _update_layout_mode(self, context):
-    #     prefs = config.getShotManagerPrefs()
+    #     prefs = config.getAddonPrefs()
     #     # print("\n*** Props _update_layout_mode updated. New state: ", self._update_layout_mode)
     #     # self.layout_but_storyboard = "STORYBOARD" == self._update_layout_mode
     #     # self.layout_but_previez = "PREVIZ" == self._update_layout_mode
@@ -2107,7 +2107,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         """Return True if, according to the Preference settings and the current UI and scene context,
         the actualy selected shot should be set as the current one.
         Call this function just after the considered shot has been selected."""
-        prefs = config.getShotManagerPrefs()
+        prefs = config.getAddonPrefs()
 
         setCurrentShot = False
         # if False:
@@ -3502,7 +3502,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         elif -1 < currentShotIndex < len(shotList):
             self.current_shot_index = currentShotIndex
 
-            prefs = config.getShotManagerPrefs()
+            prefs = config.getAddonPrefs()
             currentShot = shotList[currentShotIndex]
 
             if changeTime is None:
@@ -4476,7 +4476,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         Args: frame:    If provided then the result is a string of zeros followed by this value
                         If not provided then the returned string is made of #
         """
-        prefs = config.getShotManagerPrefs()
+        prefs = config.getAddonPrefs()
         formatedFrame = ""
         padding = self.project_img_name_digits_padding if self.use_project_settings else prefs.img_name_digits_padding
 
@@ -4709,7 +4709,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
             genericFrame: if genericFrame is True then #### is used instead of the specific frame index
         """
 
-        prefs = config.getShotManagerPrefs()
+        prefs = config.getAddonPrefs()
         filePath = ""
         fileName = ""
         fileExtension = ""

@@ -181,7 +181,7 @@ class UAS_Gpu_DopesheetGpuSample(Operator):
 
     def modal(self, context, event):
         # props = context.scene.UAS_shot_manager_props
-        # prefs = config.getShotManagerPrefs()
+        # prefs = config.getAddonPrefs()
 
         event_handled = False
         # _logger.debug_ext(f"uas_shot_manager.dopesheet_gpu_sample  Modal", col="PURPLE")

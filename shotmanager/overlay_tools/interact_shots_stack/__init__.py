@@ -41,8 +41,8 @@ _logger = sm_logging.getLogger(__name__)
 def register():
     _logger.debug_ext("       - Registering Interactive Shots Stack Package", form="REG")
 
-    # prefs = config.getShotManagerPrefs()
-    prefs = config.getShotManagerPrefs()
+    # prefs = config.getAddonPrefs()
+    prefs = config.getAddonPrefs()
 
     shots_stack_operators.register()
     shots_stack_prefs.register()

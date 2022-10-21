@@ -32,7 +32,7 @@ def draw_overlays_global_settings(context, layout, mode="SHOT"):
     """
 
     props = context.scene.UAS_shot_manager_props
-    prefs = config.getShotManagerPrefs()
+    prefs = config.getAddonPrefs()
     splitFactor = 0.16
 
     applyToAllViewports = "ALL" == props.shotsGlobalSettings.stb_overlaysViewportMode

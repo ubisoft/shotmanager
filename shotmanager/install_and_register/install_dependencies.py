@@ -203,7 +203,7 @@ def install_dependencies(dependencies_list, retries=2, timeout=100):
                 "   !!! Something went wrong during the installation of the add-on - Check the Shot Manager add-on Preferences panel !!!\n"
             )
             addon_error_prefs.register()
-            prefs_addon = config.getShotManagerPrefs()
+            prefs_addon = config.getAddonPrefs()
             prefs_addon.error_message = installation_errors[0][0]
             return installation_errors[0][1]
     return 0
@@ -211,7 +211,7 @@ def install_dependencies(dependencies_list, retries=2, timeout=100):
 
 def unregister_from_failed_install():
     # unregistering add-on in the case it has been registered with install errors
-    prefs_addon = config.getShotManagerPrefs()
+    prefs_addon = config.getAddonPrefs()
     if hasattr(prefs_addon, "install_failed") and prefs_addon.install_failed:
         _logger.error_ext("\n*** --- Unregistering Failed Install for Shot Manager Add-on --- ***")
         addon_error_prefs.unregister()

@@ -315,7 +315,7 @@ class UAS_ShotManager_OT_ShowHideGreasePencil(Operator):
     def invoke(self, context, event):
         props = context.scene.UAS_shot_manager_props
 
-        # prefs = config.getShotManagerPrefs()
+        # prefs = config.getAddonPrefs()
         # bpy.ops.uas_shots_settings.use_greasepencil(useGreasepencil=prefs.enableGreasePencil)
         # prefs.enableGreasePencil = not prefs.enableGreasePencil
 
@@ -772,7 +772,7 @@ class UAS_ShotManager_ResetUsagePreset(Operator):
     presetID: StringProperty(default="")
 
     def execute(self, context):
-        prefs = config.getShotManagerPrefs()
+        prefs = config.getAddonPrefs()
 
         if "SCENE" == self.mode:
             props = context.scene.UAS_shot_manager_props
@@ -869,7 +869,7 @@ class UAS_ShotManager_GreasePencil_NavigateInKeyFrames(Operator):
 
     def execute(self, context):
         props = context.scene.UAS_shot_manager_props
-        prefs = config.getShotManagerPrefs()
+        prefs = config.getAddonPrefs()
 
         gp = None
         gpIsStoryboardFrame = False
@@ -1143,7 +1143,7 @@ class UAS_ShotManager_GreasePencil_SetLayerAndMat(Operator):
         return descr
 
     def invoke(self, context, event):
-        # prefs = config.getShotManagerPrefs()
+        # prefs = config.getAddonPrefs()
         # props = context.scene.UAS_shot_manager_props
         # print(f"Layer and mat - ID: {self.layerID}, name:{self.gpObjName}")
 
@@ -1203,7 +1203,7 @@ class UAS_ShotManager_GreasePencil_SetLayerAndMatAndVisib(Operator):
         return descr
 
     def invoke(self, context, event):
-        # prefs = config.getShotManagerPrefs()
+        # prefs = config.getAddonPrefs()
         props = context.scene.UAS_shot_manager_props
         # print(f"Layer and mat - ID: {self.layerID}, name:{self.gpObjName}")
 
@@ -1276,7 +1276,7 @@ class UAS_ShotManager_GreasePencil_SetKeyframe(Operator):
         return descr
 
     def invoke(self, context, event):
-        # prefs = config.getShotManagerPrefs()
+        # prefs = config.getAddonPrefs()
         # props = context.scene.UAS_shot_manager_props
         # print(f"Layer and mat - ID: {self.layerID}, name:{self.gpObjName}")
 

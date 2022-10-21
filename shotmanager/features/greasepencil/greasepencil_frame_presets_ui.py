@@ -233,7 +233,7 @@ class UAS_ShotManager_GpTemplatePanel(Operator):
     layer_Canvas_material: StringProperty(default="_Canvas_Mat")
 
     def invoke(self, context, event):
-        prefs = config.getShotManagerPrefs()
+        prefs = config.getAddonPrefs()
         if "SCENE" == self.mode:
             props = context.scene.UAS_shot_manager_props
         else:
@@ -298,7 +298,7 @@ class UAS_ShotManager_GpTemplatePanel(Operator):
         return context.window_manager.invoke_props_dialog(self, width=480)
 
     def draw(self, context):
-        prefs = config.getShotManagerPrefs()
+        prefs = config.getAddonPrefs()
         if "SCENE" == self.mode:
             props = context.scene.UAS_shot_manager_props
         else:
@@ -503,7 +503,7 @@ class UAS_ShotManager_GpTemplatePanel(Operator):
 
     def applySettings(self, context):
         # Can be SCENE or ADDON_PREFS"
-        prefs = config.getShotManagerPrefs()
+        prefs = config.getAddonPrefs()
         if "SCENE" == self.mode:
             props = context.scene.UAS_shot_manager_props
         else:

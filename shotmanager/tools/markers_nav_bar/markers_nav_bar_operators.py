@@ -47,7 +47,7 @@ class UAS_VideoTracks_GoToMarker(Operator):
 
     def invoke(self, context, event):
         scene = context.scene
-        prefs = config.getShotManagerPrefs()
+        prefs = config.getAddonPrefs()
         marker = None
 
         useFilter = prefs.mnavbar_display_filter and prefs.mnavbar_use_filter
@@ -122,7 +122,7 @@ class UAS_VideoTracks_ViewFrame(Operator):
     """
 
     def execute(self, context):
-        prefs = config.getShotManagerPrefs()
+        prefs = config.getAddonPrefs()
         if prefs.mnavbar_use_view_frame:
             # timeline
             try:

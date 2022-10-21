@@ -150,7 +150,7 @@ class UAS_ShotManager_ShotsGlobalSettings(PropertyGroup):
         return val
 
     def _set_stb_overlaysViewportMode(self, value):
-        prefs = config.getShotManagerPrefs()
+        prefs = config.getAddonPrefs()
 
         # ALL is value 0, TARGET is value 1 #####################################
 
@@ -205,7 +205,7 @@ class UAS_ShotManager_ShotsGlobalSettings(PropertyGroup):
 
     def _update_stb_overlaysViewportMode(self, context):
         return
-        prefs = config.getShotManagerPrefs()
+        prefs = config.getAddonPrefs()
         applyToAllViewports = "ALL" == self.stb_overlaysViewportMode
 
         # if applyToAllViewports:

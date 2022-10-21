@@ -162,7 +162,7 @@ class UAS_ShotManager_EnableDisableCamsBG(Operator):
     mode: StringProperty(default="All")
 
     def invoke(self, context, event):
-        prefs = config.getShotManagerPrefs()
+        prefs = config.getAddonPrefs()
 
         if "All" == self.mode or "Image" == self.mode:
             bpy.ops.uas_shots_settings.use_background(useBackground=prefs.toggleCamsBG)

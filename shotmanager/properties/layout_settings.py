@@ -117,7 +117,7 @@ class UAS_ShotManager_LayoutSettings(PropertyGroup):
         """
         _logger.debug_ext(f"initialize Layout Settings {layoutMode}", col="GREEN")
 
-        prefs = config.getShotManagerPrefs()
+        prefs = config.getAddonPrefs()
 
         # common values
 

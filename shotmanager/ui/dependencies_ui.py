@@ -27,7 +27,7 @@ import bpy
 
 
 def drawDependencies(context, layout: bpy.types.UILayout, **kwargs):
-    # prefs = config.getShotManagerPrefs()
+    # prefs = config.getAddonPrefs()
 
     splitFactor = 0.45
 

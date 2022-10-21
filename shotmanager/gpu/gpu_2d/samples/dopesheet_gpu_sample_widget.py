@@ -52,7 +52,7 @@ UNIFORM_SHADER_2D = gpu.shader.from_builtin("2D_UNIFORM_COLOR")
 
 class DopesheetGpuSampleWidget:
     def __init__(self, target_area=None):
-        prefs = config.getShotManagerPrefs()
+        prefs = config.getAddonPrefs()
 
         self.useDebugComponents = True
 
@@ -255,7 +255,7 @@ class DopesheetGpuSampleWidget:
     def handle_event(self, context, event, region):
         """Return True if the event is handled for DopesheetGpuSampleWidget"""
         # props = context.scene.UAS_shot_manager_props
-        # prefs = config.getShotManagerPrefs()
+        # prefs = config.getAddonPrefs()
 
         # _logger.debug_ext("*** handle event for DopesheetGpuSampleWidget", col="GREEN", tag="SHOTSTACK_EVENT")
         if not context.window_manager.UAS_shot_manager_display_dopesheet_gpu_sample:

@@ -58,7 +58,7 @@ class GreasePencilProperties(PropertyGroup):
         Args:
             mode: can be "STORYBOARD"
         """
-        prefs = config.getShotManagerPrefs()
+        prefs = config.getAddonPrefs()
         # print(f"\nInitializing new Grease Pencil Properties for shot {parentShot.name}...")
 
         if parentShot.isCameraValid():

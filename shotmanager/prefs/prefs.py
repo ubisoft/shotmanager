@@ -39,7 +39,7 @@ class UAS_ShotManager_General_Prefs(Operator):
         return context.window_manager.invoke_props_dialog(self, width=400)
 
     def draw(self, context):
-        prefs = config.getShotManagerPrefs()
+        prefs = config.getAddonPrefs()
         layout = self.layout
 
         layout.alert = True

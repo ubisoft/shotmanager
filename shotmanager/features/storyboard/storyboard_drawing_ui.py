@@ -291,7 +291,7 @@ def drawAutokey(context, layout):
 
 
 def drawLayersRow(context, props, layout, editedGpencil):
-    # prefs = config.getShotManagerPrefs()
+    # prefs = config.getAddonPrefs()
     framePreset = context.scene.UAS_shot_manager_props.stb_frameTemplate
     currentFrame = context.scene.frame_current
 
@@ -413,7 +413,7 @@ def drawLayersRow(context, props, layout, editedGpencil):
 
 
 def drawKeyFrameActionsRow(context, props, layout, editedGpencil, gpIsStoryboardFrame):
-    # prefs = config.getShotManagerPrefs()
+    # prefs = config.getAddonPrefs()
     # framePreset = context.scene.UAS_shot_manager_props.stb_frameTemplate
     currentFrame = context.scene.frame_current
 

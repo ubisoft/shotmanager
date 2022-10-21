@@ -56,7 +56,7 @@ class UAS_PT_ShotManager(Panel):
     @classmethod
     def poll(cls, context):
         props = context.scene.UAS_shot_manager_props
-        # prefs = config.getShotManagerPrefs()
+        # prefs = config.getAddonPrefs()
 
         # hide the whole panel if used
         # return not props.dontRefreshUI()
@@ -73,7 +73,7 @@ class UAS_PT_ShotManager(Panel):
         import addon_utils
 
         props = context.scene.UAS_shot_manager_props
-        # prefs = config.getShotManagerPrefs()
+        # prefs = config.getAddonPrefs()
         layout = self.layout
         layout.emboss = "NONE"
 
@@ -101,7 +101,7 @@ class UAS_PT_ShotManager(Panel):
                 betaRow.label(text=f" ** {addonWarning} **")
 
     def draw_header_preset(self, context):
-        prefs = config.getShotManagerPrefs()
+        prefs = config.getAddonPrefs()
         layout = self.layout
         layout.emboss = "NONE"
 
@@ -143,7 +143,7 @@ class UAS_PT_ShotManager(Panel):
         layout = self.layout
         scene = context.scene
         props = scene.UAS_shot_manager_props
-        prefs = config.getShotManagerPrefs()
+        prefs = config.getAddonPrefs()
 
         currentLayout = props.getCurrentLayout()
         # currentLayoutIsStb = "STORYBOARD" == props.currentLayoutMode()

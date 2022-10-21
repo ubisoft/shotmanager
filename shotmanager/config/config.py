@@ -26,7 +26,7 @@ from pathlib import Path
 import bpy.utils.previews
 
 
-def getShotManagerPrefs():
+def getAddonPrefs():
     """Return the preferences of the add-on"""
     return bpy.context.preferences.addons["shotmanager"].preferences
 

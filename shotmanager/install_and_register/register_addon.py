@@ -313,7 +313,7 @@ def register():
     if config.devDebug:
         print(f"\n ------ Ubisoft Shot Manager debug: {config.devDebug} ------- ")
 
-    addon_prefs_inst = config.getShotManagerPrefs()
+    addon_prefs_inst = config.getAddonPrefs()
     addon_prefs_inst.displaySMDebugPanel = config.devDebug_displayDebugPanel
 
     # _props = bpy.context.scene.UAS_shot_manager_props
@@ -322,7 +322,7 @@ def register():
     #     _props.initialize_shot_manager()
 
     # storyboard
-    # prefs_properties = config.getShotManagerPrefs()
+    # prefs_properties = config.getAddonPrefs()
     # prefs_properties.stb_frameTemplate.initialize(fromPrefs=True)
 
     if not addon_prefs_inst.isPrefsVersionUpToDate():

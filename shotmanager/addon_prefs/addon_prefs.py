@@ -62,7 +62,7 @@ def list_greasepencil_layers(self, context):
 class UAS_ShotManager_AddonPrefs(AddonPreferences):
     """
     Use this to get these prefs:
-    prefs = config.getShotManagerPrefs()
+    prefs = config.getAddonPrefs()
     """
 
     # this must match the add-on name, use '__package__'
@@ -303,7 +303,7 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
         # print(f"*** _set_take_properties_expanded: {self.take_properties_expanded}, value: {value}")
         # close other panels
         if self.take_properties_expanded != value and not value:
-            prefs = config.getShotManagerPrefs()
+            prefs = config.getAddonPrefs()
             prefs.take_renderSettings_expanded = False
             prefs.take_notes_expanded = False
         self["take_properties_expanded"] = value

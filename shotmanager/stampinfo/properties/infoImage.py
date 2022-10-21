@@ -55,7 +55,7 @@ def renderStampedImage(
         print("\n       renderTmpImageWithStampedInfo ")
 
     siSettings = scene.UAS_SM_StampInfo_Settings
-    # prefs = config.getShotManagerPrefs()
+    # prefs = config.getAddonPrefs()
     paddingLeftMetadataTopNorm = 0.0
     paddingLeftMetadataBottomNorm = 0.0
 

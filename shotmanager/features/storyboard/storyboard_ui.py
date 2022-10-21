@@ -35,7 +35,7 @@ from . import storyboard_drawing_ui as drawing_ui
 
 def draw_greasepencil_shot_properties(layout, context, shot):
     props = context.scene.UAS_shot_manager_props
-    prefs = config.getShotManagerPrefs()
+    prefs = config.getAddonPrefs()
 
     if shot is None:
         return
@@ -562,7 +562,7 @@ def draw_lock_but(layout, gp_child, lockItem):
 
 def draw_greasepencil_global_properties(layout, context):
     props = context.scene.UAS_shot_manager_props
-    prefs = config.getShotManagerPrefs()
+    prefs = config.getAddonPrefs()
 
     box = layout.box()
     row = box.row()

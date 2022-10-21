@@ -46,7 +46,7 @@ class UAS_PT_ShotManagerGreasePencilPanelStdalone(Panel):
     @classmethod
     def poll(cls, context):
         # props = context.scene.UAS_shot_manager_props
-        prefs = config.getShotManagerPrefs()
+        prefs = config.getAddonPrefs()
         # displayPanel = prefs.preferences.separatedRenderPanel
         # displayPanel = displayPanel and props.getCurrentShot() is not None
         # return displayPanel and prefs.display_25D_greasepencil_panel

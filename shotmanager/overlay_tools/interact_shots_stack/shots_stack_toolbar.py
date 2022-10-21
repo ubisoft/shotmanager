@@ -32,7 +32,7 @@ _logger = sm_logging.getLogger(__name__)
 
 def draw_shots_stack_toolbar_in_editor(self, context):
     props = context.scene.UAS_shot_manager_props
-    prefs = config.getShotManagerPrefs()
+    prefs = config.getAddonPrefs()
     layout = self.layout
     butScale = 1.4
 

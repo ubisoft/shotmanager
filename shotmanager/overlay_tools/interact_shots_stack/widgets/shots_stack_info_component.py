@@ -205,7 +205,7 @@ class InfoComponent(QuadObject):
 
     # override QuadObject
     def draw(self, shader=None, region=None, draw_types="TRIS", cap_lines=False, preDrawOnly=False):
-        prefs = config.getShotManagerPrefs()
+        prefs = config.getAddonPrefs()
         if not prefs.shtStack_display_info_widget:
             return
 

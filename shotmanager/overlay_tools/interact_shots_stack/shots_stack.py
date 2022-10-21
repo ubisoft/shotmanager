@@ -35,7 +35,7 @@ _logger = sm_logging.getLogger(__name__)
 
 
 def ignoreWidget(context):
-    prefs = config.getShotManagerPrefs()
+    prefs = config.getAddonPrefs()
 
     if not context.window_manager.UAS_shot_manager_display_overlay_tools:
         return True
@@ -60,7 +60,7 @@ def initialize_gShotsStackInfos():
 def display_state_changed_intShStack(context):
     # wkipwkipwkip could be removed, not used as such
     _logger.debug_ext("display_state_changed_intShStack is Deprecated", tag="DEPRECATED")
-    # prefs = config.getShotManagerPrefs()
+    # prefs = config.getAddonPrefs()
     # if (
     #     context.window_manager.UAS_shot_manager_display_overlay_tools
     #     and prefs.toggle_overlays_turnOn_interactiveShotsStack
@@ -200,7 +200,7 @@ class UAS_ShotManager_InteractiveShotsStack(Operator):
 
     def modal(self, context, event):
         props = context.scene.UAS_shot_manager_props
-        prefs = config.getShotManagerPrefs()
+        prefs = config.getAddonPrefs()
 
         event_handled = False
         # _logger.debug_ext(f"uas_shot_manager.interactive_shots_stack  Modal", col="PURPLE")

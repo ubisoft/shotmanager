@@ -53,7 +53,7 @@ class UAS_GreasePencil_FrameTemplate(PropertyGroup):
     def getParentProps(self):
         """return the property settings instance owner of this instance of frame template.
         This can be the general add-on preferences or the props settings from one of the scenes of the file"""
-        prefs = config.getShotManagerPrefs()
+        prefs = config.getAddonPrefs()
         if self == prefs.stb_frameTemplate:
             return prefs
 
@@ -84,7 +84,7 @@ class UAS_GreasePencil_FrameTemplate(PropertyGroup):
             f"updatePresets() for storyboard template preset list for {mode}", col="GREEN", tag="GREASE_PENCIL"
         )
         # Can be SCENE or ADDON_PREFS"
-        prefs = config.getShotManagerPrefs()
+        prefs = config.getAddonPrefs()
         if "SCENE" == mode:
             props = bpy.context.scene.UAS_shot_manager_props
         else:
@@ -261,7 +261,7 @@ class UAS_GreasePencil_FrameTemplate(PropertyGroup):
 
     def resetPresetToDefault(self, preset):
         """Set all the properties (except id) of the provided preset back to their default value"""
-        prefs = config.getShotManagerPrefs()
+        prefs = config.getAddonPrefs()
 
         # parentProps = self.getParentProps()
 

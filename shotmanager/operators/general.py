@@ -65,7 +65,7 @@ class UAS_ShotManager_OT_DisplayOverlayTools(Operator):
         return len(context.scene.UAS_shot_manager_props.get_shots())
 
     def execute(self, context):
-        prefs = config.getShotManagerPrefs()
+        prefs = config.getAddonPrefs()
         # we force the update of the prefs display factor value
         prefs.shtStack_screen_display_factor_mode = prefs.shtStack_screen_display_factor_mode
 
@@ -312,7 +312,7 @@ class UAS_ShotManager_OT_SetProjectSequenceName(Operator):
 
     def execute(self, context):
         props = context.scene.UAS_shot_manager_props
-        prefs = config.getShotManagerPrefs()
+        prefs = config.getAddonPrefs()
 
         props.project_naming_project_index = self.naming_project_index
         props.project_naming_sequence_index = self.naming_sequence_index

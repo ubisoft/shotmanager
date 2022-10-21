@@ -27,7 +27,7 @@ from shotmanager.config import config
 def draw_settings(context, layout):
     """Used in Shot Manager Feature Toggles panel"""
     props = context.scene.UAS_shot_manager_props
-    prefs = config.getShotManagerPrefs()
+    prefs = config.getAddonPrefs()
 
     propCol = propertyColumn(layout)
 

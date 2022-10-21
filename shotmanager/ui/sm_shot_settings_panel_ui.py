@@ -166,7 +166,7 @@ class UAS_PT_ShotManager_ShotProperties(Panel):
 
     def draw(self, context):
         scene = context.scene
-        prefs = config.getShotManagerPrefs()
+        prefs = config.getAddonPrefs()
         props = scene.UAS_shot_manager_props
         # iconExplorer = config.icons_col["General_Explorer_32"]
 

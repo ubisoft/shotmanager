@@ -40,7 +40,7 @@ class UAS_ShotManager_Features(Operator):
     bl_options = {"INTERNAL"}
 
     def invoke(self, context, event):
-        prefs = config.getShotManagerPrefs()
+        prefs = config.getAddonPrefs()
 
         # close all the panels
         prefs.features_layoutSettings_expanded = False
@@ -70,7 +70,7 @@ def draw_features_prefs(mode, layout):
     """
     # TOFIX: the bpy.context calls should be double-checked
 
-    prefs = config.getShotManagerPrefs()
+    prefs = config.getAddonPrefs()
     if "SCENE" == mode:
         props = bpy.context.scene.UAS_shot_manager_props
         propsLayout = props.getCurrentLayout()
