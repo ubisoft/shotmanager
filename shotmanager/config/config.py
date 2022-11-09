@@ -31,6 +31,11 @@ def getAddonPrefs():
     return bpy.context.preferences.addons["shotmanager"].preferences
 
 
+def getAddonProps(scene):
+    """Return the main properties class instance of the add-on"""
+    return scene.UAS_shot_manager_props
+
+
 def initGlobalVariables():
 
     # debug ############

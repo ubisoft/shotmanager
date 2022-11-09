@@ -64,7 +64,7 @@ class UAS_ShotManager_OpenDialogForCamBG(Operator):
         #   print('Selected file:', self.filepath)
         #   print('File name:', filename)
         #   print('File extension:', extension)
-        props = context.scene.UAS_shot_manager_props
+        props = config.getAddonProps(context.scene)
         shot = props.getCurrentShot()
 
         shot.removeBGImages()
@@ -128,12 +128,12 @@ class UAS_ShotManager_RemoveBGImages(Operator):
     shotIndex: IntProperty(default=-1)
 
     def invoke(self, context, event):
-        props = context.scene.UAS_shot_manager_props
+        props = config.getAddonProps(context.scene)
         shotList = []
 
         print("Remove BG images: shotIndex: ", self.shotIndex)
         if 0 > self.shotIndex:
-            take = context.scene.UAS_shot_manager_props.getCurrentTake()
+            take = props.getCurrentTake()
             shotList = take.getShotsList(ignoreDisabled=props.shotsGlobalSettings.alsoApplyToDisabledShots)
         else:
             shot = props.getShotByIndex(self.shotIndex)
@@ -183,7 +183,7 @@ class UAS_ShotManager_CamsBGItem(Operator):
     index: bpy.props.IntProperty(default=0)
 
     def invoke(self, context, event):
-        props = context.scene.UAS_shot_manager_props
+        props = config.getAddonProps(context.scene)
         props.setSelectedShotByIndex(self.index)
         props.expand_cameraBG_properties = True
         return {"FINISHED"}

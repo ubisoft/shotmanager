@@ -34,7 +34,7 @@ def getStoryboardObjects(scene):
 
     See also shot.getStoryboardChildren()
     """
-    props = scene.UAS_shot_manager_props
+    props = config.getAddonProps(scene)
 
     shotCameras = props.getCameras(fromAllTakes=True, ignoreDisabled=False, onlyShotsOfType="STORYBOARD")
     allStbObjects = list()

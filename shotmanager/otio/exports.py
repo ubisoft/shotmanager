@@ -240,7 +240,7 @@ def exportTakeEditToOtio(
     output_media_mode: can be "IMAGE_SEQ", "VIDEO", "IMAGE_SEQ_AND_VIDEO". Specify the file format of the rendered
     media.
     """
-    props = scene.UAS_shot_manager_props
+    props = config.getAddonProps(scene)
     sceneFps = fps if fps != -1 else utils.getSceneEffectiveFps(scene)
     #   import opentimelineio as opentimelineio
 
@@ -286,7 +286,7 @@ def exportShotManagerEditToOtio(
     """
     _logger.debug_ext(f"exportShotManagerEditToOtio from exports.py, fileListOnly: {fileListOnly}", tag="DEPRECATED")
 
-    props = scene.UAS_shot_manager_props
+    props = config.getAddonProps(scene)
     sceneFps = fps if fps != -1 else utils.getSceneEffectiveFps(scene)
     #   import opentimelineio as opentimelineio
 

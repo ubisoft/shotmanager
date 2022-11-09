@@ -26,6 +26,7 @@ from pathlib import Path
 import bpy
 from shotmanager.rendering import rendering
 
+from shotmanager.config import config
 from shotmanager.config import sm_logging
 
 _logger = sm_logging.getLogger(__name__)
@@ -83,7 +84,8 @@ def initializeForRRS(override_existing: bool, verbose=False):
     print("\n\n *** UAS Pipe to Shot Manager: initializeForRRS ***")
     setup_project_env(override_existing, verbose)
 
-    scene.UAS_shot_manager_props.setProjectSettings(
+    props = config.getAddonProps(scene)
+    props.setProjectSettings(
         use_project_settings=True,
         project_name=os.environ["UAS_PROJECT_NAME"],
         project_fps=float(os.environ["UAS_PROJECT_FRAMERATE"]),
@@ -140,7 +142,7 @@ def publishRRS(
         print("\n*** publishRRS failed: No UAS_shot_manager_prop found in the scene ***\n")
         return False
 
-    props = scene.UAS_shot_manager_props
+    props = config.getAddonProps(scene)
     # _logger.debug(
     #     f" + len takes: {len(props.getTakes())}, takeInd: {takeIndex}, len truc: {len(props.getTakes()[takeIndex].getShotList(ignoreDisabled=True))}"
     # )

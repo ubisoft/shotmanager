@@ -98,7 +98,7 @@ class UAS_Gpu_DopesheetGpuSample(Operator):
 
         # context.window_manager.UAS_shot_manager_display_dopesheet_gpu_sample = True
 
-        props = context.scene.UAS_shot_manager_props
+        props = config.getAddonProps(context.scene)
         # # config.gRedrawShotStack = False
 
         self.target_area_index = props.getTargetDopesheetIndex(context, only_valid=True)
@@ -180,7 +180,7 @@ class UAS_Gpu_DopesheetGpuSample(Operator):
     ###################################
 
     def modal(self, context, event):
-        # props = context.scene.UAS_shot_manager_props
+        # props = config.getAddonProps(context.scene)
         # prefs = config.getAddonPrefs()
 
         event_handled = False

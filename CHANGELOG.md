@@ -1,4 +1,8 @@
 -----
+## 2.1.40 (2022-11-08)
+- Code refactor to introduce the function config.getAddonProps() to get props
+
+-----
 ## 2.1.32 (2022-10-21)
 - Continuous editing stabilization and exposition of properties
 

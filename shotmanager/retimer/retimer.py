@@ -1216,7 +1216,7 @@ def retimeScene(
 
     # Shot ranges
     if retimerApplyToSettings.applyToCameraShotRanges:
-        props = scene.UAS_shot_manager_props
+        props = config.getAddonProps(scene)
         shotList = props.getShotsList(ignoreDisabled=False)
 
         if "CLEAR_ANIM" != mode:

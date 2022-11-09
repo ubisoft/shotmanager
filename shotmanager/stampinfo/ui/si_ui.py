@@ -61,7 +61,7 @@ class UAS_PT_ShotManagerStampInfoPanelStdalone(Panel):
 
     @classmethod
     def poll(self, context):
-        props = context.scene.UAS_shot_manager_props
+        props = config.getAddonProps(context.scene)
         prefs = config.getAddonPrefs()
         displayPanel = prefs.stampInfo_display_properties and props.getCurrentShot() is not None
         return displayPanel and prefs.stampInfo_separatedPanel
@@ -105,7 +105,7 @@ class UAS_PT_ShotManagerStampInfoPanel(Panel):
 
     @classmethod
     def poll(cls, context):
-        props = context.scene.UAS_shot_manager_props
+        props = config.getAddonProps(context.scene)
         prefs = config.getAddonPrefs()
         displayPanel = prefs.stampInfo_display_properties and props.getCurrentShot() is not None
         return displayPanel and not prefs.stampInfo_separatedPanel
@@ -144,7 +144,7 @@ def drawHeaderPreset(context, layout):
 
 
 def drawAllPanels(context, layout):
-    props = context.scene.UAS_shot_manager_props
+    props = config.getAddonProps(context.scene)
     prefs = config.getAddonPrefs()
 
     enableProperties = not props.use_project_settings
@@ -191,7 +191,7 @@ def drawMainStampInfoPanel(context, layout, enabled=True):
     okForRenderAnim = True
 
     # wkip temp information to remove when SI is correctly integrated
-    props = context.scene.UAS_shot_manager_props
+    props = config.getAddonProps(context.scene)
     if props.use_project_settings:
         projRow = layout.row()
         projRow.alert = True

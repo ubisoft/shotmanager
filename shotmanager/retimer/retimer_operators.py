@@ -26,6 +26,8 @@ from bpy.props import StringProperty
 from . import retimer
 
 from shotmanager.utils.utils_storyboard import getStoryboardObjects
+
+from shotmanager.config import config
 from shotmanager.config import sm_logging
 
 _logger = sm_logging.getLogger(__name__)
@@ -42,7 +44,8 @@ class UAS_ShotManager_RetimerInitialize(Operator):
     bl_options = {"INTERNAL"}
 
     def execute(self, context):
-        retimerProps = context.scene.UAS_shot_manager_props.retimer
+        props = config.getAddonProps(context.scene)
+        retimerProps = props.retimer
 
         retimerProps.initialize()
 
@@ -56,8 +59,9 @@ class UAS_ShotManager_GetTimeRange(Operator):
     bl_options = {"INTERNAL"}
 
     def execute(self, context):
-        retimeEngine = context.scene.UAS_shot_manager_props.retimer.retimeEngine
         scene = context.scene
+        props = config.getAddonProps(scene)
+        retimeEngine = props.retimer.retimeEngine
 
         if scene.use_preview_range:
             retimeEngine.start_frame = scene.frame_preview_start
@@ -79,7 +83,8 @@ class UAS_ShotManager_GetCurrentFrameFor(Operator):
 
     def execute(self, context):
         scene = context.scene
-        retimeEngine = scene.UAS_shot_manager_props.retimer.retimeEngine
+        props = config.getAddonProps(scene)
+        retimeEngine = props.retimer.retimeEngine
 
         currentFrame = scene.frame_current
 
@@ -100,8 +105,9 @@ class UAS_ShotManager_RetimerApply(Operator):
     bl_options = {"REGISTER", "UNDO"}
 
     def execute(self, context):
-        retimeEngine = context.scene.UAS_shot_manager_props.retimer.retimeEngine
-        retimerApplyToSettings = context.scene.UAS_shot_manager_props.retimer.getCurrentApplyToSettings()
+        props = config.getAddonProps(context.scene)
+        retimeEngine = props.retimer.retimeEngine
+        retimerApplyToSettings = props.retimer.getCurrentApplyToSettings()
 
         if retimerApplyToSettings.onlyOnSelection:
             sceneObjs = [obj for obj in context.selected_objects]

@@ -375,7 +375,7 @@ class ShotClipComponent(Component2D):
     def _on_selected_changed(self, context, event, isSelected):
         if isSelected:
             _logger.debug_ext("\n\nClip isSelected set to True", col="RED")
-            props = context.scene.UAS_shot_manager_props
+            props = config.getAddonProps(context.scene)
             prefs = config.getAddonPrefs()
 
             prefs.shot_selected_from_shots_stack__flag = True
@@ -456,7 +456,7 @@ class ShotClipComponent(Component2D):
 
     # to override by inheriting classes
     def _on_doublecliked(self, context, event, region):
-        props = context.scene.UAS_shot_manager_props
+        props = config.getAddonProps(context.scene)
 
         mouse_frame = int(region.view2d.region_to_view(event.mouse_x - region.x, 0)[0])
         context.scene.frame_current = mouse_frame

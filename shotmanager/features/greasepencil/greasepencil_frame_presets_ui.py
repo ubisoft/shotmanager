@@ -235,7 +235,7 @@ class UAS_ShotManager_GpTemplatePanel(Operator):
     def invoke(self, context, event):
         prefs = config.getAddonPrefs()
         if "SCENE" == self.mode:
-            props = context.scene.UAS_shot_manager_props
+            props = config.getAddonProps(context.scene)
         else:
             props = prefs
         props.stb_frameTemplate.updatePresets(mode="SCENE")
@@ -300,7 +300,7 @@ class UAS_ShotManager_GpTemplatePanel(Operator):
     def draw(self, context):
         prefs = config.getAddonPrefs()
         if "SCENE" == self.mode:
-            props = context.scene.UAS_shot_manager_props
+            props = config.getAddonProps(context.scene)
         else:
             props = prefs
         #    props.stb_frameTemplate.updatePresets(mode="SCENE")
@@ -505,7 +505,7 @@ class UAS_ShotManager_GpTemplatePanel(Operator):
         # Can be SCENE or ADDON_PREFS"
         prefs = config.getAddonPrefs()
         if "SCENE" == self.mode:
-            props = context.scene.UAS_shot_manager_props
+            props = config.getAddonProps(context.scene)
         else:
             props = prefs
 

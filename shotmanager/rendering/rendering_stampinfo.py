@@ -31,10 +31,10 @@ def setStampInfoSettings(scene, resolution, resolutionFramed):
 
     if bpy.context.scene.UAS_SM_StampInfo_Settings is not None:
 
-        props = scene.UAS_shot_manager_props
+        props = config.getAddonProps(scene)
         stampInfoSettings = scene.UAS_SM_StampInfo_Settings
 
-        stampInfoSettings.stampInfoUsed = scene.UAS_shot_manager_props.useStampInfoDuringRendering
+        stampInfoSettings.stampInfoUsed = props.useStampInfoDuringRendering
 
         if stampInfoSettings.stampInfoUsed:
 

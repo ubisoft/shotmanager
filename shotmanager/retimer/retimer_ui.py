@@ -40,7 +40,7 @@ class UAS_PT_ShotManagerRetimer(Panel):
 
     @classmethod
     def poll(cls, context):
-        props = context.scene.UAS_shot_manager_props
+        props = config.getAddonProps(context.scene)
         prefs = config.getAddonPrefs()
         val = prefs.display_retimer_panel and not props.dontRefreshUI()
         return val
@@ -54,6 +54,7 @@ class UAS_PT_ShotManagerRetimer(Panel):
         row.label(icon_value=icon.icon_id)
 
     def draw(self, context):
+        props = config.getAddonProps(context.scene)
         prefs = config.getAddonPrefs()
 
         def _get_retime_frames_as_range(start, end):
@@ -61,7 +62,7 @@ class UAS_PT_ShotManagerRetimer(Panel):
                 return "[ - ]"
             return f"[ {start} ]" if start == end else f"[ {start}  ..  {end} ]"
 
-        retimerProps = context.scene.UAS_shot_manager_props.retimer
+        retimerProps = props.retimer
         retimeEngine = retimerProps.retimeEngine
 
         layout = self.layout

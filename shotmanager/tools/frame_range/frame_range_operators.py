@@ -153,7 +153,7 @@ class UAS_ShotManager_FrameTimeRangeFromShot(Operator):
 
     def execute(self, context):
         scene = context.scene
-        props = scene.UAS_shot_manager_props
+        props = config.getAddonProps(scene)
         currentShot = props.getCurrentShot()
 
         if currentShot:

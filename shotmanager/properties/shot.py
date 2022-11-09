@@ -87,10 +87,12 @@ class UAS_ShotManager_Shot(ShotInterface, PropertyGroup):
     # parentTakeIndex: IntProperty(name="Parent Take Index", default=-1)
 
     def getParentTakeIndex(self):
-        return self.parentScene.UAS_shot_manager_props.getShotParentTakeIndex(self)
+        props = config.getAddonProps(self.parentScene)
+        return props.getShotParentTakeIndex(self)
 
     def getParentTake(self):
-        return self.parentScene.UAS_shot_manager_props.getShotParentTake(self)
+        props = config.getAddonProps(self.parentScene)
+        return props.getShotParentTake(self)
 
     # for backward compatibility - before V1.2.21
     # used by data version patches.
@@ -99,16 +101,16 @@ class UAS_ShotManager_Shot(ShotInterface, PropertyGroup):
         if self.parentScene is not None:
             return self.parentScene
 
-        for scn in bpy.data.scenes:
-            if "UAS_shot_manager_props" in scn:
-                props = scn.UAS_shot_manager_props
+        for scene in bpy.data.scenes:
+            if "UAS_shot_manager_props" in scene:
+                props = config.getAddonProps(scene)
                 for take in props.takes:
                     #    print("Take name: ", take.name)
                     for shot in take.shots:
                         #        print("  Shot name: ", shot.name)
                         if shot.name == self.name:
-                            self.parentScene = scn
-                            return scn
+                            self.parentScene = scene
+                            return scene
         return None
 
     # gpStoryboard: PointerProperty(type=GreasePencilStoryboard)
@@ -126,7 +128,8 @@ class UAS_ShotManager_Shot(ShotInterface, PropertyGroup):
         specificFrame=None,
         genericFrame=False,
     ):
-        return self.parentScene.UAS_shot_manager_props.getOutputMediaPath(
+        props = config.getAddonProps(self.parentScene)
+        return props.getOutputMediaPath(
             outputMedia,
             self,
             rootPath=rootPath,
@@ -139,10 +142,11 @@ class UAS_ShotManager_Shot(ShotInterface, PropertyGroup):
         )
 
     def getName_PathCompliant(self, withPrefix=False):
+        props = config.getAddonProps(self.parentScene)
         shotName = self.name.replace(" ", "_")
         if withPrefix:
-            # shotName = f"{self.parentScene.UAS_shot_manager_props.getRenderShotPrefix()}{shotName}"
-            shotName = f"{self.parentScene.UAS_shot_manager_props.getSequenceName('FULL', addSeparator=True)}{shotName}"
+            # shotName = f"{props.getRenderShotPrefix()}{shotName}"
+            shotName = f"{props.getSequenceName('FULL', addSeparator=True)}{shotName}"
         return shotName
 
     def _get_name(self):
@@ -151,7 +155,8 @@ class UAS_ShotManager_Shot(ShotInterface, PropertyGroup):
 
     def _set_name(self, value):
         """Set a unique name to the shot"""
-        shots = self.parentScene.UAS_shot_manager_props.getShotsList(takeIndex=self.getParentTakeIndex())
+        props = config.getAddonProps(self.parentScene)
+        shots = props.getShotsList(takeIndex=self.getParentTakeIndex())
         newName = utils.findFirstUniqueName(self, value, shots)
         self["name"] = newName
 
@@ -169,9 +174,10 @@ class UAS_ShotManager_Shot(ShotInterface, PropertyGroup):
     )
 
     def selectShotInUI(self):
-        currentTakeInd = self.parentScene.UAS_shot_manager_props.getCurrentTakeIndex()
+        props = config.getAddonProps(self.parentScene)
+        currentTakeInd = props.getCurrentTakeIndex()
         if currentTakeInd == self.getParentTakeIndex():
-            self.parentScene.UAS_shot_manager_props.setSelectedShot(self)
+            props.setSelectedShot(self)
 
     shotType: EnumProperty(
         name="Type",
@@ -361,9 +367,9 @@ class UAS_ShotManager_Shot(ShotInterface, PropertyGroup):
 
     def makeCameraUnique(self):
         if self.camera is not None:
-            if 1 < self.parentScene.UAS_shot_manager_props.getNumSharedCamera(self.camera):
+            props = config.getAddonProps(self.parentScene)
+            if 1 < props.getNumSharedCamera(self.camera):
                 # self.camera = utils.duplicateObject(self.camera, newName="Cam_" + self.name)
-                props = self.parentScene.UAS_shot_manager_props
                 # wkip to do for each gp props
                 gpProps = self.getGreasePencilProps("STORYBOARD")
                 duplicateHierarchy = gpProps is not None
@@ -372,7 +378,7 @@ class UAS_ShotManager_Shot(ShotInterface, PropertyGroup):
 
     def setCameraToViewport(self):
         if self.isCameraValid() and bpy.context.screen is not None:
-            props = self.parentScene.UAS_shot_manager_props
+            props = config.getAddonProps(self.parentScene)
             target_area_index = props.getTargetViewportIndex(bpy.context, only_valid=False)
             target_area = utils.getAreaFromIndex(bpy.context, target_area_index, "VIEW_3D")
             self.parentScene.camera = self.camera
@@ -386,12 +392,12 @@ class UAS_ShotManager_Shot(ShotInterface, PropertyGroup):
         defaultVal = [1.0, 1.0, 1.0, 1.0]
         print
         try:
-            props = self.parentScene.UAS_shot_manager_props
+            props = config.getAddonProps(self.parentScene)
         except Exception:
             print(f"_get_color: self: {self}, self.parentScene:{self.parentScene}")
             if self.parentScene is None:
                 self.parentScene = self.getParentScene()
-        props = self.parentScene.UAS_shot_manager_props
+        props = config.getAddonProps(self.parentScene)
 
         if props.use_camera_color:
             if self.camera is not None:
@@ -413,7 +419,7 @@ class UAS_ShotManager_Shot(ShotInterface, PropertyGroup):
 
     def _set_color(self, value):
         self["color"] = value
-        props = self.parentScene.UAS_shot_manager_props
+        props = config.getAddonProps(self.parentScene)
         if props.use_camera_color and self.camera is not None:
             self.camera.color[0] = self["color"][0]
             self.camera.color[1] = self["color"][1]
@@ -441,13 +447,15 @@ class UAS_ShotManager_Shot(ShotInterface, PropertyGroup):
         """
         referenceLevel can be "TAKE" or "GLOBAL_EDIT"
         """
-        return self.parentScene.UAS_shot_manager_props.getEditTime(self, self.start, referenceLevel=referenceLevel)
+        props = config.getAddonProps(self.parentScene)
+        return props.getEditTime(self, self.start, referenceLevel=referenceLevel)
 
     def getEditEnd(self, referenceLevel="TAKE"):
         """
         referenceLevel can be "TAKE" or "GLOBAL_EDIT"
         """
-        return self.parentScene.UAS_shot_manager_props.getEditTime(self, self.end, referenceLevel=referenceLevel)
+        props = config.getAddonProps(self.parentScene)
+        return props.getEditTime(self, self.end, referenceLevel=referenceLevel)
 
     ##############
     # background images
@@ -529,6 +537,7 @@ class UAS_ShotManager_Shot(ShotInterface, PropertyGroup):
     )
 
     def addBGImages(self, mediaFile, frame_start=0, alpha=1.0, addSoundFromVideo=False):
+        props = config.getAddonProps(self.parentScene)
         if self.camera is not None:
             if len(self.camera.data.background_images):
                 self.removeBGImages()
@@ -536,18 +545,19 @@ class UAS_ShotManager_Shot(ShotInterface, PropertyGroup):
             videoAdded = utils.add_background_video_to_cam(self.camera.data, str(mediaFile), frame_start, alpha=alpha)
             if not videoAdded:
                 utils.ShowMessageBox(
-                    message=f"The following video cannot be imported:\n   {media_path}",
+                    message=f"The following video cannot be imported:\n   {mediaFile}",
                     title="Video Not Found",
                     icon="ERROR",
                 )
             print(f"addBGImages 02 {self.camera.data.background_images[0].clip.name}")
 
         if addSoundFromVideo:
-            soundClip = self.parentScene.UAS_shot_manager_props.addBGSoundToShot(mediaFile, self)
+            soundClip = props.addBGSoundToShot(mediaFile, self)
             if soundClip is not None:
                 soundClip.frame_start = frame_start
 
     def removeBGImages(self):
+        props = config.getAddonProps(self.parentScene)
         if self.camera is not None and len(self.camera.data.background_images):
             # if shot.camera.data.background_images[0].clip is not None:
             self.camera.data.show_background_images = False
@@ -555,7 +565,7 @@ class UAS_ShotManager_Shot(ShotInterface, PropertyGroup):
             self.camera.data.background_images.clear()
             # shot.camera.data.background_images[0].clip.filepath = ""
 
-        self.parentScene.UAS_shot_manager_props.removeBGSoundFromShot(self)
+        props.removeBGSoundFromShot(self)
         # if "" != self.bgSoundClipName:
         #     soundSeq = self.getSoundSequence()
         #     if soundSeq is not None:
@@ -609,6 +619,7 @@ class UAS_ShotManager_Shot(ShotInterface, PropertyGroup):
         """Create a Grease Pencil object parented to the camera of the shot.
         Return a tupple with the grease pencil properties and the created object.
         """
+        props = config.getAddonProps(self.parentScene)
         gpProps = self.getGreasePencilProps(mode)
 
         if gpProps is None:
@@ -618,7 +629,7 @@ class UAS_ShotManager_Shot(ShotInterface, PropertyGroup):
         gpObj = self.getGreasePencilObject(mode)
 
         if gpObj is None:
-            framePreset = self.parentScene.UAS_shot_manager_props.stb_frameTemplate
+            framePreset = props.stb_frameTemplate
 
             gpName = self.camera.name + "_GP"
 
@@ -707,7 +718,7 @@ class UAS_ShotManager_Shot(ShotInterface, PropertyGroup):
             if gpProps is None:
                 return
 
-            props = self.parentScene.UAS_shot_manager_props
+            props = config.getAddonProps(self.parentScene)
 
             if forceHide:
                 _showGreasePencil(gp_child, False)
@@ -838,7 +849,7 @@ class UAS_ShotManager_Shot(ShotInterface, PropertyGroup):
     def initialize(self, parent):
         """Parent is the parent take"""
         # if "parent" not in self:
-        # props = self.parentScene.UAS_shot_manager_props
+        # props = config.getAddonProps(self.parentScene)
         # #  print(" icicicic parent in shot")
 
         # UAS_ShotManager_Shot.parent = property(lambda self: parent)
@@ -846,7 +857,7 @@ class UAS_ShotManager_Shot(ShotInterface, PropertyGroup):
         pass
 
     def get_index_in_parent(self):
-        props = self.parentScene.UAS_shot_manager_props
+        props = config.getAddonProps(self.parentScene)
         return props.getShotIndex(self)
 
     def get_name(self):

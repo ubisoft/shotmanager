@@ -72,7 +72,7 @@ def list_cameras_for_new_shots(self, context):
 
 
 def list_cameras_assets_in_file(self, context):
-    props = context.scene.UAS_shot_manager_props
+    props = config.getAddonProps(context.scene)
     res = list()
     res.append(("DEFAULT_CAMERA", "Default Scene Camera", "Create a new camera from scene settings", 0))
     if Path(props.project_cameraAssets_path).exists() and Path(props.project_cameraAssets_path).is_file():
@@ -117,7 +117,7 @@ class UAS_ShotManager_SetShotStart(Operator):
     newStart: IntProperty(default=-99999)
 
     def execute(self, context):
-        props = context.scene.UAS_shot_manager_props
+        props = config.getAddonProps(context.scene)
         shot = props.getSelectedShot()
         # Manually add undo here
         if shot is not None:
@@ -216,7 +216,7 @@ class UAS_ShotManager_SetCurrentShot(Operator):
 
     def execute(self, context):
         scene = context.scene
-        props = scene.UAS_shot_manager_props
+        props = config.getAddonProps(scene)
         # propsCurrentLayout = props.getCurrentLayout()
         prefs = config.getAddonPrefs()
         shot = props.getShotByIndex(self.index)
@@ -388,7 +388,7 @@ class UAS_ShotManager_ToggleContinuousGPEditingMode(Operator):
         return self.execute(context)
 
     def execute(self, context):
-        props = context.scene.UAS_shot_manager_props
+        props = config.getAddonProps(context.scene)
         # prefs = config.getAddonPrefs()
 
         if "TOGGLE_USE_EDITING" == self.action:
@@ -428,7 +428,8 @@ class UAS_ShotManager_ShotDuration(Operator):
     #     return selectionIsPossible
 
     def execute(self, context):
-        context.scene.UAS_shot_manager_props.setSelectedShotByIndex(self.index)
+        props = config.getAddonProps(context.scene)
+        props.setSelectedShotByIndex(self.index)
         return {"FINISHED"}
 
 
@@ -442,7 +443,7 @@ class UAS_ShotManager_GetSetCurrentFrame(Operator):
     shotSource: StringProperty(default="")
 
     def invoke(self, context, event):
-        props = context.scene.UAS_shot_manager_props
+        props = config.getAddonProps(context.scene)
         argArr = json.loads(self.shotSource)
 
         shot = props.getShotByIndex(argArr[0])
@@ -491,7 +492,7 @@ class UAS_ShotManager_ShotTimeInEdit(Operator):
     shotSource: StringProperty(default="")
 
     def invoke(self, context, event):
-        props = context.scene.UAS_shot_manager_props
+        props = config.getAddonProps(context.scene)
         argArr = json.loads(self.shotSource)
 
         # print("shotSource: ", self.shotSource)
@@ -521,7 +522,7 @@ class UAS_ShotManager_ShowNotes(Operator):
     index: IntProperty(default=0)
 
     def invoke(self, context, event):
-        props = context.scene.UAS_shot_manager_props
+        props = config.getAddonProps(context.scene)
         prefs = config.getAddonPrefs()
         shot = props.getShotByIndex(self.index)
         shot.selectShotInUI()
@@ -540,13 +541,14 @@ class UAS_ShotManager_ListCameraInstances(Operator):
     index: IntProperty(default=0)
 
     def invoke(self, context, event):
+        props = config.getAddonProps(context.scene)
         wm = context.window_manager
-        context.scene.UAS_shot_manager_props.setSelectedShotByIndex(self.index)
+        props.setSelectedShotByIndex(self.index)
         # return wm.invoke_props_dialog(self, width=300)
         return wm.invoke_popup(self, width=300)
 
     def draw(self, context):
-        props = context.scene.UAS_shot_manager_props
+        props = config.getAddonProps(context.scene)
         layout = self.layout
         row = layout.row()
         shot = props.getShotByIndex(self.index)
@@ -578,7 +580,7 @@ class UAS_ShotManager_MakeShotCameraUnique(Operator):
     shotName: StringProperty(default="")
 
     def execute(self, context):
-        props = context.scene.UAS_shot_manager_props
+        props = config.getAddonProps(context.scene)
         # selectedShot = props.getSelectedShot()
         # selectedShotInd = props.getSelectedShotIndex()
 
@@ -603,7 +605,7 @@ class UAS_ShotManager_ShotAdd_GetCurrentFrameFor(Operator):
 
     def execute(self, context):
         scene = context.scene
-        # props = scene.UAS_shot_manager_props
+        # props = config.getAddonProps(scene)
         prefs = config.getAddonPrefs()
 
         currentFrame = scene.frame_current
@@ -691,7 +693,7 @@ class UAS_ShotManager_ShotAdd(Operator):
     def invoke(self, context, event):
         wm = context.window_manager
         scene = context.scene
-        props = scene.UAS_shot_manager_props
+        props = config.getAddonProps(scene)
         prefs = config.getAddonPrefs()
         selectedShot = props.getSelectedShot()
 
@@ -749,7 +751,7 @@ class UAS_ShotManager_ShotAdd(Operator):
 
     def draw(self, context):
         # scene = context.scene
-        props = context.scene.UAS_shot_manager_props
+        props = config.getAddonProps(context.scene)
         prefs = config.getAddonPrefs()
         isPrevizLayout = "PREVIZ" == self.layout_mode
         splitFactor = 0.3 if isPrevizLayout else 0.35
@@ -929,7 +931,7 @@ class UAS_ShotManager_ShotAdd(Operator):
 
     def execute(self, context):
         scene = context.scene
-        props = scene.UAS_shot_manager_props
+        props = config.getAddonProps(scene)
         prefs = config.getAddonPrefs()
         selectedShotInd = props.getSelectedShotIndex()
         newShotInd = selectedShotInd + 1
@@ -1048,12 +1050,14 @@ class UAS_ShotManager_ShotDuplicate(Operator):
 
     @classmethod
     def poll(cls, context):
-        shots = context.scene.UAS_shot_manager_props.get_shots()
+        props = config.getAddonProps(context.scene)
+        shots = props.get_shots()
         return len(shots)
 
     def invoke(self, context, event):
-        #    currentShot = context.scene.UAS_shot_manager_props.getCurrentShot()
-        selectedShot = context.scene.UAS_shot_manager_props.getSelectedShot()
+        props = config.getAddonProps(context.scene)
+        #    currentShot = props.getCurrentShot()
+        selectedShot = props.getSelectedShot()
         if selectedShot is None:
             return {"CANCELLED"}
         self.name = selectedShot.name + "_duplicate"
@@ -1062,7 +1066,7 @@ class UAS_ShotManager_ShotDuplicate(Operator):
         return context.window_manager.invoke_props_dialog(self, width=350)
 
     def draw(self, context):
-        props = context.scene.UAS_shot_manager_props
+        props = config.getAddonProps(context.scene)
         selectedShot = props.getSelectedShot()
         shotIsStoryboard = selectedShot.isStoryboardType()
 
@@ -1113,7 +1117,7 @@ class UAS_ShotManager_ShotDuplicate(Operator):
         box.separator(factor=0.4)
 
     def execute(self, context):
-        props = context.scene.UAS_shot_manager_props
+        props = config.getAddonProps(context.scene)
         selectedShot = props.getSelectedShot()
         selectedShotInd = props.getSelectedShotIndex()
 
@@ -1156,12 +1160,13 @@ class UAS_ShotManager_ShotRemove(Operator):
 
     @classmethod
     def poll(cls, context):
-        shots = context.scene.UAS_shot_manager_props.get_shots()
+        props = config.getAddonProps(context.scene)
+        shots = props.get_shots()
         return len(shots)
 
     def invoke(self, context, event):
         scene = context.scene
-        props = scene.UAS_shot_manager_props
+        props = config.getAddonProps(scene)
         shots = props.get_shots()
         selectedShotInd = props.getSelectedShotIndex()
         props.removeShot_UIupdate(shots[selectedShotInd])
@@ -1190,13 +1195,14 @@ class UAS_ShotManager_ShotMove(Operator):
 
     @classmethod
     def poll(cls, context):
-        shots = context.scene.UAS_shot_manager_props.get_shots()
+        props = config.getAddonProps(context.scene)
+        shots = props.get_shots()
         return len(shots)
 
     def invoke(self, context, event):
 
         scene = context.scene
-        props = scene.UAS_shot_manager_props
+        props = config.getAddonProps(scene)
 
         shots = props.get_shots()
         # currentShotInd = props.getCurrentShotIndex()
@@ -1225,7 +1231,7 @@ def convertMarkersFromCameraBindingToShots(scene):
     """Convert camera bindings to shots.
     New shots are added at the end of the shots list of the current take
     """
-    props = scene.UAS_shot_manager_props
+    props = config.getAddonProps(scene)
     prefs = config.getAddonPrefs()
     lastShotInd = props.getLastShotIndex()
 
@@ -1279,7 +1285,7 @@ class UAS_ShotManager_CreateShotsFromEachCamera(Operator):
 
     def invoke(self, context, event):
         scene = context.scene
-        props = scene.UAS_shot_manager_props
+        props = config.getAddonProps(scene)
         currentShotInd = props.getCurrentShotIndex()
         selectedShotInd = props.getSelectedShotIndex()
 
@@ -1345,7 +1351,7 @@ class UAS_ShotManager_CreateNShots(Operator):
 
     def invoke(self, context, event):
         wm = context.window_manager
-        props = context.scene.UAS_shot_manager_props
+        props = config.getAddonProps(context.scene)
         prefs = config.getAddonPrefs()
 
         self.name = props.project_naming_shot_format if props.use_project_settings else props.naming_shot_format
@@ -1363,7 +1369,7 @@ class UAS_ShotManager_CreateNShots(Operator):
         return wm.invoke_props_dialog(self, width=360)
 
     def draw(self, context):
-        props = context.scene.UAS_shot_manager_props
+        props = config.getAddonProps(context.scene)
         layout = self.layout
 
         box = layout.box()
@@ -1402,7 +1408,7 @@ class UAS_ShotManager_CreateNShots(Operator):
         col = grid_flow.column(align=False)
         col.prop(self, "offsetFromPrevious", text="")
 
-        if not context.scene.UAS_shot_manager_props.use_camera_color:
+        if not props.use_camera_color:
             col = grid_flow.column(align=False)
             col.label(text="Color:")
             col = grid_flow.column(align=True)
@@ -1412,7 +1418,7 @@ class UAS_ShotManager_CreateNShots(Operator):
 
     def execute(self, context):
         scene = context.scene
-        props = scene.UAS_shot_manager_props
+        props = config.getAddonProps(scene)
         selectedShotInd = props.getSelectedShotIndex()
         newShotInd = selectedShotInd + 1
 
@@ -1454,7 +1460,7 @@ class UAS_ShotManager_CreateNShots(Operator):
 
 
 def list_target_takes(self, context):
-    props = context.scene.UAS_shot_manager_props
+    props = config.getAddonProps(context.scene)
     takes = props.getTakes()
     currentTake = props.getCurrentTake()
     res = list()
@@ -1467,7 +1473,7 @@ def list_target_takes(self, context):
 
 def list_target_take_shots(self, context):
     """first index is -1 to define the take start"""
-    props = context.scene.UAS_shot_manager_props
+    props = config.getAddonProps(context.scene)
     take = props.getTakeByName(self.targetTake)
     res = list()
     if take is not None:
@@ -1509,9 +1515,10 @@ class UAS_ShotManager_DuplicateShotsToOtherTake(Operator):
 
     @classmethod
     def poll(cls, context):
+        props = config.getAddonProps(context.scene)
         # shots = context.scene.UAS_shot_manager_props.get_shots()
-        shots = context.scene.UAS_shot_manager_props.getShotsList(ignoreDisabled=True)
-        takes = context.scene.UAS_shot_manager_props.getTakes()
+        shots = props.getShotsList(ignoreDisabled=True)
+        takes = props.getTakes()
         return len(shots) and len(takes) > 1
 
     def invoke(self, context, event):
@@ -1561,7 +1568,7 @@ class UAS_ShotManager_DuplicateShotsToOtherTake(Operator):
         layout.separator()
 
     def execute(self, context):
-        props = context.scene.UAS_shot_manager_props
+        props = config.getAddonProps(context.scene)
         enabledShots = props.getShotsList(ignoreDisabled=True)
         targetTakeInd = props.getTakeIndexByName(self.targetTake)
         # print(f"targetTakeInd: {targetTakeInd}")
@@ -1622,7 +1629,8 @@ class UAS_ShotManager_ShotRemoveMultiple(Operator):
 
     @classmethod
     def poll(cls, context):
-        shots = context.scene.UAS_shot_manager_props.get_shots()
+        props = config.getAddonProps(context.scene)
+        shots = props.get_shots()
         return len(shots)
 
     def invoke(self, context, event):
@@ -1659,7 +1667,7 @@ class UAS_ShotManager_ShotRemoveMultiple(Operator):
 
     def execute(self, context):
         scene = context.scene
-        props = scene.UAS_shot_manager_props
+        props = config.getAddonProps(scene)
         prefs = config.getAddonPrefs()
         shots = props.get_shots()
         currentShotInd = props.current_shot_index
@@ -1723,7 +1731,8 @@ class UAS_ShotManager_Shots_SelectCamera(Operator):
     #     return selectionIsPossible
 
     def execute(self, context):
-        context.scene.UAS_shot_manager_props.setSelectedShotByIndex(self.index)
+        props = config.getAddonProps(context.scene)
+        props.setSelectedShotByIndex(self.index)
         # NOTE: we use context.object here instead of context.active_object because
         # when the eye icon of the object is closed (meaning object.hide_get() == True)
         # then context.active_object is None
@@ -1732,7 +1741,7 @@ class UAS_ShotManager_Shots_SelectCamera(Operator):
             if not context.object.visible_get():
                 context.object.hide_viewport = False
             bpy.ops.object.mode_set(mode="OBJECT")
-        context.scene.UAS_shot_manager_props.selectCamera(self.index)
+        props.selectCamera(self.index)
         return {"INTERFACE"}
 
 
@@ -1746,11 +1755,13 @@ class UAS_ShotManager_Shots_RemoveCamera(Operator):
 
     @classmethod
     def poll(cls, context):
-        shots = context.scene.UAS_shot_manager_props.get_shots()
+        props = config.getAddonProps(context.scene)
+        shots = props.get_shots()
         return len(shots)
 
     def invoke(self, context, event):
-        selectedShot = context.scene.UAS_shot_manager_props.getSelectedShot()
+        props = config.getAddonProps(context.scene)
+        selectedShot = props.getSelectedShot()
         if selectedShot is None:
             return {"CANCELLED"}
         return context.window_manager.invoke_props_dialog(self)
@@ -1764,7 +1775,7 @@ class UAS_ShotManager_Shots_RemoveCamera(Operator):
         layout.separator()
 
     def execute(self, context):
-        props = context.scene.UAS_shot_manager_props
+        props = config.getAddonProps(context.scene)
         selectedShot = props.getSelectedShot()
 
         if selectedShot is None:
@@ -1794,7 +1805,8 @@ class UAS_ShotManager_UniqueCameras(Operator):
 
     @classmethod
     def poll(cls, context):
-        shots = context.scene.UAS_shot_manager_props.get_shots()
+        props = config.getAddonProps(context.scene)
+        shots = props.get_shots()
         return len(shots)
 
     @staticmethod
@@ -1804,7 +1816,7 @@ class UAS_ShotManager_UniqueCameras(Operator):
     def execute(self, context):
         # NOTE: brute force here - could be optimized
         scene = context.scene
-        props = scene.UAS_shot_manager_props
+        props = config.getAddonProps(scene)
         takes = props.getTakes()
         # new_cam_from_shots = dict()
         # objects = bpy.data.objects

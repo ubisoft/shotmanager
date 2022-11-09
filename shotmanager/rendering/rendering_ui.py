@@ -41,7 +41,7 @@ class UAS_PT_ShotManagerRenderPanelStdalone(Panel):
 
     @classmethod
     def poll(cls, context):
-        props = context.scene.UAS_shot_manager_props
+        props = config.getAddonProps(context.scene)
         prefs = config.getAddonPrefs()
         displayPanel = prefs.separatedRenderPanel
         displayPanel = displayPanel and props.getCurrentShot() is not None
@@ -50,7 +50,7 @@ class UAS_PT_ShotManagerRenderPanelStdalone(Panel):
 
     def draw_header(self, context):
 
-        props = context.scene.UAS_shot_manager_props
+        props = config.getAddonProps(context.scene)
         layout = self.layout
         layout.emboss = "NONE"
 
@@ -91,7 +91,7 @@ class UAS_PT_ShotManagerRenderPanel(Panel):
 
     @classmethod
     def poll(cls, context):
-        props = context.scene.UAS_shot_manager_props
+        props = config.getAddonProps(context.scene)
         prefs = config.getAddonPrefs()
         val = not props.dontRefreshUI() and len(props.takes) and len(props.get_shots())
         val = val and not prefs.separatedRenderPanel
@@ -154,7 +154,7 @@ def drawRenderInfos(context, layout):
         return infosStr
 
     scene = context.scene
-    props = context.scene.UAS_shot_manager_props
+    props = config.getAddonProps(context.scene)
     iconExplorer = config.icons_col["General_Explorer_32"]
 
     sepHeight = 0.2
@@ -364,7 +364,7 @@ def drawRenderInfos(context, layout):
 
 def draw3DRenderPanel(self, context):
     scene = context.scene
-    props = context.scene.UAS_shot_manager_props
+    props = config.getAddonProps(context.scene)
     iconExplorer = config.icons_col["General_Explorer_32"]
 
     stampInfoAvailable = props.isStampInfoAvailable()

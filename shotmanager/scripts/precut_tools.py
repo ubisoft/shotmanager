@@ -41,7 +41,8 @@ class UAS_ShotManager_OT_PredecTools_SortVersionsShots(Operator):
     bl_options = {"REGISTER", "UNDO"}
 
     def execute(self, context):
-        context.scene.UAS_shot_manager_props.sortShotsVersions()
+        props = config.getAddonProps(context.scene)
+        props.sortShotsVersions()
 
         return {"FINISHED"}
 
@@ -77,12 +78,13 @@ class UAS_ShotManager_PredecTools_CreateShotsFromSingleCamera(Operator):
 
     def invoke(self, context, event):
         wm = context.window_manager
+        props = config.getAddonProps(context.scene)
         prefs = config.getAddonPrefs()
 
         self.start = context.scene.frame_current
         self.end = context.scene.frame_current + prefs.new_shot_duration
 
-        camName = context.scene.UAS_shot_manager_props.getActiveCameraName()
+        camName = props.getActiveCameraName()
         if "" != camName:
             self.cameraName = camName
 
@@ -117,7 +119,7 @@ class UAS_ShotManager_PredecTools_CreateShotsFromSingleCamera(Operator):
 
     def execute(self, context):
         scene = context.scene
-        props = scene.UAS_shot_manager_props
+        props = config.getAddonProps(scene)
         #       #  currentShotInd = props.getCurrentShotIndex()
         #         selectedShotInd = props.getSelectedShotIndex()
 
@@ -155,7 +157,7 @@ class UAS_ShotManager_OT_PredecTools_PrintMontageInfo(Operator):
 
     def execute(self, context):
         scene = context.scene
-        props = scene.UAS_shot_manager_props
+        props = config.getAddonProps(scene)
 
         # sm_montage = MontageShotManager()
         # sm_montage.initialize(scene, props.getCurrentTake())
@@ -182,7 +184,7 @@ class UAS_ShotManager_OT_PredecTools_MontageSequencesToJson(Operator):
 
     def execute(self, context):
         scene = context.scene
-        props = scene.UAS_shot_manager_props
+        props = config.getAddonProps(scene)
 
         # sm_montage = MontageShotManager()
         # sm_montage.initialize(scene, props.getCurrentTake())

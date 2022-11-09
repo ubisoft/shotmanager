@@ -23,6 +23,8 @@ import bpy
 
 from .camera_hud_bgl import draw_shots_names, draw_all_shots_names, drawShotName, view3d_camera_border, drawCameraPlane
 
+from shotmanager.config import config
+
 
 class UAS_ShotManager_DrawCameras_UI(bpy.types.Operator):
     bl_idname = "uas_shot_manager.draw_camera_hud_in_viewports"
@@ -120,7 +122,7 @@ class UAS_ShotManager_DrawHudOnCamPov(bpy.types.Operator):
             print("Error in UAS_ShotManager_DrawHudOnCamPov draw: no UAS_shot_manager_props defined")
             return
 
-        props = context.scene.UAS_shot_manager_props
+        props = config.getAddonProps(context.scene)
         current_shot = props.getCurrentShot()
         cam = context.scene.camera
         if (

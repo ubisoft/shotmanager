@@ -394,7 +394,7 @@ class ShotStackWidget:
 
     def handle_event(self, context, event, region):
         """Return True if the event is handled for ShotStackWidget"""
-        # props = context.scene.UAS_shot_manager_props
+        # props = config.getAddonProps(context.scene)
         # prefs = config.getAddonPrefs()
 
         # _logger.debug_ext("*** handle event for ShotStackWidget", col="GREEN", tag="SHOTSTACK_EVENT")

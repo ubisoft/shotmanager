@@ -60,7 +60,7 @@ class UAS_ShotManager_ProjectSettings_Prefs(Operator):
     def draw(self, context):
         layout = self.layout
         scene = context.scene
-        props = scene.UAS_shot_manager_props
+        props = config.getAddonProps(scene)
 
         sepLowerHeight = 1.0
         sepHigherHeight = 0.4
@@ -252,7 +252,7 @@ class UAS_ShotManager_ProjectSettings_Prefs(Operator):
 
     def execute(self, context):
         scene = context.scene
-        props = scene.UAS_shot_manager_props
+        props = config.getAddonProps(scene)
         props.project_images_output_format = self.uiImagesOutputFormat
 
         context.scene.UAS_shot_manager_props.applyProjectSettings()
@@ -262,7 +262,7 @@ class UAS_ShotManager_ProjectSettings_Prefs(Operator):
         # since project properties are immediatly applied to Shot Manager properties then we also force the
         # application of the settings in the scene even if the user is not clicking on OK button
         scene = context.scene
-        props = scene.UAS_shot_manager_props
+        props = config.getAddonProps(scene)
         props.project_images_output_format = self.uiImagesOutputFormat
 
         context.scene.UAS_shot_manager_props.applyProjectSettings()
@@ -285,7 +285,7 @@ class UAS_ShotManager_SetProjectLogo(Operator, ImportHelper):
     def execute(self, context):
         """Use the selected file as a stamped logo"""
 
-        props = context.scene.UAS_shot_manager_props
+        props = config.getAddonProps(context.scene)
 
         filename, extension = os.path.splitext(self.filepath)
         #   print('Selected file:', self.filepath)
@@ -311,7 +311,7 @@ class UAS_ShotManager_SetProjectCameraAssetsPath(Operator, ImportHelper):
     def execute(self, context):
         """Use the selected file to get the assets library"""
 
-        props = context.scene.UAS_shot_manager_props
+        props = config.getAddonProps(context.scene)
 
         filename, extension = os.path.splitext(self.filepath)
         #   print('Selected file:', self.filepath)

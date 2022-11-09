@@ -60,7 +60,7 @@ class UAS_PT_SMStampInfoDebug(Panel):
 
     @classmethod
     def poll(self, context):
-        props = context.scene.UAS_shot_manager_props
+        props = config.getAddonProps(context.scene)
         prefs = config.getAddonPrefs()
         displayPanel = prefs.stampInfo_separatedPanel
         displayPanel = displayPanel and props.getCurrentShot() is not None

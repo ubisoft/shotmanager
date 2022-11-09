@@ -31,7 +31,7 @@ from shotmanager.config import config
 
 def draw_settings(context, layout):
     """Used in Shot Manager Feature Toggles panel"""
-    props = context.scene.UAS_shot_manager_props
+    props = config.getAddonProps(context.scene)
     prefs = config.getAddonPrefs()
 
     propCol = propertyColumn(layout)
@@ -62,7 +62,7 @@ def draw_settings(context, layout):
 # def draw_settings_in_menu(self, context):
 #     """Used in Shot Manager Feature Toggles panel
 #     """
-#     props = context.scene.UAS_shot_manager_props
+#     props = config.getAddonProps(context.scene)
 #     prefs = config.getAddonPrefs()
 #     layout = self.layout
 
@@ -115,7 +115,7 @@ class UAS_ShotManager_OT_InteractShotsStackSettingsWind(Operator):
         # return {"FINISHED"}
 
     def draw(self, context):
-        props = context.scene.UAS_shot_manager_props
+        props = config.getAddonProps(context.scene)
         prefs = config.getAddonPrefs()
         layout = self.layout
 
@@ -204,7 +204,7 @@ class UAS_ShotManager_OT_InteractShotsStackSettingsWind(Operator):
 # #     bl_label = "Settings"
 
 # #     def draw(self, context):
-# #         props = context.scene.UAS_shot_manager_props
+# #         props = config.getAddonProps(context.scene)
 # #         prefs = config.getAddonPrefs()
 
 # #         layout = self.layout

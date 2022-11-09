@@ -55,7 +55,7 @@ class UAS_PT_ShotManager(Panel):
 
     @classmethod
     def poll(cls, context):
-        props = context.scene.UAS_shot_manager_props
+        props = config.getAddonProps(context.scene)
         # prefs = config.getAddonPrefs()
 
         # hide the whole panel if used
@@ -72,7 +72,7 @@ class UAS_PT_ShotManager(Panel):
     def draw_header(self, context):
         import addon_utils
 
-        props = context.scene.UAS_shot_manager_props
+        props = config.getAddonProps(context.scene)
         # prefs = config.getAddonPrefs()
         layout = self.layout
         layout.emboss = "NONE"
@@ -142,7 +142,7 @@ class UAS_PT_ShotManager(Panel):
     def draw(self, context):
         layout = self.layout
         scene = context.scene
-        props = scene.UAS_shot_manager_props
+        props = config.getAddonProps(scene)
         prefs = config.getAddonPrefs()
 
         currentLayout = props.getCurrentLayout()
@@ -882,8 +882,8 @@ class UAS_PT_ShotManager_Initialize(Operator):
     bl_options = {"INTERNAL"}
 
     def execute(self, context):
-        context.scene.UAS_shot_manager_props.initialize_shot_manager()
-
+        props = config.getAddonProps(context.scene)
+        props.initialize_shot_manager()
         return {"FINISHED"}
 
 

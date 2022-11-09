@@ -316,7 +316,7 @@ def register():
     addon_prefs_inst = config.getAddonPrefs()
     addon_prefs_inst.displaySMDebugPanel = config.devDebug_displayDebugPanel
 
-    # _props = bpy.context.scene.UAS_shot_manager_props
+    # _props = config.getAddonProps(bpy.context.scene)
     # # currentLayout = props.getCurrentLayout()
     # if not _props.isInitialized:
     #     _props.initialize_shot_manager()
@@ -342,7 +342,7 @@ def unregister():
     utils.display_addon_registered_version("Ubisoft Shot Manager", unregister=True)
 
     # marche pas
-    _props = bpy.context.scene.UAS_shot_manager_props
+    _props = config.getAddonProps(bpy.context.scene)
     print(f"leaving current scene : {bpy.context.scene.name}")
     _props.isInitialized = False
 

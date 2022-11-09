@@ -37,7 +37,7 @@ def getOverlaysPropertyState(context, propName):
     used in the specified context.
     Args:
             propName:   the name of the property to check"""
-    props = context.scene.UAS_shot_manager_props
+    props = config.getAddonProps(context.scene)
     applyToAllViewports = "ALL" == props.shotsGlobalSettings.stb_overlaysViewportMode
     propState = False
     if applyToAllViewports:
@@ -76,7 +76,7 @@ class UAS_ShotManager_Overlays_ToggleOverlays(Operator):
             for spaceDataViewport in spaceDatas:
                 spaceDataViewport.overlay.show_overlays = self.newState
         else:
-            props = context.scene.UAS_shot_manager_props
+            props = config.getAddonProps(context.scene)
             spaceDataViewport = props.getValidTargetViewportSpaceData(context)
             if spaceDataViewport is not None:
                 spaceDataViewport.overlay.show_overlays = self.newState
@@ -106,7 +106,7 @@ class UAS_ShotManager_Overlays_ToggleOnionSkin(Operator):
                 # spaceDataViewport.overlay.use_gpencil_onion_skin = not spaceDataViewport.overlay.use_gpencil_onion_skin
                 spaceDataViewport.overlay.use_gpencil_onion_skin = self.newState
         else:
-            props = context.scene.UAS_shot_manager_props
+            props = config.getAddonProps(context.scene)
             spaceDataViewport = props.getValidTargetViewportSpaceData(context)
             if spaceDataViewport is not None:
                 # spaceDataViewport.overlay.use_gpencil_onion_skin = not spaceDataViewport.overlay.use_gpencil_onion_skin
@@ -136,7 +136,7 @@ class UAS_ShotManager_Overlays_ToggleGrid(Operator):
             for spaceDataViewport in spaceDatas:
                 spaceDataViewport.overlay.use_gpencil_grid = self.newState
         else:
-            props = context.scene.UAS_shot_manager_props
+            props = config.getAddonProps(context.scene)
             spaceDataViewport = props.getValidTargetViewportSpaceData(context)
             if spaceDataViewport is not None:
                 spaceDataViewport.overlay.use_gpencil_grid = self.newState
@@ -165,7 +165,7 @@ class UAS_ShotManager_Overlays_GridOpacity(Operator):
             for spaceDataViewport in spaceDatas:
                 spaceDataViewport.overlay.gpencil_grid_opacity = self.opacity
         else:
-            props = context.scene.UAS_shot_manager_props
+            props = config.getAddonProps(context.scene)
             spaceDataViewport = props.getValidTargetViewportSpaceData(context)
             if spaceDataViewport is not None:
                 spaceDataViewport.overlay.gpencil_grid_opacity = self.opacity
@@ -194,7 +194,7 @@ class UAS_ShotManager_Overlays_ToggleGridToFront(Operator):
             for spaceDataViewport in spaceDatas:
                 spaceDataViewport.overlay.use_gpencil_canvas_xray = self.newState
         else:
-            props = context.scene.UAS_shot_manager_props
+            props = config.getAddonProps(context.scene)
             spaceDataViewport = props.getValidTargetViewportSpaceData(context)
             if spaceDataViewport is not None:
                 spaceDataViewport.overlay.use_gpencil_canvas_xray = self.newState
@@ -223,7 +223,7 @@ class UAS_ShotManager_Overlays_ToggleFadeLayers(Operator):
             for spaceDataViewport in spaceDatas:
                 spaceDataViewport.overlay.use_gpencil_fade_layers = self.newState
         else:
-            props = context.scene.UAS_shot_manager_props
+            props = config.getAddonProps(context.scene)
             spaceDataViewport = props.getValidTargetViewportSpaceData(context)
             if spaceDataViewport is not None:
                 spaceDataViewport.overlay.use_gpencil_fade_layers = self.newState
@@ -252,7 +252,7 @@ class UAS_ShotManager_Overlays_FadeLayersOpacity(Operator):
             for spaceDataViewport in spaceDatas:
                 spaceDataViewport.overlay.gpencil_fade_layer = self.opacity
         else:
-            props = context.scene.UAS_shot_manager_props
+            props = config.getAddonProps(context.scene)
             spaceDataViewport = props.getValidTargetViewportSpaceData(context)
             if spaceDataViewport is not None:
                 spaceDataViewport.overlay.gpencil_fade_layer = self.opacity

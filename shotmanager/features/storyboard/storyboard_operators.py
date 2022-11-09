@@ -79,7 +79,7 @@ class UAS_ShotManager_CreateNStoryboardShots(Operator):
 
     def invoke(self, context, event):
         wm = context.window_manager
-        props = context.scene.UAS_shot_manager_props
+        props = config.getAddonProps(context.scene)
         prefs = config.getAddonPrefs()
 
         # self.name = f"{props.new_shot_prefix}{len ( props.getShotsList() ) + 1:02}" + "0"
@@ -179,7 +179,7 @@ class UAS_ShotManager_CreateNStoryboardShots(Operator):
 
     def execute(self, context):
         scene = context.scene
-        props = scene.UAS_shot_manager_props
+        props = config.getAddonProps(scene)
         # grid = props.stb_frameTemplate.frameGrid
         selectedShotInd = props.getSelectedShotIndex()
         newShotInd = selectedShotInd + 1
@@ -246,7 +246,7 @@ class UAS_ShotManager_OT_ShowHideStoryboardFrames(Operator):
     bl_options = {"INTERNAL", "UNDO"}
 
     def invoke(self, context, event):
-        props = context.scene.UAS_shot_manager_props
+        props = config.getAddonProps(context.scene)
 
         # prefs = config.getAddonPrefs()
         # bpy.ops.uas_shots_settings.use_greasepencil(useGreasepencil=prefs.enableGreasePencil)

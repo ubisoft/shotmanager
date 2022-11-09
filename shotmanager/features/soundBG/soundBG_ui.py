@@ -25,7 +25,7 @@ from shotmanager.config import config
 
 def draw_soundBG_shot_properties(sm_ui, context, shot):
     layout = sm_ui.layout
-    props = context.scene.UAS_shot_manager_props
+    props = config.getAddonProps(context.scene)
     prefs = config.getAddonPrefs()
     scene = context.scene
 

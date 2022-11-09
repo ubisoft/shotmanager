@@ -33,17 +33,18 @@ _logger = sm_logging.getLogger(__name__)
 def install_handler_for_shot(self, context):
     """Called in the update function of WindowManager.UAS_shot_manager_shots_play_mode"""
     scene = context.scene
+    props = config.getAddonProps(scene)
 
-    scene.UAS_shot_manager_props.setResolutionToScene()
+    props.setResolutionToScene()
 
     if (
         self.UAS_shot_manager_shots_play_mode
         and shotMngHandler_frame_change_pre_jumpToShot not in bpy.app.handlers.frame_change_pre
     ):
-        shots = scene.UAS_shot_manager_props.get_shots()
+        shots = props.get_shots()
         for i, shot in enumerate(shots):
             if shot.start <= scene.frame_current <= shot.end:
-                scene.UAS_shot_manager_props.current_shot_index = i
+                props.current_shot_index = i
                 break
         bpy.app.handlers.frame_change_pre.append(shotMngHandler_frame_change_pre_jumpToShot)
     #     bpy.app.handlers.frame_change_post.append(shotMngHandler_frame_change_pre_jumpToShot__frame_change_post)
@@ -101,7 +102,7 @@ def toggle_overlay_tools_display(context):
 
 
 def shotMngHandler_frame_change_pre_jumpToShot(scene):
-    props = scene.UAS_shot_manager_props
+    props = config.getAddonProps(scene)
 
     def _get_range_start():
         return scene.frame_preview_start if scene.use_preview_range else scene.frame_start

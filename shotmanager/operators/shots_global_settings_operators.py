@@ -40,7 +40,7 @@ class UAS_ShotsSettings_UseBackground(Operator):
     useBackground: BoolProperty(default=False)
 
     def execute(self, context):
-        props = context.scene.UAS_shot_manager_props
+        props = config.getAddonProps(context.scene)
 
         take = props.getCurrentTake()
         shotList = take.getShotsList(ignoreDisabled=False)
@@ -62,7 +62,7 @@ class UAS_ShotsSettings_UseBackgroundSound(Operator):
     useBackgroundSound: BoolProperty(default=False)
 
     def execute(self, context):
-        props = context.scene.UAS_shot_manager_props
+        props = config.getAddonProps(context.scene)
 
         props.useBGSounds = self.useBackgroundSound
         # if self.useBackgroundSound:
@@ -82,7 +82,7 @@ class UAS_ShotsSettings_UseGreasePencil(Operator):
     useGreasepencil: BoolProperty(default=False)
 
     def execute(self, context):
-        props = context.scene.UAS_shot_manager_props
+        props = config.getAddonProps(context.scene)
 
         take = props.getCurrentTake()
         shotList = take.getShotsList(ignoreDisabled=False)
@@ -107,7 +107,7 @@ class UAS_ShotsSettings_UseGreasePencil(Operator):
 #     alpha: FloatProperty(default=0.75)
 
 #     def execute(self, context):
-#         props = context.scene.UAS_shot_manager_props
+#         props = config.getAddonProps(context.scene)
 #         take = props.getCurrentTake()
 #         shotList = take.getShotsList(ignoreDisabled=False)
 
@@ -138,7 +138,7 @@ class UAS_ShotsSettings_UseGreasePencil(Operator):
 #     )
 
 #     def execute(self, context):
-#         props = context.scene.UAS_shot_manager_props
+#         props = config.getAddonProps(context.scene)
 #         take = props.getCurrentTake()
 #         shotList = take.getShotsList(ignoreDisabled=False)
 

@@ -291,8 +291,9 @@ def drawAutokey(context, layout):
 
 
 def drawLayersRow(context, props, layout, editedGpencil):
+    props = config.getAddonProps(context.scene)
     # prefs = config.getAddonPrefs()
-    framePreset = context.scene.UAS_shot_manager_props.stb_frameTemplate
+    framePreset = props.stb_frameTemplate
     currentFrame = context.scene.frame_current
 
     def _draw_layer_button(layout, preset, row_scale_x=1.0, enabled=True):

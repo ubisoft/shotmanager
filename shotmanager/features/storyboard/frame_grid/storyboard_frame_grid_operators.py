@@ -34,7 +34,7 @@ class UAS_ShotManager_StoryboardGridUpdate(Operator):
 
     def execute(self, context):
         scene = context.scene
-        props = scene.UAS_shot_manager_props
+        props = config.getAddonProps(scene)
         props.updateStoryboardGrid()
 
         return {"FINISHED"}
@@ -74,7 +74,7 @@ class UAS_ShotManager_StoryboardGridDisplaySettings(Operator):
         return wm.invoke_props_dialog(self, width=360)
 
     def draw(self, context):
-        props = context.scene.UAS_shot_manager_props
+        props = config.getAddonProps(context.scene)
         prefs = config.getAddonPrefs()
         layout = self.layout
 
@@ -90,7 +90,7 @@ class UAS_ShotManager_StoryboardGridDisplaySettings(Operator):
 
     def execute(self, context):
         scene = context.scene
-        props = scene.UAS_shot_manager_props
+        props = config.getAddonProps(scene)
         if "SCENE" == self.mode:
             # modifs applied directly
             pass

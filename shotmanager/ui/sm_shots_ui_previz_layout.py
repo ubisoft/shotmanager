@@ -39,7 +39,7 @@ _logger = sm_logging.getLogger(__name__)
 
 class UAS_UL_ShotManager_Items(bpy.types.UIList):
     def draw_item(self, context, layout, data, item, icon, active_data, active_propname, index):
-        props = context.scene.UAS_shot_manager_props
+        props = config.getAddonProps(context.scene)
         current_shot_index = props.current_shot_index
         scene = context.scene
 
@@ -289,7 +289,7 @@ class UAS_MT_ShotManager_Shots_ToolsMenu(Menu):
     # bl_description = "Shots Tools"
 
     def draw(self, context):
-        props = context.scene.UAS_shot_manager_props
+        props = config.getAddonProps(context.scene)
 
         # Copy menu entries[ ---
         layout = self.layout

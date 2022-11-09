@@ -110,7 +110,7 @@ def launchRenderWithVSEComposite(
             bpy.data.scenes.remove(s, do_unlink=True)
 
     scene = context.scene
-    props = scene.UAS_shot_manager_props
+    props = config.getAddonProps(scene)
     vse_render = context.window_manager.UAS_vse_render
     prefs = config.getAddonPrefs()
 
@@ -979,7 +979,7 @@ def launchRender(context, renderMode, rootPath, area=None):
     """
     context = bpy.context
     scene = bpy.context.scene
-    props = scene.UAS_shot_manager_props
+    props = config.getAddonProps(scene)
     renderDisplayInfo = ""
 
     renderDisplayInfo += "\n\n*** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** ***\n"
@@ -1262,7 +1262,7 @@ def launchRender(context, renderMode, rootPath, area=None):
 
 
 def useStampInfoForRendering(context, renderPreset):
-    props = context.scene.UAS_shot_manager_props
+    props = config.getAddonProps(context.scene)
 
     if not props.isStampInfoAvailable():
         return False

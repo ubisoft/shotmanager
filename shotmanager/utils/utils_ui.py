@@ -56,8 +56,10 @@ def drawStampInfoBut(layout):
     """Draw a button to toggle the display of Stamp Info panel in the 3D View tab
     The button is disabled if Stamp Info is not available
     Return True if Stamp Info is available, false otherwise"""
+    props = config.getAddonProps(bpy.context.scene)
+
     prefs_stampInfo = None
-    if bpy.context.scene.UAS_shot_manager_props.isStampInfoAvailable():
+    if props.isStampInfoAvailable():
         prefs_stampInfo = config.getAddonPrefs()
     icon = config.icons_col["StampInfo_32"]
     butsubrow = layout.row()
@@ -364,12 +366,12 @@ def show_message_box(message="", title="Message Box", icon="INFO"):
 # Dev note: This function has to be here for the moment cause it is passed
 # in stampinfo code to a call to uas_shotmanager.querybox
 def reset_render_properties():
-    props = bpy.context.scene.UAS_shot_manager_props
+    props = config.getAddonProps(bpy.context.scene)
     props.reset_render_properties()
 
 
 def reset_layout_settings(layoutMode):
-    props = bpy.context.scene.UAS_shot_manager_props
+    props = config.getAddonProps(bpy.context.scene)
     props.resetLayoutSettingsToDefault(layoutMode)
 
 

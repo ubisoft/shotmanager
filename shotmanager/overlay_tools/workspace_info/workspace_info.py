@@ -479,7 +479,7 @@ class ShotManager_WorkspaceInfo(bpy.types.Operator):
             area.tag_redraw()
 
     def invoke(self, context, event):
-        props = context.scene.UAS_shot_manager_props
+        props = config.getAddonProps(context.scene)
 
         # callingAreaType = context.area.type
         # callingAreaIndex = utils.getAreaIndex(context, context.area, "VIEW_3D")

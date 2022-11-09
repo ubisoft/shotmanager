@@ -118,7 +118,7 @@ class UAS_ShotManager_InteractiveShotsStack(Operator):
             _logger.debug_ext("Canceled op uas_shot_manager.interactive_shots_stack", col="PURPLE")
             return {"CANCELLED"}
 
-        props = context.scene.UAS_shot_manager_props
+        props = config.getAddonProps(context.scene)
         config.gRedrawShotStack = False
 
         self.target_area_index = props.getTargetDopesheetIndex(context, only_valid=True)
@@ -199,7 +199,7 @@ class UAS_ShotManager_InteractiveShotsStack(Operator):
     ###################################
 
     def modal(self, context, event):
-        props = context.scene.UAS_shot_manager_props
+        props = config.getAddonProps(context.scene)
         prefs = config.getAddonPrefs()
 
         event_handled = False

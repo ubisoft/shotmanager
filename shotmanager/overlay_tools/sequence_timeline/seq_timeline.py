@@ -34,7 +34,7 @@ _logger = sm_logging.getLogger(__name__)
 
 
 def ignoreWidget(context):
-    props = context.scene.UAS_shot_manager_props
+    props = config.getAddonProps(context.scene)
     prefs = config.getAddonPrefs()
 
     if not len(props.get_shots()):
@@ -59,7 +59,7 @@ class UAS_ShotManager_sequenceTimeline(Operator):
 
     # @classmethod
     # def poll(cls, context):
-    #     props = context.scene.UAS_shot_manager_props
+    #     props = config.getAddonProps(context.scene)
     #     prefs = config.getAddonPrefs()
     #     val = True
     #     if prefs.seqTimeline_not_disabled_with_overlays and not bpy.context.space_data.overlay.show_overlays:
@@ -91,7 +91,7 @@ class UAS_ShotManager_sequenceTimeline(Operator):
             _logger.debug_ext("Canceled op uas_shot_manager.sequence_timeline", col="RED")
             return {"CANCELLED"}
 
-        props = context.scene.UAS_shot_manager_props
+        props = config.getAddonProps(context.scene)
 
         # get the area index of invocation
         # source_area = context.area
@@ -151,7 +151,7 @@ class UAS_ShotManager_sequenceTimeline(Operator):
     ###################################
 
     def modal(self, context, event):
-        props = context.scene.UAS_shot_manager_props
+        props = config.getAddonProps(context.scene)
         prefs = config.getAddonPrefs()
 
         # _logger.debug_ext(f"uas_shot_manager.sequence_timeline  Modal", col="RED")

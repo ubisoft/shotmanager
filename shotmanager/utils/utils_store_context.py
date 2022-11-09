@@ -27,7 +27,7 @@ _logger = sm_logging.getLogger(__name__)
 
 def storeUserRenderSettings(context, userRenderSettings, targetArea=None):
     scene = context.scene
-    props = scene.UAS_shot_manager_props
+    props = config.getAddonProps(scene)
 
     # try:
     #     userRenderSettings["show_overlays"] = bpy.context.space_data.overlay.show_overlays
@@ -117,7 +117,7 @@ def storeUserRenderSettings(context, userRenderSettings, targetArea=None):
 
 def restoreUserRenderSettings(context, userRenderSettings, targetArea=None):
     scene = context.scene
-    props = scene.UAS_shot_manager_props
+    props = config.getAddonProps(scene)
 
     # wkip bug here dans certaines conditions vse
     # try:

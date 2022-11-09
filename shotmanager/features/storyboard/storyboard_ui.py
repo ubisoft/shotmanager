@@ -34,7 +34,7 @@ from . import storyboard_drawing_ui as drawing_ui
 
 
 def draw_greasepencil_shot_properties(layout, context, shot):
-    props = context.scene.UAS_shot_manager_props
+    props = config.getAddonProps(context.scene)
     prefs = config.getAddonPrefs()
 
     if shot is None:
@@ -278,7 +278,7 @@ def draw_greasepencil_shot_properties(layout, context, shot):
         #  canvasTitleRow.label(text="Canvas")
         # canvasSplitRow.separator(factor=0.1)
 
-        props = context.scene.UAS_shot_manager_props
+        props = config.getAddonProps(context.scene)
         canvasPreset = props.stb_frameTemplate.getPresetByID("CANVAS")
         canvasName = "_Canvas_" if canvasPreset is None else canvasPreset.layerName
 
@@ -561,7 +561,7 @@ def draw_lock_but(layout, gp_child, lockItem):
 
 
 def draw_greasepencil_global_properties(layout, context):
-    props = context.scene.UAS_shot_manager_props
+    props = config.getAddonProps(context.scene)
     prefs = config.getAddonPrefs()
 
     box = layout.box()

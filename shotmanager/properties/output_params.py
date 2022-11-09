@@ -42,7 +42,7 @@ class UAS_ShotManager_OutputParams_Resolution(PropertyGroup):
         self.useStampInfoDuringRendering = source.useStampInfoDuringRendering
 
     def _update_resolution(self, context):
-        props = bpy.context.scene.UAS_shot_manager_props
+        props = config.getAddonProps(bpy.context.scene)
         if props is not None:
             if self == props.getCurrentTake().outputParams_Resolution:
                 props.setResolutionToScene()
@@ -50,7 +50,7 @@ class UAS_ShotManager_OutputParams_Resolution(PropertyGroup):
     def _get_resolution_x(self):
         val = self.get("resolution_x", -1)
         if -1 == val:
-            props = bpy.context.scene.UAS_shot_manager_props
+            props = config.getAddonProps(bpy.context.scene)
             if props is not None:
                 val = props.parentScene.render.resolution_x
         return val
@@ -65,7 +65,7 @@ class UAS_ShotManager_OutputParams_Resolution(PropertyGroup):
     def _get_resolution_y(self):
         val = self.get("resolution_y", -1)
         if -1 == val:
-            props = bpy.context.scene.UAS_shot_manager_props
+            props = config.getAddonProps(bpy.context.scene)
             if props is not None:
                 val = props.parentScene.render.resolution_y
         return val
@@ -104,7 +104,7 @@ class UAS_ShotManager_OutputParams_Resolution(PropertyGroup):
     )
 
     def draw(self, context, ui_component, enabled=True):
-        props = context.scene.UAS_shot_manager_props
+        props = config.getAddonProps(context.scene)
 
         ui_component.enabled = enabled
 

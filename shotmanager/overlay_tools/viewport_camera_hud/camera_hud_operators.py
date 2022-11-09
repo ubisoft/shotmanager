@@ -30,7 +30,7 @@ class UAS_ShotManager_CameraHUD_ToggleDisplay(Operator):
     bl_options = {"INTERNAL"}
 
     def invoke(self, context, event):
-        props = context.scene.UAS_shot_manager_props
+        props = config.getAddonProps(context.scene)
         val = not props.camera_hud_display_in_viewports or not props.camera_hud_display_in_pov
         props.camera_hud_display_in_viewports = val
         props.camera_hud_display_in_pov = val

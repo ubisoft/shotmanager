@@ -257,12 +257,12 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
     )
 
     def findParentScene(self):
-        for scn in bpy.data.scenes:
-            if "UAS_shot_manager_props" in scn:
-                props = scn.UAS_shot_manager_props
+        for scene in bpy.data.scenes:
+            if "UAS_shot_manager_props" in scene:
+                props = config.getAddonProps(scene)
                 if self == props:
                     #    print("findParentScene: Scene found")
-                    return scn
+                    return scene
         # print("findParentScene: Scene NOT found")
         return None
 
@@ -1919,7 +1919,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
     def _get_greasePencil_activeMaterial(self):
         val = self.get("greasePencil_activeMaterial", 0)
         #  print(" _get_greasePencil_activeMaterial")
-        # props = bpy.context.scene.UAS_shot_manager_props
+        # props = config.getAddonProps(bpy.context.scene)
         # spaceDataViewport = props.getValidTargetViewportSpaceData(bpy.context)
         # if spaceDataViewport is not None:
         #     val = spaceDataViewport.overlay.gpencil_fade_layer
@@ -1998,7 +1998,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
     def _get_greasePencil_activeMaterialB(self):
         val = self.get("_get_greasePencil_activeMaterialB", 0)
         # print(" _get_greasePencil_activeMaterial")
-        # props = bpy.context.scene.UAS_shot_manager_props
+        # props = config.getAddonProps(bpy.context.scene)
         # spaceDataViewport = props.getValidTargetViewportSpaceData(bpy.context)
         # if spaceDataViewport is not None:
         #     val = spaceDataViewport.overlay.gpencil_fade_layer
@@ -5137,7 +5137,8 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         return self.project_fps if self.use_project_settings else utils.getSceneEffectiveFps(self.parentScene)
 
     def get_frame_start(self):
-        return self.parentScene.UAS_shot_manager_props.editStartFrame
+        props = config.getAddonProps(self.parentScene)
+        return props.editStartFrame
 
     def get_frame_end(self):
         """get_frame_end is exclusive in order to follow the Blender implementation of get_frame_end for its clips"""

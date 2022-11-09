@@ -31,7 +31,7 @@ def draw_overlays_global_settings(context, layout, mode="SHOT"):
         mode:   can be "STORYBOARD", "GP", "SHOT"
     """
 
-    props = context.scene.UAS_shot_manager_props
+    props = config.getAddonProps(context.scene)
     prefs = config.getAddonPrefs()
     splitFactor = 0.16
 

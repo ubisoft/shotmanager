@@ -57,9 +57,9 @@ class UAS_GreasePencil_FrameTemplate(PropertyGroup):
         if self == prefs.stb_frameTemplate:
             return prefs
 
-        for scn in bpy.data.scenes:
-            if hasattr(scn, "UAS_shot_manager_props"):
-                props = scn.UAS_shot_manager_props
+        for scene in bpy.data.scenes:
+            if hasattr(scene, "UAS_shot_manager_props"):
+                props = config.getAddonProps(scene)
                 if self == props.stb_frameTemplate:
                     return props
 
@@ -86,7 +86,7 @@ class UAS_GreasePencil_FrameTemplate(PropertyGroup):
         # Can be SCENE or ADDON_PREFS"
         prefs = config.getAddonPrefs()
         if "SCENE" == mode:
-            props = bpy.context.scene.UAS_shot_manager_props
+            props = config.getAddonProps(bpy.context.scene)
         else:
             props = prefs
 

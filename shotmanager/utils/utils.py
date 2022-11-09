@@ -31,6 +31,7 @@ from xmlrpc.client import Boolean
 import bpy
 
 from shotmanager.utils import utils_os
+from shotmanager.config import config
 from shotmanager.config import sm_logging
 
 _logger = sm_logging.getLogger(__name__)
@@ -819,7 +820,7 @@ def makeCameraMatchViewport(context, cam, matchLens=False, putCamInViewport=True
     # There is also an operator to do part of the code below: bpy.ops.view3d.camera_to_view()
 
     scene = context.scene
-    props = context.scene.UAS_shot_manager_props
+    props = config.getAddonProps(context.scene)
     #  print(f" makeCameraMatchViewport")
 
     areaView = getViewportAreaView(context, viewport_index=props.getTargetViewportIndex(context, only_valid=True))

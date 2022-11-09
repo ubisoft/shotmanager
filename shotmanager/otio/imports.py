@@ -448,7 +448,7 @@ def createShotsFromOtioTimelineClass(
     # print("clipList:", clipList)
 
     # wkip temp - to remove! Shots are added to another take!
-    # props = scene.UAS_shot_manager_props
+    # props = config.getAddonProps(scene)
 
     if len(props.getCurrentTake().getShotList()) != 0:
         bpy.ops.uas_shot_manager.take_add(name=Path(montageOtio.otioFile).stem)
@@ -734,7 +734,7 @@ def conformToRefMontage(
     """
 
     # scene = bpy.context.scene
-    props = scene.UAS_shot_manager_props
+    props = config.getAddonProps(scene)
 
     takeInd = (
         props.getCurrentTakeIndex()

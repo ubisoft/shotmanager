@@ -72,7 +72,7 @@ def draw_features_prefs(mode, layout):
 
     prefs = config.getAddonPrefs()
     if "SCENE" == mode:
-        props = bpy.context.scene.UAS_shot_manager_props
+        props = config.getAddonProps(bpy.context.scene)
         propsLayout = props.getCurrentLayout()
         currentLayoutIsStb = "STORYBOARD" == props.currentLayoutMode()
         layoutPrefix = ""

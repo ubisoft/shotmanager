@@ -64,7 +64,8 @@ class UAS_OT_OpenPathBrowser(Operator):
         #  self.filepath = bpy.context.scene.UAS_shot_manager_props.renderRootPath
         # https://docs.blender.org/api/current/bpy.types.WindowManager.html
 
-        self.directory = context.scene.UAS_shot_manager_props.renderRootPath
+        props = config.getAddonProps(context.scene)
+        self.directory = props.renderRootPath
 
         context.window_manager.fileselect_add(self)
 
@@ -72,7 +73,8 @@ class UAS_OT_OpenPathBrowser(Operator):
 
     def execute(self, context):
         """Open a path browser to define the directory to use to render the images"""
-        context.scene.UAS_shot_manager_props.renderRootPath = self.directory
+        props = config.getAddonProps(context.scene)
+        props.renderRootPath = self.directory
         return {"FINISHED"}
 
 
@@ -131,7 +133,7 @@ class UAS_PT_ShotManager_Render(Operator):
     #     return {"RUNNING_MODAL"}
 
     def execute(self, context):
-        props = context.scene.UAS_shot_manager_props
+        props = config.getAddonProps(context.scene)
         prefs = config.getAddonPrefs()
         prefs.renderMode = self.renderMode
 
@@ -206,7 +208,8 @@ class UAS_ShotManager_Render_RestoreProjectSettings(Operator):
     bl_options = {"INTERNAL"}
 
     def execute(self, context):
-        context.scene.UAS_shot_manager_props.applyProjectSettings()
+        props = config.getAddonProps(context.scene)
+        props.applyProjectSettings()
         return {"FINISHED"}
 
 

@@ -152,7 +152,7 @@ class InfoComponent(QuadObject):
             config.gRedrawShotStack = True
 
     def updateDisplayedInfo(self):
-        props = bpy.context.scene.UAS_shot_manager_props
+        props = config.getAddonProps(bpy.context.scene)
         selectedShot = props.getSelectedShot()
         manipulatedCompoType = type(self.shotsStackWidget.manipulatedComponent).__name__
 
