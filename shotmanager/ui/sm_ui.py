@@ -26,6 +26,7 @@ from shotmanager.utils import utils
 from shotmanager.utils import utils_shot_manager
 from shotmanager.utils import utils_ui
 from shotmanager.utils import utils_markers
+from shotmanager.utils.utils_os import is_admin
 
 from . import sm_shots_ui_previz_layout
 from . import sm_shots_ui_storyboard_layout
@@ -166,6 +167,14 @@ class UAS_PT_ShotManager(Panel):
             shot = props.getCurrentShot()
 
         enlargeButs = 1.15
+
+        ###############
+
+        if is_admin():
+            row = layout.row()
+            row.alert = True
+            row.alignment = "CENTER"
+            row.label(text="*** Blender is running in Admin mode ***")
 
         ###############
 

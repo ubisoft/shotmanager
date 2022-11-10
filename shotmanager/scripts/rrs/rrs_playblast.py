@@ -16,7 +16,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 """
-To do: module description here.
+Playblast
 """
 
 from pathlib import Path
@@ -31,6 +31,7 @@ from shotmanager.config import config
 
 # from shotmanager.otio.montage_otio import MontageOtio
 
+from shotmanager.config import config
 from shotmanager.config import sm_logging
 
 _logger = sm_logging.getLogger(__name__)

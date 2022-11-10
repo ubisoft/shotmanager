@@ -43,7 +43,6 @@ from shotmanager.utils import utils_greasepencil
 from .montage_interface import ShotInterface
 
 from shotmanager.config import config
-
 from shotmanager.config import sm_logging
 
 _logger = sm_logging.getLogger(__name__)

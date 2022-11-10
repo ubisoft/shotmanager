@@ -19,10 +19,6 @@
 Sounds init
 """
 
-import bpy
-
-from shotmanager.config import config
-
 from . import soundBG_operators
 
 from shotmanager.config import sm_logging

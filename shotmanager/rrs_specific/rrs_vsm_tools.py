@@ -38,6 +38,7 @@ from shotmanager.scripts.rrs.rrs_playblast import (
     getSoundFilesForEachShot,
 )
 
+from shotmanager.config import config
 from shotmanager.config import sm_logging
 
 _logger = sm_logging.getLogger(__name__)

@@ -1,4 +1,8 @@
 -----
+## 2.1.41 (2022-11-10)
+- Display info if Blender is running in admin mode
+
+-----
 ## 2.1.40 (2022-11-08)
 - Code refactor to introduce the function config.getAddonProps() to get props
 

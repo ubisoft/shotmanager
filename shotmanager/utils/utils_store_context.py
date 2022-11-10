@@ -20,6 +20,8 @@ Utils - store context
 """
 
 from shotmanager.utils import utils_editors_3dview
+
+from shotmanager.config import config
 from shotmanager.config import sm_logging
 
 _logger = sm_logging.getLogger(__name__)

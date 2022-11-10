@@ -23,11 +23,11 @@ import bpy
 from bpy.types import Operator
 
 
-from shotmanager.config import config
-from shotmanager.utils import utils
+# from shotmanager.utils import utils
 
 from .seq_timeline_widgets import BL_UI_Timeline
 
+from shotmanager.config import config
 from shotmanager.config import sm_logging
 
 _logger = sm_logging.getLogger(__name__)

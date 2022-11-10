@@ -23,7 +23,7 @@ Eg here: https://blender.stackexchange.com/questions/196483/create-keyboard-shor
 
 import bpy
 
-from .. import config
+from shotmanager.config import config
 from shotmanager.config import sm_logging
 
 _logger = sm_logging.getLogger(__name__)

@@ -20,8 +20,7 @@ Functions to manipulate Shot Manager storyboard entities
 """
 
 from . import utils
-
-# from shotmanager.config import config
+from shotmanager.config import config
 from shotmanager.config import sm_logging
 
 _logger = sm_logging.getLogger(__name__)

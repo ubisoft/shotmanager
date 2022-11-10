@@ -29,7 +29,7 @@ bl_info = {
     "author": "Ubisoft - Julien Blervaque (aka Werwack), Romain Carriquiry Borchiari",
     "description": "Easily manage shots and cameras in the 3D View and see the resulting edit in real-time",
     "blender": (3, 3, 0),
-    "version": (2, 1, 40),
+    "version": (2, 1, 42),
     "location": "View3D > Shot Mng",
     "doc_url": "https://ubisoft-shotmanager.readthedocs.io",
     "tracker_url": "https://github.com/ubisoft/shotmanager/issues",

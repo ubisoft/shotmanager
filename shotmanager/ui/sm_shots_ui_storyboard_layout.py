@@ -24,7 +24,6 @@ import bpy
 from . import sm_shots_ui_common
 
 from shotmanager.config import config
-
 from shotmanager.config import sm_logging
 
 _logger = sm_logging.getLogger(__name__)
