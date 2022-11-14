@@ -2661,6 +2661,12 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
     def isStampInfoAvailable(self):
         """Return True if the add-on UAS Stamp Info is available, registred and ready to be used"""
         readyToUse = getattr(bpy.context.scene, "UAS_SM_StampInfo_Settings", None) is not None
+
+        try:
+            import PIL
+        except ImportError as error:
+            readyToUse = False
+
         # stampInfoSettings = getStampInfo()
         # readyToUse = stampInfoSettings is not None
         return readyToUse

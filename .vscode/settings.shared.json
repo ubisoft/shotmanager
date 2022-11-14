@@ -2,9 +2,12 @@
     "editor.formatOnSave": true,
     "python.pythonPath": ".venv\\Scripts\\python.exe",
     "python.formatting.provider": "black",
+    "editor.defaultFormatter": null,
     "python.formatting.blackArgs": [
         "--line-length",
-        "120"
+        "120",
+        "--skip-string-normalization",
+        "1"
     ],
     "python.testing.unittestArgs": [
         "-v",
@@ -18,10 +21,11 @@
     "python.linting.flake8Enabled": true,
     "python.linting.flake8Args": [
         "--max-line-length=120",
-        "--ignore=E402,E203,E501,W503,F722,F821",
+        "--ignore=E402,E203,E266,W503,F722,F821,BLK100,E501",
         "--exclude=.git,.history,.venv,.vscode,__pycache__"
     ],
     "python.linting.enabled": true,
+    "python.linting.lintOnSave": true,
     "spellright.language": [
         "en",
         "fr"
@@ -33,5 +37,5 @@
     ],
     "gitlab.instanceUrl": "https://gitlab-ncsa.ubisoft.org/",
     "blender.addon.sourceDirectory": "./shotmanager",
-    "restructuredtext.confPath": "${​​​​​​​​workspaceFolder}​​​​​​​​\\docs"
+    "esbonio.sphinx.confDir": "${​​​​​​​​workspaceFolder}​​​​​​​​\\docs"
 }

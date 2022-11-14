@@ -1,4 +1,9 @@
 -----
+## 2.1.43 (2022-11-14)
+- Fixed internet connection pooling on Linux
+- Added a Check Connection operator in the Preferences panel, in Debug
+
+-----
 ## 2.1.41 (2022-11-10)
 - Display info if Blender is running in admin mode
 

@@ -25,6 +25,8 @@ from pathlib import Path, PurePath
 import platform
 import requests
 
+import typing
+
 from shotmanager.config import config
 from shotmanager.config import sm_logging
 
@@ -32,24 +34,25 @@ _logger = sm_logging.getLogger(__name__)
 
 
 def getPlatformName():
-    if "Darwin" == platform.system():
+    if "Windows" == platform.system():
+        return "Windows"
+    elif "Darwin" == platform.system():
         return "Mac"
     elif "Linux" == platform.system():
         return "Linux"
-    elif "Windows" == platform.system():
-        return "Windows"
+    return None
 
 
 def open_folder(path: str):
     """
     Open a path or an URL with the application specified by the os
     """
-    if "Darwin" == platform.system():
+    if "Windows" == platform.system():
+        subprocess.Popen(f'explorer "{Path(path)}"')
+    elif "Darwin" == platform.system():
         subprocess.check_call(["open", "--", path])
     elif "Linux" == platform.system():
         subprocess.check_call(["xdg-open", path])
-    elif "Windows" == platform.system():
-        subprocess.Popen(f'explorer "{Path(path)}"')
 
 
 def delete_folder(dir_path: str):
@@ -75,25 +78,24 @@ def open_media_in_player(path: str):
         _logger.info_ext(f"Media to open not found: {path}")
         return
 
-    if "Darwin" == platform.system():
+    if "Windows" == platform.system():
+        os.startfile(path)
+    elif "Darwin" == platform.system():
         # subprocess.call(("open", path))
         # subprocess.check_call(['open', '-a', 'Quicktime Player', path)
         subprocess.check_call(["open", "--", path])
     elif "Linux" == platform.system():
         subprocess.call(("xdg-open", path))
-    elif "Windows" == platform.system():
-        os.startfile(path)
 
 
 def get_dir_separator_char():
-
     separator = "*"
-    if "Darwin" == platform.system():
+    if "Windows" == platform.system():
+        separator = "\\"
+    elif "Darwin" == platform.system():
         separator = "/"
     elif "Linux" == platform.system():
         separator = "/"
-    elif "Windows" == platform.system():
-        separator = "\\"
 
     # _logger.info_ext(f"OS Specific: get_dir_separator_char: Platform is: {getPlatformName()}")
 
@@ -123,8 +125,10 @@ def format_path_for_os(path: str, addSeparatorAtTheEnd: bool = True):
     return formattedPath
 
 
-def internet_on():
+def internet_on(timeoutList: typing.List[int] = None):
     """Check if a web url can be reached.
+    Args:
+        timeoutList: list of times to pool the net. Eg: [1, 2, 5]. Default is [1, 5, 10]
     Return True if the url is found, False otherwise.
     *** Warning: On Mac OS False is always returned if the certifi Python lib is not installed.
     The returned value has then be forced to True. ***
@@ -135,26 +139,45 @@ def internet_on():
 
     url = "https://google.com"
 
-    # Mac specific:
-    if "Darwin" == platform.system():
-        # return True
-        import ssl
-
-        gcontext = ssl.SSLContext()
-        for timeout in [1, 5, 10]:
-            try:
-                urllib.request.urlopen(url, context=gcontext, timeout=timeout)
-                return True
-            except urllib.error.URLError:
-                pass
+    if timeoutList is None:
+        timesOut = [1, 5, 10]
     else:
-        for timeout in [1, 5, 10]:
+        timesOut = timeoutList
+
+    if "Windows" == platform.system():
+        for timeout in timesOut:
             try:
                 urllib.request.urlopen(url, timeout=timeout)
                 return True
             except urllib.error.URLError:
                 pass
 
+    elif "Darwin" == platform.system():
+        import ssl
+
+        gcontext = ssl.SSLContext()
+        for timeout in timesOut:
+            try:
+                urllib.request.urlopen(url, context=gcontext, timeout=timeout)
+                return True
+            except urllib.error.URLError:
+                pass
+
+    elif "Linux" == platform.system():
+        # https://stackoverflow.com/questions/20913411/test-if-an-internet-connection-is-present-in-python
+        import socket
+
+        for timeout in timesOut:
+            try:
+                # see if we can resolve the host name -- tells us if there is
+                # a DNS listening
+                host = socket.gethostbyname(url)
+                # connect to the host -- tells us if the host is actually reachable
+                s = socket.create_connection((host, 80), 2)
+                s.close()
+                return True
+            except Exception:
+                pass  # we ignore any errors, returning False
     return False
 
 
