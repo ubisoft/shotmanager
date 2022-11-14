@@ -34,12 +34,12 @@ class UAS_PT_ShotManager_RRS_Debug(Panel):
 
     @classmethod
     def poll(cls, context):
-        props = context.scene.UAS_shot_manager_props
+        props = config.getAddonProps(context.scene)
         displayPanel = not props.dontRefreshUI() and config.devDebug
         return displayPanel
 
     def draw(self, context):
-        props = context.scene.UAS_shot_manager_props
+        props = config.getAddonProps(context.scene)
 
         layout = self.layout
         row = layout.row(align=False)
@@ -66,4 +66,3 @@ class UAS_PT_ShotManager_RRS_Debug(Panel):
         #     row.prop(context.window_manager, "UAS_shot_manager_progressbar", text="Rendering...")
 
         layout.separator(factor=1)
-

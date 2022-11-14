@@ -24,7 +24,7 @@ from shotmanager.config import config
 
 
 def draw_markers_nav_bar_settings(layout):
-    prefs = config.getShotManagerPrefs()
+    prefs = config.getAddonPrefs()
 
     propCol = propertyColumn(layout)
 

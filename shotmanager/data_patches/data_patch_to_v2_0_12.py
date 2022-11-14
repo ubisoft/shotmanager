@@ -22,6 +22,7 @@ Data patch
 import bpy
 from ..utils import utils
 
+from shotmanager.config import config
 from ..config import sm_logging
 
 _logger = sm_logging.getLogger(__name__)
@@ -40,7 +41,7 @@ def data_patch_to_v2_0_12():
         props = None
 
         if getattr(scene, "UAS_shot_manager_props", None) is not None:
-            props = scene.UAS_shot_manager_props
+            props = config.getAddonProps(scene)
 
             _logger.debug_ext(
                 f"   Data version: {props.dataVersion}, SM version: {bpy.context.window_manager.UAS_shot_manager_version}"

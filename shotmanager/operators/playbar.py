@@ -23,6 +23,7 @@ import bpy
 from bpy.types import Operator
 from bpy.props import BoolProperty, StringProperty
 
+from shotmanager.config import config
 from shotmanager.config import sm_logging
 
 _logger = sm_logging.getLogger(__name__)
@@ -40,7 +41,7 @@ class UAS_ShotManager_Playbar_GoToFirstShot(Operator):
 
     def execute(self, context):
         # currentFrameInd = context.scene.frame_current
-        props = context.scene.UAS_shot_manager_props
+        props = config.getAddonProps(context.scene)
         firstShot = props.getFirstShot(ignoreDisabled=True)
         newFrame = 0
         if firstShot is not None:
@@ -60,7 +61,7 @@ class UAS_ShotManager_Playbar_GoToLastShot(Operator):
 
     def execute(self, context):
         # currentFrameInd = context.scene.frame_current
-        props = context.scene.UAS_shot_manager_props
+        props = config.getAddonProps(context.scene)
         lastShot = props.getLastShot(ignoreDisabled=True)
         newFrame = 0
         if lastShot is not None:
@@ -128,7 +129,7 @@ class UAS_ShotManager_Playbar_GoToShotBoundary(Operator):
         return self.execute(context)
 
     def execute(self, context):
-        props = context.scene.UAS_shot_manager_props
+        props = config.getAddonProps(context.scene)
         currentFrameInd = context.scene.frame_current
         if "PREVIOUS" == self.navigDirection:
             props.goToPreviousShotBoundary(currentFrameInd, ignoreDisabled=True, boundaryMode=self.boundaryMode)
@@ -145,8 +146,9 @@ class UAS_ShotManager_Playbar_GoToPreviousFrame(Operator):
     bl_options = {"INTERNAL"}
 
     def execute(self, context):
+        props = config.getAddonProps(context.scene)
         currentFrameInd = context.scene.frame_current
-        context.scene.UAS_shot_manager_props.goToPreviousFrame(currentFrameInd, ignoreDisabled=True)
+        props.goToPreviousFrame(currentFrameInd, ignoreDisabled=True)
 
         return {"FINISHED"}
 
@@ -158,8 +160,9 @@ class UAS_ShotManager_Playbar_GoToNextFrame(Operator):
     bl_options = {"INTERNAL"}
 
     def execute(self, context):
+        props = config.getAddonProps(context.scene)
         currentFrameInd = context.scene.frame_current
-        context.scene.UAS_shot_manager_props.goToNextFrame(currentFrameInd, ignoreDisabled=True)
+        props.goToNextFrame(currentFrameInd, ignoreDisabled=True)
 
         return {"FINISHED"}
 

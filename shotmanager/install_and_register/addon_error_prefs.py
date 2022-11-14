@@ -36,7 +36,7 @@ _logger = sm_logging.getLogger(__name__)
 class UAS_ShotManager_AddonErrorPrefs(AddonPreferences):
     """
     Use this to get these prefs:
-    prefs = config.getShotManagerPrefs()
+    prefs = config.getAddonPrefs()
     """
 
     # this must match the add-on name, use '__package__'
@@ -71,7 +71,7 @@ class UAS_ShotManager_AddonErrorPrefs(AddonPreferences):
     ##################################################################################
     def draw(self, context):
         layout = self.layout
-        prefs_addon = config.getShotManagerPrefs()
+        prefs_addon = config.getAddonPrefs()
 
         box = layout.box()
         box.alert = True

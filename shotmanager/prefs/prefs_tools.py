@@ -43,8 +43,8 @@ class UAS_ShotManager_Tools_Prefs(Operator):
         return context.window_manager.invoke_props_dialog(self, width=480)
 
     def draw(self, context):
-        # props = context.scene.UAS_shot_manager_props
-        prefs = config.getShotManagerPrefs()
+        # props = config.getAddonProps(context.scene)
+        prefs = config.getAddonPrefs()
         # scale_x = 0.85
 
         layout = self.layout

@@ -85,7 +85,7 @@ class UAS_ShotManager_RenderSettings(PropertyGroup):
     #     val = self.get("useStampInfo", True)
 
     #     # warning! Maybe the returned props is not the right one!!
-    #     props = bpy.context.scene.UAS_shot_manager_props
+    #     props = config.getAddonProps(bpy.context.scene)
     #     if "PLAYBLAST" != self.renderMode and props.use_project_settings:
     #         if not self.bypass_rendering_project_settings:
     #             #     val = self.useStampInfo

@@ -38,8 +38,8 @@ _logger = sm_logging.getLogger(__name__)
 
 def draw_shot_properties(layout, context, shot):
     scene = context.scene
-    props = scene.UAS_shot_manager_props
-    # prefs = config.getShotManagerPrefs()
+    props = config.getAddonProps(scene)
+    # prefs = config.getAddonPrefs()
     iconExplorer = config.icons_col["General_Explorer_32"]
 
     #  shotPropertiesModeIsCurrent = not ('SELECTED' == props.current_shot_properties_mode)
@@ -342,8 +342,8 @@ def draw_shot_properties(layout, context, shot):
 
 
 def draw_shots_global_properties(layout, context):
-    props = context.scene.UAS_shot_manager_props
-    prefs = config.getShotManagerPrefs()
+    props = config.getAddonProps(context.scene)
+    prefs = config.getAddonPrefs()
 
     box = layout.box()
     row = box.row()

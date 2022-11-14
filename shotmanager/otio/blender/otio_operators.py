@@ -57,7 +57,7 @@ class UAS_ShotManager_Export_OTIO(Operator):
     file: StringProperty()
 
     # def invoke ( self, context, event ):
-    #     props = context.scene.UAS_shot_manager_props
+    #     props = config.getAddonProps(context.scene)
 
     #     if not props.isRenderRootPathValid():
     #         from ..utils.utils import ShowMessageBox
@@ -91,7 +91,7 @@ class UAS_ShotManager_Export_OTIO(Operator):
     # return wm.invoke_props_dialog ( self )
 
     def execute(self, context):
-        props = context.scene.UAS_shot_manager_props
+        props = config.getAddonProps(context.scene)
 
         print("Exporting edit file...")
         if props.isRenderRootPathValid():
@@ -394,7 +394,7 @@ class UAS_ShotManager_OT_Create_Shots_From_OTIO_Adv(Operator):
     def invoke(self, context, event):
         wm = context.window_manager
         scene = context.scene
-        props = scene.UAS_shot_manager_props
+        props = config.getAddonProps(scene)
 
         # if "PREVIZ" == self.importStepMode:
         #     self.mediaHaveHandles = props.areShotHandlesUsed()
@@ -530,7 +530,7 @@ class UAS_ShotManager_OT_Create_Shots_From_OTIO_Adv(Operator):
 
     def draw(self, context):
         scene = context.scene
-        # props = scene.UAS_shot_manager_props
+        # props = config.getAddonProps(scene)
 
         #########################
         #########################
@@ -781,7 +781,7 @@ class UAS_ShotManager_OT_Create_Shots_From_OTIO_Adv(Operator):
 
     def execute(self, context):
         scene = context.scene
-        props = scene.UAS_shot_manager_props
+        props = config.getAddonProps(scene)
 
         print("\n--------------------")
         print(

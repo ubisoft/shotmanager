@@ -46,7 +46,7 @@ _logger = sm_logging.getLogger(__name__)
 
 
 def drawShotPropertiesToolbar(layout, context, shot):
-    props = context.scene.UAS_shot_manager_props
+    props = config.getAddonProps(context.scene)
     row = layout.row(align=False)
 
     cameraIsValid = shot.isCameraValid()
@@ -109,12 +109,12 @@ class UAS_PT_ShotManager_ShotProperties(Panel):
 
     @classmethod
     def poll(cls, context):
-        props = context.scene.UAS_shot_manager_props
+        props = config.getAddonProps(context.scene)
         if not ("SELECTED" == props.current_shot_properties_mode):
             shot = props.getCurrentShot()
         else:
             shot = props.getShotByIndex(props.selected_shot_index)
-        val = len(context.scene.UAS_shot_manager_props.getTakes()) and shot is not None
+        val = len(props.getTakes()) and shot is not None
         val = val and not props.dontRefreshUI()
         val = val and (
             props.expand_shot_properties
@@ -125,7 +125,7 @@ class UAS_PT_ShotManager_ShotProperties(Panel):
         return val
 
     def draw_header(self, context):
-        props = context.scene.UAS_shot_manager_props
+        props = config.getAddonProps(context.scene)
         layout = self.layout
         # layout.emboss = "NONE"
         propertiesModeStr = (
@@ -136,7 +136,7 @@ class UAS_PT_ShotManager_ShotProperties(Panel):
     def draw_header_preset(self, context):
         scene = context.scene
         layout = self.layout
-        props = scene.UAS_shot_manager_props
+        props = config.getAddonProps(scene)
         shot = None
         # if shotPropertiesModeIsCurrent is true then the displayed shot properties are taken from the CURRENT shot, else from the SELECTED one
         if not ("SELECTED" == props.current_shot_properties_mode):
@@ -166,8 +166,8 @@ class UAS_PT_ShotManager_ShotProperties(Panel):
 
     def draw(self, context):
         scene = context.scene
-        prefs = config.getShotManagerPrefs()
-        props = scene.UAS_shot_manager_props
+        prefs = config.getAddonPrefs()
+        props = config.getAddonProps(scene)
         # iconExplorer = config.icons_col["General_Explorer_32"]
 
         #  shotPropertiesModeIsCurrent = not ('SELECTED' == props.current_shot_properties_mode)

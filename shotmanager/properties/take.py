@@ -32,6 +32,7 @@ from shotmanager.utils.utils import findFirstUniqueName
 
 from shotmanager.properties.output_params import UAS_ShotManager_OutputParams_Resolution
 
+from shotmanager.config import config
 from shotmanager.config import sm_logging
 
 _logger = sm_logging.getLogger(__name__)
@@ -71,7 +72,8 @@ class UAS_ShotManager_Take(SequenceInterface, PropertyGroup):
                     # print("scn.UAS_shot_manager_props:", scn.UAS_shot_manager_props)
                     # takes = scn.UAS_shot_manager_props.getTakes()
                     # print("scn.UAS_shot_manager_props.takes:", scn.UAS_shot_manager_props.takes)
-                    for t in scn.UAS_shot_manager_props.takes:
+                    scn_props = config.getAddonProps(scn)
+                    for t in scn_props.takes:
                         # print("t.name: ", t.name)
                         # print("self.name: ", self.name)
                         if self == t:
@@ -122,7 +124,8 @@ class UAS_ShotManager_Take(SequenceInterface, PropertyGroup):
     def getName_PathCompliant(self, withPrefix=False):
         takeName = self.name.replace(" ", "_")
         if withPrefix:
-            takeName = f"{self.parentScene.UAS_shot_manager_props.getRenderShotPrefix()}{takeName}"
+            props = config.getAddonProps(self.parentScene)
+            takeName = f"{props.getRenderShotPrefix()}{takeName}"
         return takeName
 
     def getShotList(self, ignoreDisabled=False):
@@ -141,7 +144,8 @@ class UAS_ShotManager_Take(SequenceInterface, PropertyGroup):
 
     def _set_name(self, value):
         """Set a unique name to the take"""
-        takes = self.getParentScene().UAS_shot_manager_props.getTakes()
+        props = config.getAddonProps(self.getParentScene())
+        takes = props.getTakes()
         newName = findFirstUniqueName(self, value, takes)
         self["name"] = newName
 
@@ -229,7 +233,8 @@ class UAS_ShotManager_Take(SequenceInterface, PropertyGroup):
     #############
 
     def _update_overrideRenderSettings(self, context):
-        self.parentScene.UAS_shot_manager_props.setResolutionToScene()
+        props = config.getAddonProps(self.parentScene)
+        props.setResolutionToScene()
 
     overrideRenderSettings: BoolProperty(
         name="Override Render Settings",
@@ -256,8 +261,7 @@ class UAS_ShotManager_Take(SequenceInterface, PropertyGroup):
         Returns:
             tupple with the render resolution x and y of the take
         """
-        # props = self.parentScene.UAS_shot_manager_props
-        props = bpy.context.scene.UAS_shot_manager_props
+        props = config.getAddonProps(bpy.context.scene)
         res = None
         if self.overrideRenderSettings:
             res = (self.outputParams_Resolution.resolution_x, self.outputParams_Resolution.resolution_y)
@@ -334,14 +338,13 @@ class UAS_ShotManager_Take(SequenceInterface, PropertyGroup):
         return None
 
     def get_frame_start(self):
-        return self.parentScene.UAS_shot_manager_props.editStartFrame
+        props = config.getAddonProps(self.parentScene)
+        return props.editStartFrame
 
     def get_frame_end(self):
         """get_frame_end is exclusive in order to follow the Blender implementation of get_frame_end for its clips"""
-        return (
-            self.parentScene.UAS_shot_manager_props.editStartFrame
-            + self.parentScene.UAS_shot_manager_props.getEditDuration()
-        )
+        props = config.getAddonProps(self.parentScene)
+        return props.editStartFrame + props.getEditDuration()
 
     def get_frame_duration(self):
         """Same as self.getEditDuration()"""

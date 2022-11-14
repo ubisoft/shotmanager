@@ -26,7 +26,7 @@ from shotmanager.config import config
 
 # def display_state_changed_seqTimeline(context):
 #     print("display_state_changed_seqTimeline")
-#     prefs = config.getShotManagerPrefs()
+#     prefs = config.getAddonPrefs()
 #     # if (
 #     #     context.window_manager.UAS_shot_manager_display_overlay_tools
 #     #     and prefs.toggle_overlays_turnOn_interactiveShotsStack
@@ -41,7 +41,7 @@ class UAS_ShotManager_OT_ToggleSeqTimelineWithOverlayTools(Operator):
     bl_options = {"INTERNAL"}
 
     def invoke(self, context, event):
-        prefs = config.getShotManagerPrefs()
+        prefs = config.getAddonPrefs()
         prefs.toggle_overlays_turnOn_sequenceTimeline = not prefs.toggle_overlays_turnOn_sequenceTimeline
 
         # toggle on or off the overlay tools mode

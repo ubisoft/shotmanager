@@ -34,7 +34,7 @@ class UAS_FixEntitiesParent(Operator):
     bl_description = "Initialize scene for RRS project"
 
     def execute(self, context):
-        props = context.scene.UAS_shot_manager_props
+        props = config.getAddonProps(context.scene)
         props.getParentScene()
         for t in props.takes:
             t.getParentScene()
@@ -77,7 +77,7 @@ class UAS_LaunchRRSRender(Operator):
         """Launch RRS Publish script"""
         print(" UAS_LaunchRRSRender")
 
-        props = context.scene.UAS_shot_manager_props
+        props = config.getAddonProps(context.scene)
         settingsDict = dict()
         settingsDict["publish_rendering_file"] = "C:\\my rendering file.blend"
         settingsDict["publish_step"] = "Cleaning"

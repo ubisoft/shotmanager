@@ -23,6 +23,8 @@ import bpy
 from bpy.types import Operator
 from bpy.props import StringProperty, BoolProperty, IntProperty
 
+from shotmanager.config import config
+
 
 class UAS_ShotManager_TakeAdd(Operator):
     bl_idname = "uas_shot_manager.take_add"
@@ -44,7 +46,7 @@ class UAS_ShotManager_TakeAdd(Operator):
 
     # @classmethod
     # def poll ( cls, context ):
-    #     props = context.scene.UAS_shot_manager_props
+    #     props = config.getAddonProps(context.scene)
     #     currentTakeInd = props.getCurrentTakeIndex()
     #     # take 0 (default, named Main Take) should not be removed !!
     #     if  len(props.getTakes()) <= 0 or currentTakeInd <= 0:
@@ -52,17 +54,18 @@ class UAS_ShotManager_TakeAdd(Operator):
     #     return True
 
     def invoke(self, context, event):
-        takes = context.scene.UAS_shot_manager_props.getTakes()
+        props = config.getAddonProps(context.scene)
+        takes = props.getTakes()
         if len(takes) <= 0:
             self.name = "Main Take"
         else:
-            self.name = f"Take_{len ( context.scene.UAS_shot_manager_props.getTakes() ) - 1 + 1:02}"
+            self.name = f"Take_{len(props.getTakes()) - 1 + 1:02}"
         return context.window_manager.invoke_props_dialog(self, width=400)
 
     def draw(self, context):
         layout = self.layout
         scene = context.scene
-        props = scene.UAS_shot_manager_props
+        props = config.getAddonProps(scene)
 
         box = layout.box()
         row = box.row(align=True)
@@ -105,9 +108,10 @@ class UAS_ShotManager_TakeAdd(Operator):
         #     subBox.prop(self, "useStampInfoDuringRendering", text=stampInfoStr)
 
     def execute(self, context):
-        newTake = context.scene.UAS_shot_manager_props.addTake(name=self.name)
+        props = config.getAddonProps(context.scene)
+        newTake = props.addTake(name=self.name)
 
-        context.scene.UAS_shot_manager_props.current_take_name = newTake.name
+        props.current_take_name = newTake.name
         return {"INTERFACE"}
 
 
@@ -122,7 +126,7 @@ class UAS_ShotManager_TakeDuplicate(Operator):
     duplicateCam: BoolProperty(name="Duplicate Cameras", default=False)
 
     def invoke(self, context, event):
-        props = context.scene.UAS_shot_manager_props
+        props = config.getAddonProps(context.scene)
         takes = props.getTakes()
         if len(takes) <= 0:
             if props.use_project_settings:
@@ -130,9 +134,9 @@ class UAS_ShotManager_TakeDuplicate(Operator):
             else:
                 self.newTakeName = "Main Take"
         else:
-            currentTake = context.scene.UAS_shot_manager_props.getCurrentTake()
+            currentTake = props.getCurrentTake()
             # name based on number of takes
-            # self.newTakeName = f"Take_{len(context.scene.UAS_shot_manager_props.getTakes()) - 1 + 1:02}"
+            # self.newTakeName = f"Take_{len(props.getTakes()) - 1 + 1:02}"
             self.newTakeName = currentTake.name + "_duplicate"
         return context.window_manager.invoke_props_dialog(self)
 
@@ -158,7 +162,7 @@ class UAS_ShotManager_TakeDuplicate(Operator):
         layout.separator()
 
     def execute(self, context):
-        props = context.scene.UAS_shot_manager_props
+        props = config.getAddonProps(context.scene)
 
         currentShotIndex = props.getCurrentShotIndex()
         currentTake = props.getCurrentTake()
@@ -186,7 +190,7 @@ class UAS_ShotManager_TakeRemove(Operator):
 
     @classmethod
     def poll(cls, context):
-        props = context.scene.UAS_shot_manager_props
+        props = config.getAddonProps(context.scene)
         currentTakeInd = props.getCurrentTakeIndex()
         # take 0 (default, named Main Take) should not be removed !!
         if len(props.getTakes()) <= 0 or currentTakeInd <= 0:
@@ -194,7 +198,7 @@ class UAS_ShotManager_TakeRemove(Operator):
         return True
 
     def execute(self, context):
-        props = context.scene.UAS_shot_manager_props
+        props = config.getAddonProps(context.scene)
         props.setCurrentShotByIndex(-1)
 
         currentTakeInd = props["current_take_name"]
@@ -224,7 +228,7 @@ class UAS_ShotManager_TakeRename(Operator):
 
     @classmethod
     def poll(cls, context):
-        props = context.scene.UAS_shot_manager_props
+        props = config.getAddonProps(context.scene)
         currentTakeInd = props.getCurrentTakeIndex()
         # take 0 (default, named Main Take) should not be renamed !!
         if len(props.getTakes()) <= 0 or currentTakeInd <= 0:
@@ -232,11 +236,12 @@ class UAS_ShotManager_TakeRename(Operator):
         return True
 
     def invoke(self, context, event):
-        self.name = context.scene.UAS_shot_manager_props.getCurrentTake().name
+        props = config.getAddonProps(context.scene)
+        self.name = props.getCurrentTake().name
         return context.window_manager.invoke_props_dialog(self)
 
     def execute(self, context):
-        props = context.scene.UAS_shot_manager_props
+        props = config.getAddonProps(context.scene)
         currentTake = props.getCurrentTake()
 
         if currentTake.name != self.name:
@@ -256,7 +261,7 @@ class UAS_ShotManager_TakeMoveUp(Operator):
 
     @classmethod
     def poll(cls, context):
-        props = context.scene.UAS_shot_manager_props
+        props = config.getAddonProps(context.scene)
         takes = props.takes
         if len(takes) <= 1:
             return False
@@ -265,7 +270,7 @@ class UAS_ShotManager_TakeMoveUp(Operator):
         return 1 < currentTakeInd
 
     def invoke(self, context, event):
-        props = context.scene.UAS_shot_manager_props
+        props = config.getAddonProps(context.scene)
         currentTakeInd = props.getCurrentTakeIndex()
         props.moveTakeToIndex(props.getCurrentTake(), currentTakeInd - 1)
 
@@ -282,7 +287,7 @@ class UAS_ShotManager_TakeMoveDown(Operator):
 
     @classmethod
     def poll(cls, context):
-        props = context.scene.UAS_shot_manager_props
+        props = config.getAddonProps(context.scene)
         takes = props.takes
         if len(takes) <= 1:
             return False
@@ -291,7 +296,7 @@ class UAS_ShotManager_TakeMoveDown(Operator):
         return len(takes) - 1 > currentTakeInd and currentTakeInd > 0
 
     def invoke(self, context, event):
-        props = context.scene.UAS_shot_manager_props
+        props = config.getAddonProps(context.scene)
         currentTakeInd = props.getCurrentTakeIndex()
         props.moveTakeToIndex(props.getCurrentTake(), currentTakeInd + 1)
         return {"INTERFACE"}
@@ -307,7 +312,7 @@ class UAS_ShotManager_TakeAsMain(Operator):
 
     @classmethod
     def poll(cls, context):
-        props = context.scene.UAS_shot_manager_props
+        props = config.getAddonProps(context.scene)
         takes = props.takes
         if len(takes) <= 1:
             return False
@@ -316,7 +321,7 @@ class UAS_ShotManager_TakeAsMain(Operator):
         return 0 < currentTakeInd
 
     def invoke(self, context, event):
-        props = context.scene.UAS_shot_manager_props
+        props = config.getAddonProps(context.scene)
         # currentTakeInd = props.getCurrentTakeIndex()
         # currentShotIndex = props.getCurrentShotIndex()
         # currentTake = props.getCurrentTake()
@@ -351,7 +356,7 @@ class UAS_ShotManager_ResetTakesToDefault(Operator):
         layout.separator()
 
     def execute(self, context):
-        props = context.scene.UAS_shot_manager_props
+        props = config.getAddonProps(context.scene)
         takes = props.getTakes()
 
         for i in range(len(takes), -1, -1):

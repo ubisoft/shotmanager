@@ -35,7 +35,7 @@ class UAS_ShotManager_OT_ToggleShotsStackWithOverlayTools(Operator):
     bl_options = {"INTERNAL"}
 
     def invoke(self, context, event):
-        prefs = config.getShotManagerPrefs()
+        prefs = config.getAddonPrefs()
         prefs.toggle_overlays_turnOn_interactiveShotsStack = not prefs.toggle_overlays_turnOn_interactiveShotsStack
 
         # toggle on or off the overlay tools mode

@@ -38,6 +38,7 @@ from shotmanager.scripts.rrs.rrs_playblast import (
     getSoundFilesForEachShot,
 )
 
+from shotmanager.config import config
 from shotmanager.config import sm_logging
 
 _logger = sm_logging.getLogger(__name__)
@@ -157,7 +158,7 @@ class UAS_VideoShotManager_OT_RRS_ExportShotsFromEdit(Operator):
     def invoke(self, context, event):
         wm = context.window_manager
         scene = context.scene
-        props = scene.UAS_shot_manager_props
+        props = config.getAddonProps(scene)
 
         # if "" != self.opArgs:
         #     argsDict = json.loads(self.opArgs)
@@ -192,7 +193,7 @@ class UAS_VideoShotManager_OT_RRS_ExportShotsFromEdit(Operator):
 
     def draw(self, context):
         scene = context.scene
-        props = scene.UAS_shot_manager_props
+        props = config.getAddonProps(scene)
 
         # selSeq = config.gMontageOtio.sequencesList[int(self.sequenceList)] if config.gMontageOtio is not None else None
 
@@ -257,7 +258,7 @@ class UAS_VideoShotManager_OT_RRS_ExportShotsFromEdit(Operator):
 
     def execute(self, context):
         scene = context.scene
-        props = scene.UAS_shot_manager_props
+        props = config.getAddonProps(scene)
 
         if not Path(self.otioFile).exists():
             return
@@ -311,7 +312,7 @@ class UAS_VideoShotManager_OT_SM_CheckSequence(Operator):
     def invoke(self, context, event):
         wm = context.window_manager
         scene = context.scene
-        props = scene.UAS_shot_manager_props
+        props = config.getAddonProps(scene)
 
         # if "" != self.opArgs:
         #     argsDict = json.loads(self.opArgs)
@@ -348,7 +349,7 @@ class UAS_VideoShotManager_OT_SM_CheckSequence(Operator):
 
     def draw(self, context):
         scene = context.scene
-        props = scene.UAS_shot_manager_props
+        props = config.getAddonProps(scene)
 
         # selSeq = config.gMontageOtio.sequencesList[int(self.sequenceList)] if config.gMontageOtio is not None else None
 
@@ -490,7 +491,7 @@ class UAS_VideoShotManager_ImportPublishedSequence(Operator):
     def invoke(self, context, event):
         wm = context.window_manager
         scene = context.scene
-        props = scene.UAS_shot_manager_props
+        props = config.getAddonProps(scene)
 
         # parse the markers to get the shots list
         previzMarkers = scene.timeline_markers
@@ -532,7 +533,7 @@ class UAS_VideoShotManager_ImportPublishedSequence(Operator):
     def draw(self, context):
         layout = self.layout
         scene = context.scene
-        props = scene.UAS_shot_manager_props
+        props = config.getAddonProps(scene)
 
         # selSeq = (
         #     config.gMontageOtio.sequencesList[int(self.sequenceList)]

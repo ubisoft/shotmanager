@@ -131,7 +131,7 @@ class UAS_ShotManager_RenderGlobalContext(PropertyGroup):
         if renderQuality is None:
             renderQuality = self.renderQuality
 
-        # props = context.scene.UAS_shot_manager_props
+        # props = config.getAddonProps(context.scene)
         # bpy.context.space_data.overlay.show_overlays = props.useOverlays
 
         if "VERY_LOW" == renderQuality:
@@ -203,7 +203,7 @@ class UAS_ShotManager_RenderGlobalContext(PropertyGroup):
         if renderQuality is None:
             renderQuality = self.renderQualityOpengl
 
-        # props = context.scene.UAS_shot_manager_props
+        # props = config.getAddonProps(context.scene)
         # bpy.context.space_data.overlay.show_overlays = props.useOverlays
 
         if "VERY_LOW" == renderQuality:

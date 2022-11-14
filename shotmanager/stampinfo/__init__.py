@@ -56,6 +56,7 @@ def stampInfo_resetProperties():
 
 
 def register():
+    _logger.debug_ext("       - Registering Stamp Info Package", form="REG")
 
     from .utils import utils_stampInfo
 
@@ -88,7 +89,8 @@ def register():
 
 
 def unregister():
-    print("\n*** --- Unregistering Stamp Info  --- ***")
+    _logger.debug_ext("       - Unregistering Stamp Info Package", form="UNREG")
+
     from .utils import utils_stampInfo
 
     # Unregister packages that were registered if the install went right

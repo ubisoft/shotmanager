@@ -25,7 +25,7 @@ import bpy
 from bpy.types import Operator
 from bpy.props import StringProperty
 
-from shotmanager import config
+# from shotmanager import config
 from shotmanager.config import sm_logging
 
 _logger = sm_logging.getLogger(__name__)

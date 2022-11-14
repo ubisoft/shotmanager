@@ -243,7 +243,7 @@ class ShotHandleComponent(Component2D):
 
         # bpy.ops.uas_shot_manager.set_shot_start(newStart=self.start + mouse_delta_frames)
 
-        prefs = config.getShotManagerPrefs()
+        prefs = config.getAddonPrefs()
         if prefs.shtStack_link_stb_clips_to_keys and self.manipulatedChildren is not None:
 
             retimerApplyToSettings = context.window_manager.UAS_shot_manager_shots_stack_retimerApplyTo

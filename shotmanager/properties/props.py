@@ -183,7 +183,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
 
     def initialize_shot_manager(self):
         _logger.info_ext(f"\nInitializing Ubisoft Shot Manager in the current scene ({bpy.context.scene.name})...")
-        prefs = config.getShotManagerPrefs()
+        prefs = config.getAddonPrefs()
 
         # self.parentScene = self.getParentScene()
 
@@ -257,12 +257,12 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
     )
 
     def findParentScene(self):
-        for scn in bpy.data.scenes:
-            if "UAS_shot_manager_props" in scn:
-                props = scn.UAS_shot_manager_props
+        for scene in bpy.data.scenes:
+            if "UAS_shot_manager_props" in scene:
+                props = config.getAddonProps(scene)
                 if self == props:
                     #    print("findParentScene: Scene found")
-                    return scn
+                    return scene
         # print("findParentScene: Scene NOT found")
         return None
 
@@ -330,7 +330,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         return True
 
     def dontRefreshUI(self):
-        prefs = config.getShotManagerPrefs()
+        prefs = config.getAddonPrefs()
         res = False
         if (
             bpy.context.screen.is_animation_playing
@@ -1422,7 +1422,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
     # not visible in the UI because radiobuttons are more suitable
 
     # def _update_layout_mode(self, context):
-    #     prefs = config.getShotManagerPrefs()
+    #     prefs = config.getAddonPrefs()
     #     # print("\n*** Props _update_layout_mode updated. New state: ", self._update_layout_mode)
     #     # self.layout_but_storyboard = "STORYBOARD" == self._update_layout_mode
     #     # self.layout_but_previez = "PREVIZ" == self._update_layout_mode
@@ -1919,7 +1919,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
     def _get_greasePencil_activeMaterial(self):
         val = self.get("greasePencil_activeMaterial", 0)
         #  print(" _get_greasePencil_activeMaterial")
-        # props = bpy.context.scene.UAS_shot_manager_props
+        # props = config.getAddonProps(bpy.context.scene)
         # spaceDataViewport = props.getValidTargetViewportSpaceData(bpy.context)
         # if spaceDataViewport is not None:
         #     val = spaceDataViewport.overlay.gpencil_fade_layer
@@ -1998,7 +1998,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
     def _get_greasePencil_activeMaterialB(self):
         val = self.get("_get_greasePencil_activeMaterialB", 0)
         # print(" _get_greasePencil_activeMaterial")
-        # props = bpy.context.scene.UAS_shot_manager_props
+        # props = config.getAddonProps(bpy.context.scene)
         # spaceDataViewport = props.getValidTargetViewportSpaceData(bpy.context)
         # if spaceDataViewport is not None:
         #     val = spaceDataViewport.overlay.gpencil_fade_layer
@@ -2107,7 +2107,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         """Return True if, according to the Preference settings and the current UI and scene context,
         the actualy selected shot should be set as the current one.
         Call this function just after the considered shot has been selected."""
-        prefs = config.getShotManagerPrefs()
+        prefs = config.getAddonPrefs()
 
         setCurrentShot = False
         # if False:
@@ -2661,6 +2661,12 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
     def isStampInfoAvailable(self):
         """Return True if the add-on UAS Stamp Info is available, registred and ready to be used"""
         readyToUse = getattr(bpy.context.scene, "UAS_SM_StampInfo_Settings", None) is not None
+
+        try:
+            import PIL
+        except ImportError as error:
+            readyToUse = False
+
         # stampInfoSettings = getStampInfo()
         # readyToUse = stampInfoSettings is not None
         return readyToUse
@@ -3502,7 +3508,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         elif -1 < currentShotIndex < len(shotList):
             self.current_shot_index = currentShotIndex
 
-            prefs = config.getShotManagerPrefs()
+            prefs = config.getAddonPrefs()
             currentShot = shotList[currentShotIndex]
 
             if changeTime is None:
@@ -4476,7 +4482,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         Args: frame:    If provided then the result is a string of zeros followed by this value
                         If not provided then the returned string is made of #
         """
-        prefs = config.getShotManagerPrefs()
+        prefs = config.getAddonPrefs()
         formatedFrame = ""
         padding = self.project_img_name_digits_padding if self.use_project_settings else prefs.img_name_digits_padding
 
@@ -4709,7 +4715,7 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
             genericFrame: if genericFrame is True then #### is used instead of the specific frame index
         """
 
-        prefs = config.getShotManagerPrefs()
+        prefs = config.getAddonPrefs()
         filePath = ""
         fileName = ""
         fileExtension = ""
@@ -5137,7 +5143,8 @@ class UAS_ShotManager_Props(MontageInterface, PropertyGroup):
         return self.project_fps if self.use_project_settings else utils.getSceneEffectiveFps(self.parentScene)
 
     def get_frame_start(self):
-        return self.parentScene.UAS_shot_manager_props.editStartFrame
+        props = config.getAddonProps(self.parentScene)
+        return props.editStartFrame
 
     def get_frame_end(self):
         """get_frame_end is exclusive in order to follow the Blender implementation of get_frame_end for its clips"""

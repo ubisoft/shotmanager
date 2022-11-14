@@ -51,7 +51,7 @@ def drawWarnings(context, ui_component, warningsList, panelType="MAIN"):
     if not numWarnings:
         return
 
-    prefs = config.getShotManagerPrefs()
+    prefs = config.getAddonPrefs()
     panelIcon = "TRIA_DOWN" if prefs.general_warning_expanded else "TRIA_RIGHT"
 
     box = ui_component.box()

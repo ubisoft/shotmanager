@@ -30,8 +30,8 @@ from shotmanager.config import config
 
 
 def draw_greasepencil_play_tools(self, context, shot, layersListDropdown=None):
-    props = context.scene.UAS_shot_manager_props
-    prefs = config.getShotManagerPrefs()
+    props = config.getAddonProps(context.scene)
+    prefs = config.getAddonPrefs()
     scene = context.scene
     layout = self.layout
 
@@ -387,8 +387,9 @@ def drawAutokey(context, layout):
 
 
 def drawLayersRow(context, props, layout, editedGpencil, objIsGP):
-    # prefs = config.getShotManagerPrefs()
-    framePreset = context.scene.UAS_shot_manager_props.stb_frameTemplate
+    props = config.getAddonProps(context.scene)
+    # prefs = config.getAddonPrefs()
+    framePreset = props.stb_frameTemplate
     currentFrame = context.scene.frame_current
 
     def _draw_layer_button(layout, preset):
@@ -477,7 +478,7 @@ def drawLayersRow(context, props, layout, editedGpencil, objIsGP):
 
 
 def drawKeyFrameActionsRow(context, props, layout, editedGpencil, objIsGP):
-    # prefs = config.getShotManagerPrefs()
+    # prefs = config.getAddonPrefs()
     # framePreset = context.scene.UAS_shot_manager_props.stb_frameTemplate
     currentFrame = context.scene.frame_current
 

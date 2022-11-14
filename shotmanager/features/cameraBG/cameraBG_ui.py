@@ -24,8 +24,8 @@ from shotmanager.config import config
 
 
 def draw_cameraBG_shot_properties(layout, context, shot):
-    props = context.scene.UAS_shot_manager_props
-    prefs = config.getShotManagerPrefs()
+    props = config.getAddonProps(context.scene)
+    prefs = config.getAddonPrefs()
 
     if shot is None:
         return
@@ -116,7 +116,7 @@ def draw_cameraBG_shot_properties(layout, context, shot):
 
 
 def draw_cameraBG_global_properties(layout, context):
-    props = context.scene.UAS_shot_manager_props
+    props = config.getAddonProps(context.scene)
 
     box = layout.box()
     row = box.row()

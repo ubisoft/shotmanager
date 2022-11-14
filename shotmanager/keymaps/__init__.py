@@ -26,7 +26,6 @@ from . import playbar_wrappers_operators
 from . import playbar_keymaps
 from . import storyboard_keymaps
 
-from shotmanager import config
 from shotmanager.config import sm_logging
 
 _logger = sm_logging.getLogger(__name__)

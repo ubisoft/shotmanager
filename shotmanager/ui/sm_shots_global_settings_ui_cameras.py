@@ -19,6 +19,8 @@
 Grease pencil viewport overlay draw functions
 """
 
+from shotmanager.config import config
+
 
 def draw_camera_global_settings(context, layout, mode="SHOT"):
     """Used for storyboard frames and grease pencil shots in the Shot Manager storyboard panel,
@@ -27,8 +29,8 @@ def draw_camera_global_settings(context, layout, mode="SHOT"):
         mode:   can be "STORYBOARD", "GP", "SHOT"
     """
 
-    props = context.scene.UAS_shot_manager_props
-    # prefs = config.getShotManagerPrefs()
+    props = config.getAddonProps(context.scene)
+    # prefs = config.getAddonPrefs()
     splitFactor = 0.16
 
     titleSplit = layout.split(factor=0.25)

@@ -41,13 +41,13 @@ def data_patch_to_v2_0_204():
         props = None
 
         if getattr(scene, "UAS_shot_manager_props", None) is not None:
-            props = scene.UAS_shot_manager_props
+            props = config.getAddonProps(scene)
 
             _logger.debug_ext(
                 f"   Data version: {props.dataVersion}, SM version: {bpy.context.window_manager.UAS_shot_manager_version}"
             )
             if props.dataVersion <= 0 or props.dataVersion < bpy.context.window_manager.UAS_shot_manager_version:
-                prefs = config.getShotManagerPrefs()
+                prefs = config.getAddonPrefs()
 
                 # apply patch and apply new data version
                 #       print("       Applying data patch data_patch_to_v2_0_12 to scenes")

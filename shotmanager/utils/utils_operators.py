@@ -28,6 +28,7 @@ from bpy.types import Operator
 from bpy.props import StringProperty
 
 from . import utils
+from .utils_os import internet_on
 
 
 ###################
@@ -118,6 +119,42 @@ class UAS_Utils_QuickHelp(Operator):
 
         bpy.context.window_manager.popup_menu(drawDialog, title=self.title, icon=self.icon)
         return {"FINISHED"}
+
+
+class UAS_Utils_CheckInternetConnection(Operator):
+    bl_idname = "uas_utils.ckeckinternetconnection"
+    bl_label = "Check Internet Connection"
+    bl_description = "Open a message box displaying the state of the connection of Blender to the Internet"
+    bl_options = {"INTERNAL"}
+
+    descriptionText: StringProperty(default="Tooltip")
+    title: StringProperty(default="Info")
+    text: StringProperty(default="My text\non 2 lines")
+    icon: StringProperty(default="INFO")
+
+    @classmethod
+    def description(self, context, properties):
+        return properties.descriptionText
+
+    def invoke(self, context, event):
+        return context.window_manager.invoke_props_dialog(self, width=400)
+
+    def execute(self, context):
+        return {"INTERFACE"}
+
+    def draw(self, context):
+        layout = self.layout
+        layout.separator(factor=0.5)
+        if internet_on(timeoutList=[2, 3]):
+            row = layout.row()
+            row.label(text="Internet is currently accessible from Blender")
+        else:
+            row = layout.row()
+            row.alert = True
+            row.label(text="Internet is currently NOT accessible from Blender")
+            row = layout.row()
+            row.alert = True
+            row.label(text="Check your connection and your firewall")
 
 
 ###################
@@ -220,6 +257,7 @@ _classes = (
     UAS_OT_EmptyOperator,
     UAS_Utils_RunScript,
     UAS_Utils_QuickHelp,
+    UAS_Utils_CheckInternetConnection,
     UAS_Utils_CreateCameraFromView,
     UAS_Utils_CameraToView,
     UAS_Utils_GetCurrentFrameForTimeRange,

@@ -24,7 +24,6 @@ import bpy
 from . import sm_shots_ui_common
 
 from shotmanager.config import config
-
 from shotmanager.config import sm_logging
 
 _logger = sm_logging.getLogger(__name__)
@@ -37,7 +36,7 @@ _logger = sm_logging.getLogger(__name__)
 
 class UAS_UL_ShotManager_Storyboard_Items(bpy.types.UIList):
     def draw_item(self, context, layout, data, item, icon, active_data, active_propname, index):
-        props = context.scene.UAS_shot_manager_props
+        props = config.getAddonProps(context.scene)
         current_shot_index = props.current_shot_index
         scene = context.scene
 

@@ -152,7 +152,7 @@ class InfoComponent(QuadObject):
             config.gRedrawShotStack = True
 
     def updateDisplayedInfo(self):
-        props = bpy.context.scene.UAS_shot_manager_props
+        props = config.getAddonProps(bpy.context.scene)
         selectedShot = props.getSelectedShot()
         manipulatedCompoType = type(self.shotsStackWidget.manipulatedComponent).__name__
 
@@ -205,7 +205,7 @@ class InfoComponent(QuadObject):
 
     # override QuadObject
     def draw(self, shader=None, region=None, draw_types="TRIS", cap_lines=False, preDrawOnly=False):
-        prefs = config.getShotManagerPrefs()
+        prefs = config.getAddonPrefs()
         if not prefs.shtStack_display_info_widget:
             return
 

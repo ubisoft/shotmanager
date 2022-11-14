@@ -33,6 +33,7 @@ import opentimelineio
 
 from ..montage_otio import MontageOtio
 
+from shotmanager.config import config
 from ...config import sm_logging
 
 _logger = sm_logging.getLogger(__name__)
@@ -55,7 +56,7 @@ def createShotsFromOtio(
     from random import uniform
     from math import radians
 
-    props = scene.UAS_shot_manager_props
+    props = config.getAddonProps(scene)
     if len(props.getCurrentTake().getShotList()) != 0:
         bpy.ops.uas_shot_manager.take_add(name=Path(otioFile).stem)
 
@@ -81,7 +82,7 @@ def createShotsFromOtio(
                     if reformatShotNames:
                         match = shot_re.search(clipName)
                         if match:
-                            clipName = scene.UAS_shot_manager_props.naming_shot_format + match.group(1)
+                            clipName = props.naming_shot_format + match.group(1)
 
                     cam_ob = utils.create_new_camera("Cam_" + clipName, location=[0.0, i, 0.0])
                     cam = cam_ob.data

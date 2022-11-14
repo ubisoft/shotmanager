@@ -62,7 +62,7 @@ def list_greasepencil_layers(self, context):
 class UAS_ShotManager_AddonPrefs(AddonPreferences):
     """
     Use this to get these prefs:
-    prefs = config.getShotManagerPrefs()
+    prefs = config.getAddonPrefs()
     """
 
     # this must match the add-on name, use '__package__'
@@ -303,7 +303,7 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
         # print(f"*** _set_take_properties_expanded: {self.take_properties_expanded}, value: {value}")
         # close other panels
         if self.take_properties_expanded != value and not value:
-            prefs = config.getShotManagerPrefs()
+            prefs = config.getAddonPrefs()
             prefs.take_renderSettings_expanded = False
             prefs.take_notes_expanded = False
         self["take_properties_expanded"] = value
@@ -379,7 +379,7 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
     def _set_stb_global_visibility(self, value):
         # "NO_CHANGE"
         if 0 != value:
-            props = bpy.context.scene.UAS_shot_manager_props
+            props = config.getAddonProps(bpy.context.scene)
             currentTake = props.getCurrentTake()
             if currentTake is not None:
                 for sh in currentTake.shots:
@@ -395,7 +395,7 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
         self["stb_global_visibility"] = 0
 
     # def _update_stb_global_visibility(self, context):
-    #     props = context.scene.UAS_shot_manager_props
+    #     props = config.getAddonProps(context.scene)
     #     currentTake = props.getCurrentTake()
     #     if currentTake is not None:
     #         for sh in currentTake.shots:
@@ -1331,13 +1331,13 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
     def _get_projectSeqName(self):
         # print(" get_projectSeqName")
         # val = self.get("projectSeqName", "-")
-        props = bpy.context.scene.UAS_shot_manager_props
+        props = config.getAddonProps(bpy.context.scene)
         val = props.getSequenceName("FULL")
         return val
 
     def _set_projectSeqName(self, value):
         #  print(" set_projectSeqName: value: ", value)
-        props = bpy.context.scene.UAS_shot_manager_props
+        props = config.getAddonProps(bpy.context.scene)
         val = props.getSequenceName("FULL")
         self["projectSeqName"] = val
 
@@ -1371,7 +1371,7 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
         self["overlays_toggleoverlays_ui"] = value
 
     def _update_overlays_toggleoverlays_ui(self, context):
-        props = context.scene.UAS_shot_manager_props
+        props = config.getAddonProps(context.scene)
         applyToAllViewports = "ALL" == props.shotsGlobalSettings.stb_overlaysViewportMode
         bpy.ops.uas_shot_manager.overlays_toggleoverlays(
             allViewports=applyToAllViewports, newState=not self.overlays_toggleoverlays_ui
@@ -1397,7 +1397,7 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
         self["overlays_toggleonionskin_ui"] = value
 
     def _update_overlays_toggleonionskin_ui(self, context):
-        props = context.scene.UAS_shot_manager_props
+        props = config.getAddonProps(context.scene)
         applyToAllViewports = "ALL" == props.shotsGlobalSettings.stb_overlaysViewportMode
         bpy.ops.uas_shot_manager.overlays_toggleonionskin(
             allViewports=applyToAllViewports, newState=not self.overlays_toggleonionskin_ui
@@ -1423,7 +1423,7 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
         self["overlays_togglegrid_ui"] = value
 
     def _update_overlays_togglegrid_ui(self, context):
-        props = context.scene.UAS_shot_manager_props
+        props = config.getAddonProps(context.scene)
         applyToAllViewports = "ALL" == props.shotsGlobalSettings.stb_overlaysViewportMode
         bpy.ops.uas_shot_manager.overlays_togglegrid(
             allViewports=applyToAllViewports, newState=not self.overlays_togglegrid_ui
@@ -1440,7 +1440,7 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
     )
 
     def _get_stb_overlay_grid_opacity(self):
-        props = bpy.context.scene.UAS_shot_manager_props
+        props = config.getAddonProps(bpy.context.scene)
         spaceDataViewport = props.getValidTargetViewportSpaceData(bpy.context)
         if spaceDataViewport is not None:
             val = spaceDataViewport.overlay.gpencil_grid_opacity
@@ -1452,7 +1452,7 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
         self["stb_overlay_grid_opacity"] = value
 
     def _update_stb_overlay_grid_opacity(self, context):
-        props = context.scene.UAS_shot_manager_props
+        props = config.getAddonProps(context.scene)
         applyToAllViewports = "ALL" == props.shotsGlobalSettings.stb_overlaysViewportMode
         bpy.ops.uas_shot_manager.overlays_gridopacity(
             allViewports=applyToAllViewports, opacity=self["stb_overlay_grid_opacity"]
@@ -1484,7 +1484,7 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
         self["use_gpencil_canvas_xray"] = value
 
     def _update_overlays_togglegridtofront_ui(self, context):
-        props = context.scene.UAS_shot_manager_props
+        props = config.getAddonProps(context.scene)
         applyToAllViewports = "ALL" == props.shotsGlobalSettings.stb_overlaysViewportMode
         bpy.ops.uas_shot_manager.overlays_togglegridtofront(
             allViewports=applyToAllViewports, newState=not self.overlays_togglegridtofront_ui
@@ -1510,7 +1510,7 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
         self["overlays_togglefadelayers_ui"] = value
 
     def _update_overlays_togglefadelayers_ui(self, context):
-        props = context.scene.UAS_shot_manager_props
+        props = config.getAddonProps(context.scene)
         applyToAllViewports = "ALL" == props.shotsGlobalSettings.stb_overlaysViewportMode
         bpy.ops.uas_shot_manager.overlays_togglefadelayers(
             allViewports=applyToAllViewports, newState=not self.overlays_togglefadelayers_ui
@@ -1527,7 +1527,7 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
     )
 
     def _get_stb_overlay_layers_opacity(self):
-        props = bpy.context.scene.UAS_shot_manager_props
+        props = config.getAddonProps(bpy.context.scene)
         spaceDataViewport = props.getValidTargetViewportSpaceData(bpy.context)
         if spaceDataViewport is not None:
             val = spaceDataViewport.overlay.gpencil_fade_layer
@@ -1539,7 +1539,7 @@ class UAS_ShotManager_AddonPrefs(AddonPreferences):
         self["stb_overlay_layers_opacity"] = value
 
     def _update_stb_overlay_layers_opacity(self, context):
-        props = context.scene.UAS_shot_manager_props
+        props = config.getAddonProps(context.scene)
         applyToAllViewports = "ALL" == props.shotsGlobalSettings.stb_overlaysViewportMode
         # spaceDataViewport = props.getValidTargetViewportSpaceData(context)
         # if spaceDataViewport is not None:

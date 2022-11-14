@@ -27,9 +27,9 @@ from . import utils
 from shotmanager.config import config
 
 
-def getShotManagerPrefs():
+def getAddonPrefs():
     """Return the preferences of the add-on"""
-    return config.getShotManagerPrefs()
+    return config.getAddonPrefs()
 
 
 def getShotManagerAddon():
@@ -75,7 +75,7 @@ def getStampInfo():
 
     return bpy.context.scene.UAS_SM_StampInfo_Settings
 
-    prefs = config.getShotManagerPrefs()
+    prefs = config.getAddonPrefs()
     stampInfoSettings = None
 
     # if getattr(scene, "UAS_SM_StampInfo_Settings", None) is None:

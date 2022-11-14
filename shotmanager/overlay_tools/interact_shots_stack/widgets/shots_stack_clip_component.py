@@ -375,8 +375,8 @@ class ShotClipComponent(Component2D):
     def _on_selected_changed(self, context, event, isSelected):
         if isSelected:
             _logger.debug_ext("\n\nClip isSelected set to True", col="RED")
-            props = context.scene.UAS_shot_manager_props
-            prefs = config.getShotManagerPrefs()
+            props = config.getAddonProps(context.scene)
+            prefs = config.getAddonPrefs()
 
             prefs.shot_selected_from_shots_stack__flag = True
             props.setSelectedShot(self.shot)
@@ -428,7 +428,7 @@ class ShotClipComponent(Component2D):
                 self.shot.start += mouse_delta_frames
                 self.shot.end += mouse_delta_frames
 
-        prefs = config.getShotManagerPrefs()
+        prefs = config.getAddonPrefs()
         if prefs.shtStack_link_stb_clips_to_keys and self.manipulatedChildren is not None:
 
             retimerApplyToSettings = context.window_manager.UAS_shot_manager_shots_stack_retimerApplyTo
@@ -456,7 +456,7 @@ class ShotClipComponent(Component2D):
 
     # to override by inheriting classes
     def _on_doublecliked(self, context, event, region):
-        props = context.scene.UAS_shot_manager_props
+        props = config.getAddonProps(context.scene)
 
         mouse_frame = int(region.view2d.region_to_view(event.mouse_x - region.x, 0)[0])
         context.scene.frame_current = mouse_frame

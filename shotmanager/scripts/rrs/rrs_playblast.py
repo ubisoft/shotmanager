@@ -16,7 +16,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 """
-To do: module description here.
+Playblast
 """
 
 from pathlib import Path
@@ -31,6 +31,7 @@ from shotmanager.config import config
 
 # from shotmanager.otio.montage_otio import MontageOtio
 
+from shotmanager.config import config
 from shotmanager.config import sm_logging
 
 _logger = sm_logging.getLogger(__name__)
@@ -58,7 +59,7 @@ def rrs_animatic_to_vsm(editVideoFile=None, otioFile=None, montageOtio=None, imp
     bpy.context.window.workspace = bpy.data.workspaces["Video Editing"]
 
     vse_render = bpy.context.window_manager.UAS_vse_render
-    props = scene.UAS_shot_manager_props
+    props = config.getAddonProps(scene)
     vsm_props = scene.UAS_vsm_props
 
     editVideoFile = editVideoFile
@@ -198,7 +199,7 @@ def getSoundFilesForEachShot(montageOtio, seqName, otioFile):
 def rrs_sequence_to_vsm(scene, sequenceName):
     """Import specified sequence video to the VSM"""
     vse_render = bpy.context.window_manager.UAS_vse_render
-    props = scene.UAS_shot_manager_props
+    props = config.getAddonProps(scene)
     vsm_props = scene.UAS_vsm_props
 
     # if not len(config.gMontageOtio.sequencesList):
@@ -344,7 +345,7 @@ def rrs_playblast_to_vsm(playblastInfo=None, editVideoFile=None, otioFile=None, 
     bpy.context.window.workspace = bpy.data.workspaces["Video Editing"]
 
     vse_render = bpy.context.window_manager.UAS_vse_render
-    props = scene.UAS_shot_manager_props
+    props = config.getAddonProps(scene)
     vsm_props = scene.UAS_vsm_props
 
     editVideoFile = editVideoFile

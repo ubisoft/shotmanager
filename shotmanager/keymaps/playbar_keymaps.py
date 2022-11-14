@@ -34,7 +34,7 @@ _logger = sm_logging.getLogger(__name__)
 
 
 def registerKeymaps():
-    prefs = config.getShotManagerPrefs()
+    prefs = config.getAddonPrefs()
     keymaps = config.gAddonKeymaps_shotsNav
 
     if prefs.kmap_shots_nav_invert_direction:

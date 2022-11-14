@@ -58,7 +58,7 @@ class GreasePencilProperties(PropertyGroup):
         Args:
             mode: can be "STORYBOARD"
         """
-        prefs = config.getShotManagerPrefs()
+        prefs = config.getAddonPrefs()
         # print(f"\nInitializing new Grease Pencil Properties for shot {parentShot.name}...")
 
         if parentShot.isCameraValid():
@@ -70,7 +70,8 @@ class GreasePencilProperties(PropertyGroup):
 
         if "STORYBOARD" == mode:
             self.frameMode = mode
-            framePreset = parentShot.parentScene.UAS_shot_manager_props.stb_frameTemplate
+            parentProps = config.getAddonProps(parentShot.parentScene)
+            framePreset = parentProps.stb_frameTemplate
 
             gpObj = parentShot.getGreasePencilObject("STORYBOARD")
 
@@ -93,7 +94,7 @@ class GreasePencilProperties(PropertyGroup):
         self.updateGreasePencilToFrustum()
 
     def getParentShot(self):
-        props = bpy.context.scene.UAS_shot_manager_props
+        props = config.getAddonProps(bpy.context.scene)
         for take in props.takes:
             for shot in take.shots:
                 for gpProps in shot.greasePencils:
@@ -147,7 +148,7 @@ class GreasePencilProperties(PropertyGroup):
         # print("canvasOpacity")
         gp_child = utils_greasepencil.get_greasepencil_child(self.parentCamera)
         if gp_child is not None:
-            props = context.scene.UAS_shot_manager_props
+            props = config.getAddonProps(context.scene)
             canvasPreset = props.stb_frameTemplate.getPresetByID("CANVAS")
             canvasName = "_Canvas_" if canvasPreset is None else canvasPreset.layerName
 
@@ -197,7 +198,7 @@ class GreasePencilProperties(PropertyGroup):
         self.updateGreasePencil()
 
     def updateCanvas(self, rebuildIfMissing=True):
-        props = bpy.context.scene.UAS_shot_manager_props
+        props = config.getAddonProps(bpy.context.scene)
 
         # res = props.getRenderResolution()
         renderRatio = props.getRenderAspectRatio()
@@ -240,7 +241,7 @@ class GreasePencilProperties(PropertyGroup):
         utils_greasepencil.fitGreasePencilToFrustum(self.parentCamera, self.distanceFromOrigin)
 
     def getCanvasLayer(self):
-        props = bpy.context.scene.UAS_shot_manager_props
+        props = config.getAddonProps(bpy.context.scene)
         canvasPreset = props.stb_frameTemplate.getPresetByID("CANVAS")
         canvasName = "_Canvas_" if canvasPreset is None else canvasPreset.layerName
 

@@ -36,7 +36,7 @@ from shotmanager.config import config
 def draw_shots_names(context):
     """Draw shot names on cameras visible in 3D in the viewport"""
     scene = context.scene
-    props = context.scene.UAS_shot_manager_props
+    props = config.getAddonProps(context.scene)
 
     # return
     # For all camera which have a shot draw on the ui a list of shots associated with it
@@ -112,8 +112,8 @@ def draw_all_shots_names(context, cam, pos_x, pos_y, vertical=False, screen_offs
     Args:
         screen_offset: array [x, y] to offset the drawing origin
     """
-    props = context.scene.UAS_shot_manager_props
-    prefs = config.getShotManagerPrefs()
+    props = config.getAddonProps(context.scene)
+    prefs = config.getAddonPrefs()
     current_shot = props.getCurrentShot()
     # hud_offset_x = 19
 
@@ -259,7 +259,7 @@ def view3d_camera_border(context):
 def drawCameraPlane(context, distance=None, camera=None):
     """Draw the rectangle display area of the current camera
     Debug function"""
-    props = context.scene.UAS_shot_manager_props
+    props = config.getAddonProps(context.scene)
     cam = camera
     currentShot = props.getCurrentShot()
     if currentShot is not None:

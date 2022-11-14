@@ -29,7 +29,6 @@ import time
 
 import bpy
 
-from shotmanager.config import config
 from shotmanager.rendering.rendering_stampinfo import setStampInfoSettings, renderStampedInfoForShot
 from shotmanager.rendering import rendering_functions
 
@@ -37,9 +36,9 @@ from shotmanager.utils import utils
 from shotmanager.utils import utils_editors_3dview
 from shotmanager.utils.utils_shot_manager import getStampInfo
 from shotmanager.utils import utils_store_context as utilsStore
-from shotmanager.utils.utils_os import module_can_be_imported, format_path_for_os
+from shotmanager.utils.utils_os import module_can_be_imported, format_path_for_os, is_admin
 
-
+from shotmanager.config import config
 from shotmanager.config import sm_logging
 
 _logger = sm_logging.getLogger(__name__)
@@ -110,9 +109,9 @@ def launchRenderWithVSEComposite(
             bpy.data.scenes.remove(s, do_unlink=True)
 
     scene = context.scene
-    props = scene.UAS_shot_manager_props
+    props = config.getAddonProps(scene)
     vse_render = context.window_manager.UAS_vse_render
-    prefs = config.getShotManagerPrefs()
+    prefs = config.getAddonPrefs()
 
     currentShot = props.getCurrentShot()
 
@@ -979,7 +978,13 @@ def launchRender(context, renderMode, rootPath, area=None):
     """
     context = bpy.context
     scene = bpy.context.scene
-    props = scene.UAS_shot_manager_props
+    props = config.getAddonProps(scene)
+
+    _YELLOW = "\33[33m"
+    _RED = "\33[31m"
+    # _ENDCOLOR = "\033[0m"
+    _GREEN = "\33[32m"
+
     renderDisplayInfo = ""
 
     renderDisplayInfo += "\n\n*** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** ***\n"
@@ -1042,9 +1047,6 @@ def launchRender(context, renderMode, rootPath, area=None):
         _logger.error_ext("No valid render preset found")
 
     if preset is not None:
-        _YELLOW = "\33[33m"
-        # _ENDCOLOR = "\033[0m"
-        _GREEN = "\33[32m"
         renderDisplayInfo += f"  Rendering with {_YELLOW}{presetName}{_GREEN}"
 
     stampInfoSettings = None
@@ -1078,6 +1080,11 @@ def launchRender(context, renderMode, rootPath, area=None):
 
     now = datetime.now()
     renderDisplayInfo += f"{'   - Date: ': <20}{now.strftime('%b-%d-%Y')}  -  {now.strftime('%H:%M:%S')}\n"
+
+    renderDisplayInfo += f"{'   - Blender: ': <20}{bpy.app.version_string}"
+    if is_admin():
+        renderDisplayInfo += f"{_RED}    *** Running in Administrator Mode - Not recommended ***{_GREEN}"
+    renderDisplayInfo += "\n"
 
     renderDisplayInfo += f"{'   - File: ': <20}{bpy.data.filepath}\n"
     renderDisplayInfo += f"{'   - Scene: ': <20}{scene.name}\n"
@@ -1262,7 +1269,7 @@ def launchRender(context, renderMode, rootPath, area=None):
 
 
 def useStampInfoForRendering(context, renderPreset):
-    props = context.scene.UAS_shot_manager_props
+    props = config.getAddonProps(context.scene)
 
     if not props.isStampInfoAvailable():
         return False

@@ -26,7 +26,7 @@ from shotmanager.config import config
 
 
 def drawApplyTo(context, retimerProps, layout):
-    # prefs = config.getShotManagerPrefs()
+    # prefs = config.getAddonPrefs()
     retimerApplyToSettings = retimerProps.getCurrentApplyToSettings()
 
     propCol = propertyColumn(layout, padding_left=2, align=False)

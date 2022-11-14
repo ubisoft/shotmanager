@@ -64,7 +64,7 @@ def shotMngHandler_load_post_checkDataVersion(self, context):
             if not sm_data_in_scene:
                 continue
 
-            props = scene.UAS_shot_manager_props
+            props = config.getAddonProps(scene)
             infoTxt = ""
             if config.devDebug:
                 _logger.debug_ext(f"Scene: {scene.name}, props.dataVersion: {props.dataVersion}", col="RED")

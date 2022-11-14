@@ -26,6 +26,7 @@ from shotmanager.utils import utils
 from shotmanager.utils import utils_shot_manager
 from shotmanager.utils import utils_ui
 from shotmanager.utils import utils_markers
+from shotmanager.utils.utils_os import is_admin
 
 from . import sm_shots_ui_previz_layout
 from . import sm_shots_ui_storyboard_layout
@@ -55,8 +56,8 @@ class UAS_PT_ShotManager(Panel):
 
     @classmethod
     def poll(cls, context):
-        props = context.scene.UAS_shot_manager_props
-        # prefs = config.getShotManagerPrefs()
+        props = config.getAddonProps(context.scene)
+        # prefs = config.getAddonPrefs()
 
         # hide the whole panel if used
         # return not props.dontRefreshUI()
@@ -72,8 +73,8 @@ class UAS_PT_ShotManager(Panel):
     def draw_header(self, context):
         import addon_utils
 
-        props = context.scene.UAS_shot_manager_props
-        # prefs = config.getShotManagerPrefs()
+        props = config.getAddonProps(context.scene)
+        # prefs = config.getAddonPrefs()
         layout = self.layout
         layout.emboss = "NONE"
 
@@ -101,7 +102,7 @@ class UAS_PT_ShotManager(Panel):
                 betaRow.label(text=f" ** {addonWarning} **")
 
     def draw_header_preset(self, context):
-        prefs = config.getShotManagerPrefs()
+        prefs = config.getAddonPrefs()
         layout = self.layout
         layout.emboss = "NONE"
 
@@ -142,8 +143,8 @@ class UAS_PT_ShotManager(Panel):
     def draw(self, context):
         layout = self.layout
         scene = context.scene
-        props = scene.UAS_shot_manager_props
-        prefs = config.getShotManagerPrefs()
+        props = config.getAddonProps(scene)
+        prefs = config.getAddonPrefs()
 
         currentLayout = props.getCurrentLayout()
         # currentLayoutIsStb = "STORYBOARD" == props.currentLayoutMode()
@@ -166,6 +167,14 @@ class UAS_PT_ShotManager(Panel):
             shot = props.getCurrentShot()
 
         enlargeButs = 1.15
+
+        ###############
+
+        if is_admin():
+            row = layout.row()
+            row.alert = True
+            row.alignment = "CENTER"
+            row.label(text="*** Blender is running in Admin mode ***")
 
         ###############
 
@@ -882,8 +891,8 @@ class UAS_PT_ShotManager_Initialize(Operator):
     bl_options = {"INTERNAL"}
 
     def execute(self, context):
-        context.scene.UAS_shot_manager_props.initialize_shot_manager()
-
+        props = config.getAddonProps(context.scene)
+        props.initialize_shot_manager()
         return {"FINISHED"}
 
 

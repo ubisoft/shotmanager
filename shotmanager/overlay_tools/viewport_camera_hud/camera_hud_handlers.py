@@ -27,7 +27,7 @@ from bpy.app.handlers import persistent
 def shotMngHandler_load_post_cameraHUD(self, context):
     # print("Activating Camera HUD Handlers")
 
-    props = bpy.context.scene.UAS_shot_manager_props
+    props = config.getAddonProps(bpy.context.scene)
     if props is not None:
         if props.camera_hud_display_in_viewports:
             try:

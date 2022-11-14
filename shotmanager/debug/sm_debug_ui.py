@@ -45,7 +45,7 @@ class UAS_PT_Shot_Manager_Debug(Panel):
 
     @classmethod
     def poll(self, context):
-        prefs = config.getShotManagerPrefs()
+        prefs = config.getAddonPrefs()
         # return True
         return config.devDebug and prefs.displaySMDebugPanel
 

@@ -93,7 +93,7 @@ def getPrefsUIScale():
 
 def getRulerHeight(firstLaneIndex=0):
     """Return the height in pixels of the time ruler of a dopesheet"""
-    prefs = config.getShotManagerPrefs()
+    prefs = config.getAddonPrefs()
     RULER_HEIGHT = 23
     # RULER_HEIGHT = 28  # on laptop at display 125%
     rulerHeight = (
@@ -105,7 +105,7 @@ def getRulerHeight(firstLaneIndex=0):
 
 def getLaneHeight():
     """Return the height of a lane in pixels"""
-    prefs = config.getShotManagerPrefs()
+    prefs = config.getAddonPrefs()
     LANE_HEIGHT = 18
     # LANE_HEIGHT = 22.5  # on laptop at display 125%
     laneHeight = LANE_HEIGHT * prefs.shtStack_screen_display_factor

@@ -295,7 +295,7 @@ class UAS_ShotManager_OT_Create_Shots_From_OTIO_RRS(Operator):
     def invoke(self, context, event):
         wm = context.window_manager
         scene = context.scene
-        props = scene.UAS_shot_manager_props
+        props = config.getAddonProps(scene)
 
         # if "PREVIZ" == self.importStepMode:
         #     self.mediaHaveHandles = props.areShotHandlesUsed()
@@ -429,7 +429,7 @@ class UAS_ShotManager_OT_Create_Shots_From_OTIO_RRS(Operator):
 
     def draw(self, context):
         scene = context.scene
-        # props = scene.UAS_shot_manager_props
+        # props = config.getAddonProps(scene)
 
         #########################
         #########################
@@ -639,7 +639,7 @@ class UAS_ShotManager_OT_Create_Shots_From_OTIO_RRS(Operator):
         layout.separator()
 
     def execute(self, context):
-        props = context.scene.UAS_shot_manager_props
+        props = config.getAddonProps(context.scene)
         print("\n--------------------")
         print(
             f"\nCreateshotsfromotio Import Sequence Exec: {self.sequenceList}, {config.gSeqEnumList[int(self.sequenceList)]}"

@@ -36,7 +36,7 @@ class UAS_ShotManager_OT_About(Operator):
         return context.window_manager.invoke_props_dialog(self, width=420)
 
     def draw(self, context):
-        props = context.scene.UAS_shot_manager_props
+        props = config.getAddonProps(context.scene)
         layout = self.layout
         box = layout.box()
         col = box.column()

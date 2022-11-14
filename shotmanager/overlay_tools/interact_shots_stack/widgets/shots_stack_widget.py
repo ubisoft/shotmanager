@@ -54,7 +54,7 @@ UNIFORM_SHADER_2D = gpu.shader.from_builtin("2D_UNIFORM_COLOR")
 
 class ShotStackWidget:
     def __init__(self, target_area=None):
-        prefs = config.getShotManagerPrefs()
+        prefs = config.getAddonPrefs()
 
         self.useDebugComponents = False
 
@@ -249,7 +249,7 @@ class ShotStackWidget:
 
     def drawShots(self, preDrawOnly=False):
         props = self.context.scene.UAS_shot_manager_props
-        prefs = config.getShotManagerPrefs()
+        prefs = config.getAddonPrefs()
         self.rebuildShotComponents()
 
         currentShotInd = props.getCurrentShotIndex()
@@ -288,7 +288,7 @@ class ShotStackWidget:
     def drawShots_compactMode(self, preDrawOnly=False):
         # return
         props = self.context.scene.UAS_shot_manager_props
-        prefs = config.getShotManagerPrefs()
+        prefs = config.getAddonPrefs()
         self.rebuildShotComponents()
 
         currentShot = props.getCurrentShot()
@@ -394,8 +394,8 @@ class ShotStackWidget:
 
     def handle_event(self, context, event, region):
         """Return True if the event is handled for ShotStackWidget"""
-        # props = context.scene.UAS_shot_manager_props
-        # prefs = config.getShotManagerPrefs()
+        # props = config.getAddonProps(context.scene)
+        # prefs = config.getAddonPrefs()
 
         # _logger.debug_ext("*** handle event for ShotStackWidget", col="GREEN", tag="SHOTSTACK_EVENT")
         if not context.window_manager.UAS_shot_manager_toggle_shots_stack_interaction:

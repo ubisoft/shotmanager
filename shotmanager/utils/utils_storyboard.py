@@ -20,8 +20,7 @@ Functions to manipulate Shot Manager storyboard entities
 """
 
 from . import utils
-
-# from shotmanager.config import config
+from shotmanager.config import config
 from shotmanager.config import sm_logging
 
 _logger = sm_logging.getLogger(__name__)
@@ -34,7 +33,7 @@ def getStoryboardObjects(scene):
 
     See also shot.getStoryboardChildren()
     """
-    props = scene.UAS_shot_manager_props
+    props = config.getAddonProps(scene)
 
     shotCameras = props.getCameras(fromAllTakes=True, ignoreDisabled=False, onlyShotsOfType="STORYBOARD")
     allStbObjects = list()

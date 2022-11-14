@@ -27,7 +27,7 @@ from shotmanager.config import config
 
 
 def draw_markers_nav_bar_in_timeline(self, context):
-    prefs = config.getShotManagerPrefs()
+    prefs = config.getAddonPrefs()
     if prefs.mnavbar_display_in_timeline:
         row = self.layout.row(align=False)
         row.separator(factor=3)
@@ -36,7 +36,7 @@ def draw_markers_nav_bar_in_timeline(self, context):
 
 
 def draw_markers_nav_bar_in_dopesheet(self, context):
-    prefs = config.getShotManagerPrefs()
+    prefs = config.getAddonPrefs()
     if prefs.mnavbar_display_in_dopesheet:
         row = self.layout.row(align=False)
         row.separator(factor=3)
@@ -45,7 +45,7 @@ def draw_markers_nav_bar_in_dopesheet(self, context):
 
 
 def draw_markers_nav_bar_in_vse(self, context):
-    prefs = config.getShotManagerPrefs()
+    prefs = config.getAddonPrefs()
     if prefs.mnavbar_display_in_vse:
         row = self.layout.row(align=False)
         row.separator(factor=3)
@@ -55,7 +55,7 @@ def draw_markers_nav_bar_in_vse(self, context):
 
 def draw_markers_nav_bar(context, layout):
     scene = context.scene
-    prefs = config.getShotManagerPrefs()
+    prefs = config.getAddonPrefs()
 
     # layout = self.layout
 
@@ -141,7 +141,7 @@ def register():
     # bpy.types.TIME_MT_editor_menus.append(draw_item)
     # bpy.types.TIME_MT_view.append(draw_item)
 
-    prefs = config.getShotManagerPrefs()
+    prefs = config.getAddonPrefs()
     display_markersNavBar_in_editor(prefs.display_markersNavBar_tool)
 
 

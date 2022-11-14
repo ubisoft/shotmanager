@@ -62,10 +62,11 @@ class UAS_ShotManager_OT_DisplayOverlayTools(Operator):
     @classmethod
     def poll(cls, context):
         # _logger.debug_ext(f"uas_shot_manager.display_overlay_tools Poll", col="PURPLE")
-        return len(context.scene.UAS_shot_manager_props.get_shots())
+        props = config.getAddonProps(context.scene)
+        return len(props.get_shots())
 
     def execute(self, context):
-        prefs = config.getShotManagerPrefs()
+        prefs = config.getAddonPrefs()
         # we force the update of the prefs display factor value
         prefs.shtStack_screen_display_factor_mode = prefs.shtStack_screen_display_factor_mode
 
@@ -84,7 +85,7 @@ class UAS_ShotManager_OT_DisplayDisabledShotsInOverlays(Operator):
     bl_options = {"INTERNAL"}
 
     def execute(self, context):
-        props = context.scene.UAS_shot_manager_props
+        props = config.getAddonProps(context.scene)
 
         val = not props.interactShotsStack_displayDisabledShots
         props.interactShotsStack_displayDisabledShots = val
@@ -101,7 +102,7 @@ class UAS_ShotManager_OT_ChangeLayout(Operator):
 
     @classmethod
     def description(self, context, properties):
-        props = context.scene.UAS_shot_manager_props
+        props = config.getAddonProps(context.scene)
         if "STORYBOARD" == props.currentLayoutMode():
             descr = "\nCurrent layout: Storyboard"
         else:
@@ -109,7 +110,7 @@ class UAS_ShotManager_OT_ChangeLayout(Operator):
         return descr
 
     def execute(self, context):
-        props = context.scene.UAS_shot_manager_props
+        props = config.getAddonProps(context.scene)
 
         if "STORYBOARD" == props.currentLayoutMode():
             props.setCurrentLayout("PREVIZ")
@@ -126,7 +127,7 @@ class UAS_ShotManager_OT_StbFrameDrawing(Operator):
     bl_options = {"INTERNAL"}
 
     def execute(self, context):
-        props = context.scene.UAS_shot_manager_props
+        props = config.getAddonProps(context.scene)
 
         if props.getEditedGPShot() is not None:
             utils_greasepencil.switchToObjectMode()
@@ -180,7 +181,7 @@ class UAS_ShotManager_OT_SetFpsAsProjectFps(Operator):
     bl_options = {"REGISTER", "UNDO"}
 
     def execute(self, context):
-        props = bpy.context.scene.UAS_shot_manager_props
+        props = config.getAddonProps(bpy.context.scene)
         if props.use_project_settings:
             utils.setSceneFps(context.scene, props.project_fps)
         return {"FINISHED"}
@@ -193,7 +194,7 @@ class UAS_ShotManager_OT_SetRenderResAsProjectRes(Operator):
     bl_options = {"REGISTER", "UNDO"}
 
     def execute(self, context):
-        props = bpy.context.scene.UAS_shot_manager_props
+        props = config.getAddonProps(bpy.context.scene)
         if props.use_project_settings:
             context.scene.render.resolution_x = props.project_resolution_x
             context.scene.render.resolution_y = props.project_resolution_y
@@ -243,7 +244,7 @@ class UAS_ShotManager_OT_SetProjectSequenceName(Operator):
     # naming_sequence_format: StringProperty(default="001")
 
     def invoke(self, context, event):
-        props = context.scene.UAS_shot_manager_props
+        props = config.getAddonProps(context.scene)
         # numHashes = len([n for n in props.project_naming_project_format if n == "#"])
         # if "" != props.project_naming_project_format or 0 < numHashes:
 
@@ -257,7 +258,7 @@ class UAS_ShotManager_OT_SetProjectSequenceName(Operator):
 
     def draw(self, context):
         scene = context.scene
-        props = scene.UAS_shot_manager_props
+        props = config.getAddonProps(scene)
         layout = self.layout
         box = layout.box()
 
@@ -311,8 +312,8 @@ class UAS_ShotManager_OT_SetProjectSequenceName(Operator):
         box.separator(factor=0.5)
 
     def execute(self, context):
-        props = context.scene.UAS_shot_manager_props
-        prefs = config.getShotManagerPrefs()
+        props = config.getAddonProps(context.scene)
+        prefs = config.getAddonPrefs()
 
         props.project_naming_project_index = self.naming_project_index
         props.project_naming_sequence_index = self.naming_sequence_index
@@ -368,7 +369,7 @@ class UAS_ShotManager_OT_FileInfo(Operator):
 
     def draw(self, context):
         scene = context.scene
-        props = scene.UAS_shot_manager_props
+        props = config.getAddonProps(scene)
         layout = self.layout
         # box = layout.box()
 

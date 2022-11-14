@@ -36,13 +36,13 @@ from shotmanager.config import config
 
 #     @classmethod
 #     def poll(cls, context):
-#         props = context.scene.UAS_shot_manager_props
+#         props = config.getAddonProps(context.scene)
 #         val = len(props.getTakes()) and len(props.get_shots())
 #         return val
 
 #     def execute(self, context):
 #         scene = context.scene
-#         props = scene.UAS_shot_manager_props
+#         props = config.getAddonProps(scene)
 
 #         # Can also use area.spaces.active to get the space assoc. with the area
 #         for area in context.screen.areas:
@@ -68,8 +68,8 @@ class UAS_ShotManager_EnableDisableAll(Operator):
 
     def invoke(self, context, event):
         scene = context.scene
-        props = scene.UAS_shot_manager_props
-        prefs = config.getShotManagerPrefs()
+        props = config.getAddonProps(scene)
+        prefs = config.getAddonPrefs()
 
         enableMode = "ENABLEALL"
         if event.shift and not event.ctrl and not event.alt:
@@ -111,7 +111,7 @@ class UAS_ShotManager_SceneRangeFromTake(Operator):
 
     def invoke(self, context, event):
         scene = context.scene
-        props = scene.UAS_shot_manager_props
+        props = config.getAddonProps(scene)
 
         if event.shift or event.ctrl:
             pass
@@ -146,7 +146,7 @@ class UAS_ShotManager_SceneRangeFromShot(Operator):
 
     def invoke(self, context, event):
         scene = context.scene
-        props = scene.UAS_shot_manager_props
+        props = config.getAddonProps(scene)
 
         if event.shift or event.ctrl:
             pass
@@ -176,7 +176,7 @@ class UAS_ShotManager_SceneRangeFromShot(Operator):
 
 #     def execute(self, context):
 #         scene = context.scene
-#         props = scene.UAS_shot_manager_props
+#         props = config.getAddonProps(scene)
 
 #         shotList = props.getShotsList(ignoreDisabled=True)
 

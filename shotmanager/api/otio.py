@@ -23,6 +23,7 @@ from shotmanager.utils.utils_os import module_can_be_imported
 
 from shotmanager.properties.props import UAS_ShotManager_Props
 
+from shotmanager.config import config
 from shotmanager.config import sm_logging
 
 _logger = sm_logging.getLogger(__name__)

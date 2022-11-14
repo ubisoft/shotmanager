@@ -66,7 +66,7 @@ def check_shotmanager_file_data(verbose=True):
         checkStr += f"{spacer}Contains Ubisoft Shot Manager data: {sm_data_in_scene}"
 
         if getattr(scene, "UAS_shot_manager_props", None) is not None:
-            props = scene.UAS_shot_manager_props
+            props = config.getAddonProps(scene)
 
         checkStr += f"{spacer}props: {props}"
         spacer += "  "

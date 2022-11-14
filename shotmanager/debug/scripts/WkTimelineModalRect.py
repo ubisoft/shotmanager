@@ -147,7 +147,7 @@ class WkTimelineModalRect(bpy.types.Operator):
     def invoke(self, context, event):
         self.init_loc_x = context.object.location.x
 
-        props = context.scene.UAS_shot_manager_props
+        props = config.getAddonProps(context.scene)
 
         # height = 10
         # lane = 5

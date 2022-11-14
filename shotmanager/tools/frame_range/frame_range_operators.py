@@ -37,7 +37,7 @@ class UAS_ShotManager_SetTimeRangeStart(Operator):
 
     @classmethod
     def poll(cls, context):
-        return config.getShotManagerPrefs().display_frame_range_tool
+        return config.getAddonPrefs().display_frame_range_tool
 
     def execute(self, context):
         scene = context.scene
@@ -57,7 +57,7 @@ class UAS_ShotManager_SetTimeRangeEnd(Operator):
 
     @classmethod
     def poll(cls, context):
-        return config.getShotManagerPrefs().display_frame_range_tool
+        return config.getAddonPrefs().display_frame_range_tool
 
     def execute(self, context):
         scene = context.scene
@@ -83,7 +83,7 @@ class UAS_ShotManager_FrameTimeRange(Operator):
 
     @classmethod
     def poll(cls, context):
-        return config.getShotManagerPrefs().display_frame_range_tool
+        return config.getAddonPrefs().display_frame_range_tool
 
     def execute(self, context):
         currentFrame = context.scene.frame_current
@@ -118,7 +118,7 @@ class UAS_ShotManager_FrameTimeRangeFromShot(Operator):
 
     @classmethod
     def poll(cls, context):
-        return config.getShotManagerPrefs().display_frame_range_tool
+        return config.getAddonPrefs().display_frame_range_tool
 
     action: StringProperty(default="DO_NOTHING")
     spacerPercent: FloatProperty(default=35)
@@ -153,7 +153,7 @@ class UAS_ShotManager_FrameTimeRangeFromShot(Operator):
 
     def execute(self, context):
         scene = context.scene
-        props = scene.UAS_shot_manager_props
+        props = config.getAddonProps(scene)
         currentShot = props.getCurrentShot()
 
         if currentShot:
@@ -221,7 +221,7 @@ def register():
     # lets add ourselves to the main header
     # bpy.types.TIME_MT_editor_menus.prepend(draw_frame_range_tool_in_editor)
 
-    prefs = config.getShotManagerPrefs()
+    prefs = config.getAddonPrefs()
     display_frame_range_in_editor(prefs.display_frame_range_tool)
 
 

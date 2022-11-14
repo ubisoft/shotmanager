@@ -461,6 +461,8 @@ def drawDevAndDebug(context, prefs, layout):
             rowRight.alert = True
             rowRight.label(text=strDebug)
 
+        box.operator("uas_utils.ckeckinternetconnection")
+
         split = box.split(factor=splitFactor)
         rowLeft = split.row()
         rowLeft.alignment = "RIGHT"

@@ -41,7 +41,7 @@ class UAS_ShotManager_ShotsGlobalSettings(PropertyGroup):
     #########################
 
     def _update_backgroundAlpha(self, context):
-        props = context.scene.UAS_shot_manager_props
+        props = config.getAddonProps(context.scene)
         take = props.getCurrentTake()
         shotList = take.getShotsList(ignoreDisabled=False)
 
@@ -65,7 +65,7 @@ class UAS_ShotManager_ShotsGlobalSettings(PropertyGroup):
     )
 
     def _update_proxyRenderSize(self, context):
-        props = context.scene.UAS_shot_manager_props
+        props = config.getAddonProps(context.scene)
         take = props.getCurrentTake()
         shotList = take.getShotsList(ignoreDisabled=False)
 
@@ -117,7 +117,7 @@ class UAS_ShotManager_ShotsGlobalSettings(PropertyGroup):
     )
 
     def _update_stb_distanceFromOrigin(self, context):
-        props = context.scene.UAS_shot_manager_props
+        props = config.getAddonProps(context.scene)
         take = props.getCurrentTake()
         shotList = take.getShotsList(ignoreDisabled=False)
 
@@ -150,7 +150,7 @@ class UAS_ShotManager_ShotsGlobalSettings(PropertyGroup):
         return val
 
     def _set_stb_overlaysViewportMode(self, value):
-        prefs = config.getShotManagerPrefs()
+        prefs = config.getAddonPrefs()
 
         # ALL is value 0, TARGET is value 1 #####################################
 
@@ -205,7 +205,7 @@ class UAS_ShotManager_ShotsGlobalSettings(PropertyGroup):
 
     def _update_stb_overlaysViewportMode(self, context):
         return
-        prefs = config.getShotManagerPrefs()
+        prefs = config.getAddonPrefs()
         applyToAllViewports = "ALL" == self.stb_overlaysViewportMode
 
         # if applyToAllViewports:
@@ -214,7 +214,7 @@ class UAS_ShotManager_ShotsGlobalSettings(PropertyGroup):
         #     gridIsinFront = getOverlaysPropertyState(context, "use_gpencil_canvas_xray")
         #     useFadeLayers = getOverlaysPropertyState(context, "use_gpencil_fade_layers")
         # else:
-        #     props = context.scene.UAS_shot_manager_props
+        #     props = config.getAddonProps(context.scene)
         #     spaceDataViewport = props.getValidTargetViewportSpaceData(context)
         #     if spaceDataViewport is not None:
         #         onionSkinIsActive = spaceDataViewport.overlay.use_gpencil_onion_skin
@@ -273,7 +273,7 @@ class UAS_ShotManager_ShotsGlobalSettings(PropertyGroup):
     )
 
     def _update_stb_show_passepartout(self, context):
-        props = context.scene.UAS_shot_manager_props
+        props = config.getAddonProps(context.scene)
         take = props.getCurrentTake()
         shotList = take.getShotsList(ignoreDisabled=False)
 
@@ -291,7 +291,7 @@ class UAS_ShotManager_ShotsGlobalSettings(PropertyGroup):
     )
 
     def _update_stb_passepartout_alpha(self, context):
-        props = context.scene.UAS_shot_manager_props
+        props = config.getAddonProps(context.scene)
         take = props.getCurrentTake()
         shotList = take.getShotsList(ignoreDisabled=False)
 
@@ -317,7 +317,7 @@ class UAS_ShotManager_ShotsGlobalSettings(PropertyGroup):
     #########################
 
     def _update_backgroundVolume(self, context):
-        props = context.scene.UAS_shot_manager_props
+        props = config.getAddonProps(context.scene)
         take = props.getCurrentTake()
         shotList = take.getShotsList(ignoreDisabled=False)
 
@@ -346,7 +346,7 @@ class UAS_ShotManager_ShotsGlobalSettings(PropertyGroup):
     #########################
 
     def _update_greasepencilAlpha(self, context):
-        props = context.scene.UAS_shot_manager_props
+        props = config.getAddonProps(context.scene)
         take = props.getCurrentTake()
         shotList = take.getShotsList(ignoreDisabled=False)
 

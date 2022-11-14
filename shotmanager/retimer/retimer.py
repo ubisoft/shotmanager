@@ -23,7 +23,7 @@ import bpy
 
 from shotmanager.utils.utils_markers import sortMarkers
 
-# from shotmanager.config import config
+from shotmanager.config import config
 from shotmanager.config import sm_logging
 
 _logger = sm_logging.getLogger(__name__)
@@ -1087,7 +1087,7 @@ def retimeScene(
         keysBeforeRangeMode: Action to do on keys located before the specified time range. Can be DO_NOTHING, OFFSET, RESCALE, SNAP
         keysAfterRangeMode: Action to do on keys located after the specified time range. Can be NOTHING, OFFSET, RESCALE, SNAP
     """
-    # prefs = config.getShotManagerPrefs()
+    # prefs = config.getAddonPrefs()
     scene = context.scene
 
     current_frame = scene.frame_current
@@ -1216,7 +1216,7 @@ def retimeScene(
 
     # Shot ranges
     if retimerApplyToSettings.applyToCameraShotRanges:
-        props = scene.UAS_shot_manager_props
+        props = config.getAddonProps(scene)
         shotList = props.getShotsList(ignoreDisabled=False)
 
         if "CLEAR_ANIM" != mode:

@@ -26,6 +26,7 @@ import bpy
 import gpu
 
 
+from shotmanager.config import config
 from shotmanager.config import sm_logging
 
 _logger = sm_logging.getLogger(__name__)
@@ -238,7 +239,7 @@ class InteractiveComponent:
     # override of InteractiveComponent
     # override by inheriting classes if needed
     def _handle_event_custom(self, context, event, region):
-        props = context.scene.UAS_shot_manager_props
+        props = config.getAddonProps(context.scene)
 
         event_handled = False
         mouseIsInBBox = False

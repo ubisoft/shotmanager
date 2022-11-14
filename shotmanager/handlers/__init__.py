@@ -22,7 +22,6 @@ Handlers Init
 import bpy
 from bpy.app.handlers import persistent
 
-from shotmanager.config import config
 from shotmanager.utils import utils_handlers
 
 from . import sm_handlers
