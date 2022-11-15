@@ -19,6 +19,8 @@
 Data check functions
 """
 
+from shotmanager.config import config
+
 
 def check_shotmanager_file_data(verbose=True):
     """Return a string with all the scene information"""

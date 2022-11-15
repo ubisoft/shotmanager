@@ -22,8 +22,9 @@ About dialog box
 import bpy
 from bpy.types import Operator
 
-from ..ui.dependencies_ui import drawDependencies
-from ..utils.utils import addonCategory
+from shotmanager.ui.dependencies_ui import drawDependencies
+from shotmanager.utils.utils import addonCategory
+from shotmanager.config import config
 
 
 class UAS_ShotManager_OT_About(Operator):

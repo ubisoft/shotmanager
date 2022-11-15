@@ -61,17 +61,17 @@ This is very convenient for previz and 3D layout.
 
 <p align="center">
   <a href="https://youtu.be/btLygAlD41c" title="Shot Manager - previz in a nutshell" target="_blank">
-  <img src="doc/images/Thumbnail_ShotManagerPreviz_WithPlayer.jpg" width="500" />
+  <img src="doc/images/Thumbnail_ShotManagerPreviz_WithPlayer.jpg" width="450" />
   </a>
 </p>
 
 
-With version 2.0 it is now possible to start even earlier in production by drawing your own storyboard directly inside Blender 
+With version 2.0 you can now start even earlier in production by drawing your own storyboard directly inside Blender 
 and to smoothly convert the shots from 2D to 3D.
 
 <p align="center">
   <a href="https://youtu.be/UEXOjY5ivkE" title="Consult Ubisoft Shot Manager V2.0 - Storyboarding Teaser" target="_blank">
-  <img src="doc/images/Thumbnail_TeaserV2Storyboarding_WithPlayer.jpg" width="500" />
+  <img src="doc/images/Thumbnail_TeaserV2Storyboarding_WithPlayer.jpg" width="450" />
   </a>
 </p>
 
@@ -85,6 +85,17 @@ It was initially developed for an animated TV series production in 2020 on Blend
 It is currently used on several projects inside Ubisoft as well as on productions of various scales outside.
 
 [Change Log](./CHANGELOG.md)
+
+
+## Learning and tutorials
+Even if Shot Manager doesn't have official video tutorials at the moment, it is still possible to get all the concepts and basics
+thanks to the contributions of the users community.
+
+<p align="center">
+  <a href="https://www.youtube.com/watch?v=8yBjm6ojwe8" title="Blender Livestream : 'Ubisoft Shot Manager' Free Add-on Demo (Previs, Hybrid + Storyboard tools)" target="_blank">
+  <img src="doc/images/Thumbnail_ShotManagerLiveDemo_WithPlayer.jpg" width="450" />
+  </a>
+</p>
 
 
 ## Pre-releases
