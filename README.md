@@ -3,20 +3,10 @@
 # Ubisoft Shot Manager - Blender Add-on
 
 </br>
+Shot Manager is NOT UNDER DEVELOPMENT ANYMORE *** It is currently maintained on Blender 3.3 LTS only, without futher improvements ***
+</br>
 
 **Shot Manager is a Blender add-on that introduces a true shot entity in Blender scenes, as well as a wide and powerful set of tools to build and edit sequences in real-time directly in the 3D context, in a non-linear way.**
-
-
-<p align="center">
-  <a href="https://github.com/ubisoft/shotmanager/releases/latest" title="Download version 2.0" target="_blank">
-  <img src="doc/images/V2_Banner.png" width="470" />
-  </a>
-  &nbsp;&nbsp;&nbsp;
-  <a href="https://github.com/ubisoft/shotmanager/tree/main/doc/images/ShotManagerV2-0_Storyboarding03.jpg" title="ShotManagerV2-0_Storyboarding03">
-  <img src="doc/images/ShotManagerV2-0_Storyboarding03_Thumb.png" width="200" />
-  </a>
-</p>
-
 
 </br>
 
@@ -40,11 +30,13 @@
 
 ## Disclaimer
 
->**This tool is currently supported for Blender 3.3 LTS and 2.93 LTS**
+> **This tool is only maintaned, not improved anymore.**
 >
-> In spite of all our efforts to make it reliable some troubles may occur in use cases we have not faced.
-> Please report your requests and issues you may face to the [Issues page](https://github.com/ubisoft/shotmanager/issues) and
-> we will try to help as much as possible.
+> Up do December 2022 this tool was made for Blender 2.93 LTS and 3.3 LTS.
+>
+> Please report isses you may face on the [Issues page](https://github.com/ubisoft/shotmanager/issues).
+> 
+> Since this add-on is not being developed anymore, only issues on the Blender versions mentioned above will be handled.
 
 
 Note that development is on Windows 10. Reported issues and submitted PRs for other OSs are also appreciated.
