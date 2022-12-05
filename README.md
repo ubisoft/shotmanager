@@ -3,7 +3,7 @@
 # Ubisoft Shot Manager - Blender Add-on
 
 </br>
-Shot Manager is NOT UNDER DEVELOPMENT ANYMORE *** It is currently maintained on Blender 3.3 LTS only, without futher improvements ***
+**Shot Manager is NOT UNDER DEVELOPMENT ANYMORE - It is currently maintained on Blender LTS only, without futher improvements**
 </br>
 
 **Shot Manager is a Blender add-on that introduces a true shot entity in Blender scenes, as well as a wide and powerful set of tools to build and edit sequences in real-time directly in the 3D context, in a non-linear way.**
