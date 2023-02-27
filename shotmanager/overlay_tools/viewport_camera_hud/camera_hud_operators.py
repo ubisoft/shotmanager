@@ -22,6 +22,8 @@ Settings panel for the camera HUD tool
 import bpy
 from bpy.types import Operator
 
+from shotmanager.config import config
+
 
 class UAS_ShotManager_CameraHUD_ToggleDisplay(Operator):
     bl_idname = "uas_shot_manager.camerahud_toggle_display"

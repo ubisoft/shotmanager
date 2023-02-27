@@ -704,7 +704,8 @@ def duplicateObject(sourceObject, newName=None, duplicateHierarchy=False):
     def _duplicateObjectRec(sourceObject, sourceParent, dupHierarchy):
 
         newObject = sourceObject.copy()
-        if newObject.animation_data is not None:
+
+        if sourceObject.animation_data is not None and sourceObject.animation_data.action is not None:
             newObject.animation_data.action = sourceObject.animation_data.action.copy()
 
         # empty objects don't have data
