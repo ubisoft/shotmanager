@@ -22,6 +22,7 @@ Draw the names of the libraries and add-ons required by this add-on
 import bpy
 
 # from ..utils import utils
+from shotmanager.config import config
 
 # import platform
 

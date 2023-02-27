@@ -24,6 +24,7 @@ from bpy.types import Operator
 from bpy.props import BoolProperty
 
 from shotmanager.utils import utils_greasepencil
+from shotmanager.config import config
 
 
 #####################################################################################

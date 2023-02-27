@@ -1,4 +1,16 @@
 -----
+## 2.1.46 (2023-02-27)
+- Fixed a crash when duplicating a shot
+
+-----
+## 2.1.45 (2023-01-10)
+- Released beta version for testing
+
+-----
+## 2.1.44 (2023-01-09)
+- Fixed a bug in Camera HUD file due to missing config import
+
+-----
 ## 2.1.43 (2022-11-14)
 - Fixed internet connection pooling on Linux
 - Added a Check Connection operator in the Preferences panel, in Debug

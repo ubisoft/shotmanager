@@ -23,6 +23,8 @@ import bpy
 from bpy.types import Operator
 from bpy.props import BoolProperty, StringProperty, IntProperty
 
+from shotmanager.config import config
+
 from . import publish_rrs
 
 # To call the operator:

@@ -22,6 +22,8 @@ Camera HUD
 import bpy
 from bpy.app.handlers import persistent
 
+from shotmanager.config import config
+
 
 @persistent
 def shotMngHandler_load_post_cameraHUD(self, context):
