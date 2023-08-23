@@ -92,7 +92,7 @@ class UAS_PT_ShotManager(Panel):
             else:
                 row.label(text=props.project_name)
 
-        addonWarning = utils_shot_manager.getShotManagerWanring()
+        addonWarning = utils_shot_manager.getShotManagerWarning()
         if "" != addonWarning:
             betaRow = row.row()
             betaRow.alert = True

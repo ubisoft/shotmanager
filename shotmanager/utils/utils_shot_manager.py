@@ -42,7 +42,7 @@ def getShotManagerAddon():
     return sm_addon
 
 
-def getShotManagerWanring():
+def getShotManagerWarning():
     """Return the add-on"""
     addonWarning = ""
     sm_addon = getShotManagerAddon()
@@ -53,7 +53,7 @@ def getShotManagerWanring():
 
 def getUbisoftName():
     """Return the Ubisoft name only if there is no warning message"""
-    addonWarning = getShotManagerWanring()
+    addonWarning = getShotManagerWarning()
     if "" != addonWarning:
         return ""
     return "Ubisoft"

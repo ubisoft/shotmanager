@@ -28,7 +28,7 @@ from ..config import config
 from ..utils import utils
 from ..utils import utils_ui
 
-from shotmanager.utils.utils_shot_manager import getShotManagerWanring
+from shotmanager.utils.utils_shot_manager import getShotManagerWarning
 from shotmanager.warnings.warnings_ui import drawWarnings
 
 
@@ -65,7 +65,7 @@ class UAS_PT_ShotManagerRenderPanelStdalone(Panel):
             else:
                 row.label(text=props.project_name)
 
-        addonWarning = getShotManagerWanring()
+        addonWarning = getShotManagerWarning()
         if "" != addonWarning:
             betaRow = row.row()
             betaRow.alert = True

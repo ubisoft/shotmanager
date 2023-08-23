@@ -32,7 +32,7 @@ from .. import stampInfoSettings
 
 from shotmanager.utils.utils_ui import collapsable_panel
 from shotmanager.utils.utils_os import module_can_be_imported
-from shotmanager.utils.utils_shot_manager import getShotManagerWanring
+from shotmanager.utils.utils_shot_manager import getShotManagerWarning
 
 from ..operators import debug
 
@@ -74,7 +74,7 @@ class UAS_PT_ShotManagerStampInfoPanelStdalone(Panel):
         icon = config.icons_col["StampInfo_32"]
         row.label(text="", icon_value=icon.icon_id)
 
-        addonWarning = getShotManagerWanring()
+        addonWarning = getShotManagerWarning()
         if "" != addonWarning:
             betaRow = row.row()
             betaRow.alert = True
